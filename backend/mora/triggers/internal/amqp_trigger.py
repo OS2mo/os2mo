@@ -39,7 +39,7 @@ async def stop_amqp():
     await amqp_system.stop()
 
 
-def trigger_dict_to_datetime(trigger_dict: Dict) -> datetime:
+def to_datetime(trigger_dict: Dict) -> datetime:
     request = trigger_dict[triggers.Trigger.REQUEST]
     if trigger_dict[triggers.Trigger.REQUEST_TYPE] == mapping.RequestType.EDIT:
         request = request["data"]
@@ -58,7 +58,7 @@ async def amqp_sender(trigger_dict: Dict) -> None:
         payload = PayloadType(
             uuid=service_uuid,
             object_uuid=UUID(trigger_dict["uuid"]),
-            time=trigger_dict_to_datetime(trigger_dict),
+            time=to_datetime(trigger_dict),
         )
         logger.debug(
             "Registering AMQP publish message task",
