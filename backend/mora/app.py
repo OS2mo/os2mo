@@ -280,12 +280,12 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
 
     @app.on_event("startup")
-    async def register_triggers():
+    async def startup():
         await triggers.register(app)
         await clients.init_clients()
 
     @app.on_event("shutdown")
-    async def close_httpx_client():
+    async def shutdown():
         await clients.close_clients()
         await triggers.internal.amqp_trigger.stop_amqp()
 
