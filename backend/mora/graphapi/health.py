@@ -23,6 +23,7 @@ from mora import config
 from mora.exceptions import HTTPException
 from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
+from mora.triggers.internal.amqp_system import amqp_system
 
 # --------------------------------------------------------------------------------------
 # Health endpoints
@@ -71,7 +72,7 @@ async def amqp() -> Optional[bool]:
     if not config.get_settings().amqp_enable:
         return None
 
-    return True
+    return amqp_system.healthcheck()
 
 
 @register_health_endpoint
