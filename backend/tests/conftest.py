@@ -20,6 +20,7 @@ from mora.api.v1.models import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
+from mora.http import clients
 
 h_db = InMemoryExampleDatabase()
 h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
@@ -77,6 +78,11 @@ def service_client():
     """
     with TestClient(test_app()) as client:
         yield client
+
+
+@pytest.fixture(autouse=True)
+async def init_clients():
+    await clients.init_clients()
 
 
 @pytest.fixture
