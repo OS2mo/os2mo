@@ -11,7 +11,6 @@ from collections.abc import Callable
 from typing import Optional
 
 import aiohttp
-from aio_pika.exceptions import AMQPError
 from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
 from pydantic import AnyUrl
@@ -23,7 +22,7 @@ from mora import config
 from mora.exceptions import HTTPException
 from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
-from mora.triggers.internal.amqp_system import amqp_system
+from mora.triggers.internal.amqp_trigger import amqp_system
 
 # --------------------------------------------------------------------------------------
 # Health endpoints

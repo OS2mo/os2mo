@@ -4,8 +4,6 @@ import asyncio
 from datetime import datetime
 from itertools import product
 from typing import Dict
-from typing import List
-from typing import Tuple
 from uuid import UUID
 
 from ramqp.moqp import MOAMQPSystem
@@ -76,13 +74,13 @@ async def amqp_sender(trigger_dict: Dict) -> None:
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
         dispatch(
             ServiceType(mapping.EMPLOYEE),
-            UUID(trigger_dict[triggers.Trigger.EMPLOYEE_UUID])
+            UUID(trigger_dict[triggers.Trigger.EMPLOYEE_UUID]),
         )
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
         dispatch(
             ServiceType(mapping.ORG_UNIT),
-            UUID(trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
+            UUID(trigger_dict[triggers.Trigger.ORG_UNIT_UUID]),
         )
 
 
