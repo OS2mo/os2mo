@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.12.4 - 2022-05-09
+-------------------
+
+[#50189] Remove integration data from LoRa models
+
 5.12.3 - 2022-04-26
 -------------------
 
