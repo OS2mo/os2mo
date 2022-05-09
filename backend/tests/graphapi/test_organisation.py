@@ -8,11 +8,12 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+import respx
+from httpx import Response
 from mora.service.org import ConfiguredOrganisation
 from mora.service.org import get_configured_organisation
 from more_itertools import distinct_permutations
 from more_itertools import one
-from yarl import URL
 
 from .util import execute
 
@@ -42,45 +43,45 @@ def gen_organisation(
     return organisation
 
 
-def mock_organisation(aioresponses, *args, repeat=False, **kwargs) -> UUID:
+def mock_organisation(respx, *args, **kwargs) -> UUID:
     # Clear Organisation cache before mocking a new one
     ConfiguredOrganisation.clear()
 
     organisation = gen_organisation(*args, **kwargs)
 
-    aioresponses.get(
-        URL("http://mox/organisation/organisation"),
-        payload={"results": [[organisation]]},
-        repeat=repeat,
-    )
+    respx.get(
+        "http://mox/organisation/organisation",
+    ).mock(return_value=Response(200, json={"results": [[organisation]]}))
     return organisation["id"]
 
 
 @pytest.mark.asyncio
-async def test_mocking_and_cache_clearing(aioresponses):
+@respx.mock
+async def test_mocking_and_cache_clearing():
     """Test that we can mock organisation endpoints and avoid caching.
 
     The purpose of this test is to easily be able to debug mocking / caching issues.
     """
-    uuid = mock_organisation(aioresponses)
+    uuid = mock_organisation(respx)
     raw_org = await get_configured_organisation()
 
     # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
+    assert respx.calls.call_count == 1
 
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
 @pytest.mark.asyncio
-async def test_query_organisation(aioresponses):
+@respx.mock
+async def test_query_organisation():
     """Test that we are able to query our organisation."""
-    uuid = mock_organisation(aioresponses)
+    uuid = mock_organisation(respx)
 
     query = "query { org { uuid, name, user_key }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
+    assert respx.calls.call_count == 1
 
     assert result.errors is None
     assert result.data["org"] == {
@@ -91,20 +92,19 @@ async def test_query_organisation(aioresponses):
 
 
 @pytest.mark.asyncio
-async def test_invalid_query_no_organisation(aioresponses):
+@respx.mock
+async def test_invalid_query_no_organisation():
     """Test that we get an error when querying with no organisation."""
     ConfiguredOrganisation.clear()
-    aioresponses.get(
-        URL("http://mox/organisation/organisation"),
-        payload={"results": []},
-        repeat=True,
+    respx.get("http://mox/organisation/organisation").mock(
+        return_value=Response(200, json={"results": []})
     )
 
     query = "query { org { uuid, name, user_key }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
+    assert respx.calls.call_count == 1
 
     # We expect one and only one error
     error = one(result.errors)
@@ -126,13 +126,14 @@ org_fields = ["uuid", "name", "user_key"]
     ),
 )
 @pytest.mark.asyncio
-async def test_query_all_permutations_of_organisation(aioresponses, fields):
+@respx.mock
+async def test_query_all_permutations_of_organisation(fields):
     """Test all permutations (15) of queries against our organisation.
 
     We will only check all permutations here, and for all other entity types we will
     just assume that it works as expected.
     """
-    uuid = mock_organisation(aioresponses)
+    uuid = mock_organisation(respx)
 
     # Fields will contain a tuple of field names with atleast 1 element
     combined_fields = ", ".join(fields)
@@ -140,7 +141,7 @@ async def test_query_all_permutations_of_organisation(aioresponses, fields):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 1
+    assert respx.calls.call_count == 1
 
     assert result.errors is None
     # Check that all expected fields are in output
@@ -156,15 +157,16 @@ async def test_query_all_permutations_of_organisation(aioresponses, fields):
 
 
 @pytest.mark.asyncio
-async def test_non_existing_field_query(aioresponses):
+@respx.mock
+async def test_non_existing_field_query():
     """Test that we are able to query our organisation."""
-    mock_organisation(aioresponses)
+    mock_organisation(respx)
 
     query = "query { org { uuid, non_existing_field }}"
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 0
+    assert respx.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == (
@@ -174,15 +176,16 @@ async def test_non_existing_field_query(aioresponses):
 
 
 @pytest.mark.asyncio
-async def test_no_fields_query(aioresponses):
+@respx.mock
+async def test_no_fields_query():
     """Test that we are able to query our organisation."""
-    mock_organisation(aioresponses)
+    mock_organisation(respx)
 
     query = "query { org { }}"
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert sum(len(v) for v in aioresponses.requests.values()) == 0
+    assert respx.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == ("Syntax Error: Expected Name, found '}'.")
