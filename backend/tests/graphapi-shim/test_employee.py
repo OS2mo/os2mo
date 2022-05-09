@@ -8,7 +8,8 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
-from yarl import URL
+import respx
+from httpx import Response
 
 from mora import exceptions
 from mora.common import get_connector
@@ -61,13 +62,11 @@ def gen_employee(
     return employee
 
 
-def mock_employee(aioresponses, repeat=False, **kwargs) -> UUID:
+def mock_employee(respx, **kwargs) -> UUID:
     employee = gen_employee(**kwargs)
-    aioresponses.get(
-        URL("http://mox/organisation/bruger"),
-        payload={"results": [[employee]]},
-        repeat=repeat,
-    )
+    respx.get(
+        "http://mox/organisation/bruger",
+    ).mock(return_value=Response(200, json={"results": [[employee]]}))
     return employee["id"]
 
 
@@ -89,16 +88,17 @@ async def old_get_employee(id: UUID, only_primary_uuid: Optional[bool] = None) -
 @pytest.mark.parametrize("only_primary_uuid", [True, False])
 @pytest.mark.parametrize("employee_exists", [True, False])
 @pytest.mark.asyncio
-async def test_shim_equivalence(aioresponses, only_primary_uuid, employee_exists):
+@respx.mock
+async def test_shim_equivalence(only_primary_uuid, employee_exists):
     """Ensure that the shim implementation behaves exactly like the old one did."""
     if employee_exists:
-        uuid = mock_employee(aioresponses, repeat=True)
+        uuid = mock_employee(respx)
     else:
         pattern = re.compile(r"^http://mox/organisation/bruger.*$")
-        aioresponses.get(pattern, repeat=True, payload={"results": [[]]})
+        respx.get(pattern).mock(return_value=Response(200, json={"results": [[]]}))
         uuid = uuid4()
 
-    mock_organisation(aioresponses, repeat=True)
+    mock_organisation(respx)
     new_exception = None
     old_exception = None
 
