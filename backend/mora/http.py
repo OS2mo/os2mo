@@ -15,7 +15,6 @@ class Clients:
         self.mo = AsyncClient(timeout=config.get_settings().httpx_timeout)
         # TODO: Setup AuthenticatedAsyncHTTPXClient when dependencies are fixed
         self.lora = AsyncClient(
-            base_url=config.get_settings().lora_url,
             timeout=config.get_settings().httpx_timeout,
         )
 

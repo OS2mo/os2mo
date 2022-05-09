@@ -587,7 +587,7 @@ class HttpxScope(BaseScope):
         params = self.encode_params({**self.connector.defaults, **params})
         response = await clients.lora.request(
             method="GET",
-            url=self.path,
+            url=self.base_path,
             # We send the parameters as JSON through the body of the GET request to
             # allow arbitrarily many, as opposed to being limited by the length of a
             # URL if we were using query parameters.
@@ -705,22 +705,22 @@ class HttpxScope(BaseScope):
         obj = uuid_to_str(obj)
 
         if uuid:
-            uuid_path = f"{self.path}/{uuid}"
+            uuid_path = f"{self.base_path}/{uuid}"
             response = await clients.lora.put(uuid_path, json=obj)
             await _httpx_check_response(response)
             return response.json()["uuid"]
         else:
-            response = await clients.lora.post(self.path, json=obj)
+            response = await clients.lora.post(self.base_path, json=obj)
             await _httpx_check_response(response)
             return response.json()["uuid"]
 
     async def delete(self, uuid):
-        url = f"{self.path}/{uuid}"
+        url = f"{self.base_path}/{uuid}"
         response = await clients.lora.delete(url)
         await _httpx_check_response(response)
 
     async def update(self, obj, uuid):
-        url = f"{self.path}/{uuid}"
+        url = f"{self.base_path}/{uuid}"
         response = await clients.lora.patch(url, json=obj)
         if response.status_code == 404:
             logger.warning("could not update nonexistent LoRa object", url=url)
