@@ -22,10 +22,7 @@ from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
-from ramodels.mo._shared import EngagementAssociationType
-from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import OpenValidity as OpenValidityModel
-from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
@@ -438,6 +435,7 @@ class Engagement:
         loader: DataLoader = info.context["engagement_engassoc_loader"]
         return await loader.load(root.uuid)
 
+
 @strawberry.experimental.pydantic.type(
     model=EngagementAssociationRead,
     all_fields=True,
@@ -462,7 +460,6 @@ class EngagementAssociation:
     async def engagement_association_type(
         self, root: EngagementAssociationRead, info: Info
     ) -> "Class":
-        # :thinking: :thinking: :thinking: :thinking:
         loader: DataLoader = info.context["class_loader"]
         return await loader.load(root.engagement_association_type_uuid)
 
