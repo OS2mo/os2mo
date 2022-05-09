@@ -158,11 +158,13 @@ class Query:
         resolver=create_resolver("engagement_getter", "engagement_loader"),
         description="Get a list of all engagements, optionally by uuid(s)",
     )
-    
+
     # EngagementsAssociations
     # -----------
-    engagement_association: list[Response[EngagementAssociation]] = strawberry.field(
-        resolver=create_resolver("engagement_association_getter", "engagement_association_loader"),
+    engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
+        resolver=create_resolver(
+            "engagement_association_getter", "engagement_association_loader"
+        ),
         description="Get a list of engagement associations",
     )
 

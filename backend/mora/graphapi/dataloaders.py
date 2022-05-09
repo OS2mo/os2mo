@@ -327,6 +327,34 @@ async def load_employee_details(
     return await gather(*tasks)
 
 
+async def get_engagement_details(
+    engagement_uuid: UUID, role_type: str
+) -> Optional[list[MOModel]]:
+    c = get_connector()
+    cls = get_handler_for_type(role_type)
+    result = await cls.get(
+        c=c,
+        search_fields=_extract_search_params(
+            query_args={
+                "at": None,
+                "validity": None,
+                "tilknyttedefunktioner": str(engagement_uuid),
+            }
+        ),
+        changed_since=None,
+    )
+    return parse_obj_as(list[MOModel], result)
+
+
+async def load_engagement_details(
+    keys: list[UUID], model: MOModel
+) -> list[list[MOModel]]:
+    """Non-bulk loader for employee details with bulk interface."""
+    mo_type = model.__fields__["type_"].default
+    tasks = map(partial(get_engagement_details, role_type=mo_type), keys)
+    return await gather(*tasks)
+
+
 async def get_org_unit_details(
     org_unit_uuid: UUID, role_type: str
 ) -> Optional[list[MOModel]]:
@@ -434,6 +462,9 @@ async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
         "org_unit_related_unit_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=RelatedUnitRead)
         ),
+        "org_unit_engagement_association_loader": DataLoader(
+            load_fn=partial(load_org_unit_details, model=EngagementAssociationRead)
+        ),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": get_employees,
         "employee_manager_role_loader": DataLoader(
@@ -458,6 +489,9 @@ async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
             load_fn=partial(load_employee_details, model=ITUserRead)
         ),
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
+        "engagement_engassoc_loader": DataLoader(
+            load_fn=partial(load_engagement_details, model=EngagementAssociationRead)
+        ),
         "engagement_getter": get_engagements,
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": get_kles,
@@ -485,7 +519,8 @@ async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
         "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
-        "engagement_association_loader": DataLoader(load_fn=partial(load_mo, model=EngagementAssociationRead)),
+        "engagement_association_loader": DataLoader(
+            load_fn=partial(load_mo, model=EngagementAssociationRead)
+        ),
         "engagement_association_getter": get_engagement_associations,
-
     }
