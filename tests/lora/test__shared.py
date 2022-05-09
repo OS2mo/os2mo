@@ -342,6 +342,12 @@ class TestFacetProperties:
     def test_init(self, model_dict):
         assert FacetProperties(**model_dict)
 
+    @given(facet_prop_strat())
+    def test_remove_integration_data(self, model_dict):
+        model_dict["integration_data"] = "test"
+        result = FacetProperties(**model_dict)
+        assert "integration_data" not in result.dict()
+
 
 @st.composite
 def valid_fp(draw):
