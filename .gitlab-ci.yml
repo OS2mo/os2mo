@@ -104,7 +104,7 @@ pages:
   stage: release
   script:
     - python docs/generate_schemas.py
-    - mkdocs build --strict --site-dir public
+    - mkdocs build --site-dir public
   artifacts:
     paths:
       - public
