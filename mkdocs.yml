@@ -42,7 +42,6 @@ extra_css:
 
 plugins:
   - search
-  - autorefs
   - mkdocstrings:
       handlers:
         python:
