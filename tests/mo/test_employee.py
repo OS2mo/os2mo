@@ -18,8 +18,8 @@ from ramodels.mo.employee import EmployeeRead
 from ramodels.mo.employee import EmployeeWrite
 from tests.mo.details.test_address import address_strat
 from tests.mo.details.test_association import association_strat
-from tests.mo.details.test_engagement import engagement_assoc_strat
 from tests.mo.details.test_engagement import engagement_strat
+from tests.mo.details.test_engagement_association import engagement_assoc_strat
 from tests.mo.details.test_it_user import it_user_strat
 from tests.mo.details.test_leave import leave_strat
 from tests.mo.details.test_manager import manager_strat

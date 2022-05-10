@@ -16,9 +16,10 @@ from .association import AssociationBase
 from .association import AssociationRead
 from .association import AssociationWrite
 from .engagement import Engagement
-from .engagement import EngagementAssociation
 from .engagement import EngagementRead
 from .engagement import EngagementWrite
+from .engagement_association import EngagementAssociation
+from .engagement_association import EngagementAssociationRead
 from .it_system import ITSystemRead
 from .it_system import ITUser
 from .it_system import ITUserRead
@@ -66,6 +67,7 @@ __all__ = [
     "EngagementRead",
     "EngagementWrite",
     "EngagementAssociation",
+    "EngagementAssociationRead",
     "ITSystemRead",
     "ITUser",
     "ITUserRead",

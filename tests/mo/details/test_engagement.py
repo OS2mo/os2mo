@@ -10,8 +10,6 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from ramodels.mo._shared import EmployeeRef
-from ramodels.mo._shared import EngagementAssociationType
-from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import LeaveRef
@@ -19,7 +17,6 @@ from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import PersonRef
 from ramodels.mo._shared import Primary
 from ramodels.mo._shared import Validity
-from ramodels.mo.details import EngagementAssociation
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.engagement import EngagementBase
 from ramodels.mo.details.engagement import EngagementRead
@@ -175,47 +172,3 @@ class TestEngagement:
     @given(write_strat())
     def test_write(self, model_dict):
         assert EngagementWrite(**model_dict)
-
-
-@st.composite
-def engagement_assoc_strat(draw):
-    required = {
-        "org_unit": st.builds(OrgUnitRef),
-        "engagement": st.builds(EngagementRef),
-        "engagement_association_type": st.builds(EngagementAssociationType),
-        "validity": st.builds(Validity),
-    }
-    optional = {"type": st.just("engagement_association")}
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
-    return st_dict
-
-
-@st.composite
-def engagement_assoc_fsf_strat(draw):
-    required = {
-        "uuid": st.uuids(),
-        "org_unit_uuid": st.uuids(),
-        "engagement_uuid": st.uuids(),
-        "engagement_association_type_uuid": st.uuids(),
-        "from_date": from_date_strat(),
-    }
-    optional = {"to_date": st.none() | to_date_strat()}
-
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
-    return st_dict
-
-
-class TestEngagementAssociation:
-    @given(engagement_assoc_strat())
-    def test_init(self, model_dict):
-        assert EngagementAssociation(**model_dict)
-
-    @given(engagement_assoc_strat(), not_from_regex(r"^engagement_association$"))
-    def test_validators(self, model_dict, invalid_type):
-        with unexpected_value_error():
-            model_dict["type"] = invalid_type
-            EngagementAssociation(**model_dict)
-
-    @given(engagement_assoc_fsf_strat())
-    def test_from_simplified_fields(self, simp_fields_dict):
-        assert EngagementAssociation.from_simplified_fields(**simp_fields_dict)
