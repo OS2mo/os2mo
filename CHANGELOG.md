@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+5.13.0 - 2022-05-10
+-------------------
+
+[#50067] Add EngagementAssociation model to MO models
+
 5.12.4 - 2022-05-09
 -------------------
 
