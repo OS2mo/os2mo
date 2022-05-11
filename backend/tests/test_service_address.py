@@ -1,14 +1,15 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
-import tests.cases
 from aioresponses import CallbackResult
+from more_itertools import one
+from yarl import URL
+
+import tests.cases
 from mora import exceptions
 from mora.service import address
-from more_itertools import one
 from tests import util
 from tests.util import dar_loader
-from yarl import URL
 
 
 class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
@@ -413,7 +414,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             url,
             callback=callback,
         )
-
+        # change
         await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
             "address_autocomplete/?q=Strandlodsvej+25M",
