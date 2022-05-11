@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import json
-from dataclasses import dataclass
 from datetime import datetime
 from itertools import product
 from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
+from uuid import UUID
 
-import aio_pika
-from aio_pika.pool import Pool
+from ramqp.moqp import MOAMQPSystem
+from ramqp.moqp import ObjectType
+from ramqp.moqp import PayloadType
+from ramqp.moqp import RequestType
+from ramqp.moqp import ServiceType
+
 from structlog import get_logger
 
 from mora import config
@@ -22,193 +22,65 @@ from mora import util
 
 logger = get_logger()
 
-_SERVICES = ("employee", "org_unit")
-_OBJECT_TYPES = (
-    "address",
-    "association",
-    "employee",
-    "engagement",
-    "it",
-    "kle",
-    "leave",
-    "manager",
-    "owner",
-    "org_unit",
-    "related_unit",
-    "role",
-)
-_ACTIONS = tuple(request_type.value.lower() for request_type in mapping.RequestType)
+
+amqp_system = MOAMQPSystem()
 
 
-@dataclass
-class Pools:
-    connection_pool: Optional[Pool] = None
-    channel_pool: Optional[Pool] = None
-    exchange_pool: Optional[Pool] = None
-
-
-pools = Pools()
-
-
-async def setup_pools() -> None:
-    pools.connection_pool = Pool(get_connection, max_size=2)
-    pools.channel_pool = Pool(get_channel, max_size=10)
-    pools.exchange_pool = Pool(get_exchange, max_size=10)
-
-
-async def get_connection():
-    return await aio_pika.connect_robust(
-        config.get_settings().amqp_url,
+async def start_amqp():
+    await amqp_system.start(
+        amqp_url=config.get_settings().amqp_url,
+        amqp_exchange=config.get_settings().amqp_os2mo_exchange,
     )
 
 
-async def get_channel() -> aio_pika.Channel:
-    async with pools.connection_pool.acquire() as connection:
-        return await connection.channel()
+async def stop_amqp():
+    await amqp_system.stop()
 
 
-async def get_exchange() -> aio_pika.Exchange:
-    async with pools.channel_pool.acquire() as channel:
-        return await channel.declare_exchange(
-            name=config.get_settings().amqp_os2mo_exchange,
-            type="topic",
-        )
-
-
-async def close_amqp():
-    if pools.exchange_pool.is_closed is False:
-        logger.debug("Closing AMQP Exchange Pool")
-        try:
-            await pools.exchange_pool.close()
-        except Exception:
-            logger.exception(
-                "Failed to close AMQP Exchange Pool",
-                exc_info=True,
-            )
-
-    if pools.channel_pool.is_closed is False:
-        logger.debug("Closing AMQP Channel Pool")
-        try:
-            await pools.channel_pool.close()
-        except Exception:
-            logger.exception(
-                "Failed to close AMQP Channel Pool",
-                exc_info=True,
-            )
-
-    if pools.connection_pool.is_closed is False:
-        logger.debug("Closing AMQP Connection Pool")
-        try:
-            await pools.connection_pool.close()
-        except Exception:
-            logger.exception(
-                "Failed to close AMQP Connection Pool",
-                exc_info=True,
-            )
-
-
-async def publish_message(
-    service: str,
-    object_type: str,
-    action: str,
-    service_uuid: str,
-    object_uuid: str,
-    datetime: datetime,
-) -> None:
-    """Send a message to the MO exchange.
-
-    For the full documentation, refer to "AMQP Messages" in the docs.
-    The source for that is in ``docs/amqp.rst``.
-
-    """
-    # we are strict about the topic format to avoid programmer errors.
-    if service not in _SERVICES:
-        raise ValueError(
-            "service {!r} not allowed, use one of {!r}".format(service, _SERVICES)
-        )
-    if object_type not in _OBJECT_TYPES:
-        raise ValueError(
-            "object_type {!r} not allowed, use one of {!r}".format(
-                object_type, _OBJECT_TYPES
-            )
-        )
-    if action not in _ACTIONS:
-        raise ValueError(
-            "action {!r} not allowed, use one of {!r}".format(action, _ACTIONS)
-        )
-
-    topic = "{}.{}.{}".format(service, object_type, action)
-    message_dict = {
-        "uuid": service_uuid,
-        "object_uuid": object_uuid,
-        "time": datetime.isoformat(),
-    }
-
-    message = aio_pika.Message(body=json.dumps(message_dict).encode("utf-8"))
-
-    # Message publishing is a secondary task to writing to lora.
-    #
-    # We should not throw a HTTPError in the case where lora writing is
-    # successful, but amqp is down. Therefore, the try/except block.
+def to_datetime(trigger_dict: Dict) -> datetime:
+    request = trigger_dict[triggers.Trigger.REQUEST]
+    if trigger_dict[triggers.Trigger.REQUEST_TYPE] == mapping.RequestType.EDIT:
+        request = request["data"]
     try:
-        async with pools.exchange_pool.acquire() as exchange:
-            logger.debug(
-                "Publishing AMQP message",
-                message=message_dict,
-                routing_key=topic,
-            )
-            await exchange.publish(
-                message=message,
-                routing_key=topic,
-            )
-    except aio_pika.exceptions.AMQPError:
-        logger.exception(
-            "Failed to publish AMQP message",
-            topic=topic,
-            message=message_dict,
-            exc_info=True,
-        )
+        return util.get_valid_from(request)
+    except exceptions.HTTPException:
+        return util.get_valid_to(request)
 
 
 async def amqp_sender(trigger_dict: Dict) -> None:
-    request_type = trigger_dict[triggers.Trigger.REQUEST_TYPE]
 
-    request = trigger_dict[triggers.Trigger.REQUEST]
-    if request_type == mapping.RequestType.EDIT:
-        request = request["data"]
+    object_type = ObjectType(trigger_dict[triggers.Trigger.ROLE_TYPE].lower())
+    request_type = RequestType(trigger_dict[triggers.Trigger.REQUEST_TYPE].lower())
 
-    try:  # date = from or to
-        datetime = util.get_valid_from(request)
-    except exceptions.HTTPException:
-        datetime = util.get_valid_to(request)
-
-    action = request_type.value.lower()
-    object_type = trigger_dict[triggers.Trigger.ROLE_TYPE]
-    object_uuid = trigger_dict["uuid"]
-
-    amqp_messages: List[Tuple[str, str]] = []
+    def dispatch(service_type: ServiceType, service_uuid: UUID) -> None:
+        payload = PayloadType(
+            uuid=service_uuid,
+            object_uuid=UUID(trigger_dict["uuid"]),
+            time=to_datetime(trigger_dict),
+        )
+        logger.debug(
+            "Registering AMQP publish message task",
+            service_type=service_type,
+            object_type=object_type,
+            request_type=request_type,
+            payload=payload,
+        )
+        asyncio.create_task(
+            amqp_system.publish_message(
+                service_type, object_type, request_type, payload
+            )
+        )
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
-        amqp_messages.append(
-            (mapping.EMPLOYEE, trigger_dict[triggers.Trigger.EMPLOYEE_UUID])
+        dispatch(
+            ServiceType(mapping.EMPLOYEE),
+            UUID(trigger_dict[triggers.Trigger.EMPLOYEE_UUID]),
         )
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
-        amqp_messages.append(
-            (mapping.ORG_UNIT, trigger_dict[triggers.Trigger.ORG_UNIT_UUID])
-        )
-
-    for service, service_uuid in amqp_messages:
-        logger.debug(
-            "Registering AMQP publish message task",
-            service=service,
-            object_type=object_type,
-            action=action,
-        )
-        asyncio.create_task(
-            publish_message(
-                service, object_type, action, service_uuid, object_uuid, datetime
-            )
+        dispatch(
+            ServiceType(mapping.ORG_UNIT),
+            UUID(trigger_dict[triggers.Trigger.ORG_UNIT_UUID]),
         )
 
 
@@ -224,7 +96,7 @@ async def register(app) -> bool:
         logger.debug("AMQP Triggers not enabled!")
         return False
 
-    await setup_pools()
+    await start_amqp()
 
     # Register trigger on everything
     ROLE_TYPES = [
