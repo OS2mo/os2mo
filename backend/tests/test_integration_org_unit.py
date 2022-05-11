@@ -6,9 +6,9 @@ from itertools import cycle
 import freezegun
 import notsouid
 import pytest
+import tests.cases
 from parameterized import parameterized
 
-import tests.cases
 from . import util
 from mora import conf_db
 from mora import lora
@@ -458,7 +458,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual)
 
-    # @pytest.mark.xfail  # TODO: Not sure why this is failing
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
     async def test_create_org_unit(self, m):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
@@ -642,8 +641,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "org_unit_level": {
                     "example": None,
                     "facet": org_unit_level_facet,
-                    "full_name": "Niveau 10",
                     "name": "Niveau 10",
+                    "full_name": "Niveau 10",
                     "owner": None,
                     "scope": None,
                     "top_level_facet": org_unit_level_facet,
@@ -653,8 +652,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "time_planning": {
                     "example": None,
                     "facet": org_unit_type_facet,
-                    "full_name": "Institut",
                     "name": "Institut",
+                    "full_name": "Institut",
                     "owner": None,
                     "scope": None,
                     "top_level_facet": org_unit_type_facet,
@@ -664,8 +663,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "org_unit_type": {
                     "example": None,
                     "facet": org_unit_type_facet,
-                    "full_name": "Institut",
                     "name": "Institut",
+                    "full_name": "Institut",
                     "owner": None,
                     "scope": None,
                     "top_level_facet": org_unit_type_facet,
@@ -685,8 +684,8 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     "org_unit_type": {
                         "example": None,
                         "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
                         "name": "Afdeling",
+                        "full_name": "Afdeling",
                         "owner": None,
                         "scope": None,
                         "top_level_facet": org_unit_type_facet,
@@ -2980,189 +2979,3 @@ class Tests(tests.cases.LoRATestCase):
         for path, expected in util.get_fixture("test_trees.json").items():
             with self.subTest(path):
                 self.assertRequestResponse(path, expected)
-
-
-@pytest.mark.usefixtures("sample_structures_minimal")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class TestsMinimal(tests.cases.LoRATestCase):
-    maxDiff = None
-
-    def test_read_root(self):
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "location": "",
-                "name": "Overordnet Enhed",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "time_planning": None,
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "user_settings": {"orgunit": {}},
-                "parent": None,
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-            },
-        )
-
-    def test_create_root_unit(self):
-        unitid = "00000000-0000-0000-0000-000000000000"
-        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-
-        roots = [
-            {
-                "child_count": 0,
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
-            },
-        ]
-
-        with self.subTest("prerequisites"):
-            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            unitid,
-            json={
-                "name": "Fake Corp",
-                "uuid": unitid,
-                "user_key": "fakefakefake",
-                "parent": {
-                    "uuid": orgid,
-                },
-                "time_planning": None,
-                "org_unit_type": {
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": "2018-01-01",
-                },
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/{}/".format(unitid),
-            {
-                "location": "",
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "org": {"name": "Aarhus Universitet", "user_key": "AU", "uuid": orgid},
-                "time_planning": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "org_unit_level": None,
-                "parent": None,
-                "validity": {"from": "2017-01-01", "to": "2018-01-01"},
-                "user_settings": {"orgunit": {}},
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-        roots.insert(
-            0,
-            {
-                "child_count": 0,
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
-                    "to": "2018-01-01T00:00:00+01:00",
-                },
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/o/{}/children".format(orgid),
-            roots,
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-    def test_create_root_unit_without_org_id(self):
-        unitid = "00000000-0000-0000-0000-000000000000"
-        orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-
-        roots = [
-            {
-                "child_count": 0,
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
-            },
-        ]
-
-        with self.subTest("prerequisites"):
-            self.assertRequestResponse("/service/o/{}/children".format(orgid), roots)
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            unitid,
-            json={
-                "name": "Fake Corp",
-                "uuid": unitid,
-                "user_key": "fakefakefake",
-                "time_planning": None,
-                "org_unit_type": {
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": "2018-01-01",
-                },
-            },
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-        expected_parent = None
-        actual_parent = self.assertRequest("/service/ou/{}/".format(unitid))["parent"]
-        self.assertEqual(expected_parent, actual_parent)
-        roots.insert(
-            0,
-            {
-                "child_count": 0,
-                "name": "Fake Corp",
-                "user_key": "fakefakefake",
-                "uuid": unitid,
-                "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
-                    "to": "2018-01-01T00:00:00+01:00",
-                },
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/o/{}/children".format(orgid),
-            roots,
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )

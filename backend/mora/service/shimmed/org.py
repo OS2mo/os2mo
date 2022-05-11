@@ -3,191 +3,37 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from collections.abc import Iterable
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
-from typing import Any
 from typing import Literal
 from typing import Optional
 from typing import Union
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import ilen
 from more_itertools import one
 from ramodels.mo import OpenValidity
 from ramodels.mo import OrganisationRead
-from ramodels.mo import OrganisationUnitRead
 
+from .errors import handle_gql_error
+from .util import filter_data
 from mora import exceptions
 from mora.common import _create_graphql_connector
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
-from mora.graphapi.shim import MOEmployee
-from mora.service.employee import router as employee_router
-from mora.service.itsystem import router as it_router
+from mora.graphapi.shim import OrganisationLevelRead
+from mora.graphapi.shim import OrganisationUnitCount
 from mora.service.org import router as org_router
 
 
 # --------------------------------------------------------------------------------------
 # Shimmed endpoints
 # --------------------------------------------------------------------------------------
-
-
-@employee_router.get(
-    "/e/{id}/",
-    response_model=Union[MOEmployee, dict[str, UUID]],
-    response_model_exclude_unset=True,
-)
-async def get_employee(
-    id: UUID,
-    only_primary_uuid: Optional[bool] = None,
-    at: Optional[Union[date, datetime]] = None,
-):
-    """Retrieve an employee."""
-    if only_primary_uuid:
-        query = """
-            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
-              employees(uuids: [$uuid], from_date: $from_date) {
-            objects { uuid }
-          }
-        }
-        """
-
-        def transformer(data: dict[str, Any]) -> dict[str, Any]:
-            employees = flatten_data(data["employees"])
-            employee = one(employees)
-            return employee
-
-    else:
-        query = """
-            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
-                employees(uuids: [$uuid], from_date: $from_date) {
-            objects {
-              uuid, user_key, cpr_no
-              givenname, surname, name
-              nickname_givenname, nickname_surname, nickname
-                        seniority
-            }
-          }
-          org {
-            uuid, user_key, name
-          }
-        }
-        """
-
-        def transformer(data: dict[str, Any]) -> dict[str, Any]:
-            employees = flatten_data(data["employees"])
-            employee = one(employees)
-            return {
-                **employee,
-                "org": r.data["org"],
-            }
-
-    dates = dict()
-    if at is not None:
-        dates["from_date"] = at
-    variables = {"uuid": id, **dates}
-    # Execute GraphQL query to fetch required data
-    r = await execute_graphql(
-        query,
-        variable_values=jsonable_encoder(variables),
-    )
-    if r.errors:
-        raise ValueError(r.errors)
-    if not flatten_data(r.data["employees"]):
-        exceptions.ErrorCodes.E_USER_NOT_FOUND()
-    # Transform graphql data into the original format
-    return transformer(r.data)
-
-
-def meta_router():
-    router = APIRouter()
-
-    @router.get("/version/")
-    async def version():
-        query = """
-        query VersionQuery {
-          version {
-            mo_hash
-            lora_version
-            mo_version
-          }
-        }
-        """
-
-        # Execute GraphQL query to fetch required data
-        r = await execute_graphql(query)
-        if r.errors:
-            raise ValueError(r.errors)
-
-        return r.data["version"]
-
-    @router.get("/service/{rest_of_path:path}")
-    def no_such_endpoint(rest_of_path):
-        """Throw an error on unknown `/service/` endpoints."""
-        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
-
-    return router
-
-
-@it_router.get("/o/{orgid}/it/")
-async def list_it_systems(orgid: UUID):
-    """List the IT systems available within the given organisation.
-
-    :param orgid: Restrict search to this organisation.
-
-    .. :quickref: IT system; List available systems
-
-    :>jsonarr string uuid: The universally unique identifier of the system.
-    :>jsonarr string name: The name of the system.
-    :>jsonarr string system_type: The type of the system.
-    :>jsonarr string user_key: A human-readable unique key for the system.
-
-    :status 200: Always.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "Lokal Rammearkitektur",
-          "system_type": null,
-          "user_key": "LoRa",
-          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"
-        },
-        {
-          "name": "Active Directory",
-          "system_type": null,
-          "user_key": "AD",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"
-        }
-      ]
-
-    """
-    orgid = str(orgid)
-
-    query = """
-    query ITSystemQuery {
-      itsystems {
-        uuid, name, system_type, user_key
-      }
-      org {
-        uuid
-      }
-    }
-    """
-    r = await execute_graphql(query)
-    if r.errors:
-        raise ValueError(r.errors)
-    if r.data["org"]["uuid"] != orgid:
-        return []
-    return r.data["itsystems"]
 
 
 @org_router.get(
@@ -219,27 +65,14 @@ async def list_organisations() -> list[OrganisationRead]:
     return [r.data["org"]]
 
 
-class OrganisationLevelRead(OrganisationRead):
-    child_count: int
-    person_count: int
-    unit_count: int
-    engagement_count: int
-    association_count: int
-    leave_count: int
-    role_count: int
-    manager_count: int
-
-
-def filter_data(data: Iterable, key: str, value: Any) -> filter:
-    return filter(lambda obj: obj[key] == value, data)
-
-
 @org_router.get(
     "/o/{orgid}/",
     response_model=OrganisationLevelRead,
     response_model_exclude_unset=True,
 )
-async def get_organisation(orgid: UUID) -> OrganisationLevelRead:
+async def get_organisation(
+    orgid: UUID = Path(..., description="UUID of the organisation")
+) -> OrganisationLevelRead:
     """Obtain the initial level of an organisation."""
     query = """
     query OrganisationQuery {
@@ -271,11 +104,7 @@ async def get_organisation(orgid: UUID) -> OrganisationLevelRead:
     """
     # Execute GraphQL query to fetch required data
     response = await execute_graphql(query)
-    if response.errors:
-        error = one(response.errors)
-        if error.original_error:
-            raise error.original_error
-        raise ValueError(error)
+    handle_gql_error(response)
 
     if response.data["org"]["uuid"] != str(orgid):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
@@ -297,24 +126,46 @@ async def get_organisation(orgid: UUID) -> OrganisationLevelRead:
     }
 
 
-class OrganisationUnitCount(OrganisationUnitRead):
-    child_count: int
-    engagement_count: int = 0
-    association_count: int = 0
-
-
 @org_router.get(
     "/o/{parentid}/children",
     response_model=list[OrganisationUnitCount],
     response_model_exclude_unset=True,
 )
 async def get_org_children(
-    parentid: UUID,
-    at: Optional[Union[date, datetime]] = None,
-    count: Optional[set[Literal["engagement", "association"]]] = Query(None),
-    org_unit_hierarchy: Optional[UUID] = None,
+    parentid: UUID = Path(..., description="UUID of the parent"),
+    at: Optional[Union[date, datetime]] = Query(
+        None,
+        description="Show the children valid at this point in time, in ISO-8601 format",
+    ),
+    count: set[Literal["engagement", "association"]] = Query(
+        set(),
+        description="The name(s) of related objects to count. "
+        "If `count=association`, each organisational unit in the tree is annotated "
+        "with an additional `association_count` key which contains the number of "
+        "associations in the unit. `count=engagement` is also allowed. "
+        "It is allowed to pass more than one `count` query parameter.",
+    ),
+    org_unit_hierarchy: Optional[UUID] = Query(
+        None,
+        description="The tree returned is filtered to contain "
+        "only organisational units which belong to the given hierarchy.",
+    ),
 ) -> list[OrganisationUnitCount]:
     """Obtain the list of nested units within an organisation."""
+    # Check org exists
+    query = """
+    query CheckOrg {
+        org {
+            uuid
+        }
+    }
+    """
+    response = await execute_graphql(query)
+    handle_gql_error(response)
+
+    if response.data["org"]["uuid"] != str(parentid):
+        exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
+
     # This sucks! We should port this parent functionality to our
     # GraphQL loaders instead
     if at is not None:
@@ -358,18 +209,19 @@ async def get_org_children(
             }
         }
     """
-    count = count or set()
     variables = {
         "uuids": children,
         "engagements": "engagement" in count,
         "associations": "association" in count,
         "hierarchy": bool(org_unit_hierarchy),
     }
-    variables |= {"from_date": at} if at is not None else dict()
+    if at is not None:
+        variables["from_date"] = at
     response = await execute_graphql(
         query,
         variable_values=jsonable_encoder(variables),
     )
+    handle_gql_error(response)
 
     org_units = flatten_data(response.data["org_units"])
     if not org_units:

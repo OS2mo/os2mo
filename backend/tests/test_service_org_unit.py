@@ -20,9 +20,7 @@ from mora.config import Settings
 from mora.exceptions import HTTPException
 from mora.handler.impl.association import AssociationReader
 from mora.service.orgunit import _get_count_related
-from mora.service.orgunit import get_children
 from mora.service.orgunit import get_one_orgunit
-from mora.service.orgunit import get_orgunit
 from mora.service.orgunit import get_unit_ancestor_tree
 from mora.service.orgunit import UnitDetails
 from mora.triggers import Trigger
@@ -357,61 +355,6 @@ class TestGetCountRelated(tests.cases.TestCase):
         ):
             with self.assertRaises(HTTPException):
                 _get_count_related()
-
-
-@pytest.mark.usefixtures("sample_structures")
-class TestGetOrgUnit(tests.cases.AsyncConfigTestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
-        self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
-
-    async def test_count_association(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = await get_orgunit(self._orgunit_uuid)
-            self.assertEqual(result["association_count"], 1)
-
-    async def test_count_engagement(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = await get_orgunit(self._orgunit_uuid)
-            self.assertEqual(result["engagement_count"], 3)
-
-
-@pytest.mark.usefixtures("sample_structures")
-class TestGetChildren(tests.cases.AsyncConfigTestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
-        # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
-        # We need the UUID of a *parent* OU to test `get_children`.
-        # Below is the UUID of "Overordnet Enhed".
-        self._orgunit_uuid = UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")
-
-    async def test_count_association(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = await get_children(self._orgunit_uuid)
-            self._assert_matching_ou_has(
-                result,
-                user_key="hum",
-                association_count=1,
-            )
-
-    async def test_count_engagement(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = await get_children(self._orgunit_uuid)
-            self._assert_matching_ou_has(
-                result,
-                user_key="hum",
-                engagement_count=3,
-            )
-
-    def _assert_matching_ou_has(self, doc, user_key=None, **attrs):
-        for node in doc:
-            if node.get("user_key") == user_key:
-                for attr_name, attr_value in attrs.items():
-                    self.assertEqual(node.get(attr_name), attr_value)
 
 
 @pytest.mark.usefixtures("sample_structures")

@@ -13,29 +13,11 @@ from typing import Optional
 import pytest
 from fastapi.testclient import TestClient
 
-from mora.app import create_app
-from mora.auth.keycloak.oidc import auth
-from tests.cases import fake_auth
+from tests.conftest import test_app
 
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
-
-
-def test_app(**overrides: Any):
-    app = create_app(overrides)
-    app.dependency_overrides[auth] = fake_auth
-    return app
-
-
-@pytest.fixture
-def service_client():
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
-    with TestClient(test_app()) as client:
-        yield client
 
 
 @pytest.fixture(scope="class")
