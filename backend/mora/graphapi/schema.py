@@ -27,6 +27,7 @@ from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import EngagementAssociationRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
@@ -376,6 +377,13 @@ class Employee:
         loader: DataLoader = info.context["employee_ituser_loader"]
         return await loader.load(root.uuid)
 
+    @strawberry.field(description="Engagement associations")
+    async def engagement_associations(
+        self, root: EmployeeRead, info: Info
+    ) -> list["EngagementAssociation"]:
+        loader: DataLoader = info.context["employee_engagement_association_loader"]
+        return await loader.load(root.uuid)
+
 
 # Engagement
 # ----------
@@ -422,6 +430,45 @@ class Engagement:
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
         return (await loader.load(root.org_unit_uuid)).objects
+
+    @strawberry.field(description="Engagement associations")
+    async def engagement_associations(
+        self, root: EngagementRead, info: Info
+    ) -> list["EngagementAssociation"]:
+        loader: DataLoader = info.context["engagement_engagement_association_loader"]
+        return await loader.load(root.uuid)
+
+
+# Engagement Association
+# ----------
+
+
+@strawberry.experimental.pydantic.type(
+    model=EngagementAssociationRead,
+    all_fields=True,
+    description="Employee engagement in an organisation unit",
+)
+class EngagementAssociation:
+    @strawberry.field(description="Related organisation unit")
+    async def org_unit(
+        self, root: EngagementAssociationRead, info: Info
+    ) -> list["OrganisationUnit"]:
+        loader: DataLoader = info.context["org_unit_loader"]
+        return (await loader.load(root.org_unit_uuid)).objects
+
+    @strawberry.field(description="Related engagement")
+    async def engagement(
+        self, root: EngagementAssociationRead, info: Info
+    ) -> list["Engagement"]:
+        loader: DataLoader = info.context["engagement_loader"]
+        return (await loader.load(root.engagement_uuid)).objects
+
+    @strawberry.field(description="Related engagement association type")
+    async def engagement_association_type(
+        self, root: EngagementAssociationRead, info: Info
+    ) -> "Class":
+        loader: DataLoader = info.context["class_loader"]
+        return await loader.load(root.engagement_association_type_uuid)
 
 
 # Facet
@@ -746,6 +793,13 @@ class OrganisationUnit:
         self, root: OrganisationUnitRead, info: Info
     ) -> list["RelatedUnit"]:
         loader: DataLoader = info.context["org_unit_related_unit_loader"]
+        return await loader.load(root.uuid)
+
+    @strawberry.field(description="Engagement associations for the organisational unit")
+    async def engagement_associations(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> list["EngagementAssociation"]:
+        loader: DataLoader = info.context["org_unit_engagement_association_loader"]
         return await loader.load(root.uuid)
 
 

@@ -37,6 +37,7 @@ from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
+from mora.graphapi.schema import EngagementAssociation
 from mora.graphapi.schema import Facet
 from mora.graphapi.schema import Health
 from mora.graphapi.schema import ITSystem
@@ -156,6 +157,15 @@ class Query:
     engagements: list[Response[Engagement]] = strawberry.field(
         resolver=create_resolver("engagement_getter", "engagement_loader"),
         description="Get a list of all engagements, optionally by uuid(s)",
+    )
+
+    # EngagementsAssociations
+    # -----------
+    engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
+        resolver=create_resolver(
+            "engagement_association_getter", "engagement_association_loader"
+        ),
+        description="Get a list of engagement associations",
     )
 
     # Facets
