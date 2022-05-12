@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.10.0 - 2022-05-12
+-------------------
+
+[#50067] Implement EngagementAssociation in GraphQL
+
 4.9.0 - 2022-05-12
 ------------------
 
