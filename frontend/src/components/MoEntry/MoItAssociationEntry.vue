@@ -61,6 +61,12 @@ SPDX-License-Identifier: MPL-2.0
   </div>
 </template>
 
+<style>
+.mo-input-group {
+  width: auto !important;
+}
+</style>
+
 <script>
 /**
  * An IT association entry component.
