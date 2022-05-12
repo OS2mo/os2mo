@@ -5,47 +5,61 @@ server {
     listen  [::]:80;
     server_name  localhost;
 
+    # proxy_passes MUST use variables to force DNS lookup on every request
+    # to allow the proxy to start before all services are initialised.
+    resolver 127.0.0.11 valid=5s;  # 127.0.0.11 is the docker DNS server
+
     # MO Paths
     location /openapi.json {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /graphql {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /metrics {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /docs {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /service/ {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /version/ {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /testing/ {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     location /health/ {
-        proxy_pass http://mo;
+        set $mo mo;
+        proxy_pass http://$mo;
     }
 
     # Keycloak
     location /auth/ {
-        proxy_pass http://keycloak:8080;
+        set $keycloak keycloak;
+        proxy_pass http://$keycloak:8080;
     }
 
     # Frontend
     # (everything unmatched)
     location / {
-        proxy_pass http://frontend;
+        set $frontend frontend;
+        proxy_pass http://$frontend;
     }
 }
