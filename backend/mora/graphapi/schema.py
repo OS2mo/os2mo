@@ -45,6 +45,7 @@ from mora.graphapi.models import HealthRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 
+
 # --------------------------------------------------------------------------------------
 # Schema
 # --------------------------------------------------------------------------------------
@@ -310,6 +311,10 @@ class Class:
             parent = await asyncio.gather(loader.load(parent.parent_uuid))
 
         return await info.context["facet_loader"].load(parent.facet_uuid)
+
+    @strawberry.field(description="Full name, for backwards compatibility")
+    async def full_name(self, root: ClassRead) -> str:
+        return root.name
 
 
 # Employee
@@ -613,7 +618,7 @@ class OrganisationUnit:
         """Get the immediate ancestor in the organisation tree.
 
         Returns:
-            Optional[OrganisationUnit]: The ancestor, if any.
+            Optional[list[OrganisationUnit]]: The ancestor(s), if any.
         """
         loader: DataLoader = info.context["org_unit_loader"]
         if root.parent_uuid is None:
@@ -631,6 +636,11 @@ class OrganisationUnit:
         """
         loader: DataLoader = info.context["org_unit_children_loader"]
         return await loader.load(root.uuid)
+
+    @strawberry.field(description="Children count of the organisation unit.")
+    async def child_count(self, root: OrganisationUnitRead, info: Info) -> int:
+        loader: DataLoader = info.context["org_unit_children_loader"]
+        return len(await loader.load(root.uuid))
 
     # TODO: Add UUID to RAModel and remove model prefix here
     @strawberry.field(description="Organisation unit hierarchy")

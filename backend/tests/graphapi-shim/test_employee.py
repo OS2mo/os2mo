@@ -8,16 +8,16 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from tests.graphapi.test_organisation import mock_organisation
+from tests.util import patch_is_graphql
+from tests.util import patch_query_args
 from yarl import URL
 
 from mora import exceptions
 from mora.common import get_connector
 from mora.service.employee import EmployeeDetails
 from mora.service.employee import get_one_employee
-from mora.service.shimmed import get_employee
-from tests.graphapi.test_organisation import mock_organisation
-from tests.util import patch_is_graphql
-from tests.util import patch_query_args
+from mora.service.shimmed.employee import get_employee
 
 
 def gen_employee(
@@ -105,7 +105,7 @@ async def test_shim_equivalence(aioresponses, only_primary_uuid, employee_exists
     with patch_query_args():
         with patch_is_graphql(True):
             try:
-                new_result = await get_employee(uuid, only_primary_uuid)
+                new_result = await get_employee(uuid, only_primary_uuid, at=None)
             except Exception as exception:
                 new_exception = exception
             try:

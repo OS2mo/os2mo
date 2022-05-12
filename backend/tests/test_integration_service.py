@@ -1,12 +1,11 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from unittest.mock import patch
 
 import freezegun
 import pytest
-
 import tests.cases
+
 from . import util
 
 org_unit_type_facet = {
@@ -502,26 +501,6 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
     async def test_children(self):
-        with self.subTest("invalid"):
-            await self.assertRequestFails(
-                "/service/o/00000000-0000-0000-0000-000000000000/children",
-                404,
-            )
-
-            await self.assertRequestFails(
-                "/service/ou/00000000-0000-0000-0000-000000000000/children",
-                404,
-            )
-
-        with self.subTest("resolving a unit as an org, and vice versa"):
-            await self.assertRequestFails(
-                "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-                404,
-            )
-            await self.assertRequestFails(
-                "/service/ou/456362c4-0ee4-4e5e-a72c-751239745e62/children",
-                404,
-            )
 
         await self.assertRequestResponse(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
@@ -566,200 +545,6 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
                     "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
                     "validity": {"from": "2017-01-01", "to": None},
                     "child_count": 0,
-                },
-            ],
-        )
-
-    async def test_orgunit(self):
-        with self.subTest("invalid"):
-            await self.assertRequestFails(
-                "/service/ou/00000000-0000-0000-0000-000000000000/",
-                404,
-            )
-
-            await self.assertRequestFails(
-                "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
-                "?at=2000-01-01T00:00:00Z",
-                404,
-            )
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "user_settings": {"orgunit": {}},
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "parent": None,
-                "time_planning": None,
-                "location": "",
-            },
-        )
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
-            [
-                {
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "user_settings": {"orgunit": {}},
-                    "location": "",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": None,
-                    "time_planning": None,
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                }
-            ],
-        )
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [],
-        )
-
-        await util.load_sample_structures()
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/org_unit",
-            [
-                {
-                    "name": "Overordnet Enhed",
-                    "user_key": "root",
-                    "user_settings": {"orgunit": {}},
-                    "location": "",
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": None,
-                    "time_planning": None,
-                    "validity": {
-                        "from": "2016-01-01",
-                        "to": None,
-                    },
-                }
-            ],
-        )
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
-            {
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "user_settings": {"orgunit": {}},
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_level": None,
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "full_name": "Afdeling",
-                    "name": "Afdeling",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "afd",
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                },
-                "parent": None,
-                "time_planning": None,
-                "location": "",
-            },
-        )
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [
-                {
-                    "child_count": 2,
-                    "name": "Humanistisk fakultet",
-                    "user_key": "hum",
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "validity": {"from": "2016-01-01", "to": None},
-                },
-                {
-                    "child_count": 0,
-                    "name": "Samfundsvidenskabelige fakultet",
-                    "user_key": "samf",
-                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-                {
-                    "child_count": 1,
-                    "name": "Skole og Børn",
-                    "user_key": "skole-børn",
-                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-                    "validity": {"from": "2017-01-01", "to": None},
-                },
-                {
-                    "child_count": 0,
-                    "name": "Social og sundhed",
-                    "user_key": "social-sundhed",
-                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
-                    "validity": {"from": "2017-01-01", "to": None},
                 },
             ],
         )
@@ -881,17 +666,6 @@ class Tests(tests.cases.LoRATestCase):
         return {
             "TZ": "UTC",
         }
-
-    def test_children_filtered(self):
-        # When asking for "&org_unit_hierarchy=<uuid>", the result should only
-        # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
-        # With the default test database contents, that means nothing should be
-        # returned.
-        self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
-            "?org_unit_hierarchy=321f1a2f-e185-42ef-a5f3-bebb2c69f1ba",
-            [],
-        )
 
     def test_orgunit_search(self):
         result_list = [

@@ -14,15 +14,12 @@ import copy
 import enum
 import locale
 import logging
-import operator
 from asyncio import create_task
 from asyncio import gather
-from datetime import date
 from itertools import chain
 from typing import Any
 from typing import Awaitable
 from typing import Dict
-from typing import Iterable
 from typing import List
 from typing import Optional
 from uuid import UUID
@@ -614,126 +611,6 @@ async def autocomplete_orgunits(query: str):
     )
 
 
-@router.get("/ou/{parentid}/children")
-async def get_children(
-    parentid: UUID,
-    at: Optional[date] = Query(None),
-    count: Optional[str] = None,
-    org_unit_hierarchy: str = "",
-):
-    """Obtain the list of nested units within an organisation or an
-    organisational unit.
-
-    .. :quickref: Unit; Children
-
-    :param type: 'o' if the parent is an organistion, and 'ou' if it's a unit.
-    :param uuid parentid: The UUID of the parent.
-
-    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
-               The tree returned will only include organisational units that
-               were valid at the specified 'at date'.
-    :query count: the name(s) of related objects to count for each unit.
-                  *Optional*. If `count=association`, each organisational unit
-                  in the tree is annotated with an additional
-                  `association_count` key which contains the number of
-                  associations in the unit. `count=engagement` is also allowed.
-                  It is allowed to pass more than one `count` query parameter.
-    :query org_unit_hierarchy: the UUID of an optional 'org unit hierarchy'.
-                               *Optional*. The tree returned is filtered to
-                               contain only organisational units which belong
-                               to the given hierarchy.
-
-    :>jsonarr string name: Human-readable name of the unit.
-    :>jsonarr string user_key: Short, unique key identifying the unit.
-    :>jsonarr object validity: Validity range of the organisational unit.
-    :>jsonarr uuid uui: Machine-friendly UUID of the unit.
-    :>jsonarr int child_count: Number of org. units nested immediately beneath
-                               the organisation.
-
-    :status 200: Whenever the organisation or unit exists and is readable.
-    :status 404: When no such organisation or unit exists, or the
-                 parent was of the wrong type.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "Humanistisk fakultet",
-          "user_key": "hum",
-          "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-          "child_count": 2,
-          "validity": {
-              "from": "2016-01-01",
-              "to": "2018-12-31"
-          }
-        },
-        {
-          "name": "Samfundsvidenskabelige fakultet",
-          "user_key": "samf",
-          "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-          "child_count": 0,
-          "validity": {
-              "from": "2016-01-01",
-              "to": "2018-12-31"
-          }
-        }
-      ]
-
-    """
-
-    parentid = str(parentid)
-    c = common.get_connector()
-    scope = c.organisationenhed
-
-    obj = await scope.get(parentid)
-
-    if not obj or not obj.get("attributter"):
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=parentid)
-
-    return await _get_immediate_children(c, parentid, org_unit_hierarchy)
-
-
-async def _get_immediate_children(
-    connector: lora.Connector,
-    parentid: str,
-    org_unit_hierarchy: str,
-):
-    params = {
-        "overordnet": parentid,
-        "gyldighed": "Aktiv",
-    }
-    if org_unit_hierarchy:
-        params["opmærkning"] = org_unit_hierarchy
-
-    immediate_children = await connector.organisationenhed.get_all(**params)
-    immediate_children_objects = await _collect_child_objects(
-        connector, immediate_children
-    )
-    immediate_children_objects.sort(key=operator.itemgetter("name"))
-    return immediate_children_objects
-
-
-async def _collect_child_objects(connector, children: Iterable[Dict]):
-    only_primary_uuid = util.get_args_flag("only_primary_uuid")
-    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
-    return await gather(
-        *[
-            create_task(
-                get_one_orgunit(
-                    c=connector,
-                    unitid=childid,
-                    unit=child,
-                    only_primary_uuid=only_primary_uuid,
-                    count_related=count_related,
-                )
-            )
-            for childid, child in children
-        ]
-    )
-
-
 @router.get("/ou/ancestor-tree")
 async def get_unit_ancestor_tree(
     uuid: List[UUID] = Query(...),
@@ -883,124 +760,6 @@ async def get_unit_tree(
     root_uuids = set(flatten([children[uuid] for uuid in root_uuids]))
 
     return await get_units(root for root in root_uuids)
-
-
-@router.get("/ou/{unitid}/")
-async def get_orgunit(
-    unitid: UUID, only_primary_uuid: Optional[bool] = None, count: Optional[str] = None
-) -> Dict[str, Any]:
-    """Get an organisational unit
-
-    .. :quickref: Unit; Get
-
-    :param uuid unitid: UUID of the unit to retrieve.
-
-    :query at: the 'at date' to use, e.g. '2020-01-28'. *Optional*.
-               The tree returned will only include organisational units that
-               were active at the specified 'at date'.
-    :query count: the name(s) of related objects to count for each unit.
-                  *Optional*. If `count=association`, each organisational unit
-                  in the tree is annotated with an additional
-                  `association_count` key which contains the number of
-                  associations in the unit. `count=engagement` is also allowed.
-                  It is allowed to pass more than one `count` query parameter.
-
-    :>json string name: The name of the org unit
-    :>json string user_key: A unique key for the org unit.
-    :>json uuid uuid: The UUId of the org unit
-    :>json uuid parent: The parent org unit or organisation
-    :>json uuid org: The organisation the unit belongs to
-    :>json uuid org_unit_type: The type of org unit
-    :>json uuid parent: The parent org unit or organisation
-    :>json uuid time_planning: A class identifying the time planning strategy.
-    :>json object validity: The validity of the created object.
-
-    :status 200: Whenever the object exists.
-    :status 404: Otherwise.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     {
-       "location": "Hj\u00f8rring Kommune",
-       "name": "Borgmesterens Afdeling",
-       "org": {
-         "name": "Hj\u00f8rring Kommune",
-         "user_key": "Hj\u00f8rring Kommune",
-         "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
-       },
-       "org_unit_type": {
-         "example": null,
-         "name": "Afdeling",
-         "scope": "TEXT",
-         "user_key": "Afdeling",
-         "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
-       },
-       "parent": {
-         "location": "",
-         "name": "Hj\u00f8rring Kommune",
-         "org": {
-           "name": "Hj\u00f8rring Kommune",
-           "user_key": "Hj\u00f8rring Kommune",
-           "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575"
-         },
-         "org_unit_type": {
-           "example": null,
-           "name": "Afdeling",
-           "scope": "TEXT",
-           "user_key": "Afdeling",
-           "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391"
-         },
-         "parent": null,
-         "time_planning": null,
-         "user_key": "Hj\u00f8rring Kommune",
-         "user_settings": {
-           "orgunit": {
-             "show_location": true,
-             "show_roles": true,
-             "show_user_key": false
-           }
-         },
-         "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
-         "validity": {
-           "from": "1960-01-01",
-           "to": null
-         }
-       },
-       "time_planning": null,
-       "user_key": "Borgmesterens Afdeling",
-       "user_settings": {
-         "orgunit": {
-           "show_location": true,
-           "show_roles": true,
-           "show_user_key": false
-         }
-       },
-       "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
-       "validity": {
-         "from": "1960-01-01",
-         "to": null
-       }
-     }
-
-    """
-    unitid = str(unitid)
-    c = common.get_connector()
-    count_related = {t: get_handler_for_type(t) for t in _get_count_related()}
-
-    r = await get_one_orgunit(
-        c,
-        unitid,
-        details=UnitDetails.FULL,
-        only_primary_uuid=only_primary_uuid,
-        count_related=count_related,
-    )
-
-    if not r:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
-
-    return r
 
 
 @router.get("/ou/{unitid}/refresh")

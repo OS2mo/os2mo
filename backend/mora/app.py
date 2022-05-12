@@ -52,7 +52,7 @@ from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
-from mora.service.shimmed import meta_router
+from mora.service.shimmed.meta import meta_router
 from tests.util import setup_test_routing
 
 basedir = os.path.dirname(__file__)

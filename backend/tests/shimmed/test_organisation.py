@@ -15,12 +15,13 @@ from fastapi.testclient import TestClient
 # Code
 # --------------------------------------------------------------------------------------
 
+pytestmark = pytest.mark.serial
+
 
 @pytest.mark.usefixtures("sample_structures")
-@pytest.mark.serial
 class TestOrganisationEndpoints:
-    def test_list_organisation(self, service_client: TestClient):
-        response = service_client.get("/service/o/")
+    def test_list_organisation(self, service_test_client: TestClient):
+        response = service_test_client.get("/service/o/")
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -61,7 +62,7 @@ class TestOrganisationEndpoints:
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None,
                 },
             },
@@ -71,7 +72,7 @@ class TestOrganisationEndpoints:
                 "user_key": "løn",
                 "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
+                    "from": "2017-01-01",
                     "to": None,
                 },
             },
@@ -92,7 +93,7 @@ class TestOrganisationEndpoints:
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None,
                 },
             },
@@ -104,7 +105,7 @@ class TestOrganisationEndpoints:
                 "user_key": "løn",
                 "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
+                    "from": "2017-01-01",
                     "to": None,
                 },
             },
@@ -128,7 +129,7 @@ class TestOrganisationEndpoints:
                 "user_key": "root",
                 "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
                 "validity": {
-                    "from": "2016-01-01T00:00:00+01:00",
+                    "from": "2016-01-01",
                     "to": None,
                 },
             },
@@ -138,8 +139,20 @@ class TestOrganisationEndpoints:
                 "user_key": "løn",
                 "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
                 "validity": {
-                    "from": "2017-01-01T00:00:00+01:00",
+                    "from": "2017-01-01",
                     "to": None,
                 },
             },
         ]
+
+    def test_get_children_invalid(self, service_test_client: TestClient):
+        # Doesn't exist
+        response = service_test_client.get(
+            "/service/o/00000000-0000-0000-0000-000000000000/children"
+        )
+        assert response.status_code == 404
+        # Is an org unit
+        response = service_test_client.get(
+            "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+        )
+        assert response.status_code == 404

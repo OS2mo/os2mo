@@ -465,7 +465,7 @@ Unit-test:
   extends:
     - .backend-test-base
   script:
-    - pytest
+    - pytest backend/tests
       -p no:cacheprovider
       -m "not serial"
       -k "not graphapi"
@@ -496,7 +496,6 @@ GraphAPI-test:
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
       --cov-fail-under=60
-      --workers auto
   artifacts:
     when: always
     paths:
@@ -542,7 +541,7 @@ Integration-test:
     - !reference [".services:start-all", needs]
   parallel: 6
   script:
-    - pytest
+    - pytest backend/tests
       -m "serial"
       -p no:cacheprovider
       --color=yes

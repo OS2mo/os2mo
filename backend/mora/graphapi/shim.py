@@ -11,18 +11,25 @@ Used for shimming the service API.
 # Imports
 # --------------------------------------------------------------------------------------
 from datetime import date
-from typing import Any, Optional, Union
+from typing import Any
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from more_itertools import flatten
-from pydantic import BaseModel, Field, validator, root_validator
+from pydantic import BaseModel
+from pydantic import Field
+from pydantic import root_validator
+from pydantic import validator
+from ramodels.mo import ClassRead
+from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
+from ramodels.mo import OrganisationRead
+from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AddressRead
 from strawberry.types import ExecutionResult
 
 from mora import util
-from ramodels.mo import ClassRead, OrganisationUnitRead
-from ramodels.mo import EmployeeRead
-from ramodels.mo import OrganisationRead
-from ramodels.mo.details import AddressRead
 
 # --------------------------------------------------------------------------------------
 # Code
@@ -68,8 +75,114 @@ class MOAddressType(ClassRead):
     top_level_facet: Optional[Any]
 
 
+class MOFacetRead(FacetRead):
+    org_uuid: Optional[UUID]
+    user_key: Optional[str]
+
+
+class MOClassRead(ClassRead):
+    org_uuid: Optional[UUID]
+    facet_uuid: Optional[UUID]
+    facet: MOFacetRead
+    top_level_facet: MOFacetRead
+    full_name: Optional[str]
+
+
 class OrgUnitType(OrganisationUnitRead):
     validity: ValidityDates
+
+
+class OrgUnitRead(OrganisationUnitRead):
+    validity: ValidityDates
+
+
+class OrganisationUnitCount(OrgUnitRead):
+    child_count: int
+    engagement_count: int = 0
+    association_count: int = 0
+
+
+class MOOrgUnit(OrgUnitRead):
+    class Config:
+        frozen = False
+        schema_extra = {
+            "example": {
+                "location": "Hj\u00f8rring Kommune",
+                "name": "Borgmesterens Afdeling",
+                "org": {
+                    "name": "Hj\u00f8rring Kommune",
+                    "user_key": "Hj\u00f8rring Kommune",
+                    "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575",
+                },
+                "org_unit_type": {
+                    "example": None,
+                    "name": "Afdeling",
+                    "scope": "TEXT",
+                    "user_key": "Afdeling",
+                    "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391",
+                },
+                "parent": {
+                    "location": "",
+                    "name": "Hj\u00f8rring Kommune",
+                    "org": {
+                        "name": "Hj\u00f8rring Kommune",
+                        "user_key": "Hj\u00f8rring Kommune",
+                        "uuid": "8d79e880-02cf-46ed-bc13-b5f73e478575",
+                    },
+                    "org_unit_type": {
+                        "example": None,
+                        "name": "Afdeling",
+                        "scope": "TEXT",
+                        "user_key": "Afdeling",
+                        "uuid": "c8002c56-8226-4a72-aefa-a01dcc839391",
+                    },
+                    "parent": None,
+                    "time_planning": None,
+                    "user_key": "Hj\u00f8rring Kommune",
+                    "user_settings": {
+                        "orgunit": {
+                            "show_location": True,
+                            "show_roles": True,
+                            "show_user_key": False,
+                        }
+                    },
+                    "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                    "validity": {"from": "1960-01-01", "to": None},
+                },
+                "time_planning": None,
+                "user_key": "Borgmesterens Afdeling",
+                "user_settings": {
+                    "orgunit": {
+                        "show_location": True,
+                        "show_roles": True,
+                        "show_user_key": False,
+                    }
+                },
+                "uuid": "b6c11152-0645-4712-a207-ba2c53b391ab",
+                "validity": {"from": "1960-01-01", "to": None},
+            }
+        }
+
+    location: str = ""
+    parent: Optional["MOOrgUnit"]
+    org: Optional[OrganisationRead]
+    org_unit_level: Optional[MOClassRead]
+    org_unit_type: MOClassRead
+    time_planning: Optional[MOClassRead]
+    user_settings: dict[str, Any] = {}
+    engagement_count: int = 0
+    association_count: int = 0
+
+
+class OrganisationLevelRead(OrganisationRead):
+    child_count: int
+    person_count: int
+    unit_count: int
+    engagement_count: int
+    association_count: int
+    leave_count: int
+    role_count: int
+    manager_count: int
 
 
 class MOAddress(AddressRead):
