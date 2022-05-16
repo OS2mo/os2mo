@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Reading details
 ---------------
 
@@ -16,24 +15,29 @@ creating and editing relations for employees and organisational units:
 
 
 """
-
 from __future__ import generator_stop
 
 import collections
-from datetime import date, datetime
+from datetime import date
+from datetime import datetime
 from functools import partial
-from typing import Any, Optional, Union
+from typing import Any
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
-from more_itertools import one
+from more_itertools import first
 
 from . import handlers
 from .. import common
 from mora import util
-from mora.lora import ValidityLiteral, validity_tuple
-from mora.graphapi.shim import execute_graphql, flatten_data, MOAddress
+from mora.graphapi.shim import execute_graphql
+from mora.graphapi.shim import flatten_data
+from mora.graphapi.shim import MOAddress
+from mora.lora import validity_tuple
+from mora.lora import ValidityLiteral
 
 
 router = APIRouter()
@@ -225,7 +229,10 @@ async def list_addresses_employee(
     if len(flat) == 0:
         return []
 
-    data = one(flat)["addresses"]
+    # Due to the nature of our query, the length of flat will sometimes be > 1
+    # when querying historical data. However, the historical addresses reported will be
+    # correct and identical for all elements, and as such we simply return the first one
+    data = first(flat)["addresses"]
 
     for element in data:
         # the old api calls it "person" instead of "employee"
@@ -339,7 +346,10 @@ async def list_addresses_ou(
     if len(flat) == 0:
         return []
 
-    data = one(flat)["addresses"]
+    # Due to the nature of our query, the length of flat will sometimes be > 1
+    # when querying historical data. However, the historical addresses reported will be
+    # correct and identical for all elements, and as such we simply return the first one
+    data = first(flat)["addresses"]
 
     for element in data:
         if only_primary_uuid:
