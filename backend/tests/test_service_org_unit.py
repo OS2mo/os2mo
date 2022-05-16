@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import json
 from asyncio import Future
 from uuid import UUID
 
 import freezegun
 import pytest
 import respx
-import json
 from httpx import Response
 from mock import call
 from mock import patch

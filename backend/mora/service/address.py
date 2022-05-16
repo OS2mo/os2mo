@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import collections
 import re
 import uuid
@@ -16,8 +15,6 @@ from fastapi import Query
 from . import facet
 from . import handlers
 from . import org
-from .address_handler import base
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
@@ -25,6 +22,8 @@ from .. import mapping
 from .. import util
 from ..triggers import Trigger
 from ..util import ensure_list
+from .address_handler import base
+from .validation import validator
 
 client = httpx.AsyncClient(
     headers={

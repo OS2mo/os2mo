@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Roles
 -----
@@ -8,17 +7,16 @@ Roles
 This section describes how to interact with employee roles.
 
 """
-
 import uuid
 
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from .validation import validator
 
 
 class RoleRequestHandler(handlers.OrgFunkRequestHandler):

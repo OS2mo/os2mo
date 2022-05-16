@@ -1,21 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import copy
-from uuid import UUID
 import unittest.mock
+from uuid import UUID
 
 import pytest
 
-from mora.mapping import ADMIN, EntityType, OWNER
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.owner import get_ancestor_owners
 from mora.auth.keycloak.rbac import _rbac
-from tests.test_integration_rbac import (
-    mock_auth,
-    ANDERS_AND,
-    FEDTMULE,
-)
+from mora.mapping import ADMIN
+from mora.mapping import EntityType
+from mora.mapping import OWNER
+from tests.test_integration_rbac import ANDERS_AND
+from tests.test_integration_rbac import FEDTMULE
+from tests.test_integration_rbac import mock_auth
 
 ORG_UNIT_1 = "10000000-0000-0000-0000-000000000000"
 ORG_UNIT_2 = "20000000-0000-0000-0000-000000000000"

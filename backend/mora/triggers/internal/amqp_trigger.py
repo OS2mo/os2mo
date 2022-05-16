@@ -11,7 +11,6 @@ from ramqp.moqp import ObjectType
 from ramqp.moqp import PayloadType
 from ramqp.moqp import RequestType
 from ramqp.moqp import ServiceType
-
 from structlog import get_logger
 
 from mora import config

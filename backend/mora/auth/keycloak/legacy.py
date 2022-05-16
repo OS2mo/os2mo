@@ -1,10 +1,16 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from functools import lru_cache
-from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, create_engine
+
+from sqlalchemy import Column
+from sqlalchemy import create_engine
+from sqlalchemy import DateTime
 from sqlalchemy import exists
-from sqlalchemy.orm import Session
+from sqlalchemy import Integer
+from sqlalchemy import LargeBinary
+from sqlalchemy import String
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session
 from structlog import get_logger
 
 from mora import config

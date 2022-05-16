@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from fastapi import Request, Depends
+from fastapi import Depends
+from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
-from mora.auth.keycloak.legacy import validate_session
+from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
 from starlette.responses import JSONResponse
+from starlette.status import HTTP_403_FORBIDDEN
 from structlog import get_logger
 
-from starlette.status import HTTP_403_FORBIDDEN
-from mora.auth.exceptions import AuthorizationError
-from mora.auth.keycloak.models import Token
 from mora import config
-from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
+from mora.auth.exceptions import AuthorizationError
+from mora.auth.keycloak.legacy import validate_session
+from mora.auth.keycloak.models import Token
 
 logger = get_logger()
 

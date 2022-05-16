@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
 import unittest.mock
 
+import pytest
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.test_helper import (
     ensure_endpoints_depend_on_oidc_auth_function,

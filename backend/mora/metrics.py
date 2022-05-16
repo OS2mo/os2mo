@@ -2,13 +2,19 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Callable
 
-from mora.graphapi.health import dar, dataset, oio_rest, amqp, keycloak
-from prometheus_client import Info, Gauge
+from prometheus_client import Gauge
+from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_fastapi_instrumentator.metrics import Info as InstInfo, default
+from prometheus_fastapi_instrumentator.metrics import default
+from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 
-from .config import get_settings
 from .conf_db import health_check
+from .config import get_settings
+from mora.graphapi.health import amqp
+from mora.graphapi.health import dar
+from mora.graphapi.health import dataset
+from mora.graphapi.health import keycloak
+from mora.graphapi.health import oio_rest
 
 
 def setup_metrics(app):

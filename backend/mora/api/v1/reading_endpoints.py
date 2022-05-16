@@ -12,6 +12,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Query
+
 from mora import mapping
 from mora.api.v1.models import Address
 from mora.api.v1.models import Association

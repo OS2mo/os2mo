@@ -12,9 +12,10 @@ from fastapi import Response
 from fastapi.responses import FileResponse
 from fastapi.security import OAuth2PasswordBearer
 
+from .. import config
+from .. import exceptions
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import validate_token
-from .. import exceptions, config
 
 router = APIRouter()
 

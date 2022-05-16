@@ -6,12 +6,12 @@ from unittest import IsolatedAsyncioTestCase
 from unittest.case import TestCase
 from unittest.mock import patch
 
+import httpx
 import pytest
 import requests
-import httpx
+from asgi_lifespan import LifespanManager
 from starlette.testclient import TestClient
 from structlog import get_logger
-from asgi_lifespan import LifespanManager
 
 from mora import app
 from mora import conf_db

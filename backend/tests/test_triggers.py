@@ -5,7 +5,8 @@ import pytest
 
 import tests.cases
 from mora.exceptions import HTTPException
-from mora.mapping import EventType, RequestType
+from mora.mapping import EventType
+from mora.mapping import RequestType
 from mora.service.handlers import RequestHandler
 from mora.triggers import Trigger
 

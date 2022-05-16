@@ -1,19 +1,16 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import asyncio
-from structlog import get_logger
 
 from fastapi import Request
+from structlog import get_logger
 
+import mora.auth.keycloak.uuid_extractor as uuid_extractor
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.owner import get_owners
-import mora.auth.keycloak.uuid_extractor as uuid_extractor
-from mora.mapping import (
-    ADMIN,
-    OWNER,
-)
+from mora.mapping import ADMIN
+from mora.mapping import OWNER
 
 logger = get_logger()
 

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Initial migration, noop on existing databases.
 
 This introduces our ORM model to helpers/config_v1
@@ -10,8 +9,9 @@ Revises:
 Create Date: 2020-11-13 15:00:01.575703
 """
 from alembic import op
-from mora.conf_db.alembic.helpers.config_v1 import Config
 from sqlalchemy.engine.reflection import Inspector
+
+from mora.conf_db.alembic.helpers.config_v1 import Config
 
 # revision identifiers, used by Alembic.
 revision = "2818f2a406c9"

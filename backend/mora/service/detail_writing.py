@@ -14,7 +14,9 @@ For more information regarding reading relations, refer to:
 """
 import typing
 
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter
+from fastapi import Body
+from fastapi import Depends
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers

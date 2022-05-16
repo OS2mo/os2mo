@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Related Units
 -------------
@@ -8,10 +7,12 @@ Related Units
 This section describes how to interact with related units.
 
 """
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 from uuid import UUID
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 
 from . import handlers
 from .. import common

@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 import pytest
 
-from mora.config import Settings, NavLink
-
-from tests import util
-
 import tests.cases
+from mora.config import NavLink
+from mora.config import Settings
+from tests import util
 
 
 class AsyncTests(tests.cases.AsyncTestCase):

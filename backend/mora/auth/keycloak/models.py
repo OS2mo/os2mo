@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from base64 import b64decode
 import binascii
+from base64 import b64decode
+from typing import Any
+from typing import Dict
+from uuid import UUID
+
 from os2mo_fastapi_utils.auth.models import Token as BaseToken
 from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import root_validator
 from pydantic import validator
-from typing import Any
-from typing import Dict
-from uuid import UUID
 
 from mora import config
 

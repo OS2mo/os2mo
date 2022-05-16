@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from aiohttp import ClientSession
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
 from mora import config

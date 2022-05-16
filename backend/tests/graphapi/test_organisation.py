@@ -10,12 +10,12 @@ from uuid import uuid4
 import pytest
 import respx
 from httpx import Response
-from mora.service.org import ConfiguredOrganisation
-from mora.service.org import get_configured_organisation
 from more_itertools import distinct_permutations
 from more_itertools import one
 
 from .util import execute
+from mora.service.org import ConfiguredOrganisation
+from mora.service.org import get_configured_organisation
 
 
 def gen_organisation(

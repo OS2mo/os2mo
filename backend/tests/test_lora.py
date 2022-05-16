@@ -2,15 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 
-import respx
 import freezegun
+import respx
 from httpx import Response
+from parameterized import parameterized
+
 import tests.cases
 from mora import config
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util
-from parameterized import parameterized
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)

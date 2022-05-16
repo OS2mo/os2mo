@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import json
+
 import freezegun
 import respx
-import json
 from httpx import Response
+
 import tests.cases
 from mora import exceptions
 from mora.service import address

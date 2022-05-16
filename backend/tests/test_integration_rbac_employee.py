@@ -4,20 +4,21 @@ from copy import deepcopy
 
 import pytest
 from parameterized import parameterized
-from starlette.status import (
-    HTTP_200_OK,
-    HTTP_201_CREATED,
-    HTTP_400_BAD_REQUEST,
-    HTTP_403_FORBIDDEN,
-)
+from starlette.status import HTTP_200_OK
+from starlette.status import HTTP_201_CREATED
+from starlette.status import HTTP_400_BAD_REQUEST
+from starlette.status import HTTP_403_FORBIDDEN
 
+import tests.cases
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
-from mora.mapping import ADMIN, OWNER, PERSON, UUID
-import tests.cases
+from mora.mapping import ADMIN
+from mora.mapping import OWNER
+from mora.mapping import PERSON
+from mora.mapping import UUID
+from tests.test_integration_rbac import mock_auth
 from tests.util import jsonfile_to_dict
 from tests.util import override_config
-from tests.test_integration_rbac import mock_auth
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"

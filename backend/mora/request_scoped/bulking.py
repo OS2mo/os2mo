@@ -9,8 +9,8 @@ from more_itertools import one
 
 from mora.common import get_connector
 from mora.lora import Connector
-from mora.lora import LoraObjectType
 from mora.lora import filter_registrations
+from mora.lora import LoraObjectType
 
 LORA_OBJ = Dict[Any, Any]
 UUID = str

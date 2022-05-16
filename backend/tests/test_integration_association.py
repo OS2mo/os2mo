@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import copy
-from uuid import uuid4
 from unittest.mock import patch
 from urllib.parse import urlencode
+from uuid import uuid4
 
-import pytest
 import freezegun
+import pytest
 from parameterized import parameterized
 
 import tests.cases

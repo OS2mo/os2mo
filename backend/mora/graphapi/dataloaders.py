@@ -34,8 +34,8 @@ from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import AssociationRead
 from mora.graphapi.schema import ClassRead
 from mora.graphapi.schema import EmployeeRead
-from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import EngagementAssociationRead
+from mora.graphapi.schema import EngagementRead
 from mora.graphapi.schema import FacetRead
 from mora.graphapi.schema import ITSystemRead
 from mora.graphapi.schema import ITUserRead

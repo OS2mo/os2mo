@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from uuid import UUID
 import unittest
+from uuid import UUID
 
 import mora.auth.keycloak.uuid_extractor as extractors
 

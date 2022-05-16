@@ -1,18 +1,17 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from pathlib import Path
+from typing import Optional
 
 import mock
 from fastapi import Request
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_401_UNAUTHORIZED
-from tests import util
-
-from mora.config import Settings
-from mora.service.exports import oauth2_scheme
 
 import tests.cases
+from mora.config import Settings
+from mora.service.exports import oauth2_scheme
+from tests import util
 
 
 async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
