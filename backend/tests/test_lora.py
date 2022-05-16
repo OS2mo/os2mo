@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import re
 import json
 
 import respx
@@ -12,8 +11,6 @@ from mora import exceptions
 from mora import lora
 from mora import util as mora_util
 from parameterized import parameterized
-
-from . import util
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
@@ -568,18 +565,20 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             },
         )
 
-    @util.MockAioresponses()
-    async def test_noop_update_returns_null(self, m):
+    @respx.mock
+    async def test_noop_update_returns_null(self):
         # A "no-op" update in LoRa returns a response with an error message,
         # but no "uuid" key.
         uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        m.patch(
-            re.compile(r".*/organisation/bruger/" + uuid),
-            payload={
-                "message": "ERROR:  Aborted updating bruger with id "
-                "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-                "not give raise to a new registration. Aborted reg: ..."
-            },
+        respx.patch(f"http://mox/organisation/bruger/{uuid}").mock(
+            return_value=Response(
+                400,
+                json={
+                    "message": "ERROR:  Aborted updating bruger with id "
+                    "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+                    "not give raise to a new registration. Aborted reg: ..."
+                },
+            )
         )
         # Assert that `Scope.update` tolerates the missing 'uuid' key in the
         # LoRa response, and instead just returns the original UUID back to its
@@ -588,24 +587,26 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         same_uuid = await c.bruger.update({}, uuid)
         self.assertEqual(uuid, same_uuid)
 
-    @util.MockAioresponses()
-    async def test_actual_update_returns_uuid(self, m):
+    @respx.mock
+    async def test_actual_update_returns_uuid(self):
         # A normal update in LoRa returns a response with a 'uuid' key which
         # matches the object that was updated.
         uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        m.patch(re.compile(r".*/organisation/bruger/" + uuid), payload={"uuid": uuid})
+        respx.patch(f"/organisation/bruger/{uuid}").mock(
+            return_value=Response(200, json={"uuid": uuid})
+        )
         # Assert that `Scope.update` parses the JSON response and returns the
         # value of the 'uuid' key to its caller.
         c = lora.Connector()
         updated_uuid = await c.bruger.update({}, uuid)
         self.assertEqual(uuid, updated_uuid)
 
-    @util.MockAioresponses()
-    async def test_update_returns_nothing_on_lora_404(self, m):
+    @respx.mock
+    async def test_update_returns_nothing_on_lora_404(self):
         # Updating a nonexistent LoRa object returns a 404 status code, which
         # should not be converted into a MO exception.
         uuid = "00000000-0000-0000-0000-000000000000"
-        m.patch(re.compile(r".*/organisation/bruger/" + uuid), status=404)
+        respx.patch(f"/organisation/bruger/{uuid}").mock(return_value=Response(404))
         # Assert that `Scope.update` does not raise an exception nor return a
         # UUID in this case.
         c = lora.Connector()

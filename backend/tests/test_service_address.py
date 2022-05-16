@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import respx
+import json
+from httpx import Response
 import tests.cases
-from aioresponses import CallbackResult
 from mora import exceptions
 from mora.service import address
-from more_itertools import one
 from tests import util
 from tests.util import dar_loader
-from yarl import URL
 
 
 class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
@@ -90,39 +90,40 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             )
 
     @freezegun.freeze_time("2016-06-06")
-    @util.MockAioresponses(passthrough=["http://localhost"])
-    async def test_autocomplete_no_municipality(self, mock):
-        url = URL("http://mox/organisation/organisation")
-        mock.get(
-            url,
-            payload={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "attributter": {
-                                        "organisationegenskaber": [
-                                            {
-                                                "brugervendtnoegle": "bvn",
-                                                "organisationsnavn": "onvn",
-                                            }
-                                        ]
-                                    },
-                                    "tilstande": {
-                                        "organisationgyldighed": [
-                                            {
-                                                "gyldighed": "Aktiv",
-                                            }
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
+    @respx.mock
+    async def test_autocomplete_no_municipality(self):
+        route = respx.get("/organisation/organisation").mock(
+            return_value=Response(
+                200,
+                json={
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "attributter": {
+                                            "organisationegenskaber": [
+                                                {
+                                                    "brugervendtnoegle": "bvn",
+                                                    "organisationsnavn": "onvn",
+                                                }
+                                            ]
+                                        },
+                                        "tilstande": {
+                                            "organisationgyldighed": [
+                                                {
+                                                    "gyldighed": "Aktiv",
+                                                }
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
                     ]
-                ]
-            },
+                },
+            )
         )
 
         await self.assertRequestResponse(
@@ -137,9 +138,8 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             status_code=400,
         )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2016-06-06T00:00:00+02:00",
@@ -149,46 +149,47 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
         )
 
     @freezegun.freeze_time("2016-06-06")
-    @util.MockAioresponses(passthrough=["http://localhost"])
-    async def test_autocomplete_invalid_municipality(self, mock):
-        url = URL("http://mox/organisation/organisation")
-        mock.get(
-            url,
-            payload={
-                "results": [
-                    [
-                        {
-                            "id": "00000000-0000-0000-0000-000000000000",
-                            "registreringer": [
-                                {
-                                    "attributter": {
-                                        "organisationegenskaber": [
-                                            {
-                                                "brugervendtnoegle": "bvn",
-                                                "organisationsnavn": "onavn",
-                                            }
-                                        ]
-                                    },
-                                    "relationer": {
-                                        "myndighed": [
-                                            {
-                                                "urn": "kaflaflibob",
-                                            }
-                                        ]
-                                    },
-                                    "tilstande": {
-                                        "organisationgyldighed": [
-                                            {
-                                                "gyldighed": "Aktiv",
-                                            }
-                                        ]
-                                    },
-                                }
-                            ],
-                        }
+    @respx.mock
+    async def test_autocomplete_invalid_municipality(self):
+        route = respx.get("/organisation/organisation").mock(
+            return_value=Response(
+                200,
+                json={
+                    "results": [
+                        [
+                            {
+                                "id": "00000000-0000-0000-0000-000000000000",
+                                "registreringer": [
+                                    {
+                                        "attributter": {
+                                            "organisationegenskaber": [
+                                                {
+                                                    "brugervendtnoegle": "bvn",
+                                                    "organisationsnavn": "onavn",
+                                                }
+                                            ]
+                                        },
+                                        "relationer": {
+                                            "myndighed": [
+                                                {
+                                                    "urn": "kaflaflibob",
+                                                }
+                                            ]
+                                        },
+                                        "tilstande": {
+                                            "organisationgyldighed": [
+                                                {
+                                                    "gyldighed": "Aktiv",
+                                                }
+                                            ]
+                                        },
+                                    }
+                                ],
+                            }
+                        ]
                     ]
-                ]
-            },
+                },
+            )
         )
 
         await self.assertRequestResponse(
@@ -203,9 +204,8 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             status_code=400,
         )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2016-06-06T00:00:00+02:00",
@@ -215,12 +215,10 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
         )
 
     @freezegun.freeze_time("2016-06-06")
-    @util.MockAioresponses(passthrough=["http://localhost"])
-    async def test_autocomplete_missing_org(self, mock):
-        url = URL("http://mox/organisation/organisation")
-        mock.get(
-            url,
-            payload={"results": []},
+    @respx.mock
+    async def test_autocomplete_missing_org(self):
+        route = respx.get("/organisation/organisation").mock(
+            return_value=Response(200, json={"results": []})
         )
 
         await self.assertRequestResponse(
@@ -235,9 +233,8 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             status_code=400,
         )
 
-        call_args = one(mock.requests["GET", url])
         self.assertEqual(
-            call_args.kwargs["json"],
+            json.loads(route.calls[0].request.read()),
             {
                 "uuid": ["00000000-0000-0000-0000-000000000000"],
                 "virkningfra": "2016-06-06T00:00:00+02:00",
@@ -331,14 +328,13 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
         )
 
     @freezegun.freeze_time("2017-07-28")
-    @util.MockAioresponses()
-    async def test_autocomplete_local(self, mock):
-        url = URL("http://mox/organisation/organisation")
-
-        def callback(url, json, **kwargs):
-            if json.get("uuid") == ["456362c4-0ee4-4e5e-a72c-751239745e62"]:
-                # noqa
-                payload = {
+    @respx.mock
+    async def test_autocomplete_local(self):
+        url = "http://mox/organisation/organisation"
+        respx.get(url).mock(
+            return_value=Response(
+                200,
+                json={
                     "results": [
                         [
                             {
@@ -400,19 +396,18 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                             }
                         ]
                     ]
-                }
-            else:
-                payload = {
-                    "results": [
-                        ["456362c4-0ee4-4e5e-a72c-751239745e62"],
-                    ],
-                }
-            return CallbackResult(payload=payload)
-
-        mock.get(
-            url,
-            callback=callback,
+                },
+            )
         )
+
+        respx.get(
+            "https://api.dataforsyningen.dk/adgangsadresser/autocomplete"
+            "?per_side=5&noformat=1&q=Strandlodsvej+25M&kommunekode=751"
+        ).pass_through()
+        respx.get(
+            "https://api.dataforsyningen.dk/adresser/autocomplete"
+            "?per_side=10&noformat=1&q=Strandlodsvej+25M&kommunekode=751"
+        ).pass_through()
 
         await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
