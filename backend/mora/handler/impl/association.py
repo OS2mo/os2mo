@@ -13,7 +13,6 @@ from typing import Optional
 from more_itertools import partition
 from structlog import get_logger
 
-from .it import ItSystemBindingReader
 from .. import reading
 from ... import mapping
 from ... import util
@@ -22,6 +21,7 @@ from ...graphapi.middleware import is_graphql
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from .it import ItSystemBindingReader
 from mora import exceptions
 
 ROLE_TYPE = "association"

@@ -1,16 +1,16 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from typing import Optional
 
-from fastapi import APIRouter, Body
+from fastapi import APIRouter
+from fastapi import Body
 
 from . import validator
 from .. import facet
-from ..address_handler import base
 from ... import lora
 from ... import mapping
 from ... import util
+from ..address_handler import base
 
 _router = APIRouter()
 

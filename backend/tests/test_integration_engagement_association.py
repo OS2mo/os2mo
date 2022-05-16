@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import copy
 
 import freezegun
 import pytest
 
-from mora import lora
 import tests.cases
+from mora import lora
 
 
 class EngAssocUtils:

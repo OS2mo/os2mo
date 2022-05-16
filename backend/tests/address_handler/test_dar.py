@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from mora import exceptions
-from mora.service.address_handler import dar
-
 from . import base
 from .. import util
 from ..util import dar_loader
+from mora import exceptions
+from mora.service.address_handler import dar
 
 
 class AsyncDarAddressHandlerTests(base.AsyncAddressHandlerTestCase):

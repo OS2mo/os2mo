@@ -6,9 +6,9 @@ from itertools import cycle
 import freezegun
 import notsouid
 import pytest
-import tests.cases
 from parameterized import parameterized
 
+import tests.cases
 from . import util
 from mora import conf_db
 from mora import lora

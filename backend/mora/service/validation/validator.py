@@ -5,7 +5,8 @@ import collections
 import datetime
 import functools
 import typing
-from asyncio import create_task, gather
+from asyncio import create_task
+from asyncio import gather
 
 from more_itertools import pairwise
 
@@ -13,9 +14,9 @@ from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
-from ...lora import LoraObjectType
 from ...handler.impl.association import AssociationReader
 from ...handler.impl.it import ItSystemBindingReader
+from ...lora import LoraObjectType
 from ...service.facet import get_one_class
 
 

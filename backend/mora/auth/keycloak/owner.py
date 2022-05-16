@@ -1,22 +1,20 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import asyncio
-
-from structlog import get_logger
 from typing import List
 from typing import Set
 from uuid import UUID
+
 from more_itertools import flatten
+from structlog import get_logger
 
-from mora import common
-from mora.handler.impl.owner import OwnerReader
 import mora.service.orgunit
-
+from mora import common
+from mora.auth.keycloak import uuid_extractor
+from mora.handler.impl.owner import OwnerReader
 from mora.mapping import EntityType
 from mora.mapping import OWNER
 from mora.mapping import UUID as UUID_KEY
-from mora.auth.keycloak import uuid_extractor
 
 logger = get_logger()
 

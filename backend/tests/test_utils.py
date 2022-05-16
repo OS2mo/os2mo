@@ -1,14 +1,13 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import datetime
 
 import dateutil.tz
 import freezegun
 
+from .cases import TestCase
 from mora import exceptions
 from mora import util
-from .cases import TestCase
 
 
 @freezegun.freeze_time("2015-06-01T01:10")

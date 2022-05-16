@@ -1,18 +1,19 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-import unittest
 import json
+import unittest
 
 import freezegun
 import respx
+from httpx import Response
+from parameterized import parameterized
+
 import tests.cases
 from mora import config
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
-from parameterized import parameterized
-from httpx import Response
 
 
 class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):

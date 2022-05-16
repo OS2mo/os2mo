@@ -1,23 +1,29 @@
 # SPDX-FileCopyrightText: 2018-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-import json
 import csv
-
-from zipfile import ZipFile
-from io import StringIO, BytesIO
-from typing import List, Union, Optional, Dict, Any
-from pydantic import BaseModel, Extra
-from fastapi import APIRouter, Query
-from pathlib import Path
+import json
 from asyncio import gather
-from itertools import starmap
 from functools import partial
+from io import BytesIO
+from io import StringIO
+from itertools import starmap
+from pathlib import Path
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
+from zipfile import ZipFile
 
+from fastapi import APIRouter
+from fastapi import Query
+from pydantic import BaseModel
+from pydantic import Extra
 from starlette.responses import StreamingResponse
-
 from structlog import get_logger
-from .. import config, exceptions
+
+from .. import config
+from .. import exceptions
 
 
 router = APIRouter()

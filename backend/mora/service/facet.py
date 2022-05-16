@@ -30,8 +30,6 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 from fastapi import Request
-from mora.request_scoped.bulking import request_wide_bulk
-from mora.service.models import MOClass
 from more_itertools import one
 
 from . import handlers
@@ -43,6 +41,8 @@ from .. import util
 from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
+from mora.request_scoped.bulking import request_wide_bulk
+from mora.service.models import MOClass
 
 router = APIRouter()
 

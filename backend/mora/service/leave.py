@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """
 Leave
 -----
@@ -12,12 +11,12 @@ import uuid
 
 from . import handlers
 from . import org
-from .validation import validator
 from .. import common
 from .. import lora
 from .. import mapping
 from .. import util
 from ..triggers import Trigger
+from .validation import validator
 
 
 class LeaveRequestHandler(handlers.OrgFunkRequestHandler):

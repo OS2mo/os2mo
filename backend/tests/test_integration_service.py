@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import freezegun
 import pytest
-import tests.cases
 
+import tests.cases
 from . import util
 
 org_unit_type_facet = {

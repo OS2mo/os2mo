@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from functools import reduce
 import operator
+from functools import reduce
 
-from httpx import Response
 import pytest
 import respx
+from httpx import Response
 from respx.patterns import M
 
 from mora.lora import Connector

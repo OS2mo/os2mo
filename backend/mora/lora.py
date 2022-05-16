@@ -6,7 +6,6 @@ import asyncio
 import json
 import re
 import uuid
-import httpx
 from asyncio import gather
 from collections import defaultdict
 from datetime import datetime
@@ -32,6 +31,7 @@ from typing import Tuple
 from typing import TypeVar
 from typing import Union
 
+import httpx
 import lora_utils
 from aiohttp import ClientSession
 from fastapi.encoders import jsonable_encoder
@@ -42,9 +42,9 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
+from .http import clients
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
-from .http import clients
 
 
 T = TypeVar("T")

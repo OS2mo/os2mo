@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import pytest
-from aioresponses import aioresponses
 from aiohttp import ClientError
-from httpx import Response, Request
+from aioresponses import aioresponses
+from httpx import Request
+from httpx import Response
 from mock import patch
 from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE

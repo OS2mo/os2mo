@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import Dict, Optional
+from typing import Dict
+from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -10,8 +11,10 @@ from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
+from mora.graphapi.health import configuration_database
+from mora.graphapi.health import keycloak
+from mora.graphapi.health import oio_rest
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.health import oio_rest, keycloak, configuration_database
 
 
 router = APIRouter()

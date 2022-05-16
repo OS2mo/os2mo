@@ -8,8 +8,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from pydantic import AnyHttpUrl
 from pydantic import AmqpDsn
+from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
 from pydantic import parse_obj_as
 from pydantic import root_validator

@@ -1,15 +1,22 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Literal
+from typing import Optional
+from typing import Union
 from uuid import UUID
 
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
+from pydantic import BaseModel
+from pydantic import Field
+
 from mora.mapping import OwnerInferencePriority
-from pydantic import BaseModel, Field
-from tests.cases import ConfigTestCase, AsyncConfigTestCase
+from tests.cases import AsyncConfigTestCase
+from tests.cases import ConfigTestCase
 from tests.util import load_fixture
 
 

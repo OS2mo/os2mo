@@ -26,8 +26,8 @@ from ramodels.mo._shared import OpenValidity as OpenValidityModel
 from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import EngagementAssociationRead
+from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead

@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from unittest.mock import patch
 
-import pytest
 import freezegun
+import pytest
 
 import tests.cases
 from mora import lora

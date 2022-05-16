@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Owner
 -------
 
@@ -9,14 +8,22 @@ This section describes how to interact with owners.
 """
 import uuid
 from datetime import datetime
-from typing import Any, Dict, NoReturn, Optional, Tuple
+from typing import Any
+from typing import Dict
+from typing import NoReturn
+from typing import Optional
+from typing import Tuple
 
-from .. import common, lora, mapping, util
+from . import handlers
+from . import org
+from .. import common
+from .. import lora
+from .. import mapping
+from .. import util
 from ..common import parse_owner_inference_priority_str
 from ..exceptions import ErrorCodes
 from ..mapping import OwnerInferencePriority
 from ..triggers import Trigger
-from . import handlers, org
 from .validation import validator
 
 

@@ -1,15 +1,14 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import tempfile
 
 import freezegun
-from mora.config import Settings
 
 import tests.cases
-from mora import util as mora_util
-from mora.integrations import serviceplatformen
 from . import util
+from mora import util as mora_util
+from mora.config import Settings
+from mora.integrations import serviceplatformen
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)

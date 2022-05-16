@@ -7,12 +7,13 @@ from typing import List
 
 import aiohttp
 from fastapi.encoders import jsonable_encoder
-from mora import config
-from mora.triggers import Trigger
 from os2mo_http_trigger_protocol import MOTriggerPayload
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from pydantic import parse_obj_as
 from structlog import get_logger
+
+from mora import config
+from mora.triggers import Trigger
 
 
 logger = get_logger()

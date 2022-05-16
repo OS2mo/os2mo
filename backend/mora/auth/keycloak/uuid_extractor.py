@@ -2,37 +2,34 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import functools
-from typing import Set
+import re
 from typing import List
 from typing import Optional
-import re
-
-from more_itertools import one
-from structlog import get_logger
+from typing import Set
 from uuid import UUID
 
 from fastapi import Request
+from more_itertools import one
+from structlog import get_logger
 
 from mora import common
-
-# import mora.main
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
-from mora.mapping import (
-    ASSOCIATED_ORG_UNITS_FIELD,
-    ASSOCIATION,
-    CHILDREN,
-    DATA,
-    ENGAGEMENT,
-    EntityType,
-    MANAGER,
-    ORG_UNIT,
-    PARENT,
-    PERSON,
-    ROLE,
-    TYPE,
-    USER_FIELD,
-)
+from mora.mapping import ASSOCIATED_ORG_UNITS_FIELD
+from mora.mapping import ASSOCIATION
+from mora.mapping import CHILDREN
+from mora.mapping import DATA
+from mora.mapping import ENGAGEMENT
+from mora.mapping import EntityType
+from mora.mapping import MANAGER
+from mora.mapping import ORG_UNIT
+from mora.mapping import PARENT
+from mora.mapping import PERSON
+from mora.mapping import ROLE
+from mora.mapping import TYPE
+from mora.mapping import USER_FIELD
+
+# import mora.main
 
 logger = get_logger()
 
