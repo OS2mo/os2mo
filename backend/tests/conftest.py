@@ -7,7 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import os
-from collections import namedtuple
+from dataclasses import dataclass
 from typing import Any
 from typing import Optional
 
@@ -146,7 +146,11 @@ def service_test_client_not_raising():
         yield client
 
 
-GQLResponse = namedtuple("GQLResponse", ["data", "errors", "status_code"])
+@dataclass
+class GQLResponse:
+    data: Optional[dict]
+    errors: Optional[dict]
+    status_code: int
 
 
 @pytest.fixture(scope="class")
