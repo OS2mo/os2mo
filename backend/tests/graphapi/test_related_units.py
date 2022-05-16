@@ -11,6 +11,7 @@ import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
+from tests.conftest import GQLResponse
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -27,7 +28,7 @@ class TestRelatedUnitsQuery:
     """
 
     @given(test_data=graph_data_strat(RelatedUnitRead))
-    def test_query_all(self, test_data, graphapi_test, patch_loader):
+    def test_query_all(self, test_data, graphapi_post, patch_loader):
         """Test that we can query all attributes of the related_unit data model."""
         # Patch dataloader
         with MonkeyPatch.context() as patch:
@@ -46,16 +47,14 @@ class TestRelatedUnitsQuery:
                     }
                 }
             """
-            with graphapi_test as client:
-                response = client.post("/graphql", json={"query": query})
+            response: GQLResponse = graphapi_post(query)
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
-        assert flatten_data(data["related_units"]) == test_data
+        assert response.errors is None
+        assert response.data
+        assert flatten_data(response.data["related_units"]) == test_data
 
     @given(test_input=graph_data_uuids_strat(RelatedUnitRead))
-    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
+    def test_query_by_uuid(self, test_input, graphapi_post, patch_loader):
         """Test that we can query related_units by UUID."""
         test_data, test_uuids = test_input
 
@@ -69,17 +68,14 @@ class TestRelatedUnitsQuery:
                         }
                     }
                 """
-            with graphapi_test as client:
-                response = client.post(
-                    "/graphql",
-                    json={"query": query, "variables": {"uuids": test_uuids}},
-                )
+            response = graphapi_post(query, {"uuids": test_uuids})
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
+        assert response.errors is None
+        assert response.data
 
         # Check UUID equivalence
-        result_uuids = [related.get("uuid") for related in data["related_units"]]
+        result_uuids = [
+            related.get("uuid") for related in response.data["related_units"]
+        ]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))

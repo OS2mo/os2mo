@@ -84,6 +84,7 @@ async def test_query_organisation():
     assert respx.calls.call_count == 1
 
     assert result.errors is None
+    assert result.data
     assert result.data["org"] == {
         "uuid": str(uuid),
         "name": "name",
@@ -145,6 +146,7 @@ async def test_query_all_permutations_of_organisation(fields):
 
     assert result.errors is None
     # Check that all expected fields are in output
+    assert result.data
     org = result.data["org"]
     if "uuid" in fields:
         assert org.pop("uuid") == str(uuid)

@@ -6,10 +6,6 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from collections import namedtuple
-from typing import Any
-from typing import Optional
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -28,19 +24,3 @@ def graphapi_test():
     """
     with TestClient(test_app(graphql_enable=True)) as client:
         yield client
-
-
-GQLResponse = namedtuple("GQLResponse", ["data", "errors", "status_code"])
-
-
-@pytest.fixture(scope="class")
-def graphapi_post(graphapi_test: TestClient):
-    def _post(query: str, variables: Optional[dict[str, Any]] = None) -> GQLResponse:
-        response = graphapi_test.post(
-            "/graphql", json={"query": query, "variables": variables}
-        )
-        data, errors = response.json().get("data"), response.json().get("errors")
-        status_code = response.status_code
-        return GQLResponse(data=data, errors=errors, status_code=status_code)
-
-    yield _post
