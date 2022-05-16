@@ -53,7 +53,8 @@ class TestFacetsQuery:
                     }
                 }
             """
-            response = graphapi_test.post("/graphql", json={"query": query})
+            with graphapi_test as client:
+                response = client.post("/graphql", json={"query": query})
 
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
@@ -82,9 +83,11 @@ class TestFacetsQuery:
                         }
                     }
                 """
-            response = graphapi_test.post(
-                "/graphql", json={"query": query, "variables": {"uuids": test_uuids}}
-            )
+            with graphapi_test as client:
+                response = client.post(
+                    "/graphql",
+                    json={"query": query, "variables": {"uuids": test_uuids}},
+                )
 
         data, errors = response.json().get("data"), response.json().get("errors")
         assert errors is None
