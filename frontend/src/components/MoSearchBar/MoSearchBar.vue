@@ -107,8 +107,7 @@ export default {
 
       return new Promise(resolve => {
         var req
-
-        if (query.length < 2) {
+        if (!query.length) {
           return resolve([])
         }
 
