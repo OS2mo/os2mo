@@ -60,7 +60,7 @@ nav:
         - lora/user/api/update.md
       - lora/user/api.md
       - lora/user/auth.md
-      - lora/user/bruger-uml.png
+      - Bruger UML: lora/user/bruger-uml.png
       - lora/user/database.md
       - lora/user/deployment.md
       - lora/user/installation.md
