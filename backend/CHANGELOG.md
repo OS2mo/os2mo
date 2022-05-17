@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.10.2 - 2022-05-17
+-------------------
+
+[#49624] Fixes wider dropdown on IT-Associations for a better user experience
+
 4.10.1 - 2022-05-16
 -------------------
 
