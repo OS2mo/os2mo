@@ -9,9 +9,7 @@ docs_dir: src/
 
 nav:
   - MO:
-    - Velkommen:
-      - OS2mo: mo/index.md
-      - Release History: mo/news.md
+    - Velkommen: mo/index.md
     - Arkitektur og design:
       - mo/arkitektur-design/overview.md
       - mo/arkitektur-design/facets.md
@@ -37,6 +35,52 @@ nav:
     - GraphQL:
       - mo/graphql/intro.md
       - mo/graphql/reads.md
+    - Release History: mo/news.md
+
+  - LoRa:
+    - Welcome: lora/index.md
+    - User Documentation:
+      - lora/user/agents.md
+      - API:
+        - Advanced:
+          - lora/user/api/advanced/deleting-document.md
+          - lora/user/api/advanced/file-operations.md
+        - lora/user/api/create.md
+        - lora/user/api/delete.md
+        - lora/user/api/import.md
+        - lora/user/api/list.md
+        - lora/user/api/passivate.md
+        - lora/user/api/read.md
+        - lora/user/api/search.md
+        - lora/user/api/self-documentation.md
+        - lora/user/api/tutorial.md
+        - Update:
+          - lora/user/api/update/deleting.md
+          - lora/user/api/update/merging.md
+        - lora/user/api/update.md
+      - lora/user/api.md
+      - lora/user/auth.md
+      - lora/user/bruger-uml.png
+      - lora/user/database.md
+      - lora/user/deployment.md
+      - lora/user/installation.md
+      - lora/user/log-haendelse.md
+      - Objects:
+        - lora/user/objects/integrationdata.md
+      - lora/user/objects.md
+      - lora/user/operating-mox.md
+      - lora/user/overview.md
+      - lora/user/praesentation.md
+      - lora/user/settings.md
+    - Developer Documentation:
+      - lora/dev/beskedfordeler.md
+      - lora/dev/building-docs.md
+      - lora/dev/database.md
+      - lora/dev/migrations.md
+      - lora/dev/news.md
+      - lora/dev/test.md
+      - lora/dev/testing-rest.md
+      - lora/dev/wildcards.md
 
 theme:
   name: "material"
