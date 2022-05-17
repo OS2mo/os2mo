@@ -8,34 +8,35 @@ repo_url: https://github.com/OS2mo/os2mo
 docs_dir: src/
 
 nav:
-  - Velkommen:
-      - OS2mo: index.md
-      - Release History: news.md
-  - Arkitektur og design:
-      - arkitektur-design/overview.md
-      - arkitektur-design/facets.md
-      - arkitektur-design/system.md
-  - User and developer guides:
+  - MO:
+    - Velkommen:
+      - OS2mo: mo/index.md
+      - Release History: mo/news.md
+    - Arkitektur og design:
+      - mo/arkitektur-design/overview.md
+      - mo/arkitektur-design/facets.md
+      - mo/arkitektur-design/system.md
+    - User and developer guides:
       - Getting started:
-          - guides/environment/docker.md
-          - guides/environment/install-source.md
-      - Tests: guides/tests.md
-      - Conventions: guides/conventions.md
-      - ADFS:
-        - guides/adfs-setup.md
-        - guides/adfs-rbac-setup.md
-  - Drift og support:
-      - drift-support/auth.md
-      - drift-support/cookbook.md
-      - drift-support/manual.md
-      - drift-support/settings.md
-  - API Dokumentation:
-      - api-dokumentation/amqp.md
-      - api-dokumentation/triggers.md
-      - api-dokumentation/user-configuration.md
-  - GraphQL:
-      - graphql/intro.md
-      - graphql/reads.md
+        - mo/guides/environment/docker.md
+        - mo/guides/environment/install-source.md
+        - Tests: mo/guides/tests.md
+        - Conventions: mo/guides/conventions.md
+        - ADFS:
+          - mo/guides/adfs-setup.md
+          - mo/guides/adfs-rbac-setup.md
+    - Drift og support:
+      - mo/drift-support/auth.md
+      - mo/drift-support/cookbook.md
+      - mo/drift-support/manual.md
+      - mo/drift-support/settings.md
+    - API Dokumentation:
+      - mo/api-dokumentation/amqp.md
+      - mo/api-dokumentation/triggers.md
+      - mo/api-dokumentation/user-configuration.md
+    - GraphQL:
+      - mo/graphql/intro.md
+      - mo/graphql/reads.md
 
 theme:
   name: "material"
