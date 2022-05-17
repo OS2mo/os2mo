@@ -19,7 +19,7 @@ from more_itertools import all_equal
 
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
-from tests.integration.conftest import GQLResponse
+from tests.conftest import GQLResponse
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
 

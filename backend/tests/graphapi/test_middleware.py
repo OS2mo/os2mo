@@ -25,7 +25,6 @@ import mora.graphapi.dataloaders as dataloaders
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
-pytestmark = pytest.mark.asyncio
 
 
 @pytest.fixture(autouse=True)

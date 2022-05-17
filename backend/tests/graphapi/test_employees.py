@@ -11,6 +11,7 @@ import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
+from tests.conftest import GQLResponse
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -27,7 +28,7 @@ class TestEmployeesQuery:
     """
 
     @given(test_data=graph_data_strat(EmployeeRead))
-    def test_query_all(self, test_data, graphapi_test, patch_loader):
+    def test_query_all(self, test_data, graphapi_post, patch_loader):
         """Test that we can query all our employees."""
         # Patch dataloader
         with MonkeyPatch.context() as patch:
@@ -51,15 +52,14 @@ class TestEmployeesQuery:
                     }
                 }
             """
-            response = graphapi_test.post("/graphql", json={"query": query})
+            response: GQLResponse = graphapi_post(query)
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
-        assert flatten_data(data["employees"]) == test_data
+        assert response.errors is None
+        assert response.data
+        assert flatten_data(response.data["employees"]) == test_data
 
     @given(test_input=graph_data_uuids_strat(EmployeeRead))
-    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
+    def test_query_by_uuid(self, test_input, graphapi_post, patch_loader):
         """Test that we can query employees by UUID."""
         test_data, test_uuids = test_input
 
@@ -73,15 +73,12 @@ class TestEmployeesQuery:
                         }
                     }
                 """
-            response = graphapi_test.post(
-                "/graphql", json={"query": query, "variables": {"uuids": test_uuids}}
-            )
+            response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
+        assert response.errors is None
+        assert response.data
 
         # Check UUID equivalence
-        result_uuids = [empl.get("uuid") for empl in data["employees"]]
+        result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))

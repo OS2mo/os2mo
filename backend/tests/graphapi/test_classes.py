@@ -12,6 +12,7 @@ import mora.graphapi.dataloaders as dataloaders
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from tests.conftest import GQLResponse
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -28,7 +29,7 @@ class TestClassesQuery:
     """
 
     @given(test_data=graph_data_strat(ClassRead))
-    def test_query_all(self, test_data, graphapi_test, patch_loader):
+    def test_query_all(self, test_data, graphapi_post, graphapi_test, patch_loader):
         """Test that we can query all attributes of the classes data model."""
         # patch get_classes to return list(ClassRead)
         with MonkeyPatch.context() as patch:
@@ -57,15 +58,14 @@ class TestClassesQuery:
                     }
                 }
             """
-            response = graphapi_test.post("/graphql", json={"query": query})
+            response: GQLResponse = graphapi_post(query=query)
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
-        assert data["classes"] == test_data
+        assert response.errors is None
+        assert response.data
+        assert response.data["classes"] == test_data
 
     @given(test_input=graph_data_uuids_strat(ClassRead))
-    def test_query_by_uuid(self, test_input, graphapi_test, patch_loader):
+    def test_query_by_uuid(self, test_input, graphapi_post, patch_loader):
         """Test that we can query classes by UUID."""
         test_data, test_uuids = test_input
         # Patch dataloader
@@ -85,15 +85,12 @@ class TestClassesQuery:
                         }
                     }
                 """
-            response = graphapi_test.post(
-                "/graphql", json={"query": query, "variables": {"uuids": test_uuids}}
-            )
+            response: GQLResponse = graphapi_post(query, {"uuids": test_uuids})
 
-        data, errors = response.json().get("data"), response.json().get("errors")
-        assert errors is None
-        assert data is not None
+        assert response.errors is None
+        assert response.data
 
         # Check UUID equivalence
-        result_uuids = [cla.get("uuid") for cla in data["classes"]]
+        result_uuids = [cla.get("uuid") for cla in response.data["classes"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
