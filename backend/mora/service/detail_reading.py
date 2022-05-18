@@ -196,6 +196,14 @@ async def list_addresses_employee(
                         description
                       }
                     }
+                    visibility {
+                      uuid
+                      name
+                      user_key
+                      example
+                      scope
+                      owner
+                    }
                     employee {
                       givenname
                       surname
@@ -240,7 +248,7 @@ async def list_addresses_employee(
             element["person"] = {"uuid": element.pop("employee_uuid")}
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
         else:
-            element["person"] = element.pop("employee")
+            element["person"] = first(element.pop("employee"))
 
     return list(filter(partial(filter_by_validity, validity), data))
 
@@ -314,6 +322,14 @@ async def list_addresses_ou(
                       example
                       owner
                     }
+                    visibility {
+                      uuid
+                      name
+                      user_key
+                      example
+                      scope
+                      owner
+                    }
                     org_unit {
                       name
                       user_key
@@ -356,7 +372,7 @@ async def list_addresses_ou(
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
             element["org_unit"] = {"uuid": element.pop("org_unit_uuid")}
         else:
-            element["org_unit"] = element["org_unit"][0]
+            element["org_unit"] = first(element["org_unit"])
 
     return list(filter(partial(filter_by_validity, validity), data))
 
