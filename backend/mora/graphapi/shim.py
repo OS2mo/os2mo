@@ -185,11 +185,17 @@ class OrganisationLevelRead(OrganisationRead):
     manager_count: int
 
 
+class VisibilityRead(ClassRead):
+    org_uuid: Optional[UUID]
+    facet_uuid: Optional[UUID]
+
+
 class MOAddress(AddressRead):
     address_type_uuid: Optional[UUID]
     address_type: Union[None, MOAddressType, UUIDObject]
     person: Union[None, list[MOEmployee], UUIDObject]
     org_unit: Union[None, OrgUnitType, UUIDObject]
+    visibility: Optional[VisibilityRead]
     validity: ValidityDates
     href: Optional[str]
     name: Optional[str]

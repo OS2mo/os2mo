@@ -1285,6 +1285,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "validity": {"from": "2016-01-01", "to": "2019-12-31"},
                     "value": "bd7e5317-4a9e-437b-8923-11156406b117",
                     "value2": None,
+                    "visibility": None,
                 }
             ],
         )
@@ -1352,6 +1353,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "validity": {"from": "2016-01-01", "to": "2019-12-31"},
                     "value": addrid,
                     "value2": None,
+                    "visibility": None,
                 }
             ],
         )

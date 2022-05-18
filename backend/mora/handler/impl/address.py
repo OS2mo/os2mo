@@ -32,7 +32,7 @@ class AddressReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         address_type_uuid = mapping.ADDRESS_TYPE_FIELD.get_uuid(effect)
         engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
-        visibility_uuid = mapping.USER_FIELD.get_uuid(effect)
+        visibility_uuid = mapping.VISIBILITY_FIELD.get_uuid(effect)
 
         scope = mapping.ADDRESSES_FIELD(effect)[0].get("objekttype")
         handler = await base.get_handler_for_scope(scope).from_effect(effect)
