@@ -66,59 +66,6 @@ FULL_DETAILS = {
 }
 
 
-@router.get("/c/ancestor-tree")
-# @util.restrictargs('at', 'uuid')
-async def get_class_ancestor_tree(
-    uuid: Optional[List[UUID]] = None, only_primary_uuid: Optional[bool] = None
-):
-    """Obtain the tree of ancestors for the given classes.
-
-    The tree includes siblings of ancestors:
-
-    * Every ancestor of each class.
-    * Every sibling of every ancestor.
-
-    The intent of this routine is to enable easily showing the tree
-    *up to and including* the given classes in the UI.
-
-    .. :quickref: Class; Ancestor tree
-
-    :queryparam uuid: The UUID of the class.
-
-    :see: http:get:`/service/c/(uuid:uuid)/`.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "children": [{
-            "children": [{
-                "name": "Industrigruppen",
-                "user_key": "LO_3f_industri",
-                "uuid": "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5",
-                "...": "..."
-            }],
-            "name": "Fagligt Fælles Forbund (3F)",
-            "user_key": "LO_3f",
-            "uuid": "87fc0429-ab51-4b5a-bad2-f55ba39f88d2",
-            "...": "..."
-        }],
-        "name": "LO",
-        "user_key": "LO",
-        "uuid": "a966e536-998a-42b7-9213-c9f89b27f8f8",
-        "...": "..."
-     }]
-    """
-
-    c = common.get_connector()
-    classids = uuid
-
-    return await get_class_tree(
-        c, classids, with_siblings=True, only_primary_uuid=only_primary_uuid
-    )
-
-
 async def get_class_tree(
     c, classids, with_siblings=False, only_primary_uuid: bool = False
 ):
