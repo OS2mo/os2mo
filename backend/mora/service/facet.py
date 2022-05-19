@@ -173,53 +173,6 @@ async def prepare_class_child(c, entry):
     }
 
 
-@router.get("/c/{classid}/children")
-# @util.restrictargs('limit', 'start')
-async def get_all_class_children(
-    classid: UUID, only_primary_uuid: Optional[bool] = None
-):
-    """Get class children by UUID.
-
-    :queryparam uuid: The UUID of the class.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     [{
-        "child_count":6,
-        "name":"Fagligt F\u00e6lles Forbund (3F)",
-        "user_key":"LO_3f",
-        "uuid":"87fc0429-ab51-4b5a-bad2-f55ba39f88d2"
-     },{
-        "child_count":0,
-        "name":"F\u00e6ngselsforbundet i Danmark",
-        "user_key":"LO_jail",
-        "uuid":"31b2424b-9fb3-43c4-b068-b75a1b086ee8"
-     }]
-    """
-    classid = str(classid)
-
-    c = common.get_connector()
-
-    classes = await fetch_class_children(c, classid)
-    classes = await gather(
-        *[
-            create_task(get_one_class(c, *tup, only_primary_uuid=only_primary_uuid))
-            for tup in classes
-        ]
-    )
-    classes = await gather(
-        *[create_task(prepare_class_child(c, class_)) for class_ in classes]
-    )
-
-    return sorted(
-        classes,
-        # use locale-aware sorting
-        key=lambda f: locale.strxfrm(f["name"]) if f.get("name") else "",
-    )
-
-
 async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
     """
     Get org unit from cache and process it

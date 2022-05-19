@@ -396,6 +396,15 @@ class MOFacetChildren(BaseModel):
     child_count: int = Field(description="Number of children.")
 
 
+def construct_clazz_children(clazz: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "uuid": clazz["uuid"],
+        "name": clazz["name"],
+        "user_key": clazz["user_key"],
+        "child_count": len(clazz["children"]),
+    }
+
+
 @facet_router.get(
     "/f/{facet}/children",
     response_model=Union[List[MOFacetChildren], List[UUIDObject]],
@@ -464,13 +473,59 @@ async def get_all_classes_children(
         classes = classes[:limit]
     if only_primary_uuid:
         return classes
+    return list(map(construct_clazz_children, classes))
 
-    def construct(clazz: Dict[str, Any]) -> Dict[str, Any]:
-        return {
-            "uuid": clazz["uuid"],
-            "name": clazz["name"],
-            "user_key": clazz["user_key"],
-            "child_count": len(clazz["children"]),
+
+@facet_router.get(
+    "/c/{classid}/children",
+    response_model=Union[List[MOFacetChildren], List[UUIDObject]],
+    response_model_exclude_unset=True,
+    responses={404: {"description": "Class not found."}},
+)
+async def get_all_class_children(
+    classid: UUID = Path(..., description="UUID of a class."),
+    only_primary_uuid: Optional[bool] = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
+):
+    """Get class children by UUID."""
+    query = """
+    query ClassChildrenQuery(
+      $uuid: UUID!,
+      $only_primary_uuid: Boolean!
+    ) {
+      classes(uuids: [$uuid]) {
+        children @include(if: $only_primary_uuid) {
+          uuid
         }
+        children @skip(if: $only_primary_uuid) {
+          uuid
+          name
+          user_key
+          children {
+            uuid
+          }
+        }
+      }
+    }
+    """
+    response = await execute_graphql(
+        query,
+        {
+            "uuid": str(classid),
+            "only_primary_uuid": bool(only_primary_uuid),
+        },
+    )
+    handle_gql_error(response)
+    classes = response.data["classes"]
+    if not classes:
+        exceptions.ErrorCodes.E_UNKNOWN()
+    try:
+        clazz: dict[str, Any] = one(classes)
+    except ValueError as err:
+        raise ValueError("Wrong number of classes returned, expected one.") from err
 
-    return list(map(construct, classes))
+    classes = clazz["children"]
+    if only_primary_uuid:
+        return classes
+    return list(map(construct_clazz_children, classes))
