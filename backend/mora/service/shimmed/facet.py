@@ -7,6 +7,8 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Any
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Union
 from uuid import UUID
@@ -16,6 +18,7 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from pydantic import BaseModel
+from pydantic import Field
 
 from .errors import handle_gql_error
 from mora import exceptions
@@ -122,3 +125,71 @@ async def get_class(
     except ValueError:
         raise ValueError("Wrong number of classes returned, expected one.")
     return clazz
+
+
+class MOFacetReturn(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "uuid": "182df2a8-2594-4a3f-9103-a9894d5e0c36",
+                "user_key": "engagement_type",
+                "description": "",
+                "path": "/o/3b866d97-0b1f-48e0-8078-686d96f430b3/f/engagement_type/",
+            }
+        }
+
+    uuid: UUID = Field(description="The UUID of the facet.")
+    user_key: str = Field(description="Short, unique key.")
+    description: str = Field(description="Description of the facet object.", default="")
+    path: str = Field(description="The location on the web server.")
+
+
+@facet_router.get(
+    "/o/{orgid}/f/",
+    response_model=List[MOFacetReturn],
+    response_model_exclude_unset=True,
+    responses={500: {"description": "Unknown Error."}},
+)
+async def list_facets(
+    orgid: UUID = Path(
+        ...,
+        description="UUID of the organisation to retrieve facets from.",
+        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+    ),
+):
+    """List the facet types available in a given organisation."""
+    query = """
+    query FacetQuery {
+      facets {
+        uuid
+        user_key
+        description
+        org_uuid
+      }
+    }
+    """
+    response = await execute_graphql(query)
+    handle_gql_error(response)
+
+    # Handle org unit data
+    facets = response.data["facets"]
+    if not facets:
+        exceptions.ErrorCodes.E_UNKNOWN()
+
+    def filter_by_orgid(facet: Dict[str, Any]) -> bool:
+        return UUID(facet["org_uuid"]) == orgid
+
+    def remove_org_uuid(facet: Dict[str, Any]) -> Dict[str, Any]:
+        del facet["org_uuid"]
+        return facet
+
+    def add_path(facet: Dict[str, Any]) -> Dict[str, Any]:
+        facet["path"] = facet_router.url_path_for(
+            "get_classes", orgid=orgid, facet=facet["user_key"]
+        )
+        return facet
+
+    facets = filter(filter_by_orgid, facets)
+    facets = map(remove_org_uuid, facets)
+    facets = map(add_path, facets)
+    return list(facets)

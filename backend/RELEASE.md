@@ -1,3 +1,3 @@
 Release type: minor
 
-[#50414] Shim get_class endpoint
+[#50415] Shim list_facets endpoint
