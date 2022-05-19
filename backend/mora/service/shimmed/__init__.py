@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from . import employee
+from . import facet
 from . import it_systems
 from . import org
 from . import org_unit
@@ -14,4 +15,4 @@ from . import org_unit
 # --------------------------------------------------------------------------------------
 # Init
 # --------------------------------------------------------------------------------------
-__all__ = ["employee", "it_systems", "org", "org_unit"]
+__all__ = ["employee", "it_systems", "org", "org_unit", "facet"]
