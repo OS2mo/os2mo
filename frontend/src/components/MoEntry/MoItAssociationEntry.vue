@@ -53,7 +53,7 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
     <mo-facet-picker
-      facet="engagement_job_function"
+      :facet="jobFunctionFacet"
       v-model="entry.job_function"
       required
     />
@@ -128,9 +128,17 @@ export default {
       }
     },
 
-    dynamicFacets () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
+    jobFunctionFacet () {
+      // Ask backend if an "engagement_job_function_bvn" facet exists
+      let facet = this.$store.getters[Facet.getters.GET_FACET]('engagement_job_function_bvn')
+
+      if (Object.keys(facet).length) {
+        // If it does, it contains the user-facing job titles, and we should use it
+        return 'engagement_job_function_bvn'
+      } else {
+        // If not, we should use the regular job title classes instead
+        return 'engagement_job_function'
+      }
     }
   },
 
@@ -139,6 +147,13 @@ export default {
       (this.currentEmployee && this.currentEmployee.name)){
       this.$set(this.entry, 'person', this.currentEmployee)
     }
+  },
+
+  mounted () {
+    // Dispatch backend request to check if facet "engagement_job_function_bvn" exists
+    this.$store.dispatch(
+      Facet.actions.SET_FACET, { facet: 'engagement_job_function_bvn' }
+    )
   },
 
   components: {
@@ -166,7 +181,7 @@ export default {
   },
 
   methods: {
-    
+
     /**
      * Find the first element in the array fulfilling the predicate
      * @param {Array} arr - Array to search for elements in

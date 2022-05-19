@@ -20,6 +20,7 @@
   "it_system": "IT system | IT systems",
   "it_account": "IT account | IT accounts",
   "job_function": "Job title",
+  "job_function_bvn": "User-facing job title",
   "leave_type": "Leave type",
   "manager": "Manager | Managers",
   "owner": "Owner | Owners",

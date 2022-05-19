@@ -10,6 +10,7 @@
   "end_date": "@:shared.date.end_date",
   "engagement_type": "@:shared.engagement_type",
   "engagement_job_function": "@:shared.job_function",
+  "engagement_job_function_bvn": "@:shared.job_function_bvn",
   "engagement_id": "@:shared.engagement_id",
   "leave_type": "@:shared.leave_type",
   "manager_level": "@:shared.manager_level",
