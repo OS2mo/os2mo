@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.11.0 - 2022-05-19
+-------------------
+
+[#49631] UI: use `engagement_job_function_bvn` facet, if available ("Brugervendt stillingsbetegnelse")
+
 4.10.3 - 2022-05-18
 -------------------
 
