@@ -1293,7 +1293,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRequestResponse(
             "/service/c/32547559-cfc1-4d97-94c6-70b192eff825/"
-            "?full_name&facet&top_level_facet",
+            "?full_name=1&facet=1&top_level_facet=1",
             {
                 "example": None,
                 "facet": {

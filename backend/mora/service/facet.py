@@ -163,34 +163,6 @@ async def get_class_tree(
     return await get_classes(root for root in root_uuids)
 
 
-@router.get("/c/{classid}/")
-# @util.restrictargs('limit', 'start')
-async def get_class(classid: UUID, only_primary_uuid: Optional[bool] = None):
-    """Get class by UUID.
-
-    :queryparam uuid: The UUID of the class.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-     {
-         "name": "Industrigruppen",
-         "user_key": "LO_3f_industri",
-         "uuid": "71acc2cf-9a4f-465d-80b7-d6ba4d823ac5"
-         "...": "..."
-     }
-    """
-    classid = str(classid)
-
-    c = common.get_connector()
-    class_details = map_query_args_to_class_details(util.get_query_args())
-
-    return await get_one_class(
-        c, classid, details=class_details, only_primary_uuid=only_primary_uuid
-    )
-
-
 async def prepare_class_child(c, entry):
     """Minimize and enrich JSON, by only returning relevant data."""
     return {
