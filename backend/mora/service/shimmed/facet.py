@@ -96,42 +96,42 @@ async def get_class(
         query = """
         query ClassQuery($uuid: UUID!)
         {
-            classes(uuids: [$uuid]) {
-                uuid
-            }
+          classes(uuids: [$uuid]) {
+            uuid
+          }
         }
         """
     else:
         query = """
         query ClassQuery(
-            $uuid: UUID!,
-            $full_name: Boolean!,
-            $top_level_facet: Boolean!,
-            $facet: Boolean!,
+          $uuid: UUID!,
+          $full_name: Boolean!,
+          $top_level_facet: Boolean!,
+          $facet: Boolean!,
         ) {
-            classes(uuids: [$uuid]) {
-                uuid
-                name
-                user_key
-                example
-                scope
-                owner
+          classes(uuids: [$uuid]) {
+            uuid
+            name
+            user_key
+            example
+            scope
+            owner
 
-                full_name @include(if: $full_name)
+            full_name @include(if: $full_name)
 
-                top_level_facet @include(if: $top_level_facet) {
-                    ...facet_fields
-                }
-
-                facet @include(if: $facet) {
-                    ...facet_fields
-                }
+            top_level_facet @include(if: $top_level_facet) {
+              ...facet_fields
             }
+
+            facet @include(if: $facet) {
+              ...facet_fields
+            }
+          }
         }
         fragment facet_fields on Facet {
-            uuid
-            user_key
-            description
+          uuid
+          user_key
+          description
         }
         """
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
@@ -326,23 +326,23 @@ async def get_all_classes(
 
     query = """
     query FacetChildrenQuery(
-        $uuid: UUID!,
-        $only_primary_uuid: Boolean!
+      $uuid: UUID!,
+      $only_primary_uuid: Boolean!
     ) {
       facets(uuids: [$uuid]) {
         uuid
         user_key
         description
         classes @include(if: $only_primary_uuid) {
-            uuid
+          uuid
         }
         classes @skip(if: $only_primary_uuid) {
-            uuid
-            name
-            user_key
-            example
-            scope
-            owner
+          uuid
+          name
+          user_key
+          example
+          scope
+          owner
         }
       }
     }
@@ -377,3 +377,100 @@ async def get_all_classes(
         "items": children,
     }
     return facet
+
+
+class MOFacetChildren(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "child_count": 0,
+                "name": "Direktørområde",
+                "user_key": "Direktørområde",
+                "uuid": "51203743-f2db-4f17-a7e1-fee48c178799",
+            }
+        }
+
+    uuid: UUID = Field(description="The UUID of the class.")
+    name: str = Field(description="Name of the class.")
+    user_key: str = Field(description="Short, unique key.")
+    child_count: int = Field(description="Number of children.")
+
+
+@facet_router.get(
+    "/f/{facet}/children",
+    response_model=Union[List[MOFacetChildren], List[UUIDObject]],
+    response_model_exclude_unset=True,
+    responses={404: {"description": "Facet not found."}},
+)
+async def get_all_classes_children(
+    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    start: int = Query(0, description="Index of the first item for paging."),
+    limit: Optional[int] = Query(
+        None, description="Maximum number of items to return."
+    ),
+    only_primary_uuid: Optional[bool] = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
+):
+    """List classes available in the given facet."""
+    # If given a user_key we want to convert it to an UUID
+    try:
+        facet_uuid = UUID(facet)
+    except ValueError:
+        facet_uuid = await facet_user_key_to_uuid(facet)
+        if facet_uuid is None:
+            exceptions.ErrorCodes.E_UNKNOWN()
+
+    query = """
+    query FacetChildrenQuery(
+      $uuid: UUID!,
+      $only_primary_uuid: Boolean!
+    ) {
+      facets(uuids: [$uuid]) {
+        classes @include(if: $only_primary_uuid) {
+          uuid
+        }
+        classes @skip(if: $only_primary_uuid) {
+          uuid
+          name
+          user_key
+          children {
+            uuid
+          }
+        }
+      }
+    }
+    """
+    response = await execute_graphql(
+        query,
+        {
+            "uuid": str(facet_uuid),
+            "only_primary_uuid": bool(only_primary_uuid),
+        },
+    )
+    handle_gql_error(response)
+    facets = response.data["facets"]
+    if not facets:
+        exceptions.ErrorCodes.E_UNKNOWN()
+    try:
+        facet: dict[str, Any] = one(facets)
+    except ValueError as err:
+        raise ValueError("Wrong number of facets returned, expected one.") from err
+
+    classes = facet["classes"]
+    if start:
+        classes = classes[start:]
+    if limit:
+        classes = classes[:limit]
+    if only_primary_uuid:
+        return classes
+
+    def construct(clazz: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "uuid": clazz["uuid"],
+            "name": clazz["name"],
+            "user_key": clazz["user_key"],
+            "child_count": len(clazz["children"]),
+        }
+
+    return list(map(construct, classes))

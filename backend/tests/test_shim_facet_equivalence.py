@@ -16,7 +16,10 @@ from parameterized import parameterized
 import tests.cases
 from mora import common
 from mora.service.facet import get_classes_under_facet
+from mora.service.facet import get_facetids
+from mora.service.facet import get_one_class
 from mora.service.facet import get_one_facet
+from mora.service.facet import prepare_class_child
 
 
 # Old list_facets implementation
@@ -51,6 +54,32 @@ async def get_all_classes(
     return await get_classes_under_facet(
         None, facet, only_primary_uuid=only_primary_uuid, start=start, limit=limit
     )
+
+
+# Old get_all_classes_children implementation
+async def get_all_classes_children(
+    facet: str,
+    start: Optional[int] = 0,
+    limit: Optional[int] = 0,
+    only_primary_uuid: Optional[bool] = None,
+):
+    async def __get_one_class_helper(*args, **kwargs):
+        return await get_one_class(*args, **kwargs, only_primary_uuid=only_primary_uuid)
+
+    c = common.get_connector()
+    facetids = await get_facetids(facet)
+    classes = await c.klasse.paged_get(
+        __get_one_class_helper,
+        facet=facetids,
+        ansvarlig=None,
+        publiceret="Publiceret",
+        start=start,
+        limit=limit,
+    )
+    classes = await gather(
+        *[create_task(prepare_class_child(c, class_)) for class_ in classes["items"]]
+    )
+    return classes
 
 
 facet_names = [
@@ -113,4 +142,32 @@ class Tests(tests.cases.AsyncLoRATestCase):
 
         url = f"/service/f/{facet}/" + url_parameters
         expected = await get_all_classes(facet, **query_args)
+        await self.assertRequestResponse(url, expected)
+
+    @parameterized.expand(get_all_classes_param_tests)
+    async def test_get_all_classes_children_equivalence(
+        self,
+        facet: str,
+        start: Optional[int],
+        limit: Optional[int],
+        only_primary_uuid: Optional[bool],
+    ):
+        # Broken on old implementation
+        if only_primary_uuid:
+            return True
+
+        query_args = {}
+        if start is not None:
+            query_args["start"] = start
+        if limit is not None:
+            query_args["limit"] = limit
+        if only_primary_uuid is not None:
+            query_args["only_primary_uuid"] = only_primary_uuid
+
+        url_parameters = ""
+        if query_args:
+            url_parameters += "?" + urllib.parse.urlencode(query_args)
+
+        url = f"/service/f/{facet}/children" + url_parameters
+        expected = await get_all_classes_children(facet, **query_args)
         await self.assertRequestResponse(url, expected)
