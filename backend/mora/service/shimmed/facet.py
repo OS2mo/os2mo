@@ -11,7 +11,10 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+from typing import TypeVar
+from typing import Generic
 from uuid import UUID
+from operator import itemgetter
 
 from fastapi import Path
 from fastapi import Query
@@ -19,6 +22,7 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic.generics import GenericModel
 
 from .errors import handle_gql_error
 from mora import exceptions
@@ -193,3 +197,154 @@ async def list_facets(
     facets = map(remove_org_uuid, facets)
     facets = map(add_path, facets)
     return list(facets)
+
+
+DataT = TypeVar('DataT')
+
+
+class MOPaged(GenericModel, Generic[DataT]):
+    class Config:
+        schema_extra = {
+            "example": {
+                "total": 1,
+                "offset": 0,
+                "items": [{
+                    "uuid": "51203743-f2db-4f17-a7e1-fee48c178799",
+                    "name": "Direktørområde",
+                    "user_key": "Direktørområde",
+                    "example": None,
+                    "scope": "TEXT",
+                    "owner": None
+                }]
+            }
+        }
+
+    total: int = Field(description="Total number of results")
+    offset: int = Field(description="Offset of results")
+    items: List[DataT] = Field(description="Actual results")
+
+
+class MOFacetAllClasses(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "uuid": "598b261e-8bd4-4fa2-964a-7d9fa2f2713d",
+                "user_key": "org_unit_type",
+                "description": "",
+                "data": {
+                    "total": 1,
+                    "offset": 0,
+                    "items": [{
+                        "uuid": "51203743-f2db-4f17-a7e1-fee48c178799",
+                        "name": "Direktørområde",
+                        "user_key": "Direktørområde",
+                        "example": None,
+                        "scope": "TEXT",
+                        "owner": None
+                    }]
+                }
+            }
+        }
+
+    uuid: UUID = Field(description="The UUID of the facet.")
+    user_key: str = Field(description="Short, unique key.")
+    description: str = Field(description="Description of the facet object.", default="")
+    data: MOPaged[Union[MOClassReturn, UUIDObject]] = Field(description="Paged listing of classes")
+
+
+async def facet_user_key_to_uuid(user_key: str) -> Optional[UUID]:
+    """Find the UUID of a facet using its user_key.
+
+    Args:
+        user_key: The user_key to query.
+
+    Returns:
+        UUID of the facet if found.
+    """
+    query = """
+    query FacetQuery {
+      facets {
+        uuid
+        user_key
+      }
+    }
+    """
+    response = await execute_graphql(query)
+    handle_gql_error(response)
+    facets = response.data["facets"]
+    if not facets:
+        return None
+    facet_map = dict(map(itemgetter("user_key", "uuid"), facets))
+    return facet_map.get(user_key)
+
+
+@facet_router.get(
+    "/f/{facet}/",
+    response_model=MOFacetAllClasses,
+    response_model_exclude_unset=True,
+    responses={404: {"description": "Facet not found."}},
+)
+async def get_all_classes(
+    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    start: int = Query(0, description="Index of the first item for paging."),
+    limit: Optional[int] = Query(None, description="Maximum number of items to return."),
+    only_primary_uuid: Optional[bool] = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
+):
+    """List classes available in the given facet."""
+    # If given a user_key we want to convert it to an UUID
+    try:
+        facet_uuid = UUID(facet)
+    except ValueError:
+        facet_uuid = await facet_user_key_to_uuid(facet)
+        if facet_uuid is None:
+            exceptions.ErrorCodes.E_UNKNOWN()
+
+    if only_primary_uuid:
+        class_fragment = """
+        fragment class_fields on Class {
+            uuid
+        }
+        """
+    else:
+        class_fragment = """
+        fragment class_fields on Class {
+            uuid
+            name
+            user_key
+            example
+            scope
+            owner
+        }
+        """
+
+    query = """
+    query FacetChildrenQuery($uuid: UUID!) {
+      facets(uuids: [$uuid]) {
+        uuid
+        user_key
+        description
+        classes {
+            ...class_fields
+       }
+      }
+    }
+    """ + class_fragment
+    response = await execute_graphql(query, {"uuid": str(facet_uuid)})
+    handle_gql_error(response)
+    facets = response.data["facets"]
+    if not facets:
+        exceptions.ErrorCodes.E_UNKNOWN()
+    try:
+        facet: dict[str, Any] = one(facets)
+    except ValueError:
+        raise ValueError("Wrong number of facets returned, expected one.")
+    children = facet["classes"]
+    del facet["classes"]
+    facet["data"] = {
+        "total": len(children),
+        "offset": start,
+        "items": children[start:][:limit],
+    }
+    return facet
