@@ -117,14 +117,7 @@ export default {
 
 
     validations () {
-      return {
-        existing_associations: [
-          this.entry.person,
-          this.entry.org_unit,
-          this.entry.validity,
-          this.entry.uuid
-        ]
-      }
+      return {}
     },
 
     showPrimary () {
