@@ -128,21 +128,6 @@ export default {
       })
   },
 
-  existingAssociations (orgUnit, employee, validity, associationUuid) {
-    const payload = {
-      'org_unit': orgUnit,
-      'person': employee,
-      'validity': validity,
-      'uuid': associationUuid
-    }
-    return Validate
-      .post('/existing-associations/', payload).then(result => {
-        return true
-      }, err => {
-        return createErrorPayload(err)
-      })
-  },
-
   existingEngagementAssociations (orgUnit, validity, associationUuid) {
     const payload = {
       'org_unit': orgUnit,
@@ -156,6 +141,4 @@ export default {
         return createErrorPayload(err)
       })
   },
-
-
 }
