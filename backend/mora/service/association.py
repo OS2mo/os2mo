@@ -91,9 +91,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 employee, valid_from, valid_to
             )
         if employee_uuid:
-            await validator.does_employee_have_existing_association(
-                employee_uuid, org_unit_uuid, valid_from
-            )
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
@@ -289,9 +286,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation
         if employee:
             await validator.is_date_range_in_employee_range(employee, new_from, new_to)
-            await validator.does_employee_have_existing_association(
-                employee_uuid, org_unit_uuid, new_from, association_uuid
-            )
         if employee_uuid and it_user_uuid and primary:
             await validator.is_employee_it_association_primary_within_it_system(
                 employee_uuid,
