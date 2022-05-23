@@ -3,6 +3,7 @@
 from fastapi import Depends
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
+from os2mo_fastapi_utils.auth.models import RealmAccess
 from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_403_FORBIDDEN
@@ -12,7 +13,6 @@ from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import Token
-from os2mo_fastapi_utils.auth.models import RealmAccess
 
 logger = get_logger()
 
@@ -22,9 +22,7 @@ async def noauth() -> Token:
     return Token(
         azp="mo-frontend",
         uuid="00000000-0000-0000-0000-000000000000",
-        realm_access=RealmAccess(
-            roles={"admin"}
-        )
+        realm_access=RealmAccess(roles={"admin"}),
     )
 
 
