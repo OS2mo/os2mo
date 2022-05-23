@@ -220,62 +220,6 @@ async def get_all_class_children(
     )
 
 
-@router.get("/o/{orgid}/f/")
-# @util.restrictargs()
-async def list_facets(orgid: UUID):
-    """List the facet types available in a given organisation.
-
-    :param uuid orgid: Restrict search to this organisation.
-
-    .. :quickref: Facet; List types
-
-    :>jsonarr string name: The facet name.
-    :>jsonarr string path: The location on the web server.
-    :>jsonarr string user_key: Short, unique key identifying the facet
-    :>jsonarr string uuid: The UUID of the facet.
-
-    :status 200: Always.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "address",
-          "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address/",
-          "user_key": "Adressetype",
-          "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1"
-        },
-        {
-          "name": "ou",
-          "path": "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/ou/",
-          "user_key": "Enhedstype",
-          "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280"
-        }
-      ]
-
-    """
-    orgid = str(orgid)
-
-    c = common.get_connector()
-
-    async def transform(facet_tuple):
-        facetid, facet = facet_tuple
-        return await get_one_facet(c, facetid, orgid, facet)
-
-    response = await c.facet.get_all(ansvarlig=orgid, publiceret="Publiceret")
-    response = await gather(
-        *[create_task(transform(facet_tuple)) for facet_tuple in response]
-    )
-
-    return sorted(
-        response,
-        # use locale-aware sorting
-        key=lambda f: locale.strxfrm(f["name"]) if f.get("name") else "",
-    )
-
-
 async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
     """
     Get org unit from cache and process it
