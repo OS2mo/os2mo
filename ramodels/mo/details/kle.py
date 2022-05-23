@@ -17,6 +17,7 @@ from .._shared import KLENumberRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # KLE models
@@ -54,6 +55,10 @@ class KLEWrite(KLEBase):
     org_unit: Optional[OrgUnitRef] = Field(
         description="Reference to the organisation unit for the KLE."
     )
+
+
+class KLEDetail(KLEWrite, Details):
+    pass
 
 
 class KLE(KLEBase):

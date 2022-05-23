@@ -24,6 +24,7 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Validity
 from .._shared import Visibility
+from ._shared import Details
 
 
 # --------------------------------------------------------------------------------------
@@ -112,6 +113,13 @@ class AddressWrite(AddressBase):
             too_long=too_long,
         )
 
+        return values
+
+
+class AddressDetail(AddressWrite, Details):
+    @root_validator
+    def validate_references(cls, values: DictStrAny) -> DictStrAny:
+        """Reference validator is overwritten because all refs are optional."""
         return values
 
 

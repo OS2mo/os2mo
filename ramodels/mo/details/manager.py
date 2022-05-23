@@ -21,6 +21,7 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Responsibility
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # Manager implementations
@@ -73,6 +74,10 @@ class ManagerWrite(ManagerBase):
     responsibility: Optional[List[Responsibility]] = Field(
         description="List of manager responsibility objects."
     )
+
+
+class ManagerDetail(ManagerWrite, Details):
+    pass
 
 
 class Manager(MOBase):

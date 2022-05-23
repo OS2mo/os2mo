@@ -25,6 +25,7 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Primary
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # Engagement models
@@ -107,6 +108,10 @@ class AssociationWrite(AssociationBase):
                 "'substitute' must be None if 'job_function' or 'it_user' are not None"
             )
         return v
+
+
+class AssociationDetail(AssociationWrite, Details):
+    pass
 
 
 class Association(MOBase):

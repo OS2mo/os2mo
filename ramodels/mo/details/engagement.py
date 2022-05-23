@@ -21,6 +21,7 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Primary
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # Engagement models
@@ -109,6 +110,10 @@ class EngagementWrite(EngagementBase):
     primary: Optional[Primary] = Field(
         description="Reference to the primary klasse for the created engagement object."
     )
+
+
+class EngagementDetail(EngagementWrite, Details):
+    pass
 
 
 class Engagement(MOBase):

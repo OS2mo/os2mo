@@ -17,6 +17,7 @@ from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import RoleType
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # Role
@@ -50,6 +51,10 @@ class RoleWrite(RoleBase):
         description="Reference to the employee for which the role should be created."
     )
     role_type: RoleType = Field(description="Reference to the role type klasse.")
+
+
+class RoleDetail(RoleWrite, Details):
+    pass
 
 
 class Role(MOBase):

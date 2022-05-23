@@ -15,18 +15,18 @@ from ramodels.mo._shared import OrgUnitType
 from ramodels.mo._shared import ParentRef
 from ramodels.mo._shared import TimePlanning
 from ramodels.mo._shared import Validity
+from ramodels.mo.details import AssociationDetail
+from ramodels.mo.details import EngagementDetail
+from ramodels.mo.details import ITUserDetail
+from ramodels.mo.details import ManagerDetail
+from ramodels.mo.details import RoleDetail
 from ramodels.mo.organisation_unit import OrganisationUnit
 from ramodels.mo.organisation_unit import OrganisationUnitBase
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 from ramodels.mo.organisation_unit import OrganisationUnitWrite
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
-from tests.mo.details.test_association import association_strat
-from tests.mo.details.test_engagement import engagement_strat
 from tests.mo.details.test_engagement_association import engagement_assoc_strat
-from tests.mo.details.test_it_user import it_user_strat
-from tests.mo.details.test_manager import manager_strat
-from tests.mo.details.test_role import role_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -36,12 +36,12 @@ from tests.mo.details.test_role import role_strat
 @st.composite
 def valid_details(draw):
     details_strat = (
-        association_strat()
+        st.builds(AssociationDetail)
         | engagement_assoc_strat()
-        | engagement_strat()
-        | manager_strat()
-        | it_user_strat()
-        | role_strat()
+        | st.builds(EngagementDetail)
+        | st.builds(ManagerDetail)
+        | st.builds(ITUserDetail)
+        | st.builds(RoleDetail)
     )
     return draw(details_strat)
 
