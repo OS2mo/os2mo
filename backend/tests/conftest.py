@@ -111,6 +111,13 @@ def testing_db():
 
 
 @pytest.fixture
+async def sample_structures_no_reset(testing_db):
+    """Function scoped fixture, which is called on every test with a teardown"""
+    await load_sample_structures(minimal=False)
+    yield
+
+
+@pytest.fixture
 async def sample_structures(testing_db):
     """Function scoped fixture, which is called on every test with a teardown"""
     await load_sample_structures(minimal=False)
