@@ -3,6 +3,7 @@
 from fastapi import Depends
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
+from os2mo_fastapi_utils.auth.models import RealmAccess
 from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_403_FORBIDDEN
@@ -18,7 +19,11 @@ logger = get_logger()
 
 async def noauth() -> Token:
     """Noop auth provider."""
-    return Token(azp="mo-frontend", uuid="00000000-0000-0000-0000-000000000000")
+    return Token(
+        azp="mo-frontend",
+        uuid="00000000-0000-0000-0000-000000000000",
+        realm_access=RealmAccess(roles={"admin"}),
+    )
 
 
 keycloak_auth = get_auth_dependency(
