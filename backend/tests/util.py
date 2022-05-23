@@ -4,7 +4,9 @@ import contextlib
 import json
 import os
 import re
+from asyncio import gather
 from copy import deepcopy
+from itertools import starmap
 from json import dumps
 from typing import Union
 from unittest.mock import MagicMock
@@ -307,8 +309,7 @@ async def load_sample_structures(minimal=False):
             )
         )
 
-    for path, fixture_name, uuid in fixtures:
-        await load_fixture(path, fixture_name, uuid)
+    await gather(*starmap(load_fixture, fixtures))
 
 
 def setup_test_routing():
