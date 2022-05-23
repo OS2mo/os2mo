@@ -28,6 +28,7 @@ from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
+from ramodels.mo.employee import EmployeeWrite
 from strawberry.types import ExecutionResult
 
 from mora import util
@@ -35,6 +36,11 @@ from mora import util
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
+
+
+class UUIDObject(BaseModel):
+    # Lots of old service endpoints return {"uuid": UUID} objects.
+    uuid: UUID
 
 
 class MOEmployee(EmployeeRead):
@@ -49,9 +55,8 @@ class MOEmployee(EmployeeRead):
         return values
 
 
-class UUIDObject(BaseModel):
-    # Lots of old service endpoints return {"uuid": UUID} objects.
-    uuid: UUID
+class MOEmployeeWrite(EmployeeWrite):
+    org: Optional[UUIDObject]
 
 
 class ValidityDates(BaseModel):

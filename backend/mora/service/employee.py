@@ -27,6 +27,7 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from ramodels.base import tz_isodate
 
 from . import autocomplete
@@ -43,6 +44,7 @@ from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation import validator
 from mora.auth.keycloak import oidc
+from mora.graphapi.shim import MOEmployeeWrite
 from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
@@ -64,6 +66,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "", required=False)
         surname = util.checked_get(req, mapping.SURNAME, "", required=False)
+
+        print("hest", req)
 
         if name and (surname or givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -616,7 +620,29 @@ async def terminate_employee(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post("/e/create", status_code=201)
-async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+async def create_employee(
+    req: MOEmployeeWrite = Body(
+        ...,
+        example={
+            "name": "Name Name",
+            "nickname": "Nickname Whatever",
+            "cpr_no": "0101501234",
+            "user_key": "1234",
+            "org": {"uuid": "67e9a80e-6bc0-e97a-9751-02600c017844"},
+            "uuid": "f005a114-e5ef-484b-acfd-bff321b26e3f",
+            "details": [
+                {
+                    "type": "engagement",
+                    "org_unit": {"uuid": "a30f5f68-9c0d-44e9-afc9-04e58f52dfec"},
+                    "job_function": {"uuid": "3ef81e52-0deb-487d-9d0e-a69bbe0277d8"},
+                    "engagement_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+                    "validity": {"from": "2016-01-01", "to": "2017-12-31"},
+                }
+            ],
+        },
+    ),
+    permissions=Depends(oidc.rbac_admin),
+):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -684,7 +710,13 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
     :returns: UUID of created employee
 
     """
-    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    req_dict = req.dict()
+    req_dict.pop("name", None)
+    req_dict.pop("nickname", None)
+
+    request = await EmployeeRequestHandler.construct(
+        jsonable_encoder(req_dict), mapping.RequestType.CREATE
+    )
     return await request.submit()
 
 
