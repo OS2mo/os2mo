@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+6.0.0 - 2022-05-24
+------------------
+
+[#50418] Reorder details for employees and organisation units
+
 5.13.0 - 2022-05-10
 -------------------
 
