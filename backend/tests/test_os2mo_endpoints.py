@@ -81,6 +81,7 @@ all_endpoints = (
         "",
         "/graphql",
         "/version/",
+        "/saml/sso/",
     }
     | doc_endpoints
     | health_endpoints

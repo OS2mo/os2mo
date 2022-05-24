@@ -57,6 +57,7 @@ class TestEndpointAuthDependency(unittest.TestCase):
             "/testing/testcafe-db-setup",
             "/testing/testcafe-db-teardown",
             "/metrics",
+            "/saml/sso/",
         }
         # List of endpoints to not evaluate
         skip_endpoints = {
