@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
   <div class="card col">
     <div class="card-body d-flex flex-column">
       <h4 class="card-title" style="margin-bottom: 2rem;">
-        <icon name="exchange-alt"/>
+        <icon name="chart-simple"/>
         {{$tc('shared.insight', 2)}}
       </h4>
       <div v-if="query_files">
