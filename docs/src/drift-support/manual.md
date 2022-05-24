@@ -310,6 +310,19 @@ Når man opretter en medarbejder, hentes vedkommende via indtastning af CPR-numm
 
 ![image](../graphics/momanual/opretmedarbejder.png)
 
+Regler for cpr-numre er at man via *MOs brugergrænseflade* ikke kan oprette en bruger med et cpr-nummer som fx 111111-XXXX (eller 111111XXXX), fordi brugergrænsefladen validerer, at cpr-nummeret består af 10 cifre.
+
+Man kan derimod godt via *MOs service-API* godt oprette en bruger med et cpr-nummer som fx 111111XXXX, men ikke en bruger med et cpr-nummer som fx 111111-XXXX (bemærk - mellem 111111 og XXXX.).
+
+Der er en række "lag" i MO's cpr-validering:
+
+1. Et cpr-nummer skal bestå af 10 cifre (denne validering sker kun i MOs brugergrænseflade og ikke i MOs service-API.).
+2. Et cpr-nummer skal bestå af 10 tegn, uden evt. separator ("-").
+3. Et cpr-nummer skal indeholde en gyldig dato.
+4. Et cpr-nummer kan valideres mod KMD's Serviceplatform, hvis denne integration er sat op.
+
+Hvis man er interesseret i at arbejde med fiktive, men valide cpr-numre, skal man benytte guiden [Fiktive CPR numre](https://modst.dk/media/17386/fiktive-cpr-numre.pdf).
+
 Når en enhed eller en medarbejder er oprettet, kan de fremsøges, og de informationer, der er tilknyttet til dem, vil fremgå af brugergrænsefladen.
 
 Nogle steder vil det være muligt at redigere og afslutte enkelte registreringer. Hvor det ikke er muligt, er det pr. design. Fx er det ikke muligt at redigere eller afslutte en nedarvet leder.
