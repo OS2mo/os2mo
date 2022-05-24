@@ -38,6 +38,54 @@ nav:
   - GraphQL:
       - graphql/intro.md
       - graphql/reads.md
+  - LoRa MOX:
+    - lora/index.md
+    - User Documentation: 
+      - lora/user/overview.md
+      - lora/user/praesentation.md
+      - lora/user/installation.md
+      - lora/user/database.md
+      - Objects:
+        - lora/user/objects.md
+        - Integrationdata: lora/user/objects/integrationdata.md
+      - REST API: 
+        - lora/user/api.md
+        - lora/user/api/self-documentation.md
+        - lora/user/api/tutorial.md
+        # - Time zones:
+        - Operations:
+          - Read: lora/user/api/read.md 
+          - List: lora/user/api/list.md
+          - Search: lora/user/api/search.md
+          - Create: lora/user/api/create.md
+          - Update: 
+            - lora/user/api/update.md
+            - lora/user/api/update/merging.md
+            - lora/user/api/update/deleting.md
+          - Passivate: lora/user/api/passivate.md
+          - Delete: lora/user/api/delete.md
+          - Import: lora/user/api/import.md
+          - File operations:
+            - lora/user/api/advanced/file-operations.md
+            - lora/user/api/advanced/deleting-document.md
+        # - \`Document\` etc.:
+      - lora/user/log-haendelse.md
+      - lora/user/agents.md
+      - lora/user/auth.md
+      - lora/user/deployment.md
+      - lora/user/settings.md
+      - lora/user/operating-mox.md
+      
+    - Developer Documentation:
+      - lora/dev/database.md
+      - lora/dev/migrations.md
+      - lora/dev/wildcards.md
+      - lora/dev/test.md
+      - lora/dev/testing-rest.md
+      - lora/dev/building-docs.md
+      - lora/dev/beskedfordeler.md
+      - lora/dev/news.md
+
 
 theme:
   name: "material"

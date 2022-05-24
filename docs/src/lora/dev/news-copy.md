@@ -1,0 +1,638 @@
+# Version history
+
+# CHANGELOG
+
+## 4.5.2 - 2022-05-04
+
+[#48771] Template correct user into initial_schema.sql
+
+## 4.5.1 - 2022-05-04
+
+[#48771] Read db_user form settings
+
+## 4.5.0 - 2022-04-08
+
+[#49738] Performance: index all "*_registrering_id" foreign key
+columns in database
+
+## 4.4.1 - 2022-03-02
+
+[#48309] Revert to using env var [TESTING]{.title-ref} to determine
+whether to use testing database
+
+## 4.4.0 - 2022-02-16
+
+[#48309] Manage DB migrations using Alembic
+
+## 4.3.0 - 2022-02-16
+
+[#45758] Remove DB extensions from LoRa
+
+## 4.2.2 - 2022-02-14
+
+[#45288] Fix issue where users or organisation units without
+"organisational functions" (engagements, addresses, etc.) would be
+left out of the autocomplete results.
+
+## 4.2.1 - 2022-01-25
+
+[#48178] Fixed bug in Kubernetes readiness endpoint
+
+## 4.2.0 - 2022-01-24
+
+[#47960] Revert of 04d1d2c8, remove asyncpg
+
+## 4.1.2 - 2022-01-20
+
+[#46254] Fix db_truncate async
+
+## 4.1.1 - 2022-01-19
+
+[#47915] Split LoRa version into tag and commit sha
+
+## 4.1.0 - 2022-01-17
+
+[#47960] Introduce continuous deployment to Flux
+
+## 4.0.0 - 2022-01-17
+
+[#47960] Change handling of deleted entries in reads
+
+Previously reading deleted entries from LoRa resulted in a [410
+Gone]{.title-ref} status code. Now it simply returns a list with the
+deleted entry filtered out.
+
+## 3.3.0 - 2022-01-13
+
+[#47837] Kubernetes liveness and readiness probes
+
+## 3.2.0 - 2022-01-04
+
+[#47606] Use async postgres connection
+
+## 3.1.1 - 2022-01-04
+
+[#47665] Read LoRa version and commit sha from build arg environment
+variables
+
+## 3.1.0 - 2021-12-21
+
+[#47457] Add support for pagination in LoRa quick_search
+
+## 3.0.0 - 2021-12-17
+
+[#47090] Remove half the endpoints and tables from LoRa
+
+## 2.2.0 - 2021-12-03
+
+[#45600] Implement automatic versioning through autopub
+
+# OLD CHANGELOG BELOW
+
+## Version 2.1.3
+
+-   #xxxxx: Fix database connection leak in
+    [oio_rest.mo.autocomplete]{.title-ref} module
+
+## Version 2.1.2
+
+-   #46370: Naive connection closed fix
+
+## Version 2.1.1
+
+-   #xxxxx: Fix perf of SQL query in [object_exists]{.title-ref}
+
+## Version 2.1.0
+
+-   #45899: Add support for arguments through the http body of GET
+    requests as json
+
+## Version 2.0.2
+
+-   #37475: Return HTTP status 400 on ValueError
+
+## Version 2.0.1
+
+-   #45899: Fix relation OR queries
+-   #45872: Fix Keycloak network interface binds in docker-compose
+
+## Version 2.0.0
+
+-   Keycloak authentication
+-   #43749, #45032: Add Poetry
+
+## Version 1.14.0
+
+-   #44596: Implement Prometheus FastAPI instrumentator
+-   #39239, #39858, #44530: Add autocomplete API endpoints
+
+## Version 1.13.1
+
+-   Remove BASE_URL config parameter
+
+## Version 1.13.0, 2 July 2021
+
+-   Add Opentelemetry instrumentation
+-   Add configuration using environment variables
+
+## Version 1.12.1, 21 May 2021
+
+-   Use Gunicorn/Uvicorn
+
+## Version 1.12.0, 21 May 2021
+
+-   Add OS2mo extension field for seniority
+
+## Version 1.11.1, 23 April 2021
+
+New features: * Fix validation to allow inserting historic data
+
+## Version 1.11.0, 7 April 2021
+
+New features: * Exchanged Flask to FastAPI
+
+## Version 1.10.0, 1 March 2021
+
+New features: * Bugfix: Performant searches wrongfully included deleted
+items (now properly excluded)
+
+## Version 1.9.0, 11 February 2021
+
+New features: * Performance improvements for search queries
+
+## Version 1.8.1, 14 September 2020
+
+New features:
+
+-   Add OS2mo extension field for related classes
+
+## Version 1.8.0, 05 August 2020
+
+New features:
+
+-   Added endpoint for truncating the database, that can be enabled via
+    configuration.
+-   Upgraded to PostgreSQL 11 and Python 3.8.
+
+## Version 1.7.0, 25 February 2020
+
+New features:
+
+-   Removed legacy authentication method (wstrust/wso2)
+-   Added organisationsfunktion attribute extensions fields to
+    [mo-01.json]{.title-ref}
+
+## Version 1.6.1, 06 February 2020
+
+This minor release fixes a bug in the consolidated output
+
+## Version 1.6.0, 22 January 2020
+
+New features:
+
+-   Support for returning a consolidated output from oio_rest which
+    collapses 'virkning' intervals to the smallest amount
+
+## Version 1.5.0, 04 December 2019
+
+New features:
+
+-   Added new fields to [mo-01.json]{.title-ref}
+-   Internal improvements for Gitlab CI setup
+
+## Version 1.4.0, 04 December 2019
+
+New features:
+
+-   Completely revamped configuration system.
+-   Move database setup to a new PostgreSQL docker image.
+-   Added [db_extensions.json]{.title-ref} from OS2mo as
+    [mo-01.json]{.title-ref}
+-   Added better logging support
+-   Added version endpoint
+
+## Version 1.3.0, 11 July 2019
+
+This release further introduces Docker support.
+
+-   The [initdb]{.title-ref} functionality has been reimplemented in
+    python.
+-   Outdated sections have been removed from the documentation.
+-   Docker support has been further expanded with a copy service
+    responsible for copying Postgres-specific files out of the image,
+    for initializing a Postgres container.
+
+## Version 1.2.0, 27 May 2019
+
+This feature introduces Docker support. A `Dockerfile` has been added
+for creating a Docker-container containing the oio_rest application.
+
+A `docker-compose` file has been added for setting up a full development
+environment, including database.
+
+New features:
+
+-   Docker support, with `docker-compose` for development setups.
+-   AMQP audit logging is now disabled by default.
+
+## Version 1.1.0, 26 March 2019
+
+New features:
+
+-   Python dependencies updated.
+-   Delay import of `DB_STRUCTURE` file until after configuration file
+    is read.
+-   Improve speed and configurability of test databases. Disable `fsync`
+    for speed and allow using long directory names without failing.
+-   Fix calculation of `BASE_DIR` in tests.
+-   Make API endpoints trailing slash agnostic.
+-   Clear caches in test code when patching DB structures.
+-   Simplified validation of objects with additional attributes.
+-   Searching for/filtering on Boolean attributes fixed.
+-   Proof-of-concept infrastructure for Gitlab Runners added.
+-   New dummy SQL fixtures for integration with the MO test suite.
+
+Documentation improved:
+
+-   API reference documentation vastly improved.
+-   API tutorial updated and made more user friendly.
+-   Behaviour of wildcard searches properly documented.
+-   Proper documentation of `settings.py`.
+
+## Version 1.0.0, 28 January 2019
+
+New in this version:
+
+-   Fixes to JSON validation.
+-   Installation script was refactored to reflect that we currently
+    don't support the AMQP agents.
+-   Use the OS2MO test suite as part of the LoRa test suite.
+-   Consolidate the REST API into one package, including the database
+    generation.
+-   Abolish patch system for database variations - all SQL is now
+    generated by Jinja templates.
+-   JSON schemas exposed in new end point in the OIO REST API.
+-   Fix JSON validation to reflect discrepancy between the Dokument
+    standard and the current implementation.
+-   Proper use of SAML for authentication.
+-   Fix bug in search results that gave multiple instances of the same
+    hit in some cases.
+-   Fix overly-aggressive validation of URL parameters.
+-   Security fix: All Python dependencies upgraded.
+-   Restructuring, refactoring and removal of old test files.
+-   New "integration_data" property added to all objects in LoRa.
+-   Change (refactor) overall LoRa configuration.
+-   Add MPL license boiler plate to all source files.
+-   Restructured and improved Sphinx documentation.
+-   Complete overhaul of REST API documentation.
+-   Database must use a Unix socket rather than TCP whenever possible.
+-   Make tests pass regardless of time zone on server.
+-   Fix bug that meant database installation code would sometimes be run
+    as superuser rather than designated database user.
+-   Database generation no longer ignores "mandatory" metadata field.
+
+## Version 0.9.2, 13 December 2018
+
+Hotfix:
+
+-   Upgrade [Requests](https://requests.readthedocs.io/) to version
+    1.21.4.
+-   Upgrade [Flask](https://palletsprojects.com/p/flask/) to version
+    1.0.2.
+
+## Version 0.9.1, 30 August 2018
+
+Hotfix:
+
+-   Added support for verifying SAML2 assertions already wrapped in
+    responses.
+
+## Version 0.9.0-post3, 18 June 2018
+
+Fix issue in installer related to permissions
+
+## Version 0.9.0-post2, 7 June 2018
+
+Fix installer, accidentally broken in previous post-release.
+
+## Version 0.9.0-post1, 1 June 2018
+
+This hotfix contains no code changes, but updates the version metadata
+for the `oio_rest` package.
+
+## Version 0.9.0, 7 May 2018
+
+This is a major version, including non-backwards-compatible changes to
+the REST protocol, parameter checks, JSON input validation, unit tests
+and integration tests.
+
+Backwards incompatible changes:
+
+-   Allow replacing an object with PUT - updates now use PATCH
+    (non-compatible with previous versions).
+-   Return an explicit error (410 Gone) on attempts to access a deleted
+    object.
+-   Validate query parameters given during search, return an error when
+    given unrecognised or unsupported arguments.
+-   JSON Schema validation when creating new objects.
+
+New features:
+
+-   Comprehensive test suite, including:
+    -   Unit tests of our REST API.
+    -   Integration tests based on the standards.
+    -   End-to-end integration tests of the REST API and database layer.
+    -   Continuous integration infrastructure that runs our test suite
+        on each push to GitHub.
+-   Allow requesting objects at a certain registration or validity time.
+    Previously, we either allowed searching within an interval or the
+    current time.
+-   Migration to Python 3; minimum version required is now Python 3.5
+    rather than 2.7.
+-   New and improved installer based on SaltStack to enable provisioning
+    of client installations.
+
+Bug fixes:
+
+-   An update with an empty list of relations deleted all relations.
+-   Fixed semantics for DELETE, so that we no longer merge old entries
+    when reviving an object.
+
+## Version 0.3.1.1, 4 September 2017
+
+This hotfix adds a missing import to 'settings.py.base'; other than
+that, there is change of functionality.
+
+## Version 0.3.1, 23 August 2017
+
+This is a minor update that fixes searching by validity.
+
+## Version 0.3.0.1, 28 March 2017
+
+This quick hotfix addresses a missing variables that broke installation.
+
+## Version 0.3.0, 28 March 2017
+
+This is a major release, adding four new services:
+
+-   Tilstand
+-   Indsats
+-   Activity
+-   Log
+
+As a result of these changes, you'll need to add the configuration for
+the new Log service to 'settings.py'. Please note that the installer
+does not add these new services to the database automatically.
+
+In addition, it fixes the following bugs:
+
+-   Use DMY date order in this file.
+-   Fix running interface_tests on Darwin, i.e. macOS.
+-   Fix searching for document attributes and relations.
+-   Update the README, and factor out API documentation to a separate
+    file.
+-   Reduce size of settings.py by moving the database structure
+    definition to a separate Python module
+-   Install mox_advis by default
+
+## Version 0.2.17, 8 February 2017
+
+This version contains various installer cleanups, including:
+
+-   Don't prompt for WSO installation during install - it's broken
+-   Consolidate all Python virtual environemnts into one
+-   Add support for Ubuntu 16.04 Xenial Xerus
+-   Fix agents by using 'localhost' for AMQP queues
+-   Install the headless JDK
+-   Fix installing with recommended dependancies turned off system-wide
+-   Fix initial install -- don't assume users exist
+-   Suppress prompt for resetting the database, and factor out doing to
+    a separate script
+-   Don't overwrite pre-existing configurations when re-installing
+-   Handle SSL errors gracefully in 'auth.sh'
+
+In addition, the README was updated to document how to set up AD FS
+authentication.
+
+## Version 0.2.16.1, 12 January 2017
+
+Hotfix:
+
+-   Fix check for SAML authentication in get-token template
+-   Fix reading user name from prompt in 'auth.sh' script
+
+## Version 0.2.16, 10 January 2017
+
+New in this version:
+
+-   Minor bug fixes for installer
+-   Factor out JDK installation to a separate script
+-   Consolidate WSGI webapp installers
+
+## Version 0.2.15, 21 December 2016
+
+New in this version:
+
+-   Converted spreadsheet download to a python Flask webservice
+-   Converted spreadsheet upload to a python Flask webservice
+-   Stability, configuration and verbosity update to moxrestfrontend
+-   Consolidated common classes & utilities to share between agents
+-   Simplified apache installation & configuration
+-   Created common install & config utilities, to avoid the same
+    boilerplate code in install files
+-   Refactored get-token to support authentication against WSO2 and AD
+    FS.
+
+## Version 0.2.14.1, 30 June 2016
+
+Hotfix:
+
+-   Fix buggy Apache configuration.
+-   Commit new configuration to git.
+
+## Version 0.2.14, 28 June 2016
+
+New in this version:
+
+-   Service to extract data to csv files
+-   Enhanced upload of spreadsheets, where multiple update rows merge
+    into one update
+-   Bugfix: Tolerate ods files that Apache ODF Toolkit can't parse
+-   Bugfix: Parse excel numbers as strings, not doubles (to avoid
+    scientific notation)
+-   Configuration using environment-specific files and symlinks
+-   User documentation added with instructions for user management in
+    WSO2
+-   Technical documentation updated with LIST operation
+-   Role-based access control implemented in WSO2
+-   Thorough documentation of how to use REST interface (examples in
+    curl)
+
+## Version 0.2.13.3, 27 April 2016
+
+Hotfix:
+
+-   Fix README and installation procedure.
+
+## Version 0.2.13.2, 19 April 2016
+
+Hotfix:
+
+-   Place Tomcat dependencies where the installer can find them
+-   Create settings.py soft link before running database installation.
+
+## Version 0.2.13.1, 19 April 2016
+
+Hotfix:
+
+-   Fix installation order of Java components (dependencies).
+
+## Version 0.2.13, 3 March 2016
+
+New in this version:
+
+-   Reorganize Agents into distinct entities, with reusable classes
+    defined in depencency modules
+-   Put server-specific config (development, testing, production) in
+    separate files, and symlink to them as needed
+-   Set up demonstration servlet to receive file uploads
+-   Rename message queues by their recipient
+
+## Version 0.2.12.1, 15 February 2016
+
+Hotfix:
+
+-   Mox Advis should not crash if receiving one UUID as string.
+
+## Version 0.2.12, 4 January 2016
+
+New in this version:
+
+-   Read operation now supports registreringFra/Til parameters.
+-   Update README documentation to fix typo and to explain that the date
+    range filters use the overlap operator.
+-   Registrering JSON results now include the "TilTidspunkt" date
+    range. IMPORTANT: The script in db/updates/update-2016-01-04.sh
+    should be run (from the same directory) to update the database for
+    this change.
+-   Java components split into modules and ordered under that folder
+-   Servlet architecture set up
+-   Spreadsheet servlet begun
+
+## Version 0.2.11, 10 December 2015
+
+New in this version:
+
+-   Mox agent Mox Advis.
+-   Display JSON for class structures at e.g. /sag/classes
+-   Bug in Update Klassifikation due to wrong formatting of empty array.
+
+## Version 0.2.10, 3 November 2015
+
+New in this version:
+
+-   aktoerref and notetekst should not be mandatory in Virkning.
+
+## Version 0.2.9, 26 October 2015
+
+New in this version:
+
+-   Enhanced logging for java mox listener
+
+## Version 0.2.8, 7 October 2015
+
+New in this version:
+
+-   AMQP listener now accepts mixed-case values for headers objectType
+    and operation
+-   AMQP listener throws more error messages back through the defined
+    response channel, rather than staying silent.
+
+## Version 0.2.7, 23 September 2015
+
+New in this version:
+
+-   AMQP interface for read, search and list operations.
+-   Refactored agent.properties settings with standardized naming.
+
+## Version 0.2.6, 22 September 2015
+
+New in this version:
+
+-   Bugfix: For LIST operation, virkning parameters default to the
+    current date/time.
+-   Improved documentation of search/list operation
+    virkning/registrering parameters.
+
+## Version 0.2.5, 21 September 2015
+
+New in this version:
+
+-   Added support for RabbitMQ credentials 'queueUsername' and
+    'queuePassword' When specifying a user, please make sure that he
+    is created in the RabbitMQ server, and that he has access to /
+
+## Version 0.2.4, 21 September 2015
+
+New in this version:
+
+-   Output Authorization header in easier-to-copy-and-paste format than
+    the previous JSON output.
+-   Close the agent.sh process in /get-token after opening it.
+-   Better error-handling in /get-token callback for invalid passwords.
+-   Fix: Java agent's "gettoken" command did not use the supplied
+    username/password, but instead read them from the agent.properties
+    file.
+-   Fix security vulnerability: /get-token callback did not escape
+    command arguments to agent.sh script.
+
+## Version 0.2.3, 18 September 2015
+
+New in this version:
+
+-   Fix for bug in previous hotfix related to /get-token script.
+
+## Version 0.2.2, 18 September 2015
+
+New in this version:
+
+-   Fix for /get-token script to take into account proper location of
+    agent.sh script.
+
+## Version 0.2.1, 18 September 2015
+
+New in this version:
+
+-   REST Interface implements a form for requesting SAML token from at
+    the URL "/get-token".
+-   Java agent client supports getting token via command-line, using
+    "gettoken <username>" command.
+-   Updated sample SOAP project to request the SAML token to include the
+    "URL" claim, which is needed in the test setup, as it supplies the
+    user's UUID to the REST API.
+-   Fix parsing of MOX agent "-D" parameters.
+-   Add WSO2's nexus repository to Java agent Maven project.
+
+## Version 0.2.0, 2 September 2015
+
+New in this version:
+
+-   REST interface for the OIO services Sag, Dokument, Organisation and
+    Klassifikation.
+-   Database implementing the same hierarchies.
+-   Complete redesign of database.
+-   Support for authentication with SAML tokens.
+
+## Version 0.1.1, 9 March 2015
+
+New in this version:
+
+-   Added missing classes from the Organisation hierarchy.
+
+## Version 0.1.0, 23 February 2015
+
+Initial release.
+
+-   Status is "alpha"
+-   First version of ActualState database has been handed over to KL and
+    Frederiksberg Kommune for testing.
