@@ -156,7 +156,7 @@ def service_test_client_not_raising():
 @dataclass
 class GQLResponse:
     data: Optional[dict]
-    errors: Optional[dict]
+    errors: Optional[list[dict]]
     status_code: int
 
 
