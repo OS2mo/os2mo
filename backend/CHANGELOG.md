@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.16.0 - 2022-05-24
+-------------------
+
+[#47023] Replace AIOHTTP with HTTPX as LoRa HTTP client
+
 4.15.0 - 2022-05-23
 -------------------
 
