@@ -12,18 +12,18 @@ from hypothesis import strategies as st
 
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo._shared import OrganisationRef
+from ramodels.mo.details import AddressDetail
+from ramodels.mo.details import AssociationDetail
+from ramodels.mo.details import EngagementDetail
+from ramodels.mo.details import ITUserDetail
+from ramodels.mo.details import LeaveDetail
+from ramodels.mo.details import ManagerDetail
+from ramodels.mo.details import RoleDetail
 from ramodels.mo.employee import Employee
 from ramodels.mo.employee import EmployeeBase
 from ramodels.mo.employee import EmployeeRead
 from ramodels.mo.employee import EmployeeWrite
-from tests.mo.details.test_address import address_strat
-from tests.mo.details.test_association import association_strat
-from tests.mo.details.test_engagement import engagement_strat
 from tests.mo.details.test_engagement_association import engagement_assoc_strat
-from tests.mo.details.test_it_user import it_user_strat
-from tests.mo.details.test_leave import leave_strat
-from tests.mo.details.test_manager import manager_strat
-from tests.mo.details.test_role import role_strat
 
 # ---------------------------------------------------------------------------------------
 # Tests
@@ -40,14 +40,14 @@ def valid_cprs(draw):
 @st.composite
 def valid_details(draw):
     details_strat = (
-        address_strat()
-        | association_strat()
+        st.builds(AddressDetail)
+        | st.builds(AssociationDetail)
         | engagement_assoc_strat()
-        | engagement_strat()
-        | manager_strat()
-        | it_user_strat()
-        | role_strat()
-        | leave_strat()
+        | st.builds(EngagementDetail)
+        | st.builds(ManagerDetail)
+        | st.builds(ITUserDetail)
+        | st.builds(RoleDetail)
+        | st.builds(LeaveDetail)
     )
     return draw(details_strat)
 

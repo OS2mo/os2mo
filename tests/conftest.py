@@ -21,6 +21,8 @@ from hypothesis import HealthCheck
 from hypothesis import strategies as st
 from pydantic import ValidationError
 
+from ramodels.mo import Validity
+
 
 # --------------------------------------------------------------------------------------
 # Settings
@@ -94,3 +96,20 @@ def not_from_regex(draw, str_pat: str):
     regex = cached_regex(str_pat)
     not_match = st.text().filter(lambda s: regex.match(s) is None)
     return draw(not_match)
+
+
+@st.composite
+def validity_strat(draw):
+    required = {"from_date": from_date_strat()}
+    optional = {"to_date": st.none() | to_date_strat()}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
+@st.composite
+def validity_model_strat(draw) -> Validity:
+    st_dict = draw(validity_strat())
+    return Validity(**st_dict)
+
+
+st.register_type_strategy(Validity, validity_model_strat())

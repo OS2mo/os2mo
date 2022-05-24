@@ -9,31 +9,38 @@
 from typing import Union
 
 from .address import Address
+from .address import AddressDetail
 from .address import AddressRead
 from .address import AddressWrite
 from .association import Association
 from .association import AssociationBase
+from .association import AssociationDetail
 from .association import AssociationRead
 from .association import AssociationWrite
 from .engagement import Engagement
+from .engagement import EngagementDetail
 from .engagement import EngagementRead
 from .engagement import EngagementWrite
 from .engagement_association import EngagementAssociation
 from .engagement_association import EngagementAssociationRead
 from .it_system import ITSystemRead
 from .it_system import ITUser
+from .it_system import ITUserDetail
 from .it_system import ITUserRead
 from .it_system import ITUserWrite
 from .kle import KLE
 from .kle import KLEBase
+from .kle import KLEDetail
 from .kle import KLERead
 from .kle import KLEWrite
 from .leave import Leave
 from .leave import LeaveBase
+from .leave import LeaveDetail
 from .leave import LeaveRead
 from .leave import LeaveWrite
 from .manager import Manager
 from .manager import ManagerBase
+from .manager import ManagerDetail
 from .manager import ManagerRead
 from .manager import ManagerWrite
 from .related_unit import RelatedUnitBase
@@ -41,6 +48,7 @@ from .related_unit import RelatedUnitRead
 from .related_unit import RelatedUnitWrite
 from .role import Role
 from .role import RoleBase
+from .role import RoleDetail
 from .role import RoleRead
 from .role import RoleWrite
 
@@ -48,9 +56,15 @@ from .role import RoleWrite
 # All
 # --------------------------------------------------------------------------------------
 Details = Union[
-    Association, Engagement, EngagementAssociation, KLE, Manager, ITUser, Role
+    AssociationDetail,
+    EngagementDetail,
+    EngagementAssociation,
+    KLEDetail,
+    ManagerDetail,
+    ITUserDetail,
+    RoleDetail,
 ]
-EmployeeDetails = Union[Details, Address, Leave]
+EmployeeDetails = Union[Details, AddressDetail, LeaveDetail]
 OrgUnitDetails = Details
 
 __all__ = [

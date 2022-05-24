@@ -18,6 +18,7 @@ from .._shared import LeaveType
 from .._shared import MOBase
 from .._shared import PersonRef
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # Role
@@ -53,6 +54,10 @@ class LeaveWrite(LeaveBase):
     engagement: Optional[EngagementRef] = Field(
         description="Reference to the engagement for which the leave should be created."
     )
+
+
+class LeaveDetail(LeaveWrite, Details):
+    pass
 
 
 class Leave(MOBase):

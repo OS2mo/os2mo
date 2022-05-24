@@ -18,6 +18,7 @@ from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import PersonRef
 from .._shared import Validity
+from ._shared import Details
 
 # --------------------------------------------------------------------------------------
 # IT Systems
@@ -72,6 +73,10 @@ class ITUserWrite(ITUserBase):
     org_unit: Optional[OrgUnitRef] = Field(
         description="Reference to the organisation unit for the IT user."
     )
+
+
+class ITUserDetail(ITUserWrite, Details):
+    pass
 
 
 class ITUser(MOBase):
