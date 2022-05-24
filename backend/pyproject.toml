@@ -21,7 +21,7 @@ python-dateutil = "^2.8.1"
 validators = "^0.18.2"
 psycopg2-binary = "^2.8.6"
 gunicorn = "^20.1.0"
-PyJWT = {extras = ["crypto"], version = "^2.1.0"}
+PyJWT = { extras = ["crypto"], version = "^2.1.0" }
 toml = "^0.10.2"
 more-itertools = "^8.8.0"
 SQLAlchemy = "^1.4.17"
@@ -39,14 +39,17 @@ click = "^8.0.1"
 os2mo-fastapi-utils = "1.0.0"
 structlog = "^21.1.0"
 python-multipart = "^0.0.5"
-service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "0.2.0"}
-lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
-prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
-pydantic = {extras = ["email"], version = "^1.7.3"}
+service-person-stamdata-udvidet = { git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "0.2.0" }
+lora-utils = { git = "https://github.com/magenta-aps/lora-utils" }
+prometheus-fastapi-instrumentator = { git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator" }
+pydantic = { extras = ["email"], version = "^1.7.3" }
 ramodels = "^6.0.1"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
-strawberry-graphql = {extras = ["fastapi", "opentelemetry"], version = "^0.95.1"}
+strawberry-graphql = { extras = [
+  "fastapi",
+  "opentelemetry",
+], version = "^0.95.1" }
 respx = "^0.19.2"
 asgi-lifespan = "^1.0.1"
 ramqp = "^3.0.0"
@@ -76,7 +79,7 @@ hypothesis-graphql = "^0.5.1"
 pytest-split = "^0.6.0"
 mypy = "^0.931"
 pydocstyle = "^6.1.1"
-black = {version = "^22.1.0"}
+black = { version = "^22.1.0" }
 reorder-python-imports = "^3.0.1"
 pre-commit = "^2.18.1"
 
