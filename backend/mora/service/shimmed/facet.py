@@ -529,3 +529,147 @@ async def get_all_class_children(
     if only_primary_uuid:
         return classes
     return list(map(construct_clazz_children, classes))
+
+
+class MOAllClasses(MOFacetAllClasses):
+    class Config:
+        schema_extra = {
+            "example": {
+                "uuid": "598b261e-8bd4-4fa2-964a-7d9fa2f2713d",
+                "user_key": "org_unit_type",
+                "description": "",
+                "path": "/o/3b866d97-0b1f-48e0-8078-686d96f430b3/f/org_unit_type/",
+                "data": {
+                    "total": 1,
+                    "offset": 0,
+                    "items": [
+                        {
+                            "uuid": "51203743-f2db-4f17-a7e1-fee48c178799",
+                            "name": "Direktørområde",
+                            "user_key": "Direktørområde",
+                            "example": None,
+                            "scope": "TEXT",
+                            "owner": None,
+                        }
+                    ],
+                },
+            }
+        }
+
+    path: str = Field(description="The location on the web server.")
+
+
+@facet_router.get(
+    "/o/{orgid}/f/{facet}/",
+    response_model=MOAllClasses,
+    response_model_exclude_unset=True,
+    responses={404: {"description": "Facet not found."}},
+)
+async def get_classes(
+    orgid: UUID = Path(
+        ...,
+        description="UUID of the organisation to retrieve facets from.",
+        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+    ),
+    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    start: int = Query(0, description="Index of the first item for paging."),
+    limit: Optional[int] = Query(
+        None, description="Maximum number of items to return."
+    ),
+    only_primary_uuid: Optional[bool] = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
+    at: Any = None,
+    validity: Any = None,
+    full_name: Optional[bool] = Query(
+        None, description="Include full name in response."
+    ),
+    top_level_facet: Optional[bool] = Query(
+        None, description="Include top-level facet in response."
+    ),
+    facet_toggle: Optional[bool] = Query(None, alias="facet", description="Include facet in response."),
+):
+    """List classes available in the given facet."""
+    # If given a user_key we want to convert it to an UUID
+    try:
+        facet_uuid = UUID(facet)
+    except ValueError:
+        facet_uuid = await facet_user_key_to_uuid(facet)
+        if facet_uuid is None:
+            exceptions.ErrorCodes.E_UNKNOWN()
+
+    query = """
+    query FacetChildrenQuery(
+      $uuid: UUID!,
+      $only_primary_uuid: Boolean!,
+      $full_name: Boolean!,
+      $top_level_facet: Boolean!,
+      $facet: Boolean!,
+    ) {
+      facets(uuids: [$uuid]) {
+        ...facet_fields
+        classes @include(if: $only_primary_uuid) {
+          uuid
+        }
+        classes @skip(if: $only_primary_uuid) {
+          uuid
+          name
+          user_key
+          example
+          scope
+          owner
+
+          full_name @include(if: $full_name)
+
+          top_level_facet @include(if: $top_level_facet) {
+            ...facet_fields
+          }
+
+          facet @include(if: $facet) {
+            ...facet_fields
+          }
+        }
+      }
+    }
+    fragment facet_fields on Facet {
+      uuid
+      user_key
+      description
+    }
+    """
+    response = await execute_graphql(
+        query,
+        {
+            "uuid": str(facet_uuid),
+            "only_primary_uuid": bool(only_primary_uuid),
+            "full_name": bool(full_name),
+            "top_level_facet": bool(top_level_facet),
+            "facet": bool(facet_toggle),
+        },
+    )
+    handle_gql_error(response)
+    facets = response.data["facets"]
+    if not facets:
+        exceptions.ErrorCodes.E_UNKNOWN()
+    try:
+        facet: dict[str, Any] = one(facets)
+    except ValueError as err:
+        raise ValueError("Wrong number of facets returned, expected one.") from err
+    children = facet["classes"]
+    del facet["classes"]
+
+    total = len(children)
+    if start:
+        children = children[start:]
+    if limit:
+        children = children[:limit]
+
+    facet["data"] = {
+        "total": total,
+        "offset": start,
+        "items": children,
+    }
+    facet["path"] = facet_router.url_path_for(
+        "get_classes", orgid=orgid, facet=facet["user_key"]
+    )
+    return facet

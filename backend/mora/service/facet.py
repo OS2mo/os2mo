@@ -29,7 +29,6 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastapi import APIRouter
-from fastapi import Request
 from more_itertools import one
 
 from . import handlers
@@ -469,91 +468,6 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
     sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True)
 
     return sorted_classes
-
-
-@router.get("/o/{orgid}/f/{facet}/")
-async def get_classes(
-    orgid: UUID,
-    facet: str,
-    request: Request,
-    start: Optional[int] = 0,
-    limit: Optional[int] = 0,
-    only_primary_uuid: Optional[bool] = None,
-    at: Any = None,
-    validity: Any = None,
-):
-    """List classes available in the given facet.
-
-    .. :quickref: Facet; Get
-
-    :param uuid orgid: Restrict search to this organisation.
-    :param string facet: One of the facet names listed by
-        http:get:`/service/o/(uuid:orgid)/f/`
-
-    :queryparam int start: Index of first item for paging.
-    :queryparam int limit: Maximum items.
-
-    :>jsonarr string name: Human-readable name.
-    :>jsonarr string uuid: Machine-friendly UUID.
-    :>jsonarr string user_key: Short, unique key.
-    :>jsonarr string example: An example value. In most cases the
-        value is meant to be presented to the user as an aid.
-    :>jsonarr string scope: A representation of the type of value, see
-        the table below for details.
-
-    :status 200: On success.
-    :status 404: Whenever the facet isn't found.
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      {
-        "name": "address_type",
-        "path":
-          "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/address_type/",
-        "user_key": "Adressetype",
-        "uuid": "e337bab4-635f-49ce-aa31-b44047a43aa1",
-        "data": {
-          "items": [
-            {
-              "example": "http://www.korsbaek.dk/",
-              "name": "Hjemmeside",
-              "scope": "WWW",
-              "user_key": "URL",
-              "uuid": "160ecaed-50b0-4800-bebc-0d0289a4f624"
-            },
-            {
-              "example": "<UUID>",
-              "name": "Lokation",
-              "scope": "DAR",
-              "user_key": "AdresseLokation",
-              "uuid": "031f93c3-6bab-462e-a998-87cad6db3128"
-            },
-            {
-              "example": "Mandag 10:00-12:00 Tirsdag 14:00-16:00",
-              "name": "Åbningstid, telefon",
-              "scope": "TEXT",
-              "user_key": "Åbningstid Telefon",
-              "uuid": "0836ffbf-3b3e-410f-8cbf-face7e6844ef"
-            }
-          ],
-          "offset": 0,
-          "total": 3
-        }
-      }
-    """
-    orgid = str(orgid)
-    class_details = map_query_args_to_class_details(util.get_query_args())
-
-    return await get_classes_under_facet(
-        orgid,
-        facet,
-        details=class_details,
-        only_primary_uuid=only_primary_uuid,
-        start=start,
-        limit=limit,
-    )
 
 
 def map_query_args_to_class_details(args):
