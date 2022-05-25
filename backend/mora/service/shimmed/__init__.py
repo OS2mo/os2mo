@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from . import employee
+from . import exports
 from . import facet
 from . import it_systems
 from . import org
@@ -17,6 +18,7 @@ from . import org_unit
 # --------------------------------------------------------------------------------------
 __all__ = [
     "employee",
+    "exports",
     "facet",
     "it_systems",
     "org",

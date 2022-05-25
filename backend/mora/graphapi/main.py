@@ -28,6 +28,7 @@ from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
+from mora.graphapi.files import get_export_dir
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
@@ -266,6 +267,18 @@ class Query:
         healths = list(map(construct, healthchecks))
         parsed_healths = parse_obj_as(list[HealthRead], healths)
         return cast(list[Health], parsed_healths)
+
+    # Files
+    # -----
+    @strawberry.field(
+        description="Get a list of all filenames",
+    )
+    async def files(self) -> list[str]:
+        export_dir = get_export_dir()
+        dir_contents = export_dir.iterdir()
+        files = filter(lambda file: file.is_file(), dir_contents)
+        filenames = list(map(lambda file: file.name, files))
+        return filenames
 
 
 # --------------------------------------------------------------------------------------

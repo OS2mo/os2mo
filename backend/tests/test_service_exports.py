@@ -10,7 +10,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 import tests.cases
 from mora.config import Settings
-from mora.service.exports import oauth2_scheme
+from mora.service.shimmed.exports import oauth2_scheme
 from tests import util
 
 
