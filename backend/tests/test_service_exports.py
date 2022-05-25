@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from base64 import b64encode
 from pathlib import Path
 from typing import Optional
 
@@ -43,12 +44,17 @@ class AuthTests(tests.cases.AsyncTestCase):
             "Secure",
         }
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: True)
-    @mock.patch("mora.service.exports.FileResponse")
-    async def test_get_export_reads_cookie(self, mock_send_file):
+    @mock.patch("mora.service.shimmed.exports.execute_graphql")
+    async def test_get_export_reads_cookie(self, execute):
         """Ensure that get reads our token and attempts to validate it."""
-        mock_send_file.return_value = "I am a file"
+        response = mock.MagicMock()
+        response.errors = {}
+        response.data = {
+            "download_file": {
+                "base64_contents": b64encode(b"I am a file").decode("ascii")
+            }
+        }
+        execute.return_value = response
 
         # No cookie, not okay
         response = await self.request("/service/exports/filename")
@@ -67,11 +73,11 @@ class AuthTests(tests.cases.AsyncTestCase):
 
         # No validation, no problem
         with mock.patch(
-            "mora.service.exports._check_auth_cookie", _noop_check_auth_cookie
+            "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
         ):
             response = await self.request("/service/exports/filename")
             assert response.status_code == HTTP_200_OK
-            assert response.text == '"I am a file"'
+            assert response.text == "I am a file"
 
 
 class FileTests(tests.cases.AsyncTestCase):
@@ -114,7 +120,9 @@ class FileTests(tests.cases.AsyncTestCase):
             with util.override_config(Settings(query_export_dir="")):
                 await self.assertRequestResponse("/service/exports/", filenames)
 
-    @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
+    @mock.patch(
+        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
+    )
     @mock.patch.object(Path, "is_dir", lambda x: False)
     async def test_get_export_file_raises_on_invalid_dir(self):
         """Ensure we handle missing export dir"""
@@ -129,11 +137,14 @@ class FileTests(tests.cases.AsyncTestCase):
             status_code=500,
         )
 
-    @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
+    @mock.patch(
+        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
+    )
     @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: False)
-    async def test_get_export_file_raises_on_file_not_found(self):
+    @mock.patch.object(Path, "iterdir")
+    async def test_get_export_file_raises_on_file_not_found(self, mock_listdir):
         """Ensure we handle nonexistent files"""
+        mock_listdir.return_value = []
         await self.assertRequestResponse(
             "/service/exports/whatever",
             {
@@ -146,17 +157,23 @@ class FileTests(tests.cases.AsyncTestCase):
             status_code=404,
         )
 
-    @mock.patch("mora.service.exports._check_auth_cookie", _noop_check_auth_cookie)
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: True)
-    @mock.patch("mora.service.exports.FileResponse")
-    async def test_get_export_file_returns_file(self, mock_send_file):
+    @mock.patch(
+        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
+    )
+    @mock.patch("mora.service.shimmed.exports.execute_graphql")
+    async def test_get_export_file_returns_file(self, execute):
         """Ensure we return a file if found"""
-
-        mock_send_file.return_value = "I am a file"
+        response = mock.MagicMock()
+        response.errors = {}
+        response.data = {
+            "download_file": {
+                "base64_contents": b64encode(b"I am a file").decode("ascii")
+            }
+        }
+        execute.return_value = response
 
         await self.assertRequestResponse("/service/exports/whatever", "I am a file")
-        mock_send_file.assert_called_once()
+        execute.assert_called_once()
 
 
 class FileUploadTests(tests.cases.AsyncTestCase):
@@ -181,7 +198,7 @@ class FileUploadTests(tests.cases.AsyncTestCase):
     async def test_file_exists(self):
         """Ensure that we cannot upload files if they already exist."""
         open_mock = mock.mock_open()
-        with mock.patch("mora.service.exports.open", open_mock, create=True):
+        with mock.patch("mora.service.shimmed.exports.open", open_mock, create=True):
             response = await self.client.post(
                 "/service/exports/filename.csv", files=dict(file=b"bar")
             )
