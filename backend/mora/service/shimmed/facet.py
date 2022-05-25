@@ -322,7 +322,7 @@ async def get_all_classes(
     except ValueError:
         facet_uuid = await facet_user_key_to_uuid(facet)
         if facet_uuid is None:
-            exceptions.ErrorCodes.E_UNKNOWN()
+            exceptions.ErrorCodes.E_NOT_FOUND()
 
     query = """
     query FacetChildrenQuery(
@@ -333,10 +333,10 @@ async def get_all_classes(
         uuid
         user_key
         description
-        classes @include(if: $only_primary_uuid) {
+        children: classes @include(if: $only_primary_uuid) {
           uuid
         }
-        classes @skip(if: $only_primary_uuid) {
+        children: classes @skip(if: $only_primary_uuid) {
           uuid
           name
           user_key
@@ -362,8 +362,7 @@ async def get_all_classes(
         facet: dict[str, Any] = one(facets)
     except ValueError as err:
         raise ValueError("Wrong number of facets returned, expected one.") from err
-    children = facet["classes"]
-    del facet["classes"]
+    children = facet.pop("children")
 
     total = len(children)
     if start:
@@ -587,7 +586,9 @@ async def get_classes(
     top_level_facet: Optional[bool] = Query(
         None, description="Include top-level facet in response."
     ),
-    facet_toggle: Optional[bool] = Query(None, alias="facet", description="Include facet in response."),
+    facet_toggle: Optional[bool] = Query(
+        None, alias="facet", description="Include facet in response."
+    ),
 ):
     """List classes available in the given facet."""
     # If given a user_key we want to convert it to an UUID
@@ -596,7 +597,7 @@ async def get_classes(
     except ValueError:
         facet_uuid = await facet_user_key_to_uuid(facet)
         if facet_uuid is None:
-            exceptions.ErrorCodes.E_UNKNOWN()
+            exceptions.ErrorCodes.E_NOT_FOUND()
 
     query = """
     query FacetChildrenQuery(
@@ -608,10 +609,10 @@ async def get_classes(
     ) {
       facets(uuids: [$uuid]) {
         ...facet_fields
-        classes @include(if: $only_primary_uuid) {
+        children: classes @include(if: $only_primary_uuid) {
           uuid
         }
-        classes @skip(if: $only_primary_uuid) {
+        children: classes @skip(if: $only_primary_uuid) {
           uuid
           name
           user_key
@@ -650,13 +651,12 @@ async def get_classes(
     handle_gql_error(response)
     facets = response.data["facets"]
     if not facets:
-        exceptions.ErrorCodes.E_UNKNOWN()
+        exceptions.ErrorCodes.E_NOT_FOUND()
     try:
         facet: dict[str, Any] = one(facets)
     except ValueError as err:
         raise ValueError("Wrong number of facets returned, expected one.") from err
-    children = facet["classes"]
-    del facet["classes"]
+    children = facet.pop("children")
 
     total = len(children)
     if start:

@@ -1357,7 +1357,7 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/f/org_unit_type/"
-            "?full_name&facet&top_level_facet",
+            "?full_name=1&facet=1&top_level_facet=1",
             {
                 "data": {
                     "offset": 0,
