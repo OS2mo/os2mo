@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from pathlib import Path
 from typing import Optional
 
 from fastapi import APIRouter
@@ -8,73 +7,15 @@ from fastapi import Cookie
 from fastapi import Depends
 from fastapi import File
 from fastapi import HTTPException
-from fastapi import Response
 from fastapi.responses import FileResponse
-from fastapi.security import OAuth2PasswordBearer
 
-from .. import config
-from .. import exceptions
+from mora import exceptions
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import validate_token
+from mora.graphapi.files import get_export_dir
+
 
 router = APIRouter()
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")
-
-
-def get_export_dir() -> Path:
-    """Get the configured export directory.
-
-    Raises:
-        E_DIR_NOT_FOUND: If the configured directory does not exist.
-
-    Returns:
-        A Path object pointing to the directory.
-    """
-    settings = config.get_settings()
-    export_dir = Path(settings.query_export_dir)
-    if not export_dir.is_dir():
-        exceptions.ErrorCodes.E_DIR_NOT_FOUND()
-    return export_dir
-
-
-@router.get(
-    "/exports/",
-    responses={"500": {"description": "Directory does not exist"}},
-    dependencies=[Depends(auth)],
-)
-def list_export_files(response: Response, token: str = Depends(oauth2_scheme)):
-    """
-    List the available exports
-
-    .. :quickref: Exports; List
-
-    :return: A list of available export files
-
-    **Example Response**:
-
-    .. sourcecode:: json
-
-      [
-        "export1.xlsx",
-        "export2.xlsx"
-      ]
-    """
-    response.set_cookie(
-        key="MO_FILE_DOWNLOAD",
-        value=token,
-        secure=True,
-        httponly=True,
-        samesite="strict",
-        path="/service/exports/",
-    )
-
-    export_dir = get_export_dir()
-    dir_contents = export_dir.iterdir()
-    files = filter(lambda file: file.is_file(), dir_contents)
-    filenames = list(map(lambda file: file.name, files))
-    return filenames
 
 
 async def _check_auth_cookie(auth_cookie=Optional[str]) -> None:
