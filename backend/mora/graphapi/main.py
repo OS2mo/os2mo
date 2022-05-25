@@ -23,12 +23,14 @@ from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
+from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
-from mora.graphapi.files import get_export_dir
+from mora.graphapi.files import list_files
+from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
@@ -274,11 +276,17 @@ class Query:
         description="Get a list of all filenames",
     )
     async def files(self) -> list[str]:
-        export_dir = get_export_dir()
-        dir_contents = export_dir.iterdir()
-        files = filter(lambda file: file.is_file(), dir_contents)
-        filenames = list(map(lambda file: file.name, files))
-        return filenames
+        return list_files()
+
+
+@strawberry.type
+class Mutation:
+    @strawberry.mutation(description="Upload a file")
+    async def upload_file(self, file: Upload, force: bool = False) -> str:
+        file_name = file.filename
+        file_bytes = await file.read()
+        save_file(file_name, file_bytes, force)
+        return "OK"
 
 
 # --------------------------------------------------------------------------------------
@@ -336,6 +344,7 @@ async def get_by_uuid(
 def get_schema() -> strawberry.Schema:
     schema = strawberry.Schema(
         query=Query,
+        mutation=Mutation,
         # Automatic camelCasing disabled because under_score style is simply better
         #
         # See: An Eye Tracking Study on camelCase and under_score Identifier Styles
