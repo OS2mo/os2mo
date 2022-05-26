@@ -34,6 +34,7 @@ from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.models import FileRead
 from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
@@ -42,6 +43,7 @@ from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import EngagementAssociation
 from mora.graphapi.schema import Facet
+from mora.graphapi.schema import File
 from mora.graphapi.schema import Health
 from mora.graphapi.schema import ITSystem
 from mora.graphapi.schema import ITUser
@@ -273,10 +275,18 @@ class Query:
     # Files
     # -----
     @strawberry.field(
-        description="Get a list of all filenames",
+        description="Get a list of all files",
     )
-    async def files(self) -> list[str]:
-        return list_files()
+    async def files(self) -> list[File]:
+        files = list_files()
+        parsed_files = map(lambda file_name: FileRead(file_name=file_name), files)
+        return cast(list[File], parsed_files)
+
+    @strawberry.field(
+        description="Get base64 encoded ascii filecontents",
+    )
+    async def download_file(self, file_name: str) -> File:
+        return cast(File, FileRead(file_name=file_name))
 
 
 @strawberry.type

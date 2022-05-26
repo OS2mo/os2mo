@@ -8,6 +8,8 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import asyncio
+from base64 import b64encode
+from typing import cast
 from typing import Generic
 from typing import Optional
 from typing import TypeVar
@@ -41,7 +43,9 @@ from strawberry.types import Info
 
 from mora import config
 from mora import lora
+from mora.graphapi.files import load_file
 from mora.graphapi.health import health_map
+from mora.graphapi.models import FileRead
 from mora.graphapi.models import HealthRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
@@ -887,3 +891,22 @@ class Health:
     @strawberry.field(description="Healthcheck status")
     async def status(self, root: HealthRead) -> Optional[bool]:
         return await health_map[root.identifier]()
+
+
+# File
+# ----
+@strawberry.experimental.pydantic.type(
+    model=FileRead,
+    all_fields=True,
+    description="Checks whether a specific subsystem is working",
+)
+class File:
+    @strawberry.field(description="Text contents")
+    def text_contents(self, root: FileRead) -> str:
+        return cast(str, load_file(root.file_name))
+
+    @strawberry.field(description="Base64 encoded contents")
+    def base64_contents(self, root: FileRead) -> str:
+        data = cast(bytes, load_file(root.file_name, binary=True))
+        data = b64encode(data)
+        return data.decode("ascii")
