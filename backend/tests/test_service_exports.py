@@ -96,6 +96,7 @@ class FileTests(tests.cases.AsyncTestCase):
             "/service/exports/",
             {
                 "description": "Directory does not exist.",
+                "directory": "/queries",
                 "error": True,
                 "error_key": "E_DIR_NOT_FOUND",
                 "status": 500,
@@ -130,6 +131,7 @@ class FileTests(tests.cases.AsyncTestCase):
             "/service/exports/whatever",
             {
                 "description": "Directory does not exist.",
+                "directory": "/queries",
                 "error": True,
                 "error_key": "E_DIR_NOT_FOUND",
                 "status": 500,
@@ -188,6 +190,7 @@ class FileUploadTests(tests.cases.AsyncTestCase):
         assert response.status_code == 500
         assert response.json() == {
             "description": "Directory does not exist.",
+            "directory": "/queries",
             "error": True,
             "error_key": "E_DIR_NOT_FOUND",
             "status": 500,

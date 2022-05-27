@@ -60,7 +60,7 @@ async def list_export_files(response: Response, token: str = Depends(oauth2_sche
         samesite="strict",
         path="/service/exports/",
     )
-    query = "query FilesQuery { files { file_name } }"
+    query = "query FilesQuery { files(file_store: EXPORTS) { file_name } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
     files = gql_response.data["files"]
@@ -96,7 +96,7 @@ async def upload_export_file(
     }
     query = """
     mutation($file: Upload!, $force: Boolean!) {
-      upload_file(file: $file, force: $force)
+      upload_file(file_store: EXPORTS, file: $file, force: $force)
     }
     """
     response = await execute_graphql(query, variable_values=variables)
@@ -133,7 +133,7 @@ async def download_export_file(
     }
     query = """
     query FileQuery($file_name: String!) {
-      download_file(file_name: $file_name) {
+      download_file(file_store: EXPORTS, file_name: $file_name) {
         base64_contents
       }
     }

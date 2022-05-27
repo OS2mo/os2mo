@@ -11,6 +11,7 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from functools import partial
 from typing import Any
 from typing import cast
 from typing import Optional
@@ -35,6 +36,7 @@ from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import FileRead
+from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
@@ -277,25 +279,27 @@ class Query:
     @strawberry.field(
         description="Get a list of all files",
     )
-    async def files(self) -> list[File]:
-        files = list_files()
-        parsed_files = map(lambda file_name: FileRead(file_name=file_name), files)
+    async def files(self, file_store: FileStore) -> list[File]:
+        files = list_files(file_store)
+        parsed_files = map(partial(FileRead, file_store=file_store), files)
         return cast(list[File], parsed_files)
 
     @strawberry.field(
         description="Get base64 encoded ascii filecontents",
     )
-    async def download_file(self, file_name: str) -> File:
-        return cast(File, FileRead(file_name=file_name))
+    async def download_file(self, file_store: FileStore, file_name: str) -> File:
+        return cast(File, FileRead(file_store=file_store, file_name=file_name))
 
 
 @strawberry.type
 class Mutation:
     @strawberry.mutation(description="Upload a file")
-    async def upload_file(self, file: Upload, force: bool = False) -> str:
+    async def upload_file(
+        self, file_store: FileStore, file: Upload, force: bool = False
+    ) -> str:
         file_name = file.filename
         file_bytes = await file.read()
-        save_file(file_name, file_bytes, force)
+        save_file(file_store, file_name, file_bytes, force)
         return "OK"
 
 

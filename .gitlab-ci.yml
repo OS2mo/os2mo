@@ -183,6 +183,7 @@ default:
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
     GRAPHQL_AUTH: "false"
+    QUERY_EXPORT_DIR: "/tmp"
 
 .services:start-mo:
   extends:
@@ -460,6 +461,7 @@ Schemathesis-OpenAPI-test:
     - .services:use-mo
   variables:
     HYPOTHESIS_PROFILE: "ci"
+    QUERY_EXPORT_DIR: "/tmp"
 
 Unit-test:
   extends:
@@ -1041,6 +1043,7 @@ Export GQL Schema:
     - .services:use-mo
   variables:
     OUT: $CI_PROJECT_DIR/docs/src/graphql/voyager.html
+    QUERY_EXPORT_DIR: "/tmp"
   script:
     - python docs/schema_to_voyager.py
   artifacts:

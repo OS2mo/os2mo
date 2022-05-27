@@ -11,6 +11,7 @@ from typing import Optional
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
 from pydantic import root_validator
+from pydantic.types import DirectoryPath
 from pydantic.types import PositiveInt
 from pydantic.types import UUID
 from structlog import get_logger
@@ -45,7 +46,8 @@ class Settings(BaseSettings):
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
     dummy_mode: bool = False
-    query_export_dir: str = "/queries"
+    query_export_dir: DirectoryPath = "/queries"
+    query_insight_dir: Optional[DirectoryPath] = None
     navlinks: List[NavLink] = []
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
