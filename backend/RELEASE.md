@@ -1,3 +1,3 @@
 Release type: minor
 
-[#50462] Prepare shim get_insight_data
+[#50462] Shim get_insight_data

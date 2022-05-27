@@ -11,14 +11,9 @@ from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
-from typing import Optional
-from typing import Union
 from zipfile import ZipFile
 
 from fastapi import APIRouter
-from fastapi import Query
-from pydantic import BaseModel
-from pydantic import Extra
 from starlette.responses import StreamingResponse
 from structlog import get_logger
 
@@ -28,44 +23,6 @@ from .. import exceptions
 
 router = APIRouter()
 logger = get_logger()
-
-
-class Insight(BaseModel):
-    """
-    Attributes:
-        title:
-        data:
-    """
-
-    title: str
-    data: List[Union[int, str]]
-
-    class Config:
-        frozen = True
-        allow_population_by_field_name = True
-        extra = Extra.forbid
-
-
-@router.get("/insight")
-async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insight]:
-    """Loads data from a directory of JSONs and returns it as a list
-
-    **param q:** Enables the frontend to choose a specific file or show all files
-    """
-    export_dir = config.get_settings().query_export_dir
-    directory = Path(export_dir) / "json_reports"
-    directory_exists(directory)
-
-    if q == ["all"]:
-        return [
-            read_json_from_disc(path) for path in directory.iterdir() if path.is_file()
-        ]
-    else:
-        return [
-            read_json_from_disc(directory / query_file)
-            for query_file in q
-            if (directory / query_file).is_file()
-        ]
 
 
 @router.get(
