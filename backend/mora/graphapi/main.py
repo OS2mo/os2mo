@@ -11,7 +11,6 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from functools import partial
 from typing import Any
 from typing import cast
 from typing import Optional
@@ -281,7 +280,10 @@ class Query:
     )
     async def files(self, file_store: FileStore) -> list[File]:
         files = list_files(file_store)
-        parsed_files = map(partial(FileRead, file_store=file_store), files)
+        parsed_files = map(
+            lambda file_name: FileRead(file_store=file_store, file_name=file_name),
+            files,
+        )
         return cast(list[File], parsed_files)
 
     @strawberry.field(
