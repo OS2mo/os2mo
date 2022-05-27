@@ -903,10 +903,10 @@ class Health:
 class File:
     @strawberry.field(description="Text contents")
     def text_contents(self, root: FileRead) -> str:
-        return cast(str, load_file(root.file_name))
+        return cast(str, load_file(root.file_store, root.file_name))
 
     @strawberry.field(description="Base64 encoded contents")
     def base64_contents(self, root: FileRead) -> str:
-        data = cast(bytes, load_file(root.file_name, binary=True))
+        data = cast(bytes, load_file(root.file_store, root.file_name, binary=True))
         data = b64encode(data)
         return data.decode("ascii")

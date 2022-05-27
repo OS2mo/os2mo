@@ -48,6 +48,7 @@ class Settings(BaseSettings):
     enable_cors: bool = False
     dummy_mode: bool = False
     query_export_dir: str = "/queries"
+    query_insight_dir: Optional[str] = None
     navlinks: List[NavLink] = []
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
