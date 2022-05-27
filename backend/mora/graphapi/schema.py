@@ -8,7 +8,9 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import asyncio
+import json
 from base64 import b64encode
+from typing import Any
 from typing import cast
 from typing import Generic
 from typing import Optional
@@ -16,6 +18,7 @@ from typing import TypeVar
 from uuid import UUID
 
 import strawberry
+from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
 from ramodels.mo import ClassRead
@@ -45,6 +48,7 @@ from mora import config
 from mora import lora
 from mora.graphapi.files import load_file
 from mora.graphapi.health import health_map
+from mora.graphapi.models import ConfigurationRead
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import HealthRead
 from mora.graphapi.models import OrganisationUnitRefreshRead
@@ -922,3 +926,42 @@ class File:
 )
 class OrganisationUnitRefresh:
     pass
+
+
+# Configuration
+# -------------
+def get_settings_value(key: str) -> Any:
+    """Get the settings value.
+
+    Args:
+        key: The settings key.
+
+    Returns:
+        The settings value.
+    """
+    return getattr(config.get_settings(), key)
+
+
+@strawberry.experimental.pydantic.type(
+    model=ConfigurationRead,
+    all_fields=True,
+    description="A configuration setting",
+)
+class Configuration:
+    @strawberry.field(description="JSONified value")
+    def jsonified_value(self, root: ConfigurationRead) -> str:
+        """Get the jsonified value.
+
+        Returns:
+            The value.
+        """
+        return json.dumps(jsonable_encoder(get_settings_value(root.key)))
+
+    @strawberry.field(description="Stringified value")
+    def stringified_value(self, root: ConfigurationRead) -> str:
+        """Get the stringified value.
+
+        Returns:
+            The value.
+        """
+        return str(get_settings_value(root.key))

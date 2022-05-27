@@ -49,20 +49,3 @@ def get_global_configuration():
         show_it_associations_tab=settings.show_it_associations_tab,
     )
     return configuration
-
-
-@router.get("/navlinks")
-def get_navlinks():
-    """Retrieve nav links.
-
-    .. :quickref: Unit; Retrieve nav links
-
-    :statuscode 200: Nav link list returned.
-
-    :returns: A list of nav links
-    """
-
-    navlinks = config.get_settings().navlinks
-    if not navlinks:
-        navlinks = [{}]
-    return navlinks
