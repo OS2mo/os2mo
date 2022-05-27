@@ -187,7 +187,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
 class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch("mora.triggers.internal.http_trigger.http_sender")
-    @patch("mora.service.orgunit.get_one_orgunit")
+    @patch("mora.graphapi.org_unit.load_org_unit")
     async def test_returns_integration_error_on_wrong_status(
         self, mock, t_sender_mock, t_fetch_mock
     ):
@@ -211,7 +211,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         response_future.set_exception(HTTPTriggerException(error_msg))
         t_sender_mock.side_effect = response_future
 
-        mock.return_value = {"whatever": 123}
+        mock.return_value.objects = [{}]
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=400
         )
@@ -235,7 +235,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
     @patch(
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
     )
-    @patch("mora.service.orgunit.get_one_orgunit")
+    @patch("mora.graphapi.org_unit.load_org_unit")
     async def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
         with util.override_config(Settings(http_endpoints=["http://whatever"])):
             t_fetch_mock.return_value = [
@@ -257,7 +257,8 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         response_future.set_result(response_msg)
         t_sender_mock.return_value = response_future
 
-        mock.return_value = {"whatever": 123}
+        mock.return_value.objects = [{}]
+
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
         )
@@ -280,9 +281,9 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
             ]
         )
 
-    @patch("mora.service.orgunit.get_one_orgunit")
+    @patch("mora.graphapi.org_unit.load_org_unit")
     async def test_returns_404_on_unknown_unit(self, mock):
-        mock.return_value = {}
+        mock.return_value.objects = []
 
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=404

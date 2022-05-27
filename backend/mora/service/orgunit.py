@@ -762,31 +762,6 @@ async def get_unit_tree(
     return await get_units(root for root in root_uuids)
 
 
-@router.get("/ou/{unitid}/refresh")
-async def trigger_external_integration(unitid: UUID, only_primary_uuid: bool = False):
-    """
-    Trigger external integration for a given org unit UUID
-    :param unitid: The UUID of the org unit to trigger for
-    """
-    unitid = str(unitid)
-
-    c = common.get_connector()
-
-    org_unit = await get_one_orgunit(
-        c, unitid, details=UnitDetails.FULL, only_primary_uuid=only_primary_uuid
-    )
-    if not org_unit:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
-
-    request = {}
-    request[mapping.UUID] = unitid
-    handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.REFRESH
-    )
-    result = await handler.submit()
-    return result
-
-
 def get_details_from_query_args(args):
     arg_map = {
         "minimal": UnitDetails.MINIMAL,

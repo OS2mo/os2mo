@@ -47,6 +47,7 @@ from mora.graphapi.files import load_file
 from mora.graphapi.health import health_map
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import HealthRead
+from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 
@@ -910,3 +911,14 @@ class File:
         data = cast(bytes, load_file(root.file_store, root.file_name, binary=True))
         data = b64encode(data)
         return data.decode("ascii")
+
+
+# Organisation Unit Refresh
+# -------------------------
+@strawberry.experimental.pydantic.type(
+    model=OrganisationUnitRefreshRead,
+    all_fields=True,
+    description="Response model for Organisation Unit refresh event.",
+)
+class OrganisationUnitRefresh:
+    pass

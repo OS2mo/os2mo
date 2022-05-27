@@ -34,3 +34,9 @@ class FileRead(BaseModel):
 
     file_store: FileStore = Field(description="The file store the file is stored in.")
     file_name: str = Field(description="Name of the export file.")
+
+
+class OrganisationUnitRefreshRead(BaseModel):
+    """Payload model for organisation unit refresh mutation."""
+
+    message: str = Field(description="Refresh message containing trigger responses.")
