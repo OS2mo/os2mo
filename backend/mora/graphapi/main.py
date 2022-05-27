@@ -276,21 +276,21 @@ class Query:
     # Files
     # -----
     @strawberry.field(
-        description="Get a list of all files",
+        description="Get a list of all files, optionally by filename(s)",
     )
-    async def files(self, file_store: FileStore) -> list[File]:
-        files = list_files(file_store)
-        parsed_files = map(
-            lambda file_name: FileRead(file_store=file_store, file_name=file_name),
-            files,
-        )
-        return cast(list[File], parsed_files)
+    async def files(
+        self, file_store: FileStore, file_names: Optional[list[str]] = None
+    ) -> list[File]:
+        found_files = list_files(file_store)
+        if file_names is not None:
+            found_files = found_files.intersection(set(file_names))
 
-    @strawberry.field(
-        description="Get base64 encoded ascii filecontents",
-    )
-    async def download_file(self, file_store: FileStore, file_name: str) -> File:
-        return cast(File, FileRead(file_store=file_store, file_name=file_name))
+        def construct(file_name: str) -> dict[str, Any]:
+            return {"file_store": file_store, "file_name": file_name}
+
+        files = list(map(construct, found_files))
+        parsed_files = parse_obj_as(list[FileRead], files)
+        return cast(list[File], parsed_files)
 
 
 @strawberry.type

@@ -8,6 +8,8 @@
 # --------------------------------------------------------------------------------------
 from base64 import b64decode
 from operator import itemgetter
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -20,9 +22,11 @@ from fastapi import Query
 from fastapi import Response
 from fastapi.responses import StreamingResponse
 from fastapi.security import OAuth2PasswordBearer
+from more_itertools import one
 from starlette.datastructures import UploadFile
 
 from .errors import handle_gql_error
+from mora import exceptions
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import validate_token
 from mora.graphapi.shim import execute_graphql
@@ -133,15 +137,22 @@ async def download_export_file(
     }
     query = """
     query FileQuery($file_name: String!) {
-      download_file(file_store: EXPORTS, file_name: $file_name) {
+      files(file_store: EXPORTS, file_names: [$file_name]) {
         base64_contents
       }
     }
     """
     response = await execute_graphql(query, variable_values=variables)
     handle_gql_error(response)
-    contents = response.data["download_file"]["base64_contents"]
-    data = b64decode(contents.encode("ascii"))
+    files = response.data["files"]
+    if not files:
+        exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
+    try:
+        file: Dict[str, Any] = one(files)
+    except ValueError as err:
+        raise ValueError("Wrong number of files returned, expected one.") from err
+    content = file["base64_contents"]
+    data = b64decode(content.encode("ascii"))
 
     async def data_streamer():
         yield data
