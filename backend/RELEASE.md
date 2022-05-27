@@ -1,3 +1,3 @@
 Release type: minor
 
-[#50463] Preparation to shim get_insight_filenames
+[#50463] Shim get_insight_filenames
