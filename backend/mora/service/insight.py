@@ -69,18 +69,6 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
 
 
 @router.get(
-    "/insight/files", responses={"500": {"description": "Directory does not exist"}}
-)
-async def get_insight_filenames() -> List[str]:
-    """Lists all available files"""
-    export_dir = config.get_settings().query_export_dir
-    directory = Path(export_dir) / "json_reports"
-    directory_exists(directory)
-
-    return [path.name for path in directory.iterdir() if path.is_file()]
-
-
-@router.get(
     "/insight/download",
     response_class=StreamingResponse,
     responses={"500": {"description": "Directory does not exist"}},
