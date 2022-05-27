@@ -50,9 +50,7 @@ class AuthTests(tests.cases.AsyncTestCase):
         response = mock.MagicMock()
         response.errors = {}
         response.data = {
-            "download_file": {
-                "base64_contents": b64encode(b"I am a file").decode("ascii")
-            }
+            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
         }
         execute.return_value = response
 
@@ -168,9 +166,7 @@ class FileTests(tests.cases.AsyncTestCase):
         response = mock.MagicMock()
         response.errors = {}
         response.data = {
-            "download_file": {
-                "base64_contents": b64encode(b"I am a file").decode("ascii")
-            }
+            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
         }
         execute.return_value = response
 
