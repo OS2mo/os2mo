@@ -37,5 +37,10 @@
   "third_party_association_type": "Affiliated's role",
   "seniority": "@:shared.seniority",
   "owner": "Owner",
-  "owner_inference_priority": "Inferred from"
+  "owner_inference_priority": "Inferred from",
+  "employee_name": "Employee name",
+  "employee_email": "Employee email",
+  "manager_name": "Manager name",
+  "manager_email": "Manager email",
+  "department_name": "Department name"
 }

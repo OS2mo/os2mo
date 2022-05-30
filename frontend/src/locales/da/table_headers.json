@@ -37,5 +37,10 @@
   "third_party_association_type": "Tilknyttedes rolle",
   "seniority": "@:shared.seniority",
   "owner": "Ejer",
-  "owner_inference_priority": "Udledt via"
+  "owner_inference_priority": "Udledt via",
+  "employee_name": "Medarbejderens navn",
+  "employee_email": "Medarbejderens email",
+  "manager_name": "Lederens navn",
+  "manager_email": "Lederens email",
+  "department_name": "Afdelingsnavn"
 }

@@ -5,11 +5,13 @@ SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="card col">
     <div class="card-body d-flex flex-column">
-      <h4 class="card-title" style="margin-bottom: 2rem;">
+      <h4 class="card-title" style="margin-bottom: 1rem;">
         <icon name="exchange-alt"/>
         {{$tc('shared.insight', 2)}}
       </h4>
-      <div v-if="query_files">
+
+      <!-- REMOVES OLD /INSIGHTS CODE -->
+      <!-- <div v-if="query_files">
         <div v-for="(q, index) in query_files"
              :key="index">
           <input type="checkbox"
@@ -37,7 +39,7 @@ SPDX-License-Identifier: MPL-2.0
       </div>
       <div v-if="!query_files || !query_files.length">
         <p>{{ $t('common.no_data') }}</p>
-      </div>
+      </div> -->
 
       <insight-table />
 
@@ -118,15 +120,16 @@ export default {
     handleError: function (error) {
       let thisComponent = this
 
-      if (error.response.data.error_key === "E_DIR_NOT_FOUND") {
-        alert(
-          `${thisComponent.$t("alerts.error.E_DIRECTORY_NOT_SETUP_CORRECTLY")}
-          ${thisComponent.$t("alerts.contact_admin")}
+      //---------- REMOVES ERROR MESSAGE FROM OLD /INSIGHTS CODE ---------- 
+      // if (error.response.data.error_key === "E_DIR_NOT_FOUND") {
+      //   alert(
+      //     `${thisComponent.$t("alerts.error.E_DIRECTORY_NOT_SETUP_CORRECTLY")}
+      //     ${thisComponent.$t("alerts.contact_admin")}
 
-          ${error.response.data.description}
-          ${error.response.data.directory}`
-        )
-      }
+      //     ${error.response.data.description}
+      //     ${error.response.data.directory}`
+      //   )
+      // }
     },
     getInsightFiles: function () {
       return Service.get(`/insight/files`)
