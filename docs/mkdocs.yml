@@ -52,7 +52,6 @@ nav:
         - lora/user/api.md
         - lora/user/api/self-documentation.md
         - lora/user/api/tutorial.md
-        # - Time zones:
         - Operations:
           - Read: lora/user/api/read.md 
           - List: lora/user/api/list.md
@@ -68,14 +67,12 @@ nav:
           - File operations:
             - lora/user/api/advanced/file-operations.md
             - lora/user/api/advanced/deleting-document.md
-        # - \`Document\` etc.:
       - lora/user/log-haendelse.md
       - lora/user/agents.md
       - lora/user/auth.md
       - lora/user/deployment.md
       - lora/user/settings.md
       - lora/user/operating-mox.md
-      
     - Developer Documentation:
       - lora/dev/database.md
       - lora/dev/migrations.md
@@ -85,8 +82,27 @@ nav:
       - lora/dev/building-docs.md
       - lora/dev/beskedfordeler.md
       - lora/dev/news.md
-
-
+  - Data import og export:
+    - data-import-export/intro.md
+    - Integrationer:
+      - data-import-export/integrations/sdloen.md
+      - data-import-export/integrations/opusloen.md
+      - data-import-export/integrations/ad.md
+      - data-import-export/integrations/os2sync.md
+      - data-import-export/integrations/aarhus-los.md
+    - Exporter:
+      - data-import-export/exporters/exporters.md
+      - data-import-export/exporters/plan2learn.md
+      - data-import-export/exporters/sql_export.md
+      - data-import-export/exporters/emus.md
+      - data-import-export/exporters/os2phonebook.md
+      - data-import-export/exporters/os2rollekatalog.md
+    - OS2MO Data Import:
+      - data-import-export/os2mo_data_import/import-tool.md
+      - data-import-export/os2mo_data_import/integration-abstraction.md
+    - data-import-export/reports.md
+    - data-import-export/tools.md
+    - data-import-export/changelog.md
 theme:
   name: "material"
   palette:
