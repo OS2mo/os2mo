@@ -107,7 +107,6 @@ export default {
   data: function() {
     return {
       primary_types: null,
-      preselected_it: ''
     }
   },
 

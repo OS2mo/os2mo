@@ -7,7 +7,7 @@ import store from '@/store'
 
 const identfyItAssociationData = function(data) {
 
-  // When creating an IT association, we must scrub the data to conform to 
+  // When creating an IT association, we must scrub the data to conform to
   // the special snowflake API request format that is supported by the backend.
 
   if (Array.isArray(data) && data[0].it) {
@@ -29,14 +29,14 @@ const identfyItAssociationData = function(data) {
   } else if (data.data && data.data.it) {
 
     // Probably data for editing an IT association
-    return { 
-      type: "association", 
-      uuid: data.data.uuid, 
+    return {
+      type: "association",
+      uuid: data.data.uuid,
       data: {
         person: { uuid: data.data.person.uuid },
         job_function: { uuid: data.data.job_function.uuid },
         org_unit: { uuid: data.data.org_unit.uuid },
-        it: { uuid: data.data.it.uuid },
+        it: { uuid: data.data.it[0].uuid },
         validity: { from: data.data.validity.from, to: data.data.validity.to },
         primary: { uuid: data.data.primary.uuid }
       }
@@ -47,7 +47,7 @@ const identfyItAssociationData = function(data) {
     // Nothing special. Just patch it through.
     return data
   }
-}  
+}
 
 export default {
 
@@ -114,7 +114,8 @@ export default {
    * @returns {Object} employeee uuid
    */
   edit (edit) {
-    return Service.post('/details/edit', identfyItAssociationData(edit))
+    let editData = identfyItAssociationData(edit)
+    return Service.post('/details/edit', editData)
       .then(response => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response.data
