@@ -8,10 +8,8 @@ from typing import Dict
 from typing import List
 from typing import Optional
 
-from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
-from pydantic import parse_obj_as
 from pydantic import root_validator
 from pydantic.types import PositiveInt
 from pydantic.types import UUID
@@ -84,23 +82,8 @@ class Settings(BaseSettings):
 
     # AMQP settings
     amqp_enable: bool = False
-    amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker:5672")
-    amqp_host: Optional[str]
-    amqp_port: Optional[int]
-    amqp_os2mo_exchange: str = "os2mo"
-
-    @root_validator
-    def amqp_host_and_port_deprecated(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        if values["amqp_host"] or values["amqp_port"]:
-            logger.warning(
-                "'amqp_host' and 'amqp_port' are deprecated, use 'amqp_url' instead!"
-            )
-            # Constructing equivalent amqp_url
-            amqp_host = values.get("amqp_host", "msg_broker")
-            amqp_port = str(values.get("amqp_port", 5672))
-            amqp_url = f"amqp://guest:guest@{amqp_host}:{amqp_port}"
-            values["amqp_url"] = parse_obj_as(AmqpDsn, amqp_url)
-        return values
+    # AMQP connection settings are extracted from environment variables by the RAMQP
+    # library directly.
 
     # Serviceplatform settings
     sp_service_uuid: Optional[UUID]

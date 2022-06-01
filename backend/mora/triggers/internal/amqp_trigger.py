@@ -26,10 +26,7 @@ amqp_system = MOAMQPSystem()
 
 
 async def start_amqp():
-    await amqp_system.start(
-        amqp_url=config.get_settings().amqp_url,
-        amqp_exchange=config.get_settings().amqp_os2mo_exchange,
-    )
+    await amqp_system.start()
 
 
 async def stop_amqp():

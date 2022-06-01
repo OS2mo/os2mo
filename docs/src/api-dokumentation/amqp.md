@@ -14,9 +14,9 @@ queue](#delayed-queue).
 Messages are valid json with a `uuid` key and a `time` key. Here is an
 example of a message body:
 
-```json 
+```json
 {
-    "uuid": "c390b9a2-7202-48e6-972b-ce36a90065c4", 
+    "uuid": "c390b9a2-7202-48e6-972b-ce36a90065c4",
     "time": "2019-03-24T13:02:15.132025"
 }
 ```
@@ -92,8 +92,7 @@ Messages are **disabled by default**.
 
 To enable AMQP, set `ENABLE_AMQP` to `True`.
 
-The default exchange is `os2mo_queue` can be configured by changing
-`AMQP_OS2MO_EXCHANGE`.
+The default exchange, `os2mo`, can be configured by changing `AMQP_EXCHANGE`.
 
 Host and port are set to `localhost:5672` and can be configured with
 `AMQP_HOST` and `AMQP_PORT` respectively.
