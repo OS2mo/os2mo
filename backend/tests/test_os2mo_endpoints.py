@@ -68,7 +68,6 @@ service_api = {
     "/service/validate/cpr/",
     "/service/validate/employee/",
     "/service/validate/existing-associations/",
-    "/service/validate/existing-primary-it-associations/",
     "/service/validate/movable-org-unit/",
     "/service/validate/org-unit/",
     "/service/{rest_of_path:path}",
