@@ -61,6 +61,7 @@ services:
       # For reload
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
+      - ./.cov-report:/tmp/.cov-report:rw
     command: ["/start-reload.sh"]
     environment:
       KEYCLOAK_AUTH_SERVER_URL: "http://localhost:5000/auth"

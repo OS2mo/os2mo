@@ -117,6 +117,8 @@ setup/mora.json
 testcafe-artifacts
 .pytest_cache
 frontend/coverage/
+.cov-report/*
+!.cov-report/.gitkeep
 
 # Local overrides
 docker-compose.override.yml

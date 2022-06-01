@@ -1,0 +1,11 @@
+[run]
+data_file = /tmp/.coverage.sqlite
+branch = true
+omit =
+    backend/tests/*
+
+[report]
+skip_covered = false
+
+[html]
+directory = /tmp/.cov-report

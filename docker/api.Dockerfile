@@ -68,7 +68,7 @@ COPY NEWS.md .
 COPY LICENSE .
 COPY backend/mora/main.py .
 COPY docker/prestart.sh /app/prestart.sh
-
+COPY backend/pytest.ini /app/pytest.ini
 
 # Copy frontend code.
 COPY --from=frontend /app/frontend/package.json ./frontend/package.json
