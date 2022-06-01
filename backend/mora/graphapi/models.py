@@ -6,12 +6,21 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from enum import Enum
+
+import strawberry
 from pydantic import BaseModel
 from pydantic import Field
 
 # --------------------------------------------------------------------------------------
 # Models
 # --------------------------------------------------------------------------------------
+
+
+@strawberry.enum
+class FileStore(Enum):
+    EXPORTS = 1
+    INSIGHTS = 2
 
 
 class HealthRead(BaseModel):
@@ -23,4 +32,5 @@ class HealthRead(BaseModel):
 class FileRead(BaseModel):
     """Payload model for file download."""
 
+    file_store: FileStore = Field(description="The file store the file is stored in.")
     file_name: str = Field(description="Name of the export file.")

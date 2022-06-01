@@ -10,9 +10,8 @@ from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 import tests.cases
-from mora.config import Settings
+from mora.config import get_settings
 from mora.service.shimmed.exports import oauth2_scheme
-from tests import util
 
 
 async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
@@ -96,6 +95,7 @@ class FileTests(tests.cases.AsyncTestCase):
             "/service/exports/",
             {
                 "description": "Directory does not exist.",
+                "directory": str(get_settings().query_export_dir),
                 "error": True,
                 "error_key": "E_DIR_NOT_FOUND",
                 "status": 500,
@@ -117,8 +117,7 @@ class FileTests(tests.cases.AsyncTestCase):
         mock_listdir.return_value = list(map(Path, filenames + dirnames))
 
         with mock.patch.object(Path, "is_file", mocked_isfile):
-            with util.override_config(Settings(query_export_dir="")):
-                await self.assertRequestResponse("/service/exports/", filenames)
+            await self.assertRequestResponse("/service/exports/", filenames)
 
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
@@ -130,6 +129,7 @@ class FileTests(tests.cases.AsyncTestCase):
             "/service/exports/whatever",
             {
                 "description": "Directory does not exist.",
+                "directory": str(get_settings().query_export_dir),
                 "error": True,
                 "error_key": "E_DIR_NOT_FOUND",
                 "status": 500,
@@ -188,6 +188,7 @@ class FileUploadTests(tests.cases.AsyncTestCase):
         assert response.status_code == 500
         assert response.json() == {
             "description": "Directory does not exist.",
+            "directory": str(get_settings().query_export_dir),
             "error": True,
             "error_key": "E_DIR_NOT_FOUND",
             "status": 500,

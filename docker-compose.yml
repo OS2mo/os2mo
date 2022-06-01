@@ -29,7 +29,7 @@ services:
     environment:
       # `vue-cli-service serve` will proxy requests to mo, as defined in:
       # `frontend/vue.config.js`.
-      - BASE_URL=http://mo:80
+      BASE_URL: http://mo:80
     volumes:
       # To reload on file changes, we mount the current folder into `/code`.
       # However we do not want node_modules on the host machine, so we create
@@ -82,7 +82,7 @@ services:
 
       OS2MO_LOG_LEVEL: "DEBUG"
 
-      QUERY_EXPORT_DIR: "/queries"
+      QUERY_EXPORT_DIR: "/tmp/"
 
       KEYCLOAK_SCHEMA: "http"
       KEYCLOAK_PORT: 8080
