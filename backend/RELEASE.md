@@ -1,3 +1,3 @@
 Release type: minor
 
-[#50484] Allow more than one association per employee in the same organisation unit.
+[#50483] Add support for "group-wise" validations. Use when validating "IT users" and "IT associations".

@@ -133,6 +133,8 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.details_requests = await handlers.generate_requests(
             details_with_persons, mapping.RequestType.CREATE
         )
+        # Validate the creation requests as groups (one group for each role/detail type)
+        self.validate_detail_requests_as_groups(self.details_requests)
 
         self.payload = user
         self.uuid = userid

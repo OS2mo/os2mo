@@ -8,8 +8,11 @@ This section describes how to interact with employee associations.
 
 """
 import uuid
+from collections import Counter
 from typing import Any
 from typing import Dict
+from typing import Optional
+from typing import TYPE_CHECKING
 
 from structlog import get_logger
 
@@ -17,13 +20,70 @@ from . import handlers
 from . import org
 from .. import common
 from .. import conf_db
+from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..service.facet import get_one_class
 from .validation import validator
+from .validation.models import GroupValidation
+
+if TYPE_CHECKING:
+    from ..handler.reading import ReadingHandler
 
 
 logger = get_logger()
+
+
+class _ITAssociationGroupValidation(GroupValidation):
+    @classmethod
+    def get_validation_item_from_mo_object(cls, mo_object: dict) -> Optional[dict]:
+        try:
+            it_user = mo_object[mapping.IT][0]
+            it_user_uuid = it_user[mapping.UUID]
+            it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
+        except (TypeError, KeyError, IndexError):
+            return None  # not an "IT association", skip it
+        else:
+            primary = mo_object.get(mapping.PRIMARY, {}).get(mapping.USER_KEY, "")
+            return {
+                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+                "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
+                "it_user_uuid": it_user_uuid,
+                "it_system_uuid": it_system_uuid,
+                "is_primary": primary == mapping.PRIMARY,
+            }
+
+    @classmethod
+    def get_mo_object_reading_handler(cls) -> "ReadingHandler":
+        from ..handler.impl.association import AssociationReader
+
+        return AssociationReader()
+
+
+class ITAssociationUniqueGroupValidation(_ITAssociationGroupValidation):
+    def validate(self, obj: Optional[dict] = None):
+        super().validate(obj=obj)
+        self.validate_unique_constraint(
+            ["employee_uuid", "org_unit_uuid", "it_user_uuid"],
+            exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
+        )
+
+
+class ITAssociationPrimaryGroupValidation(_ITAssociationGroupValidation):
+    def validate(self, obj: Optional[dict] = None):
+        super().validate(obj=obj)
+        self._validate_is_only_primary()
+
+    def _validate_is_only_primary(self):
+        # There can be at most one primary IT association to a given IT system
+        counter = Counter(
+            item["it_system_uuid"]
+            for item in self.validation_items
+            if item["is_primary"]
+        )
+        if any(count > 1 for count in counter.values()):
+            exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY()
 
 
 class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
@@ -94,11 +154,31 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
-        if employee_uuid and it_user_uuid and primary:
-            await validator.is_employee_it_association_primary_within_it_system(
-                employee_uuid,
-                it_user_uuid,
-                primary,
+        if employee_uuid and org_unit_uuid and it_user_uuid:
+            validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
+                dict(
+                    tilknyttedebrugere=employee_uuid,
+                    tilknyttedeenheder=org_unit_uuid,
+                ),
+            )
+            validation.validate(
+                dict(
+                    employee_uuid=employee_uuid,
+                    org_unit_uuid=org_unit_uuid,
+                    it_user_uuid=it_user_uuid,
+                ),
+            )
+        if employee_uuid and it_user_uuid and (await self._is_class_primary(primary)):
+            validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
+                dict(tilknyttedebrugere=employee_uuid),
+            )
+            validation.validate(
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_user_uuid=it_user_uuid,
+                    it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
+                    is_primary=True,
+                ),
             )
 
         if substitute_uuid:
@@ -286,11 +366,33 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # Validation
         if employee:
             await validator.is_date_range_in_employee_range(employee, new_from, new_to)
-        if employee_uuid and it_user_uuid and primary:
-            await validator.is_employee_it_association_primary_within_it_system(
-                employee_uuid,
-                it_user_uuid,
-                primary,
+
+        if employee_uuid and org_unit_uuid and it_user_uuid:
+            validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
+                dict(
+                    tilknyttedebrugere=employee_uuid,
+                    tilknyttedeenheder=org_unit_uuid,
+                ),
+            )
+            validation.validate(
+                dict(
+                    employee_uuid=employee_uuid,
+                    org_unit_uuid=org_unit_uuid,
+                    it_user_uuid=it_user_uuid,
+                )
+            )
+
+        if employee_uuid and it_user_uuid and (await self._is_class_primary(primary)):
+            validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
+                dict(tilknyttedebrugere=employee_uuid),
+            )
+            validation.validate(
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_user_uuid=it_user_uuid,
+                    it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
+                    is_primary=True,
+                ),
             )
 
         payload = common.update_payload(
@@ -329,3 +431,30 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_value = {}
 
         await super().prepare_terminate(request)
+
+    async def _is_class_primary(self, primary_class_uuid: str) -> bool:
+        # Determine whether the given `primary_class_uuid` does indeed refer to a
+        # primary class (as opposed to a non-primary class.)
+
+        def _is_primary(cls: dict) -> bool:
+            return cls.get(mapping.USER_KEY, "") == mapping.PRIMARY
+
+        connector = lora.Connector()
+        cls = await get_one_class(connector, primary_class_uuid)
+
+        if (cls is None) or (not _is_primary(cls)):
+            return False
+
+        return True
+
+    async def _get_it_system_uuid(self, it_user_uuid: str) -> str:
+        from ..handler.impl.it import ItSystemBindingReader
+
+        connector = lora.Connector()
+        reader = ItSystemBindingReader()
+        it_system_uuids = {
+            it_user[mapping.ITSYSTEM][mapping.UUID]
+            for it_user in await reader.get(connector, {"uuid": it_user_uuid})
+        }
+        assert len(it_system_uuids) == 1
+        return list(it_system_uuids)[0]

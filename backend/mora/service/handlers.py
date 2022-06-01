@@ -8,6 +8,8 @@ import abc
 import asyncio
 import inspect
 import typing
+from itertools import groupby
+from operator import attrgetter
 
 from structlog import get_logger
 
@@ -19,6 +21,7 @@ from .. import util
 from ..mapping import EventType
 from ..mapping import RequestType
 from ..triggers import Trigger
+from .validation.models import GroupValidation
 
 # The handler mappings are populated by each individual active
 # RequestHandler
@@ -189,6 +192,43 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
             self.trigger_results_after = await Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
+
+    def validate_detail_requests_as_groups(
+        self,
+        requests: typing.Iterable["RequestHandler"],
+    ):
+        """Validate one or more details group-wise, i.e. grouped by their role type.
+
+        This allows validating adding one or more details to an employee or organisation
+        unit, where the validation needs to consider the entire group of details being
+        added for that particular type of detail.
+
+        As an example, consider adding two IT users to an employee. We would like to
+        validate that the same IT system and IT user username is only added once per
+        employee. In that case, we need to look at the group of IT users and consider
+        whether they are identical or differ from each other.
+        """
+        # Group detail requests by role type
+        key: typing.Callable = attrgetter(mapping.ROLE_TYPE)
+        groups: groupby[typing.Iterable["RequestHandler"]] = groupby(
+            sorted(requests, key=key), key=key
+        )
+        # Validate each request group
+        for role_type, requests in groups:
+            cls: "RequestHandler" = get_handler_for_role_type(role_type)
+            validation: GroupValidation = cls.get_group_validation(requests)
+            if validation:
+                # In case of validation errors on the request group, this will break
+                # control flow by instantiating a member of `exceptions.ErrorCodes`.
+                validation.validate()
+
+    @classmethod
+    def get_group_validation(
+        cls,
+        requests: typing.Iterable["RequestHandler"],
+    ) -> typing.Optional[GroupValidation]:
+        # Can be overridden by subclasses
+        pass
 
 
 class OrgFunkRequestHandler(RequestHandler):
