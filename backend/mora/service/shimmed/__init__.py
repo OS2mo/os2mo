@@ -10,6 +10,7 @@ from . import configuration
 from . import employee
 from . import exports
 from . import facet
+from . import insight
 from . import it_systems
 from . import org
 from . import org_unit
@@ -22,6 +23,7 @@ __all__ = [
     "employee",
     "exports",
     "facet",
+    "insight",
     "it_systems",
     "org",
     "org_unit",
