@@ -193,7 +193,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         "facet_uuid": one(class_relations.facet).uuid,
         "org_uuid": one(class_relations.responsible).uuid,
         "parent_uuid": class_relations.parent.uuid if class_relations.parent else None,
-        "owner": class_relations.owner,
+        "owner": class_relations.owner.uuid if class_relations.owner else None,
     }
     return ClassRead(**mo_class)
 
