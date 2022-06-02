@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from . import configuration
 from . import employee
 from . import exports
 from . import facet
@@ -17,6 +18,7 @@ from . import org_unit
 # Init
 # --------------------------------------------------------------------------------------
 __all__ = [
+    "configuration",
     "employee",
     "exports",
     "facet",

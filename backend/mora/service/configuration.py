@@ -3,38 +3,11 @@
 from uuid import UUID
 
 from fastapi import APIRouter
-from fastapi import Body
-from structlog import get_logger
 
-from .. import conf_db
-from .. import config
-
-logger = get_logger()
+from mora import conf_db
+from mora import config
 
 router = APIRouter()
-
-
-@router.post("/ou/{unitid}/configuration", status_code=410)
-def set_org_unit_configuration(unitid: UUID, configuration: dict = Body(...)) -> bool:
-    """Removed configuration setting endpoint.
-
-    :statuscode 410: Endpoint removed.
-
-    :param unitid: Unused UUID.
-
-    :<json object conf: Unused json body
-
-    .. sourcecode:: json
-
-      {
-        "org_units": {
-          "show_location": "True"
-        }
-      }
-
-    :returns: False
-    """
-    return False
 
 
 @router.get("/ou/{unitid}/configuration")
@@ -52,27 +25,6 @@ def get_org_unit_configuration(unitid: UUID):
     unitid = str(unitid)
     configuration = conf_db.get_configuration(unitid)
     return configuration
-
-
-@router.post("/configuration", status_code=410)
-def set_global_configuration(configuration: dict = Body(...)) -> bool:
-    """Removed global configuration setting endpoint.
-
-    :statuscode 410: Endpoint removed.
-
-    :<json object conf: Unused json body
-
-    .. sourcecode:: json
-
-      {
-        "org_units": {
-          "show_roles": "False"
-        }
-      }
-
-    :returns: False
-    """
-    return False
 
 
 @router.get("/configuration")
