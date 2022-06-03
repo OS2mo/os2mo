@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+6.0.1 - 2022-06-03
+------------------
+
+[#50725] Fix LoRa model for class owners
+
 6.0.0 - 2022-05-24
 ------------------
 
