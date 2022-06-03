@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.27.0 - 2022-06-03
+-------------------
+
+[#50484] Allow more than one association per employee in the same organisation unit.
+
 4.26.0 - 2022-06-03
 -------------------
 
