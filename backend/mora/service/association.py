@@ -24,6 +24,7 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
+from ..handler.impl.association import AssociationReader
 from ..service.facet import get_one_class
 from .validation import validator
 from .validation.models import GroupValidation
@@ -56,8 +57,6 @@ class _ITAssociationGroupValidation(GroupValidation):
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
-        from ..handler.impl.association import AssociationReader
-
         return AssociationReader()
 
 
