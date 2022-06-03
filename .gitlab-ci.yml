@@ -544,7 +544,7 @@ Integration-test:
   parallel: 8
   script:
     - pytest backend/tests
-      -m "serial"
+      -m "serial and not equivalence"
       -p no:cacheprovider
       --color=yes
       --show-capture=no
