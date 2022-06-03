@@ -6,8 +6,6 @@ from parameterized import parameterized
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
 from mora.handler.reading import ReadingHandler
-from mora.mapping import RequestType
-from mora.service.employee import EmployeeRequestHandler
 from mora.service.validation.models import GroupValidation
 
 
@@ -33,9 +31,8 @@ class _DummyGroupValidation(GroupValidation):
 
 class TestGroupValidationConstructors:
     def test_from_requests(self):
-        request = {}
-        employee_request_handler = EmployeeRequestHandler(request, RequestType.CREATE)
-        instance = _DummyGroupValidation.from_requests([employee_request_handler])
+        requests = [{}]
+        instance = _DummyGroupValidation.from_requests(requests)
         assert instance.validation_items == [
             _DummyGroupValidation._fixed_validation_item
         ]
