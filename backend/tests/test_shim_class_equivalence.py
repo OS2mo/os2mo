@@ -76,6 +76,7 @@ get_class_param_tests = list(product(uuids, obools, obools, obools, obools))
 get_all_class_children_param_tests = list(product(uuids, obools))
 
 
+@pytest.mark.equivalence
 @pytest.mark.usefixtures("sample_structures_no_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("mora.conf_db.get_configuration", new=lambda *x: {})

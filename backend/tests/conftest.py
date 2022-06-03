@@ -48,6 +48,7 @@ def pytest_runtest_setup(item):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "serial: mark test to run serially")
+    config.addinivalue_line("markers", "equivalence: mark test as equivalence test")
 
 
 st.register_type_strategy(Validity, validity_model_strat())
