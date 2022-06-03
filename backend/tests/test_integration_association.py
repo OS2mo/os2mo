@@ -1089,7 +1089,7 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_create_association_fails_on_two_associations(self):
+    def test_create_association_succeeds_on_two_associations(self):
         """An employee can have more than one active association per org unit"""
 
         # These are the user/unit ids on the already existing association
