@@ -60,11 +60,7 @@ class GroupValidation:
         )
 
     def __init__(self, validation_items: list[dict]):
-        self._validation_items = validation_items
-
-    @property
-    def validation_items(self) -> list[dict]:
-        return self._validation_items
+        self.validation_items = validation_items
 
     def validate(self, obj: Optional[dict] = None):
         """Validate this `GroupValidation` instance.
@@ -75,7 +71,7 @@ class GroupValidation:
         implementations.
         """
         if obj is not None:
-            self._validation_items = list(chain(self._validation_items, [obj]))
+            self.validation_items = list(chain(self.validation_items, [obj]))
 
     def validate_unique_constraint(self, field_names: list[str], error: ErrorCodes):
         """Validate a "unique constraint" given by `field_names`.
