@@ -331,23 +331,6 @@ async def address_value(
     return {"success": True}
 
 
-@_router.post("/existing-primary-it-associations/")
-async def employee_primary_it_associations(req: dict = Body(...)):
-    """Verify that an employee does not have more than one primary IT associations to
-    the *same' IT system.
-    """
-
-    employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=True)
-    it_user_uuid = util.get_mapping_uuid(req, mapping.IT, required=True)
-
-    await validator.is_employee_it_association_primary_within_it_system(
-        employee_uuid,
-        it_user_uuid,
-    )
-
-    return {"success": True}
-
-
 # important to include AFTER path_operations are in place
 router = APIRouter()
 router.include_router(_router, prefix="/validate")

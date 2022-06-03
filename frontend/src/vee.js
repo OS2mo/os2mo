@@ -22,7 +22,6 @@ import Address from './validators/Address'
 import CandidateParentOrgUnit from './validators/CandidateParentOrgUnit'
 import Cpr from './validators/Cpr'
 import Employee from './validators/Employee'
-import ExistingAssociations from './validators/ExistingAssociations'
 import ExistingEngagementAssociations from './validators/ExistingEngagementAssociations'
 import DateInRange from './validators/DateInRange'
 import OrgUnit from './validators/OrgUnit'
@@ -57,7 +56,6 @@ Validator.extend('address', Address)
 Validator.extend('candidate_parent_org_unit', CandidateParentOrgUnit)
 Validator.extend('cpr', Cpr)
 Validator.extend('employee', Employee)
-Validator.extend('existing_associations', ExistingAssociations)
 Validator.extend('existing_engagement_associations', ExistingEngagementAssociations)
 Validator.extend('date_in_range', DateInRange)
 Validator.extend('movable_org_unit', MovableOrgUnit)
