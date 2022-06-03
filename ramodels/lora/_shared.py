@@ -346,6 +346,20 @@ class ClassRef(LoraBase):
     )
 
 
+class OwnerRef(LoraBase):
+    """
+    Reference to an organisation unit marked as owner for a LoRa class
+    """
+
+    object_type: Literal["organisationenhed"] = Field(
+        "organisationenhed", alias="objekttype", description="Object type."
+    )
+    uuid: UUID = Field(description="UUID of the reference.")
+    effective_time: EffectiveTime = Field(
+        alias="virkning", description="Effective time of the reference."
+    )
+
+
 class ParentClassification(LoraBase):
     """
     ParentClassification object in LoRa.
@@ -552,8 +566,10 @@ class KlasseRelations(RABase):
         max_items=1,
         description="The parent class object.",
     )
-    owner: Optional[UUID] = Field(
+    owner: Optional[List[OwnerRef]] = Field(
         alias="ejer",
+        min_items=1,
+        max_items=1,
         description="Owner of class relation",
     )
 

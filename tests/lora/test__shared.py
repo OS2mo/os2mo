@@ -46,6 +46,7 @@ from ramodels.lora._shared import OrganisationProperties
 from ramodels.lora._shared import OrganisationRelations
 from ramodels.lora._shared import OrganisationStates
 from ramodels.lora._shared import OrganisationValidState
+from ramodels.lora._shared import OwnerRef
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Relation
 from ramodels.lora._shared import Responsible
@@ -519,6 +520,37 @@ def valid_fref(draw):
 
 
 # --------------------------------------------------------------------------------------
+# OwnerRef
+# --------------------------------------------------------------------------------------
+
+
+@st.composite
+def owner_ref_strat(draw):
+    required = {"uuid": st.uuids(), "effective_time": valid_edt()}
+    optional = {"object_type": st.just("organisationenhed")}
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))
+    return st_dict
+
+
+class TestOwnerRef:
+    @given(owner_ref_strat())
+    def test_init(self, model_dict):
+        assert OwnerRef(**model_dict)
+
+    @given(owner_ref_strat(), not_from_regex(r"^organisationenhed$"))
+    def test_validators(self, model_dict, invalid_object_type):
+        model_dict["object_type"] = invalid_object_type
+        with unexpected_value_error():
+            OwnerRef(**model_dict)
+
+
+@st.composite
+def valid_oref(draw):
+    model_dict = draw(owner_ref_strat())
+    return OwnerRef(**model_dict)
+
+
+# --------------------------------------------------------------------------------------
 # FacetRelations
 # --------------------------------------------------------------------------------------
 
@@ -849,7 +881,7 @@ def klasse_relations_strat(draw):
         "responsible": st.lists(valid_resp(), min_size=1, max_size=1),
         "facet": st.lists(valid_fref(), min_size=1, max_size=1),
     }
-    optional = {"owner": st.none() | st.uuids()}
+    optional = {"owner": st.none() | st.lists(valid_oref(), min_size=1, max_size=1)}
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
