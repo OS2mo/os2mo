@@ -541,7 +541,7 @@ Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 6
+  parallel: 18
   script:
     - pytest backend/tests
       -m "serial"
