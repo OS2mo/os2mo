@@ -662,8 +662,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
     async def test_edit_association_with_preexisting(self):
-        """Only one active association is allowed for each employee in each
+        """More than one active association is allowed for each employee in each
         org unit"""
+
         # Check the POST request
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
@@ -697,7 +698,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             funktionsnavn=mapping.ASSOCIATION_KEY,
         )
         self.assertEqual(len(associations), 1)
-        existing_uuid = associations[0]
 
         with self.subTest("validation"):
             req = [
@@ -716,18 +716,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
             await self.assertRequestResponse(
                 "/service/details/edit",
-                {
-                    "description": "The employee already has an active "
-                    "association with the given org unit.",
-                    "error": True,
-                    "error_key": "V_MORE_THAN_ONE_ASSOCIATION",
-                    "existing": [
-                        existing_uuid,
-                    ],
-                    "status": 400,
-                },
+                [association_uuid],
                 json=req,
-                status_code=400,
+                status_code=200,
                 amqp_topics={
                     "employee.association.create": 1,
                     "org_unit.association.create": 1,
@@ -750,9 +741,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         await self.assertRequestResponse(
             "/service/details/edit",
-            [
-                association_uuid,
-            ],
+            [association_uuid],
             json=req,
             amqp_topics={
                 "employee.association.create": 1,
@@ -1100,13 +1089,12 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    def test_create_association_fails_on_two_assocations(self):
-        """An employee cannot have more than one active association per org
-        unit"""
+    def test_create_association_succeeds_on_two_associations(self):
+        """An employee can have more than one active association per org unit"""
+
         # These are the user/unit ids on the already existing association
         unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
         userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
         payload = [
             {
@@ -1122,20 +1110,10 @@ class Tests(tests.cases.LoRATestCase):
             }
         ]
 
-        self.assertRequestResponse(
+        self.assertRequest(
             "/service/details/create",
-            {
-                "description": "The employee already has an active "
-                "association with the given org unit.",
-                "error": True,
-                "error_key": "V_MORE_THAN_ONE_ASSOCIATION",
-                "existing": [
-                    association_uuid,
-                ],
-                "status": 400,
-            },
             json=payload,
-            status_code=400,
+            status_code=201,
         )
 
     def test_create_association_with_preexisting(self):
