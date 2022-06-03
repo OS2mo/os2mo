@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections import Counter
 from itertools import chain
-from operator import attrgetter
 from operator import itemgetter
 from typing import Iterable
 from typing import Optional
@@ -12,18 +11,16 @@ from ... import lora
 from mora.exceptions import ErrorCodes
 
 if TYPE_CHECKING:  # pragma: no cover
-    from ..handlers import RequestHandler
     from ...handler.reading import ReadingHandler
 
 
 class GroupValidation:
     @classmethod
-    def from_requests(cls, requests: Iterable["RequestHandler"]) -> "GroupValidation":
-        """Create a `GroupValidation` instance from an iterable of MO `RequestHandler`
-        instances. This can be used to validate a group of requests as a whole.
+    def from_requests(cls, requests: Iterable[dict]) -> "GroupValidation":
+        """Create a `GroupValidation` instance from an iterable of request details.
+        This can be used to validate a group of requests as a whole.
         """
-        mo_objects = map(attrgetter("request"), requests)
-        return cls(cls._get_filtered_validation_items(mo_objects))
+        return cls(cls._get_filtered_validation_items(requests))
 
     @classmethod
     async def from_mo_objects(cls, search_fields: dict[str]) -> "GroupValidation":

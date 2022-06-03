@@ -128,13 +128,15 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         )
 
         details = util.checked_get(req, "details", [])
+
+        # Validate the creation requests as groups (one group for each role/detail type)
+        self.validate_detail_requests_as_groups(details)
+
+        # Validate the creation requests individually
         details_with_persons = _inject_persons(details, userid, valid_from, valid_to)
-        # Validate the creation requests
         self.details_requests = await handlers.generate_requests(
             details_with_persons, mapping.RequestType.CREATE
         )
-        # Validate the creation requests as groups (one group for each role/detail type)
-        self.validate_detail_requests_as_groups(self.details_requests)
 
         self.payload = user
         self.uuid = userid

@@ -53,6 +53,7 @@ class ITUserGroupValidation(GroupValidation):
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
+        # Avoid circular import
         from ..handler.impl.it import ItSystemBindingReader
 
         return ItSystemBindingReader()
@@ -71,7 +72,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
 
     @classmethod
     def get_group_validation(
-        cls, requests: Iterable["handlers.RequestHandler"]
+        cls, requests: Iterable[dict]
     ) -> Optional[GroupValidation]:
         return ITUserGroupValidation.from_requests(requests)
 

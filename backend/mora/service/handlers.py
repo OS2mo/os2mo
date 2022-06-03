@@ -9,7 +9,7 @@ import asyncio
 import inspect
 import typing
 from itertools import groupby
-from operator import attrgetter
+from operator import itemgetter
 
 from structlog import get_logger
 
@@ -194,9 +194,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         return getattr(self, Trigger.RESULT, None)
 
     def validate_detail_requests_as_groups(
-        self,
-        requests: typing.Iterable["RequestHandler"],
-    ):
+        self, requests: typing.Iterable[dict]
+    ) -> None:
         """Validate one or more details group-wise, i.e. grouped by their role type.
 
         This allows validating adding one or more details to an employee or organisation
@@ -209,8 +208,8 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         whether they are identical or differ from each other.
         """
         # Group detail requests by role type
-        key: typing.Callable = attrgetter(mapping.ROLE_TYPE)
-        groups: groupby[typing.Iterable["RequestHandler"]] = groupby(
+        key: typing.Callable = itemgetter("type")
+        groups: groupby[typing.Iterable[dict]] = groupby(
             sorted(requests, key=key), key=key
         )
         # Validate each request group
@@ -225,7 +224,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     @classmethod
     def get_group_validation(
         cls,
-        requests: typing.Iterable["RequestHandler"],
+        requests: typing.Iterable[dict],
     ) -> typing.Optional[GroupValidation]:
         # Can be overridden by subclasses
         pass
