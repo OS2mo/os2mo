@@ -12,7 +12,6 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from typing import Any
-from typing import cast
 from typing import Optional
 from uuid import UUID
 
@@ -274,7 +273,7 @@ class Query:
 
         healths = list(map(construct, healthchecks))
         parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return cast(list[Health], parsed_healths)
+        return list(map(Health.from_pydantic, parsed_healths))  # type: ignore
 
     # Files
     # -----
@@ -293,7 +292,7 @@ class Query:
 
         files = list(map(construct, found_files))
         parsed_files = parse_obj_as(list[FileRead], files)
-        return cast(list[File], parsed_files)
+        return list(map(File.from_pydantic, parsed_files))  # type: ignore
 
 
 @strawberry.type
@@ -311,7 +310,9 @@ class Mutation:
     async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
-        return cast(OrganisationUnitRefresh, organisation_unit_refresh)
+        return OrganisationUnitRefresh.from_pydantic(  # type: ignore
+            organisation_unit_refresh
+        )
 
 
 # --------------------------------------------------------------------------------------
