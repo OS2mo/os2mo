@@ -21,6 +21,7 @@ from more_itertools import only
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
+from ramodels.mo import FacetClass
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
@@ -321,6 +322,15 @@ class Class:
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
         return root.name
+
+
+@strawberry.experimental.pydantic.input(
+    model=FacetClass,
+    all_fields=True,
+    description="Payload model for Class ensure mutation.",
+)
+class ClassPayload:
+    pass
 
 
 # Employee
@@ -829,6 +839,8 @@ class RelatedUnit:
 
 # Role
 # ----
+
+
 @strawberry.experimental.pydantic.type(
     model=RoleRead,
     all_fields=True,
@@ -853,6 +865,8 @@ class Role:
 
 # Health & version
 # ----------------
+
+
 @strawberry.type(description="MO & LoRa versions")
 class Version:
     @strawberry.field(description="OS2mo Version")
@@ -896,6 +910,8 @@ class Health:
 
 # File
 # ----
+
+
 @strawberry.experimental.pydantic.type(
     model=FileRead,
     all_fields=True,
@@ -915,6 +931,8 @@ class File:
 
 # Organisation Unit Refresh
 # -------------------------
+
+
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitRefreshRead,
     all_fields=True,

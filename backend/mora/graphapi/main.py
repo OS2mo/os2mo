@@ -29,6 +29,7 @@ from strawberry.types import Info
 
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
+from mora.graphapi.facet import ensure_class_exists
 from mora.graphapi.files import list_files
 from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
@@ -42,6 +43,7 @@ from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
+from mora.graphapi.schema import ClassPayload
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import EngagementAssociation
@@ -312,6 +314,10 @@ class Mutation:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
         return cast(OrganisationUnitRefresh, organisation_unit_refresh)
+
+    @strawberry.mutation(description="Ensure that the class exists")
+    async def ensure_class(self, model: ClassPayload) -> UUID:
+        return await ensure_class_exists(model.to_pydantic())
 
 
 # --------------------------------------------------------------------------------------
