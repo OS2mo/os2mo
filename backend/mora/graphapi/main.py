@@ -37,6 +37,8 @@ from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
+from mora.graphapi.models import OrganisationUnitRefreshRead
+from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
@@ -54,6 +56,7 @@ from mora.graphapi.schema import Manager
 from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
+from mora.graphapi.schema import OrganisationUnitRefresh
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
@@ -303,6 +306,12 @@ class Mutation:
         file_bytes = await file.read()
         save_file(file_store, file_name, file_bytes, force)
         return "OK"
+
+    @strawberry.mutation(description="Trigger refresh for an organisation unit")
+    async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
+        result = await trigger_org_unit_refresh(uuid)
+        organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
+        return cast(OrganisationUnitRefresh, organisation_unit_refresh)
 
 
 # --------------------------------------------------------------------------------------

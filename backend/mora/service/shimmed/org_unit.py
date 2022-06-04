@@ -23,6 +23,7 @@ from .errors import handle_gql_error
 from .util import filter_data
 from mora import conf_db
 from mora import exceptions
+from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
@@ -293,3 +294,25 @@ async def get_org_unit_children(
             child["association_count"] = len(child.pop("associations"))
 
     return ou_children
+
+
+@org_unit_router.get(
+    "/ou/{unitid}/refresh",
+    response_model=OrganisationUnitRefreshRead,
+    response_model_exclude_unset=True,
+    responses={"404": {"description": "Org unit not found"}},
+)
+async def trigger_external_integration(
+    unitid: UUID = Path(..., description="UUID of the org unit to trigger for."),
+    only_primary_uuid: bool = Query(False, description="Unused argument"),
+) -> OrganisationUnitRefreshRead:
+    """Trigger external integration for a given org unit UUID."""
+    query = """
+    mutation($uuid: UUID!) {
+      org_unit_refresh(uuid: $uuid) { message }
+    }
+    """
+    response = await execute_graphql(query, variable_values={"uuid": str(unitid)})
+    handle_gql_error(response)
+    result = response.data["org_unit_refresh"]
+    return OrganisationUnitRefreshRead(**result)
