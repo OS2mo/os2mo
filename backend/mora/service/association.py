@@ -41,8 +41,8 @@ class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
     def get_validation_item_from_mo_object(cls, mo_object: dict) -> Optional[dict]:
         try:
-            it_user = mo_object[mapping.IT][0]
-        except (TypeError, KeyError, IndexError):
+            it_user = one(mo_object[mapping.IT])
+        except (TypeError, KeyError, ValueError):
             return None  # not an "IT association", skip it
 
         try:
