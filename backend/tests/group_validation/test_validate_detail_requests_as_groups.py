@@ -38,11 +38,10 @@ class TestHandlerValidateDetailRequestsAsGroups:
         # "Association" MO object.
         #
         # "IT User" MO objects are validated since
-        # `ItsystemRequestHandler.get_group_validation` returns a `GroupValidation`
-        # implementation.
+        # `ItsystemRequestHandler.group_validations` contains `ITUserGroupValidation`.
         #
-        # "Assocation" MO objects are not validated since `AssociationRequestHandler`
-        # does not define a `get_group_validation` method.
+        # "Association" MO objects are not validated since
+        # `AssociationRequestHandler.group_validations` is empty.
 
         request = {
             "details": [

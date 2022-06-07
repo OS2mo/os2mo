@@ -3,7 +3,6 @@
 import pytest
 
 from mora.exceptions import HTTPException
-from mora.service.itsystem import ItsystemRequestHandler
 from mora.service.itsystem import ITUserGroupValidation
 
 
@@ -17,10 +16,3 @@ class TestITUserGroupValidation:
         validation = ITUserGroupValidation([obj])
         with pytest.raises(HTTPException):
             validation.validate_additional_object(obj)
-
-
-class TestITSystemRequestHandlerValidation:
-    def test_get_group_validation(self):
-        validation = ItsystemRequestHandler.get_group_validation([])
-        assert isinstance(validation, ITUserGroupValidation)
-        assert validation.validation_items == []

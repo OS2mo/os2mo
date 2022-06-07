@@ -10,7 +10,6 @@ This section describes how to interact with IT systems.
 from typing import Any
 from typing import Awaitable
 from typing import Dict
-from typing import Iterable
 from typing import Optional
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -68,12 +67,7 @@ class ITUserGroupValidation(GroupValidation):
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
-
-    @classmethod
-    def get_group_validation(
-        cls, requests: Iterable[dict]
-    ) -> Optional[GroupValidation]:
-        return ITUserGroupValidation.from_requests(requests)
+    group_validations: list[GroupValidation] = [ITUserGroupValidation]
 
     async def prepare_create(self, req):
         c = lora.Connector()

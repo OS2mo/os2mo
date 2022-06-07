@@ -57,6 +57,11 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
     The `role_type` for corresponding details to this attribute.
     """
 
+    group_validations: list[GroupValidation] = []
+    """Zero or more `GroupValidation` subclasses, which will be used to validate groups
+    of this type of request.
+    """
+
     @classmethod
     def _register(cls):
         assert cls.role_type is not None
@@ -215,19 +220,16 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         # Validate each request group
         for role_type, requests in groups:
             cls: "RequestHandler" = get_handler_for_role_type(role_type)
-            validation: GroupValidation = cls.get_group_validation(requests)
-            if validation:
+            # Each request handler class can define zero or more group validation
+            # classes in their `group_validations` attribute.
+            for group_validation_class in cls.group_validations:
+                # Instantiate a group validation based on the matching requests.
+                validation: GroupValidation = group_validation_class.from_requests(
+                    requests
+                )
                 # In case of validation errors on the request group, this will break
                 # control flow by instantiating a member of `exceptions.ErrorCodes`.
                 validation.validate()
-
-    @classmethod
-    def get_group_validation(
-        cls,
-        requests: typing.Iterable[dict],
-    ) -> typing.Optional[GroupValidation]:
-        # Can be overridden by subclasses
-        pass
 
 
 class OrgFunkRequestHandler(RequestHandler):
