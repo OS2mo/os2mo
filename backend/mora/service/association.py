@@ -14,6 +14,7 @@ from typing import Dict
 from typing import Optional
 from typing import TYPE_CHECKING
 
+from more_itertools import one
 from structlog import get_logger
 
 from . import handlers
@@ -29,7 +30,7 @@ from ..service.facet import get_one_class
 from .validation import validator
 from .validation.models import GroupValidation
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
 
 
@@ -41,19 +42,32 @@ class _ITAssociationGroupValidation(GroupValidation):
     def get_validation_item_from_mo_object(cls, mo_object: dict) -> Optional[dict]:
         try:
             it_user = mo_object[mapping.IT][0]
-            it_user_uuid = it_user[mapping.UUID]
-            it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
         except (TypeError, KeyError, IndexError):
             return None  # not an "IT association", skip it
-        else:
-            primary = mo_object.get(mapping.PRIMARY, {}).get(mapping.USER_KEY, "")
-            return {
-                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-                "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
-                "it_user_uuid": it_user_uuid,
-                "it_system_uuid": it_system_uuid,
-                "is_primary": primary == mapping.PRIMARY,
-            }
+
+        try:
+            it_user_uuid = it_user[mapping.UUID]
+        except KeyError:
+            return None  # not an "IT association", skip it
+
+        try:
+            it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
+        except KeyError:
+            return None  # not an "IT association", skip it
+
+        try:
+            primary = mo_object[mapping.PRIMARY][mapping.USER_KEY]
+            is_primary = primary == mapping.PRIMARY
+        except KeyError:
+            is_primary = False
+
+        return {
+            "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+            "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
+            "it_user_uuid": it_user_uuid,
+            "it_system_uuid": it_system_uuid,
+            "is_primary": is_primary,
+        }
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
@@ -435,13 +449,16 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         # Determine whether the given `primary_class_uuid` does indeed refer to a
         # primary class (as opposed to a non-primary class.)
 
-        def _is_primary(cls: dict) -> bool:
-            return cls.get(mapping.USER_KEY, "") == mapping.PRIMARY
+        def _is_primary(mo_class: dict) -> bool:
+            try:
+                return mo_class[mapping.USER_KEY] == mapping.PRIMARY
+            except KeyError:
+                return False
 
         connector = lora.Connector()
-        cls = await get_one_class(connector, primary_class_uuid)
+        mo_class = await get_one_class(connector, primary_class_uuid)
 
-        if (cls is None) or (not _is_primary(cls)):
+        if (mo_class is None) or (not _is_primary(mo_class)):
             return False
 
         return True
@@ -455,5 +472,4 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             it_user[mapping.ITSYSTEM][mapping.UUID]
             for it_user in await reader.get(connector, {"uuid": it_user_uuid})
         }
-        assert len(it_system_uuids) == 1
-        return list(it_system_uuids)[0]
+        return one(it_system_uuids)

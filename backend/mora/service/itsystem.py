@@ -31,7 +31,7 @@ from .validation import validator
 from .validation.models import GroupValidation
 from mora.request_scoped.bulking import request_wide_bulk
 
-if TYPE_CHECKING:
+if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
 
 

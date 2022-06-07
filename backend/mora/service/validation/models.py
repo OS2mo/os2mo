@@ -62,22 +62,33 @@ class GroupValidation:
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
 
-    def validate(self, obj: Optional[dict] = None):
+    def validate(self, obj: Optional[dict] = None) -> None:
         """Validate this `GroupValidation` instance.
+
+        `validate` should return None if there are no validation errors, or raise an
+        appropriate exception using `mora.exceptions.ErrorCodes`.
+
+        `validate` must be implemented by subclasses of `GroupValidation`.
+
         If `obj` is given, it is added to the list of "validation items" before the
         actual validation takes place.
-        Must be implemented by subclasses of `GroupValidation`.
+
         It is recommended to call `super().validate(obj=obj)` in subclass
         implementations.
         """
         if obj is not None:
             self.validation_items = list(chain(self.validation_items, [obj]))
 
-    def validate_unique_constraint(self, field_names: list[str], error: ErrorCodes):
-        """Validate a "unique constraint" given by `field_names`.
+    def validate_unique_constraint(
+        self, field_names: list[str], error: ErrorCodes
+    ) -> None:
+        """Validate a "unique constraint" given by `field_names`,
+        raising an `HTTPException` if the constraint is violated.
+
         This checks that only *one* validation item is present for each combination of
         fields given by `field_names`.
-        If there are duplicates, a member of the `ErrorCodes` enum is called, raising a
+
+        If there are duplicates, a member of the `ErrorCodes` enum is called, raising an
         `HTTPException`.
         """
         counter = Counter(map(itemgetter(*field_names), self.validation_items))
