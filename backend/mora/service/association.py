@@ -37,6 +37,13 @@ if TYPE_CHECKING:  # pragma: no cover
 logger = get_logger()
 
 
+def _is_primary(mo_class: dict) -> bool:
+    try:
+        return mo_class[mapping.USER_KEY] == mapping.PRIMARY
+    except KeyError:
+        return False
+
+
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
     def get_validation_item_from_mo_object(cls, mo_object: dict) -> Optional[dict]:
@@ -56,8 +63,7 @@ class _ITAssociationGroupValidation(GroupValidation):
             return None  # not an "IT association", skip it
 
         try:
-            primary = mo_object[mapping.PRIMARY][mapping.USER_KEY]
-            is_primary = primary == mapping.PRIMARY
+            is_primary = _is_primary(mo_object[mapping.PRIMARY])
         except KeyError:
             is_primary = False
 
@@ -446,19 +452,10 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
     async def _is_class_primary(self, primary_class_uuid: str) -> bool:
         # Determine whether the given `primary_class_uuid` does indeed refer to a
         # primary class (as opposed to a non-primary class.)
-
-        def _is_primary(mo_class: dict) -> bool:
-            try:
-                return mo_class[mapping.USER_KEY] == mapping.PRIMARY
-            except KeyError:
-                return False
-
         connector = lora.Connector()
         mo_class = await get_one_class(connector, primary_class_uuid)
-
         if (mo_class is None) or (not _is_primary(mo_class)):
             return False
-
         return True
 
     async def _get_it_system_uuid(self, it_user_uuid: str) -> str:
