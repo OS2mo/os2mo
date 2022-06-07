@@ -73,16 +73,15 @@ Opgaven forudsætter at kunden har en IdP der understøtter SAML 2.0 SSO.
 
 Det skal ligeledes være muligt at styre hvem der har adgang til hvad i OS2mo. Rollestyring forvaltes via oprettelse af en bruger i AD’et, opsætning i en IdP (fx ADFS), i [Keycloak](https://www.keycloak.org/) og i OS2mo.
 
-## Integration med Serviceplatformen
-### OS2mo som anvendersystem på Støttesystemet Organisation på Serviceplatformen
+## Integration med Serviceplatformen og FK Org
+### OS2mo som anvendersystem på FK Org på Serviceplatformen
 
 OS2mo kan opdatere FK Organisation igennem OS2-komponenten OS2sync.
+Se [vejledning til tilslutning af OS2mo på Serviceplatformen som anvendersystem](../static/Vejledning%20til%20tilslutning%20af%20OS2MO%20på%20Serviceplatformen%20som%20anvendersystem.pdf).
 
 OS2mo kan ligeledes hente personoplysninger fra CPR-registret.
 
 Der skal laves en serviceaftale for at kunne benytte hhv. [FK Organisation](https://digitaliseringskataloget.dk/l%C3%B8sninger/organisation) og [CPR-services](https://cpr.dk/kunder/private-virksomheder/cpr-services) på Serviceplatformen.
-
-Se [vejledning til tilslutning af OS2mo på Serviceplatformen som anvendersystem](../static/Vejledning%20til%20tilslutning%20af%20OS2MO%20på%20Serviceplatformen%20som%20anvendersystem.pdf).
 
 - Send de to FOCES-certifikater inkl. keystore password til Magenta. Der skal bruges to certifikater - et til FK Organisation TEST og etn til FK Organisation prod)
 Bemærk at certifikatet skal være i .p12-format.
