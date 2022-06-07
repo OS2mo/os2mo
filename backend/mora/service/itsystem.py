@@ -58,8 +58,7 @@ class ITUserGroupValidation(GroupValidation):
 
         return ItSystemBindingReader()
 
-    def validate(self, obj: Optional[dict] = None):
-        super().validate(obj=obj)
+    def validate(self) -> None:
         self.validate_unique_constraint(
             ["employee_uuid", "it_system_uuid", "it_user_username"],
             exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
@@ -122,7 +121,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeitsystemer=systemid,
                 )
             )
-            validation.validate(
+            validation.validate_additional_object(
                 dict(
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,

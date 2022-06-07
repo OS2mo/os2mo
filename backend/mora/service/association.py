@@ -75,8 +75,7 @@ class _ITAssociationGroupValidation(GroupValidation):
 
 
 class ITAssociationUniqueGroupValidation(_ITAssociationGroupValidation):
-    def validate(self, obj: Optional[dict] = None):
-        super().validate(obj=obj)
+    def validate(self) -> None:
         self.validate_unique_constraint(
             ["employee_uuid", "org_unit_uuid", "it_user_uuid"],
             exceptions.ErrorCodes.V_MORE_THAN_ONE_ASSOCIATION,
@@ -84,11 +83,10 @@ class ITAssociationUniqueGroupValidation(_ITAssociationGroupValidation):
 
 
 class ITAssociationPrimaryGroupValidation(_ITAssociationGroupValidation):
-    def validate(self, obj: Optional[dict] = None):
-        super().validate(obj=obj)
+    def validate(self) -> None:
         self._validate_is_only_primary()
 
-    def _validate_is_only_primary(self):
+    def _validate_is_only_primary(self) -> None:
         # There can be at most one primary IT association to a given IT system
         counter = Counter(
             item["it_system_uuid"]
@@ -174,7 +172,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeenheder=org_unit_uuid,
                 ),
             )
-            validation.validate(
+            validation.validate_additional_object(
                 dict(
                     employee_uuid=employee_uuid,
                     org_unit_uuid=org_unit_uuid,
@@ -185,7 +183,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
-            validation.validate(
+            validation.validate_additional_object(
                 dict(
                     employee_uuid=employee_uuid,
                     it_user_uuid=it_user_uuid,
@@ -387,7 +385,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeenheder=org_unit_uuid,
                 ),
             )
-            validation.validate(
+            validation.validate_additional_object(
                 dict(
                     employee_uuid=employee_uuid,
                     org_unit_uuid=org_unit_uuid,
@@ -399,7 +397,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
-            validation.validate(
+            validation.validate_additional_object(
                 dict(
                     employee_uuid=employee_uuid,
                     it_user_uuid=it_user_uuid,

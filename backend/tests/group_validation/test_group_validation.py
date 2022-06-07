@@ -56,23 +56,19 @@ class TestGroupValidationStubs:
 
 
 class TestGroupValidation:
-    _initial_validation_items = ["a"]
+    _initial_validation_items = [{"a": "a"}]
+    _additional_object = {"b": "b"}
 
-    @parameterized.expand(
-        [
-            # 1. No `obj` passed to `validate`
-            (None, _initial_validation_items),
-            # 2. An `obj` passed to `validate`
-            ("b", _initial_validation_items + ["b"]),
-        ]
-    )
-    def test_validate(self, obj, expected_validation_items):
-        # Before: validation items consist of the one item given by our dummy class
+    def test_validate_additional_object(self):
+        # Before: validation items consist of the initial items
         instance = GroupValidation(self._initial_validation_items)
         assert instance.validation_items == self._initial_validation_items
-        # After: validation items consist of our dummy class item, plus any `obj` given
-        instance.validate(obj=obj)
-        assert instance.validation_items == expected_validation_items
+        with mock.patch.object(instance, "validate"):
+            # After: validation items consist of initial items, plus an additional item
+            instance.validate_additional_object(self._additional_object)
+            assert instance.validation_items == (
+                self._initial_validation_items + [self._additional_object]
+            )
 
     @parameterized.expand(
         [

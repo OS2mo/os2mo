@@ -8,7 +8,7 @@ from mora.service.itsystem import ITUserGroupValidation
 
 
 class TestITUserGroupValidation:
-    def test_validation(self):
+    def test_validate_additional_object(self):
         obj = {
             "employee_uuid": "uuid",
             "it_system_uuid": "uuid",
@@ -16,7 +16,7 @@ class TestITUserGroupValidation:
         }
         validation = ITUserGroupValidation([obj])
         with pytest.raises(HTTPException):
-            validation.validate(obj)
+            validation.validate_additional_object(obj)
 
 
 class TestITSystemRequestHandlerValidation:

@@ -62,22 +62,22 @@ class GroupValidation:
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
 
-    def validate(self, obj: Optional[dict] = None) -> None:
+    def validate(self) -> None:
         """Validate this `GroupValidation` instance.
 
         `validate` should return None if there are no validation errors, or raise an
         appropriate exception using `mora.exceptions.ErrorCodes`.
 
         `validate` must be implemented by subclasses of `GroupValidation`.
-
-        If `obj` is given, it is added to the list of "validation items" before the
-        actual validation takes place.
-
-        It is recommended to call `super().validate(obj=obj)` in subclass
-        implementations.
         """
-        if obj is not None:
-            self.validation_items = list(chain(self.validation_items, [obj]))
+        raise NotImplementedError()
+
+    def validate_additional_object(self, obj: dict) -> None:
+        """Validate this `GroupValidation` instance, considering an additional object
+        `obj`.
+        """
+        self.validation_items = list(chain(self.validation_items, [obj]))
+        self.validate()
 
     def validate_unique_constraint(
         self, field_names: list[str], error: ErrorCodes
