@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest import mock
+
 import pytest
 from parameterized import parameterized
 
@@ -9,41 +11,40 @@ from mora.handler.reading import ReadingHandler
 from mora.service.validation.models import GroupValidation
 
 
-class _MockReadingHandler(ReadingHandler):
-    _mo_object = {"mo": "object"}
-
-    @classmethod
-    async def get(cls, *args, **kwargs):
-        return [cls._mo_object]
-
-
-class _DummyGroupValidation(GroupValidation):
-    _fixed_validation_item = {"foo": "bar"}
-
-    @classmethod
-    def get_validation_item_from_mo_object(cls, mo_object: dict):
-        return cls._fixed_validation_item
-
-    @classmethod
-    def get_mo_object_reading_handler(cls) -> "ReadingHandler":
-        return _MockReadingHandler()
-
-
 class TestGroupValidationConstructors:
+    _mock_validation_item = {"foo": "bar"}
+
     def test_from_requests(self):
         requests = [{}]
-        instance = _DummyGroupValidation.from_requests(requests)
-        assert instance.validation_items == [
-            _DummyGroupValidation._fixed_validation_item
-        ]
+        with self._mock_get_validation_item_from_mo_object():
+            instance = GroupValidation.from_requests(requests)
+            assert instance.validation_items == [self._mock_validation_item]
 
     @pytest.mark.asyncio
     async def test_from_mo_objects(self):
         search_fields = {}
-        instance = await _DummyGroupValidation.from_mo_objects(search_fields)
-        assert instance.validation_items == [
-            _DummyGroupValidation._fixed_validation_item
-        ]
+        with self._mock_get_validation_item_from_mo_object():
+            with self._mock_get_mo_object_reading_handler():
+                instance = await GroupValidation.from_mo_objects(search_fields)
+                assert instance.validation_items == [self._mock_validation_item]
+
+    def _mock_get_validation_item_from_mo_object(self):
+        return mock.patch.object(
+            GroupValidation,
+            "get_validation_item_from_mo_object",
+            return_value=self._mock_validation_item,
+        )
+
+    def _mock_get_mo_object_reading_handler(self):
+        # Mock `ReadingHandler` instance whose `.get` method always returns the same
+        # "MO object".
+        mock_reading_handler = mock.Mock(spec=ReadingHandler)
+        mock_reading_handler.get = mock.AsyncMock(return_value={"mo": "object"})
+        return mock.patch.object(
+            GroupValidation,
+            "get_mo_object_reading_handler",
+            return_value=mock_reading_handler,
+        )
 
 
 class TestGroupValidationStubs:
