@@ -615,8 +615,21 @@ class Tests(tests.cases.LoRATestCase):
             "description": "Invalid input.",
             "error": True,
             "error_key": "E_INVALID_INPUT",
-            "name": "Supply either name or given name/surame",
             "status": 400,
+            "errors": [
+                {
+                    "loc": ["__root__", "body"],
+                    "msg": "name and givenname/surname are mutually exclusive",
+                    "type": "value_error",
+                }
+            ],
+            "request": {
+                "cpr_no": "0906340000",
+                "givenname": "Torkild",
+                "name": "Torkild Testperson",
+                "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
+                "surname": "Testperson",
+            },
         }
 
         self.assertRequestResponse(

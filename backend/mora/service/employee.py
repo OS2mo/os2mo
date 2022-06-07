@@ -63,25 +63,15 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     async def prepare_create(self, req):
-        name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "", required=False)
         surname = util.checked_get(req, mapping.SURNAME, "", required=False)
 
-        if name and (surname or givenname):
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                name="Supply either name or given name/surame"
-            )
-
-        if name:
-            givenname = name.rsplit(" ", maxsplit=1)[0]
-            surname = name[len(givenname) :].strip()
-
-        if (not name) and (not givenname) and (not surname):
-            raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                name="Missing name or givenname or surname"
-            )
-
-        nickname_givenname, nickname_surname = self._handle_nickname(req)
+        nickname_givenname = util.checked_get(
+            req, mapping.NICKNAME_GIVENNAME, None, required=False
+        )
+        nickname_surname = util.checked_get(
+            req, mapping.NICKNAME_SURNAME, None, required=False
+        )
 
         org_uuid = (
             await org.get_configured_organisation(

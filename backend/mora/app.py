@@ -125,7 +125,9 @@ async def request_validation_handler(request: Request, exc: RequestValidationErr
             "os2mo_err_details", exc=exc, url=request.url, params=request.query_params
         )
 
-    err = ErrorCodes.E_INVALID_INPUT.to_http_exception(request=exc.body)
+    err = ErrorCodes.E_INVALID_INPUT.to_http_exception(
+        request=exc.body, errors=exc.errors()
+    )
     return http_exception_to_json_response(exc=err)
 
 
