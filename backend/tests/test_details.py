@@ -51,6 +51,18 @@ class AsyncTests(tests.cases.AsyncTestCase):
                 "error_key": "E_INVALID_INPUT",
                 "request": "kaflaflibob",
                 "status": 400,
+                "errors": [
+                    {
+                        "loc": ["body"],
+                        "msg": "value is not a valid dict",
+                        "type": "type_error.dict",
+                    },
+                    {
+                        "loc": ["body"],
+                        "msg": "value is not a valid list",
+                        "type": "type_error.list",
+                    },
+                ],
             },
             json="kaflaflibob",
             status_code=400,

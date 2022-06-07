@@ -549,11 +549,23 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "description": "Missing required value.",
+                "description": "Invalid input.",
                 "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "name": "Missing name or givenname or surname",
+                "error_key": "E_INVALID_INPUT",
                 "status": 400,
+                "errors": [
+                    {
+                        "loc": ["body", "givenname"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    },
+                    {
+                        "loc": ["body", "surname"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    },
+                ],
+                "request": {},
             },
             json=payload,
             status_code=400,
@@ -569,11 +581,23 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "cpr": "1",
-                "description": "Not a valid CPR number.",
+                "description": "Invalid input.",
                 "error": True,
-                "error_key": "V_CPR_NOT_VALID",
+                "error_key": "E_INVALID_INPUT",
                 "status": 400,
+                "errors": [
+                    {
+                        "ctx": {"pattern": "^\\d{10}$"},
+                        "loc": ["body", "cpr_no"],
+                        "msg": 'string does not match regex "^\\d{10}$"',
+                        "type": "value_error.str.regex",
+                    }
+                ],
+                "request": {
+                    "cpr_no": "1",
+                    "name": "Torkild Testperson",
+                    "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
+                },
             },
             json=payload,
             status_code=400,
