@@ -1,49 +1,42 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from unittest import mock
-
 import pytest
 from parameterized import parameterized
 
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
-from mora.handler.reading import ReadingHandler
 from mora.service.validation.models import GroupValidation
 
 
 class TestGroupValidationConstructors:
     _mock_validation_item = {"foo": "bar"}
 
-    def test_from_requests(self):
+    def test_from_requests(self, monkeypatch):
         requests = [{}]
-        with self._mock_get_validation_item_from_mo_object():
-            instance = GroupValidation.from_requests(requests)
-            assert instance.validation_items == [self._mock_validation_item]
+        self._monkeypatch_get_validation_item_from_mo_object(monkeypatch)
+        instance = GroupValidation.from_requests(requests)
+        assert instance.validation_items == [self._mock_validation_item]
 
     @pytest.mark.asyncio
-    async def test_from_mo_objects(self):
-        search_fields = {}
-        with self._mock_get_validation_item_from_mo_object():
-            with self._mock_get_mo_object_reading_handler():
-                instance = await GroupValidation.from_mo_objects(search_fields)
-                assert instance.validation_items == [self._mock_validation_item]
+    async def test_from_mo_objects(self, monkeypatch):
+        class _MockReadingHandler:
+            async def get(self, *args, **kwargs):
+                return {"mo": "object"}
 
-    def _mock_get_validation_item_from_mo_object(self):
-        return mock.patch.object(
+        search_fields = {}
+
+        self._monkeypatch_get_validation_item_from_mo_object(monkeypatch)
+        monkeypatch.setattr(
+            GroupValidation, "get_mo_object_reading_handler", _MockReadingHandler
+        )
+        instance = await GroupValidation.from_mo_objects(search_fields)
+        assert instance.validation_items == [self._mock_validation_item]
+
+    def _monkeypatch_get_validation_item_from_mo_object(self, monkeypatch):
+        monkeypatch.setattr(
             GroupValidation,
             "get_validation_item_from_mo_object",
-            return_value=self._mock_validation_item,
-        )
-
-    def _mock_get_mo_object_reading_handler(self):
-        # Mock `ReadingHandler` instance whose `.get` method always returns the same
-        # "MO object".
-        mock_reading_handler = mock.Mock(spec=ReadingHandler)
-        mock_reading_handler.get = mock.AsyncMock(return_value={"mo": "object"})
-        return mock.patch.object(
-            GroupValidation,
-            "get_mo_object_reading_handler",
-            return_value=mock_reading_handler,
+            lambda *args: self._mock_validation_item,
         )
 
 
@@ -59,16 +52,16 @@ class TestGroupValidation:
     _initial_validation_items = [{"a": "a"}]
     _additional_object = {"b": "b"}
 
-    def test_validate_additional_object(self):
+    def test_validate_additional_object(self, monkeypatch):
         # Before: validation items consist of the initial items
         instance = GroupValidation(self._initial_validation_items)
         assert instance.validation_items == self._initial_validation_items
-        with mock.patch.object(instance, "validate"):
-            # After: validation items consist of initial items, plus an additional item
-            instance.validate_additional_object(self._additional_object)
-            assert instance.validation_items == (
-                self._initial_validation_items + [self._additional_object]
-            )
+        monkeypatch.setattr(instance, "validate", lambda *args: None)
+        # After: validation items consist of initial items, plus an additional item
+        instance.validate_additional_object(self._additional_object)
+        assert instance.validation_items == (
+            self._initial_validation_items + [self._additional_object]
+        )
 
     @parameterized.expand(
         [
