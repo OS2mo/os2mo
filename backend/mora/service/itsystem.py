@@ -207,6 +207,16 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
+        if data.get(mapping.PRIMARY):
+            update_fields.append(
+                (
+                    mapping.PRIMARY_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.PRIMARY),
+                    },
+                )
+            )
+
         try:
             attributes = mapping.ORG_FUNK_EGENSKABER_FIELD(original)[-1].copy()
         except (TypeError, LookupError):
