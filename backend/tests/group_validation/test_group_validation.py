@@ -52,16 +52,16 @@ class TestGroupValidation:
     _initial_validation_items = [{"a": "a"}]
     _additional_object = {"b": "b"}
 
-    def test_validate_additional_object(self, monkeypatch):
-        # Before: validation items consist of the initial items
+    def test_validate_additional_object(self):
+        # Create an initial `GroupValidation` instance of one validation item
         instance = GroupValidation(self._initial_validation_items)
         assert instance.validation_items == self._initial_validation_items
-        monkeypatch.setattr(instance, "validate", lambda *args: None)
-        # After: validation items consist of initial items, plus an additional item
-        instance.validate_additional_object(self._additional_object)
-        assert instance.validation_items == (
+        # Adding another validation item returns a copy of the initial instance
+        instance_copy = instance.add_validation_item(self._additional_object)
+        assert instance_copy.validation_items == (
             self._initial_validation_items + [self._additional_object]
         )
+        assert instance is not instance_copy
 
     @parameterized.expand(
         [

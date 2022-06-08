@@ -15,4 +15,4 @@ class TestITUserGroupValidation:
         }
         validation = ITUserGroupValidation([obj])
         with pytest.raises(HTTPException):
-            validation.validate_additional_object(obj)
+            validation.add_validation_item(obj).validate()

@@ -115,13 +115,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeitsystemer=systemid,
                 )
             )
-            validation.validate_additional_object(
+            validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
                     it_system_uuid=systemid,
                     it_user_username=bvn,
                 )
-            )
+            ).validate()
 
         # TODO: validate that the date range is in
         # the validity of the IT system!

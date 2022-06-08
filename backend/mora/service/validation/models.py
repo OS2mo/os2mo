@@ -72,12 +72,17 @@ class GroupValidation:
         """
         raise NotImplementedError()
 
-    def validate_additional_object(self, obj: dict) -> None:
-        """Validate this `GroupValidation` instance, considering an additional object
-        `obj`.
+    def add_validation_item(self, validation_item: dict) -> "GroupValidation":
+        """Add another validation item to this group validation.
+
+        Creates a copy of this `GroupValidation` instance containing the original
+        validation items, plus the new validation item.
+
+        The caller code can then call `validate` on the new instance returned, which
+        will validate the new validation item together with the original validation
+        items.
         """
-        self.validation_items = list(chain(self.validation_items, [obj]))
-        self.validate()
+        return self.__class__(list(chain(self.validation_items, [validation_item])))
 
     def validate_unique_constraint(
         self, field_names: list[str], error: ErrorCodes

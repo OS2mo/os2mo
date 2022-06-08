@@ -178,25 +178,25 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeenheder=org_unit_uuid,
                 ),
             )
-            validation.validate_additional_object(
+            validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
                     org_unit_uuid=org_unit_uuid,
                     it_user_uuid=it_user_uuid,
                 ),
-            )
+            ).validate()
         if employee_uuid and it_user_uuid and (await self._is_class_primary(primary)):
             validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
-            validation.validate_additional_object(
+            validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
                     it_user_uuid=it_user_uuid,
                     it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
                     is_primary=True,
                 ),
-            )
+            ).validate()
 
         if substitute_uuid:
             rel_orgfunc_uuids = [substitute_uuid]
@@ -391,26 +391,26 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                     tilknyttedeenheder=org_unit_uuid,
                 ),
             )
-            validation.validate_additional_object(
+            validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
                     org_unit_uuid=org_unit_uuid,
                     it_user_uuid=it_user_uuid,
                 )
-            )
+            ).validate()
 
         if employee_uuid and it_user_uuid and (await self._is_class_primary(primary)):
             validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
-            validation.validate_additional_object(
+            validation.add_validation_item(
                 dict(
                     employee_uuid=employee_uuid,
                     it_user_uuid=it_user_uuid,
                     it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
                     is_primary=True,
                 ),
-            )
+            ).validate()
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
