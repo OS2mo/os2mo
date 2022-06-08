@@ -21,6 +21,12 @@ SPDX-License-Identifier: MPL-2.0
         :label="$t('input_fields.account_name')"
         required
       />
+
+      <mo-input-primary-check
+        class="col checkbox"
+        v-model="entry.primary"
+      />
+
     </div>
   </div>
 </template>
@@ -30,6 +36,7 @@ SPDX-License-Identifier: MPL-2.0
  * A it system entry component.
  */
 import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
+import MoInputPrimaryCheck from '@/components/MoInput/MoInputPrimaryCheck'
 import { MoInputText, MoInputDateRange } from '@/components/MoInput'
 import MoEntryBase from './MoEntryBase'
 import OrgUnitValidity from '@/mixins/OrgUnitValidity'
@@ -42,7 +49,8 @@ export default {
   components: {
     MoInputText,
     MoInputDateRange,
-    MoItSystemPicker
+    MoItSystemPicker,
+    MoInputPrimaryCheck,
   },
 
   watch: {

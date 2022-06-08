@@ -90,3 +90,18 @@ table th {
   font-size: unset !important;
   line-height: unset !important;
 }
+
+/* Allow dropdowns to be as wide as their content */
+.mo-input-group {
+  width: auto !important;
+}
+
+/* Tweak offset of checkboxes in create/edit dialogs */
+.col.checkbox {
+  margin-left: 1.25rem;
+  margin-bottom: 1.33rem !important;
+}
+
+.form-row {
+  align-items: flex-end;
+}
