@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.31.0 - 2022-06-08
+-------------------
+
+[#50483] Add support for "group-wise" validations. Use when validating "IT users" and "IT associations".
+
 4.30.0 - 2022-06-04
 -------------------
 
