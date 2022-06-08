@@ -49,7 +49,8 @@
     "V_INVALID_ADDRESS_WWW": "A valid web address is required.",
     "E_UNKNOWN": "Unspecified error.",
     "E_INTEGRATION_ERROR": "Integration error, {description}",
-    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "The directory is not setup correctly"
+    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "The directory is not setup correctly",
+    "V_DUPLICATED_IT_USER": "An IT user is connected to this employee more than once"
   },
   "no_search_results": "No results match your search.",
   "page_not_found": "Page not found",
