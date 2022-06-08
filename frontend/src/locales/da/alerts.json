@@ -49,7 +49,8 @@
     "V_INVALID_ADDRESS_WWW": "Feltet skal indeholde en gyldig webadresse.",
     "E_UNKNOWN": "Uspecificeret fejl",
     "E_INTEGRATION_ERROR": "Integrationsfejl, {description}",
-    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "Mappen er ikke opsat korrekt"
+    "E_DIRECTORY_NOT_SETUP_CORRECTLY": "Mappen er ikke opsat korrekt",
+    "V_DUPLICATED_IT_USER": "En IT-bruger er tilknyttet denne ansatte mere end een gang"
   },
   "no_search_results": "Ingen resultater matcher din søgning",
   "page_not_found": "Siden blev ikke fundet",

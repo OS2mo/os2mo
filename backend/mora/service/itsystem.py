@@ -11,6 +11,7 @@ from typing import Any
 from typing import Awaitable
 from typing import Dict
 from typing import Optional
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from fastapi import APIRouter
@@ -26,7 +27,12 @@ from .. import util
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation import validator
+from .validation.models import GroupValidation
 from mora.request_scoped.bulking import request_wide_bulk
+
+if TYPE_CHECKING:  # pragma: no cover
+    from ..handler.reading import ReadingHandler
+
 
 router = APIRouter()
 
@@ -35,9 +41,33 @@ logger = get_logger()
 MO_OBJ_TYPE = Dict[str, Any]
 
 
+class ITUserGroupValidation(GroupValidation):
+    @classmethod
+    def get_validation_item_from_mo_object(cls, mo_object: dict) -> dict:
+        return {
+            "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+            "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
+            "it_user_username": mo_object.get(mapping.USER_KEY),
+        }
+
+    @classmethod
+    def get_mo_object_reading_handler(cls) -> "ReadingHandler":
+        # Avoid circular import
+        from ..handler.impl.it import ItSystemBindingReader
+
+        return ItSystemBindingReader()
+
+    def validate(self) -> None:
+        self.validate_unique_constraint(
+            ["employee_uuid", "it_system_uuid", "it_user_username"],
+            exceptions.ErrorCodes.V_DUPLICATED_IT_USER,
+        )
+
+
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
+    group_validations: list[GroupValidation] = [ITUserGroupValidation]
 
     async def prepare_create(self, req):
         c = lora.Connector()
@@ -77,6 +107,21 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             await validator.is_date_range_in_employee_range(
                 employee, valid_from, valid_to
             )
+
+        if employee_uuid and systemid:
+            validation = await ITUserGroupValidation.from_mo_objects(
+                dict(
+                    tilknyttedebrugere=employee_uuid,
+                    tilknyttedeitsystemer=systemid,
+                )
+            )
+            validation.add_validation_item(
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_system_uuid=systemid,
+                    it_user_username=bvn,
+                )
+            ).validate()
 
         # TODO: validate that the date range is in
         # the validity of the IT system!
