@@ -676,7 +676,7 @@ async def create_employee(req: MOEmployeeWrite, permissions=Depends(oidc.rbac_ad
     :returns: UUID of created employee
 
     """
-    req_dict = req.dict()
+    req_dict = req.dict(by_alias=True)
     req_dict.pop("name", None)
     req_dict.pop("nickname", None)
 
