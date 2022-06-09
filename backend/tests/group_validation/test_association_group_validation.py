@@ -18,8 +18,11 @@ from mora.service.handlers import RequestType
 
 
 class TestITAssociationGroupValidationBase:
+    _association_uuid = str(uuid4())
+
     @parameterized.expand(
         [
+            # A number of insufficient payloads, which cause the method to return None
             (None, None),
             ({}, None),
             ({mapping.IT: None}, None),
@@ -30,8 +33,10 @@ class TestITAssociationGroupValidationBase:
                 {mapping.IT: [{mapping.UUID: "it-user-uuid", mapping.ITSYSTEM: {}}]},
                 None,
             ),
+            # Minimal valid payload
             (
                 {
+                    mapping.UUID: _association_uuid,
                     mapping.IT: [
                         {
                             mapping.UUID: "it-user-uuid",
@@ -41,6 +46,7 @@ class TestITAssociationGroupValidationBase:
                     mapping.PRIMARY: {mapping.UUID: str(uuid4())},
                 },
                 {
+                    "uuid": _association_uuid,
                     "employee_uuid": None,
                     "org_unit_uuid": None,
                     "it_user_uuid": "it-user-uuid",

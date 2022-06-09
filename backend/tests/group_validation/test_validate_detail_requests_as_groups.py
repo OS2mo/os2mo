@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from unittest import mock
+from uuid import uuid4
 
 import pytest
 
@@ -45,9 +46,9 @@ class TestHandlerValidateDetailRequestsAsGroups:
 
         request = {
             "details": [
-                {"type": "it"},
-                {"type": "association"},
-                {"type": "it"},
+                {"type": "it", "uuid": str(uuid4())},
+                {"type": "association", "uuid": str(uuid4())},
+                {"type": "it", "uuid": str(uuid4())},
             ]
         }
 
