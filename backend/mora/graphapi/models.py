@@ -40,3 +40,9 @@ class OrganisationUnitRefreshRead(BaseModel):
     """Payload model for organisation unit refresh mutation."""
 
     message: str = Field(description="Refresh message containing trigger responses.")
+
+
+class ConfigurationRead(BaseModel):
+    """Payload model for configuration."""
+
+    key: str = Field(description="Settings key.")

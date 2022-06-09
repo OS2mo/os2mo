@@ -12,6 +12,7 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from typing import Any
+from typing import cast
 from typing import Optional
 from uuid import UUID
 
@@ -26,6 +27,7 @@ from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
+from mora.config import get_public_settings
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.files import list_files
@@ -33,6 +35,7 @@ from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.models import ConfigurationRead
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
@@ -41,6 +44,7 @@ from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
+from mora.graphapi.schema import Configuration
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import EngagementAssociation
@@ -293,6 +297,25 @@ class Query:
         files = list(map(construct, found_files))
         parsed_files = parse_obj_as(list[FileRead], files)
         return list(map(File.from_pydantic, parsed_files))  # type: ignore
+
+    # Configuration
+    # -------------
+    @strawberry.field(
+        description="Get a list of configuration variables.",
+    )
+    async def configuration(
+        self, identifiers: Optional[list[str]] = None
+    ) -> list[Configuration]:
+        settings_keys = get_public_settings()
+        if identifiers is not None:
+            settings_keys = settings_keys.intersection(set(identifiers))
+
+        def construct(identifier: Any) -> dict[str, Any]:
+            return {"key": identifier}
+
+        settings = list(map(construct, settings_keys))
+        parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
+        return cast(list[Configuration], parsed_settings)
 
 
 @strawberry.type
