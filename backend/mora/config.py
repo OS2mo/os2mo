@@ -10,6 +10,7 @@ from typing import Optional
 
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
+from pydantic import Field
 from pydantic import root_validator
 from pydantic.types import DirectoryPath
 from pydantic.types import PositiveInt
@@ -159,7 +160,9 @@ class Settings(BaseSettings):
     confdb_inherit_manager: bool = True
     confdb_association_dynamic_facets: str = ""
     confdb_substitute_roles: str = ""
-    confdb_show_cpr_no: bool = True
+    confdb_show_cpr_no: bool = Field(
+        True, description="Make CPR number visible under the Employee tab"
+    )
     confdb_show_user_key_in_search: bool = False
     confdb_extension_field_ui_labels: str = ""
     confdb_show_engagement_hyperlink: bool = False
