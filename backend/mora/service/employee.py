@@ -43,6 +43,7 @@ from ..lora import LoraObjectType
 from ..triggers import Trigger
 from .validation import validator
 from mora.auth.keycloak import oidc
+from mora.graphapi.shim import MOEmployeeTerminate
 from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
@@ -529,7 +530,7 @@ async def list_employees(
 )
 # @util.restrictargs('force', 'triggerless')
 async def terminate_employee(
-    uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
+    uuid: UUID, request: MOEmployeeTerminate, permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -560,6 +561,8 @@ async def terminate_employee(
 
     """
     uuid = str(uuid)
+    request = request.dict(by_alias=True)
+    request["validity"]["to"] = request["validity"]["to"].strftime("%Y-%m-%d")
     date = util.get_valid_to(request)
 
     c = lora.Connector(effective_date=date, virkningtil="infinity")

@@ -12,6 +12,7 @@ Used for shimming the service API.
 # Imports
 # --------------------------------------------------------------------------------------
 from datetime import date
+from datetime import datetime
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -25,6 +26,7 @@ from pydantic import validator
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
+from ramodels.mo import OpenValidity
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
@@ -47,6 +49,20 @@ class MOEmployee(EmployeeRead):
     def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
         # noop overriding parent method - we need name & nickname
         return values
+
+
+class EndValidity(OpenValidity):
+    # TODO: Should probably live in ramodels
+    to_date: datetime = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )
+
+
+class MOEmployeeTerminate(BaseModel):
+    validity: EndValidity
+
+    class Config:
+        schema_extra = {"example": {"validity": {"to": "2021-12-31"}}}
 
 
 class UUIDObject(BaseModel):
