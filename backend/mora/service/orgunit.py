@@ -29,6 +29,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from fastapi.encoders import jsonable_encoder
 from more_itertools import unzip
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
@@ -51,6 +52,7 @@ from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.util import get_configuration
+from mora.service.mo_models import MOOrgUnitWrite
 
 router = APIRouter()
 
@@ -1005,7 +1007,7 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(req: MOOrgUnitWrite, permissions=Depends(oidc.rbac_owner)):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
@@ -1053,8 +1055,11 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
 
     """
 
-    request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.CREATE)
+    req_dict = req.dict(by_alias=True)
 
+    request = await OrgUnitRequestHandler.construct(
+        jsonable_encoder(req_dict), mapping.RequestType.CREATE
+    )
     return await request.submit()
 
 

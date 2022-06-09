@@ -49,6 +49,7 @@ from mora.graphapi.schema import Response
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from mora.service.mo_models import MOOrgUnitWrite
 
 
 # --------------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ MOModel = TypeVar(
     OrganisationUnitRead,
     RoleRead,
     RelatedUnitRead,
+    MOOrgUnitWrite,
 )
 
 RoleType = TypeVar("RoleType")
