@@ -3,16 +3,16 @@
 import pytest
 
 from mora.exceptions import HTTPException
-from mora.service.itsystem import ITUserGroupValidation
+from mora.service.itsystem import ITUserUniqueGroupValidation
 
 
-class TestITUserGroupValidation:
+class TestITUserUniqueGroupValidation:
     def test_validate_additional_object(self):
         obj = {
             "employee_uuid": "uuid",
             "it_system_uuid": "uuid",
             "it_user_username": "uuid",
         }
-        validation = ITUserGroupValidation([obj])
+        validation = ITUserUniqueGroupValidation([obj])
         with pytest.raises(HTTPException):
             validation.add_validation_item(obj).validate()

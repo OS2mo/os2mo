@@ -54,7 +54,7 @@ class TestHandlerValidateDetailRequestsAsGroups:
         # Assert that the expected validation method is called exactly once
         instance = _DummyRequestHandler(request, RequestType.CREATE)
         with mock.patch(
-            "mora.service.itsystem.ITUserGroupValidation.validate"
+            "mora.service.itsystem.ITUserUniqueGroupValidation.validate"
         ) as mock_validate:
-            instance.validate_detail_requests_as_groups(request["details"])
+            await instance.validate_detail_requests_as_groups(request["details"])
             mock_validate.assert_called_once_with()

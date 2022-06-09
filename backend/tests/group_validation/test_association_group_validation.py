@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Optional
 from unittest import mock
+from uuid import uuid4
 
 import pytest
 from parameterized import parameterized
@@ -37,7 +38,7 @@ class TestITAssociationGroupValidationBase:
                             mapping.ITSYSTEM: {mapping.UUID: "it-system-uuid"},
                         },
                     ],
-                    mapping.PRIMARY: {mapping.USER_KEY: mapping.PRIMARY},
+                    mapping.PRIMARY: {mapping.UUID: str(uuid4())},
                 },
                 {
                     "employee_uuid": None,
@@ -49,13 +50,26 @@ class TestITAssociationGroupValidationBase:
             ),
         ]
     )
-    def test_get_validation_item_from_mo_object(
-        self, mo_object: dict, expected_result: Optional[dict]
+    @pytest.mark.asyncio
+    async def test_get_validation_item_from_mo_object(
+        self,
+        mo_object: dict,
+        expected_result: Optional[dict],
     ):
-        actual_result = (
-            _ITAssociationGroupValidation.get_validation_item_from_mo_object(mo_object)
-        )
-        assert actual_result == expected_result
+        with mock.patch(
+            "mora.service.association.get_mo_object_primary_value",
+            return_value=(
+                expected_result.get("is_primary", False)
+                if expected_result is not None
+                else False
+            ),
+        ):
+            actual_result = (
+                await _ITAssociationGroupValidation.get_validation_item_from_mo_object(
+                    mo_object
+                )
+            )
+            assert actual_result == expected_result
 
     def test_get_mo_object_reading_handler(self):
         handler = _ITAssociationGroupValidation.get_mo_object_reading_handler()
@@ -79,22 +93,6 @@ class TestITAssociationPrimaryGroupValidation:
 
 
 class TestAssociationRequestHandlerGroupValidation:
-    @parameterized.expand(
-        [
-            (mapping.PRIMARY, True),
-            ("not-primary", False),
-        ]
-    )
-    @pytest.mark.asyncio
-    async def test_is_class_primary(self, primary_class_user_key, expected_result):
-        handler = AssociationRequestHandler({}, RequestType.CREATE)
-        mock_get = mock.AsyncMock(
-            return_value={mapping.USER_KEY: primary_class_user_key}
-        )
-        with mock.patch("mora.service.association.get_one_class", mock_get):
-            actual_result = await handler._is_class_primary("primary-class-uuid")
-            assert actual_result == expected_result
-
     @pytest.mark.asyncio
     async def test_get_it_system_uuid(self):
         handler = AssociationRequestHandler({}, RequestType.CREATE)

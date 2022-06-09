@@ -11,10 +11,11 @@ from mora.service.validation.models import GroupValidation
 class TestGroupValidationConstructors:
     _mock_validation_item = {"foo": "bar"}
 
-    def test_from_requests(self, monkeypatch):
+    @pytest.mark.asyncio
+    async def test_from_requests(self, monkeypatch):
         requests = [{}]
         self._monkeypatch_get_validation_item_from_mo_object(monkeypatch)
-        instance = GroupValidation.from_requests(requests)
+        instance = await GroupValidation.from_requests(requests)
         assert instance.validation_items == [self._mock_validation_item]
 
     @pytest.mark.asyncio
@@ -33,17 +34,21 @@ class TestGroupValidationConstructors:
         assert instance.validation_items == [self._mock_validation_item]
 
     def _monkeypatch_get_validation_item_from_mo_object(self, monkeypatch):
+        async def mock_impl(*args):
+            return self._mock_validation_item
+
         monkeypatch.setattr(
             GroupValidation,
             "get_validation_item_from_mo_object",
-            lambda *args: self._mock_validation_item,
+            mock_impl,
         )
 
 
 class TestGroupValidationStubs:
-    def test_not_implemented_stubs(self):
+    @pytest.mark.asyncio
+    async def test_not_implemented_stubs(self):
         with pytest.raises(NotImplementedError):
-            GroupValidation.get_validation_item_from_mo_object({})
+            await GroupValidation.get_validation_item_from_mo_object({})
         with pytest.raises(NotImplementedError):
             GroupValidation.get_mo_object_reading_handler()
 

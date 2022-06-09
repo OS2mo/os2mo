@@ -7,6 +7,7 @@ IT Systems
 This section describes how to interact with IT systems.
 
 """
+from operator import itemgetter
 from typing import Any
 from typing import Awaitable
 from typing import Dict
@@ -25,6 +26,8 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..lora import LoraObjectType
+from ..service.facet import get_mo_object_primary_value
+from ..service.facet import is_class_uuid_primary
 from ..triggers import Trigger
 from .validation import validator
 from .validation.models import GroupValidation
@@ -41,13 +44,17 @@ logger = get_logger()
 MO_OBJ_TYPE = Dict[str, Any]
 
 
-class ITUserGroupValidation(GroupValidation):
+class _ITUserGroupValidation(GroupValidation):
     @classmethod
-    def get_validation_item_from_mo_object(cls, mo_object: dict) -> dict:
+    async def get_validation_item_from_mo_object(
+        cls, mo_object: dict
+    ) -> Optional[dict]:
         return {
+            "uuid": util.get_uuid(mo_object),
             "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
             "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
             "it_user_username": mo_object.get(mapping.USER_KEY),
+            "is_primary": await get_mo_object_primary_value(mo_object),
         }
 
     @classmethod
@@ -57,6 +64,8 @@ class ITUserGroupValidation(GroupValidation):
 
         return ItSystemBindingReader()
 
+
+class ITUserUniqueGroupValidation(_ITUserGroupValidation):
     def validate(self) -> None:
         self.validate_unique_constraint(
             ["employee_uuid", "it_system_uuid", "it_user_username"],
@@ -64,10 +73,22 @@ class ITUserGroupValidation(GroupValidation):
         )
 
 
+class ITUserPrimaryGroupValidation(_ITUserGroupValidation):
+    def validate(self) -> None:
+        self.validate_at_most_one(
+            itemgetter("it_system_uuid"),
+            itemgetter("is_primary"),
+            exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY,
+        )
+
+
 class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.IT
     function_key = mapping.ITSYSTEM_KEY
-    group_validations: list[GroupValidation] = [ITUserGroupValidation]
+    group_validations: list[GroupValidation] = [
+        ITUserUniqueGroupValidation,
+        ITUserPrimaryGroupValidation,
+    ]
 
     async def prepare_create(self, req):
         c = lora.Connector()
@@ -109,7 +130,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if employee_uuid and systemid:
-            validation = await ITUserGroupValidation.from_mo_objects(
+            validation = await ITUserUniqueGroupValidation.from_mo_objects(
                 dict(
                     tilknyttedebrugere=employee_uuid,
                     tilknyttedeitsystemer=systemid,
@@ -121,6 +142,18 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     it_system_uuid=systemid,
                     it_user_username=bvn,
                 )
+            ).validate()
+
+        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
+            validation = await ITUserPrimaryGroupValidation.from_mo_objects(
+                dict(tilknyttedebrugere=employee_uuid),
+            )
+            validation.add_validation_item(
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_system_uuid=systemid,
+                    is_primary=True,
+                ),
             ).validate()
 
         # TODO: validate that the date range is in
@@ -235,6 +268,42 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                     {**attributes, **new_attributes},
                 )
             )
+
+        # Validation prerequisites
+        systemid = util.get_mapping_uuid(data, mapping.ITSYSTEM, required=False)
+        employee_uuid = util.get_mapping_uuid(data, mapping.PERSON, required=False)
+        primary = util.get_mapping_uuid(data, mapping.PRIMARY, required=False)
+        bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
+
+        # Validation
+        if employee_uuid and systemid and is_class_uuid_primary(primary):
+            validation = await ITUserPrimaryGroupValidation.from_mo_objects(
+                dict(tilknyttedebrugere=employee_uuid),
+            )
+            validation.update_validation_item(
+                function_uuid,
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_system_uuid=systemid,
+                    is_primary=True,
+                ),
+            ).validate()
+
+        if employee_uuid and systemid and bvn:
+            validation = await ITUserUniqueGroupValidation.from_mo_objects(
+                dict(
+                    tilknyttedebrugere=employee_uuid,
+                    tilknyttedeitsystemer=systemid,
+                )
+            )
+            validation.update_validation_item(
+                function_uuid,
+                dict(
+                    employee_uuid=employee_uuid,
+                    it_system_uuid=systemid,
+                    it_user_username=bvn,
+                ),
+            ).validate()
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
