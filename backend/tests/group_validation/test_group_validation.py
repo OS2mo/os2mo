@@ -1,5 +1,9 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from operator import itemgetter
+from typing import Callable
+from typing import Optional
+
 import pytest
 from parameterized import parameterized
 
@@ -54,8 +58,9 @@ class TestGroupValidationStubs:
 
 
 class TestGroupValidation:
-    _initial_validation_items = [{"a": "a"}]
-    _additional_object = {"b": "b"}
+    _initial_validation_items = [{"uuid": "a", "foo": "bar"}]
+    _additional_object = {"uuid": "b", "foo": "baz"}
+    _updated_object = {"uuid": "a", "foo": "baz"}
 
     def test_validate_additional_object(self):
         # Create an initial `GroupValidation` instance of one validation item
@@ -66,6 +71,16 @@ class TestGroupValidation:
         assert instance_copy.validation_items == (
             self._initial_validation_items + [self._additional_object]
         )
+        assert instance is not instance_copy
+
+    def test_validate_updated_object(self):
+        # Create an initial `GroupValidation` instance of one validation item
+        instance = GroupValidation(self._initial_validation_items)
+        assert instance.validation_items == self._initial_validation_items
+        # Updating a validation item returns a copy of the initial instance, where the
+        # item has been replaced.
+        instance_copy = instance.update_validation_item("a", self._updated_object)
+        assert instance_copy.validation_items == [self._updated_object]
         assert instance is not instance_copy
 
     @parameterized.expand(
@@ -79,11 +94,36 @@ class TestGroupValidation:
     def test_validate_unique_constraint(
         self, validation_items: list[dict], expected_exception: Exception
     ):
-        instance = GroupValidation(validation_items)
-        field_names = ["foo"]
-        error = ErrorCodes.V_MISSING_REQUIRED_VALUE  # any member of `ErrorCodes` is ok
-        if expected_exception:
-            with pytest.raises(expected_exception):
-                instance.validate_unique_constraint(field_names, error)
+        def _act():
+            instance = GroupValidation(validation_items)
+            field_names = ["foo"]
+            error = (
+                ErrorCodes.V_MISSING_REQUIRED_VALUE
+            )  # any member of `ErrorCodes` is ok
+            instance.validate_unique_constraint(field_names, error)
+
+        self._assert_conditional_exception(_act, expected_exception)
+
+    @parameterized.expand(
+        [
+            # 1. Only one "foo" of value "bar" - no exception raised
+            ([{"foo": "bar"}, {"foo": "baz"}], None),
+            # 2. More than one "foo" of value "bar" - exception raised
+            ([{"foo": "bar"}, {"foo": "baz"}], None),
+        ]
+    )
+    def test_validate_at_most_one(
+        self, validation_items: list[dict], expected_exception: Exception
+    ):
+        def _act():
+            instance = GroupValidation(validation_items)
+            instance.validate_at_most_one(itemgetter("foo"), lambda val: val == "baz")
+
+    def _assert_conditional_exception(
+        self, func: Callable, exception: Optional[Exception]
+    ):
+        if exception:
+            with pytest.raises(exception):
+                func()
         else:
-            assert instance.validate_unique_constraint(field_names, error) is None
+            assert func() is None
