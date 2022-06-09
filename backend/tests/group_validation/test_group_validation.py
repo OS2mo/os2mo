@@ -96,11 +96,10 @@ class TestGroupValidation:
     ):
         def _act():
             instance = GroupValidation(validation_items)
-            field_names = ["foo"]
-            error = (
-                ErrorCodes.V_MISSING_REQUIRED_VALUE
-            )  # any member of `ErrorCodes` is ok
-            instance.validate_unique_constraint(field_names, error)
+            instance.validate_unique_constraint(
+                ["foo"],  # field names of unique constraint
+                ErrorCodes.V_MISSING_REQUIRED_VALUE,  # any member of `ErrorCodes` is ok
+            )
 
         self._assert_conditional_exception(_act, expected_exception)
 
