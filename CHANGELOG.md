@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.0.0 - 2022-06-10
+------------------
+
+[#47213] Remove is_primary flag from engagements to enable adding it to the model from graphql.
+
 6.0.1 - 2022-06-03
 ------------------
 
