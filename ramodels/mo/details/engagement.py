@@ -72,9 +72,6 @@ class EngagementRead(EngagementBase):
     primary_uuid: Optional[UUID] = Field(
         description="UUID of the primary klasse of the engagement."
     )
-    is_primary: Optional[bool] = Field(
-        description="Indication of whether this engagement is the primary."
-    )
 
 
 class EngagementWrite(EngagementBase):

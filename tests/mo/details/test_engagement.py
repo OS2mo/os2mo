@@ -64,7 +64,6 @@ def read_strat(draw):
     optional = {
         "leave_uuid": st.none() | st.uuids(),
         "primary_uuid": st.none() | st.uuids(),
-        "is_primary": st.none() | st.booleans(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
