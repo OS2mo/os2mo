@@ -60,5 +60,7 @@
   "entire_organisation": "Entire organization",
   "belongs_to": "Belongs to",
   "seniority": "Seniority",
-  "none": "None"
+  "none": "None",
+  "admin": "Administrator Panel",
+  "feature_flag_title": "Feature flags"
 }
