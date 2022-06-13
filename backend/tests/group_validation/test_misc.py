@@ -50,7 +50,9 @@ class TestPrimaryClassHelpers:
             ({mapping.PRIMARY: {mapping.USER_KEY: "non-primary"}}, False),
             # 3. MO object contains a `primary` dict with a class UUID
             ({mapping.PRIMARY: {mapping.UUID: str(uuid4())}}, False),
-            # 4. MO object contains an empty `primary` dict
+            # 4. MO object contains a `primary` dict with an invalid class UUID
+            ({mapping.PRIMARY: {mapping.UUID: "invalid"}}, False),
+            # 5. MO object contains an empty `primary` dict
             ({mapping.PRIMARY: {}}, False),
         ]
     )
@@ -58,7 +60,8 @@ class TestPrimaryClassHelpers:
     async def test_get_mo_object_primary_value(
         self, mo_object: dict, expected_result: bool
     ):
-        with self._mock_get_one_class("nnn"):
+        # Mock `get_one_class`, the return value is not important in this case
+        with self._mock_get_one_class(""):
             assert (await get_mo_object_primary_value(mo_object)) == expected_result
 
     def _mock_get_one_class(self, primary_class_user_key: str):
