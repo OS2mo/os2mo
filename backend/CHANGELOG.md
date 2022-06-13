@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.33.0 - 2022-06-13
+-------------------
+
+[#50508] New `enable_sp` and `enable_dar` configuration options
+
 4.32.1 - 2022-06-13
 -------------------
 
