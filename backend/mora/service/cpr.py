@@ -9,6 +9,7 @@ based on their CPR number.
 """
 from fastapi import APIRouter
 
+from .. import config
 from .. import exceptions
 from .. import mapping
 from ..integrations.serviceplatformen import get_citizen
@@ -45,6 +46,10 @@ def search_cpr(q: str):
       }
 
     """
+    # This means that you cannot create employees through the MO GUI
+    if not config.get_settings().enable_sp:
+        return {}
+
     cpr = q
     try:
         sp_data = get_citizen(cpr)
