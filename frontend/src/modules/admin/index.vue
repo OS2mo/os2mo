@@ -5,7 +5,7 @@ SPDX-License-Identifier: MPL-2.0
     <div class="card-body d-flex flex-column">
       <h4 class="card-title">
         <icon name="flask"/>
-        {{$tc('shared.admin', 2)}}
+        {{$tc('shared.admin_panel')}}
       </h4>
       <h5>
         <icon name="puzzle-piece"/>

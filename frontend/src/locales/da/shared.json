@@ -61,6 +61,6 @@
   "belongs_to": "Tilhører",
   "seniority": "Anciennitet",
   "none": "Ingen",
-  "admin": "Administrator Panel",
+  "admin_panel": "Administrator Panel",
   "feature_flag_title": "Funktion vælger"
 }

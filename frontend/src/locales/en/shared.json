@@ -61,6 +61,6 @@
   "belongs_to": "Belongs to",
   "seniority": "Seniority",
   "none": "None",
-  "admin": "Administrator Panel",
+  "admin_panel": "Administrator Panel",
   "feature_flag_title": "Feature flags"
 }
