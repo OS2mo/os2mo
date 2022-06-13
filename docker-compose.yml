@@ -128,7 +128,7 @@ services:
         condition: service_healthy
 
   mox:
-    image: magentaaps/lora:4.4.1
+    image: magentaaps/lora:4.6.1
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile
