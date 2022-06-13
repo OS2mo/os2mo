@@ -81,6 +81,9 @@ class GroupValidation:
     def add_validation_item(self, validation_item: dict) -> "GroupValidation":
         """Add another validation item to this group validation.
 
+        This is used for validating the addition of a new item to a group, e.g. in
+        `prepare_create` methods.
+
         Creates a copy of this `GroupValidation` instance containing the original
         validation items, plus the new validation item.
 
@@ -93,6 +96,17 @@ class GroupValidation:
     def update_validation_item(
         self, item_uuid: str, validation_item: dict
     ) -> "GroupValidation":
+        """Update a validation item in this group validation.
+
+        This is used for validating the modification of an existing item in a group,
+        e.g. in  `prepare_edit` methods.
+
+        Creates a copy of this `GroupValidation` instance containing an updated list of
+        validation items.
+
+        The caller code can then call `validate` on the new instance returned, which
+        will validate the updated list of validation items.
+        """
         validation_items = copy.deepcopy(self.validation_items)
         for item in validation_items:
             if item["uuid"] == item_uuid:
@@ -118,6 +132,15 @@ class GroupValidation:
     def validate_at_most_one(
         self, field: Callable, predicate: Callable, error: ErrorCodes
     ) -> None:
+        """Validate an "at most one" constraint given by `field` and `predicate`,
+        raising an `HTTPException` if the constraint is violated.
+
+        This checks that at most one validation item in a group satisfies the given
+        predicate when looking at the value returned by the `field` callable.
+
+        If more than one validation item satisfies the predicate, a member of the `
+        ErrorCodes` enum is called, raising an `HTTPException`.
+        """
         counter = Counter(
             field(item) for item in self.validation_items if predicate(item)
         )
