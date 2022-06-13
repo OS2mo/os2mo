@@ -45,7 +45,6 @@ class TestEngagementsQuery:
                             job_function_uuid
                             leave_uuid
                             primary_uuid
-                            is_primary
                             type
                             user_key
                             fraction

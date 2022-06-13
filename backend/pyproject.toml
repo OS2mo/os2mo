@@ -43,7 +43,7 @@ service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
 prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
 pydantic = {extras = ["email"], version = "^1.7.3"}
-ramodels = "^6.0.1"
+ramodels = "^7.0.0"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 strawberry-graphql = {extras = ["fastapi", "opentelemetry"], version = "^0.95.1"}

@@ -54,7 +54,7 @@ from mora.graphapi.models import HealthRead
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
-
+from mora.service.facet import is_class_uuid_primary
 
 # --------------------------------------------------------------------------------------
 # Schema
@@ -421,6 +421,14 @@ class Engagement:
         if root.primary_uuid is None:
             return None
         return await loader.load(root.primary_uuid)
+
+    @strawberry.field(description="Is it primary")
+    async def is_primary(
+        self, root: EngagementRead, info: Info, show_is_primary: bool = False
+    ) -> Optional[bool]:
+        if not show_is_primary:
+            return None
+        return await is_class_uuid_primary(root.primary_uuid)
 
     @strawberry.field(description="Related leave")
     async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
