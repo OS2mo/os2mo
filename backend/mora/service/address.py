@@ -16,6 +16,7 @@ from . import facet
 from . import handlers
 from . import org
 from .. import common
+from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -96,6 +97,10 @@ async def address_autocomplete(
       ]
 
     """
+
+    if not config.get_settings().enable_dar:
+        return []
+
     orgid = str(orgid)
 
     if not global_lookup:

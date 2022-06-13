@@ -13,6 +13,7 @@ from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
 from . import base
+from ... import config
 from ... import exceptions
 from ..validation.validator import forceable
 from mora.graphapi.middleware import is_graphql
@@ -69,6 +70,11 @@ class DARAddressHandler(base.AddressHandler):
         handler = await super().from_effect(effect)
         if is_graphql():
             # Return early if we're doing GraphQL things!
+            handler._name = None
+            handler._href = None
+            return handler
+
+        if not config.get_settings().enable_dar:
             handler._name = None
             handler._href = None
             return handler

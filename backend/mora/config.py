@@ -46,12 +46,21 @@ class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
-    dummy_mode: bool = False
     query_export_dir: DirectoryPath = "/queries"
     query_insight_dir: Optional[DirectoryPath] = None
     navlinks: List[NavLink] = []
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
+
+    # airgapped options
+    enable_dar: bool = True
+    enable_sp: bool = True
+
+    # `dummy_mode` is different from airgapped although it also stops MO from
+    # making some Internet connections. For now, the difference is that DAR
+    # still works in dummy mode and SP generates fake date. With
+    # `enable_sp=False` no fake data is generated.
+    dummy_mode: bool = False
 
     # Legacy auth
     os2mo_legacy_session_support: bool = False

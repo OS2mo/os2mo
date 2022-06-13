@@ -29,7 +29,7 @@ def is_dummy_mode():
 
 
 def check_config():
-    if is_dummy_mode():
+    if (not config.get_settings().enable_sp) or is_dummy_mode():
         return True
 
     settings = config.get_settings()
