@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.32.1 - 2022-06-13
+-------------------
+
+[#50698] Generate test coverage report (HTML) when running MO test suite locally
+
 4.32.0 - 2022-06-09
 -------------------
 
