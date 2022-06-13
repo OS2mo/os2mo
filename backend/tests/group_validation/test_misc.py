@@ -38,10 +38,7 @@ class TestPrimaryClassHelpers:
     async def test_is_class_uuid_primary(
         self, primary_class_user_key: str, expected_result: bool
     ):
-        mock_get = mock.AsyncMock(
-            return_value={mapping.USER_KEY: primary_class_user_key}
-        )
-        with mock.patch("mora.service.facet.get_one_class", mock_get):
+        with self._mock_get_one_class(primary_class_user_key):
             actual_result = await is_class_uuid_primary("primary-class-uuid")
             assert actual_result == expected_result
 
@@ -61,4 +58,11 @@ class TestPrimaryClassHelpers:
     async def test_get_mo_object_primary_value(
         self, mo_object: dict, expected_result: bool
     ):
-        assert (await get_mo_object_primary_value(mo_object)) == expected_result
+        with self._mock_get_one_class("nnn"):
+            assert (await get_mo_object_primary_value(mo_object)) == expected_result
+
+    def _mock_get_one_class(self, primary_class_user_key: str):
+        mock_get = mock.AsyncMock(
+            return_value={mapping.USER_KEY: primary_class_user_key}
+        )
+        return mock.patch("mora.service.facet.get_one_class", mock_get)
