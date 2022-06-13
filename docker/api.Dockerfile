@@ -69,7 +69,6 @@ COPY LICENSE .
 COPY backend/mora/main.py .
 COPY docker/prestart.sh /app/prestart.sh
 
-
 # Copy frontend code.
 COPY --from=frontend /app/frontend/package.json ./frontend/package.json
 COPY --from=frontend /app/frontend/dist ./frontend/dist
