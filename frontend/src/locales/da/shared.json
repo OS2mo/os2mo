@@ -62,5 +62,11 @@
   "seniority": "Anciennitet",
   "none": "Ingen",
   "admin_panel": "Administrator Panel",
-  "feature_flag_title": "Funktion vælger"
+  "feature_flag_title": "Funktion vælger",
+  "hide_org_unit": "Skjul/vis organisation enhed",
+  "hide": "Skjul",
+  "hide_org_unit_help": "Skriv UUID'et på den organisationsenhed du gerne vil fremvise eller skjule, når et lovligt UUID er skrevet, vil knappen skifte til 'Fremvis' / 'Skjul' og blive aktiveret.",
+  "hide_org_unit_input_help": "Skriv UUID'et på den organisationsenhed du gerne vil fremvise eller skjule.",
+  "hide_org_unit_button_help": "Knappen aktiveres først når et lovligt UUID er indsat i tekst feltet.",
+  "field_disabled_not_admin_help": "Feltet er deaktiveret, da du ikke er administrator."
 }

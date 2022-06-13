@@ -62,5 +62,11 @@
   "seniority": "Seniority",
   "none": "None",
   "admin_panel": "Administrator Panel",
-  "feature_flag_title": "Feature flags"
+  "feature_flag_title": "Feature flags",
+  "hide_org_unit": "Hide/show organisation unit",
+  "hide": "Hide",
+  "hide_org_unit_help": "Input the UUID of the organisation unit that you wish to show or hide, when a valid UUID has been entered, the button will show 'Show' / 'Hide' and become activated.",
+  "hide_org_unit_input_help": "Input the UUID of the organisation unit that you wish to show or hide.",
+  "hide_org_unit_button_help": "The button is not activated until a valid UUID is entered in the text field.",
+  "field_disabled_not_admin_help": "The field is deactived, as you are not an administator."
 }

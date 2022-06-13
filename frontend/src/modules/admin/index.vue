@@ -11,7 +11,7 @@ SPDX-License-Identifier: MPL-2.0
         <icon name="puzzle-piece"/>
         {{$tc('shared.feature_flag_title')}}
       </h5>
-      ...
+      <hide-organisation-unit />
     </div>
   </div>
 </template>
@@ -20,5 +20,11 @@ SPDX-License-Identifier: MPL-2.0
 import 'vue-awesome/icons/flask'
 import 'vue-awesome/icons/puzzle-piece'
 
-export default {}
+import HideOrganisationUnit from '@/modules/admin/HideOrganisationUnit.vue'
+
+export default {
+  components: {
+    HideOrganisationUnit,
+  }
+}
 </script>
