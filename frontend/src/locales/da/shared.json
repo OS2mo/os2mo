@@ -60,5 +60,7 @@
   "entire_organisation": "Bruttoorganisation",
   "belongs_to": "Tilhører",
   "seniority": "Anciennitet",
-  "none": "Ingen"
+  "none": "Ingen",
+  "admin_panel": "Administrator Panel",
+  "feature_flag_title": "Funktion vælger"
 }
