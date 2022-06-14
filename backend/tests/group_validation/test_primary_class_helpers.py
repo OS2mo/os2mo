@@ -13,6 +13,10 @@ from mora.service.facet import is_class_uuid_primary
 
 
 class TestPrimaryClassHelpers:
+    """Tests the helper methods for determining the value of a `primary` MO class that
+    reside in `mora.service.facet`.
+    """
+
     @parameterized.expand(
         [
             # 1. MO class is primary
