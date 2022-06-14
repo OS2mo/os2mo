@@ -70,8 +70,6 @@ services:
 
       OS2MO_LOG_LEVEL: "DEBUG"
 
-      QUERY_EXPORT_DIR: "/tmp/"
-
       KEYCLOAK_SCHEMA: "http"
       KEYCLOAK_PORT: 8080
       KEYCLOAK_VERIFY_AUDIENCE: "false"
