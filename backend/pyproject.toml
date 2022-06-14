@@ -95,7 +95,6 @@ filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"
 
 [tool.mypy]
-ignore_missing_imports = true
 ignore_errors = true
 plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin"]
 
