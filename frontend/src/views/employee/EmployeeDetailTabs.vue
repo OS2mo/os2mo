@@ -180,7 +180,8 @@ export default {
       ],
       it: [
         { label: 'it_system', data: 'itsystem' },
-        { label: 'user_key', data: null, field: 'user_key' }
+        { label: 'user_key', data: null, field: 'user_key' },
+        { label: 'primary', data: 'primary', field: 'user_key' },
       ],
       leave: [
         { label: 'leave_type', data: 'leave_type' },

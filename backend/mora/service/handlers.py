@@ -198,7 +198,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
 
         return getattr(self, Trigger.RESULT, None)
 
-    def validate_detail_requests_as_groups(
+    async def validate_detail_requests_as_groups(
         self, requests: typing.Iterable[dict]
     ) -> None:
         """Validate one or more details group-wise, i.e. grouped by their role type.
@@ -219,13 +219,17 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         )
         # Validate each request group
         for role_type, requests in groups:
-            cls: "RequestHandler" = get_handler_for_role_type(role_type)
+            # Convert iterable to list, as we reuse the same group of request across
+            # multiple calls to `GroupValidation.from_requests`.
+            requests: list[dict] = list(requests)
+            # Get the appropriate handler class for this role
+            handler_class: "RequestHandler" = get_handler_for_role_type(role_type)
             # Each request handler class can define zero or more group validation
             # classes in their `group_validations` attribute.
-            for group_validation_class in cls.group_validations:
+            for group_validation_class in handler_class.group_validations:
                 # Instantiate a group validation based on the matching requests.
-                validation: GroupValidation = group_validation_class.from_requests(
-                    requests
+                validation: GroupValidation = (
+                    await group_validation_class.from_requests(requests)
                 )
                 # In case of validation errors on the request group, this will break
                 # control flow by instantiating a member of `exceptions.ErrorCodes`.

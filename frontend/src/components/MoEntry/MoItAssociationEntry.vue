@@ -26,7 +26,7 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
-    <div class="form-row" style="align-items: flex-end;">
+    <div class="form-row" style="align-items: flex-end">
 
       <mo-organisation-unit-picker
         v-if="!hideOrgPicker"
@@ -45,8 +45,7 @@ SPDX-License-Identifier: MPL-2.0
       />
 
       <mo-input-primary-check
-        style="margin-left: 1.25rem; margin-bottom: 1.33rem !important;"
-        class="col"
+        class="col checkbox"
         v-model="entry.primary"
       />
 
@@ -60,12 +59,6 @@ SPDX-License-Identifier: MPL-2.0
 
   </div>
 </template>
-
-<style>
-.mo-input-group {
-  width: auto !important;
-}
-</style>
 
 <script>
 /**
