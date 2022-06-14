@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.35.2 - 2022-06-14
+-------------------
+
+[#50653] Added mypy plugin for Strawberry, various code refactorings
+
 4.35.1 - 2022-06-14
 -------------------
 
