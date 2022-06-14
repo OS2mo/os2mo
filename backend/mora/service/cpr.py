@@ -29,7 +29,12 @@ router = APIRouter()
 def search_cpr(q: str):
     """
     Search for a CPR number in Serviceplatformen and retrieve the associated
-    information
+    information.
+
+    If Serviceplatformen is disabled (`ENABLE_SP=false`) an empty dict is
+    returned. This endpoint is only used when creating new employees through
+    the MO GUI to get their names automatically from their CPR. You can still
+    create employees, but all data has to be typed in manually.
 
     :queryparam q: The CPR no. of a person to be searched
 
@@ -46,7 +51,6 @@ def search_cpr(q: str):
       }
 
     """
-    # This means that you cannot create employees through the MO GUI
     if not config.get_settings().enable_sp:
         return {}
 
