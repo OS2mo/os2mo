@@ -57,8 +57,10 @@ async def root() -> Dict[str, bool]:
     query = """
     query HealthQuery {
       healths {
-        identifier
-        status
+        data {
+            identifier
+            status
+        }
       }
     }
     """
@@ -66,7 +68,9 @@ async def root() -> Dict[str, bool]:
     if r.errors:
         raise ValueError(r.errors)
 
-    return {health["identifier"]: health["status"] for health in r.data["healths"]}
+    return {
+        health["identifier"]: health["status"] for health in r.data["healths"]["data"]
+    }
 
 
 @router.get("/{identifier}")
@@ -74,7 +78,9 @@ async def healthcheck(identifier: str) -> Optional[bool]:
     query = """
     query HealthQuery($identifier: String!) {
       healths(identifiers: [$identifier]) {
-        status
+        data {
+            status
+        }
       }
     }
     """

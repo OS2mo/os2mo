@@ -9,6 +9,7 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import json
+from base64 import b64decode
 from base64 import b64encode
 from typing import Any
 from typing import cast
@@ -907,6 +908,28 @@ class Health:
     @strawberry.field(description="Healthcheck status")
     async def status(self, root: HealthRead) -> Optional[bool]:
         return await health_map[root.identifier]()
+
+
+GenericType = TypeVar("GenericType")
+
+
+@strawberry.type
+class Paged(Generic[GenericType]):
+    data: list[GenericType]
+    next_cursor: str
+
+
+@strawberry.type
+class Cursor:
+    @staticmethod
+    def encode_cursor(value: int) -> str:
+        byte_value = json.dumps(value).encode("ascii")
+        byte_value = b64encode(byte_value)
+        return byte_value.decode("ascii")
+
+    @staticmethod
+    def decode_cursor(value: str) -> int:
+        return json.loads(b64decode(value))
 
 
 # File

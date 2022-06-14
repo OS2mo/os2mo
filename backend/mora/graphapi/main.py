@@ -45,6 +45,7 @@ from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
 from mora.graphapi.schema import Configuration
+from mora.graphapi.schema import Cursor
 from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import EngagementAssociation
@@ -60,6 +61,7 @@ from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import OrganisationUnitRefresh
+from mora.graphapi.schema import Paged
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
@@ -336,7 +338,12 @@ class Query:
     @strawberry.field(
         description="Get a list of all health checks, optionally by identifier(s)",
     )
-    async def healths(self, identifiers: Optional[list[str]] = None) -> list[Health]:
+    async def healths(
+        self,
+        first: Optional[int] = None,
+        cursor: Optional[str] = None,
+        identifiers: Optional[list[str]] = None,
+    ) -> Paged[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
@@ -345,8 +352,20 @@ class Query:
             return {"identifier": identifier}
 
         healths = list(map(construct, healthchecks))
+
+        parsed_cursor: int = Cursor.decode_cursor(cursor) if cursor else 0
+        healths = healths[parsed_cursor:]
+        healths = healths[:first]
+
+        if not first:
+            first = 0
+        # ^ this, eller:
+        # end_cursor = Cursor.encode_cursor(first or 0+parsed_cursor)
+
+        end_cursor: str = Cursor.encode_cursor(first + parsed_cursor)
         parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return list(map(Health.from_pydantic, parsed_healths))
+        health_objects = list(map(Health.from_pydantic, parsed_healths))  # type: ignore
+        return Paged(data=health_objects, next_cursor=end_cursor)
 
     # Files
     # -----
