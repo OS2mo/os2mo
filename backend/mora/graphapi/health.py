@@ -127,6 +127,7 @@ async def dar() -> bool:
     adarclient = AsyncDARClient(timeout=2)
     async with adarclient:
         return await adarclient.healthcheck()
+    return False
 
 
 @register_health_endpoint
