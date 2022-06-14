@@ -1,8 +1,11 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+import copy
 from collections import Counter
 from itertools import chain
 from operator import itemgetter
+from typing import Callable
 from typing import Iterable
 from typing import Optional
 from typing import TYPE_CHECKING
@@ -16,11 +19,11 @@ if TYPE_CHECKING:  # pragma: no cover
 
 class GroupValidation:
     @classmethod
-    def from_requests(cls, requests: Iterable[dict]) -> "GroupValidation":
+    async def from_requests(cls, requests: Iterable[dict]) -> "GroupValidation":
         """Create a `GroupValidation` instance from an iterable of request details.
         This can be used to validate a group of requests as a whole.
         """
-        return cls(cls._get_filtered_validation_items(requests))
+        return cls(await cls._get_filtered_validation_items(requests))
 
     @classmethod
     async def from_mo_objects(cls, search_fields: dict[str]) -> "GroupValidation":
@@ -32,10 +35,12 @@ class GroupValidation:
         connector = lora.Connector()
         reading_handler = cls.get_mo_object_reading_handler()
         mo_objects = await reading_handler.get(connector, search_fields)
-        return cls(cls._get_filtered_validation_items(mo_objects))
+        return cls(await cls._get_filtered_validation_items(mo_objects))
 
     @classmethod
-    def get_validation_item_from_mo_object(cls, mo_object: dict) -> Optional[dict]:
+    async def get_validation_item_from_mo_object(
+        cls, mo_object: dict
+    ) -> Optional[dict]:
         """Given a `MO object`, return a "validation item" (or None, if the `MO object`
         is not relevant for this particular validation class.)
         Must be implemented by subclasses of `GroupValidation`.
@@ -51,13 +56,14 @@ class GroupValidation:
         raise NotImplementedError()
 
     @classmethod
-    def _get_filtered_validation_items(cls, mo_objects: Iterable[dict]) -> list[dict]:
+    async def _get_filtered_validation_items(
+        cls, mo_objects: Iterable[dict]
+    ) -> list[dict]:
         """Convert `mo_objects` to "validation items", passing over any empty results
         from `get_validation_item_from_mo_object`.
         """
-        return list(
-            filter(None, map(cls.get_validation_item_from_mo_object, mo_objects))
-        )
+        tasks = map(cls.get_validation_item_from_mo_object, mo_objects)
+        return list(filter(None, await asyncio.gather(*tasks)))
 
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
@@ -75,6 +81,9 @@ class GroupValidation:
     def add_validation_item(self, validation_item: dict) -> "GroupValidation":
         """Add another validation item to this group validation.
 
+        This is used for validating the addition of a new item to a group, e.g. in
+        `prepare_create` methods.
+
         Creates a copy of this `GroupValidation` instance containing the original
         validation items, plus the new validation item.
 
@@ -83,6 +92,26 @@ class GroupValidation:
         items.
         """
         return self.__class__(list(chain(self.validation_items, [validation_item])))
+
+    def update_validation_item(
+        self, item_uuid: str, validation_item: dict
+    ) -> "GroupValidation":
+        """Update a validation item in this group validation.
+
+        This is used for validating the modification of an existing item in a group,
+        e.g. in  `prepare_edit` methods.
+
+        Creates a copy of this `GroupValidation` instance containing an updated list of
+        validation items.
+
+        The caller code can then call `validate` on the new instance returned, which
+        will validate the updated list of validation items.
+        """
+        validation_items = copy.deepcopy(self.validation_items)
+        for item in validation_items:
+            if item["uuid"] == item_uuid:
+                item.update(**validation_item)
+        return self.__class__(validation_items)
 
     def validate_unique_constraint(
         self, field_names: list[str], error: ErrorCodes
@@ -97,5 +126,23 @@ class GroupValidation:
         `HTTPException`.
         """
         counter = Counter(map(itemgetter(*field_names), self.validation_items))
+        if any(count > 1 for count in counter.values()):
+            error()
+
+    def validate_at_most_one(
+        self, field: Callable, predicate: Callable, error: ErrorCodes
+    ) -> None:
+        """Validate an "at most one" constraint given by `field` and `predicate`,
+        raising an `HTTPException` if the constraint is violated.
+
+        This checks that at most one validation item in a group satisfies the given
+        predicate when looking at the value returned by the `field` callable.
+
+        If more than one validation item satisfies the predicate, a member of the `
+        ErrorCodes` enum is called, raising an `HTTPException`.
+        """
+        counter = Counter(
+            field(item) for item in self.validation_items if predicate(item)
+        )
         if any(count > 1 for count in counter.values()):
             error()

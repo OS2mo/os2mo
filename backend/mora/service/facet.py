@@ -539,3 +539,35 @@ async def create_or_update_class(
     req = {"facet": facet, "class_model": class_model}
     request = await ClassRequestHandler.construct(req, mapping.RequestType.CREATE)
     return await request.submit()
+
+
+def is_class_primary(mo_class: dict) -> bool:
+    try:
+        return mo_class[mapping.USER_KEY] == mapping.PRIMARY
+    except KeyError:
+        return False
+
+
+async def is_class_uuid_primary(primary_class_uuid: str) -> bool:
+    # Determine whether the given `primary_class_uuid` does indeed refer to a
+    # primary class (as opposed to a non-primary class.)
+    connector = lora.Connector()
+    mo_class = await get_one_class(connector, primary_class_uuid)
+    if (mo_class is None) or (not is_class_primary(mo_class)):
+        return False
+    return True
+
+
+async def get_mo_object_primary_value(mo_object: dict) -> bool:
+    # First, see if `mo_object` contains a `primary` dict with a `user_key` key
+    if mapping.USER_KEY in mo_object.get(mapping.PRIMARY, {}):
+        return is_class_primary(mo_object[mapping.PRIMARY])
+
+    # Next, see if `mo_object` contains a `primary` dict with a `uuid` key
+    try:
+        primary_class_uuid = util.get_mapping_uuid(mo_object, mapping.PRIMARY)
+    except exceptions.HTTPException:
+        # Raised by `get_mapping_uuid` in case there is no UUID
+        return False
+    else:
+        return await is_class_uuid_primary(primary_class_uuid)

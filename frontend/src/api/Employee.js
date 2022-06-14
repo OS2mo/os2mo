@@ -29,6 +29,14 @@ const identfyItAssociationData = function(data) {
   } else if (data.data && data.data.it) {
 
     // Probably data for editing an IT association
+
+    var it_user_uuid
+    if (Array.isArray(data.data.it) && data.data.it[0]) {
+      it_user_uuid = data.data.it[0].uuid
+    } else {
+      it_user_uuid = data.data.it.uuid
+    }
+
     return {
       type: "association",
       uuid: data.data.uuid,
@@ -36,7 +44,7 @@ const identfyItAssociationData = function(data) {
         person: { uuid: data.data.person.uuid },
         job_function: { uuid: data.data.job_function.uuid },
         org_unit: { uuid: data.data.org_unit.uuid },
-        it: { uuid: data.data.it[0].uuid },
+        it: { uuid: it_user_uuid },
         validity: { from: data.data.validity.from, to: data.data.validity.to },
         primary: { uuid: data.data.primary.uuid }
       }
