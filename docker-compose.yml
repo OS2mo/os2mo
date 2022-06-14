@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 services:
-  the-kolding-profile-is-deprecated--please-see-docker-compose-fixture-yml-for-the-new-format:
-    image: scratch
-    command: ["fail"]
-    profiles:
-      - kolding
-
   # We use two images in development.
   # * One frontend that runs `vue-cli-service serve`, named `frontend` and
   # * One that runs fastapi named `mo`.
