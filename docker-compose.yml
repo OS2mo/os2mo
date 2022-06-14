@@ -53,23 +53,16 @@ services:
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
 
-  mo-init:
-    image: magentaaps/os2mo-init:0.4.0
+  fixture-loader:
+    image: magentaaps/os2mo-fixture-loader:0.1.0
+    # For a list of supported fixtures, see:
+    # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
+    command: ["${FIXTURE:-kolding}"]
     environment:
-      AUTH_SERVER: "http://keycloak:8080/auth"
-      MO_URL: "http://mo"
-      CLIENT_ID: "dipex"
-      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
-      AUTH_REALM: "mo"
-      LORA_URL: "http://mox"
-      LORA_CLIENT_ID: "dipex"
-      LORA_CLIENT_SECRET: "a091ed82-6e82-4efc-a8f0-001e2b127853"
-      LORA_AUTH_REALM: "lora"
-    #volumes:
-    #  - type: bind
-    #    source: ./init.config.yml
-    #    target: /config/config.yml
-    #    read_only: true
+      PGHOST: mox-db
+      PGDATABASE: mox
+      PGUSER: postgres
+      PGPASSWORD: mysecretpassword
     restart: on-failure
 
   mox:
