@@ -50,32 +50,7 @@ services:
       - ./.pytest_cache:/app/.pytest_cache
       - ./.cov-report:/tmp/.cov-report:rw
     command: ["/start-reload.sh"]
-    environment:
-      KEYCLOAK_AUTH_SERVER_URL: "http://localhost:5000/auth"
-      AMQP_ENABLE: "true"
-
-      DUMMY_MODE: "true"
-      ENABLE_CORS: "true"
-      ENVIRONMENT: development
-      PYTHONASYNCIODEBUG: "1"
-
-      CONF_DB_NAME: "mox"
-      CONF_DB_USER: "mox"
-      CONF_DB_PASSWORD: "mox"
-      CONFDB_SHOW_KLE: "true"
-
-      GRAPHIQL_ENABLE: "true"
-
-      LORA_URL: "http://mox/"
-
-      OS2MO_LOG_LEVEL: "DEBUG"
-
-      KEYCLOAK_SCHEMA: "http"
-      KEYCLOAK_PORT: 8080
-      KEYCLOAK_VERIFY_AUDIENCE: "false"
-
-      JAEGER_HOSTNAME: "otel-collector"
-      JAEGER_SERVICE: OS2mo
+    env_file: dev-environment/os2mo.env
     restart: unless-stopped
 
   mo-init:
