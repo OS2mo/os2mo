@@ -542,8 +542,6 @@ Integration-test:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
   parallel: 8
-  tags:
-    - high-mem
   script:
     - pytest backend/tests
       -m "serial and not equivalence"
