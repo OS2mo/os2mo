@@ -8,11 +8,11 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from asyncio import gather
-from collections.abc import Callable
-from collections.abc import Iterable
 from functools import partial
 from itertools import starmap
 from typing import Any
+from typing import Callable
+from typing import Iterable
 from typing import Optional
 from typing import TypeVar
 from typing import Union
@@ -109,7 +109,7 @@ async def get_mo(model: MOModel) -> list[Response[MOModel]]:
     results = await search_role_type(mo_type)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
-    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
+    return list(starmap(Response, uuid_map.items()))
 
 
 async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
@@ -126,7 +126,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     results = await get_role_type_by_uuid(mo_type, uuids)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results, uuids)
-    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
+    return list(starmap(Response, uuid_map.items()))
 
 
 # get all models
@@ -172,7 +172,7 @@ async def load_itsystems(uuids: list[UUID]) -> list[Optional[ITSystemRead]]:
     c = get_connector()
     lora_result = await c.itsystem.get_all_by_uuid(uuids)
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
+    uuid_map = {model.uuid: model for model in mo_models}
     return list(map(uuid_map.get, uuids))
 
 
@@ -192,7 +192,9 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
         "published": class_state.published,
         "facet_uuid": one(class_relations.facet).uuid,
         "org_uuid": one(class_relations.responsible).uuid,
-        "parent_uuid": class_relations.parent.uuid if class_relations.parent else None,
+        "parent_uuid": one(class_relations.parent).uuid
+        if class_relations.parent
+        else None,
         "owner": one(class_relations.owner).uuid if class_relations.owner else None,
     }
     return ClassRead(**mo_class)
@@ -201,8 +203,11 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
 def lora_classes_to_mo_classes(
     lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[ClassRead]:
-    mapped_result = map(lambda entry: (entry[0], KlasseRead(**entry[1])), lora_result)
-    return map(lora_class_to_mo_class, mapped_result)  # type: ignore
+    mapped_result = starmap(
+        lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(KlasseRead, entry)),
+        lora_result,
+    )
+    return map(lora_class_to_mo_class, mapped_result)
 
 
 async def get_classes() -> list[ClassRead]:
@@ -224,16 +229,16 @@ async def load_classes(uuids: list[UUID]) -> list[Optional[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all_by_uuid(uuids)
     mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
+    uuid_map = {model.uuid: model for model in mo_models}
     return list(map(uuid_map.get, uuids))
 
 
-async def load_class_children(parent_uuids: list[UUID]) -> list[ClassRead]:
+async def load_class_children(parent_uuids: list[UUID]) -> list[list[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all(overordnetklasse=list(map(str, parent_uuids)))
     mo_models = lora_classes_to_mo_classes(lora_result)
     buckets = bucket(mo_models, key=lambda model: model.parent_uuid)
-    return list(map(lambda key: buckets[key], parent_uuids))
+    return list(map(lambda key: list(buckets[key]), parent_uuids))
 
 
 def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
@@ -261,8 +266,11 @@ def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
 def lora_facets_to_mo_facets(
     lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[FacetRead]:
-    lora_result = map(lambda entry: (entry[0], LFacetRead(**entry[1])), lora_result)
-    return map(lora_facet_to_mo_facet, lora_result)  # type: ignore
+    lora_facets = starmap(
+        lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(LFacetRead, entry)),
+        lora_result,
+    )
+    return map(lora_facet_to_mo_facet, lora_facets)
 
 
 async def get_facets() -> list[FacetRead]:
@@ -270,8 +278,6 @@ async def get_facets() -> list[FacetRead]:
     lora_result = await c.facet.get_all()
     mo_models = lora_facets_to_mo_facets(lora_result)
     return list(mo_models)
-    uuid_map = group_by_uuid(list(mo_models))
-    return [Response(key, value) for key, value in uuid_map.items()]  # type: ignore
 
 
 async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
@@ -286,16 +292,16 @@ async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
     c = get_connector()
     lora_result = await c.facet.get_all_by_uuid(uuids)
     mo_models = lora_facets_to_mo_facets(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}  # type: ignore
+    uuid_map = {model.uuid: model for model in mo_models}
     return list(map(uuid_map.get, uuids))
 
 
-async def load_facet_classes(facet_uuids: list[UUID]) -> list[ClassRead]:
+async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
     mo_models = lora_classes_to_mo_classes(lora_result)
     buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
-    return list(map(lambda key: buckets[key], facet_uuids))
+    return list(map(lambda key: list(buckets[key]), facet_uuids))
 
 
 async def get_employee_details(

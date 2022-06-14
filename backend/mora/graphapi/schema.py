@@ -73,7 +73,7 @@ class Response(Generic[MOObject]):
 # ----------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ValidityModel,
     all_fields=True,
     description="Validity of objects with required from date",
@@ -82,7 +82,7 @@ class Validity:
     pass
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=OpenValidityModel,
     all_fields=True,
     description="Validity of objects with optional from date",
@@ -95,7 +95,7 @@ class OpenValidity:
 # -------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=AddressRead,
     all_fields=True,
     description="Address information for an employee or organisation unit",
@@ -195,7 +195,7 @@ async def filter_address_types(
 # -----------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=DynamicClassesRead,
     all_fields=True,
     description="Dynamic class overload for associations",
@@ -204,7 +204,7 @@ class DynamicClasses:
     pass
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=AssociationRead,
     all_fields=True,
     description="Connects organisation units and employees",
@@ -270,7 +270,7 @@ class Association:
 # -----
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ClassRead,
     all_fields=True,
     description="The value component of the class/facet choice setup",
@@ -318,7 +318,7 @@ class Class:
         # Traverse class tree
         loader: DataLoader = info.context["class_loader"]
         while parent.parent_uuid is not None:
-            parent = await asyncio.gather(loader.load(parent.parent_uuid))
+            parent = await loader.load(parent.parent_uuid)
 
         return await info.context["facet_loader"].load(parent.facet_uuid)
 
@@ -331,7 +331,7 @@ class Class:
 # --------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=EmployeeRead,
     all_fields=True,
     description="Employee/identity specific information",
@@ -364,7 +364,8 @@ class Employee:
     ) -> list["Address"]:
         loader: DataLoader = info.context["employee_address_loader"]
         result = await loader.load(root.uuid)
-        return await filter_address_types(result, address_types)
+        address_reads = await filter_address_types(result, address_types)
+        return list(map(Address.from_pydantic, address_reads))
 
     @strawberry.field(description="Leaves for the employee")
     async def leaves(self, root: EmployeeRead, info: Info) -> list["Leave"]:
@@ -398,7 +399,7 @@ class Employee:
 # ----------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=EngagementRead,
     all_fields=True,
     description="Employee engagement in an organisation unit",
@@ -452,7 +453,7 @@ class Engagement:
 # ----------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=EngagementAssociationRead,
     all_fields=True,
     description="Employee engagement in an organisation unit",
@@ -484,7 +485,7 @@ class EngagementAssociation:
 # -----
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=FacetRead,
     all_fields=True,
     description="The key component of the class/facet choice setup",
@@ -505,7 +506,7 @@ class Facet:
 # --
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ITSystemRead,
     all_fields=True,
     description="Systems that IT users are connected to",
@@ -514,7 +515,7 @@ class ITSystem:
     pass
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ITUserRead,
     all_fields=True,
     description="User information related to IT systems",
@@ -543,7 +544,7 @@ class ITUser:
 # ---
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=KLERead,
     all_fields=True,
     description="Kommunernes Landsforenings Emnesystematik",
@@ -573,7 +574,7 @@ class KLE:
 # -----
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=LeaveRead,
     all_fields=True,
     description="Leave (e.g. parental leave) for employees",
@@ -602,7 +603,7 @@ class Leave:
 # -------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ManagerRead,
     all_fields=True,
     description="Managers of organisation units and their connected identities",
@@ -648,7 +649,7 @@ class Manager:
 # ------------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=OrganisationRead,
     all_fields=True,
     description="Root organisation - one and only one of these can exist",
@@ -661,7 +662,7 @@ class Organisation:
 # -----------------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=OrganisationUnitRead,
     all_fields=True,
     description="Hierarchical unit within the organisation tree",
@@ -752,11 +753,14 @@ class OrganisationUnit:
         result = await loader.load(root.uuid)
         if inherit:
             parent = root
-            while (not result) and (parent is not None):
+            while not result:
                 parent_uuid = parent.parent_uuid
                 tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
-                result, parent = await asyncio.gather(*tasks)
-                parent = only(parent.objects, default=None)
+                result, response = await asyncio.gather(*tasks)
+                potential_parent = only(response.objects, default=None)
+                if potential_parent is None:
+                    break
+                parent = potential_parent
         return result
 
     @strawberry.field(description="Related addresses")
@@ -768,7 +772,8 @@ class OrganisationUnit:
     ) -> list["Address"]:
         loader: DataLoader = info.context["org_unit_address_loader"]
         result = await loader.load(root.uuid)
-        return await filter_address_types(result, address_types)
+        address_reads = await filter_address_types(result, address_types)
+        return list(map(Address.from_pydantic, address_reads))
 
     @strawberry.field(description="Related leaves")
     async def leaves(self, root: OrganisationUnitRead, info: Info) -> list["Leave"]:
@@ -816,7 +821,7 @@ class OrganisationUnit:
 # ------------
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=RelatedUnitRead,
     all_fields=True,
     description="list of related organisation units",
@@ -833,7 +838,7 @@ class RelatedUnit:
 
 # Role
 # ----
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=RoleRead,
     all_fields=True,
     description="Role an employee has within an organisation unit",
@@ -887,7 +892,7 @@ class Version:
         return await lora.get_version()
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=HealthRead,
     all_fields=True,
     description="Checks whether a specific subsystem is working",
@@ -900,7 +905,7 @@ class Health:
 
 # File
 # ----
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=FileRead,
     all_fields=True,
     description="Checks whether a specific subsystem is working",
@@ -919,7 +924,7 @@ class File:
 
 # Organisation Unit Refresh
 # -------------------------
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=OrganisationUnitRefreshRead,
     all_fields=True,
     description="Response model for Organisation Unit refresh event.",
@@ -942,7 +947,7 @@ def get_settings_value(key: str) -> Any:
     return getattr(config.get_settings(), key)
 
 
-@strawberry.experimental.pydantic.type(  # type: ignore
+@strawberry.experimental.pydantic.type(
     model=ConfigurationRead,
     all_fields=True,
     description="A configuration setting",

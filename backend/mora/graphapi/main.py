@@ -277,7 +277,7 @@ class Query:
 
         healths = list(map(construct, healthchecks))
         parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return list(map(Health.from_pydantic, parsed_healths))  # type: ignore
+        return list(map(Health.from_pydantic, parsed_healths))
 
     # Files
     # -----
@@ -296,7 +296,7 @@ class Query:
 
         files = list(map(construct, found_files))
         parsed_files = parse_obj_as(list[FileRead], files)
-        return list(map(File.from_pydantic, parsed_files))  # type: ignore
+        return list(map(File.from_pydantic, parsed_files))
 
     # Configuration
     # -------------
@@ -333,9 +333,7 @@ class Mutation:
     async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
-        return OrganisationUnitRefresh.from_pydantic(  # type: ignore
-            organisation_unit_refresh
-        )
+        return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
 
 
 # --------------------------------------------------------------------------------------
