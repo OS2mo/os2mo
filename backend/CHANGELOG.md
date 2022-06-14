@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.35.1 - 2022-06-14
+-------------------
+
+[#50878] Bugfix: use `httpx` client in `AutocompleteScope.fetch`
+
 4.35.0 - 2022-06-14
 -------------------
 
