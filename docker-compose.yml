@@ -9,7 +9,7 @@ services:
   proxy:
     image: nginx:1
     volumes:
-      - ./docker/nginx-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./dev-environment/nginx-proxy.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:
       - "127.0.0.1:5001:80"
       - "127.0.0.1:5000:80"
