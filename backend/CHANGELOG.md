@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.34.0 - 2022-06-14
+-------------------
+
+[#49594] Expose the `primary class` of `IT users` in the UI, and add group validation rules
+
 4.33.0 - 2022-06-13
 -------------------
 
