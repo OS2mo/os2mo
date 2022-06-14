@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.0.1 - 2022-06-14
+------------------
+
+[#50653] Added py.typed file to enable mypy typing
+
 7.0.0 - 2022-06-10
 ------------------
 
