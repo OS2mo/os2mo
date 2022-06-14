@@ -746,7 +746,6 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = [str(uuid) for uuid in class_uuids]
-        async with ClientSession() as session:
-            response = await session.get(self.base_path, params=params)
-            await _check_response(response)
-            return {"items": (await response.json())["results"]}
+        response = await clients.lora.get(url=self.path, params=params)
+        await _check_response(response)
+        return {"items": response.json()["results"]}
