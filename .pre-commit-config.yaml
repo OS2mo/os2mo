@@ -14,6 +14,7 @@ repos:
       - id: mypy
         args: [--config-file=backend/pyproject.toml]
         additional_dependencies:
+          - ramodels==7.0.1
           - pydantic
           - strawberry-graphql
   - repo: https://github.com/asottile/reorder_python_imports
@@ -23,11 +24,11 @@ repos:
         args: ["--application-directories=.:backend:tests"]
 
   - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.71.0
+    rev: v1.72.1
     hooks:
       - id: terraform_fmt
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.15.0
+    rev: v8.17.0
     hooks:
       - id: eslint
         files: tempotest
