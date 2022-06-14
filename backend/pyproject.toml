@@ -99,6 +99,7 @@ python_version = "3.9"
 ignore_missing_imports = true
 follow_imports = "skip"
 ignore_errors = true
+plugins = ["pydantic.mypy", "strawberry.ext.mypy_plugin"]
 
 [[tool.mypy.overrides]]
 module = "mora.graphapi.*"

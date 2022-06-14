@@ -73,7 +73,7 @@ class Response(Generic[MOObject]):
 # ----------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ValidityModel,
     all_fields=True,
     description="Validity of objects with required from date",
@@ -82,7 +82,7 @@ class Validity:
     pass
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=OpenValidityModel,
     all_fields=True,
     description="Validity of objects with optional from date",
@@ -95,7 +95,7 @@ class OpenValidity:
 # -------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=AddressRead,
     all_fields=True,
     description="Address information for an employee or organisation unit",
@@ -195,7 +195,7 @@ async def filter_address_types(
 # -----------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=DynamicClassesRead,
     all_fields=True,
     description="Dynamic class overload for associations",
@@ -204,7 +204,7 @@ class DynamicClasses:
     pass
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=AssociationRead,
     all_fields=True,
     description="Connects organisation units and employees",
@@ -270,7 +270,7 @@ class Association:
 # -----
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ClassRead,
     all_fields=True,
     description="The value component of the class/facet choice setup",
@@ -331,7 +331,7 @@ class Class:
 # --------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=EmployeeRead,
     all_fields=True,
     description="Employee/identity specific information",
@@ -398,7 +398,7 @@ class Employee:
 # ----------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=EngagementRead,
     all_fields=True,
     description="Employee engagement in an organisation unit",
@@ -452,7 +452,7 @@ class Engagement:
 # ----------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=EngagementAssociationRead,
     all_fields=True,
     description="Employee engagement in an organisation unit",
@@ -484,7 +484,7 @@ class EngagementAssociation:
 # -----
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=FacetRead,
     all_fields=True,
     description="The key component of the class/facet choice setup",
@@ -505,7 +505,7 @@ class Facet:
 # --
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ITSystemRead,
     all_fields=True,
     description="Systems that IT users are connected to",
@@ -514,7 +514,7 @@ class ITSystem:
     pass
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ITUserRead,
     all_fields=True,
     description="User information related to IT systems",
@@ -543,7 +543,7 @@ class ITUser:
 # ---
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=KLERead,
     all_fields=True,
     description="Kommunernes Landsforenings Emnesystematik",
@@ -573,7 +573,7 @@ class KLE:
 # -----
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=LeaveRead,
     all_fields=True,
     description="Leave (e.g. parental leave) for employees",
@@ -602,7 +602,7 @@ class Leave:
 # -------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ManagerRead,
     all_fields=True,
     description="Managers of organisation units and their connected identities",
@@ -648,7 +648,7 @@ class Manager:
 # ------------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=OrganisationRead,
     all_fields=True,
     description="Root organisation - one and only one of these can exist",
@@ -661,7 +661,7 @@ class Organisation:
 # -----------------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=OrganisationUnitRead,
     all_fields=True,
     description="Hierarchical unit within the organisation tree",
@@ -816,7 +816,7 @@ class OrganisationUnit:
 # ------------
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=RelatedUnitRead,
     all_fields=True,
     description="list of related organisation units",
@@ -833,7 +833,7 @@ class RelatedUnit:
 
 # Role
 # ----
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=RoleRead,
     all_fields=True,
     description="Role an employee has within an organisation unit",
@@ -887,7 +887,7 @@ class Version:
         return await lora.get_version()
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=HealthRead,
     all_fields=True,
     description="Checks whether a specific subsystem is working",
@@ -900,7 +900,7 @@ class Health:
 
 # File
 # ----
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=FileRead,
     all_fields=True,
     description="Checks whether a specific subsystem is working",
@@ -919,7 +919,7 @@ class File:
 
 # Organisation Unit Refresh
 # -------------------------
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=OrganisationUnitRefreshRead,
     all_fields=True,
     description="Response model for Organisation Unit refresh event.",
@@ -942,7 +942,7 @@ def get_settings_value(key: str) -> Any:
     return getattr(config.get_settings(), key)
 
 
-@strawberry.experimental.pydantic.type(
+@strawberry.experimental.pydantic.type(  # type: ignore
     model=ConfigurationRead,
     all_fields=True,
     description="A configuration setting",
