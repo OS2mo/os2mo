@@ -8,6 +8,8 @@ readme = "README.md"
 homepage = "https://magenta.dk/"
 repository = "https://git.magenta.dk/rammearkitektur/ra-data-models"
 keywords = ["os2mo", "data models"]
+packages = [ { include = "ramodels" } ]
+include = ["ramodels/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
