@@ -422,6 +422,8 @@ class _BaseTestCase(TestCase):
             print(r.headers, r.content, r.raw)
             actual = r.text
 
+        print("hest", json.dumps(actual, indent=2))
+
         # actual = (
         #     json.loads(r.get_data(True))
         #     if r.mimetype == 'application/json'
@@ -490,6 +492,8 @@ class _BaseTestCase(TestCase):
             set_auth_header=set_auth_header,
             **kwargs,
         )
+
+        print("hest", actual)
 
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)

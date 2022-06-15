@@ -12,6 +12,7 @@ Used for shimming the service API.
 # Imports
 # --------------------------------------------------------------------------------------
 from datetime import date
+from datetime import datetime
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -22,16 +23,37 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
+from ramodels.base import tz_isodate
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
+from ramodels.mo._shared import EngagementType
+from ramodels.mo._shared import JobFunction
+from ramodels.mo._shared import LeaveRef
+from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import Primary
+from ramodels.mo._shared import validate_cpr
+from ramodels.mo._shared import validate_names
 from ramodels.mo.details import AddressRead
-from ramodels.mo.employee import EmployeeWrite
+from ramodels.mo.details._shared import Details as DetailBase
+from ramodels.mo.details.address import AddressDetail
+from ramodels.mo.details.association import AssociationDetail
+from ramodels.mo.details.engagement import EngagementBase
+from ramodels.mo.details.it_system import ITUserDetail
+from ramodels.mo.details.kle import KLEDetail
+from ramodels.mo.details.leave import LeaveDetail
+from ramodels.mo.details.manager import ManagerDetail
+from ramodels.mo.details.role import RoleDetail
+from ramodels.mo.employee import DictStrAny
+from ramodels.mo.employee import EmployeeBase
 from strawberry.types import ExecutionResult
 
 from mora import util
+from mora.api.v1.models import EngagementAssociation
+
+# from ramodels.mo.employee import EmployeeWrite
 
 # --------------------------------------------------------------------------------------
 # Code
@@ -53,6 +75,95 @@ class MOEmployee(EmployeeRead):
     def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
         # noop overriding parent method - we need name & nickname
         return values
+
+
+class EngagementWrite(EngagementBase):
+    """A MO engagement write object."""
+
+    org_unit: OrgUnitRef = Field(
+        description=(
+            "Reference to the organisation unit "
+            "for which the engagement should be created."
+        )
+    )
+    # employee: EmployeeRef = Field(
+    #     description=(
+    #         "Reference to the employee for which the engagement should be created."
+    #     )
+    # )
+    engagement_type: EngagementType = Field(
+        description=(
+            "Reference to the engagement type klasse for the created engagement object."
+        )
+    )
+    # NOTE: Job function is set to optional in the current MO write code,
+    # but that's an error. If payloads without a job function are posted,
+    # MO fails spectacularly when reading the resulting engagement objects.
+    job_function: JobFunction = Field(
+        description=(
+            "Reference to the job function klasse for the created engagement object."
+        )
+    )
+    leave: Optional[LeaveRef] = Field(
+        description="Reference to the leave for the created engagement."
+    )
+    primary: Optional[Primary] = Field(
+        description="Reference to the primary klasse for the created engagement object."
+    )
+
+
+class EngagementDetail(EngagementWrite, DetailBase):
+    pass
+
+
+Details = Union[
+    AssociationDetail,
+    EngagementDetail,
+    EngagementAssociation,
+    KLEDetail,
+    ManagerDetail,
+    ITUserDetail,
+    RoleDetail,
+]
+
+EmployeeDetails = Union[Details, AddressDetail, LeaveDetail]
+
+
+class EmployeeWrite(EmployeeBase):
+    name: Optional[str] = Field(
+        description=(
+            "The full name of the employee. "
+            "This is deprecated, please use givenname/surname."
+        )
+    )
+    nickname: Optional[str] = Field(
+        description=(
+            "Full nickname of the employee. "
+            "Deprecated, please use given name/surname parts if needed."
+        )
+    )
+    details: Optional[list[EmployeeDetails]] = Field(
+        description=(
+            "Details to be created for the employee. Note that when this is used, the"
+            " employee reference is implicit in the payload."
+        )
+    )
+
+    @root_validator(pre=True)
+    def validate_name(cls, values: DictStrAny) -> DictStrAny:
+        return validate_names(values, "name", "givenname", "surname")
+
+    @root_validator(pre=True)
+    def validate_nickname(cls, values: DictStrAny) -> DictStrAny:
+        return validate_names(
+            values, "nickname", "nickname_givenname", "nickname_surname"
+        )
+
+    _validate_cpr = validator("cpr_no", allow_reuse=True)(validate_cpr)
+
+    @validator("seniority", pre=True, always=True)
+    def parse_seniority(cls, seniority: Optional[Any]) -> Optional[datetime]:
+        return tz_isodate(seniority) if seniority is not None else None
 
 
 class MOEmployeeWrite(EmployeeWrite):
