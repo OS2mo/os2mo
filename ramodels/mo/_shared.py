@@ -281,7 +281,7 @@ def split_name(name: str) -> Tuple[str, str]:
     Returns:
         A 2-tuple containing first and last name.
     """
-    split = name.split(" ", maxsplit=1)
+    split = name.rsplit(" ", maxsplit=1)
     if len(split) == 1:
         split.append("")
     givenname, surname = split

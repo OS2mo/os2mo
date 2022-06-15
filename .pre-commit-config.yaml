@@ -13,8 +13,10 @@ repos:
     rev: v0.942
     hooks:
       - id: mypy
-        language: system
         types: [file, python]
+        additional_dependencies:
+          - pydantic
+          - types-python-dateutil
 
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v3.0.1
