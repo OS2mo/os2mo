@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.0.2 - 2022-06-15
+------------------
+
+[#50418] Fix wrong name split
+
 7.0.1 - 2022-06-14
 ------------------
 
