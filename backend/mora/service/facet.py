@@ -560,7 +560,8 @@ async def is_class_uuid_primary(primary_class_uuid: str) -> bool:
 
 async def get_mo_object_primary_value(mo_object: dict) -> bool:
     # First, see if `mo_object` contains a `primary` dict with a `user_key` key
-    if mapping.USER_KEY in mo_object.get(mapping.PRIMARY, {}):
+    primary = mo_object.get(mapping.PRIMARY) or {}
+    if mapping.USER_KEY in primary:
         return is_class_primary(mo_object[mapping.PRIMARY])
 
     # Next, see if `mo_object` contains a `primary` dict with a `uuid` key
