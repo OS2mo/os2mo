@@ -50,7 +50,7 @@ class _ITUserGroupValidation(GroupValidation):
         cls, mo_object: dict
     ) -> Optional[dict]:
         return {
-            "uuid": util.get_uuid(mo_object),
+            "uuid": util.get_uuid(mo_object, required=False),
             "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
             "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
             "it_user_username": mo_object.get(mapping.USER_KEY),
