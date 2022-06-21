@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest import mock
 from uuid import uuid4
 
 import pytest
@@ -31,12 +32,15 @@ class TestITUserGroupValidationBase:
     )
     @pytest.mark.asyncio
     async def test_get_validation_item_from_mo_object(self, mo_object: dict):
-        val = await _ITUserGroupValidation.get_validation_item_from_mo_object(mo_object)
-        assert isinstance(val["uuid"], (str, type(None)))
-        assert isinstance(val["employee_uuid"], str)
-        assert isinstance(val["it_system_uuid"], str)
-        assert isinstance(val["it_user_username"], str)
-        assert isinstance(val["is_primary"], bool)
+        with mock.patch("mora.service.facet.get_one_class", mock.AsyncMock()):
+            val = await _ITUserGroupValidation.get_validation_item_from_mo_object(
+                mo_object
+            )
+            assert isinstance(val["uuid"], (str, type(None)))
+            assert isinstance(val["employee_uuid"], str)
+            assert isinstance(val["it_system_uuid"], str)
+            assert isinstance(val["it_user_username"], str)
+            assert isinstance(val["is_primary"], bool)
 
     def test_get_mo_object_reading_handler(self):
         handler = _ITUserGroupValidation.get_mo_object_reading_handler()
