@@ -61,7 +61,7 @@ export default {
 
     return Service.get(`/o/${uuid}/children?${params}`)
       .then(response => {
-        return response.data
+        return response.data.sort((a, b) => (a.user_key > b.user_key) ? 1 : -1)
       })
       .catch(error => {
         console.log(error.response)
