@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.35.4 - 2022-06-21
+-------------------
+
+[#50959] Handle absent UUID in `_ITUserGroupValidation.get_validation_item_from_mo_object`
+
 4.35.3 - 2022-06-21
 -------------------
 
