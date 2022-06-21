@@ -58,6 +58,8 @@ class TestPrimaryClassHelpers:
             ({mapping.PRIMARY: {mapping.UUID: "invalid"}}, False),
             # 5. MO object contains an empty `primary` dict
             ({mapping.PRIMARY: {}}, False),
+            # 6. MO object contains a `primary` object which is None
+            ({mapping.PRIMARY: None}, False),
         ]
     )
     @pytest.mark.asyncio
