@@ -60,20 +60,6 @@ services:
       OS2MO_AUTH: "false"
 ```
 
-## Importing Fixture Data
-By default, the OS2mo instance is completely void of any data. To encourage play, fixture data can easily be loaded into
-the application by augmenting the startup command as follows:
-```bash
-# Stop the stack, removing any attached volumes
-docker-compose down -v
-
-# Start the stack, loading the 'kolding' fixture dataset of approximately 900 employees
-FIXTURE=kolding docker-compose -f docker-compose.yml -f docker-compose.fixture.yml [-f docker-compose.override.yml] up -d --build
-```
-If the `FIXTURE` environment variable is unset, the default `kolding` fixture will be used. For a list of supported
-fixtures, see the [OS2mo Fixture Loader repo](https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader). Note that
-`-f docker-compose.override.yml` is optional, and should only be set if such configuration is used.
-
 
 ## Troubleshooting
 
