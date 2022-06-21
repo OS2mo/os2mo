@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.35.3 - 2022-06-21
+-------------------
+
+[#50958] `get_mo_object_primary_value`: handle `primary` being `None`
+
 4.35.2 - 2022-06-14
 -------------------
 
