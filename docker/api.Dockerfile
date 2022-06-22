@@ -47,11 +47,11 @@ RUN set -ex \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
 
-# Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
   PYTHONPATH=/app:/app/backend \
   POETRY_VERSION="1.1.8" \
-  POETRY_VIRTUALENVS_CREATE=false
+  POETRY_VIRTUALENVS_CREATE=false \
+  HTTPX_TIMEOUT=60
 
 # Install requirements
 RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
