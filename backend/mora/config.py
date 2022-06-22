@@ -90,7 +90,7 @@ class Settings(BaseSettings):
     run_trigger_timeout: int = 5
 
     # HTTPX
-    httpx_timeout: PositiveInt = 10
+    httpx_timeout: PositiveInt = 60
 
     # AMQP settings
     amqp_enable: bool = False
