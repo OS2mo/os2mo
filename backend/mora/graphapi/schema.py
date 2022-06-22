@@ -423,12 +423,8 @@ class Engagement:
         return await loader.load(root.primary_uuid)
 
     @strawberry.field(description="Is it primary")
-    async def is_primary(
-        self, root: EngagementRead, info: Info, show_is_primary: bool = False
-    ) -> Optional[bool]:
-        if not show_is_primary:
-            return None
-        return await is_class_uuid_primary(root.primary_uuid)
+    async def is_primary(self, root: EngagementRead, info: Info) -> bool:
+        return await is_class_uuid_primary(str(root.primary_uuid))
 
     @strawberry.field(description="Related leave")
     async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
