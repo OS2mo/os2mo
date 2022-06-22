@@ -78,6 +78,8 @@ RUN install -g mora -o mora -d /log
 # Run the server as the mora user on port 5000
 USER mora:mora
 
+VOLUME /queries
+
 # Add build version to the environment last to avoid build cache misses
 ARG COMMIT_TAG
 ARG COMMIT_SHA
