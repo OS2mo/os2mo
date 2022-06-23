@@ -27,6 +27,7 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 from ramodels.base import tz_isodate
 
 from . import autocomplete
@@ -44,6 +45,7 @@ from ..triggers import Trigger
 from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
+from mora.service.mo_employee_model import MOEmployeeWrite
 
 router = APIRouter()
 
@@ -616,7 +618,7 @@ async def terminate_employee(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post("/e/create", status_code=201)
-async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+async def create_employee(req: MOEmployeeWrite, permissions=Depends(oidc.rbac_admin)):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -684,7 +686,14 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
     :returns: UUID of created employee
 
     """
-    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    req_dict = req.dict(by_alias=True)
+    #req_dict.pop("name", None)
+    #req_dict.pop("nickname", None)
+
+    request = await EmployeeRequestHandler.construct(
+        jsonable_encoder(req_dict), mapping.RequestType.CREATE
+    )
+
     return await request.submit()
 
 
