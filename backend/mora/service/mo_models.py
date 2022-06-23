@@ -97,54 +97,12 @@ class Parent(OrgUnitBase):
     time_planning: Optional[UUID]
     user_settings: Optional[UserSettings]
 
-    # "details": [
-    #     {
-    #         "type": "address",
-    #         "address_type": {
-    #             "example": "20304060",
-    #             "name": "Telefon",
-    #             "scope": "PHONE",
-    #             "user_key": "Telefon",
-    #             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-    #         },
-    #         "org": {
-    #             "name": "Aarhus Universitet",
-    #             "user_key": "AU",
-    #             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-    #         },
-    #         "validity": {
-    #             "from": "2016-02-04",
-    #             "to": None,
-    #         },
-    #         "value": "11223344",
-    #     },
-    #     {
-    #         "type": "address",
-    #         "address_type": {
-    #             "example": "<UUID>",
-    #             "name": "Adresse",
-    #             "scope": "DAR",
-    #             "user_key": "Adresse",
-    #             "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-    #         },
-    #         "org": {
-    #             "name": "Aarhus Universitet",
-    #             "user_key": "AU",
-    #             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-    #         },
-    #         "validity": {
-    #             "from": "2016-02-04",
-    #             "to": None,
-    #         },
-    #         "value": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-    #     },
-    # ],
-
 
 class AddressType(OrgUnitBase):
-    name: str
-    scope: str
-    example: str
+    user_key: Optional[str]
+    name: Optional[str]
+    scope: Optional[str]
+    example: Optional[str]
 
 
 class Address(BaseModel):
@@ -153,15 +111,24 @@ class Address(BaseModel):
     value: Optional[str]
 
 
+class Detail(BaseModel):
+    type: str
+    address_type: AddressType
+    org: Optional[Org]
+    validity: Validity
+    value: str
+
+
 class MOOrgUnitWrite(BaseModel):
+    type: Optional[str]
     uuid: Optional[UUID]
     validity: Validity
-    user_key: Optional[UUID]
+    user_key: Optional[str]
     name: str
-    parent: Parent
+    parent: Optional[Parent]
     org_unit_level: Optional[OrgUnitLevel]
     org_unit_type: OrgUnitType
-    details: Optional[list]  # TODO/FIXME ???
+    details: Optional[list[Detail]]  # TODO/FIXME ???
     integration_data: Optional[dict[str, int]]
     org_unit_hierarchy: Optional[dict[str, UUID]]
     time_planning: Optional[dict[str, UUID]]
