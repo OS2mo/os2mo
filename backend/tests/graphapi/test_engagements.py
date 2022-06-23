@@ -3,6 +3,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from unittest import mock
+
 from hypothesis import given
 from pytest import MonkeyPatch
 from ramodels.mo.details import EngagementRead
@@ -93,3 +95,30 @@ class TestEngagementsQuery:
         result_uuids = [assoc.get("uuid") for assoc in response.data["engagements"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+    @given(test_data=graph_data_strat(EngagementRead))
+    def test_query_is_primary(self, test_data, graphapi_post, patch_loader):
+        """Test that we can query all attributes of the engagement data model."""
+        # Patch dataloader
+        query = """
+                query {
+                    engagements {
+                        uuid
+                        objects {
+                            uuid
+                            is_primary
+                        }
+                    }
+                }
+            """
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+            with mock.patch(
+                "mora.service.facet.is_class_uuid_primary", return_value=True
+            ):
+
+                response: GQLResponse = graphapi_post(query)
+
+        assert response.errors is None
+        for e in response.data["engagements"]:
+            assert e["objects"][0]["is_primary"] is True
