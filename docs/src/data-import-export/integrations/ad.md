@@ -22,8 +22,7 @@ Integrationen går via i alt tre maskiner:
 2.  En remote management server som den lokale server kan kommunikere
     med via Windows Remote Management (WinRM). Denne kommunikation
     autentificeres via Kerberos. Der findes en vejledning til
-    opsætning med kerberos 
-    [her](https://os2mo.readthedocs.io/en/latest/_static/AD%20-%20OS2MO%20ops%C3%A6tnings%20guide.pdf).
+    [opsætning med kerberos her](https://os2mo.readthedocs.io/en/latest/_static/AD%20-%20OS2MO%20ops%C3%A6tnings%20guide.pdf).
     Alternativt kan der autentificeres med ntlm over https. Denne
     opsætning beskrives herunder.
 3.  AD serveren.

@@ -10,7 +10,7 @@ kontakte Magenta ApS <info@magenta.dk\>
 
 # Usage
 
-Start en OS2mo stak vha. *docker-compose*, se detaljer her: https://os2mo.readthedocs.io/en/1.16.1/dev/environment/docker.html?#docker-compose
+Start en OS2mo stak vha. *docker-compose*, [se detaljer her](../guides/environment/docker.md)
 
 Når dette er sket, kan DIPEX udviklingsmiljøet startes med:
 

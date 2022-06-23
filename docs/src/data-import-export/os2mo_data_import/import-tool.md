@@ -441,7 +441,7 @@ python import_example.py
 For more information on the os2mo project, please refer to the official
 documentation.
 
-Read the docs: https://os2mo.readthedocs.io
+[Read the docs](../../index.md)
 
 ## Known Issues
 

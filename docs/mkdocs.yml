@@ -39,7 +39,7 @@ nav:
       - graphql/intro.md
       - graphql/reads.md
   - LoRa MOX:
-    - lora/index.md
+    - Introduction: lora/index.md
     - User Documentation: 
       - lora/user/overview.md
       - lora/user/praesentation.md
@@ -82,7 +82,7 @@ nav:
       - lora/dev/building-docs.md
       - lora/dev/beskedfordeler.md
       - lora/dev/news.md
-  - Data import og export:
+  - DIPEX:
     - data-import-export/intro.md
     - Integrationer:
       - data-import-export/integrations/sdloen.md

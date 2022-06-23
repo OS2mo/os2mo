@@ -27,8 +27,7 @@ default:
 
 The official location for the documentation is:
 
--   <http://mox.readthedocs.io/>
--   <https://rammearkitektur.docs.magenta.dk/os2mo/lora>
+https://rammearkitektur.docs.magenta.dk/lora/
 
 Please note that as a convention, all shell commands have been prefixed
 with a dollar-sign, or `$`, representing a prompt. You should exclude
