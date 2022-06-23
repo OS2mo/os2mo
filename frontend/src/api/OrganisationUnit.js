@@ -48,7 +48,7 @@ export default {
 
     return Service.get(`/ou/${uuid}/children?${params}`)
       .then(response => {
-        return response.data.sort((a, b) => (a.user_key > b.user_key) ? 1 : -1)
+        return response.data.sort((a, b) => (a.name > b.name) ? 1 : -1)
       })
       .catch(error => {
         store.commit('log/newError', { type: 'ERROR', value: error.response })
