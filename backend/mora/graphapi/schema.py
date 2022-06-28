@@ -424,6 +424,8 @@ class Engagement:
 
     @strawberry.field(description="Is it primary")
     async def is_primary(self, root: EngagementRead, info: Info) -> bool:
+        if not root.primary_uuid:
+            return False
         return await is_class_uuid_primary(str(root.primary_uuid))
 
     @strawberry.field(description="Related leave")

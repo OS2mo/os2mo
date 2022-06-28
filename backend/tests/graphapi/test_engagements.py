@@ -114,11 +114,13 @@ class TestEngagementsQuery:
         with MonkeyPatch.context() as patch:
             patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
             with mock.patch(
-                "mora.service.facet.is_class_uuid_primary", return_value=True
+                "mora.graphapi.schema.is_class_uuid_primary", return_value=True
             ):
 
                 response: GQLResponse = graphapi_post(query)
 
         assert response.errors is None
+
         for e in response.data["engagements"]:
-            assert e["objects"][0]["is_primary"] is True
+            expected = True if test_data[0]["primary_uuid"] else False
+            assert e["objects"][0]["is_primary"] == expected
