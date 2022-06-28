@@ -52,7 +52,7 @@ from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.util import get_configuration
-from mora.service.mo_models import MOOrgUnitWrite
+from mora.service.data_models.mo_orgunit_model import MOOrgUnitWrite
 
 router = APIRouter()
 

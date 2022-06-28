@@ -2969,6 +2969,98 @@ class Tests(tests.cases.LoRATestCase):
             message=message,
         )
 
+    def test_create_org_unit_raw_payload(self):
+        """The complete payload when creating an orgunit through the frontend"""
+
+        payload = {
+            "validity": {"from": "2022-06-28", "to": None},
+            "user_key": None,
+            "name": "Test",
+            "parent": {
+                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "user_key": "root",
+                "name": "Overordnet Enhed",
+                "validity": {"from": "2016-01-01", "to": None},
+                "location": "",
+                "parent": None,
+                "org": {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "user_key": "AU",
+                    "name": "Aarhus Universitet",
+                },
+                "org_unit_level": None,
+                "org_unit_type": {
+                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "user_key": "afd",
+                    "name": "Afdeling",
+                    "scope": None,
+                    "example": None,
+                    "owner": None,
+                    "facet": {
+                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                        "user_key": "org_unit_type",
+                        "description": "",
+                    },
+                    "top_level_facet": {
+                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
+                        "user_key": "org_unit_type",
+                        "description": "",
+                    },
+                    "full_name": "Afdeling",
+                },
+                "time_planning": None,
+                "user_settings": {
+                    "orgunit": {
+                        "show_roles": True,
+                        "show_kle": True,
+                        "show_user_key": True,
+                        "show_location": True,
+                        "show_time_planning": False,
+                        "show_level": True,
+                        "show_primary_engagement": False,
+                        "show_primary_association": False,
+                        "show_org_unit_button": False,
+                        "inherit_manager": True,
+                        "association_dynamic_facets": "",
+                        "substitute_roles": "",
+                        "show_cpr_no": True,
+                        "show_user_key_in_search": False,
+                        "extension_field_ui_labels": "",
+                        "show_engagement_hyperlink": False,
+                        "show_seniority": False,
+                        "show_owner": False,
+                        "show_custom_logo": "",
+                        "autocomplete_use_new_api": False,
+                        "autocomplete_attrs_employee": None,
+                        "autocomplete_attrs_orgunit": None,
+                    }
+                },
+            },
+            "org_unit_level": {
+                "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
+                "name": "Niveau 10",
+                "user_key": "orgunitlevel10",
+                "example": None,
+                "scope": None,
+                "owner": None,
+            },
+            "org_unit_type": {
+                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                "name": "Afdeling",
+                "user_key": "afd",
+                "example": None,
+                "scope": None,
+                "owner": None,
+            },
+            "details": [],
+        }
+
+        self.assertRequestResponse(
+            "/service/ou/create",
+            json=payload,
+            expected="f494ad89-039d-478e-91f2-a63566554bd6",
+        )
+
     def test_tree(self):
         for path, expected in util.get_fixture("test_trees.json").items():
             with self.subTest(path):

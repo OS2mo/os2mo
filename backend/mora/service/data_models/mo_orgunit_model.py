@@ -128,7 +128,7 @@ class MOOrgUnitWrite(BaseModel):
     parent: Optional[Parent]
     org_unit_level: Optional[OrgUnitLevel]
     org_unit_type: OrgUnitType
-    details: Optional[list[Detail]]  # TODO/FIXME ???
+    details: Optional[list[Detail]]
     integration_data: Optional[dict[str, int]]
     org_unit_hierarchy: Optional[dict[str, UUID]]
     time_planning: Optional[dict[str, UUID]]

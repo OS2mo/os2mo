@@ -49,7 +49,7 @@ from mora.graphapi.schema import Response
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
-from mora.service.mo_models import MOOrgUnitWrite
+from mora.service.data_models.mo_orgunit_model import MOOrgUnitWrite
 
 
 # --------------------------------------------------------------------------------------

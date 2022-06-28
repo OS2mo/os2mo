@@ -138,8 +138,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
             print(r.headers, r.content)  # TODO: Find r.raw alternative
             actual = r.text
 
-        print("hest", actual)
-
         if status_code is None:
             if message is None:
                 message = "status of {!r} was {}, not 2xx".format(
