@@ -31,6 +31,10 @@ server {
         try_files $uri $uri/index.html /index.html;
     }
 
+    location ^~ /indsigt {
+        try_files $uri $uri/index.html /index.html;
+    }
+
     location / {
         index  index.html;
     }
