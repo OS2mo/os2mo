@@ -17,7 +17,7 @@ DATABASE_STRUCTURE = {
                 "plan",
                 "supplement",
                 "retskilde",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -34,7 +34,7 @@ DATABASE_STRUCTURE = {
                 "beskrivelse",
                 "kaldenavn",
                 "ophavsret",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -57,7 +57,7 @@ DATABASE_STRUCTURE = {
                 "titel",
                 "retskilde",
                 "aendringsnotat",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -83,7 +83,7 @@ DATABASE_STRUCTURE = {
                 "brugervendtnoegle",
                 "brugernavn",
                 "brugertype",
-                "integrationsdata",
+
             ],
             "udvidelser": [
                 "fornavn",
@@ -116,7 +116,7 @@ DATABASE_STRUCTURE = {
                 "brugervendtnoegle",
                 "interessefaellesskabsnavn",
                 "interessefaellesskabstype",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -148,7 +148,7 @@ DATABASE_STRUCTURE = {
                 "itsystemnavn",
                 "itsystemtype",
                 "konfigurationreference",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -177,7 +177,7 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "organisationsnavn",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -213,7 +213,7 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "enhedsnavn",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -248,7 +248,7 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "funktionsnavn",
-                "integrationsdata",
+
             ],
             "udvidelser": [
                 "primær",
@@ -303,7 +303,7 @@ DATABASE_STRUCTURE = {
                 "principiel",
                 "sagsnummer",
                 "titel",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -383,7 +383,7 @@ DATABASE_STRUCTURE = {
                 "offentlighedundtaget",
                 "titel",
                 "dokumenttype",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -436,7 +436,7 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "beskrivelse",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -474,7 +474,7 @@ DATABASE_STRUCTURE = {
                 "sluttidspunkt",
                 "tidsforbrug",
                 "formaal",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -527,7 +527,7 @@ DATABASE_STRUCTURE = {
                 "beskrivelse",
                 "starttidspunkt",
                 "sluttidspunkt",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
@@ -567,7 +567,7 @@ DATABASE_STRUCTURE = {
                 "returkode",
                 "returtekst",
                 "note",
-                "integrationsdata",
+
             ],
         },
         "attributter_metadata": {
