@@ -5,7 +5,6 @@ from asyncio import gather
 from typing import Any
 from typing import Dict
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from structlog import get_logger
@@ -50,11 +49,6 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         )
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
-        # TODO this should only be done in graphql when requested
-        is_primary = await create_task(
-            cls._is_primary(request_wide_bulk.connector, person, primary)
-        )
-
         if is_graphql():
             base_obj.pop("integration_data", None)
             return {
@@ -64,11 +58,13 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 "engagement_type_uuid": engagement_type,
                 "job_function_uuid": job_function,
                 "primary_uuid": primary or None,
-                "is_primary": is_primary,
                 "fraction": fraction,
                 **cls._get_extension_fields(extensions),
             }
 
+        is_primary = await create_task(
+            cls._is_primary(request_wide_bulk.connector, person, primary)
+        )
         person_task = create_task(
             employee.request_bulked_get_one_employee(
                 userid=person, only_primary_uuid=only_primary_uuid
@@ -131,11 +127,8 @@ class EngagementReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def _is_primary(
-        cls,
-        c: lora.Connector,
-        person: str,
-        primary: str,
-    ) -> Union[bool, None]:
+        cls, c: lora.Connector, person: str, primary: str
+    ) -> Optional[bool]:
         """
         Calculate whether a given primary class is _the_ primary class for a
         person.

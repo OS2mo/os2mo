@@ -3,6 +3,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from unittest import mock
+
 from hypothesis import given
 from pytest import MonkeyPatch
 from ramodels.mo.details import EngagementRead
@@ -45,7 +47,6 @@ class TestEngagementsQuery:
                             job_function_uuid
                             leave_uuid
                             primary_uuid
-                            is_primary
                             type
                             user_key
                             fraction
@@ -94,3 +95,43 @@ class TestEngagementsQuery:
         result_uuids = [assoc.get("uuid") for assoc in response.data["engagements"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+    @given(test_data=graph_data_strat(EngagementRead))
+    def test_query_is_primary(self, test_data, graphapi_post, patch_loader):
+        """Test that we can query 'is_primary' from the engagement data model."""
+
+        query = """
+                query {
+                    engagements {
+                        uuid
+                        objects {
+                            uuid
+                            is_primary
+                        }
+                    }
+                }
+            """
+        # Patch dataloader
+        with MonkeyPatch.context() as patch:
+            patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
+            # Patch check for is_primary
+            with mock.patch(
+                "mora.graphapi.schema.is_class_uuid_primary", return_value=True
+            ) as primary_mock:
+                response: GQLResponse = graphapi_post(query)
+
+        assert response.errors is None
+
+        for e in response.data["engagements"]:
+
+            if test_data[0]["primary_uuid"]:
+                # primary_uuid is optional.
+                # If it exists the patched is_primary returns True
+                expected = True
+                primary_mock.assert_called_once_with(test_data[0]["uuid"])
+            else:
+                # If primary_uuid is None the check is not done and is_primary is False
+                expected = False
+                primary_mock.assert_not_called()
+
+            assert e["objects"][0]["is_primary"] == expected
