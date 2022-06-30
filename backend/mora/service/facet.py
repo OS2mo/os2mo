@@ -506,6 +506,7 @@ class ClassRequestHandler(handlers.RequestHandler):
             valid_to=valid_to,
             facet_uuid=facet_uuid,
             org_uuid=mo_class.org_uuid,
+            owner=mo_class.owner,
             bvn=mo_class.user_key,
             title=mo_class.name,
             scope=mo_class.scope,

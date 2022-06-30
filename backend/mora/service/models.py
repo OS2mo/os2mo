@@ -12,3 +12,4 @@ class MOClass(BaseModel):
     user_key: str
     scope: Optional[str]
     org_uuid: UUID
+    owner: Optional[UUID]

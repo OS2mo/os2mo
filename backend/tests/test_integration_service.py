@@ -576,6 +576,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
             "user_key": "BVN",
             "name": "Jurist",
+            "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "scope": "TEXT",
             "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
         }
@@ -592,7 +593,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
                     {
                         "example": None,
                         "name": "Jurist",
-                        "owner": None,
+                        "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                         "scope": "TEXT",
                         "user_key": "BVN",
                         "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
@@ -616,6 +617,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
         # Updated payload, same uuid
         payload = {
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+            "facet_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
             "user_key": "BVN",
             "name": "Ergoterapeut",
             "scope": "TEXT",
