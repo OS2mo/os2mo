@@ -68,7 +68,7 @@ services:
     restart: on-failure
 
   mox:
-    image: magentaaps/lora:4.6.1
+    image: magentaaps/lora:4.7.1
     # build:
     #   context: ../lora
     #   dockerfile: docker/Dockerfile

@@ -1,0 +1,3 @@
+Release type: minor
+
+[#50108 ] GraphQL: Add support for user_key
