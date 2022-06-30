@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_filter_unauth_indsats()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	new_uuid3 uuid;
@@ -39,7 +39,7 @@ DECLARE
 	indsatsRelIndsatssag2 indsatsRelationType;
 	indsatsRelIndsatsaktoer1 indsatsRelationType;
 	indsatsRelIndsatsaktoer2 indsatsRelationType;
-	
+
 	uuidIndsatsmodtager uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	uuidIndsatssag1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 	uuidIndsatsmodtager3 uuid :='6cf639ec-82e9-45aa-8723-1dd0b42af37e'::uuid;
@@ -75,7 +75,7 @@ expected_filter_res_1 uuid[];
 	actual_filter_res_5 uuid[];
 	actual_filter_res_6 uuid[];
 	actual_filter_res_7 uuid[];
-	
+
 
 
 BEGIN
@@ -226,11 +226,10 @@ virkPubliceret,
 )::indsatsPubliceretTilsType;
 
 indsatsEgenskab := ROW (
-'brugervendtnoegle_indsats_1' --text, 
+'brugervendtnoegle_indsats_1' --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 , '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_1'-- text,
 ,virkEgenskaber
 ) :: indsatsEgenskaberAttrType
 ;
@@ -263,11 +262,10 @@ RETURN NEXT ok(true,'No errors running as_create_or_import_indsats #1');
 
 
 indsatsEgenskab2 := ROW (
-'brugervendtnoegle_indsats_2' --text, 
+'brugervendtnoegle_indsats_2' --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , '2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , '2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_2'-- text,
 ,virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 ;
@@ -306,11 +304,10 @@ virkEgenskaber3 :=	ROW (
 ;
 
 indsatsEgenskab3 := ROW (
-'brugervendtnoegle_indsats_3' --text, 
+'brugervendtnoegle_indsats_3' --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , '2017-02-25 09:00'::timestamptz  -- starttidspunkt,
 , '2017-02-26 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_3'-- text,
 ,virkEgenskaber3
 ) :: indsatsEgenskaberAttrType
 ;
@@ -399,15 +396,14 @@ actual_filter_res_1:=_as_filter_unauth_indsats(
 			null,
 			null,
 			ARRAY[ ROW (
-'brugervendtnoegle_indsats_2' --text, 
+'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-, null
-,null--virkEgenskaber2
+, null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType ]::IndsatsEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 --read_Indsats1:=as_read_indsats(new_uuid1,null,null);
@@ -432,15 +428,14 @@ actual_filter_res_2:=_as_filter_unauth_indsats(
 			null,
 			null,
 			ARRAY[ ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType ]::IndsatsEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 --read_Indsats1:=as_read_indsats(new_uuid1,null,null);
@@ -468,7 +463,7 @@ actual_filter_res_3:=_as_filter_unauth_indsats(
 			null,
 			null,
 			null-- AktivitetRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 --read_Indsats1:=as_read_indsats(new_uuid1,null,null);
@@ -497,7 +492,7 @@ actual_filter_res_4:=_as_filter_unauth_indsats(
 			):: indsatsFremdriftTilsType]::indsatsFremdriftTilsType[],
 			null,
 			null-- AktivitetRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 
@@ -528,7 +523,7 @@ actual_filter_res_5:=_as_filter_unauth_indsats(
 			):: indsatsFremdriftTilsType]::indsatsFremdriftTilsType[],
 			null,
 			null-- AktivitetRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 
@@ -565,7 +560,7 @@ actual_filter_res_6:=_as_filter_unauth_indsats(
 					,null
 				) :: indsatsRelationType
 			]::indsatsRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 
@@ -602,7 +597,7 @@ actual_filter_res_7:=_as_filter_unauth_indsats(
 					,null
 				) :: indsatsRelationType
 			]::indsatsRelationType[]
-		)::indsatsRegistreringType]::indsatsRegistreringType[]	
+		)::indsatsRegistreringType]::indsatsRegistreringType[]
 );
 
 

@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_klasse()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	klasseReg KlasseRegistreringType;
 	actual_registrering RegistreringBase;
@@ -217,8 +217,7 @@ klasseEgenskabA := ROW (
    'titel_A',
    'retskilde_A',
    NULL,--'aendringsnotat_text1',
-   'integrationsdata_A',
-   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[], 
+   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[],
    virkEgenskaber
 ) :: KlasseEgenskaberAttrType
 ;
@@ -293,7 +292,6 @@ klasseEgenskabB := ROW (
    'titel_B',
    'retskilde_B',
    NULL, --aendringsnotat
-   'integrationsdata_B',
     ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
    virkEgenskaberB
 ) :: KlasseEgenskaberAttrType
@@ -352,7 +350,6 @@ klasseEgenskabC := ROW (
    'titel_C',
    'retskilde_C',
    'aendringsnotat_C',
-   'integrationsdata_C',
    ARRAY[]::KlasseSoegeordType[], --soegeord
    virkEgenskaberC
 ) :: KlasseEgenskaberAttrType
@@ -366,7 +363,6 @@ klasseEgenskabD := ROW (
    'titel_D',
    'retskilde_D',
    NULL, --aendringsnotat
-   'integrationsdata_D',
     NULL, --soegeord
    virkEgenskaberD
 ) :: KlasseEgenskaberAttrType
@@ -380,7 +376,6 @@ klasseEgenskabE := ROW (
    'titel_E',
    'retskilde_E',
    NULL, --aendringsnotat
-   'integrationsdata_E',
     ARRAY[klasseEgenskabE_Soegeord1,klasseEgenskabE_Soegeord2,klasseEgenskabE_Soegeord3,klasseEgenskabE_Soegeord4,klasseEgenskabE_Soegeord5]::KlasseSoegeordType[], --soegeord
    virkEgenskaberE
 ) :: KlasseEgenskaberAttrType
@@ -406,7 +401,7 @@ virkPubliceretC,
 
 update_reg_id:=as_update_klasse(
   new_uuid, '8762a443-2f60-49c1-bd8e-ecfdef91d48a'::uuid,'Test update'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
   array[klassePubliceretC]::KlassePubliceretTilsType[],
   array[klasseRelAnsvarlig]::KlasseRelationType[]
@@ -421,7 +416,7 @@ array_agg(
 					a.virkning,
 					a.rel_maal_uuid,
 					a.rel_maal_urn,
-					a.objekt_type 
+					a.objekt_type
 				):: KlasseRelationType
 		) into actual_relationer
 FROM klasse_relation a
@@ -483,14 +478,14 @@ select array_agg(
    							c.soegeordskategori,
    							c.klasse_attr_egenskaber_id
    							)::KlasseSoegeordTypeWID
-						
+
 						order by c.id
    						) into tempResSoegeord
 from klasse_attr_egenskaber_soegeord c
 ;
 
 
-select array_agg( 
+select array_agg(
 ROW(
 	a.id ,
 a.brugervendtnoegle ,
@@ -523,7 +518,6 @@ RETURN NEXT set_eq( 'SELECT
    					a.titel,
    					a.retskilde,
    					a.aendringsnotat,
-   					a.integrationsdata,
    					array_agg(
    						CASE WHEN c.id IS NULL THEN NULL
    						ELSE
@@ -537,7 +531,7 @@ RETURN NEXT set_eq( 'SELECT
    						),
 					a.virkning
 				):: KlasseEgenskaberAttrType
-		
+
 FROM  klasse_attr_egenskaber a
 JOIN klasse_registrering as b on a.klasse_registrering_id=b.id
 LEFT JOIN klasse_attr_egenskaber_soegeord c on c.klasse_attr_egenskaber_id=a.id
@@ -545,7 +539,7 @@ WHERE b.id=' || update_reg_id::text || '
 GROUP BY a.id,a.brugervendtnoegle,a.beskrivelse,a.eksempel,a.omfang,a.titel,a.retskilde,a.aendringsnotat,a.virkning
 order by (a.virkning).TimePeriod
 '
-,   
+,
 ARRAY[
 		ROW(
 				klasseEgenskabD.brugervendtnoegle,
@@ -555,7 +549,6 @@ ARRAY[
    				klasseEgenskabD.titel,
    				klasseEgenskabD.retskilde,
    				klasseEgenskabD.aendringsnotat,
-   				klasseEgenskabD.integrationsdata,
    				  ARRAY[NULL]::KlasseSoegeordType[], --soegeord --please notice that this should really be NULL, but because of the form of the query above, it will return an array with a null element.
 					ROW(
 						TSTZRANGE('2013-06-30','2014-05-13','[)'),
@@ -573,7 +566,6 @@ ARRAY[
    				klasseEgenskabD.titel,
    				klasseEgenskabD.retskilde,
    				NULL, --notice
-   				klasseEgenskabD.integrationsdata,
    				  ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
    				ROW(
 						TSTZRANGE('2014-05-13','2014-06-01','[)'),
@@ -591,7 +583,6 @@ ARRAY[
    				klasseEgenskabB.titel,
    				klasseEgenskabB.retskilde,
    				klasseEgenskabB.aendringsnotat,
-   				klasseEgenskabB.integrationsdata,
    				 ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
 					ROW(
 						TSTZRANGE('2014-06-01','2014-08-01','[)'),
@@ -609,7 +600,6 @@ ARRAY[
    				klasseEgenskabE.titel,
    				klasseEgenskabE.retskilde,
    				klasseEgenskabB.aendringsnotat, --NOTICE
-   				klasseEgenskabE.integrationsdata,
    				 ARRAY[klasseEgenskabE_Soegeord1,klasseEgenskabE_Soegeord2,klasseEgenskabE_Soegeord3,klasseEgenskabE_Soegeord4,klasseEgenskabE_Soegeord5]::KlasseSoegeordType[], --soegeord
 					ROW(
 						TSTZRANGE('2014-08-01', '2014-10-20','[)'),
@@ -627,7 +617,6 @@ ARRAY[
    				klasseEgenskabB.titel,
    				klasseEgenskabB.retskilde,
    				klasseEgenskabB.aendringsnotat,
-   				klasseEgenskabB.integrationsdata,
    				 ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
 					ROW(
 						TSTZRANGE('2014-10-20','2015-01-01','[)'),
@@ -646,7 +635,6 @@ ARRAY[
    				klasseEgenskabC.titel,
    				klasseEgenskabC.retskilde,
    				klasseEgenskabC.aendringsnotat,
-   				klasseEgenskabC.integrationsdata,
    				 ARRAY[NULL]::KlasseSoegeordType[], --soegeord --please notice that this should really be NULL, but because of the form of the query above, it will return an array with a null element.
 					ROW(
 						TSTZRANGE('2015-01-13','2015-05-12','[)'),
@@ -664,7 +652,6 @@ ARRAY[
    				klasseEgenskabC.titel,
    				klasseEgenskabC.retskilde,
    				klasseEgenskabC.aendringsnotat,
-   				klasseEgenskabC.integrationsdata,
    				  ARRAY[NULL]::KlasseSoegeordType[], --soegeord
 					ROW(
 						TSTZRANGE('2015-05-12','infinity','[)'),
@@ -696,18 +683,18 @@ BEGIN
 
 	update_reg_id:=as_update_klasse(
 	  new_uuid, '8af07c7a-d8f0-439f-af3d-0dbb8b25652f'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
 	  ,lower(((klasse_read1.registrering[1]).registrering).TimePeriod)
 		);
 
-	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with no new data.'); 
+	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with no new data.');
 
 	EXCEPTION WHEN sqlstate 'MO400' THEN
-			RETURN NEXT ok(true,'test as_update_klasse - caught exception, triggered by updating klasse with no new data.'); 
-	
+			RETURN NEXT ok(true,'test as_update_klasse - caught exception, triggered by updating klasse with no new data.');
+
 END;
 
 
@@ -715,7 +702,7 @@ END;
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'dc5b848d-da66-45ff-895e-37ea12c7ff5c'::uuid,'Test update'::text,
-	  'Passiveret'::Livscykluskode,          
+	  'Passiveret'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
@@ -737,21 +724,21 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, '7518d4d2-5523-47cc-9a15-f5f5db072bc3'::uuid,'Test update'::text,
-	  'Opstaaet'::Livscykluskode,          
+	  'Opstaaet'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
 	  ,lower(((klasse_read3.registrering[1]).registrering).TimePeriod)
 		);
-	
-	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with new livscykluskode, causing an invalid transition.'); 
+
+	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with new livscykluskode, causing an invalid transition.');
 
 	EXCEPTION WHEN SQLSTATE 'MO400' THEN
-			RETURN NEXT ok(true,'test as_update_klasse - caught exception was triggered by updating klasse with new livscykluskode, causing an invalid transition.'); 
+			RETURN NEXT ok(true,'test as_update_klasse - caught exception was triggered by updating klasse with new livscykluskode, causing an invalid transition.');
 
 END;
 --------------------------------------------------------------------
---revert latest change in livscykluskode manually 
+--revert latest change in livscykluskode manually
 
 update klasse_registrering a
 	set registrering.livscykluskode= 'Rettet'::Livscykluskode
@@ -761,7 +748,7 @@ update klasse_registrering a
 /*
 update_reg_id:=as_update_klasse(
 	  new_uuid, '1847ccbc-de05-401f-a7a8-736a4bc8e301'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
@@ -780,13 +767,13 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-6ffd-4971-81cb-90b91dfe17fb'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  null,--klasse_read4.registrering[1].attrEgenskaber,
 	  klasse_read3.registrering[1].tilsPubliceret,
 	  klasse_read3.registrering[1].relationer
 	  ,lower(((klasse_read3.registrering[1]).registrering).TimePeriod)
 		);
-	
+
 		RETURN NEXT ok(false,'Test null egenskaber array will not trigger update#1');
 	EXCEPTION WHEN sqlstate 'MO400' THEN
 		RETURN NEXT ok(true,'Test null egenskaber array will not trigger update #1');
@@ -803,7 +790,7 @@ RETURN NEXT ok(((klasse_read3.registrering[1]).registrering).TimePeriod=((klasse
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-5ffd-4971-81cb-90b91dfe17fb'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[]::KlasseEgenskaberAttrType[],--klasse_read4.registrering[1].attrEgenskaber,
 	  klasse_read6.registrering[1].tilsPubliceret,
 	  klasse_read6.registrering[1].relationer
@@ -825,13 +812,13 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-6ffd-4971-81cb-90b91dfe17fb'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  klasse_read5.registrering[1].attrEgenskaber,
 	  null,--klasse_read4.registrering[1].tilsPubliceret,
 	  klasse_read5.registrering[1].relationer
 	  ,lower(((klasse_read5.registrering[1]).registrering).TimePeriod)
 		);
-	
+
 		RETURN NEXT ok(false,'Test null tilstand publiceret array will not trigger update #1');
 	EXCEPTION WHEN SQLSTATE 'MO400' THEN
 		RETURN NEXT ok(true,'Test null tilstand publiceret array will not trigger update #1');
@@ -852,7 +839,7 @@ RETURN NEXT ok( coalesce(array_length((klasse_read7.registrering[1]).tilsPublice
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-6ffd-4971-81cb-90b91dfe17fb'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  klasse_read7.registrering[1].attrEgenskaber,
 	  array[]::KlassePubliceretTilsType[],--klasse_read4.registrering[1].tilsPubliceret,
 	  klasse_read7.registrering[1].relationer
@@ -873,7 +860,7 @@ RETURN NEXT ok( coalesce(array_length((klasse_read8.registrering[1]).tilsPublice
 --restore "some" tilstande
 update_reg_id:=as_update_klasse(
 	  new_uuid, '1847ccbc-de05-401f-a7a8-736a4bc8e301'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
@@ -894,13 +881,13 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-6ffd-4971-81cb-90b91dfe17fb'::uuid,'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  klasse_read9.registrering[1].attrEgenskaber,
 	  klasse_read9.registrering[1].tilsPubliceret,
 	  null--klasse_read8.registrering[1].relationer
 	  ,lower(((klasse_read9.registrering[1]).registrering).TimePeriod)
 		);
-	
+
 		RETURN NEXT ok(false,'Test null relationer array will not trigger update #1');
 	EXCEPTION WHEN SQLSTATE 'MO400' THEN
 		RETURN NEXT ok(true,'Test null relationer array will not trigger update #1');
@@ -921,7 +908,7 @@ RETURN NEXT ok( coalesce(array_length((klasse_read10.registrering[1]).relationer
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, 'cd7473d3-6ffd-4971-81cb-90b91dfe17fb'::uuid,'Test if clearing relationer works'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  klasse_read10.registrering[1].attrEgenskaber,
 	  klasse_read10.registrering[1].tilsPubliceret,
 	  array[]::KlasseRelationType[] --klasse_read10.registrering[1].relationer
@@ -941,7 +928,7 @@ RETURN NEXT ok( coalesce(array_length((klasse_read11.registrering[1]).relationer
 --restore "a" relation
 update_reg_id:=as_update_klasse(
 	  new_uuid, '1847ccbc-de05-401f-a7a8-736a4bc8e301'::uuid,'Restore relation'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[klasseEgenskabC,klasseEgenskabD,klasseEgenskabE]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
@@ -960,17 +947,16 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, uuid_generate_v4(),'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[
 	  ROW(
 		   'brugervendt_noegle_A',
 		   NULL, --'klassebeskrivelse_text1',
 		   NULL, --'eksempel_text1',
-		   NULL, --NOTICE!!	'omfang_C', 
+		   NULL, --NOTICE!!	'omfang_C',
 		   'titel_C',
 		   'retskilde_C',
 		   'aendringsnotat_C',
-		   'integrationsdata_C',
 		   ARRAY[]::KlasseSoegeordType[], --soegeord
 		   virkEgenskaberC
 	  )::KlasseEgenskaberAttrType
@@ -980,10 +966,10 @@ update_reg_id:=as_update_klasse(
 	  ,lower(((klasse_read12.registrering[1]).registrering).TimePeriod)
 		);
 
-RETURN NEXT ok(false,'test as_update_klasse - Test that nulling a single attr egenskab field will not trigger an update #1'); 
+RETURN NEXT ok(false,'test as_update_klasse - Test that nulling a single attr egenskab field will not trigger an update #1');
 
 	EXCEPTION WHEN SQLSTATE 'MO400' THEN
-			RETURN NEXT ok(true,'test as_update_klasse - Test that nulling a single attr egenskab field will not trigger an update #1.'); 
+			RETURN NEXT ok(true,'test as_update_klasse - Test that nulling a single attr egenskab field will not trigger an update #1.');
 
 --TODO: Test if nulling a value is enough to trigger update
 
@@ -1004,17 +990,16 @@ END;
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, uuid_generate_v4(),'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[
 	  ROW(
 		   'brugervendt_noegle_text1',
 		   NULL, --'klassebeskrivelse_text1',
 		   'eksempel_textC_new', --NOTICE--'eksempel_text1',
-		   'omfang_C', -- 'omfang_C', 
+		   'omfang_C', -- 'omfang_C',
 		   'titel_C',
 		   'retskilde_C',
 		   'aendringsnotat_C',
-		   'integrationsdata_C',
 		   ARRAY[]::KlasseSoegeordType[], --soegeord
 		   virkEgenskaberC
 	  )::KlasseEgenskaberAttrType
@@ -1041,17 +1026,16 @@ RETURN NEXT ok((klasse_read14.registrering[1]).attrEgenskaber[3].eksempel='eksem
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, uuid_generate_v4(),'Test update'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[
 	  ROW(
 		   'brugervendt_noegle_text1',
 		   NULL, --'klassebeskrivelse_text1',
 		   '', --NOTICE--'eksempel_text1',
-		   'omfang_C', -- 'omfang_C', 
+		   'omfang_C', -- 'omfang_C',
 		   'titel_C',
 		   'retskilde_C',
 		   'aendringsnotat_C',
-		   'integrationsdata_C',
 		   ARRAY[]::KlasseSoegeordType[], --soegeord
 		   virkEgenskaberC
 	  )::KlasseEgenskaberAttrType
@@ -1101,8 +1085,7 @@ klasseEgenskabA := ROW (
    'titel_A',
    'retskilde_A',
    NULL,--'aendringsnotat_text1',
-   'integrationsdata_A',
-   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[], 
+   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[],
    virkEgenskaber
 ) :: KlasseEgenskaberAttrType
 ;
@@ -1116,7 +1099,6 @@ klasseEgenskabB := ROW (
    'titel_B',
    'retskilde_B',
    NULL, --aendringsnotat
-   'integrationsdata_B',
     ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
    virkEgenskaberB
 ) :: KlasseEgenskaberAttrType
@@ -1127,17 +1109,17 @@ BEGIN
 
 update_reg_id:=as_update_klasse(
 	  new_uuid, '7518d4d2-5523-47cc-9a15-f5f5db072bc3'::uuid,'Test update 89'::text,
-	  'Rettet'::Livscykluskode,          
+	  'Rettet'::Livscykluskode,
 	  array[klasseEgenskabA,klasseEgenskabB]::KlasseEgenskaberAttrType[],
 	  array[klassePubliceretC]::KlassePubliceretTilsType[],
 	  array[klasseRelAnsvarlig]::KlasseRelationType[]
 	  ,lower(((klasse_read15.registrering[1]).registrering).TimePeriod)
 		);
-	
-	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with egenskaber with overlapping virkning.'); 
+
+	RETURN NEXT ok(false,'test as_update_klasse - NO exception was triggered by updating klasse with egenskaber with overlapping virkning.');
 
 	EXCEPTION WHEN SQLSTATE 'MO400' THEN
-			RETURN NEXT ok(true,'test as_update_klasse - caught exception triggered by updating klasse with egenskaber with overlapping virkning.'); 
+			RETURN NEXT ok(true,'test as_update_klasse - caught exception triggered by updating klasse with egenskaber with overlapping virkning.');
 
 END;
 
