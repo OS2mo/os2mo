@@ -543,7 +543,10 @@ async def create_or_update_class(
 
 def is_class_primary(mo_class: dict) -> bool:
     try:
-        return mo_class[mapping.USER_KEY] == mapping.PRIMARY
+        return mo_class[mapping.USER_KEY] in (
+            mapping.PRIMARY,
+            mapping.EXPLICITLY_PRIMARY,
+        )
     except KeyError:
         return False
 
