@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.36.1 - 2022-06-30
+-------------------
+
+[#50839] Fixes the "is_primary" flag in engagements when reading with GraphQL.
+
 4.36.0 - 2022-06-23
 -------------------
 
