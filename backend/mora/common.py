@@ -623,7 +623,7 @@ def create_klasse_payload(
     title: str,
     facet_uuid: uuid.UUID,
     org_uuid: uuid.UUID,
-    org_unit_uuid: typing.Optional[uuid.UUID] = None,
+    owner: typing.Optional[uuid.UUID] = None,
     description: typing.Optional[str] = None,
     scope: typing.Optional[str] = None,
     parent_uuid: typing.Optional[uuid.UUID] = None,
@@ -649,9 +649,6 @@ def create_klasse_payload(
     }
     relationer = {
         "facet": [{"uuid": facet_uuid, "virkning": virkning, "objekttype": "Facet"}],
-        "overordnetklasse": [
-            {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
-        ],
         "ansvarlig": [
             {
                 "uuid": org_uuid,
@@ -659,18 +656,19 @@ def create_klasse_payload(
                 "objekttype": "Organisation",
             }
         ],
-        "ejer": [
+    }
+    if parent_uuid:
+        relationer["overordnetklasse"] = [
+            {"uuid": parent_uuid, "virkning": virkning, "objekttype": "Klasse"}
+        ]
+    if owner:
+        relationer["ejer"] = [
             {
-                "uuid": org_unit_uuid,
+                "uuid": owner,
                 "virkning": virkning,
                 "objekttype": "OrganisationEnhed",
             }
-        ],
-    }
-    if parent_uuid is None:
-        del relationer["overordnetklasse"]
-    if org_unit_uuid is None:
-        del relationer["ejer"]
+        ]
     klasse = {
         "attributter": attributter,
         "relationer": relationer,
