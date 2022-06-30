@@ -3,11 +3,13 @@
 import os
 from typing import List
 
+from alembic import command
+from alembic import op
+from alembic.config import Config
 from psycopg2.errors import UndefinedTable
+from sqlalchemy.orm import sessionmaker
 
 from . import get_connection
-from alembic import command
-from alembic.config import Config
 
 
 def get_alembic_cfg() -> Config:
@@ -91,3 +93,14 @@ def truncate_all_tables():
     """
     with get_connection() as connection, connection.cursor() as cursor:
         return cursor.execute(truncate_all, (schema_name,))
+
+
+def apply_sql_from_file(relpath: str):
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "alembic", "versions", relpath
+    )
+    with open(path) as sql:
+        Session = sessionmaker()
+        bind = op.get_bind()
+        session = Session(bind=bind)
+        session.execute(sql.read())
