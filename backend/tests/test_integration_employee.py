@@ -273,11 +273,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             Settings(cpr_validate_birthdate=cpr_validate_birthdate)
         ):
             r = await self.request("/service/e/create", json=payload)
-
-        userid = r.json()
-
-        expected = self._get_expected_response(first_name, last_name, cpr, valid_from)
-        actual = await c.bruger.get(userid)
+            userid = r.json()
+            expected = self._get_expected_response(
+                first_name, last_name, cpr, valid_from
+            )
+            actual = await c.bruger.get(userid)
 
         # Make sure the bvn is a valid UUID
         bvn = actual["attributter"]["brugeregenskaber"][0].pop("brugervendtnoegle")
@@ -569,11 +569,22 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "cpr": "1",
-                "description": "Not a valid CPR number.",
+                "description": "Invalid input.",
                 "error": True,
-                "error_key": "V_CPR_NOT_VALID",
+                "error_key": "E_INVALID_INPUT",
                 "status": 400,
+                "errors": [
+                    {
+                        "loc": ["body", "cpr_no"],
+                        "msg": "CPR string is invalid.",
+                        "type": "value_error",
+                    }
+                ],
+                "request": {
+                    "cpr_no": "1",
+                    "name": "Torkild Testperson",
+                    "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
+                },
             },
             json=payload,
             status_code=400,
@@ -615,8 +626,21 @@ class Tests(tests.cases.LoRATestCase):
             "description": "Invalid input.",
             "error": True,
             "error_key": "E_INVALID_INPUT",
-            "name": "Supply either name or given name/surame",
             "status": 400,
+            "errors": [
+                {
+                    "loc": ["__root__", "body"],
+                    "msg": "name and givenname/surname are mutually exclusive",
+                    "type": "value_error",
+                }
+            ],
+            "request": {
+                "givenname": "Torkild",
+                "surname": "Testperson",
+                "name": "Torkild Testperson",
+                "cpr_no": "0906340000",
+                "org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
+            },
         }
 
         self.assertRequestResponse(
@@ -641,9 +665,9 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "description": "Organisation is not allowed",
                 "uuid": "3dcb1072-482e-491e-a8ad-647991d0bfcf",
-                "status": 400,
                 "error_key": "E_ORG_NOT_ALLOWED",
                 "error": True,
+                "status": 400,
             },
             r.json(),
         )

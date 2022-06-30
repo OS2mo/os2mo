@@ -28,7 +28,6 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
-from ramodels.base import tz_isodate
 
 from . import autocomplete
 from . import handlers
@@ -46,6 +45,7 @@ from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.mo_employee_model import MOEmployeeWrite
+from ramodels.base import tz_isodate
 
 router = APIRouter()
 
@@ -63,23 +63,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
     role_type = "employee"
 
     async def prepare_create(self, req):
-        name = util.checked_get(req, mapping.NAME, "", required=False)
+        # name = util.checked_get(req, mapping.NAME, "", required=False)
         givenname = util.checked_get(req, mapping.GIVENNAME, "", required=False)
         surname = util.checked_get(req, mapping.SURNAME, "", required=False)
-
-        if name and (surname or givenname):
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                name="Supply either name or given name/surame"
-            )
-
-        if name:
-            givenname = name.rsplit(" ", maxsplit=1)[0]
-            surname = name[len(givenname) :].strip()
-
-        if (not name) and (not givenname) and (not surname):
-            raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                name="Missing name or givenname or surname"
-            )
 
         nickname_givenname, nickname_surname = self._handle_nickname(req)
 
@@ -687,8 +673,8 @@ async def create_employee(req: MOEmployeeWrite, permissions=Depends(oidc.rbac_ad
 
     """
     req_dict = req.dict(by_alias=True)
-    #req_dict.pop("name", None)
-    #req_dict.pop("nickname", None)
+    # req_dict.pop("name", None)
+    # req_dict.pop("nickname", None)
 
     request = await EmployeeRequestHandler.construct(
         jsonable_encoder(req_dict), mapping.RequestType.CREATE
