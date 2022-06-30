@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.37.0 - 2022-06-30
+-------------------
+
+[#51194] Align routes in docker/nginx.conf.template and backend/mora/app.py
+
 4.36.1 - 2022-06-30
 -------------------
 
