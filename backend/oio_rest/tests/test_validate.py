@@ -531,7 +531,7 @@ class TestGenerateJSONSchema(TestBase):
                             "properties": {
                                 "brugervendtnoegle": {"type": "string"},
                                 "organisationsnavn": {"type": "string"},
-                                "integrationsdata": {"type": "string"},
+
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -558,7 +558,7 @@ class TestGenerateJSONSchema(TestBase):
                                 "brugervendtnoegle": {"type": "string"},
                                 "brugernavn": {"type": "string"},
                                 "brugertype": {"type": "string"},
-                                "integrationsdata": {"type": "string"},
+
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -604,7 +604,7 @@ class TestGenerateJSONSchema(TestBase):
                             "titel": {"type": "string"},
                             "retskilde": {"type": "string"},
                             "aendringsnotat": {"type": "string"},
-                            "integrationsdata": {"type": "string"},
+
                             "soegeord": {
                                 "type": "array",
                                 "items": {"type": "array", "items": {"type": "string"}},
@@ -647,7 +647,7 @@ class TestGenerateJSONSchema(TestBase):
                                     "type": "array",
                                     "items": {"type": "string"},
                                 },
-                                "integrationsdata": {"type": "string"},
+
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -682,7 +682,7 @@ class TestGenerateJSONSchema(TestBase):
                                 "principiel": {"type": "boolean"},
                                 "kassationskode": {"type": "string"},
                                 "afleveret": {"type": "boolean"},
-                                "integrationsdata": {"type": "string"},
+
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": [
@@ -724,7 +724,7 @@ class TestGenerateJSONSchema(TestBase):
                                     "$ref": "#/definitions/" "offentlighedundtaget"
                                 },
                                 "titel": {"type": "string"},
-                                "integrationsdata": {"type": "string"},
+
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": [
@@ -1287,6 +1287,7 @@ class TestSchemaEndPoints(util.BaseTestCase):
         # app = create_app()
         # self.client = TestClient(app)
 
+    # TODO: Remove
     @unittest.expectedFailure
     async def test_schemas_unchanged(self):
         """Check that the schema have not changed from last commit. The
