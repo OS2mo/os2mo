@@ -96,17 +96,18 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel) -> list[Response[MOModel]]:
+async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
         model (MOModel): The MO model to parse into.
+        kwargs (Any): Additional query arguments passed to LoRa.
 
     Returns:
         List[MOModel]: List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
-    results = await search_role_type(mo_type)
+    results = await search_role_type(mo_type, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
     return list(starmap(Response, uuid_map.items()))

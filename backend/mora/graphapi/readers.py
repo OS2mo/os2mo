@@ -50,12 +50,18 @@ def _extract_search_params(
     return args
 
 
-async def search_role_type(role_type: str) -> list[dict[str, Any]]:
+async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]]:
     connector = get_connector()
     handler = get_handler_for_type(role_type)
     return await handler.get(
         c=connector,
-        search_fields=_extract_search_params(query_args={"at": None, "validity": None}),
+        search_fields=_extract_search_params(
+            query_args={
+                "at": None,
+                "validity": None,
+                **kwargs,  # type: ignore
+            }
+        ),
         changed_since=None,
     )
 
