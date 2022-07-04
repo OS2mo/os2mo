@@ -127,7 +127,7 @@ default:
         DB_NAME: mox
         DB_USER: mox
         DB_PASSWORD: mox
-    - name: magentaaps/lora:4.7.1
+    - name: reg.magenta.dk/rammearkitektur/lora:2bab64c8d373e9f2169401a88f5c3d1d6e932b4f
       alias: mox
       variables:
         MAX_WORKERS: "1"
