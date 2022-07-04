@@ -86,14 +86,30 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
     if static:
 
         async def resolve_static(  # type: ignore
-            info: Info, uuids: Optional[list[UUID]] = None
+            info: Info,
+            uuids: Optional[list[UUID]] = None,
+            user_keys: Optional[list[str]] = None,
         ):
             """Resolve queries with no validity, i.e. class/facet/itsystem."""
             dates = get_date_interval(None, None)  # from -inf to inf
             set_graphql_dates(dates)
             if uuids is not None:
                 return await get_by_uuid(info.context[loader], uuids)
-            return await info.context[getter]()
+            kwargs = {}
+            if user_keys is not None:
+                # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the
+                # default is to 'AND' filters of the same name, i.e.
+                # 'http://lora?bvn=x&bvn=y' means "bvn is x AND Y", which is never true.
+                # Ideally, we'd use a different query parameter key for these queries -
+                # such as '&bvn~=foo' - but unfortunately such keys are hard-coded in a
+                # LOT of different places throughout LoRa. For this reason, it is easier
+                # to pass the sentinel in the VALUE at this point in time.
+                # Additionally, the values are regex-escaped since the joined string
+                # will be interpreted as one big regular expression in LoRa's SQL.
+                use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+                escaped_user_keys = (re.escape(k) for k in user_keys)
+                kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+            return await info.context[getter](**kwargs)
 
         return resolve_static
 
