@@ -3,7 +3,7 @@
         "facetegenskaber": [
             {
                 "brugervendtnoegle": "kle_number",
-                "integrationsdata": "",
+
                 "virkning": {
                     "from": "1900-01-01",
                     "to": "infinity"

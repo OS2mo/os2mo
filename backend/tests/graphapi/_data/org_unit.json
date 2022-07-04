@@ -20,7 +20,7 @@
                 {
                   "brugervendtnoegle": "Viuf skole",
                   "enhedsnavn": "Viuf skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -123,7 +123,7 @@
                 {
                   "brugervendtnoegle": "Lunderskov skole",
                   "enhedsnavn": "Lunderskov skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -226,7 +226,7 @@
                 {
                   "brugervendtnoegle": "Borgmesterens Afdeling",
                   "enhedsnavn": "Borgmesterens Afdeling",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -329,7 +329,7 @@
                 {
                   "brugervendtnoegle": "Teknisk Support",
                   "enhedsnavn": "Teknisk Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -432,7 +432,7 @@
                 {
                   "brugervendtnoegle": "Almind skole",
                   "enhedsnavn": "Almind skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -535,7 +535,7 @@
                 {
                   "brugervendtnoegle": "Hejls skole",
                   "enhedsnavn": "Hejls skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -638,7 +638,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -741,7 +741,7 @@
                 {
                   "brugervendtnoegle": "S\u00f8nder Stenderup skole",
                   "enhedsnavn": "S\u00f8nder Stenderup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -844,7 +844,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -947,7 +947,7 @@
                 {
                   "brugervendtnoegle": "Park og vej",
                   "enhedsnavn": "Park og vej",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1050,7 +1050,7 @@
                 {
                   "brugervendtnoegle": "Haderslev skole",
                   "enhedsnavn": "Haderslev skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1153,7 +1153,7 @@
                 {
                   "brugervendtnoegle": "Jordrup b\u00f8rnehus",
                   "enhedsnavn": "Jordrup b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1256,7 +1256,7 @@
                 {
                   "brugervendtnoegle": "Haderslev skole",
                   "enhedsnavn": "Haderslev skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1359,7 +1359,7 @@
                 {
                   "brugervendtnoegle": "Budget og Planl\u00e6gning",
                   "enhedsnavn": "Budget og Planl\u00e6gning",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1462,7 +1462,7 @@
                 {
                   "brugervendtnoegle": "Sommersted skole",
                   "enhedsnavn": "Sommersted skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1565,7 +1565,7 @@
                 {
                   "brugervendtnoegle": "S\u00f8nder Stenderup skole",
                   "enhedsnavn": "S\u00f8nder Stenderup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1668,7 +1668,7 @@
                 {
                   "brugervendtnoegle": "Teknik og Milj\u00f8",
                   "enhedsnavn": "Teknik og Milj\u00f8",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1771,7 +1771,7 @@
                 {
                   "brugervendtnoegle": "Social og sundhed",
                   "enhedsnavn": "Social og sundhed",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1874,7 +1874,7 @@
                 {
                   "brugervendtnoegle": "IT-Support",
                   "enhedsnavn": "IT-Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -1977,7 +1977,7 @@
                 {
                   "brugervendtnoegle": "Skoler og b\u00f8rnehaver",
                   "enhedsnavn": "Skoler og b\u00f8rnehaver",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2080,7 +2080,7 @@
                 {
                   "brugervendtnoegle": "S\u00f8nder Stenderup b\u00f8rnehus",
                   "enhedsnavn": "S\u00f8nder Stenderup b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2183,7 +2183,7 @@
                 {
                   "brugervendtnoegle": "Christiansfeld b\u00f8rnehus",
                   "enhedsnavn": "Christiansfeld b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2286,7 +2286,7 @@
                 {
                   "brugervendtnoegle": "Skole og B\u00f8rn",
                   "enhedsnavn": "Skole og B\u00f8rn",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2389,7 +2389,7 @@
                 {
                   "brugervendtnoegle": "Teknisk Support",
                   "enhedsnavn": "Teknisk Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2492,7 +2492,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2595,7 +2595,7 @@
                 {
                   "brugervendtnoegle": "Bjert skole",
                   "enhedsnavn": "Bjert skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2698,7 +2698,7 @@
                 {
                   "brugervendtnoegle": "Jordrup skole",
                   "enhedsnavn": "Jordrup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2801,7 +2801,7 @@
                 {
                   "brugervendtnoegle": "Hejls skole",
                   "enhedsnavn": "Hejls skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -2904,7 +2904,7 @@
                 {
                   "brugervendtnoegle": "Kantine",
                   "enhedsnavn": "Kantine",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3007,7 +3007,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3110,7 +3110,7 @@
                 {
                   "brugervendtnoegle": "Social Indsats",
                   "enhedsnavn": "Social Indsats",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3213,7 +3213,7 @@
                 {
                   "brugervendtnoegle": "Viuf b\u00f8rnehus",
                   "enhedsnavn": "Viuf b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3316,7 +3316,7 @@
                 {
                   "brugervendtnoegle": "Vamdrup skole",
                   "enhedsnavn": "Vamdrup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3419,7 +3419,7 @@
                 {
                   "brugervendtnoegle": "Haderslev b\u00f8rnehus",
                   "enhedsnavn": "Haderslev b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3522,7 +3522,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3625,7 +3625,7 @@
                 {
                   "brugervendtnoegle": "Teknisk Support",
                   "enhedsnavn": "Teknisk Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3728,7 +3728,7 @@
                 {
                   "brugervendtnoegle": "Lunderskov skole",
                   "enhedsnavn": "Lunderskov skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3831,7 +3831,7 @@
                 {
                   "brugervendtnoegle": "Teknisk Support",
                   "enhedsnavn": "Teknisk Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -3934,7 +3934,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4037,7 +4037,7 @@
                 {
                   "brugervendtnoegle": "Vamdrup b\u00f8rnehus",
                   "enhedsnavn": "Vamdrup b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4140,7 +4140,7 @@
                 {
                   "brugervendtnoegle": "Christiansfeld skole",
                   "enhedsnavn": "Christiansfeld skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4243,7 +4243,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4346,7 +4346,7 @@
                 {
                   "brugervendtnoegle": "Jordrup skole",
                   "enhedsnavn": "Jordrup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4449,7 +4449,7 @@
                 {
                   "brugervendtnoegle": "Skole og B\u00f8rn",
                   "enhedsnavn": "Skole og B\u00f8rn",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4552,7 +4552,7 @@
                 {
                   "brugervendtnoegle": "Egtved skole",
                   "enhedsnavn": "Egtved skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4655,7 +4655,7 @@
                 {
                   "brugervendtnoegle": "Christiansfeld skole",
                   "enhedsnavn": "Christiansfeld skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4758,7 +4758,7 @@
                 {
                   "brugervendtnoegle": "Lunderskov b\u00f8rnehus",
                   "enhedsnavn": "Lunderskov b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4861,7 +4861,7 @@
                 {
                   "brugervendtnoegle": "Sj\u00f8lund skole",
                   "enhedsnavn": "Sj\u00f8lund skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -4964,7 +4964,7 @@
                 {
                   "brugervendtnoegle": "Vamdrup skole",
                   "enhedsnavn": "Vamdrup skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5067,7 +5067,7 @@
                 {
                   "brugervendtnoegle": "IT-Support",
                   "enhedsnavn": "IT-Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5170,7 +5170,7 @@
                 {
                   "brugervendtnoegle": "Egtved b\u00f8rnehus",
                   "enhedsnavn": "Egtved b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5273,7 +5273,7 @@
                 {
                   "brugervendtnoegle": "Viuf skole",
                   "enhedsnavn": "Viuf skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5376,7 +5376,7 @@
                 {
                   "brugervendtnoegle": "HR og organisation",
                   "enhedsnavn": "HR og organisation",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5479,7 +5479,7 @@
                 {
                   "brugervendtnoegle": "Social Indsats",
                   "enhedsnavn": "Social Indsats",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5582,7 +5582,7 @@
                 {
                   "brugervendtnoegle": "IT-Support",
                   "enhedsnavn": "IT-Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5685,7 +5685,7 @@
                 {
                   "brugervendtnoegle": "Social og sundhed",
                   "enhedsnavn": "Social og sundhed",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5788,7 +5788,7 @@
                 {
                   "brugervendtnoegle": "Kolding skole",
                   "enhedsnavn": "Kolding skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5891,7 +5891,7 @@
                 {
                   "brugervendtnoegle": "Bjert b\u00f8rnehus",
                   "enhedsnavn": "Bjert b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -5994,7 +5994,7 @@
                 {
                   "brugervendtnoegle": "Hejls b\u00f8rnehus",
                   "enhedsnavn": "Hejls b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6097,7 +6097,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6200,7 +6200,7 @@
                 {
                   "brugervendtnoegle": "Sj\u00f8lund b\u00f8rnehus",
                   "enhedsnavn": "Sj\u00f8lund b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6303,7 +6303,7 @@
                 {
                   "brugervendtnoegle": "Borgmesterens Afdeling",
                   "enhedsnavn": "Borgmesterens Afdeling",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6406,7 +6406,7 @@
                 {
                   "brugervendtnoegle": "Almind skole",
                   "enhedsnavn": "Almind skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6509,7 +6509,7 @@
                 {
                   "brugervendtnoegle": "Almind b\u00f8rnehus",
                   "enhedsnavn": "Almind b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6612,7 +6612,7 @@
                 {
                   "brugervendtnoegle": "Kolding skole",
                   "enhedsnavn": "Kolding skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6715,7 +6715,7 @@
                 {
                   "brugervendtnoegle": "Teknik og Milj\u00f8",
                   "enhedsnavn": "Teknik og Milj\u00f8",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6818,7 +6818,7 @@
                 {
                   "brugervendtnoegle": "Kloakering",
                   "enhedsnavn": "Kloakering",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -6921,7 +6921,7 @@
                 {
                   "brugervendtnoegle": "Skoler og b\u00f8rnehaver",
                   "enhedsnavn": "Skoler og b\u00f8rnehaver",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7024,7 +7024,7 @@
                 {
                   "brugervendtnoegle": "Egtved skole",
                   "enhedsnavn": "Egtved skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7127,7 +7127,7 @@
                 {
                   "brugervendtnoegle": "Sj\u00f8lund skole",
                   "enhedsnavn": "Sj\u00f8lund skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7230,7 +7230,7 @@
                 {
                   "brugervendtnoegle": "Renovation",
                   "enhedsnavn": "Renovation",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7333,7 +7333,7 @@
                 {
                   "brugervendtnoegle": "Bjert skole",
                   "enhedsnavn": "Bjert skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7436,7 +7436,7 @@
                 {
                   "brugervendtnoegle": "Kolding b\u00f8rnehus",
                   "enhedsnavn": "Kolding b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7539,7 +7539,7 @@
                 {
                   "brugervendtnoegle": "Sommersted skole",
                   "enhedsnavn": "Sommersted skole",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7642,7 +7642,7 @@
                 {
                   "brugervendtnoegle": "Erhverv",
                   "enhedsnavn": "Erhverv",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7745,7 +7745,7 @@
                 {
                   "brugervendtnoegle": "Kantine",
                   "enhedsnavn": "Kantine",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7848,7 +7848,7 @@
                 {
                   "brugervendtnoegle": "Kantine",
                   "enhedsnavn": "Kantine",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -7951,7 +7951,7 @@
                 {
                   "brugervendtnoegle": "IT-Support",
                   "enhedsnavn": "IT-Support",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8054,7 +8054,7 @@
                 {
                   "brugervendtnoegle": "Kolding Kommune",
                   "enhedsnavn": "Kolding Kommune",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8157,7 +8157,7 @@
                 {
                   "brugervendtnoegle": "Byudvikling",
                   "enhedsnavn": "Byudvikling",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8260,7 +8260,7 @@
                 {
                   "brugervendtnoegle": "Sommersted b\u00f8rnehus",
                   "enhedsnavn": "Sommersted b\u00f8rnehus",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8363,7 +8363,7 @@
                 {
                   "brugervendtnoegle": "L\u00f8norganisation",
                   "enhedsnavn": "L\u00f8norganisation",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8466,7 +8466,7 @@
                 {
                   "brugervendtnoegle": "Belysning",
                   "enhedsnavn": "Belysning",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
@@ -8569,7 +8569,7 @@
                 {
                   "brugervendtnoegle": "Administration",
                   "enhedsnavn": "Administration",
-                  "integrationsdata": "{}",
+
                   "virkning": {
                     "from": "1960-01-01 00:00:00+01",
                     "to": "infinity",
