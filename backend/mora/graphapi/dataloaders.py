@@ -22,8 +22,6 @@ from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
-from ramodels.lora.facet import FacetRead as LFacetRead
-from ramodels.lora.klasse import KlasseRead
 from strawberry.dataloader import DataLoader
 
 from mora.common import get_connector
@@ -49,7 +47,9 @@ from mora.graphapi.schema import Response
 from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
-from mora.service.data_models.mo_orgunit_model import MOOrgUnitWrite
+from ramodels.lora.facet import FacetRead as LFacetRead
+from ramodels.lora.klasse import KlasseRead
+from ramodels.mo.organisation_unit import OrganisationUnitWrite
 
 
 # --------------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ MOModel = TypeVar(
     OrganisationUnitRead,
     RoleRead,
     RelatedUnitRead,
-    MOOrgUnitWrite,
+    OrganisationUnitWrite,
 )
 
 RoleType = TypeVar("RoleType")

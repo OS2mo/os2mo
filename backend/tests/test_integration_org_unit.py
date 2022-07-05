@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import unittest
 from itertools import cycle
+from uuid import UUID
 
 import freezegun
 import notsouid
@@ -3055,11 +3056,12 @@ class Tests(tests.cases.LoRATestCase):
             "details": [],
         }
 
-        self.assertRequestResponse(
+        res = self.assertRequest(
             "/service/ou/create",
             json=payload,
-            expected="f494ad89-039d-478e-91f2-a63566554bd6",
         )
+
+        self.assertEqual(type(UUID(res)), UUID)
 
     def test_tree(self):
         for path, expected in util.get_fixture("test_trees.json").items():

@@ -52,7 +52,7 @@ from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.util import get_configuration
-from mora.service.data_models.mo_orgunit_model import MOOrgUnitWrite
+from ramodels.mo import OrganisationUnitWrite
 
 router = APIRouter()
 
@@ -1007,7 +1007,9 @@ async def list_orgunit_tree(
 
 
 @router.post("/ou/create", status_code=201)
-async def create_org_unit(req: MOOrgUnitWrite, permissions=Depends(oidc.rbac_owner)):
+async def create_org_unit(
+    req: OrganisationUnitWrite, permissions=Depends(oidc.rbac_owner)
+):
     """Creates new organisational unit
 
     .. :quickref: Unit; Create
