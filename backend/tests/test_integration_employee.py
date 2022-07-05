@@ -549,10 +549,17 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/e/create",
             {
-                "description": "Missing required value.",
+                "description": "Invalid input.",
                 "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "name": "Missing name or givenname or surname",
+                "error_key": "E_INVALID_INPUT",
+                "errors": [
+                    {
+                        "loc": ["body", "org"],
+                        "msg": "field required",
+                        "type": "value_error.missing",
+                    }
+                ],
+                "request": {},
                 "status": 400,
             },
             json=payload,
@@ -675,7 +682,7 @@ class Tests(tests.cases.LoRATestCase):
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.
         Also add three names to a single name parameter and check
-        it will be split on lest space."""
+        it will be split on last space."""
         employee_uuid = "f7bcc7b1-381a-4f0e-a3f5-48a7b6eedf1c"
 
         payload = {
