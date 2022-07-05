@@ -284,7 +284,7 @@ def is_contained_in_range(
 @forceable
 async def is_movable_org_unit(unitid):
     # Do not allow moving of the root org unit
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    c = lora.Connector()
 
     unit = await c.organisationenhed.get(unitid)
 
