@@ -321,28 +321,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "name": "Fake Corp",
             "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
             "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-            "addresses": [
-                {
-                    "address_type": {
-                        "example": "20304060",
-                        "name": "Telefon",
-                        "scope": "PHONE",
-                        "user_key": "Telefon",
-                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                    },
-                    "value": "11 22 33 44",
-                },
-                {
-                    "address_type": {
-                        "example": "<UUID>",
-                        "name": "Adresse",
-                        "scope": "DAR",
-                        "user_key": "Adresse",
-                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                    },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                },
-            ],
             "validity": {
                 "from": "2017-01-01",
                 "to": "2017-12-31",
@@ -2206,28 +2184,6 @@ class Tests(tests.cases.LoRATestCase):
             "name": "Fake Corp",
             "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
             "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-            "addresses": [
-                {
-                    "address_type": {
-                        "example": "20304060",
-                        "name": "Telefon",
-                        "scope": "PHONE",
-                        "user_key": "Telefon",
-                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                    },
-                    "value": "11 22 33 44",
-                },
-                {
-                    "address_type": {
-                        "example": "<UUID>",
-                        "name": "Adresse",
-                        "scope": "DAR",
-                        "user_key": "Adresse",
-                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                    },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                },
-            ],
             "validity": {
                 "from": "2010-02-04",
                 "to": "2017-10-21",
@@ -2408,7 +2364,6 @@ class Tests(tests.cases.LoRATestCase):
             "name": "Fake Corp",
             "parent": {"uuid": "00000000-0000-0000-0000-000000000000"},
             "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-            "addresses": [],
             "validity": {
                 "from": "2017-01-01",
                 "to": "2018-01-01",
