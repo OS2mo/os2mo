@@ -18,16 +18,33 @@ from ramodels.mo._shared import MOBase
 # --------------------------------------------------------------------------------------
 
 
-class ClassRead(MOBase):
-    """A MO Class read object."""
+class ClassBase(MOBase):
+    """A MO class base object."""
 
+    # uuid and user_key is inherited from MOBase
+
+    # type is always "class"
     type_: str = Field("class", alias="type", description="The object type")
-    name: str = Field(description="Name/title of the class.")
-    user_key: str = Field(description="Short, unique key.")
-    facet_uuid: UUID = Field(description="UUID of the related facet.")
-    org_uuid: UUID = Field(description="UUID of the related organisation.")
+    # These are always Optional:
     scope: Optional[str] = Field(description="Scope of the class.")
     published: Optional[str] = Field(description="Published state of the class object.")
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
     example: Optional[str] = Field(description="Example usage.")
     owner: Optional[UUID] = Field(description="Owner of class")
+
+
+class ClassRead(ClassBase):
+    """A MO Class read object."""
+
+    name: str = Field(description="Name/title of the class.")
+    facet_uuid: UUID = Field(description="UUID of the related facet.")
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+
+
+class ClassWrite(ClassBase):
+
+    """A MO Class write object."""
+
+    name: Optional[str] = Field(description="Name/title of the class.")
+    facet_uuid: Optional[UUID] = Field(description="UUID of the related facet.")
+    org_uuid: Optional[UUID] = Field(description="UUID of the related organisation.")
