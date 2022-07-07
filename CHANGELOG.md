@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.2.0 - 2022-07-07
+------------------
+
+[#50818] Add Facet Write Model
+
 7.1.0 - 2022-07-07
 ------------------
 
