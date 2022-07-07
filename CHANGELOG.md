@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.1.0 - 2022-07-07
+------------------
+
+[#51177] Add a ClassWrite model. Removed FacetClass model.
+
 7.0.2 - 2022-06-15
 ------------------
 
