@@ -112,24 +112,49 @@ def testing_db():
 
 
 @pytest.fixture
-async def sample_structures_no_reset(testing_db):
+async def sample_structures():
     """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=False)
-    yield
+    _mox_testing_api("db-setup")
+    response = _mox_testing_api("db-has-template?template_name=sample_structure")
+    has_template = response.json()["template_exists"]
+    if has_template:
+        _mox_testing_api("db-load-template?template_name=sample_structure")
+    else:
+        await load_sample_structures(minimal=False)
+        _mox_testing_api("db-create-template?template_name=sample_structure")
 
-
-@pytest.fixture
-async def sample_structures(testing_db):
-    """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=False)
     yield
     _mox_testing_api("db-reset")
 
 
 @pytest.fixture
-async def sample_structures_minimal(testing_db):
+async def sample_structures_no_reset():
     """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=True)
+    _mox_testing_api("db-setup")
+    response = _mox_testing_api("db-has-template?template_name=sample_structure")
+    has_template = response.json()["template_exists"]
+    if has_template:
+        _mox_testing_api("db-load-template?template_name=sample_structure")
+    else:
+        await load_sample_structures(minimal=False)
+        _mox_testing_api("db-create-template?template_name=sample_structure")
+    yield
+
+
+@pytest.fixture
+async def sample_structures_minimal():
+    """Function scoped fixture, which is called on every test with a teardown"""
+    _mox_testing_api("db-setup")
+    response = _mox_testing_api(
+        "db-has-template?template_name=sample_structure_minimal"
+    )
+    has_template = response.json()["template_exists"]
+    if has_template:
+        _mox_testing_api("db-load-template?template_name=sample_structure_minimal")
+    else:
+        await load_sample_structures(minimal=True)
+        _mox_testing_api("db-create-template?template_name=sample_structure_minimal")
+
     yield
     _mox_testing_api("db-reset")
 

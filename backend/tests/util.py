@@ -45,9 +45,11 @@ jinja_env = jinja2.Environment(
 def _mox_testing_api(method):
     """Calls MOX `testing/<method>` REST API."""
     r = requests.get(config.get_settings().lora_url + "testing/" + method)
+
     if r.status_code == 404:
         raise ImproperlyConfigured("LORAs testing API returned 404. Is it enabled?")
     r.raise_for_status()
+    return r
 
 
 def jsonfile_to_dict(path):
