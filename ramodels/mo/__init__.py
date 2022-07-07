@@ -11,10 +11,10 @@ from ._shared import MORef
 from ._shared import OpenValidity
 from ._shared import Validity
 from .class_ import ClassRead
+from .class_ import ClassWrite
 from .employee import Employee
 from .employee import EmployeeRead
 from .employee import EmployeeWrite
-from .facet import FacetClass
 from .facet import FacetRead
 from .organisation import OrganisationRead
 from .organisation_unit import OrganisationUnit
@@ -27,10 +27,10 @@ from .organisation_unit import OrganisationUnitWrite
 
 __all__ = [
     "ClassRead",
+    "ClassWrite",
     "Employee",
     "EmployeeRead",
     "EmployeeWrite",
-    "FacetClass",
     "FacetRead",
     "MOBase",
     "MORef",
