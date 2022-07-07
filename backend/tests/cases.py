@@ -41,7 +41,11 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         self.lifespanmanager = LifespanManager(self.app)
         await self.lifespanmanager.__aenter__()
 
-        self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
+        self.client = httpx.AsyncClient(
+            app=self.app,
+            base_url="http://localhost:5000",
+            timeout=config.get_settings().httpx_timeout,
+        )
         seed_clients_worker(self.app)
 
         # Bypass Keycloak per default
