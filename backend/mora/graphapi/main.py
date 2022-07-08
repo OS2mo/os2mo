@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 import re
 from asyncio import gather
-from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -65,6 +64,8 @@ from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
+from mora.graphapi.types import CPRType
+from mora.util import CPR
 
 
 # --------------------------------------------------------------------------------------
@@ -72,48 +73,68 @@ from mora.graphapi.schema import Version
 # --------------------------------------------------------------------------------------
 
 
-def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
-    """Create a field resolver by specifying getter and loader.
+class StaticResolver:
+    def __init__(self, getter: str, loader: str) -> None:
+        """Create a field resolver by specifying getter and loader.
 
-    Args:
-        getter: Name of the getter to use.
-        loader: Name of the loader to use.
+        Args:
+            getter: Name of the getter to use.
+            loader: Name of the loader to use.
+        """
+        self.getter = getter
+        self.loader = loader
 
-    Returns:
-        Callable: Resolver using specified getters/loaders from
-            the context.
-    """
-    if static:
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        user_keys: Optional[list[str]] = None,
+    ):
+        """Resolve queries with no validity, i.e. class/facet/itsystem.
 
-        async def resolve_static(  # type: ignore
-            info: Info,
-            uuids: Optional[list[UUID]] = None,
-            user_keys: Optional[list[str]] = None,
-        ):
-            """Resolve queries with no validity, i.e. class/facet/itsystem."""
-            dates = get_date_interval(None, None)  # from -inf to inf
-            set_graphql_dates(dates)
-            if uuids is not None:
-                return await get_by_uuid(info.context[loader], uuids)
-            kwargs = {}
-            if user_keys is not None:
-                # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the
-                # default is to 'AND' filters of the same name, i.e.
-                # 'http://lora?bvn=x&bvn=y' means "bvn is x AND Y", which is never true.
-                # Ideally, we'd use a different query parameter key for these queries -
-                # such as '&bvn~=foo' - but unfortunately such keys are hard-coded in a
-                # LOT of different places throughout LoRa. For this reason, it is easier
-                # to pass the sentinel in the VALUE at this point in time.
-                # Additionally, the values are regex-escaped since the joined string
-                # will be interpreted as one big regular expression in LoRa's SQL.
-                use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-                escaped_user_keys = (re.escape(k) for k in user_keys)
-                kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
-            return await info.context[getter](**kwargs)
+        Uses getters/loaders from the context.
+        """
+        return await self._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=None,  # from -inf
+            to_date=None,  # to inf
+        )
 
-        return resolve_static
+    async def _resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        user_keys: Optional[list[str]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = UNSET,
+        **kwargs: Any,
+    ):
+        """The internal resolve interface, allowing for kwargs."""
+        dates = get_date_interval(from_date, to_date)
+        set_graphql_dates(dates)
+        if uuids is not None:
+            return await get_by_uuid(info.context[self.loader], uuids)
+        if user_keys is not None:
+            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
+            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
+            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
+            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
+            # such keys are hard-coded in a LOT of different places throughout LoRa.
+            # For this reason, it is easier to pass the sentinel in the VALUE at this
+            # point in time.
+            # Additionally, the values are regex-escaped since the joined string will be
+            # interpreted as one big regular expression in LoRa's SQL.
+            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+            escaped_user_keys = (re.escape(k) for k in user_keys)
+            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+        return await info.context[self.getter](**kwargs)
 
-    async def resolve_query(  # type: ignore
+
+class Resolver(StaticResolver):
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
         info: Info,
         uuids: Optional[list[UUID]] = None,
         user_keys: Optional[list[str]] = None,
@@ -137,27 +158,42 @@ def create_resolver(getter: str, loader: str, static: bool = False) -> Callable:
             The default behaviour of from_date and to_date, i.e. both being
             UNSET, is equivalent to validity=present in the service API.
         """
-        dates = get_date_interval(from_date, to_date)
-        set_graphql_dates(dates)
-        if uuids is not None:
-            return await get_by_uuid(info.context[loader], uuids)
-        kwargs = {}
-        if user_keys is not None:
-            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
-            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-            # such keys are hard-coded in a LOT of different places throughout LoRa.
-            # For this reason, it is easier to pass the sentinel in the VALUE at this
-            # point in time.
-            # Additionally, the values are regex-escaped since the joined string will be
-            # interpreted as one big regular expression in LoRa's SQL.
-            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-            escaped_user_keys = (re.escape(k) for k in user_keys)
-            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
-        return await info.context[getter](**kwargs)
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+        )
 
-    return resolve_query
+
+class EmployeeResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("employee_getter", "employee_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        user_keys: Optional[list[str]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = UNSET,
+        cpr_numbers: Optional[list[CPR]] = None,
+    ):
+        """Resolve an employee query, optionally filtering on CPR numbers."""
+        kwargs = {}
+        if cpr_numbers is not None:
+            kwargs["tilknyttedepersoner"] = [
+                f"urn:dk:cpr:person:{c}" for c in cpr_numbers
+            ]
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -172,86 +208,86 @@ class Query:
     # Addresses
     # ---------
     addresses: list[Response[Address]] = strawberry.field(
-        resolver=create_resolver("address_getter", "address_loader"),
+        resolver=Resolver("address_getter", "address_loader").resolve,
         description="Get a list of all addresses, optionally by uuid(s)",
     )
 
     # Associations
     # ---------
     associations: list[Response[Association]] = strawberry.field(
-        resolver=create_resolver("association_getter", "association_loader"),
+        resolver=Resolver("association_getter", "association_loader").resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
     )
 
     # Classes
     # -------
     classes: list[Class] = strawberry.field(
-        resolver=create_resolver("class_getter", "class_loader", static=True),
+        resolver=StaticResolver("class_getter", "class_loader").resolve,
         description="Get a list of all classes, optionally by uuid(s)",
     )
 
     # Employees
     # ---------
     employees: list[Response[Employee]] = strawberry.field(
-        resolver=create_resolver("employee_getter", "employee_loader"),
+        resolver=EmployeeResolver().resolve,
         description="Get a list of all employees, optionally by uuid(s)",
     )
 
     # Engagements
     # -----------
     engagements: list[Response[Engagement]] = strawberry.field(
-        resolver=create_resolver("engagement_getter", "engagement_loader"),
+        resolver=Resolver("engagement_getter", "engagement_loader").resolve,
         description="Get a list of all engagements, optionally by uuid(s)",
     )
 
     # EngagementsAssociations
     # -----------
     engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
-        resolver=create_resolver(
+        resolver=Resolver(
             "engagement_association_getter", "engagement_association_loader"
-        ),
+        ).resolve,
         description="Get a list of engagement associations",
     )
 
     # Facets
     # ------
     facets: list[Facet] = strawberry.field(
-        resolver=create_resolver("facet_getter", "facet_loader", static=True),
+        resolver=StaticResolver("facet_getter", "facet_loader").resolve,
         description="Get a list of all facets, optionally by uuid(s)",
     )
 
     # ITSystems
     # ---------
     itsystems: list[ITSystem] = strawberry.field(
-        resolver=create_resolver("itsystem_getter", "itsystem_loader", static=True),
+        resolver=StaticResolver("itsystem_getter", "itsystem_loader").resolve,
         description="Get a list of all ITSystems, optionally by uuid(s)",
     )
 
     # ITUsers
     # -------
     itusers: list[Response[ITUser]] = strawberry.field(
-        resolver=create_resolver("ituser_getter", "ituser_loader"),
+        resolver=Resolver("ituser_getter", "ituser_loader").resolve,
         description="Get a list of all ITUsers, optionally by uuid(s)",
     )
 
     # KLEs
     # ----
     kles: list[Response[KLE]] = strawberry.field(
-        resolver=create_resolver("kle_getter", "kle_loader"),
+        resolver=Resolver("kle_getter", "kle_loader").resolve,
         description="Get a list of all KLE's, optionally by uuid(s)",
     )
 
     # Leave
     # -----
     leaves: list[Response[Leave]] = strawberry.field(
-        resolver=create_resolver("leave_getter", "leave_loader"),
+        resolver=Resolver("leave_getter", "leave_loader").resolve,
         description="Get a list of all leaves, optionally by uuid(s)",
     )
 
     # Managers
     # --------
     managers: list[Response[Manager]] = strawberry.field(
-        resolver=create_resolver("manager_getter", "manager_loader"),
+        resolver=Resolver("manager_getter", "manager_loader").resolve,
         description="Get a list of all managers, optionally by uuid(s)",
     )
 
@@ -269,21 +305,21 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
-        resolver=create_resolver("org_unit_getter", "org_unit_loader"),
+        resolver=Resolver("org_unit_getter", "org_unit_loader").resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
     )
 
     # Related Units
     # ---------
     related_units: list[Response[RelatedUnit]] = strawberry.field(
-        resolver=create_resolver("rel_unit_getter", "rel_unit_loader"),
+        resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
         description="Get a list of related organisation units, optionally by uuid(s)",
     )
 
     # Roles
     # ---------
     roles: list[Response[Role]] = strawberry.field(
-        resolver=create_resolver("role_getter", "role_loader"),
+        resolver=Resolver("role_getter", "role_loader").resolve,
         description="Get a list of all roles, optionally by uuid(s)",
     )
 
@@ -435,6 +471,10 @@ def get_schema() -> strawberry.Schema:
         #
         # Additionally it preserves the naming of the underlying Python functions.
         config=StrawberryConfig(auto_camel_case=False),
+        # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
+        scalar_overrides={
+            CPR: CPRType,  # type: ignore
+        },
         extensions=[
             OpenTelemetryExtension,
             StarletteContextExtension,

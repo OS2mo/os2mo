@@ -284,21 +284,47 @@ def is_uuid(v):
 
 
 def is_cpr_number(v) -> bool:
-    settings = config.get_settings()
+    try:
+        CPR.validate(v)
+        return True
+    except ValueError:
+        return False
 
-    # First, check length of value given
-    len_ok = v and len(v) == 10
 
-    # Then, check birthdate
-    if settings.cpr_validate_birthdate:
-        try:
-            birthdate_ok = bool(get_cpr_birthdate(v))
-        except (TypeError, ValueError):
-            birthdate_ok = False
-    else:
-        birthdate_ok = True
+class CPR(str):
+    """CPR Validation.
 
-    return len_ok and birthdate_ok
+    Based on: https://pydantic-docs.helpmanual.io/usage/types/#custom-data-types.
+    """
+
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v: str):
+        settings = config.get_settings()
+
+        # First, check length of value given
+        len_ok = v and len(v) == 10
+        if not len_ok:
+            raise ValueError("Invalid length")
+
+        # Then, check birthdate
+        if settings.cpr_validate_birthdate:
+            try:
+                birthdate_ok = bool(get_cpr_birthdate(v))
+            except (TypeError, ValueError):
+                birthdate_ok = False
+        else:
+            birthdate_ok = True
+        if not birthdate_ok:
+            raise ValueError("Birthdate not ok")
+
+        return v
+
+    def __repr__(self):
+        return f"CPR({super().__repr__()})"
 
 
 def uniqueify(xs):
