@@ -64,6 +64,8 @@ from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
+from mora.graphapi.types import CPRType
+from mora.util import CPR
 
 
 # --------------------------------------------------------------------------------------
@@ -176,7 +178,7 @@ class EmployeeResolver(Resolver):
         user_keys: Optional[list[str]] = None,
         from_date: Optional[datetime] = UNSET,
         to_date: Optional[datetime] = UNSET,
-        cpr_numbers: Optional[list[str]] = None,
+        cpr_numbers: Optional[list[CPR]] = None,
     ):
         """Resolve an employee query, optionally filtering on CPR numbers."""
         kwargs = {}
@@ -469,6 +471,10 @@ def get_schema() -> strawberry.Schema:
         #
         # Additionally it preserves the naming of the underlying Python functions.
         config=StrawberryConfig(auto_camel_case=False),
+        # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
+        scalar_overrides={
+            CPR: CPRType,  # type: ignore
+        },
         extensions=[
             OpenTelemetryExtension,
             StarletteContextExtension,
