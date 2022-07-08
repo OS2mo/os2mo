@@ -127,10 +127,10 @@ default:
         DB_NAME: mox
         DB_USER: mox
         DB_PASSWORD: mox
-    - name: magentaaps/lora:4.7.2
+    - name: reg.magenta.dk/rammearkitektur/lora/feature:feature_50850_load_sample_data_as_little_as_possible
       alias: mox
       variables:
-        MAX_WORKERS: "1"
+        MAX_WORKERS: "8"
         TESTING_API: "true"
         LORA_AUTH: "false"
         DB_HOST: mox-db
