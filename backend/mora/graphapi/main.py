@@ -17,6 +17,8 @@ from typing import Optional
 from uuid import UUID
 
 import strawberry
+from fastapi import APIRouter
+from fastapi import Depends
 from pydantic import parse_obj_as
 from pydantic import ValidationError
 from strawberry.arguments import UNSET
@@ -26,6 +28,7 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
+from strawberry.extensions import Extension
 
 from mora.config import get_public_settings
 from mora.graphapi.dataloaders import get_loaders
@@ -34,6 +37,7 @@ from mora.graphapi.files import list_files
 from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import ConfigurationRead
 from mora.graphapi.models import FileRead
@@ -510,13 +514,67 @@ async def get_context() -> dict[str, Any]:
 def setup_graphql(enable_graphiql: bool = False) -> GraphQLRouter:
     schema = get_schema()
 
-    gql_router = GraphQLRouter(
+    router = APIRouter()
+
+    class fake_prefix(str):
+        def __bool__(self) -> bool:
+            return True
+
+        def startswith(self, value) -> bool:
+            return True
+
+        def endswith(self, value) -> bool:
+            return False
+    
+    class MyExtension(Extension):
+        @strawberry.field()
+        async def get_results(
+            self, identifiers: Optional[list[str]] = None
+        ) -> list[Health]:
+            query = """
+            query HealthQuery {
+                healths {
+                    data {
+                        identifier
+                        status
+                    }
+                }
+            }
+            """
+            r = await execute_graphql(query)
+            if r.errors:
+                raise ValueError(r.errors)
+            return list(map(Health.from_pydantic, r["healths"]["data"]))
+    
+    v1_router = GraphQLRouter(
         schema, context_getter=get_context, graphiql=enable_graphiql
     )
+    schema2 = strawberry.Schema(
+        query=Query, 
+        mutation=Mutation,
+        config=StrawberryConfig(auto_camel_case=False),
+        scalar_overrides={
+            CPR: CPRType,  # type: ignore
+        },
+        extensions=[
+            MyExtension,
+            OpenTelemetryExtension,
+            StarletteContextExtension
+        ],)
+    basic_router = GraphQLRouter(
+        schema2, context_getter=get_context, graphiql=enable_graphiql
+    )
+
+    router.include_router(
+        basic_router,
+        prefix=fake_prefix(""),
+        deprecated=True,
+    )
+    router.include_router(v1_router, prefix="/v1")
 
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically
     # updated with changes from other users.
     # For now however; it is left uncommented and unimplemented.
     # app.add_websocket_route("/subscriptions", graphql_app)
-    return gql_router
+    return router

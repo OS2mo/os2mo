@@ -78,7 +78,7 @@ service_api = {
 all_endpoints = (
     {
         "",
-        "/graphql",
+        "/graphql/v1",
         "/version/",
         "/saml/sso/",
     }

@@ -57,10 +57,8 @@ async def root() -> Dict[str, bool]:
     query = """
     query HealthQuery {
       healths {
-        data {
-            identifier
-            status
-        }
+        identifier
+        status
       }
     }
     """
@@ -69,7 +67,7 @@ async def root() -> Dict[str, bool]:
         raise ValueError(r.errors)
 
     return {
-        health["identifier"]: health["status"] for health in r.data["healths"]["data"]
+        health["identifier"]: health["status"] for health in r.data["healths"]
     }
 
 
@@ -78,9 +76,7 @@ async def healthcheck(identifier: str) -> Optional[bool]:
     query = """
     query HealthQuery($identifier: String!) {
       healths(identifiers: [$identifier]) {
-        data {
-            status
-        }
+        status
       }
     }
     """

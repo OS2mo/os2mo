@@ -57,13 +57,13 @@ class TestMiddleware:
 
     def test_is_graphql(self, graphapi_test):
         """Test that is_graphql is set on graphql requests."""
-        response = graphapi_test.post("/graphql", json={"query": "{ __typename }"})
+        response = graphapi_test.post("/graphql/v1", json={"query": "{ __typename }"})
         assert response.json()["extensions"]["is_graphql"]
 
     def test_graphql_dates_default(self, graphapi_test):
         """Test default GraphQL date arguments."""
         response = graphapi_test.post(
-            "/graphql", json={"query": "{ employees { uuid } }"}
+            "/graphql/v1", json={"query": "{ employees { uuid } }"}
         )
         data, errors = response.json().get("data"), response.json().get("errors")
         graphql_dates = response.json()["extensions"]["graphql_dates"]
@@ -86,7 +86,7 @@ class TestMiddleware:
                 }
                 """
         response = graphapi_test.post(
-            "/graphql",
+            "/graphql/v1",
             json={
                 "query": query,
                 "variables": {"from_date": dates.from_date, "to_date": dates.to_date},
@@ -118,7 +118,7 @@ class TestMiddleware:
                 """
         dates = jsonable_encoder(dates)
         response = graphapi_test_no_exc.post(
-            "/graphql",
+            "/graphql/v1",
             json={
                 "query": query,
                 "variables": {
@@ -140,7 +140,7 @@ class TestMiddleware:
 
         # Test the specific case where from is None and to is UNSET
         response = graphapi_test_no_exc.post(
-            "/graphql",
+            "/graphql/v1",
             json={"query": query, "variables": {"from_date": None}},
         )
         data, errors = response.json().get("data"), response.json().get("errors")
@@ -156,7 +156,7 @@ class TestMiddleware:
     def test_graphql_dates_to_lora(self, graphapi_test):
         """Test that GraphQL arguments propagate to the LoRa connector."""
         response = graphapi_test.post(
-            "/graphql", json={"query": "{ employees (to_date: null) { uuid } }"}
+            "/graphql/v1", json={"query": "{ employees (to_date: null) { uuid } }"}
         )
         lora_args = response.json()["extensions"]["lora_args"]
         assert lora_args["virkningfra"] == datetime.now(tz=tzutc()).isoformat()
