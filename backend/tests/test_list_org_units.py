@@ -12,13 +12,13 @@ from backend.mora.service.orgunit import list_orgunits
 
 @patch("backend.mora.service.orgunit.get_details_from_query_args")
 @given(st.lists(st.uuids()))
-async def test_org_unit_hierarcy(details_mock, hierarchies):
+async def test_org_unit_hierarchy(details_mock, hierarchies):
     common_mock = AsyncMock()
     orgid = uuid4()
     expected = [str(u) for u in hierarchies]
 
     with patch("backend.mora.common.get_connector", return_value=common_mock):
-        assert await list_orgunits(orgid=orgid, hierarcy_uuids=hierarchies)
+        assert await list_orgunits(orgid=orgid, hierarchy_uuids=hierarchies)
 
     if hierarchies:
         assert "opmærkning" in common_mock.organisationenhed.paged_get.call_args[1]
