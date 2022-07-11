@@ -60,6 +60,98 @@ services:
       OS2MO_AUTH: "false"
 ```
 
+## Debugging
+
+### VSCode
+
+In order to use breakpoints in VSCode while developing OS2Mo, a `.vscode/launch.json` and `.vscode/tasks.json` file is required. The launch file is for starting the debugger, but since the debugger needs a docker-container to run, we have a tasks file as well, which the launch files specifies as a requirement for it to run. In this file we specify two tasks: how to build the docker-container & how to run it.
+
+**.vscode/launch.json:**
+
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Docker: Python - Fastapi",
+            "type": "docker",
+            "request": "launch",
+            "preLaunchTask": "docker-run: debug",
+            "python": {
+                "pathMappings": [
+                    {
+                        "localRoot": "${workspaceFolder}",
+                        "remoteRoot": "/app"
+                    }
+                ],
+                "projectType": "fastapi"
+            }
+        }
+    ]
+}
+```
+
+**.vscode/tasks.json:**
+
+```json
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "docker-build",
+			"label": "docker-build",
+			"platform": "python",
+			"dockerBuild": {
+				"tag": "os2mo:latest",
+				"dockerfile": "${workspaceFolder}/docker/api.Dockerfile",
+				"context": "${workspaceFolder}",
+				"pull": true
+			}
+		},
+		{
+			"type": "docker-run",
+			"label": "docker-run: debug",
+			"dependsOn": [
+				"docker-build"
+			],
+			"python": {
+				"args": [
+					"--factory",
+					"mora.app:create_app",
+					"--reload",
+					"--host",
+					"0.0.0.0",
+					"--port",
+					"80",
+					"--log-level",
+					"info"
+				],
+				"module": "uvicorn"
+			},
+			"dockerRun": {
+				"envFiles": [
+					"${workspaceFolder}/dev-environment/os2mo.env"
+				],
+				"network": "os2mo_default",
+				"networkAlias": "mo"
+			}
+		}
+	]
+}
+```
+
+A lot of these configurations can be auto-generated using the vscode option: "**Docker: Initialize for Docker debugging**". The two files shown above will then be generated, but will not work out of the box, due to os2mo's file structure. To fix this we only need to update the `tasks.json`-file, since the auto-generated launch file is fine.
+
+The following changes have been made to above files
+
+* Fixed path to docker file, from `${workspaceFolder}/Dockerfile` to `${workspaceFolder}/docker/api.Dockerfile` in `<docker-build-task>`
+* Change `<docker-run-task>.python.args`, so the following will be executed: `uvicorn --factory mora.app:create_app --reload --host 0.0.0.0 --port 80 --log-level info`
+* Added entire `dockerRun` part to the `<docker-run-task>`
+  * Network added due to our reverse proxy using docker-container-names.
+  * NetworkAlias is so the docker-container created for debugging will take this network name, so the reverse-proxy hits the correct container.
+    * OBS: I started my container up while my old container `mo-1` was still running. It didn't seem to be a problem, but to be sure, i stopped that container. So now i am sure the reverse proxy always directs me to the debugging-container.
+
+
 
 ## Troubleshooting
 
