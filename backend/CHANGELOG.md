@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.40.0 - 2022-07-12
+-------------------
+
+[#51396] Adds filter on "list org units" endpoint to filter by org_unit_hierarchy
+
 4.39.0 - 2022-07-08
 -------------------
 
