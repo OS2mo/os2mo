@@ -784,6 +784,7 @@ async def list_orgunits(
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     root: Optional[str] = None,
+    hierarchy_uuids: Optional[List[UUID]] = Query(default=None),
     only_primary_uuid: Optional[bool] = None,
 ):
     """Query organisational units in an organisation.
@@ -869,6 +870,8 @@ async def list_orgunits(
 
     if query:
         kwargs.update(vilkaarligattr="%{}%".format(query))
+    if hierarchy_uuids:
+        kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
 
     uuid_filters = []
     if root:
