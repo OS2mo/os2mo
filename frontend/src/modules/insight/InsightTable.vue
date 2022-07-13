@@ -6,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
     <data-grid :data-list="table_data" :data-fields="table_fields" style="margin-top: 0; margin-bottom: 2rem;">
         <header class="insights-table-header" slot="datagrid-header">
             <h5 style="margin-top: 0.5rem">{{ table_title }}</h5>
-            <button class="btn" style="margin-left: 1rem;" @click="downloadCSVData">Download CSV</button>
+            <button class="btn" style="margin-left: 1rem;" @click="downloadCSVData">Download CSV (If download doesn't start, disable AdBlock)</button>
         </header>
     </data-grid>
 </template>
@@ -30,34 +30,32 @@ export default {
             // and it suffers from a general lack of filterability (ie lists all addresses).
             // This is NOT meant for production use.
             query: `{
-                employees(uuids: ["0004b952-a513-430b-b696-8d393d7eb2bb", "002a1aed-d015-4b86-86a4-c37cd8df1e18", "00556594-7be8-4c57-ba0a-9d2adefc8d1c", "00973369-2d8f-4120-bbaf-75f0e0f38534", "00b49064-259d-49b4-bc64-71ab9b07d88f", "01f80cbc-da79-45e8-8cb2-ee9582eae785"]) {
+                managers(uuids: "0b51953c-537b-4bf9-a872-2710b0ddd9e3") {
                   objects {
-                    name
-                    engagements {
-                      org_unit {
-                        name
-                        managers(inherit: true) {
-                          employee {
-                            name
-                            addresses {
-                              address_type {
-                                name
-                                scope
-                              }
-                              value
+                    user_key
+                    org_unit {
+                      engagements {
+                        employee {
+                          user_key
+                          name
+                          itusers {
+                            user_key
+                            itsystem_uuid
+                          }
+                          addresses {
+                            address_type {
+                              scope
                             }
+                            value
                           }
                         }
                       }
                     }
-                    addresses {
-                      address_type {
-                        name
-                        scope
-                      }
-                      value
-                    }
                   }
+                }
+                itsystems {
+                  name
+                  uuid
                 }
               }`
         }
@@ -72,9 +70,8 @@ export default {
           const fields = [
             {name: this.$t('table_headers.employee_name'), class: ''},
             {name: this.$t('table_headers.employee_email'), class: ''},
-            {name: this.$t('table_headers.manager_name'), class: ''},
-            {name: this.$t('table_headers.manager_email'), class: ''},
-            {name: this.$t('table_headers.department_name'), class: ''}
+            {name: this.$t('table_headers.it_system'), class: ''},
+            {name: this.$t('table_headers.user_key'), class: ''},
           ]
 
           return fields
@@ -83,46 +80,98 @@ export default {
             return get_by_graphql(query)
         },
         sanitizeData: function(data) {
-            const row_data = [];
-            for (let i = 0; i < data.length; i++) {
-              let row = { id: `id${i}` };
-              const new_data = data[i].objects[0];
-              row[this.$t('table_headers.employee_name')] = new_data.name;
-              row[this.$t('table_headers.employee_email')] = this.generateEmailString(new_data.addresses);
-              if (new_data.engagements[0]) {
-                const manager =
-                  new_data.engagements[0].org_unit[0].managers[0].employee[0];
-                row[this.$t('table_headers.manager_name')] = manager.name;
-                row[this.$t('table_headers.manager_email')] = this.generateEmailString(manager.addresses);
-                row[this.$t('table_headers.department_name')] = new_data.engagements[0].org_unit[0].name;
+          const row_data = [];
+          const fields = this.configColumns(data)
+          const employees = data.managers[0].objects[0].org_unit[0].engagements;
+          const it_systems = data.itsystems
+          
+          for (let i = 0; i < employees.length; i++) {
+            let row = { id: `id${i}` };
+            let employee = employees[i].employee[0]
+            row[fields[0].name] = employee.name;
+            row[fields[1].name] = this.generateEmailString(employee.addresses);
+            if(employee.itusers.length > 0) {
+              // F... this line - field returns undefined in front of uuids if it's not there
+              row[fields[2].name] = ``
+              row[fields[3].name] = ``
+              for (let j = 0; j < employee.itusers.length; j++) {
+                row[fields[2].name] += `${this.getItSystem(employee.itusers[j].itsystem_uuid, it_systems)}`
+                row[fields[3].name] += `${employee.itusers[j].user_key}`
+                // Add comma, if not last iteration
+                if (j !== employee.itusers.length-1){
+                  row[fields[2].name] += `, `
+                  row[fields[3].name] += `, `
+                }
               }
-              row_data.push(row);
             }
-            return row_data;
+            row_data.push(row);
+          }
+          return row_data;
         },
         generateEmailString: function(addresses) {
-            let email_str = ''
-            const emails = addresses.filter(addr => {
-                    return addr.address_type.scope === 'EMAIL'
-                })
-            emails.forEach(email => {
-                email_str += `${ email.value } `
-            })
-            return email_str
+          // Changed this to faster loop
+          for (let i=0; i<addresses.length; i++){
+            if(addresses[i].address_type.scope === 'EMAIL') {
+              return addresses[i].value
+            }
+          }
         },
         downloadCSVData: function() {
             let rows = Array.from(this.table_data)
-            let csvContent = "data:text/csv;charset=utf-8,Medarbejder navn,Medarbejder email,Lederens navn,Lederens email,Afdelingsnavn" + rows.map(row => {
-                return `\n${ row[this.$t('table_headers.employee_name')] },${ row[this.$t('table_headers.employee_email')] },${ row[this.$t('table_headers.manager_name')] },${ row[this.$t('table_headers.manager_email')] },${ row[this.$t('table_headers.department_name')] }`
-            })
+            let csvContent =
+              `data:text/csv;charset=utf-8,${this.$t('table_headers.employee_name')},${this.$t('table_headers.employee_email')},${this.$t('table_headers.it_system')},${this.$t('table_headers.user_key')}` +
+              rows.map(row => {
+                return `\n${ row[this.$t('table_headers.employee_name')] },${ row[this.$t('table_headers.employee_email')] },${ row[this.$t('table_headers.it_system')] },${ row[this.$t('table_headers.user_key')] }`
+              })
             const encodedUri = encodeURI(csvContent)
             window.open(encodedUri)
+        },
+        getItSystem: function(uuid, it_systems) {
+          // infinite faster than option 2 (according to my test at least)
+          for (let i=0; i<it_systems.length; i++){
+            if(it_systems[i].uuid === uuid) {
+              return it_systems[i].name
+            }
+          }
+
+          // Different approach - option 2
+          
+          // let it_system_str = ''
+          // const it_systems = it_systems_array.filter(it_system => {
+          //   return it_system.uuid === uuid
+          // })
+          // it_systems.forEach(it_system => {
+          //   it_system_str += `${it_system.name}`
+          // })
+          // return it_system_str
+
+
+          // hate this - but i needed to change some major logic to avoid it.
+          
+          // if(uuid == "49d91308-67b0-4b8c-b787-1cd58e3039bd") {
+          //   return "SAP"
+          // }
+          // if(uuid == "5168dd45-4cb5-4932-b8a1-10dbe736fc5d") {
+          //   return "Office365"
+          // }
+          // if(uuid == "988dead8-7564-464a-8339-b7057bfa2665") {
+          //   return "Plone"
+          // }
+          // if(uuid == "a1608e69-c422-404f-a6cc-b873c50af111") {
+          //   return "Active Directory"
+          // }
+          // if(uuid == "db519bfd-0fdd-4e5d-9337-518d1dbdbfc9") {
+          //   return "OpenDesk"
+          // }
         },
         updateView: function(query) {
           this.fetchData(query)
           .then((response) => {
               this.table_fields = this.configColumns(response.data.data)
-              this.table_data = this.sanitizeData(response.data.data.employees)
+              this.table_data = this.sanitizeData(response.data.data)
+              // prefer this, but with current solution I need 'itsystems'
+              // this.table_data = this.sanitizeData(response.data.data.managers[0].objects[0].org_unit[0].engagements)
+
           })
         }
     },
