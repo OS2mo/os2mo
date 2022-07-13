@@ -452,7 +452,7 @@ async def get_by_uuid(
     Returns:
         List of objects found.
     """
-    tasks = map(dataloader.load, set(uuids))
+    tasks = dataloader.load_many(set(uuids))
     results = await gather(*tasks)
     return results
 
