@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+7.3.0 - 2022-07-13
+------------------
+
+[#51165] Created new data model for OrganisationUnit terminations
+
 7.2.0 - 2022-07-07
 ------------------
 
