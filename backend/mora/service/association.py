@@ -11,7 +11,7 @@ import uuid
 from operator import itemgetter
 from typing import Any
 from typing import Dict
-from typing import Optional
+from typing import List
 from typing import TYPE_CHECKING
 
 from more_itertools import one
@@ -40,32 +40,31 @@ logger = get_logger()
 
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
-    async def get_validation_item_from_mo_object(
-        cls, mo_object: dict
-    ) -> Optional[dict]:
-        try:
-            it_user = one(mo_object[mapping.IT])
-        except (TypeError, KeyError, ValueError):
-            return None  # not an "IT association", skip it
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+        if mo_object is None:
+            return []
 
-        try:
-            it_user_uuid = it_user[mapping.UUID]
-        except KeyError:
-            return None  # not an "IT association", skip it
+        it_users = mo_object.get(mapping.IT) or []
+        result = []
 
-        try:
-            it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
-        except KeyError:
-            return None  # not an "IT association", skip it
+        for it_user in it_users:
+            try:
+                it_user_uuid = it_user[mapping.UUID]
+                it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
+            except KeyError:
+                continue  # not an "IT association", skip it
+            else:
+                item = {
+                    "uuid": util.get_uuid(mo_object),
+                    "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+                    "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
+                    "it_user_uuid": it_user_uuid,
+                    "it_system_uuid": it_system_uuid,
+                    "is_primary": await get_mo_object_primary_value(mo_object),
+                }
+                result.append(item)
 
-        return {
-            "uuid": util.get_uuid(mo_object),
-            "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-            "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
-            "it_user_uuid": it_user_uuid,
-            "it_system_uuid": it_system_uuid,
-            "is_primary": await get_mo_object_primary_value(mo_object),
-        }
+        return result
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
