@@ -14,6 +14,7 @@ from uuid import UUID
 from pydantic import Field
 
 from ._shared import MOBase
+from ._shared import OpenValidity
 from ._shared import OrgUnitHierarchy
 from ._shared import OrgUnitLevel
 from ._shared import OrgUnitType
@@ -139,3 +140,7 @@ class OrganisationUnit(MOBase):
             org_unit_type=OrgUnitType(uuid=org_unit_type_uuid),
             org_unit_level=OrgUnitLevel(uuid=org_unit_level_uuid),
         )
+
+
+class OrganisationUnitTerminate(MOBase):
+    validity: OpenValidity
