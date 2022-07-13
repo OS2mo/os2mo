@@ -30,7 +30,6 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
 from more_itertools import unzip
-
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 from . import autocomplete
@@ -1132,7 +1131,9 @@ async def terminate_org_unit_validation(unitid, request):
     },
 )
 async def terminate_org_unit(
-    uuid: UUID, request: OrganisationUnitTerminate = Body(...), permissions=Depends(oidc.rbac_owner)
+    uuid: UUID,
+    request: OrganisationUnitTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
 ):
     """Terminates an organisational unit from a specified date.
 
@@ -1195,13 +1196,17 @@ async def terminate_org_unit(
     "to"-date to "infinity". This behavior is deprecated and should no longer
     be used.
     """
-    
+
     # Create a request dict to be used futher on
     request_dict = request.dict(by_alias=True)
     if request.validity.from_date:
-        request_dict[mapping.VALIDITY][mapping.FROM] = request.validity.from_date.strftime("%Y-%m-%d")
+        request_dict[mapping.VALIDITY][
+            mapping.FROM
+        ] = request.validity.from_date.strftime("%Y-%m-%d")
     if request.validity.to_date:
-        request_dict[mapping.VALIDITY][mapping.TO] = request.validity.to_date.strftime("%Y-%m-%d")
+        request_dict[mapping.VALIDITY][mapping.TO] = request.validity.to_date.strftime(
+            "%Y-%m-%d"
+        )
 
     uuid = str(uuid)
     await terminate_org_unit_validation(uuid, request_dict)
