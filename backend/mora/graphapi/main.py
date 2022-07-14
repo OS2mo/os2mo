@@ -452,9 +452,8 @@ async def get_by_uuid(
     Returns:
         List of objects found.
     """
-    tasks = dataloader.load_many(list(set(uuids)))
-    results = await gather(tasks)
-    return results
+    tasks = await dataloader.load_many(list(set(uuids)))
+    return tasks
 
 
 def get_schema() -> strawberry.Schema:
