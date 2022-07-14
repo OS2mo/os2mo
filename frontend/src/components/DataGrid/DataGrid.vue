@@ -31,41 +31,17 @@ SPDX-License-Identifier: MPL-2.0
     
         <div class="datagrid-table-wrapper">
             <table class="datagrid table" v-if="filteredData.length > 0">
-                
                 <thead>
                     <tr>
-                        <!-- SOLUTION 1 -->
                         <th v-for="c in dataFields"
                             :key="c.name"
                             @click="sortBy(c.name)"
                             :class="`datagrid-filter-th ${ c.class ? c.class : '' }${ sortKey === c.name ? ' active' : '' }`">
-                            <span v-if="c.name" class="datagrid-th-arrow" :class="sortOrders[c.name] > 0 ? 'asc' : 'dsc'"></span>
+                            <span v-if="c.name" 
+                            class="datagrid-th-arrow" 
+                            :class="sortOrders[c.name] > 0 ? 'asc' : 'dsc'"></span>
                             <span class="datagrid-th-title">{{ c.name }}</span>
                         </th>
-
-                        <!-- The solution above could not get table headers translated dynamically 
-                             and would first translate table-headers on page-refresh.
-
-                             The solution below is created wit repeatable code, but is able to translate table-header dynamically.
-                             With this solution, ascending and descending doesn't currently work and the active tab is not highlighted
-                             like it is on the solution above. -->
-
-                        <!-- SOLUTION 2 -->
-                        <!-- <th>
-                            <span style="margin-left: 1em;">{{ $t('table_headers.employee_name')}}</span>
-                        </th>
-                        <th>
-                            <span style="margin-left: 1em;">{{ $t('table_headers.employee_email')}}</span>
-                        </th>
-                        <th>
-                            <span style="margin-left: 1em;">{{ $t('table_headers.manager_name')}}</span>
-                        </th>
-                        <th>
-                            <span style="margin-left: 1em;">{{ $t('table_headers.manager_email')}}</span>
-                        </th>
-                        <th>
-                            <span style="margin-left: 1em;">{{ $t('table_headers.department_name')}}</span>
-                        </th> -->
                     </tr>
                 </thead>
                 <tbody>
