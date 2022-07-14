@@ -441,7 +441,7 @@ def get_date_interval(
 
 
 async def get_by_uuid(
-    dataloader: DataLoader, uuids: list[[str]UUID]
+    dataloader: DataLoader, uuids: list[UUID]
 ) -> list[Response[MOModel]]:
     """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
@@ -453,7 +453,7 @@ async def get_by_uuid(
         List of objects found.
     """
     tasks = dataloader.load_many(list(set(uuids)))
-    results = await gather(*tasks)
+    results = await gather(tasks)
     return results
 
 
