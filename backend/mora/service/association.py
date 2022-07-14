@@ -41,30 +41,34 @@ logger = get_logger()
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
     async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
-        if mo_object is None:
-            return []
-
-        it_users = mo_object.get(mapping.IT) or []
-        result = []
-
-        for it_user in it_users:
+        def get_it_user_uuid_and_system_uuid(it_user: dict):
             try:
                 it_user_uuid = it_user[mapping.UUID]
                 it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
             except KeyError:
-                continue  # not an "IT association", skip it
+                pass  # not an "IT association", skip it
             else:
-                item = {
-                    "uuid": util.get_uuid(mo_object),
-                    "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-                    "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
-                    "it_user_uuid": it_user_uuid,
-                    "it_system_uuid": it_system_uuid,
-                    "is_primary": await get_mo_object_primary_value(mo_object),
-                }
-                result.append(item)
+                return it_user_uuid, it_system_uuid
 
-        return result
+        async def get_validation_item(mo_object: dict, it_user: dict):
+            it_user_uuid, it_system_uuid = get_it_user_uuid_and_system_uuid(it_user)
+            return {
+                "uuid": util.get_uuid(mo_object),
+                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+                "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
+                "it_user_uuid": it_user_uuid,
+                "it_system_uuid": it_system_uuid,
+                "is_primary": await get_mo_object_primary_value(mo_object),
+            }
+
+        if mo_object is None:
+            return []
+
+        return [
+            await get_validation_item(mo_object, it_user)
+            for it_user in (mo_object.get(mapping.IT) or [])
+            if get_it_user_uuid_and_system_uuid(it_user)
+        ]
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
