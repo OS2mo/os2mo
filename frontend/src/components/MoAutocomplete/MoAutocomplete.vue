@@ -104,11 +104,13 @@ export default {
     },
 
     canDisplayParentOrgUnitName (result) {
-      return 'path' in result
+      return ('path' in result) && (result.path !== null)
     },
 
     getParentOrgUnitName (result) {
-      return result.path[result.path.length - 2]
+      if (result.path !== null) {
+        return result.path[result.path.length - 2]
+      }
     }
   },
 }
