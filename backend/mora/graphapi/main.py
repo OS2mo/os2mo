@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import re
-from asyncio import gather
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -452,9 +451,8 @@ async def get_by_uuid(
     Returns:
         List of objects found.
     """
-    tasks = map(dataloader.load, set(uuids))
-    results = await gather(*tasks)
-    return results
+    tasks = dataloader.load_many(list(set(uuids)))
+    return await tasks
 
 
 def get_schema() -> strawberry.Schema:
