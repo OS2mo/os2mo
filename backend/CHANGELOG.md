@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.40.1 - 2022-07-14
+-------------------
+
+[#51511] Autocomplete frontend: handle "null" values in "path" when displaying organisation unit paths
+
 4.40.0 - 2022-07-12
 -------------------
 
