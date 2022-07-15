@@ -1203,14 +1203,20 @@ async def terminate_org_unit(
         request_dict[mapping.VALIDITY][
             mapping.FROM
         ] = request.validity.from_date.strftime("%Y-%m-%d")
+    else:
+        del(request_dict[mapping.VALIDITY][mapping.FROM])
+
     if request.validity.to_date:
         request_dict[mapping.VALIDITY][mapping.TO] = request.validity.to_date.strftime(
             "%Y-%m-%d"
         )
+    else:
+        del (request_dict[mapping.VALIDITY][mapping.TO])
 
     uuid = str(uuid)
-    await terminate_org_unit_validation(uuid, request_dict)
     request_dict[mapping.UUID] = uuid
+
+    await terminate_org_unit_validation(uuid, request_dict)
     handler = await OrgUnitRequestHandler.construct(
         request_dict, mapping.RequestType.TERMINATE
     )
