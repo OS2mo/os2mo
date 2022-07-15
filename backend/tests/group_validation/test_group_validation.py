@@ -39,11 +39,11 @@ class TestGroupValidationConstructors:
 
     def _monkeypatch_get_validation_item_from_mo_object(self, monkeypatch):
         async def mock_impl(*args):
-            return self._mock_validation_item
+            return [self._mock_validation_item]
 
         monkeypatch.setattr(
             GroupValidation,
-            "get_validation_item_from_mo_object",
+            "get_validation_items_from_mo_object",
             mock_impl,
         )
 
@@ -52,7 +52,7 @@ class TestGroupValidationStubs:
     @pytest.mark.asyncio
     async def test_not_implemented_stubs(self):
         with pytest.raises(NotImplementedError):
-            await GroupValidation.get_validation_item_from_mo_object({})
+            await GroupValidation.get_validation_items_from_mo_object({})
         with pytest.raises(NotImplementedError):
             GroupValidation.get_mo_object_reading_handler()
 

@@ -11,6 +11,7 @@ from operator import itemgetter
 from typing import Any
 from typing import Awaitable
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import TYPE_CHECKING
 from uuid import uuid4
@@ -46,16 +47,16 @@ MO_OBJ_TYPE = Dict[str, Any]
 
 class _ITUserGroupValidation(GroupValidation):
     @classmethod
-    async def get_validation_item_from_mo_object(
-        cls, mo_object: dict
-    ) -> Optional[dict]:
-        return {
-            "uuid": util.get_uuid(mo_object, required=False),
-            "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
-            "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
-            "it_user_username": mo_object.get(mapping.USER_KEY),
-            "is_primary": await get_mo_object_primary_value(mo_object),
-        }
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+        return [
+            {
+                "uuid": util.get_uuid(mo_object, required=False),
+                "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
+                "it_system_uuid": util.get_mapping_uuid(mo_object, mapping.ITSYSTEM),
+                "it_user_username": mo_object.get(mapping.USER_KEY),
+                "is_primary": await get_mo_object_primary_value(mo_object),
+            }
+        ]
 
     @classmethod
     def get_mo_object_reading_handler(cls) -> "ReadingHandler":
