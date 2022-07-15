@@ -37,7 +37,6 @@ repos:
     rev: v8.17.0
     hooks:
       - id: eslint
-        files: tempotest
         additional_dependencies:
           - eslint
           - eslint-config-airbnb-base
