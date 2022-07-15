@@ -1204,14 +1204,14 @@ async def terminate_org_unit(
             mapping.FROM
         ] = request.validity.from_date.strftime("%Y-%m-%d")
     else:
-        del(request_dict[mapping.VALIDITY][mapping.FROM])
+        del request_dict[mapping.VALIDITY][mapping.FROM]
 
     if request.validity.to_date:
         request_dict[mapping.VALIDITY][mapping.TO] = request.validity.to_date.strftime(
             "%Y-%m-%d"
         )
     else:
-        del (request_dict[mapping.VALIDITY][mapping.TO])
+        del request_dict[mapping.VALIDITY][mapping.TO]
 
     uuid = str(uuid)
     request_dict[mapping.UUID] = uuid
