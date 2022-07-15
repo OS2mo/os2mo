@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+8.0.0 - 2022-07-15
+------------------
+
+[#51177] Bump major for FacetClass removal (21a86484)
+
 7.3.0 - 2022-07-13
 ------------------
 
