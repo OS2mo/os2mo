@@ -7,8 +7,10 @@ from itertools import chain
 from operator import itemgetter
 from typing import Callable
 from typing import Iterable
-from typing import Optional
+from typing import List
 from typing import TYPE_CHECKING
+
+from more_itertools import flatten
 
 from ... import lora
 from mora.exceptions import ErrorCodes
@@ -38,11 +40,9 @@ class GroupValidation:
         return cls(await cls._get_filtered_validation_items(mo_objects))
 
     @classmethod
-    async def get_validation_item_from_mo_object(
-        cls, mo_object: dict
-    ) -> Optional[dict]:
-        """Given a `MO object`, return a "validation item" (or None, if the `MO object`
-        is not relevant for this particular validation class.)
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+        """Given a `MO object`, return a list of zero or more "validation items" that
+        are relevant to this group validation.
         Must be implemented by subclasses of `GroupValidation`.
         """
         raise NotImplementedError()
@@ -59,11 +59,11 @@ class GroupValidation:
     async def _get_filtered_validation_items(
         cls, mo_objects: Iterable[dict]
     ) -> list[dict]:
-        """Convert `mo_objects` to "validation items", passing over any empty results
-        from `get_validation_item_from_mo_object`.
-        """
-        tasks = map(cls.get_validation_item_from_mo_object, mo_objects)
-        return list(filter(None, await asyncio.gather(*tasks)))
+        """Convert one or more `mo_objects` to zero or more "validation items"."""
+        # Each task returns a list of zero or more validation items
+        tasks = map(cls.get_validation_items_from_mo_object, mo_objects)
+        # Flatten the lists from each task into a single list of all validation items
+        return list(flatten(await asyncio.gather(*tasks)))
 
     def __init__(self, validation_items: list[dict]):
         self.validation_items = validation_items
