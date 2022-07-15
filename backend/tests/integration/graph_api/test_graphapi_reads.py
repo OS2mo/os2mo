@@ -44,25 +44,30 @@ async def sample_structures(testing_db):
 # --------------------------------------------------------------------------------------
 
 SCHEMA = str(get_schema())
-FIELDS = [
+UUID_SEARCHABLE_FIELDS = [
     "addresses",
     "associations",
     "classes",
     "employees",
-    "engagements",
     "engagement_associations",
+    "engagements",
     "facets",
-    "healths",
     "itsystems",
     "itusers",
     "kles",
     "leaves",
     "managers",
-    "org",
     "org_units",
     "related_units",
     "roles",
+]
+FIELDS = UUID_SEARCHABLE_FIELDS + [
+    "healths",
+    "org",
     "version",
+    # TODO: uncomment these and make sure tests run:
+    # "configuration",
+    # "files",
 ]
 
 
@@ -134,3 +139,51 @@ class TestManagerInheritance:
         assert response.errors is None
         managers = flatten_data(response.data["org_units"])
         assert all_equal(managers)
+
+
+def test_regression_51523_1(graphapi_post_integration):
+    query = """
+        query TestQuery {
+            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post_integration(query)
+
+    assert response.errors is None
+    assert response.data
+    assert response.data["org_units"] == []
+
+
+def test_regression_51523_2(graphapi_post_integration):
+    query = """
+        query TestQuery {
+            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
+                objects {
+                    uuid
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post_integration(query)
+
+    assert response.errors is None
+    assert response.data
+    assert response.data["org_units"] == []
+
+
+@pytest.mark.parametrize("field", UUID_SEARCHABLE_FIELDS)
+def test_regression_51523_generalised(graphapi_post_integration, field):
+    query = f"""
+        query TestQuery {{
+            {field}(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {{
+                uuid
+            }}
+        }}
+    """
+    response: GQLResponse = graphapi_post_integration(query)
+
+    assert response.errors is None
+    assert response.data
+    assert response.data[field] == []
