@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.40.2 - 2022-07-15
+-------------------
+
+[#51459] Bugfix group validation of multiple primary IT users in the same IT system
+
 4.40.1 - 2022-07-14
 -------------------
 
