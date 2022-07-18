@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+8.2.0 - 2022-07-18
+------------------
+
+[#49604] Allows "fictitious" birthdates in CPR validation
+
 8.1.0 - 2022-07-18
 ------------------
 
