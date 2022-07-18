@@ -145,7 +145,7 @@ class Address:
             return multifield_text.name(root.value, root.value2)
 
         if address_type.scope == "DAR":
-            dar_loader = context["dar_loader"]
+            dar_loader = info.context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
             return dar.name_from_dar_object(address_object)
 
@@ -162,7 +162,7 @@ class Address:
             return f"mailto:{root.value}"
 
         if address_type.scope == "DAR":
-            dar_loader = context["dar_loader"]
+            dar_loader = info.context["dar_loader"]
             address_object = await dar_loader.load(UUID(root.value))
             if address_object is None:
                 return None
