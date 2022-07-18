@@ -13,6 +13,7 @@ from uuid import UUID
 
 from pydantic import Field
 
+from ..base import RABase
 from ._shared import MOBase
 from ._shared import OpenValidity
 from ._shared import OrgUnitHierarchy
@@ -142,5 +143,5 @@ class OrganisationUnit(MOBase):
         )
 
 
-class OrganisationUnitTerminate(MOBase):
+class OrganisationUnitTerminate(RABase):
     validity: OpenValidity
