@@ -14,6 +14,8 @@ from strawberry.dataloader import DataLoader
 
 from mora import exceptions
 from mora import mapping
+from mora import lora
+from mora import util
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.schema import Response
 from mora.service.orgunit import OrgUnitRequestHandler
@@ -56,3 +58,22 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
     )
     result = await handler.submit()
     return result
+
+async def terminate_org_unit(uuid: UUID) -> bool:
+    # Create lora payload
+    # virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
+    obj_path = ("tilstande", "organisationenhedgyldighed")
+    val_inactive = {
+        "gyldighed": "Inaktiv",
+        "virkning": virkning,
+    }
+
+    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+    payload["note"] = "Afslut enhed"
+
+    payload = None
+
+
+    # Connect and update
+    c = lora.Connector()
+    result = await c.organisationenhed.update(payload, uuid)
