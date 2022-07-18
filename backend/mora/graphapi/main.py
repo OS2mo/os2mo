@@ -114,7 +114,7 @@ class StaticResolver:
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
         if uuids is not None:
-            return await get_by_uuid(info.context[self.loader], uuids)
+            return await self.get_by_uuid(info.context[self.loader], uuids)
         if user_keys is not None:
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
@@ -129,6 +129,25 @@ class StaticResolver:
             escaped_user_keys = (re.escape(k) for k in user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
         return await info.context[self.getter](**kwargs)
+
+    @staticmethod
+    # type: ignore[no-untyped-def]
+    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
+        """Get data from a list of UUIDs. Only unique UUIDs are loaded.
+
+        Args:
+            dataloader: Strawberry dataloader to use.
+            uuids: List of UUIDs to load.
+
+        Returns:
+            List of objects found.
+            Type: Union[list[ClassRead], list[FacetRead], list[ITSystemRead]]
+        """
+        responses = await dataloader.load_many(list(set(uuids)))
+        if not responses:
+            return responses
+        # These loaders can return None, which we need to filter here.
+        return [response for response in responses if response is not None]
 
 
 class Resolver(StaticResolver):
@@ -164,6 +183,14 @@ class Resolver(StaticResolver):
             from_date=from_date,
             to_date=to_date,
         )
+
+    @staticmethod
+    async def get_by_uuid(
+        dataloader: DataLoader, uuids: list[UUID]
+    ) -> list[Response[MOModel]]:
+        responses = await dataloader.load_many(list(set(uuids)))
+        # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
+        return [response for response in responses if response.objects != []]
 
 
 class EmployeeResolver(Resolver):
@@ -437,22 +464,6 @@ def get_date_interval(
         message = ", ".join([err["msg"] for err in v_error.errors()])
         raise ValueError(message)
     return interval
-
-
-async def get_by_uuid(
-    dataloader: DataLoader, uuids: list[UUID]
-) -> list[Response[MOModel]]:
-    """Get data from a list of UUIDs. Only unique UUIDs are loaded.
-
-    Args:
-        dataloader: Strawberry dataloader to use.
-        uuids: List of UUIDs to load.
-
-    Returns:
-        List of objects found.
-    """
-    tasks = dataloader.load_many(list(set(uuids)))
-    return await tasks
 
 
 def get_schema() -> strawberry.Schema:
