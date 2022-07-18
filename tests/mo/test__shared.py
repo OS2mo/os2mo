@@ -204,7 +204,7 @@ class TestValidatorFunctions:
         with pytest.deprecated_call(match="will be deprecated in a future version"):
             validate_names({"name": name}, "name", "givenname", "surname")
 
-    @given(not_from_regex(r"^\d{10}$"), st.from_regex(r"^[3-9][2-9]\d{8}$"))
+    @given(not_from_regex(r"^\d{10}$"), st.from_regex(r"^([3-5][2-9]|9[2-9])\d{8}$"))
     @example("", "3201012101")
     @example("", "3201014101")
     @example("", "3201559101")

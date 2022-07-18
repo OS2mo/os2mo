@@ -346,8 +346,13 @@ def validate_cpr(cpr_no: Optional[str]) -> Optional[str]:
     # We only obtain the most significant digit of the code part, since it's
     # what we need for century calculations,
     # cf. https://da.wikipedia.org/wiki/CPR-nummer
-    day, month = (cpr_no[0:2], cpr_no[2:4])
+    day, month = map(int, (cpr_no[0:2], cpr_no[2:4]))
     year, code_msd = map(int, (cpr_no[4:6], cpr_no[6]))
+
+    # Allows "fictitious" birthdates
+    # https://modst.dk/media/17386/fiktive-cpr-numre.pdf
+    if day >= 60:
+        day -= 60
 
     # TODO: let's do pattern matching in 3.10:
     # https://www.python.org/dev/peps/pep-0622/ <3
@@ -366,7 +371,7 @@ def validate_cpr(cpr_no: Optional[str]) -> Optional[str]:
             century = 1800
 
     try:
-        date.fromisoformat(f"{century+year}-{month}-{day}")
+        date(year=century + year, month=month, day=day)
     except Exception:
         raise ValueError("CPR number is invalid.")
     return cpr_no
