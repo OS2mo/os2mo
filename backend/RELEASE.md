@@ -1,3 +1,3 @@
 Release type: minor
 
-[#48126] Introduce mutators for Organisation
+[#51166] Create Organisation Unit termination GraphQL mutator
