@@ -62,6 +62,8 @@ from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import OrganisationUnitRefresh
+from mora.graphapi.schema import OrganisationUnitTerminate
+from mora.graphapi.schema import OrganisationUnitTerminateInput
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
@@ -69,12 +71,9 @@ from mora.graphapi.schema import Version
 from mora.graphapi.types import CPRType
 from mora.util import CPR
 
-from ramodels.mo.organisation_unit import OrganisationUnitTerminate
-
 # --------------------------------------------------------------------------------------
 # Reads Query
 # --------------------------------------------------------------------------------------
-
 
 
 class StaticResolver:
@@ -456,8 +455,17 @@ class Mutation:
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
 
     @strawberry.mutation(description="Terminates an organization unit by UUID")
-    async def org_unit_terminate(self, uuid: UUID, terminate_obj: OrganisationUnitTerminate) -> bool:
-        pass
+    async def org_unit_terminate(
+        self, uuid: UUID, terminate_input: OrganisationUnitTerminateInput
+    ) -> OrganisationUnitTerminate:
+
+        tst = OrganisationUnitTerminate(
+            validity=OpenValidityModel(
+                from_date=terminate_input.validity.from_date,
+                to_date=terminate_input.validity.to_date,
+            )
+        )
+        return tst
 
 
 # --------------------------------------------------------------------------------------

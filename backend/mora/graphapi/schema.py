@@ -8,6 +8,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import asyncio
+import datetime
 import json
 import re
 from base64 import b64encode
@@ -41,6 +42,7 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
@@ -1156,6 +1158,26 @@ class File:
 )
 class OrganisationUnitRefresh:
     pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=OrganisationUnitTerminate,
+    all_fields=True,
+    description="Response model for Organisation Unit refresh event.",
+)
+class OrganisationUnitTerminateRead:
+    pass
+
+
+@strawberry.input
+class TerminateValidityInput:
+    from_date: datetime.date = strawberry.field(name="from")
+    to_date: datetime.date = strawberry.field(name="to")
+
+
+@strawberry.input
+class OrganisationUnitTerminateInput:
+    validity: TerminateValidityInput
 
 
 # Configuration
