@@ -19,14 +19,11 @@ from more_itertools import only
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
 from os2mo_fastapi_utils.tracing import setup_instrumentation
-from os2mo_fastapi_utils.tracing import setup_logging
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 from structlog import get_logger
-from structlog.contextvars import merge_contextvars
-from structlog.processors import JSONRenderer
 
 from . import service
 from . import triggers
@@ -146,8 +143,12 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     Create and return a FastApi app instance for MORA.
     """
     settings_overrides = settings_overrides or {}
+    settings = config.get_settings(**settings_overrides)
 
-    log.init()
+    log.init(
+        log_level=settings.os2mo_log_level,
+        json=settings.environment is not Environment.DEVELOPMENT,
+    )
     middleware = [
         Middleware(
             RawContextMiddleware,
@@ -207,7 +208,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         middleware=middleware,
         openapi_tags=list(tags_metadata),
     )
-    settings = config.get_settings(**settings_overrides)
     if settings.enable_cors:
         app.add_middleware(
             CORSMiddleware,
@@ -296,14 +296,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     if not settings.is_under_test():
         app = setup_instrumentation(app)
         setup_metrics(app)
-
-    # Adds pretty printed logs for development
-    if settings.environment is Environment.DEVELOPMENT:
-        setup_logging(
-            processors=[merge_contextvars, JSONRenderer(indent=2, sort_keys=True)]
-        )
-    else:
-        setup_logging(processors=[merge_contextvars, JSONRenderer()])
 
     if os.path.exists(distdir):
         app.mount("/", StaticFiles(directory=distdir), name="static")
