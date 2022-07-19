@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+8.3.0 - 2022-07-19
+------------------
+
+[#51177] Revert "[Remove FacetClass] (21a86484)"
+
 8.2.0 - 2022-07-18
 ------------------
 
