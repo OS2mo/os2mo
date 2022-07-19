@@ -17,7 +17,9 @@ from structlog import get_logger
 
 from . import conf_db
 from . import config
+from . import log
 from mora.conf_db import create_db_table
+
 
 logger = get_logger()
 
@@ -134,4 +136,5 @@ def wait_for_rabbitmq(seconds):
 
 
 if __name__ == "__main__":
+    log.init("INFO", json=False)
     group(prog_name=os.getenv("FLASK_PROG_NAME", sys.argv[0]))
