@@ -14,10 +14,12 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+from fastapi import Body
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 from .errors import handle_gql_error
 from .util import filter_data
@@ -314,3 +316,39 @@ async def trigger_external_integration(
     handle_gql_error(response)
     result = response.data["org_unit_refresh"]
     return OrganisationUnitRefreshRead(**result)
+
+
+@org_unit_router.post(
+    "/ou/{uuid}/terminate2",
+    responses={
+        200: {
+            "description": "The termination succeeded",
+            "model": UUID,
+        },
+        404: {"description": "No such unit found"},
+        409: {"description": "Validation failed"},
+    },
+)
+async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)) -> str:
+    query = """
+    mutation($uuid: UUID!, $from: Date, $to: Date) {
+        org_unit_terminate(unit: {uuid: $uuid, from: $from, to: $to}) {
+            uuid
+        }
+    }
+    """
+
+    response = await execute_graphql(
+        query,
+        variable_values={
+            "uuid": str(uuid),
+            "from": request.validity.from_date.date().isoformat()
+            if request.validity.from_date
+            else None,
+            "to": request.validity.to_date.date().isoformat()
+            if request.validity.to_date
+            else None,
+        },
+    )
+    handle_gql_error(response)
+    return "yay"
