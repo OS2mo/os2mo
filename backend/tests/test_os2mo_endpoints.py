@@ -90,6 +90,7 @@ all_endpoints = (
 testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
 
 statics_endpoints = {
+    "/",
     "/{path:path}",
     "/favicon.ico",
 }
