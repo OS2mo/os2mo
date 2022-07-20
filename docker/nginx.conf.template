@@ -7,35 +7,7 @@ server {
 
     root   /usr/share/nginx/html;
 
-    location ^~ /organisation {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /medarbejder {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /hjaelp {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /organisationssammenkobling {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /forespoergsler {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /tidsmaskine {
-        try_files $uri $uri/index.html /index.html;
-    }
-
-    location ^~ /indsigt {
-        try_files $uri $uri/index.html /index.html;
-    }
-
     location / {
-        index  index.html;
+        try_files $uri $uri/index.html /index.html;
     }
 }

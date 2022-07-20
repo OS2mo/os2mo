@@ -10,6 +10,9 @@ server {
     resolver 127.0.0.11 valid=5s;  # 127.0.0.11 is the docker DNS server
 
     # MO Paths
+    # This list should correspond with:
+    # * https://git.magenta.dk/rammearkitektur/os2mo-helm-chart/-/blob/master/os2mo/templates/mo/ingress.yaml#L29
+    # * All the salt pillar ones
     location /openapi.json {
         set $mo mo;
         proxy_pass http://$mo;
