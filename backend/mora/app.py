@@ -68,6 +68,7 @@ def static_content_router():
             distdir + "/favicon.ico", media_type="image/vnd.microsoft.icon"
         )
 
+    @router.get("/", response_class=HTMLResponse)
     @router.get("/{path:path}", response_class=HTMLResponse)
     def index(path=""):
         """Serve index.html on `/` and unknown paths."""
