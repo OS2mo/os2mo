@@ -256,6 +256,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     if not settings.is_production() and settings.testcafe_enable:
         app.include_router(setup_test_routing(), tags=["Testing"])
 
+    # Statics must be included last because of the wildcard, matching anything unhandled
     if settings.statics_enable:
         if os.path.exists(distdir):
             app.mount("/", StaticFiles(directory=distdir), name="static")
