@@ -466,25 +466,6 @@ def get_date_interval(
     return interval
 
 
-<<<<<<< HEAD
-=======
-async def get_by_uuid(
-    dataloader: DataLoader, uuids: list[UUID]
-) -> list[Response[MOModel]]:
-    """Get data from a list of UUIDs. Only unique UUIDs are loaded.
-
-    Args:
-        dataloader: Strawberry dataloader to use.
-        uuids: List of UUIDs to load.
-
-    Returns:
-        List of objects found.
-    """
-    tasks = dataloader.load_many(list(set(uuids)))
-    return await tasks
-
-
->>>>>>> a25235cd23e375fbd7c4e001e970e32c19f237d5
 def get_schema() -> strawberry.Schema:
     schema = strawberry.Schema(
         query=Query,
