@@ -55,7 +55,7 @@ services:
     restart: unless-stopped
 
   fixture-loader:
-    image: magentaaps/os2mo-fixture-loader:1.2.0
+    image: magentaaps/os2mo-fixture-loader:1.2.1
     # For a list of supported fixtures, see:
     # https://git.magenta.dk/rammearkitektur/os2mo-fixture-loader.
     command: ["${FIXTURE:-kolding}"]
