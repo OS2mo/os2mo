@@ -90,16 +90,7 @@ all_endpoints = (
 testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
 
 statics_endpoints = {
-    "/organisation/",
-    "/organisation/{path:path}",
-    "/medarbejder/",
-    "/medarbejder/{path:path}",
-    "/hjaelp",
-    "/organisationssammenkobling",
-    "/forespoergsler",
-    "/tidsmaskine",
-    "/indsigt",
-    "/",
+    "/{path:path}",
     "/favicon.ico",
 }
 

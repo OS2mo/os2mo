@@ -61,26 +61,17 @@ logger = get_logger()
 def static_content_router():
     router = APIRouter()
 
-    @router.get("/organisation/", response_class=HTMLResponse)
-    @router.get("/organisation/{path:path}", response_class=HTMLResponse)
-    @router.get("/medarbejder/", response_class=HTMLResponse)
-    @router.get("/medarbejder/{path:path}", response_class=HTMLResponse)
-    @router.get("/hjaelp", response_class=HTMLResponse)
-    @router.get("/organisationssammenkobling", response_class=HTMLResponse)
-    @router.get("/forespoergsler", response_class=HTMLResponse)
-    @router.get("/tidsmaskine", response_class=HTMLResponse)
-    @router.get("/indsigt", response_class=HTMLResponse)
-    @router.get("/", response_class=HTMLResponse)
-    def index(path=""):
-        """Serve index.html on `/` and unknown paths."""
-        return FileResponse(distdir + "/index.html")
-
     @router.get("/favicon.ico", response_class=FileResponse)
     def favicon():
         """Serve favicon.ico on `/favicon.ico`."""
         return FileResponse(
             distdir + "/favicon.ico", media_type="image/vnd.microsoft.icon"
         )
+
+    @router.get("/{path:path}", response_class=HTMLResponse)
+    def index(path=""):
+        """Serve index.html on `/` and unknown paths."""
+        return FileResponse(distdir + "/index.html")
 
     return router
 
@@ -261,14 +252,20 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         meta_router(),
         tags=["Meta"],
     )
+
+    if not settings.is_production() and settings.testcafe_enable:
+        app.include_router(setup_test_routing(), tags=["Testing"])
+
+    # Statics must be included last because of the wildcard, matching anything unhandled
     if settings.statics_enable:
+        if os.path.exists(distdir):
+            app.mount("/", StaticFiles(directory=distdir), name="static")
+        else:
+            logger.warning("No dist directory to serve", distdir=distdir)
         app.include_router(
             static_content_router(),
             tags=["Static"],
         )
-
-    if not settings.is_production() and settings.testcafe_enable:
-        app.include_router(setup_test_routing(), tags=["Testing"])
 
     # We serve index.html and favicon.ico here. For the other static files,
     # Flask automatically adds a static view that takes a path relative to the
@@ -296,10 +293,5 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     if not settings.is_under_test():
         app = setup_instrumentation(app)
         setup_metrics(app)
-
-    if os.path.exists(distdir):
-        app.mount("/", StaticFiles(directory=distdir), name="static")
-    else:
-        logger.warning("No dist directory to serve", distdir=distdir)
 
     return app
