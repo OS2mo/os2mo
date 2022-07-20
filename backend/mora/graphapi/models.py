@@ -6,11 +6,16 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+# from datetime import datetime
+import datetime
 from enum import Enum
+from typing import Optional
+from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -46,3 +51,21 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+
+
+class OrganisationUnit(BaseModel):
+    """Model representing a Organization-Unit."""
+
+    uuid: UUID = Field(description="Unique ID identifying the organization unit")
+
+
+class OrganisationUnitTerminate(OrganisationUnit):
+    """Model representing a organization-unit termination"""
+
+    from_date: Optional[datetime.date] = Field(
+        alias="from", description="Start date of the validity."
+    )
+
+    to_date: Optional[datetime.date] = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )

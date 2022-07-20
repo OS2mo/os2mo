@@ -7,6 +7,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import logging
 from typing import cast
 from uuid import UUID
 
@@ -14,11 +15,16 @@ from strawberry.dataloader import DataLoader
 
 from mora import exceptions
 from mora import mapping
-from mora import lora
 from mora import util
 from mora.graphapi.dataloaders import get_loaders
+from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.schema import Response
 from mora.service.orgunit import OrgUnitRequestHandler
+from mora.service.orgunit import terminate_org_unit_validation
+
+
+logger = logging.getLogger(__name__)
+
 
 # --------------------------------------------------------------------------------------
 # Code
@@ -59,21 +65,56 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
     result = await handler.submit()
     return result
 
-async def terminate_org_unit(uuid: UUID) -> bool:
+
+async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> bool:
     # Create lora payload
-    # virkning = OrgUnitRequestHandler.get_virkning_for_terminate(request)
-    obj_path = ("tilstande", "organisationenhedgyldighed")
-    val_inactive = {
-        "gyldighed": "Inaktiv",
-        "virkning": virkning,
+    # effect = OrgUnitRequestHandler.get_virkning_for_terminate(request)
+
+    # Setup terminate dict
+    terminate_dict: dict = {
+        mapping.UUID: str(unit.uuid),
+        mapping.VALIDITY: {mapping.FROM: unit.from_date, mapping.TO: unit.to_date},
     }
 
-    payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-    payload["note"] = "Afslut enhed"
+    if unit.from_date:
+        terminate_dict[mapping.VALIDITY][mapping.FROM] = unit.from_date.strftime(
+            "%Y-%m-%d"
+        )
+    else:
+        del terminate_dict[mapping.VALIDITY][mapping.FROM]
 
-    payload = None
+    if unit.to_date:
+        terminate_dict[mapping.VALIDITY][mapping.TO] = unit.to_date.strftime("%Y-%m-%d")
+    else:
+        del terminate_dict[mapping.VALIDITY][mapping.TO]
 
+    # OBS: This validation method ALSO instantiates a lora.Connector().. but with an
+    # "effective_date" arg.. not sure what this does yet, but i will let it be for now.
+    # would be cool if we only had to create 1 connector
+    # ALSO: would be nice to only need a terminate dict since the UUID is added to it..
+    # or use proper arguments like:
+    # `terminate_org_unit_validation(uuid: str, from: datetime.date, to: datetime.date)`
+    try:
+        await terminate_org_unit_validation(
+            terminate_dict[mapping.UUID], terminate_dict
+        )
+    except Exception as e:
+        logger.exception("ERROR validating termination request.")
+        raise e
 
-    # Connect and update
-    c = lora.Connector()
-    result = await c.organisationenhed.update(payload, uuid)
+    # Handle the unit UUID
+    # uuid = util.get_uuid(terminate_dict)
+
+    # Create payload to LoRa
+    obj_path = ("tilstande", "organisationenhedgyldighed")
+    effect = OrgUnitRequestHandler.get_virkning_for_terminate(terminate_dict)
+    val_inactive = {"gyldighed": "Inaktiv", "virkning": effect}
+
+    lora_payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+    lora_payload["note"] = "Afslut enhed"
+
+    # TODO: Finish the termiante logic
+    # # Conn to LoRa
+    # lora_conn = lora.Connector()
+    # result = await lora_conn.organisationenhed.update(lora_payload, uuid)
+    return True

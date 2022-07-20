@@ -1195,6 +1195,9 @@ async def terminate_org_unit(
     In this case, the org unit is terminated by being set "inactive" from the
     "to"-date to "infinity". This behavior is deprecated and should no longer
     be used.
+
+    OBS: As of writing, this is still the case + only specifying "to" is used by the
+    frontend when using the "Afslut enhed" floating button on the right
     """
 
     # Create a request dict to be used further on

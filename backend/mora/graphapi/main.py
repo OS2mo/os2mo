@@ -41,6 +41,7 @@ from mora.graphapi.models import FileRead
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
 from mora.graphapi.models import OrganisationUnitRefreshRead
+from mora.graphapi.mutators import Mutation
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.permissions import gen_read_permission
 from mora.graphapi.schema import Address
@@ -62,8 +63,6 @@ from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
 from mora.graphapi.schema import OrganisationUnitRefresh
-from mora.graphapi.schema import OrganisationUnitTerminate
-from mora.graphapi.schema import OrganisationUnitTerminateInput
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
@@ -438,7 +437,7 @@ class Query:
 
 
 @strawberry.type
-class Mutation:
+class MutationOld:
     @strawberry.mutation(description="Upload a file")
     async def upload_file(
         self, file_store: FileStore, file: Upload, force: bool = False
@@ -453,19 +452,6 @@ class Mutation:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
-
-    @strawberry.mutation(description="Terminates an organization unit by UUID")
-    async def org_unit_terminate(
-        self, uuid: UUID, terminate_input: OrganisationUnitTerminateInput
-    ) -> OrganisationUnitTerminate:
-
-        tst = OrganisationUnitTerminate(
-            validity=OpenValidityModel(
-                from_date=terminate_input.validity.from_date,
-                to_date=terminate_input.validity.to_date,
-            )
-        )
-        return tst
 
 
 # --------------------------------------------------------------------------------------
