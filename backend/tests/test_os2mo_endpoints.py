@@ -91,7 +91,6 @@ testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardo
 
 statics_endpoints = {
     "/{path:path}",
-    "/static/{path:path}",
     "/favicon.ico",
 }
 
