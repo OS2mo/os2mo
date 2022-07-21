@@ -173,12 +173,6 @@ default:
     KEYCLOAK_AUTH_SERVER_URL: "http://keycloak:8080/auth/"
     KEYCLOAK_VERIFY_AUDIENCE: "false"
 
-    CONF_DB_HOST: "mox-db"
-    CONF_DB_PORT: "5432"
-    CONF_DB_NAME: mora
-    CONF_DB_USER: mora
-    CONF_DB_PASSWORD: mora
-
     AMQP_ENABLE: "false"
     QUERY_EXPORT_DIR: "/queries"
     GRAPHQL_AUTH: "false"

@@ -32,7 +32,6 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     async def get_from_type(
         cls, c, type, object_id, changed_since: Optional[datetime] = None
     ):
-
         if util.get_args_flag("inherit_manager"):
             return await cls.get_inherited_manager(c, type, object_id)
 

@@ -134,26 +134,6 @@ class Settings(BaseSettings):
                 )
         return values
 
-    # ConfDB database settings
-    # Use configuration DB for get_configuration endpoint
-    conf_db_use: bool = False
-    conf_db_name: str = "mora"
-    conf_db_user: str = "mora"
-    conf_db_password: Optional[str]
-    conf_db_host: str = "mox-db"
-    conf_db_port: str = "5432"
-    conf_db_sslmode: Optional[str]
-
-    @root_validator
-    def conf_db_password_maybe_required(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        # If conf_db_password only required if conf_db is used
-        if values["conf_db_use"]:
-            if "conf_db_password" not in values:
-                raise ValueError("conf_db_password not set")
-            if values["conf_db_password"] is None:
-                raise ValueError("conf_db_password is None")
-        return values
-
     # ConfDB settings
     confdb_show_roles: bool = True
     confdb_show_kle: bool = False

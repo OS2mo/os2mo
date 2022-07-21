@@ -16,7 +16,6 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 @pytest.mark.usefixtures("sample_structures")
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -969,7 +968,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 @pytest.mark.usefixtures("sample_structures")
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

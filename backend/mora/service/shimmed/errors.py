@@ -6,27 +6,4 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from more_itertools import one
-
-from mora.graphapi.shim import ExecutionResult
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
-
-
-def handle_gql_error(response: ExecutionResult) -> None:
-    """Handle and reraise GraphQL errors.
-
-    Args:
-        response (ExecutionResult): The GraphQL response to extract errors from.
-
-    Raises:
-        error.original_error: The original error, if any.
-        ValueError: If no original error is present.
-    """
-    if response.errors:
-        error = one(response.errors)
-        if error.original_error:
-            raise error.original_error
-        raise ValueError(error)
+from mora.service.util import handle_gql_error  # noqa: F401

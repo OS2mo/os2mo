@@ -10,9 +10,9 @@ from parameterized import parameterized
 
 import tests.cases
 from . import util
-from mora import conf_db
 from mora import lora
 from mora.service import orgunit as service_orgunit
+from tests.util import set_get_configuration
 
 
 mock_uuid = "f494ad89-039d-478e-91f2-a63566554bd6"
@@ -36,16 +36,6 @@ def patch_orgunit_uuid(monkeypatch):
     autouse makes the fixture run on every test in the file
     """
     monkeypatch.setattr(service_orgunit, "uuid4", lambda: mock_uuid)
-    yield
-
-
-@pytest.fixture(autouse=True)
-def patch_get_configuration(monkeypatch):
-    """Fixture for patching conf_db.get_configuration to an empty dict
-
-    autouse makes the fixture run on every test in the file
-    """
-    monkeypatch.setattr(conf_db, "get_configuration", lambda *args: {})
     yield
 
 
@@ -628,86 +618,87 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         self.assertRegistrationsEqual(expected, actual_org_unit)
 
-        await self.assertRequestResponse(
-            "/service/ou/{}/".format(unitid),
-            {
-                "location": "Overordnet Enhed",
-                "name": "Fake Corp",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "org_unit_level": {
-                    "example": None,
-                    "facet": org_unit_level_facet,
-                    "name": "Niveau 10",
-                    "full_name": "Niveau 10",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_level_facet,
-                    "user_key": "orgunitlevel10",
-                    "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
-                },
-                "time_planning": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "name": "Institut",
-                    "full_name": "Institut",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "inst",
-                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                },
-                "org_unit_type": {
-                    "example": None,
-                    "facet": org_unit_type_facet,
-                    "name": "Institut",
-                    "full_name": "Institut",
-                    "owner": None,
-                    "scope": None,
-                    "top_level_facet": org_unit_type_facet,
-                    "user_key": "inst",
-                    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                },
-                "parent": {
-                    "location": "",
-                    "name": "Overordnet Enhed",
+        with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
+            await self.assertRequestResponse(
+                "/service/ou/{}/".format(unitid),
+                {
+                    "location": "Overordnet Enhed",
+                    "name": "Fake Corp",
                     "org": {
                         "name": "Aarhus Universitet",
                         "user_key": "AU",
                         "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                     },
-                    "org_unit_level": None,
-                    "time_planning": None,
-                    "org_unit_type": {
+                    "org_unit_level": {
+                        "example": None,
+                        "facet": org_unit_level_facet,
+                        "name": "Niveau 10",
+                        "full_name": "Niveau 10",
+                        "owner": None,
+                        "scope": None,
+                        "top_level_facet": org_unit_level_facet,
+                        "user_key": "orgunitlevel10",
+                        "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
+                    },
+                    "time_planning": {
                         "example": None,
                         "facet": org_unit_type_facet,
-                        "name": "Afdeling",
-                        "full_name": "Afdeling",
+                        "name": "Institut",
+                        "full_name": "Institut",
                         "owner": None,
                         "scope": None,
                         "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "user_key": "inst",
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
                     },
-                    "parent": None,
-                    "user_key": "root",
+                    "org_unit_type": {
+                        "example": None,
+                        "facet": org_unit_type_facet,
+                        "name": "Institut",
+                        "full_name": "Institut",
+                        "owner": None,
+                        "scope": None,
+                        "top_level_facet": org_unit_type_facet,
+                        "user_key": "inst",
+                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                    },
+                    "parent": {
+                        "location": "",
+                        "name": "Overordnet Enhed",
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        },
+                        "org_unit_level": None,
+                        "time_planning": None,
+                        "org_unit_type": {
+                            "example": None,
+                            "facet": org_unit_type_facet,
+                            "name": "Afdeling",
+                            "full_name": "Afdeling",
+                            "owner": None,
+                            "scope": None,
+                            "top_level_facet": org_unit_type_facet,
+                            "user_key": "afd",
+                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        },
+                        "parent": None,
+                        "user_key": "root",
+                        "user_settings": {"orgunit": {}},
+                        "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                        "validity": {"from": "2016-01-01", "to": None},
+                    },
+                    "user_key": unitid,
                     "user_settings": {"orgunit": {}},
-                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                    "validity": {"from": "2016-01-01", "to": None},
+                    "uuid": unitid,
+                    "validity": {"from": "2016-02-04", "to": "2017-10-21"},
                 },
-                "user_key": unitid,
-                "user_settings": {"orgunit": {}},
-                "uuid": unitid,
-                "validity": {"from": "2016-02-04", "to": "2017-10-21"},
-            },
-            amqp_topics={
-                "org_unit.org_unit.create": 1,
-                "org_unit.address.create": 2,
-            },
-        )
+                amqp_topics={
+                    "org_unit.org_unit.create": 1,
+                    "org_unit.address.create": 2,
+                },
+            )
 
     async def test_rename_org_unit(self):
         # A generic example of editing an org unit
@@ -1528,6 +1519,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
+    @set_get_configuration("mora.service.orgunit.get_configuration")
     def test_org_unit_temporality(self):
         self.assertRequestResponse(
             "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
@@ -2677,6 +2669,7 @@ class Tests(tests.cases.LoRATestCase):
             ),
         ]
     )
+    @set_get_configuration("mora.service.orgunit.get_configuration")
     def test_terminate_org_unit(self, inactive_validity, expected_validity):
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": inactive_validity}

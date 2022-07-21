@@ -10,23 +10,13 @@ import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
-from mora import conf_db
+from tests.util import set_get_configuration
 
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
 
 pytestmark = pytest.mark.serial
-
-
-@pytest.fixture(autouse=True)
-def patch_get_configuration(monkeypatch):
-    """Fixture for patching conf_db.get_configuration to an empty dict.
-
-    autouse makes the fixture run on every test in the file
-    """
-    monkeypatch.setattr(conf_db, "get_configuration", lambda *args: {})
-    yield
 
 
 @pytest.mark.usefixtures("sample_structures")
@@ -50,6 +40,7 @@ class TestOrganisationUnitRead:
         )
         assert response.status_code == 404
 
+    @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
     def test_get(self, service_test_client: TestClient):
         response = service_test_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
@@ -95,6 +86,7 @@ class TestOrganisationUnitRead:
         assert response.json()["engagement_count"] == 3
         assert response.json()["association_count"] == 1
 
+    @set_get_configuration("mora.service.orgunit.get_configuration")
     def test_ou_details(self, service_test_client: TestClient):
         response = service_test_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
@@ -234,6 +226,7 @@ class TestOrganisationUnitRead:
         )
         assert response.status_code == 404
 
+    @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
     def test_read_root(self, service_test_client: TestClient):
         response = service_test_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"

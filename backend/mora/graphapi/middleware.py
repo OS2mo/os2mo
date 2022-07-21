@@ -52,6 +52,9 @@ class StarletteContextExtension(Extension):
         context["query_args"] = {}
         context["is_graphql"] = True
 
+    def on_request_end(self) -> None:
+        context["is_graphql"] = False
+
 
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""

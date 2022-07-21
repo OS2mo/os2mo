@@ -3,13 +3,13 @@
 import datetime
 
 import pytest
-from mock import patch
 
 import tests.cases
 from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
+from tests.util import set_settings_contextmanager
 
 
 @pytest.fixture(autouse=True)
@@ -268,11 +268,10 @@ class TestValidator(TestHelper):
             ]
         )
 
-    @patch(
-        "mora.conf_db.get_configuration",
-        return_value={"substitute_roles": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+    @set_settings_contextmanager(
+        confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
     )
-    def test_is_substitute_allowed(self, mock):
+    def test_is_substitute_allowed(self):
         # This should pass
         validator.is_substitute_allowed("bcd05828-cc10-48b1-bc48-2f0d204859b2")
 

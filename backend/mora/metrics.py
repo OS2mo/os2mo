@@ -8,7 +8,6 @@ from prometheus_fastapi_instrumentator import Instrumentator
 from prometheus_fastapi_instrumentator.metrics import default
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 
-from .conf_db import health_check
 from .config import get_settings
 from mora.graphapi.health import amqp
 from mora.graphapi.health import dar
@@ -30,7 +29,6 @@ def setup_metrics(app):
     # Could change periodically
     # if get_settings().amqp_enable:
     #     instrumentator.add(amqp_health())
-    # instrumentator.add(confdb_health())
     # instrumentator.add(oio_rest_health())
     # instrumentator.add(dataset_health())
     # instrumentator.add(dar_health())
@@ -47,23 +45,6 @@ def os2mo_version() -> Callable[[InstInfo], None]:
         METRIC.info(
             {"mo_version": settings.commit_tag, "mo_commit_sha": settings.commit_sha}
         )
-
-    return instrumentation
-
-
-def confdb_health() -> Callable[[InstInfo], None]:
-    CONFDB_USE = Gauge("confdb_use", "ConfDB being used")
-    CONFDB_HEALTH = Gauge("confdb_health", "ConfDB health")
-    CONFDB_HEALTH_INFO = Info("confdb_health_string", "Issue string")
-    settings = get_settings()
-
-    def instrumentation(_: InstInfo) -> None:
-        # TODO: Should potentially use confdb healthcheck from health.py
-        healthy, info = health_check()
-
-        CONFDB_USE.set(settings.conf_db_use)
-        CONFDB_HEALTH.set(healthy)
-        CONFDB_HEALTH_INFO.info({"info": info})
 
     return instrumentation
 

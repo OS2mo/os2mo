@@ -20,7 +20,6 @@ from structlog import get_logger
 from . import handlers
 from . import org
 from .. import common
-from .. import conf_db
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -30,6 +29,7 @@ from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from .validation import validator
 from .validation.models import GroupValidation
+from mora.config import get_settings
 
 if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
@@ -105,7 +105,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         """
         checks whether the chosen association needs a substitute
         """
-        substitute_roles: str = conf_db.get_configuration()[conf_db.SUBSTITUTE_ROLES]
+        settings = get_settings()
+        substitute_roles: str = settings.confdb_substitute_roles
         if substitute_roles == "":
             # no role need substitute
             return False

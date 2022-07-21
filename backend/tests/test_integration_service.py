@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import patch
-
 import freezegun
 import pytest
 
@@ -22,7 +20,6 @@ org_unit_address_type_facet = {
 
 @pytest.mark.usefixtures("testing_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
@@ -496,7 +493,6 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
@@ -552,14 +548,12 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
 
 @pytest.mark.usefixtures("sample_structures_minimal")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class TestsMinimal(tests.cases.LoRATestCase):
     maxDiff = None
 
@@ -657,7 +651,6 @@ class TestsMinimal(tests.cases.LoRATestCase):
 
 @pytest.mark.usefixtures("sample_structures")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("mora.conf_db.get_configuration", new=lambda *x: {})
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
