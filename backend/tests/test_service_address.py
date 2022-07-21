@@ -145,13 +145,24 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             },
             status_code=400,
         )
+        assert len(route.calls) == 2
 
         self.assertEqual(
             json.loads(route.calls[0].request.read()),
             {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2016-06-06T00:00:00+02:00",
-                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "bvn": "%",
+                "virkningfra": "-infinity",
+                "list": "True",
+                "virkningtil": "infinity",
+                "konsolider": "True",
+            },
+        )
+        self.assertEqual(
+            json.loads(route.calls[1].request.read()),
+            {
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "virkningfra": "2016-06-06T00:00:00+00:00",
+                "virkningtil": "2016-06-06T00:00:00.001000+00:00",
                 "konsolider": "True",
             },
         )
@@ -214,13 +225,24 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             },
             status_code=400,
         )
+        assert len(route.calls) == 2
 
         self.assertEqual(
             json.loads(route.calls[0].request.read()),
             {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2016-06-06T00:00:00+02:00",
-                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "bvn": "%",
+                "virkningfra": "-infinity",
+                "list": "True",
+                "virkningtil": "infinity",
+                "konsolider": "True",
+            },
+        )
+        self.assertEqual(
+            json.loads(route.calls[1].request.read()),
+            {
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "virkningfra": "2016-06-06T00:00:00+00:00",
+                "virkningtil": "2016-06-06T00:00:00.001000+00:00",
                 "konsolider": "True",
             },
         )
@@ -246,13 +268,14 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             },
             status_code=400,
         )
-
+        assert len(route.calls) == 1
         self.assertEqual(
             json.loads(route.calls[0].request.read()),
             {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2016-06-06T00:00:00+02:00",
-                "virkningtil": "2016-06-06T00:00:00.000001+02:00",
+                "bvn": "%",
+                "virkningfra": "-infinity",
+                "list": "True",
+                "virkningtil": "infinity",
                 "konsolider": "True",
             },
         )

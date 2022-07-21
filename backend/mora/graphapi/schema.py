@@ -9,6 +9,7 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import json
+import re
 from base64 import b64encode
 from typing import Any
 from typing import cast
@@ -44,6 +45,7 @@ from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
+from mora import common
 from mora import config
 from mora import lora
 from mora.graphapi.files import load_file
@@ -655,13 +657,32 @@ class Manager:
 # ------------
 
 
+MUNICIPALITY_CODE_PATTERN = re.compile(r"urn:dk:kommune:(\d+)")
+
+
 @strawberry.experimental.pydantic.type(
     model=OrganisationRead,
     all_fields=True,
     description="Root organisation - one and only one of these can exist",
 )
 class Organisation:
-    pass
+    @strawberry.field(description="The municipality code for the organisation unit")
+    async def municipality_code(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> Optional[int]:
+        """Get The municipality code for the organisation unit (if any).
+
+        Returns:
+            The municipality code, if any is found.
+        """
+        org = await common.get_connector().organisation.get(root.uuid)
+
+        authorities = org.get("relationer", {}).get("myndighed", [])
+        for authority in authorities:
+            m = MUNICIPALITY_CODE_PATTERN.fullmatch(authority.get("urn"))
+            if m:
+                return int(m.group(1))
+        return None
 
 
 # Organisation Unit
