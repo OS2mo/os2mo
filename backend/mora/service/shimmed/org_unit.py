@@ -20,6 +20,8 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from pydantic import BaseModel
+from pydantic import Field
 
 from ...auth.keycloak import oidc
 from .errors import handle_gql_error
@@ -40,6 +42,142 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
+
+
+class ListOrgunitsValidity(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "from": "1960-01-01",
+                "to": None
+            }
+        }
+
+    from_date: str = Field(alias="from", description="Validity from date")
+    to_date: Optional[str] = Field(alias="from", description="Validity to date")
+
+
+class ListOrgunitsEntry(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Hj\u00f8rring b\u00f8rnehus",
+                "user_key": "Hj\u00f8rring b\u00f8rnehus",
+                "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+                "validity": {
+                    "from": "1960-01-01",
+                    "to": None
+                }
+            }
+        }
+
+    name: str = Field(description="Human-readable name.")
+    uuid: str = Field(description="Machine-friendly UUID.")
+    user_key: str = Field(description="Short, unique key identifying the unit.")
+    validity: ListOrgunitsValidity = Field(description="Validity range of the organisational unit.")
+
+
+class ListOrgunitsReturn(BaseModel):
+    class Config:
+        schema_extra = {
+            "example": {
+                "items": [
+                    {
+                        "name": "Hj\u00f8rring b\u00f8rnehus",
+                        "user_key": "Hj\u00f8rring b\u00f8rnehus",
+                        "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+                        "validity": {
+                            "from": "1960-01-01",
+                            "to": None
+                        }
+                    }
+                ],
+                "offset": 0,
+                "total": 1
+            }
+        }
+
+    items: list[ListOrgunitsEntry] = Field(description="The returned items.")
+    offset: int = Field(description="Pagination offset.")
+    total: int = Field(description="Total number of items available on this query.")
+
+
+@org_unit_router.get(
+    "/o/{orgid}/ou/",
+    response_model=ListOrgunitsReturn,
+    response_model_exclude_unset=True,
+    responses={404: {"description": "Org unit not found"}},
+)
+async def list_orgunits(
+    orgid: UUID = Path(
+        ...,
+        description="UUID of the organisation to retrieve facets from.",
+        example="3b866d97-0b1f-48e0-8078-686d96f430b3",
+    ),
+    start: int = Query(0, description="Index of the first item for paging."),
+    limit: Optional[int] = Query(
+        0, description="Maximum number of items to return."
+    ),
+    query: Optional[str] = Query(None, description="Filter by units matching this string."),
+    root: Optional[str] = Query(None, description="Filter by units in the subtree under this root."),
+    hierarchy_uuids: Optional[List[UUID]] = Query(None, description="Filter units having one of these hierchies."),
+    only_primary_uuid: Optional[bool] = Query(
+        None, description="Only retrieve the UUID of the class unit."
+    ),
+    # :queryparam date at: Show the units valid at this point in time, in ISO-8601 format.
+):
+    """Query organisational units in an organisation."""
+    orgid = str(orgid)
+    c = common.get_connector()
+
+    kwargs = dict(
+        limit=limit,
+        start=start,
+        tilhoerer=orgid,
+        gyldighed="Aktiv",
+    )
+
+    if query:
+        kwargs.update(vilkaarligattr="%{}%".format(query))
+    if hierarchy_uuids:
+        kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
+
+    uuid_filters = []
+    if root:
+        enheder = await c.organisationenhed.get_all()
+
+        uuids, enheder = unzip(enheder)
+        # Fetch parent_uuid from objects
+        parent_uuids = map(mapping.PARENT_FIELD.get_uuid, enheder)
+        # Create map from uuid --> parent_uuid
+        parent_map = dict(zip(uuids, parent_uuids))
+
+        def entry_under_root(uuid):
+            """Check whether the given uuid is in the subtree under 'root'.
+
+            Works by recursively ascending the parent_map.
+
+            If the specified root is found, we must have started in its subtree.
+            If the specified root is not found, we will stop searching at the
+                root of the organisation tree.
+            """
+            if uuid not in parent_map:
+                return False
+            return uuid == root or entry_under_root(parent_map[uuid])
+
+        uuid_filters.append(entry_under_root)
+
+    details = get_details_from_query_args(util.get_query_args())
+
+    async def get_minimal_orgunit(*args, **kwargs):
+        return await get_one_orgunit(
+            *args, details=details, only_primary_uuid=only_primary_uuid, **kwargs
+        )
+
+    search_result = await c.organisationenhed.paged_get(
+        get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs
+    )
+    return search_result
 
 
 @org_unit_router.get(
