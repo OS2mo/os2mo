@@ -38,11 +38,11 @@ def init(log_level: str, json: bool = True):
         # them when using the ConsoleRenderer.
         shared_processors.append(structlog.processors.format_exc_info)
 
-    # Prepare event dict for `ProcessorFormatter`.
-    shared_processors.append(structlog.stdlib.ProcessorFormatter.wrap_for_formatter)
-
     structlog.configure(
-        processors=shared_processors,
+        processors=[
+            *shared_processors,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        ],
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
