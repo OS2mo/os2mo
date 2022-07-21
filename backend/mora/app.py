@@ -260,7 +260,9 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     # Statics must be included last because of the wildcard, matching anything unhandled
     if settings.statics_enable:
         if os.path.exists(distdir):
-            app.mount("/", StaticFiles(directory=distdir), name="static")
+            app.mount(
+                "/static/", StaticFiles(directory=distdir + "/static/"), name="static"
+            )
         else:
             logger.warning("No dist directory to serve", distdir=distdir)
         app.include_router(
