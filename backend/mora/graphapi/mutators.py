@@ -37,13 +37,16 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
-        try:
-            if not await terminate_org_unit(unit):
-                raise Exception(
-                    "Unable to terminate organization unit, due to an unknown error."
-                )
+        return await terminate_org_unit(unit)
+        # return OrganizationUnit(**result)
 
-            return OrganizationUnit(uuid=unit.uuid)
-        except Exception as e:
-            logger.exception('Error occured while running "terminate_org_unit()".')
-            raise e
+        # try:
+        #     if not await terminate_org_unit(unit):
+        #         raise Exception(
+        #             "Unable to terminate organization unit, due to an unknown error."
+        #         )
+        #
+        #     return OrganizationUnit(uuid=unit.uuid)
+        # except Exception as e:
+        #     logger.exception('Error occured while running "terminate_org_unit()".')
+        #     raise e

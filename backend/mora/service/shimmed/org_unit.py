@@ -321,7 +321,6 @@ async def trigger_external_integration(
 
 @org_unit_router.post(
     "/ou/{uuid}/terminate2",
-    response_model=OrganisationUnit,
     responses={
         200: {
             "description": "The termination succeeded",
@@ -331,16 +330,9 @@ async def trigger_external_integration(
         409: {"description": "Validation failed"},
     },
 )
-async def terminate(
-    uuid: UUID, request: OrganisationUnitTerminate = Body(...)
-) -> OrganisationUnit:
-    query = """
-    mutation($uuid: UUID!, $from: Date, $to: Date) {
-        org_unit_terminate(unit: {uuid: $uuid, from: $from, to: $to}) {
-            uuid
-        }
-    }
-    """
+async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)):
+    mutation_func = "org_unit_terminate"
+    query = f"mutation($uuid: UUID!, $from: Date, $to: Date) {{ {mutation_func}(unit: {{uuid: $uuid, from: $from, to: $to}}) {{ uuid }} }}"
 
     response = await execute_graphql(
         query,
@@ -355,5 +347,6 @@ async def terminate(
         },
     )
     handle_gql_error(response)
-    result = response.data
-    return OrganisationUnit(**result)
+
+    result = response.data[mutation_func]
+    return UUID(result.get("uuid", ""))

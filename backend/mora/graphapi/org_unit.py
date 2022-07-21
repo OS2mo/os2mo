@@ -14,14 +14,16 @@ from uuid import UUID
 from strawberry.dataloader import DataLoader
 
 from mora import exceptions
+from mora import lora
 from mora import mapping
 from mora import util
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.schema import Response
+from mora.graphapi.types import OrganizationUnit
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.orgunit import terminate_org_unit_validation
-
+from mora.triggers import Trigger
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +68,7 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
     return result
 
 
-async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> bool:
+async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
     # Create lora payload
     # effect = OrgUnitRequestHandler.get_virkning_for_terminate(request)
 
@@ -76,6 +78,10 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> bool:
         mapping.VALIDITY: {mapping.FROM: unit.from_date, mapping.TO: unit.to_date},
     }
 
+    # Handle the unit UUID
+    uuid = util.get_uuid(terminate_dict)
+
+    # Handle dates
     if unit.from_date:
         terminate_dict[mapping.VALIDITY][mapping.FROM] = unit.from_date.strftime(
             "%Y-%m-%d"
@@ -95,15 +101,10 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> bool:
     # or use proper arguments like:
     # `terminate_org_unit_validation(uuid: str, from: datetime.date, to: datetime.date)`
     try:
-        await terminate_org_unit_validation(
-            terminate_dict[mapping.UUID], terminate_dict
-        )
+        await terminate_org_unit_validation(uuid, terminate_dict)
     except Exception as e:
         logger.exception("ERROR validating termination request.")
         raise e
-
-    # Handle the unit UUID
-    # uuid = util.get_uuid(terminate_dict)
 
     # Create payload to LoRa
     obj_path = ("tilstande", "organisationenhedgyldighed")
@@ -114,7 +115,32 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> bool:
     lora_payload["note"] = "Afslut enhed"
 
     # TODO: Finish the termiante logic
-    # # Conn to LoRa
-    # lora_conn = lora.Connector()
-    # result = await lora_conn.organisationenhed.update(lora_payload, uuid)
-    return True
+
+    trigger_dict = {
+        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
+        Trigger.REQUEST: {Trigger.UUID: uuid},
+        Trigger.ROLE_TYPE: "role_type",
+        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
+    }
+
+    result = None
+    trigger_dict.update(
+        {
+            Trigger.RESULT: result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+            Trigger.UUID: uuid,
+        }
+    )
+
+    trigger_results_after = None
+    if not util.get_args_flag("triggerless"):
+        trigger_results_after = await Trigger.run(trigger_dict)
+
+    # Do the LoRa
+    lora_conn = lora.Connector()
+    result = await lora_conn.organisationenhed.update(lora_payload, uuid)
+
+    # lora_result = getattr(self, Trigger.RESULT, None)
+
+    # Return the unit as the final thing
+    return OrganizationUnit(uuid=result)
