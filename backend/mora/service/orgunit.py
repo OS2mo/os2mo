@@ -1197,7 +1197,7 @@ async def terminate_org_unit(
     be used.
     """
 
-    # Create a request dict to be used futher on
+    # Create a request dict to be used further on
     request_dict = request.dict(by_alias=True)
     if request.validity.from_date:
         request_dict[mapping.VALIDITY][
