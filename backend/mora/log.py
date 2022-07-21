@@ -1,10 +1,14 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import logging
+import time
 
 import structlog
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
 from structlog.types import EventDict
 from structlog.types import Processor
+from uvicorn.protocols.utils import get_path_with_query_string
 
 
 def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
@@ -16,6 +20,37 @@ def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
 
     event_dict.pop("color_message", None)
     return event_dict
+
+
+class AccesslogMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        self.app = app
+        self.access_logger = structlog.stdlib.get_logger("api.access")
+        super().__init__(app)
+
+    async def dispatch(self, request: Request, call_next):
+        start_time = time.perf_counter_ns()
+
+        response = await call_next(request)
+
+        process_time = round((time.perf_counter_ns() - start_time) / 10**9, 3)
+
+        status_code = response.status_code
+        path = get_path_with_query_string(request.scope)
+        client_host = request.client.host
+        client_port = request.client.port
+        http_method = request.method
+
+        self.access_logger.info(
+            "Request",
+            path=path,
+            status_code=status_code,
+            method=http_method,
+            network={"client": {"ip": client_host, "port": client_port}},
+            duration=process_time,
+        )
+
+        return response
 
 
 def init(log_level: str, json: bool = True):
@@ -79,9 +114,9 @@ def init(log_level: str, json: bool = True):
         logging.getLogger(_log).handlers.clear()
         logging.getLogger(_log).propagate = True
 
-    # Since we re-create the access logs ourselves, to add all information in
-    # the structured log (see the `logging_middleware` in main.py), we clear
-    # the handlers and prevent the logs to propagate to a logger higher up in
-    # the hierarchy (effectively rendering them silent).
+    # Since we re-create the access logs ourselves in AccesslogMiddleware, to
+    # add all information in the structured log, we clear the handlers and
+    # prevent the logs to propagate to a logger higher up in the hierarchy
+    # (effectively rendering them silent).
     logging.getLogger("uvicorn.access").handlers.clear()
     logging.getLogger("uvicorn.access").propagate = False

@@ -297,4 +297,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         app = setup_instrumentation(app)
         setup_metrics(app)
 
+    app.add_middleware(log.AccesslogMiddleware)
+
     return app
