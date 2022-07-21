@@ -119,7 +119,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     trigger_dict = {
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
         Trigger.REQUEST: {Trigger.UUID: uuid},
-        Trigger.ROLE_TYPE: "role_type",
+        Trigger.ROLE_TYPE: mapping.ORG_UNIT,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
     }
 
