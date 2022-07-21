@@ -1,14 +1,12 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import tempfile
-
 import freezegun
+import pytest
 
 import tests.cases
 from . import util
 from mora import util as mora_util
 from mora.config import Settings
-from mora.integrations import serviceplatformen
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -127,43 +125,57 @@ class AsyncTests(tests.cases.AsyncTestCase):
             )
 
 
-class TestConfig(tests.cases.TestCase):
-    def _sp_config(self, **overrides):
-        UUID_OK = "12345678-9abc-def1-1111-111111111111"
+def _sp_config(monkeypatch, **overrides):
+    UUID_OK = "12345678-9abc-def1-1111-111111111111"
 
-        return {
-            "sp_service_uuid": UUID_OK,
-            "sp_agreement_uuid": UUID_OK,
-            "sp_municipality_uuid": UUID_OK,
-            "sp_system_uuid": UUID_OK,
-            **overrides,
-        }
+    env_vars = {
+        "SP_SERVICE_UUID": UUID_OK,
+        "SP_AGREEMENT_UUID": UUID_OK,
+        "SP_MUNICIPALITY_UUID": UUID_OK,
+        "SP_SYSTEM_UUID": UUID_OK,
+        **overrides,
+    }
+    for env_var, value in env_vars.items():
+        monkeypatch.setenv(env_var, value)
 
-    def test_serviceplatformen_dummy_true(self):
-        "test bad/missing values in config for Serviceplatformen"
-        "are not considered in dummy mode"
-        with util.override_config(Settings(environment="production", dummy_mode=True)):
-            self.assertTrue(serviceplatformen.check_config())
 
-    def test_serviceplatformen_missing_path(self):
-        with util.override_config(
-            Settings(environment="production", dummy_mode=False, **self._sp_config())
-        ):
-            with self.assertRaisesRegex(
-                ValueError, "Serviceplatformen certificate path must be configured"
-            ):
-                serviceplatformen.check_config()
+def test_serviceplatformen_dummy_true(monkeypatch):
+    "test bad/missing values in config for Serviceplatformen"
+    "are not considered in dummy mode"
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DUMMY_MODE", "True")
+    Settings(environment="production", dummy_mode=True)
 
-    def test_serviceplatformen_empty_file(self):
-        with tempfile.NamedTemporaryFile() as tf:
-            with util.override_config(
-                Settings(
-                    environment="production",
-                    dummy_mode=False,
-                    **self._sp_config(sp_certificate_path=tf.name)
-                )
-            ):
-                with self.assertRaisesRegex(
-                    ValueError, "Serviceplatformen certificate can not be empty"
-                ):
-                    serviceplatformen.check_config()
+
+def test_serviceplatformen_missing_path(monkeypatch):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DUMMY_MODE", "False")
+    _sp_config(monkeypatch)
+
+    with pytest.raises(ValueError) as exc_info:
+        Settings()
+    assert "sp_certificate_path\n  field required" in str(exc_info.value)
+
+
+def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
+    tmp_file = tmp_path / "testfile"
+    tmp_file.write_text("")
+
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DUMMY_MODE", "False")
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+
+    with pytest.raises(ValueError) as exc_info:
+        Settings()
+    assert "Serviceplatformen certificate can not be empty" in str(exc_info.value)
+
+
+def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
+    tmp_file = tmp_path / "testfile"
+    tmp_file.write_text("This is a certificate")
+
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DUMMY_MODE", "False")
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+
+    Settings()
