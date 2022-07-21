@@ -24,6 +24,7 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
+from mora.graphapi.models import OrganisationUnit
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -320,6 +321,7 @@ async def trigger_external_integration(
 
 @org_unit_router.post(
     "/ou/{uuid}/terminate2",
+    response_model=OrganisationUnit,
     responses={
         200: {
             "description": "The termination succeeded",
@@ -329,7 +331,9 @@ async def trigger_external_integration(
         409: {"description": "Validation failed"},
     },
 )
-async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)) -> str:
+async def terminate(
+    uuid: UUID, request: OrganisationUnitTerminate = Body(...)
+) -> OrganisationUnit:
     query = """
     mutation($uuid: UUID!, $from: Date, $to: Date) {
         org_unit_terminate(unit: {uuid: $uuid, from: $from, to: $to}) {
@@ -351,4 +355,5 @@ async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)) 
         },
     )
     handle_gql_error(response)
-    return "yay"
+    result = response.data
+    return OrganisationUnit(**result)
