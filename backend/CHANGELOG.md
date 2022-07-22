@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+4.45.0 - 2022-07-22
+-------------------
+
+[#51165] Implemented RA Data Models for the organisation-unit termination endpoint, instead of dict.
+
 4.44.0 - 2022-07-21
 -------------------
 
