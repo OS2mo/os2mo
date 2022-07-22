@@ -30,6 +30,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
 from more_itertools import unzip
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 from . import autocomplete
 from . import facet
@@ -1058,8 +1059,8 @@ async def create_org_unit(req: dict = Body(...), permissions=Depends(oidc.rbac_o
 
 
 async def terminate_org_unit_validation(unitid, request):
-    validity = request.get("validity", {})
-    if "from" in validity and "to" in validity:
+    validity = request.get(mapping.VALIDITY, {})
+    if mapping.FROM in validity and mapping.TO in validity:
         date = util.get_valid_from(request)
     else:
         date = util.get_valid_to(request)
@@ -1130,7 +1131,9 @@ async def terminate_org_unit_validation(unitid, request):
     },
 )
 async def terminate_org_unit(
-    uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
+    uuid: UUID,
+    request: OrganisationUnitTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
 ):
     """Terminates an organisational unit from a specified date.
 
@@ -1193,10 +1196,28 @@ async def terminate_org_unit(
     "to"-date to "infinity". This behavior is deprecated and should no longer
     be used.
     """
+
+    # Create a request dict to be used further on
+    request_dict = request.dict(by_alias=True)
+    if request.validity.from_date:
+        request_dict[mapping.VALIDITY][
+            mapping.FROM
+        ] = request.validity.from_date.strftime("%Y-%m-%d")
+    else:
+        del request_dict[mapping.VALIDITY][mapping.FROM]
+
+    if request.validity.to_date:
+        request_dict[mapping.VALIDITY][mapping.TO] = request.validity.to_date.strftime(
+            "%Y-%m-%d"
+        )
+    else:
+        del request_dict[mapping.VALIDITY][mapping.TO]
+
     uuid = str(uuid)
-    await terminate_org_unit_validation(uuid, request)
-    request[mapping.UUID] = uuid
+    request_dict[mapping.UUID] = uuid
+
+    await terminate_org_unit_validation(uuid, request_dict)
     handler = await OrgUnitRequestHandler.construct(
-        request, mapping.RequestType.TERMINATE
+        request_dict, mapping.RequestType.TERMINATE
     )
     return await handler.submit()
