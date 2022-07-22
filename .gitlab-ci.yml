@@ -657,7 +657,7 @@ Vue-unit-test:
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       $REVIEW_DEPLOY_URL
-    - until $(curl "${REVIEW_URL}/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
+    - until $(curl --silent --fail-with-body "${REVIEW_URL}/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
     #name: "review/$REVIEW_SLUG"
     #url: $REVIEW_URL
