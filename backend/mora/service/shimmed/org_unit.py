@@ -348,5 +348,9 @@ async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)):
     )
     handle_gql_error(response)
 
-    result = response.data[mutation_func]
-    return UUID(result.get("uuid", ""))
+    # result = response.data[mutation_func]
+    result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+    if not result_uuid:
+        raise Exception("Did not get a valid UUID from GraphQL response")
+
+    return UUID(result_uuid)

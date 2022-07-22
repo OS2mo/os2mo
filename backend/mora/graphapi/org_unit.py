@@ -7,12 +7,15 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
 import logging
 from typing import cast
+from typing import Union
 from uuid import UUID
 
 from strawberry.dataloader import DataLoader
 
+from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -24,6 +27,8 @@ from mora.graphapi.types import OrganizationUnit
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.orgunit import terminate_org_unit_validation
 from mora.triggers import Trigger
+from mora.util import ONE_DAY
+from mora.util import POSITIVE_INFINITY
 
 logger = logging.getLogger(__name__)
 
@@ -71,6 +76,7 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
 async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
     # Create lora payload
     # effect = OrgUnitRequestHandler.get_virkning_for_terminate(request)
+    effect = _get_terminate_effect(unit)
 
     # Setup terminate dict
     terminate_dict: dict = {
@@ -78,7 +84,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
         mapping.VALIDITY: {mapping.FROM: unit.from_date, mapping.TO: unit.to_date},
     }
 
-    # Handle the unit UUID
+    # Verify the unit UUID
     uuid = util.get_uuid(terminate_dict)
 
     # Handle dates
@@ -115,12 +121,94 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     lora_payload["note"] = "Afslut enhed"
 
     # TODO: Finish the termiante logic
+    trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
 
+    # Do the LoRa
+    lora_conn = lora.Connector()
+    result = await lora_conn.organisationenhed.update(lora_payload, uuid)
+    trigger_dict[Trigger.RESULT] = result
+
+    # Run the trigger
+    trigger_results_after = None
+    if not util.get_args_flag("triggerless"):
+        trigger_results_after = await Trigger.run(trigger_dict)
+
+    # Return the unit as the final thing
+    return OrganizationUnit(uuid=trigger_dict.get(Trigger.RESULT))
+
+
+def _get_terminate_effect(unit: OrganizationUnitTerminateInput):
+    if unit.from_date and unit.to_date:
+        return common._create_virkning(
+            _get_valid_from(unit.from_date),
+            _get_valid_to(unit.to_date),
+        )
+
+    if not unit.from_date and unit.to_date:
+        return common._create_virkning(_get_valid_to(unit.to_date), "infinity")
+
+    exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+        # key="Validity must be set with either 'to' or both 'from' " "and 'to'",
+        # obj=request, # NOTE: This is the OG way.. the one below is my try to remake it in case we need them for tests
+        # obj={
+        #     "validity": {
+        #         "from": unit.from_date.isoformat() if unit.from_date else None,
+        #         "to": unit.to_date.isoformat() if unit.to_date else None
+        #     }
+        # },
+        key="Organization Unit must be set with either 'to' or both 'from' " "and 'to'",
+        unit={
+            "from": unit.from_date.isoformat() if unit.from_date else None,
+            "to": unit.to_date.isoformat() if unit.to_date else None,
+        },
+    )
+
+
+def _get_valid_from(from_date: datetime.date) -> datetime.datetime:
+    if not from_date:
+        exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+    dt = datetime.datetime.combine(from_date.today(), datetime.datetime.min.time())
+    if dt.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(dt.isoformat()),
+        )
+
+    return dt
+
+
+def _get_valid_to(to_date: datetime.date) -> datetime.datetime:
+    if not to_date:
+        return POSITIVE_INFINITY
+
+    dt = datetime.datetime.combine(to_date.today(), datetime.datetime.min.time())
+    if dt.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(dt.isoformat()),
+        )
+
+    return dt + ONE_DAY
+
+
+def _create_trigger_dict_from_org_unit_input(unit: OrganizationUnitTerminateInput):
+    uuid = unit.uuid
+
+    # create trigger dict request
+    trigger_request = {Trigger.UUID: uuid, mapping.VALIDITY: {}}
+    if unit.from_date:
+        trigger_request[mapping.VALIDITY][mapping.FROM] = unit.from_date.isoformat()
+
+    if unit.to_date:
+        trigger_request[mapping.VALIDITY][mapping.TO] = unit.to_date.isoformat()
+
+    # Create the return dict
     trigger_dict = {
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-        Trigger.REQUEST: {Trigger.UUID: uuid},
+        Trigger.REQUEST: trigger_request,
         Trigger.ROLE_TYPE: mapping.ORG_UNIT,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
+        Trigger.ORG_UNIT_UUID: str(uuid),
+        Trigger.UUID: str(uuid),
     }
 
     result = None
@@ -128,19 +216,8 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
         {
             Trigger.RESULT: result,
             Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-            Trigger.UUID: uuid,
+            # Trigger.UUID: uuid,
         }
     )
 
-    trigger_results_after = None
-    if not util.get_args_flag("triggerless"):
-        trigger_results_after = await Trigger.run(trigger_dict)
-
-    # Do the LoRa
-    lora_conn = lora.Connector()
-    result = await lora_conn.organisationenhed.update(lora_payload, uuid)
-
-    # lora_result = getattr(self, Trigger.RESULT, None)
-
-    # Return the unit as the final thing
-    return OrganizationUnit(uuid=result)
+    return trigger_dict
