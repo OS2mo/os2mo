@@ -57,6 +57,9 @@ include:
 .if-default-branch-refs: &if-default-branch-refs
   if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
+.if-not-default-branch: &if-not-default-branch
+  if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+
 .if-tag: &if-tag
   if: '$CI_COMMIT_TAG'
 
@@ -234,7 +237,7 @@ Don't Interrupt:
   image: python:3.9
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
-    - <<: *if-merge-request
+    - <<: *if-not-default-branch
 
 Pre-commit:
   extends: .lint-base
