@@ -124,7 +124,7 @@ default:
   extends:
     - .services-start-base
   services:
-    - name: magentaaps/postgres-os2mo:10-11.7-test  # TODO: upgrade?
+    - name: magentaaps/postgres-os2mo:11-11.7-test
       alias: mox-db
       variables:
         DB_NAME: mox
