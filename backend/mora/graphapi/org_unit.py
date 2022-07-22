@@ -10,7 +10,6 @@
 import datetime
 import logging
 from typing import cast
-from typing import Union
 from uuid import UUID
 
 from strawberry.dataloader import DataLoader
@@ -121,23 +120,35 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     lora_payload["note"] = "Afslut enhed"
 
     # TODO: Finish the termiante logic
+
     trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
 
-    # Do the LoRa
-    lora_conn = lora.Connector()
-    result = await lora_conn.organisationenhed.update(lora_payload, uuid)
-    trigger_dict[Trigger.RESULT] = result
-
-    # Run the trigger
-    trigger_results_after = None
+    # ON_BEFORE
+    # trigger_results_before = None
     if not util.get_args_flag("triggerless"):
-        trigger_results_after = await Trigger.run(trigger_dict)
+        _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationenhed.update(lora_payload, uuid)
+    trigger_dict[Trigger.RESULT] = lora_result
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+    # trigger_results_after = None
+    if not util.get_args_flag("triggerless"):
+        _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
     return OrganizationUnit(uuid=trigger_dict.get(Trigger.RESULT))
 
 
-def _get_terminate_effect(unit: OrganizationUnitTerminateInput):
+def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
     if unit.from_date and unit.to_date:
         return common._create_virkning(
             _get_valid_from(unit.from_date),
@@ -149,7 +160,9 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput):
 
     exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
         # key="Validity must be set with either 'to' or both 'from' " "and 'to'",
-        # obj=request, # NOTE: This is the OG way.. the one below is my try to remake it in case we need them for tests
+        # NOTE: This is the OG way.. the one below is my try to remake it in case we
+        # need them for tests
+        # obj=request,
         # obj={
         #     "validity": {
         #         "from": unit.from_date.isoformat() if unit.from_date else None,
@@ -190,11 +203,18 @@ def _get_valid_to(to_date: datetime.date) -> datetime.datetime:
     return dt + ONE_DAY
 
 
-def _create_trigger_dict_from_org_unit_input(unit: OrganizationUnitTerminateInput):
-    uuid = unit.uuid
+def _create_trigger_dict_from_org_unit_input(
+    unit: OrganizationUnitTerminateInput,
+) -> dict:
+    uuid_str = str(unit.uuid)
 
     # create trigger dict request
-    trigger_request = {Trigger.UUID: uuid, mapping.VALIDITY: {}}
+    trigger_request = {
+        mapping.TYPE: mapping.ORG_UNIT,
+        mapping.UUID: uuid_str,
+        mapping.VALIDITY: {},
+    }
+
     if unit.from_date:
         trigger_request[mapping.VALIDITY][mapping.FROM] = unit.from_date.isoformat()
 
@@ -206,18 +226,11 @@ def _create_trigger_dict_from_org_unit_input(unit: OrganizationUnitTerminateInpu
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
         Trigger.REQUEST: trigger_request,
         Trigger.ROLE_TYPE: mapping.ORG_UNIT,
+        Trigger.ORG_UNIT_UUID: uuid_str,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        Trigger.ORG_UNIT_UUID: str(uuid),
-        Trigger.UUID: str(uuid),
+        # Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        Trigger.UUID: uuid_str,
+        Trigger.RESULT: None,
     }
-
-    result = None
-    trigger_dict.update(
-        {
-            Trigger.RESULT: result,
-            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
-            # Trigger.UUID: uuid,
-        }
-    )
 
     return trigger_dict
