@@ -466,19 +466,8 @@ def get_date_interval(
 
 
 def get_schema() -> strawberry.Schema:
-    @strawberry.type(description="Entrypoint for all read-operations")
-    class Q2(Query):
-        @strawberry.field(deprecation_reason="YOU WILL BE FIRED")
-        def org_units(self) -> int:
-            return 1
-
-        # org_units: list[Class] = strawberry.field(
-        #     resolver=StaticResolver("class_getter", "class_loader").resolve,
-        #     description="Get a list of all classes, optionally by uuid(s)",
-        # )
-
     schema = strawberry.Schema(
-        query=Q2,
+        query=Query,
         mutation=Mutation,
         # Automatic camelCasing disabled because under_score style is simply better
         #

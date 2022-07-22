@@ -1,6 +1,9 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
+from starlette import status
+from starlette.responses import Response
+
 from mora.graphapi.versions.v1.main import get_version as get_v1_version
 from starlette.responses import RedirectResponse
 
@@ -12,6 +15,7 @@ def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
     router = APIRouter()
 
     versions = get_versions(enable_graphiql=enable_graphiql)
+    oldest = min(v.version for v in versions)
     newest = max(v.version for v in versions)
 
     @router.get("")
@@ -19,7 +23,14 @@ def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
         return RedirectResponse(f"/graphql/v{newest}")
 
     for version in versions:
+        # TODO: Add deprecation header as per the decision log (link/successor)
         router.include_router(version.router, prefix=f"/v{version.version}")
+
+    @router.get("/v{version:int}", status_code=status.HTTP_404_NOT_FOUND)
+    @router.post("/v{version:int}", status_code=status.HTTP_404_NOT_FOUND)
+    async def gone_bro(response: Response, version: int):
+        if version < oldest:
+            response.status_code = status.HTTP_410_GONE
 
     # Subscriptions could be implemented using our trigger system.
     # They could expose an eventsource to the WebUI, enabling the UI to be dynamically

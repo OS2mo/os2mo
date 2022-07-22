@@ -203,8 +203,8 @@ class MOAddress(AddressRead):
 
 
 async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    from mora.graphapi.main import get_schema
-    from mora.graphapi.dataloaders import get_loaders
+    from mora.graphapi.versions.latest.main import get_schema
+    from mora.graphapi.versions.latest.dataloaders import get_loaders
     from mora.graphapi.middleware import set_is_shim
 
     set_is_shim()
