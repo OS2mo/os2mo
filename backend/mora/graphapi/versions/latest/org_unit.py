@@ -14,8 +14,8 @@ from strawberry.dataloader import DataLoader
 
 from mora import exceptions
 from mora import mapping
-from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.schema import Response
+from .dataloaders import get_loaders
+from .schema import Response
 from mora.service.orgunit import OrgUnitRequestHandler
 
 # --------------------------------------------------------------------------------------

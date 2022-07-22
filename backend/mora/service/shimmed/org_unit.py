@@ -22,7 +22,6 @@ from more_itertools import one
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
-from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
@@ -35,6 +34,7 @@ from mora.service.util import get_configuration
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
+from ...graphapi.versions.latest.models import OrganisationUnitRefreshRead
 
 
 @org_unit_router.get(
