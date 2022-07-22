@@ -411,6 +411,28 @@ Build Keycloak DB:
       --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
       --destination=${KEYCLOAK_DB_IMAGE_SHA}
 
+# Tests
+########
+.test-base:
+  stage: test
+  variables:
+    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
+    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
+  rules:
+    - <<: *if-merge-request
+
+
+# Backend Tests
+################
+.backend-test-base:
+  extends:
+    - .test-base
+    - .services:use-mo
+  variables:
+    HYPOTHESIS_PROFILE: "ci"
+    QUERY_EXPORT_DIR: "/tmp"
+
+
 # Schemathesis tests
 ####################
 # TODO: Use Review cluster?
@@ -448,26 +470,6 @@ Schemathesis-OpenAPI-test:
       --endpoint '^/favicon.ico$'
       http://mo/openapi.json
 
-# Tests
-########
-.test-base:
-  stage: test
-  variables:
-    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
-    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
-  rules:
-    - <<: *if-merge-request
-
-
-# Backend Tests
-################
-.backend-test-base:
-  extends:
-    - .test-base
-    - .services:use-mo
-  variables:
-    HYPOTHESIS_PROFILE: "ci"
-    QUERY_EXPORT_DIR: "/tmp"
 
 Unit-test:
   extends:
