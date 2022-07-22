@@ -16,7 +16,6 @@ stages:
   - post-qa
 
   - test
-  - coverage
   - prepare-release
   - release
   - deploy
@@ -415,9 +414,6 @@ Build Keycloak DB:
 ########
 .test-base:
   stage: test
-  variables:
-    # $CI_JOB_ID is unique across parallel jobs, so this works as expected
-    COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
 
@@ -483,12 +479,9 @@ Unit-test:
       --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
       --workers auto
   artifacts:
     when: always
-    paths:
-      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
@@ -504,15 +497,8 @@ GraphAPI-test:
       --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=backend/mora/graphapi
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=40
   artifacts:
     when: always
-    paths:
-      - $CI_PROJECT_DIR/coverage-html
-      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
@@ -533,15 +519,12 @@ GraphAPI-Integration-test:
       --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
       --splitting-algorithm least_duration
       --durations-path backend/tests/.test_durations
   artifacts:
     when: always
-    paths:
-      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
@@ -561,42 +544,14 @@ Integration-test:
       --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
       --splitting-algorithm least_duration
       --durations-path backend/tests/.test_durations
   artifacts:
     when: always
-    paths:
-      - $COVERAGE_FILE
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
-
-Coverage:
-  stage: coverage
-  image: python:3.9-slim
-  needs:
-    - Unit-test
-    - GraphAPI-test
-    - Integration-test
-  before_script:
-    - pip install coverage
-    - coverage combine
-  script:
-    - coverage report --fail-under=85 --skip-empty
-  after_script:
-    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
-    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
-  coverage: '/TOTAL.*\s+(\d+%)$/'
-  artifacts:
-    when: always
-    paths:
-      - coverage-html
-    reports:
-      cobertura: $CI_PROJECT_DIR/coverage.xml
-  rules:
-    - <<: *if-merge-request
 
 # Frontend Tests
 #################
@@ -623,8 +578,6 @@ Vue-unit-test:
     when: always
     paths:
       - $CI_PROJECT_DIR/coverage
-    # reports:
-    #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
 # TODO: Move to QA / use cluster services?
 # e2e-test:
