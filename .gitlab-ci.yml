@@ -523,7 +523,7 @@ GraphAPI-Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 4
+  parallel: 2
   script:
     - pytest
       backend/tests/integration/
