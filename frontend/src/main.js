@@ -72,10 +72,8 @@ axios({
   })
 }).catch((err) => {
   console.error('keycloak.json could not be fetched')
-  if (err.response.status === 404) {
-    console.info('Starting vue app with no authentication ...')
-    app()
-  }
+  console.info('Starting vue app with no authentication ...')
+  app()
 })
 
 export default keycloak
