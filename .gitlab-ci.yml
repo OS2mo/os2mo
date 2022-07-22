@@ -480,6 +480,7 @@ Unit-test:
       -m "not serial"
       -k "not graphapi"
       --color=yes
+      --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
@@ -500,6 +501,7 @@ GraphAPI-test:
       backend/tests/graphapi-shim/
       -p no:cacheprovider
       --color=yes
+      --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=backend/mora/graphapi
@@ -528,6 +530,7 @@ GraphAPI-Integration-test:
       -k "graphapi"
       -p no:cacheprovider
       --color=yes
+      --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
@@ -555,6 +558,7 @@ Integration-test:
       -m "serial and not equivalence"
       -p no:cacheprovider
       --color=yes
+      --exitfirst
       --show-capture=no
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
