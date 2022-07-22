@@ -91,7 +91,7 @@ git-username = "MagentaBot"
 git-email = "info@magenta.dk"
 
 [tool.pytest.ini_options]
-addopts = "--cov=. --cov-config=/app/backend/.coveragerc --cov-report=html"
+# addopts = "--cov=. --cov-config=/app/backend/.coveragerc --cov-report=html"
 markers = ["serial"]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"

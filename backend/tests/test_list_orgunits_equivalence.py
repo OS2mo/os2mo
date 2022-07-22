@@ -1,6 +1,25 @@
+import pytest
+import freezegun
+
+import tests
+from parameterized import parameterized
+import urllib
+
+from uuid import UUID
+from typing import Optional
+from typing import Union
+from typing import List
+from datetime import date
+from datetime import datetime
+from itertools import product
+
 from more_itertools import unzip
 
 from mora import common
+from mora.service.orgunit import get_details_from_query_args
+from mora.service.orgunit import get_one_orgunit
+from mora import mapping
+
 
 async def list_orgunits(
     orgid: UUID,
@@ -8,8 +27,11 @@ async def list_orgunits(
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     root: Optional[str] = None,
-    hierarchy_uuids: Optional[List[UUID]] = Query(default=None),
+    hierarchy_uuids: Optional[List[UUID]] = None,
     only_primary_uuid: Optional[bool] = None,
+    # TODO: Handle at
+    at: Optional[Union[date, datetime]] = None,
+    details: Optional[str] = None,
 ):
     orgid = str(orgid)
     c = common.get_connector()
@@ -51,7 +73,7 @@ async def list_orgunits(
 
         uuid_filters.append(entry_under_root)
 
-    details = get_details_from_query_args(util.get_query_args())
+    details = get_details_from_query_args({"details": details})
 
     async def get_minimal_orgunit(*args, **kwargs):
         return await get_one_orgunit(
@@ -64,3 +86,71 @@ async def list_orgunits(
     return search_result
 
 
+org_uuids = [
+    UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+    UUID("00000000-0000-0000-0000-000000000000"),
+]
+ostart = [None, 0, 2]
+olimit = [None, 0, 5]
+query = [None, "Teknisk", "Kommune"]
+root = [None, "2665d8e0-435b-5bb6-a550-f275692984ef", "23a2ace2-52ca-458d-bead-d1a42080579f"]
+hierarchy_uuids = [None]
+only_primary = [None, False, True]
+at = [None]
+details = [None, "minimal"]
+param_tests = list(
+    product(org_uuids, ostart, olimit, query, root, hierarchy_uuids, only_primary, at, details)
+)
+
+
+@pytest.mark.equivalence
+@pytest.mark.usefixtures("sample_structures_no_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+class Tests(tests.cases.AsyncLoRATestCase):
+    @classmethod
+    def get_lora_environ(cls):
+        # force LoRA to run under a UTC timezone, ensuring that we
+        # handle this case correctly for reading
+        return {
+            "TZ": "UTC",
+        }
+
+    @parameterized.expand(param_tests)
+    async def test_list_orgunits_equivalence(
+        self,
+        org_uuid: UUID,
+        start: Optional[int],
+        limit: Optional[int],
+        query: Optional[str],
+        root: Optional[str],
+        hierarchy_uuids: Optional[List[UUID]],
+        only_primary_uuid: Optional[bool],
+        at: Optional[str],
+        details: Optional[str],
+    ):
+        query_args = {}
+        if start is not None:
+            query_args["start"] = start
+        if limit is not None:
+            query_args["limit"] = limit
+        if query is not None:
+            query_args["query"] = query
+        if root is not None:
+            query_args["root"] = root
+        if hierarchy_uuids is not None:
+            query_args["hierarchy_uuids"] = hierarchy_uuids
+        if only_primary_uuid is not None:
+            query_args["only_primary_uuid"] = only_primary_uuid
+        if at is not None:
+            query_args["at"] = at
+        if details is not None:
+            query_args["details"] = details
+
+        url_parameters = ""
+        if query_args:
+            url_parameters += "?" + urllib.parse.urlencode(query_args)
+
+        url = f"/service/o/{org_uuid}/ou/" + url_parameters
+        expected = await list_orgunits(org_uuid, **query_args)
+        print(expected)
+        await self.assertRequestResponse(url, expected)

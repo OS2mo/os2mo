@@ -220,6 +220,36 @@ class EmployeeResolver(Resolver):
         )
 
 
+class OrgUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("org_unit_getter", "org_unit_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: Optional[list[UUID]] = None,
+        user_keys: Optional[list[str]] = None,
+        from_date: Optional[datetime] = UNSET,
+        to_date: Optional[datetime] = UNSET,
+        query: Optional[str] = None,
+        hierarchy_uuids: Optional[list[UUID]] = None
+    ):
+        """Resolve an employee query, optionally filtering on CPR numbers."""
+        kwargs = {}
+        if query is not None:
+            kwargs["vilkaarligattr"] = "%{}%".format(query)
+        if hierarchy_uuids is not None:
+            kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
+
 @strawberry.type(description="Entrypoint for all read-operations")
 class Query:
     """Query is the top-level entrypoint for all read-operations.
@@ -342,7 +372,7 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
-        resolver=Resolver("org_unit_getter", "org_unit_loader").resolve,
+        resolver=OrgUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("org_units")],
     )

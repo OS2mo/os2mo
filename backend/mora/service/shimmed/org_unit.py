@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from datetime import date
 from datetime import datetime
+from operator import itemgetter
 from typing import Any
 from typing import Literal
 from typing import Optional
@@ -20,6 +21,7 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from more_itertools import unzip
 from pydantic import BaseModel
 from pydantic import Field
 
@@ -54,7 +56,7 @@ class ListOrgunitsValidity(BaseModel):
         }
 
     from_date: str = Field(alias="from", description="Validity from date")
-    to_date: Optional[str] = Field(alias="from", description="Validity to date")
+    to_date: Optional[str] = Field(alias="to", description="Validity to date")
 
 
 class ListOrgunitsEntry(BaseModel):
@@ -120,39 +122,71 @@ async def list_orgunits(
     ),
     query: Optional[str] = Query(None, description="Filter by units matching this string."),
     root: Optional[str] = Query(None, description="Filter by units in the subtree under this root."),
-    hierarchy_uuids: Optional[List[UUID]] = Query(None, description="Filter units having one of these hierchies."),
+    hierarchy_uuids: Optional[list[UUID]] = Query(None, description="Filter units having one of these hierchies."),
     only_primary_uuid: Optional[bool] = Query(
         None, description="Only retrieve the UUID of the class unit."
     ),
-    # :queryparam date at: Show the units valid at this point in time, in ISO-8601 format.
+    at: Optional[Union[date, datetime]] = Query(
+        None, description="Show the units valid at this point in time, in ISO-8601 format."
+    ),
+    details: Optional[str] = Query(
+        None, description="Level of details to return."
+    ),
 ):
     """Query organisational units in an organisation."""
-    orgid = str(orgid)
-    c = common.get_connector()
+    gql_query = """
+    query ListOrgUnits($from_date: DateTime, $query: String, $hierarchy_uuids: [UUID!]) {
+      org_units(from_date: $from_date, query: $query, hierarchy_uuids: $hierarchy_uuids) {
+        objects {
+          uuid,
+          user_key,
+          org_unit_hierarchy,
+          parent_uuid,
+          name,
+          validity {
+            from,
+            to
+          }
+        }
+      }
+      org {
+        uuid
+      }
+    }
+    """
+    variables = {}
+    if at is not None:
+        variables["from_date"] = at
+    if query is not None:
+        variables["query"] = query
+    if hierarchy_uuids is not None:
+        variables["hierarchy_uuids"] = hierarchy_uuids
 
-    kwargs = dict(
-        limit=limit,
-        start=start,
-        tilhoerer=orgid,
-        gyldighed="Aktiv",
+    response = await execute_graphql(gql_query, variable_values=jsonable_encoder(variables))
+    handle_gql_error(response)
+    
+    org_uuid = response.data["org"]["uuid"]
+    if org_uuid != str(orgid):
+        return {
+            "offset": start or 0,
+            "total": 0,
+            "items": []
+        }
+
+    objects = sorted(
+        map(one, map(itemgetter("objects"), response.data["org_units"])),
+        key=lambda obj: obj["uuid"]
     )
-
-    if query:
-        kwargs.update(vilkaarligattr="%{}%".format(query))
-    if hierarchy_uuids:
-        kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
+    uuids = list(map(itemgetter("uuid"), objects))
 
     uuid_filters = []
     if root:
-        enheder = await c.organisationenhed.get_all()
-
-        uuids, enheder = unzip(enheder)
         # Fetch parent_uuid from objects
-        parent_uuids = map(mapping.PARENT_FIELD.get_uuid, enheder)
+        parent_uuids = map(itemgetter("parent_uuid"), objects)
         # Create map from uuid --> parent_uuid
         parent_map = dict(zip(uuids, parent_uuids))
 
-        def entry_under_root(uuid):
+        def entry_under_root(uuid: str) -> bool:
             """Check whether the given uuid is in the subtree under 'root'.
 
             Works by recursively ascending the parent_map.
@@ -167,17 +201,40 @@ async def list_orgunits(
 
         uuid_filters.append(entry_under_root)
 
-    details = get_details_from_query_args(util.get_query_args())
+    for uuid_filter in uuid_filters:
+        uuids = filter(uuid_filter, uuids)
+    uuids = set(uuids)
 
-    async def get_minimal_orgunit(*args, **kwargs):
-        return await get_one_orgunit(
-            *args, details=details, only_primary_uuid=only_primary_uuid, **kwargs
-        )
+    objects = list(filter(lambda obj: obj["uuid"] in uuids, objects))
+    objects = objects[start:]
+    if limit:
+        objects = objects[:limit]
 
-    search_result = await c.organisationenhed.paged_get(
-        get_minimal_orgunit, uuid_filters=uuid_filters, **kwargs
-    )
-    return search_result
+    details = details or "minimal"
+
+    def construct_time(time):
+        if time is None:
+            return None
+        return time.split("T")[0]
+
+    def construct(obj):
+        return {
+            "name": obj["name"],
+            "user_key": obj["user_key"],
+            "uuid": obj["uuid"],
+            "validity": {
+                "from": construct_time(obj["validity"]["from"]),
+                "to": construct_time(obj["validity"].get("to")),
+            }
+        }
+
+    result = {
+        "offset": start or 0,
+        "total": len(objects),
+        "items": list(map(construct, objects))
+    }
+    print(result)
+    return result
 
 
 @org_unit_router.get(
