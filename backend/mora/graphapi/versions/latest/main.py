@@ -65,8 +65,6 @@ from .schema import Response
 from .schema import Role
 from .schema import Version
 from .types import CPRType
-
-
 # --------------------------------------------------------------------------------------
 # Reads Query
 # --------------------------------------------------------------------------------------
@@ -515,7 +513,7 @@ def get_version(enable_graphiql: bool, **kwargs: Any) -> GraphQLVersion:
     )
 
     version = GraphQLVersion(
-        version=2,
+        version=3,
         router=router,
         deprecation_date=None,
     )

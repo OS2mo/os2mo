@@ -11,11 +11,14 @@ from mora.graphapi.versions.main import get_versions
 def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
     router = APIRouter()
 
+    versions = get_versions(enable_graphiql=enable_graphiql)
+    newest = max(v.version for v in versions)
+
     @router.get("")
     async def redirect_to_latest():
-        return RedirectResponse("/graphql/v2")
+        return RedirectResponse(f"/graphql/v{newest}")
 
-    for version in get_versions(enable_graphiql=enable_graphiql):
+    for version in versions:
         router.include_router(version.router, prefix=f"/v{version.version}")
 
     # Subscriptions could be implemented using our trigger system.
