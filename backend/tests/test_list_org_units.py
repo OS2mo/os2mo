@@ -7,7 +7,7 @@ import hypothesis.strategies as st
 from hypothesis import given
 from mock import AsyncMock
 
-from backend.mora.service.orgunit import list_orgunits
+from backend.mora.service.shimmed.org_unit import list_orgunits
 
 
 @patch("backend.mora.service.orgunit.get_details_from_query_args")

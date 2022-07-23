@@ -232,10 +232,10 @@ class OrgUnitResolver(Resolver):
         from_date: Optional[datetime] = UNSET,
         to_date: Optional[datetime] = UNSET,
         query: Optional[str] = None,
-        hierarchy_uuids: Optional[list[UUID]] = None
+        hierarchy_uuids: Optional[list[UUID]] = None,
     ):
         """Resolve an employee query, optionally filtering on CPR numbers."""
-        kwargs = {}
+        kwargs: dict[str, Any] = {}
         if query is not None:
             kwargs["vilkaarligattr"] = "%{}%".format(query)
         if hierarchy_uuids is not None:

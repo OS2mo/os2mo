@@ -9,8 +9,8 @@
 from asyncio import gather
 from datetime import date
 from datetime import datetime
-from itertools import chain
 from functools import partial
+from itertools import chain
 from operator import itemgetter
 from typing import Any
 from typing import Literal
@@ -24,10 +24,10 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from more_itertools import unzip
+from more_itertools import only
 from pydantic import BaseModel
-from pydantic import Field
 from pydantic import Extra
+from pydantic import Field
 from strawberry.dataloader import DataLoader
 
 from ...auth.keycloak import oidc
@@ -59,6 +59,15 @@ class NoExtras(BaseModel):
 
 
 class Organisation(NoExtras):
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Kolding Kommune",
+                "user_key": "Kolding Kommune",
+                "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+            }
+        }
+
     name: str
     user_key: str
     uuid: UUID
@@ -66,12 +75,7 @@ class Organisation(NoExtras):
 
 class ListOrgunitsValidity(NoExtras):
     class Config:
-        schema_extra = {
-            "example": {
-                "from": "1960-01-01",
-                "to": None
-            }
-        }
+        schema_extra = {"example": {"from": "1960-01-01", "to": None}}
 
     from_date: str = Field(alias="from", description="Validity from date")
     to_date: Optional[str] = Field(alias="to", description="Validity to date")
@@ -84,17 +88,16 @@ class ListOrgunitsEntry(NoExtras):
                 "name": "Hj\u00f8rring b\u00f8rnehus",
                 "user_key": "Hj\u00f8rring b\u00f8rnehus",
                 "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
-                "validity": {
-                    "from": "1960-01-01",
-                    "to": None
-                }
+                "validity": {"from": "1960-01-01", "to": None},
             }
         }
 
     name: str = Field(description="Human-readable name.")
     uuid: UUID = Field(description="Machine-friendly UUID.")
     user_key: str = Field(description="Short, unique key identifying the unit.")
-    validity: ListOrgunitsValidity = Field(description="Validity range of the organisational unit.")
+    validity: ListOrgunitsValidity = Field(
+        description="Validity range of the organisational unit."
+    )
 
 
 class ListOrgunitsChildCountEntry(ListOrgunitsEntry):
@@ -104,11 +107,8 @@ class ListOrgunitsChildCountEntry(ListOrgunitsEntry):
                 "name": "Hj\u00f8rring b\u00f8rnehus",
                 "user_key": "Hj\u00f8rring b\u00f8rnehus",
                 "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
-                "validity": {
-                    "from": "1960-01-01",
-                    "to": None
-                },
-                "child_count": 4
+                "validity": {"from": "1960-01-01", "to": None},
+                "child_count": 4,
             }
         }
 
@@ -123,10 +123,7 @@ class ListOrgunitsPathEntry(ListOrgunitsEntry):
                 "user_key": "Hj\u00f8rring b\u00f8rnehus",
                 "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
                 "location": "Hj\u00f8rring Kommune\\Hj\u00f8rring b\u00f8rnehus",
-                "validity": {
-                    "from": "1960-01-01",
-                    "to": None
-                },
+                "validity": {"from": "1960-01-01", "to": None},
             }
         }
 
@@ -144,11 +141,48 @@ class ListOrgunitsPrimaryOnlyEntry(NoExtras):
     uuid: UUID = Field(description="Machine-friendly UUID.")
 
 
+class SelfFacet(NoExtras):
+    uuid: UUID
+    user_key: str
+    description: str
+
+
+class SelfClass(NoExtras):
+    uuid: UUID
+    name: str
+    user_key: str
+    example: Optional[str]
+    scope: Optional[str]
+    owner: Optional[str]
+    full_name: str
+    top_level_facet: SelfFacet
+    facet: SelfFacet
+
+
+class ListOrgunitsSelfEntry(ListOrgunitsEntry):
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Hj\u00f8rring b\u00f8rnehus",
+                "user_key": "Hj\u00f8rring b\u00f8rnehus",
+                "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+                "validity": {"from": "1960-01-01", "to": None},
+            }
+        }
+
+    org: Organisation
+    parent: Optional[ListOrgunitsEntry]
+    org_unit_type: SelfClass
+    time_planning: Optional[SelfClass]
+    org_unit_level: Optional[SelfClass]
+
+
 ItemType = Union[
     ListOrgunitsChildCountEntry,
     ListOrgunitsPathEntry,
+    ListOrgunitsSelfEntry,
     ListOrgunitsEntry,
-    ListOrgunitsPrimaryOnlyEntry
+    ListOrgunitsPrimaryOnlyEntry,
 ]
 
 
@@ -161,14 +195,11 @@ class ListOrgunitsReturn(NoExtras):
                         "name": "Hj\u00f8rring b\u00f8rnehus",
                         "user_key": "Hj\u00f8rring b\u00f8rnehus",
                         "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
-                        "validity": {
-                            "from": "1960-01-01",
-                            "to": None
-                        }
+                        "validity": {"from": "1960-01-01", "to": None},
                     }
                 ],
                 "offset": 0,
-                "total": 1
+                "total": 1,
             }
         }
 
@@ -188,11 +219,10 @@ def construct_minimal(org_unit) -> dict[str, Any]:
         "uuid": org_unit["uuid"],
         "name": org_unit["name"],
         "user_key": org_unit["user_key"],
-        "uuid": org_unit["uuid"],
         "validity": {
             "from": construct_time(org_unit["validity"]["from"]),
             "to": construct_time(org_unit["validity"].get("to")),
-        }
+        },
     }
 
 
@@ -213,11 +243,13 @@ async def load_locations(uuids: list[UUID]) -> list[list[str]]:
       }
     }
     """
-    response = await execute_graphql(gql_query, variable_values=jsonable_encoder({"uuids": uuids}))
+    response = await execute_graphql(
+        gql_query, variable_values=jsonable_encoder({"uuids": uuids})
+    )
     handle_gql_error(response)
     org_uuid = UUID(response.data["org"]["uuid"])
     objects = list(map(one, map(itemgetter("objects"), response.data["org_units"])))
-    
+
     result_map: dict[str, list[str]] = {}
     for obj in objects:
         obj_uuid = UUID(obj["uuid"])
@@ -232,7 +264,7 @@ async def load_locations(uuids: list[UUID]) -> list[list[str]]:
         result_map[obj_uuid] = location
 
     return list(map(result_map.get, uuids))
-    
+
 
 location_loader = DataLoader(load_fn=load_locations, cache=False)
 
@@ -242,23 +274,37 @@ async def construct_location(org_uuid: UUID) -> str:
     return "\\".join(location[:-1])
 
 
-async def construct_org_unit(details: str, org: Organisation, org_unit: dict[str, Any]) -> ItemType:
+async def construct_org_unit(
+    details: str, org: Organisation, org_unit: dict[str, Any]
+) -> ItemType:
     if details == "only_primary_uuid":
         return ListOrgunitsPrimaryOnlyEntry(uuid=org_unit["uuid"])
     if details == "minimal":
         return ListOrgunitsEntry(**construct_minimal(org_unit))
     if details == "nchildren":
-        return ListOrgunitsChildCountEntry(**
-            {
+        return ListOrgunitsChildCountEntry(
+            **{
                 **construct_minimal(org_unit),
                 "child_count": org_unit["child_count"],
             }
         )
     if details == "path":
-        return ListOrgunitsPathEntry(**
-            {
+        return ListOrgunitsPathEntry(
+            **{
                 **construct_minimal(org_unit),
                 "location": await construct_location(UUID(org_unit["uuid"])),
+            }
+        )
+    if details == "self":
+        parent = only(org_unit["parent"])
+        return ListOrgunitsSelfEntry(
+            **{
+                **construct_minimal(org_unit),
+                "org": jsonable_encoder(org),
+                "parent": construct_minimal(parent) if parent else None,
+                "org_unit_type": org_unit["org_unit_type"],
+                "time_planning": org_unit["time_planning"],
+                "org_unit_level": org_unit["org_unit_level"],
             }
         )
     raise ValueError(f"Unknown details type: {details}")
@@ -277,30 +323,27 @@ async def list_orgunits(
         example="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
     start: int = Query(0, description="Index of the first item for paging."),
-    limit: Optional[int] = Query(
-        0, description="Maximum number of items to return."
+    limit: Optional[int] = Query(0, description="Maximum number of items to return."),
+    query: Optional[str] = Query(
+        None, description="Filter by units matching this string."
     ),
-    query: Optional[str] = Query(None, description="Filter by units matching this string."),
-    root: Optional[str] = Query(None, description="Filter by units in the subtree under this root."),
-    hierarchy_uuids: Optional[list[UUID]] = Query(None, description="Filter units having one of these hierchies."),
+    root: Optional[str] = Query(
+        None, description="Filter by units in the subtree under this root."
+    ),
+    hierarchy_uuids: Optional[list[UUID]] = Query(
+        None, description="Filter units having one of these hierchies."
+    ),
     only_primary_uuid: Optional[bool] = Query(
         None, description="Only retrieve the UUID of the class unit."
     ),
     at: Optional[Union[date, datetime]] = Query(
-        None, description="Show the units valid at this point in time, in ISO-8601 format."
+        None,
+        description="Show the units valid at this point in time, in ISO-8601 format.",
     ),
-    details: Optional[str] = Query(
-        None, description="Level of details to return."
-    ),
+    details: Optional[str] = Query(None, description="Level of details to return."),
 ):
     """Query organisational units in an organisation."""
-    detail_levels = {
-        "minimal",
-        "nchildren",
-        "self",
-        "full",
-        "path"
-    }
+    detail_levels = {"minimal", "nchildren", "self", "full", "path"}
     gql_query = """
     query ListOrgUnits(
       $minimal: Boolean!,
@@ -318,7 +361,7 @@ async def list_orgunits(
           parent_uuid,
           ...minimal_fields @include(if: $minimal)
           ...nchildren_fields @include(if: $nchildren)
-          ...minimal_fields @include(if: $self)
+          ...self_fields @include(if: $self)
           ...minimal_fields @include(if: $full)
           ...minimal_fields @include(if: $path)
         }
@@ -341,15 +384,47 @@ async def list_orgunits(
       ...minimal_fields,
       child_count,
     }
+    fragment self_fields on OrganisationUnit {
+      ...minimal_fields,
+      parent {
+        uuid
+        ...minimal_fields
+      }
+      org_unit_type: unit_type {
+          ...class_fields
+      }
+      time_planning {
+          ...class_fields
+      }
+      org_unit_level {
+          ...class_fields
+      }
+    }
+    fragment class_fields on Class {
+      uuid
+      name
+      full_name
+      user_key
+      example
+      scope
+      owner
+      top_level_facet {
+        uuid
+        user_key
+        description
+      }
+      facet {
+        uuid
+        user_key
+        description
+      }
+    }
     """
     details = details or "minimal"
     if only_primary_uuid:
         details = "only_primary_uuid"
 
-    variables = {
-        key: details == key
-        for key in detail_levels
-    }
+    variables = {key: details == key for key in detail_levels}
     if at is not None:
         variables["from_date"] = at
     if query is not None:
@@ -357,21 +432,19 @@ async def list_orgunits(
     if hierarchy_uuids is not None:
         variables["hierarchy_uuids"] = hierarchy_uuids
 
-    response = await execute_graphql(gql_query, variable_values=jsonable_encoder(variables))
+    response = await execute_graphql(
+        gql_query, variable_values=jsonable_encoder(variables)
+    )
     handle_gql_error(response)
-    
+
     org = response.data["org"]
     org_uuid = org["uuid"]
     if org_uuid != str(orgid):
-        return {
-            "offset": start or 0,
-            "total": 0,
-            "items": []
-        }
+        return {"offset": start or 0, "total": 0, "items": []}
 
     objects = sorted(
         map(one, map(itemgetter("objects"), response.data["org_units"])),
-        key=lambda obj: obj["uuid"]
+        key=lambda obj: obj["uuid"],
     )
     uuids = list(map(itemgetter("uuid"), objects))
 
@@ -408,17 +481,16 @@ async def list_orgunits(
     if limit:
         objects = objects[:limit]
 
-    items = await gather(*map(
-        partial(construct_org_unit, details, Organisation(**org)), objects
-    ))
-    result = ListOrgunitsReturn(**{
-        "offset": start or 0,
-        "total": total,
-        "items": items,
-    })
-    print("SHIMMED")
-    import json
-    print(json.dumps(jsonable_encoder(result), indent=4))
+    items = await gather(
+        *map(partial(construct_org_unit, details, Organisation(**org)), objects)
+    )
+    result = ListOrgunitsReturn(
+        **{
+            "offset": start or 0,
+            "total": total,
+            "items": items,
+        }
+    )
     return result
 
 

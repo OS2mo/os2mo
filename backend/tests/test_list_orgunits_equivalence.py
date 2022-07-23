@@ -1,24 +1,24 @@
-import pytest
-import freezegun
-
-import tests
-from parameterized import parameterized
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
 import urllib
-
-from uuid import UUID
-from typing import Optional
-from typing import Union
-from typing import List
 from datetime import date
 from datetime import datetime
 from itertools import product
+from typing import List
+from typing import Optional
+from typing import Union
+from uuid import UUID
 
+import pytest
 from more_itertools import unzip
+from parameterized import parameterized
+from starlette_context import context
 
 from mora import common
+from mora import mapping
 from mora.service.orgunit import get_details_from_query_args
 from mora.service.orgunit import get_one_orgunit
-from mora import mapping
+from tests.cases import AsyncLoRATestCase
 
 
 async def list_orgunits(
@@ -29,10 +29,13 @@ async def list_orgunits(
     root: Optional[str] = None,
     hierarchy_uuids: Optional[List[UUID]] = None,
     only_primary_uuid: Optional[bool] = None,
-    # TODO: Handle at
     at: Optional[Union[date, datetime]] = None,
     details: Optional[str] = None,
 ):
+    query_args = context.get("query_args", {})
+    query_args["at"] = at
+    context["query_args"] = query_args
+
     orgid = str(orgid)
     c = common.get_connector()
 
@@ -93,19 +96,33 @@ org_uuids = [
 ostart = [None, 0, 2]
 olimit = [None, 0, 5]
 query = [None, "Teknisk", "Kommune"]
-root = [None, "2665d8e0-435b-5bb6-a550-f275692984ef", "23a2ace2-52ca-458d-bead-d1a42080579f"]
+root = [
+    None,
+    "2665d8e0-435b-5bb6-a550-f275692984ef",
+    "23a2ace2-52ca-458d-bead-d1a42080579f",
+]
 hierarchy_uuids = [None, [UUID("00000000-0000-0000-0000-000000000000")]]
 only_primary = [None, False, True]
-at = [None]
+at = [None, "2017-06-01", "1970-01-01"]
 details = [None, "minimal", "nchildren", "self", "full", "path"]
 param_tests = list(
-    product(org_uuids, ostart, olimit, query, root, hierarchy_uuids, only_primary, at, details)
+    product(
+        org_uuids,
+        ostart,
+        olimit,
+        query,
+        root,
+        hierarchy_uuids,
+        only_primary,
+        at,
+        details,
+    )
 )
 
 
 @pytest.mark.equivalence
 @pytest.mark.usefixtures("sample_structures_no_reset")
-class Tests(tests.cases.AsyncLoRATestCase):
+class Tests(AsyncLoRATestCase):
     @parameterized.expand(param_tests)
     async def test_list_orgunits_equivalence(
         self,
@@ -137,16 +154,10 @@ class Tests(tests.cases.AsyncLoRATestCase):
         if details is not None:
             query_args["details"] = details
 
-        print(org_uuid)
-        print(query_args)
-
         url_parameters = ""
         if query_args:
             url_parameters += "?" + urllib.parse.urlencode(query_args, True)
 
         url = f"/service/o/{org_uuid}/ou/" + url_parameters
         expected = await list_orgunits(org_uuid, **query_args)
-        print("OLD")
-        import json
-        print(json.dumps(expected, indent=4))
         await self.assertRequestResponse(url, expected)

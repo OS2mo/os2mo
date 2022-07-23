@@ -29,7 +29,6 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
-from more_itertools import unzip
 
 from . import autocomplete
 from . import facet
