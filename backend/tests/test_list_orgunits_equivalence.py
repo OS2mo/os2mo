@@ -94,10 +94,10 @@ ostart = [None, 0, 2]
 olimit = [None, 0, 5]
 query = [None, "Teknisk", "Kommune"]
 root = [None, "2665d8e0-435b-5bb6-a550-f275692984ef", "23a2ace2-52ca-458d-bead-d1a42080579f"]
-hierarchy_uuids = [None]
+hierarchy_uuids = [None, [UUID("00000000-0000-0000-0000-000000000000")]]
 only_primary = [None, False, True]
 at = [None]
-details = [None, "minimal"]
+details = [None, "minimal", "nchildren", "self", "full", "path"]
 param_tests = list(
     product(org_uuids, ostart, olimit, query, root, hierarchy_uuids, only_primary, at, details)
 )
@@ -105,16 +105,7 @@ param_tests = list(
 
 @pytest.mark.equivalence
 @pytest.mark.usefixtures("sample_structures_no_reset")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.AsyncLoRATestCase):
-    @classmethod
-    def get_lora_environ(cls):
-        # force LoRA to run under a UTC timezone, ensuring that we
-        # handle this case correctly for reading
-        return {
-            "TZ": "UTC",
-        }
-
     @parameterized.expand(param_tests)
     async def test_list_orgunits_equivalence(
         self,
@@ -146,11 +137,16 @@ class Tests(tests.cases.AsyncLoRATestCase):
         if details is not None:
             query_args["details"] = details
 
+        print(org_uuid)
+        print(query_args)
+
         url_parameters = ""
         if query_args:
-            url_parameters += "?" + urllib.parse.urlencode(query_args)
+            url_parameters += "?" + urllib.parse.urlencode(query_args, True)
 
         url = f"/service/o/{org_uuid}/ou/" + url_parameters
         expected = await list_orgunits(org_uuid, **query_args)
-        print(expected)
+        print("OLD")
+        import json
+        print(json.dumps(expected, indent=4))
         await self.assertRequestResponse(url, expected)

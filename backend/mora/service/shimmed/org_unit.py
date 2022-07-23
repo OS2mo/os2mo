@@ -24,6 +24,7 @@ from more_itertools import one
 from more_itertools import unzip
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import Extra
 
 from ...auth.keycloak import oidc
 from .errors import handle_gql_error
@@ -46,7 +47,14 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 # --------------------------------------------------------------------------------------
 
 
-class ListOrgunitsValidity(BaseModel):
+class NoExtras(BaseModel):
+    class Config:
+        frozen = True
+        allow_population_by_field_name = True
+        extra = Extra.forbid
+
+
+class ListOrgunitsValidity(NoExtras):
     class Config:
         schema_extra = {
             "example": {
@@ -59,7 +67,7 @@ class ListOrgunitsValidity(BaseModel):
     to_date: Optional[str] = Field(alias="to", description="Validity to date")
 
 
-class ListOrgunitsEntry(BaseModel):
+class ListOrgunitsEntry(NoExtras):
     class Config:
         schema_extra = {
             "example": {
@@ -79,7 +87,36 @@ class ListOrgunitsEntry(BaseModel):
     validity: ListOrgunitsValidity = Field(description="Validity range of the organisational unit.")
 
 
-class ListOrgunitsReturn(BaseModel):
+class ListOrgunitsChildCountEntry(ListOrgunitsEntry):
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Hj\u00f8rring b\u00f8rnehus",
+                "user_key": "Hj\u00f8rring b\u00f8rnehus",
+                "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+                "validity": {
+                    "from": "1960-01-01",
+                    "to": None
+                },
+                "child_count": 4
+            }
+        }
+
+    child_count: int = Field(description="Number of children.")
+
+
+class ListOrgunitsPrimaryOnlyEntry(NoExtras):
+    class Config:
+        schema_extra = {
+            "example": {
+                "uuid": "391cf990-31a0-5104-8944-6bdc4c934b7a",
+            }
+        }
+
+    uuid: str = Field(description="Machine-friendly UUID.")
+
+
+class ListOrgunitsReturn(NoExtras):
     class Config:
         schema_extra = {
             "example": {
@@ -99,7 +136,7 @@ class ListOrgunitsReturn(BaseModel):
             }
         }
 
-    items: list[ListOrgunitsEntry] = Field(description="The returned items.")
+    items: list[Union[ListOrgunitsEntry, ListOrgunitsChildCountEntry, ListOrgunitsPrimaryOnlyEntry]] = Field(description="The returned items.")
     offset: int = Field(description="Pagination offset.")
     total: int = Field(description="Total number of items available on this query.")
 
@@ -134,27 +171,57 @@ async def list_orgunits(
     ),
 ):
     """Query organisational units in an organisation."""
+    detail_levels = {
+        "minimal",
+        "nchildren",
+        "self",
+        "full",
+        "path"
+    }
     gql_query = """
-    query ListOrgUnits($from_date: DateTime, $query: String, $hierarchy_uuids: [UUID!]) {
+    query ListOrgUnits(
+      $minimal: Boolean!,
+      $nchildren: Boolean!,
+      $self: Boolean!,
+      $full: Boolean!,
+      $path: Boolean!,
+      $from_date: DateTime,
+      $query: String,
+      $hierarchy_uuids: [UUID!]
+    ) {
       org_units(from_date: $from_date, query: $query, hierarchy_uuids: $hierarchy_uuids) {
         objects {
           uuid,
-          user_key,
-          org_unit_hierarchy,
           parent_uuid,
-          name,
-          validity {
-            from,
-            to
-          }
+          ...minimal_fields @include(if: $minimal)
+          ...nchildren_fields @include(if: $nchildren)
+          ...minimal_fields @include(if: $self)
+          ...minimal_fields @include(if: $full)
+          ...minimal_fields @include(if: $path)
         }
       }
       org {
         uuid
       }
     }
+    fragment minimal_fields on OrganisationUnit {
+      name,
+      user_key,
+      validity {
+        from,
+        to
+      }
+    }
+    fragment nchildren_fields on OrganisationUnit {
+      ...minimal_fields,
+      child_count,
+    }
     """
-    variables = {}
+    details = details or "minimal"
+    variables = {
+        key: details == key
+        for key in detail_levels
+    }
     if at is not None:
         variables["from_date"] = at
     if query is not None:
@@ -206,11 +273,11 @@ async def list_orgunits(
     uuids = set(uuids)
 
     objects = list(filter(lambda obj: obj["uuid"] in uuids, objects))
+    total = len(objects)
+
     objects = objects[start:]
     if limit:
         objects = objects[:limit]
-
-    details = details or "minimal"
 
     def construct_time(time):
         if time is None:
@@ -218,7 +285,9 @@ async def list_orgunits(
         return time.split("T")[0]
 
     def construct(obj):
-        return {
+        if only_primary_uuid:
+            return {"uuid": obj["uuid"]}
+        result = {
             "name": obj["name"],
             "user_key": obj["user_key"],
             "uuid": obj["uuid"],
@@ -227,13 +296,18 @@ async def list_orgunits(
                 "to": construct_time(obj["validity"].get("to")),
             }
         }
+        if details == "nchildren":
+            result["child_count"] = obj["child_count"]
+        return result
 
     result = {
         "offset": start or 0,
-        "total": len(objects),
+        "total": total,
         "items": list(map(construct, objects))
     }
-    print(result)
+    print("SHIMMED")
+    import json
+    print(json.dumps(result, indent=4))
     return result
 
 
