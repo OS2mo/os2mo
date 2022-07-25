@@ -44,11 +44,11 @@ pydantic = {extras = ["email"], version = "^1.7.3"}
 ramodels = "^8.1.0"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
-strawberry-graphql = {extras = ["fastapi", "opentelemetry"], version = "^0.95.1"}
 respx = "^0.19.2"
 asgi-lifespan = "^1.0.1"
 ramqp = "^3.0.0"
 uvicorn = "^0.18.2"
+strawberry-graphql = {version = "0.95.5", extras = ["fastapi"]}
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"

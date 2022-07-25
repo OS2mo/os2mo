@@ -20,7 +20,6 @@ from pydantic import parse_obj_as
 from pydantic import ValidationError
 from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
-from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
@@ -485,7 +484,6 @@ def get_schema() -> strawberry.Schema:
             CPR: CPRType,  # type: ignore
         },
         extensions=[
-            OpenTelemetryExtension,
             StarletteContextExtension,
         ],
     )
