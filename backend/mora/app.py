@@ -18,7 +18,6 @@ from fastapi.staticfiles import StaticFiles
 from more_itertools import only
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
-from os2mo_fastapi_utils.tracing import setup_instrumentation
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -294,7 +293,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         await triggers.internal.amqp_trigger.stop_amqp()
 
     if not settings.is_under_test():
-        app = setup_instrumentation(app)
         setup_metrics(app)
 
     app.add_middleware(log.AccesslogMiddleware)

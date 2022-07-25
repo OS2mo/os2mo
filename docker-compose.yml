@@ -90,9 +90,6 @@ services:
       TESTING_API: "true"
 
       LORA_AUTH: "false"
-
-      JAEGER_HOSTNAME: otel-collector
-      JAEGER_SERVICE: LoRa
     ports:
       - "127.0.0.1:8080:80"
     restart: unless-stopped
@@ -230,31 +227,6 @@ services:
       POSTGRES_DB: keycloak
       POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: keycloak
-    restart: unless-stopped
-
-  otel-collector:
-    image: otel/opentelemetry-collector:0.31.0
-    command: "--config /etc/otel-collector/config.yaml"
-    volumes:
-      - ./dev-environment/otel-config.yml:/etc/otel-collector/config.yaml
-    restart: unless-stopped
-
-  grafana:
-    image: grafana/grafana
-    volumes:
-      - ./dev-environment/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yaml
-    environment:  # Disables all auth - Skips login
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
-    ports:
-      - "127.0.0.1:3000:3000"
-
-  tempo:
-    image: grafana/tempo:latest
-    command: [ "-config.file=/etc/tempo.yaml" ]
-    volumes:
-      - ./dev-environment/tempo.yml:/etc/tempo.yaml
     restart: unless-stopped
 
   amqp-metrics:

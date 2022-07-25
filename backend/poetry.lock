@@ -1640,8 +1640,6 @@ python-versions = ">=3.7,<4.0"
 click = ">=7.0,<9.0"
 fastapi = {version = ">=0.65.2", optional = true, markers = "extra == \"fastapi\""}
 graphql-core = ">=3.1.0,<3.2.0"
-opentelemetry-api = {version = "<2", optional = true, markers = "extra == \"opentelemetry\""}
-opentelemetry-sdk = {version = "<2", optional = true, markers = "extra == \"opentelemetry\""}
 pygments = ">=2.3,<3.0"
 python-dateutil = ">=2.7.0,<3.0.0"
 python-multipart = ">=0.0.5,<0.0.6"
@@ -1849,7 +1847,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "1b6b22f5a68b6712cdfd9c27eefe62289dcea9725fa36e104e1f13ae87b09732"
+content-hash = "c332122f77d9f72699073a9cb541cb9515ccf6a59b573b5874b7288e30acae25"
 
 [metadata.files]
 aio-pika = [
