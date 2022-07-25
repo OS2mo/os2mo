@@ -38,7 +38,7 @@ from tests.util import load_sample_structures
 # Configs + fixtures
 # --------------------------------------------------------------------------------------
 h_db = InMemoryExampleDatabase()
-h_settings.register_profile("ci", max_examples=100, deadline=None, database=h_db)
+h_settings.register_profile("ci", max_examples=30, deadline=None, database=h_db)
 h_settings.register_profile("dev", max_examples=10, deadline=None, database=h_db)
 h_settings.register_profile(
     "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
