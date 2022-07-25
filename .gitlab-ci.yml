@@ -460,7 +460,7 @@ Schemathesis-OpenAPI-test:
   variables:
     TESTCAFE_ENABLE: "false"
   script:
-    - until wget --quiet -O- "http://mo/version/"; do sleep 5; done
+    - until wget --quiet -O- "http://mo:5000/version/"; do sleep 5; done
     - schemathesis run --workers auto --fixups=fast_api --stateful=links --checks all
       --endpoint '^/organisation/'
       --endpoint '^/medarbejder/'
@@ -468,7 +468,7 @@ Schemathesis-OpenAPI-test:
       --endpoint '^/forespoergsler'
       --endpoint '^/indsigt/'
       --endpoint '^/favicon.ico$'
-      http://mo/openapi.json
+      http://mo:5000/openapi.json
 
 
 Unit-test:

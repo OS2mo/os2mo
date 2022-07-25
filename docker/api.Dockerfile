@@ -17,7 +17,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9 AS dist
+FROM python:3.9.13-slim AS dist
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
@@ -26,11 +26,9 @@ LABEL org.opencontainers.image.url="https://os2.eu/produkt/os2mo"
 LABEL org.opencontainers.image.documentation="https://os2mo.readthedocs.io"
 LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 
-
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1
-
 
 WORKDIR /app/
 # hadolint ignore=DL3008,DL4006
@@ -44,8 +42,11 @@ RUN set -ex \
   # See `doc/user/installation.rst` for instructions on how to overwrite this.
   && groupadd -g 72020 -r mora\
   && useradd -u 72020 --no-log-init -r -g mora mora \
+  # Install dependencies
+  && apt-get -y update \
+  && apt-get -y install --no-install-recommends git \
   # clean up after apt-get and man-pages
-  && apt-get clean && rm -rf "/var/lib/apt/lists/*" "/tmp/*" "/var/tmp/*" "/usr/share/man/??" "/usr/share/man/??_*"
+  && apt-get clean && rm -rf "/var/lib/apt/lists"
 
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
@@ -57,7 +58,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
 RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
 COPY backend/poetry.lock backend/pyproject.toml /app/backend/
 WORKDIR /app/backend
-RUN poetry install --no-interaction
+RUN poetry install --no-interaction && rm -rf /root/.cache
 WORKDIR /app
 
 # Copy and install backend code.
@@ -67,10 +68,8 @@ COPY README.rst .
 COPY NEWS.md .
 COPY LICENSE .
 COPY backend/mora/main.py .
-COPY docker/prestart.sh /app/prestart.sh
 
 # Copy frontend code.
-COPY --from=frontend /app/frontend/package.json ./frontend/package.json
 COPY --from=frontend /app/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
@@ -85,3 +84,5 @@ ARG COMMIT_TAG
 ARG COMMIT_SHA
 ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
     COMMIT_SHA=${COMMIT_SHA}
+
+CMD ["gunicorn", "--config", "/app/docker/gunicorn-settings.py", "main:app"]

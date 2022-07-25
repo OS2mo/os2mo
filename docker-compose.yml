@@ -50,7 +50,15 @@ services:
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
       - ./.cov-report:/tmp/.cov-report:rw
-    command: ["/start-reload.sh"]
+    command: [
+        # In production, we use gunicorn with the worker class
+        # "uvicorn.workers.UvicornWorker", but that does not work with --reload,
+        # so we use uvicorn in development at the cost of some dev/prod parity.
+        # This has one issue in dev where the service won't restart (because of
+        # the --reload flag) when an error occurs. The service restarts as soon
+        # as a file is edited though.
+        "uvicorn", "--reload", "--host", "0.0.0.0", "--port", "80", "main:app"
+    ]
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
 
