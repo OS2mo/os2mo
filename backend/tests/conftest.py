@@ -185,7 +185,7 @@ def graphapi_post(graphapi_test: TestClient):
     def _post(query: str, variables: Optional[dict[str, Any]] = None) -> GQLResponse:
         with graphapi_test as client:
             response = client.post(
-                "/graphql", json={"query": query, "variables": variables}
+                "/graphql/latest", json={"query": query, "variables": variables}
             )
         data, errors = response.json().get("data"), response.json().get("errors")
         status_code = response.status_code

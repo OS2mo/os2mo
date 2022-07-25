@@ -42,7 +42,7 @@ class Client extends Httpx {
    * @param {string} url: Path to GraphQL endpoint.
    * @returns {object}: GraphQL query response.
    */
-  graphql(query, url = '/graphql') {
+  graphql(query, url = '/graphql/latest') {
     const queryName = query.match(/\s*query (\w+)/)[1];
     const res = this.post(
       url,

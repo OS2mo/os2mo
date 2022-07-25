@@ -168,11 +168,11 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
 
     async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
-        await self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
+        await self.assertRequestFails("/graphql/latest", HTTP_401_UNAUTHORIZED)
 
         # POST (usual communication, always enabled)
         await self.assertRequestFails(
-            "/graphql",
+            "/graphql/latest",
             HTTP_401_UNAUTHORIZED,
             json={"query": "{ __typename }"},  # always implemented
         )
@@ -205,11 +205,11 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
 
     async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
-        await self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
+        await self.assertRequest("/graphql/latest", HTTP_200_OK, set_auth_header=True)
 
         # POST (usual communication, always enabled)
         await self.assertRequest(
-            "/graphql",
+            "/graphql/latest",
             HTTP_200_OK,
             set_auth_header=True,
             json={"query": "{ __typename }"},  # always implemented
