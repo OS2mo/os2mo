@@ -12,39 +12,18 @@ available for use as needed.
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import json
-from pathlib import Path
 from typing import List
 from typing import Optional
-from uuid import UUID
 
 import pytest
-from aioresponses import aioresponses as aioresp
-from aioresponses.core import URL
 from fastapi.testclient import TestClient
 
-from mora import util as mora_util
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.main import get_loaders
 from mora.graphapi.main import get_schema
-from mora.lora import LoraObjectType
 from tests.cases import fake_auth
-from tests.util import patch_is_graphql
-
-# --------------------------------------------------------------------------------------
-# Shared fixtures
-# --------------------------------------------------------------------------------------
-
-
-@pytest.fixture
-def patch_context(monkeypatch):
-    """Fixture for patching the context."""
-    monkeypatch.setattr(mora_util, "get_args_flag", lambda *args: False)
-    with patch_is_graphql(True):
-        yield
-
 
 # --------------------------------------------------------------------------------------
 # Dataloader patch fixture
@@ -70,59 +49,6 @@ def patch_loader():
         return _patcher
 
     yield patcher
-
-
-# --------------------------------------------------------------------------------------
-# LoRa mock fixtures
-# --------------------------------------------------------------------------------------
-
-
-@pytest.fixture(scope="session")
-def lora_data():
-    """Fixture to load LoRa mock data from disk.
-
-    This fixture is session scoped because we do not need teardowns between tests,
-    and session scoping ensures we only call this once per test session.
-    """
-    data_path = Path(__file__).parent / "_data"
-    data = dict()
-    for lora_obj in LoraObjectType:
-        fixture_file = data_path / f"{lora_obj.name}.json"
-        data[lora_obj.name] = json.loads(fixture_file.read_text())
-    yield data
-
-
-@pytest.fixture(scope="session")
-def lora_ids(lora_data):
-    """Fixture to get LoRa UUIDs for tests.
-
-    This fixture is session scoped because we do not need teardowns between tests,
-    and session scoping ensures we only call this once per test session.
-    """
-    ids = dict()
-    for name, value in lora_data.items():
-        ids[name] = {UUID(result["id"]) for result in value["results"][0]}
-    yield ids
-
-
-@pytest.fixture(scope="session")
-def lora_mock(lora_data):
-    """Fixture to mock responses from LoRa.
-
-    This fixture mocks all LoRa endpoints as requested by MO (cf. LoraObjectType).
-    It is session scoped because we do not need teardowns between tests,
-    and session scoping ensures we only call this once per test session.
-    """
-    with aioresp() as mock:
-        for lora_obj in LoraObjectType:
-            lora_url = f"http://mox/{lora_obj.value}"
-            payload = lora_data[lora_obj.name]
-            mock.get(
-                URL(lora_url),
-                payload=payload,
-                repeat=True,
-            )
-        yield mock
 
 
 # --------------------------------------------------------------------------------------
