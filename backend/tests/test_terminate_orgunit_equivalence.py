@@ -58,7 +58,7 @@ async def terminate_orgunit(
 # Generate a set of test scenarios
 org_unit_uuids = [
     UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),  # Has children
-    # UUID("fa2e23c9-860a-4c90-bcc6-2c0721869a25"), # No children
+    UUID("fa2e23c9-860a-4c90-bcc6-2c0721869a25"),  # No children
     UUID("00000000-0000-0000-0000-000000000000"),  # Invalid
 ]
 
@@ -155,8 +155,9 @@ class Tests(tests.cases.AsyncLoRATestCase):
                 },
             )
 
+            response_json = json.loads(response.content)
+
             if not (200 <= response.status_code < 300):
-                response_json = json.loads(response.content)
                 err_key = response_json.get("error_key", "")
                 getattr(ErrorCodes, err_key)(
                     obj={
@@ -167,8 +168,8 @@ class Tests(tests.cases.AsyncLoRATestCase):
                         },
                     }
                 )
-
-            result_new = response.content
+            else:
+                result_new = json.loads(response.content)
         except HTTPException as e:
             result_new = e.key
 
