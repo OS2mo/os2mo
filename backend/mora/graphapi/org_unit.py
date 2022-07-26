@@ -142,10 +142,6 @@ async def terminate_org_unit_validation(
 
 
 async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
-    # Create lora payload
-    # effect = OrgUnitRequestHandler.get_virkning_for_terminate(request)
-    effect = _get_terminate_effect(unit)
-
     # Setup terminate dict
     terminate_dict: dict = {
         mapping.UUID: str(unit.uuid),
@@ -182,7 +178,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
 
     # Create payload to LoRa
     obj_path = ("tilstande", "organisationenhedgyldighed")
-    effect = OrgUnitRequestHandler.get_virkning_for_terminate(terminate_dict)
+    effect = _get_terminate_effect(unit)
     val_inactive = {"gyldighed": "Inaktiv", "virkning": effect}
 
     lora_payload = util.set_obj_value(dict(), obj_path, [val_inactive])
@@ -225,6 +221,9 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
         )
 
     if not unit.from_date and unit.to_date:
+        logger.warning(
+            'terminate org unit called without "from" in "validity"',
+        )
         return common._create_virkning(_get_valid_to(unit.to_date), "infinity")
 
     exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
@@ -244,7 +243,7 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
             "to": unit.to_date.isoformat() if unit.to_date else None,
         },
     )
-    return {}
+    return {}  # Added so mypy wont complain
 
 
 def _get_valid_from(from_date: Optional[datetime.date]) -> datetime.datetime:
