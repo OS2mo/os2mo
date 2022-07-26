@@ -48,6 +48,7 @@ from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed.meta import meta_router
+from oio_rest.app import create_app as create_lora_app
 from tests.util import setup_test_routing
 
 basedir = os.path.dirname(__file__)
@@ -249,6 +250,11 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
 
     if not settings.is_production() and settings.testcafe_enable:
         app.include_router(setup_test_routing(), tags=["Testing"])
+
+    # Mount all of Lora in
+    if settings.enable_internal_lora:
+        lora_app = create_lora_app()
+        app.mount("/lora", lora_app)
 
     # Statics must be included last because of the wildcard, matching anything unhandled
     if settings.statics_enable:

@@ -78,24 +78,6 @@ services:
       GRACEFUL: si
     restart: on-failure
 
-  mox:
-    image: magentaaps/lora:4.7.2
-    # build:
-    #   context: ../lora
-    #   dockerfile: docker/Dockerfile
-    # command: '/start-reload.sh'
-    environment:
-      DB_HOST: mox-db
-      DB_PASSWORD: mox
-
-      MAX_WORKERS: "1"
-      TESTING_API: "true"
-
-      LORA_AUTH: "false"
-    ports:
-      - "127.0.0.1:8080:80"
-    restart: unless-stopped
-
   mox-db:
     image: postgres:11
     environment:

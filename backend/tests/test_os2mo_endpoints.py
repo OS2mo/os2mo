@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections import ChainMap
 from operator import attrgetter
 
 from mora.app import create_app
@@ -95,20 +96,40 @@ statics_endpoints = {
     "/favicon.ico",
 }
 
+internal_lora_endpoints = {"/lora"}
+
+
+endpoint_feature_flags = {
+    "testcafe_enable": False,
+    "enable_internal_lora": False,
+    "statics_enable": False,
+}
+
 
 def test_all_endpoints():
-    app = create_app({"testcafe_enable": False})
+    app = create_app(endpoint_feature_flags)
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints
 
 
 def test_testcafe_enabled():
-    app = create_app({"testcafe_enable": True, "environment": Environment.TESTING})
+    app = create_app(
+        ChainMap(
+            {"testcafe_enable": True, "environment": Environment.TESTING},
+            endpoint_feature_flags,
+        )
+    )
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints | testcafe_endpoints
 
 
 def test_static_enabled():
-    app = create_app({"testcafe_enable": False, "statics_enable": True})
+    app = create_app(ChainMap({"statics_enable": True}, endpoint_feature_flags))
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints | statics_endpoints
+
+
+def test_internal_lora_enabled():
+    app = create_app(ChainMap({"enable_internal_lora": True}, endpoint_feature_flags))
+    routes = set(map(attrgetter("path"), app.routes)) | {""}
+    assert routes == all_endpoints | internal_lora_endpoints
