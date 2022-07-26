@@ -1,18 +1,24 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 # This code implements autocompletion APIs for employees and org units.
 # It assumes that the underlying LoRa database contains the MO extensions
 # defined in `mo-01.json`. Thus, it cannot be used with a basic LoRa database
 # where the MO extensions have not been installed.
-
 from typing import List
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import cast, String, Table, Text
+from sqlalchemy import cast
+from sqlalchemy import String
+from sqlalchemy import Table
+from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql import bindparam, func, literal_column, select, text, union
+from sqlalchemy.sql import bindparam
+from sqlalchemy.sql import func
+from sqlalchemy.sql import literal_column
+from sqlalchemy.sql import select
+from sqlalchemy.sql import text
+from sqlalchemy.sql import union
 
 from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata

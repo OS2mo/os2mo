@@ -1,8 +1,12 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
-from enum import Enum, auto, unique
-from typing import Dict, List, Optional
+from enum import auto
+from enum import Enum
+from enum import unique
+from typing import Dict
+from typing import List
+from typing import Optional
 
 from more_itertools import flatten
 

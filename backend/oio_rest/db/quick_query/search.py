@@ -1,21 +1,23 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+from typing import Union
 
 from more_itertools import flatten
 
-from oio_rest.db import Livscyklus, get_connection, to_bool
-from oio_rest.db.quick_query.registration_parsing import (
-    Attribute,
-    Relation,
-    State,
-    VIRKNING,
-    ValueType,
-)
+from oio_rest.db import get_connection
+from oio_rest.db import Livscyklus
+from oio_rest.db import to_bool
+from oio_rest.db.quick_query.registration_parsing import Attribute
+from oio_rest.db.quick_query.registration_parsing import Relation
+from oio_rest.db.quick_query.registration_parsing import State
+from oio_rest.db.quick_query.registration_parsing import ValueType
+from oio_rest.db.quick_query.registration_parsing import VIRKNING
 
 RELATION = "relation"
 REG = "registrering"
@@ -248,7 +250,7 @@ class SearchQueryBuilder:
         # extract the sentinel from the VALUE at this point in time.
         use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
         if value.startswith(use_is_similar_sentinel):
-            value = value[len(use_is_similar_sentinel):]
+            value = value[len(use_is_similar_sentinel) :]
             return f"similar to '{cls.improper_sql_escape(value)}'"
         if type_ is ValueType.TEXT:
             # always uses case insensitive matching

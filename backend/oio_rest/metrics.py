@@ -1,13 +1,11 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 from typing import Callable
 
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 from prometheus_fastapi_instrumentator.metrics import default
+from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 
 from oio_rest.config import get_settings
 
@@ -27,9 +25,11 @@ def lora_version() -> Callable[[InstInfo], None]:
     settings = get_settings()
 
     def instrumentation(_: InstInfo) -> None:
-        METRIC.info({
-            "lora_version": settings.commit_tag,
-            "lora_commit_sha": settings.commit_sha
-        })
+        METRIC.info(
+            {
+                "lora_version": settings.commit_tag,
+                "lora_commit_sha": settings.commit_sha,
+            }
+        )
 
     return instrumentation

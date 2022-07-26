@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import collections
 import itertools
 from copy import deepcopy

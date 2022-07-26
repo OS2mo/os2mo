@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from sqlalchemy.engine import create_engine
 
 from oio_rest.db import get_connection

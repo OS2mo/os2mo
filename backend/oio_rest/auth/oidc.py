@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from os2mo_fastapi_utils.auth.models import Token
 from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
+
 from oio_rest import config
 
 SCHEMA = config.get_settings().keycloak_schema

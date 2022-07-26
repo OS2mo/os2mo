@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import collections
 import copy
 import datetime
@@ -11,31 +10,36 @@ import typing
 import dateutil
 import psycopg2
 from dateutil import parser as date_parser
-from jinja2 import Environment, FileSystemLoader
-from psycopg2.extensions import AsIs, Boolean, QuotedString, adapt as psyco_adapt
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
+from psycopg2.extensions import adapt as psyco_adapt
+from psycopg2.extensions import AsIs
+from psycopg2.extensions import Boolean
+from psycopg2.extensions import QuotedString
 from psycopg2.extensions import TRANSACTION_STATUS_INERROR
 from psycopg2.extras import DateTimeTZRange
 
-from oio_rest import config
-from .db_helpers import (
-    AktoerAttr,
-    DokumentVariantType,
-    JournalDokument,
-    JournalNotat,
-    OffentlighedUndtaget,
-    Soegeord,
-    VaerdiRelationAttr,
-    get_attribute_fields,
-    get_attribute_names,
-    get_field_type,
-    get_relation_field_type,
-    get_state_names,
-    to_bool,
-)
 from ..authentication import get_authenticated_user
-from ..custom_exceptions import BadRequestException, DBException
-from ..custom_exceptions import NotAllowedException, NotFoundException
-from ..restrictions import Operation, get_restrictions
+from ..custom_exceptions import BadRequestException
+from ..custom_exceptions import DBException
+from ..custom_exceptions import NotAllowedException
+from ..custom_exceptions import NotFoundException
+from ..restrictions import get_restrictions
+from ..restrictions import Operation
+from .db_helpers import AktoerAttr
+from .db_helpers import DokumentVariantType
+from .db_helpers import get_attribute_fields
+from .db_helpers import get_attribute_names
+from .db_helpers import get_field_type
+from .db_helpers import get_relation_field_type
+from .db_helpers import get_state_names
+from .db_helpers import JournalDokument
+from .db_helpers import JournalNotat
+from .db_helpers import OffentlighedUndtaget
+from .db_helpers import Soegeord
+from .db_helpers import to_bool
+from .db_helpers import VaerdiRelationAttr
+from oio_rest import config
 
 """
     Jinja2 Environment

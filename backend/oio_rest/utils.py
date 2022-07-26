@@ -1,17 +1,17 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 import itertools
 import uuid
 
 from werkzeug.datastructures import MultiDict
 
-from oio_rest.db.db_helpers import get_attribute_names, get_attribute_fields
-from oio_rest.db.db_helpers import get_state_names, get_relation_names
-from oio_rest.db.db_helpers import get_document_part_relation_names
-from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
 from oio_rest.db.db_helpers import DokumentDelEgenskaberType
+from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
+from oio_rest.db.db_helpers import get_attribute_fields
+from oio_rest.db.db_helpers import get_attribute_names
+from oio_rest.db.db_helpers import get_document_part_relation_names
+from oio_rest.db.db_helpers import get_relation_names
+from oio_rest.db.db_helpers import get_state_names
 
 
 def is_urn(s):

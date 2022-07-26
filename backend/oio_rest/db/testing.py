@@ -2,18 +2,19 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 
-from alembic import command
-from psycopg2.errors import UndefinedTable, OperationalError
+from psycopg2.errors import OperationalError
+from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from .. import config
 from . import get_connection
+from .. import config
 from .alembic_helpers import get_alembic_cfg
 from .alembic_helpers import get_prerequisites
 from .alembic_helpers import is_schema_installed
 from .alembic_helpers import setup_database
 from .alembic_helpers import stamp_database
 from .alembic_helpers import truncate_all_tables
+from alembic import command
 
 
 def ensure_testing_database_exists():

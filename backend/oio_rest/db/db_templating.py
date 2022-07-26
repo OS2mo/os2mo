@@ -1,17 +1,15 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """This module contains routines for generating the database from
 Jinja2 templates.
 
 """
-
+import copy
 from collections import OrderedDict
 from pathlib import Path
-import copy
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
 
 from oio_rest.db import db_structure
 

@@ -3,11 +3,11 @@
 import os
 from typing import List
 
-from alembic import command
-from alembic.config import Config
 from psycopg2.errors import UndefinedTable
 
 from . import get_connection
+from alembic import command
+from alembic.config import Config
 
 
 def get_alembic_cfg() -> Config:
@@ -38,13 +38,12 @@ def get_prerequisites(
         # We perform them here as well as part of the setup/teardown process of
         # each unittest.
         f"create schema if not exists {schema_name} authorization {db_user}",
-        f"create extension if not exists \"uuid-ossp\" with schema {schema_name}",
+        f'create extension if not exists "uuid-ossp" with schema {schema_name}',
         f"create extension if not exists btree_gist with schema {schema_name}",
         f"create extension if not exists pg_trgm with schema {schema_name}",
         f"alter database {db_name} set search_path to {schema_name}, public",
         f"alter database {db_name} set datestyle to 'ISO, YMD'",
         f"alter database {db_name} set intervalstyle to 'sql_standard'",
-
         # These steps are required by the LoRa test suite, which assumes that
         # API responses will use the Copenhagen time zone.
         f"alter database {db_name} set time zone 'Europe/Copenhagen'",

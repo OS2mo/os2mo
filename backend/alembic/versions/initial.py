@@ -1,18 +1,16 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """Initial LoRa database schema (read from "db-dump.sql")
 
 Revision ID: initial
 Revises:
 Create Date: 2022-02-01 16:54:19.119687
 """
-
 import os
 
-from alembic import op
 from sqlalchemy.orm import sessionmaker
 
+from alembic import op
 from oio_rest import config
 from oio_rest.db.alembic_helpers import get_prerequisites
 
@@ -39,7 +37,9 @@ def upgrade():
     settings = config.get_settings()
 
     prerequisites = get_prerequisites(
-        schema_name=schema_name, db_user=settings.db_user, db_name=settings.db_name,
+        schema_name=schema_name,
+        db_user=settings.db_user,
+        db_name=settings.db_name,
     )
 
     initial_schema_path = os.path.join(os.path.dirname(__file__), "initial_schema.sql")
@@ -52,5 +52,5 @@ def upgrade():
 
     with open(initial_schema_path) as initial_schema:
         session.execute(
-            initial_schema.read().replace('{{ mox_user }}', settings.db_user)
+            initial_schema.read().replace("{{ mox_user }}", settings.db_user)
         )

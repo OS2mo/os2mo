@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-from .oio_base import OIORestObject, OIOStandardHierarchy
+from .oio_base import OIORestObject
+from .oio_base import OIOStandardHierarchy
 
 
 class Bruger(OIORestObject):

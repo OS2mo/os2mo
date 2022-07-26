@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 """"Encapsulate details about the database structure."""
 from collections import namedtuple
 from urllib.parse import urlparse
 
 from psycopg2._range import DateTimeTZRange
-from psycopg2.extensions import adapt as psyco_adapt, ISQLQuote
+from psycopg2.extensions import adapt as psyco_adapt
+from psycopg2.extensions import ISQLQuote
 from psycopg2.extensions import register_adapter as psyco_register_adapter
 
 from oio_rest.db import db_structure

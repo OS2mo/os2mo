@@ -3,7 +3,6 @@
 from logging.config import fileConfig
 
 from alembic import context
-
 from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata
 

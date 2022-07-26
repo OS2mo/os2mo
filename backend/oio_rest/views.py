@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 import os
 from operator import attrgetter
 from typing import List
@@ -13,8 +12,8 @@ from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from fastapi.responses import RedirectResponse
 from fastapi.responses import PlainTextResponse
+from fastapi.responses import RedirectResponse
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from psycopg2 import DataError
@@ -63,7 +62,7 @@ def setup_views(app):
         settings = config.get_settings()
         return {
             "lora_version": f"{settings.commit_tag}",
-            "lora_commit_sha": f"{settings.commit_sha}"
+            "lora_commit_sha": f"{settings.commit_sha}",
         }
 
     @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
@@ -144,7 +143,4 @@ def setup_views(app):
 
     @app.exception_handler(ValueError)
     def handle_value_error(request: Request, exc: ValueError):
-        return JSONResponse(
-            status_code=400,
-            content={"message": str(exc)}
-        )
+        return JSONResponse(status_code=400, content={"message": str(exc)})

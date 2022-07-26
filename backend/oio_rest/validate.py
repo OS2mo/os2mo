@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
-
 import copy
+
 import jsonschema
 
 from oio_rest.db import db_structure

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 from functools import lru_cache
 from typing import Optional
 
@@ -13,6 +12,7 @@ class Settings(BaseSettings):
     The environement variable name is the upper-cased version of the variable name below
     E.g. DB_NAME == db_name
     """
+
     commit_tag: str = "DEVELOPMENT BUILD"
     commit_sha: str = ""
 

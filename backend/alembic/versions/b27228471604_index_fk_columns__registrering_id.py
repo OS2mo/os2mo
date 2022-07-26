@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """index fk columns '*_registrering_id'
 
 Revision ID: b27228471604
@@ -9,8 +8,9 @@ Create Date: 2022-04-05 11:05:57.832331
 """
 import os
 
-from alembic import op
 from sqlalchemy.orm import sessionmaker
+
+from alembic import op
 
 
 # revision identifiers, used by Alembic.
