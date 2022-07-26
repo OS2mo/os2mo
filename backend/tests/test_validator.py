@@ -5,17 +5,18 @@ import json
 import unittest
 
 import freezegun
+import pytest
 import respx
 from httpx import Response
 from parameterized import parameterized
 
 import tests.cases
-from mora import config
 from mora import lora
 from mora import util as mora_util
 from mora.service.validation import validator
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
     async def test_startdate_should_be_smaller_than_enddate(self):
         self.assertFalse(
@@ -84,8 +85,7 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     @respx.mock
     async def test_validity_ranges(self, expect, validities):
-        settings = config.get_settings()
-        url = f"{settings.lora_url}organisation/organisationenhed"
+        url = "http://localhost/lora/organisation/organisationenhed"
         c = lora.Connector(
             virkningfra="2000-01-01", virkningtil="3000-01-01"
         ).organisationenhed

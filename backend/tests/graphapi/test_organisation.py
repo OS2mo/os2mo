@@ -51,11 +51,12 @@ def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
     organisation = gen_organisation()
 
     respx_mock.get(
-        "http://mox/organisation/organisation",
+        "http://localhost/lora/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
     yield organisation["id"]
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
     """Test that we can mock organisation endpoints and avoid caching.
 
@@ -70,6 +71,7 @@ async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_query_organisation(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
     uuid = mock_organisation
@@ -89,10 +91,11 @@ async def test_query_organisation(respx_mock, mock_organisation):
     }
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_invalid_query_no_organisation(respx_mock):
     """Test that we get an error when querying with no organisation."""
     ConfiguredOrganisation.clear()
-    respx_mock.get("http://mox/organisation/organisation").mock(
+    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": []})
     )
 
@@ -121,6 +124,7 @@ org_fields = ["uuid", "name", "user_key"]
         )
     ),
 )
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_query_all_permutations_of_organisation(
     respx_mock, fields, mock_organisation
 ):
@@ -153,6 +157,7 @@ async def test_query_all_permutations_of_organisation(
     assert org == {}
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_non_existing_field_query(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
     query = "query { org { uuid, non_existing_field }}"
@@ -168,6 +173,7 @@ async def test_non_existing_field_query(respx_mock, mock_organisation):
     assert result.data is None
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_no_fields_query(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
     query = "query { org { }}"

@@ -17,31 +17,10 @@ from mora import app
 from mora import config
 from mora import service
 from mora.auth.keycloak.oidc import auth
+from tests.conftest import fake_auth
+from tests.conftest import seed_clients_worker
 
 logger = get_logger()
-
-
-async def fake_auth():
-    return {
-        "acr": "1",
-        "allowed-origins": ["http://localhost:5001"],
-        "azp": "vue",
-        "email": "bruce@kung.fu",
-        "email_verified": False,
-        "exp": 1621779689,
-        "family_name": "Lee",
-        "given_name": "Bruce",
-        "iat": 1621779389,
-        "iss": "http://localhost:8081/auth/realms/mo",
-        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
-        "name": "Bruce Lee",
-        "preferred_username": "bruce",
-        "scope": "email profile",
-        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
-        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-        "typ": "Bearer",
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-    }
 
 
 class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
@@ -63,6 +42,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         await self.lifespanmanager.__aenter__()
 
         self.client = httpx.AsyncClient(app=self.app, base_url="http://localhost:5000")
+        seed_clients_worker(self.app)
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
@@ -333,6 +313,7 @@ class _BaseTestCase(TestCase):
         super().setUp()
         self.app = self.create_app()
         self.client = TestClient(self.app)
+        seed_clients_worker(self.app)
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth

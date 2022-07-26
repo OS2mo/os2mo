@@ -3,22 +3,23 @@
 import json
 
 import freezegun
+import pytest
 import respx
 from httpx import Response
 from parameterized import parameterized
 
 import tests.cases
-from mora import config
 from mora import exceptions
 from mora import lora
 from mora import util as mora_util
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_get_effects(self):
-        respx.get("/organisation/organisationenhed").mock(
+        respx.get("http://localhost/lora/organisation/organisationenhed").mock(
             return_value=Response(
                 200,
                 json={
@@ -235,7 +236,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_errors_json(self, status_in, status_out, error_key):
         respx.get(
-            "/organisation/organisationenhed",
+            "http://localhost/lora/organisation/organisationenhed",
             json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
@@ -273,7 +274,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_errors_text(self, status_in, status_out, error_key):
         respx.get(
-            "/organisation/organisationenhed",
+            "http://localhost/lora/organisation/organisationenhed",
             json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
@@ -300,7 +301,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_error_debug(self):
         respx.get(
-            "/organisation/organisationenhed",
+            "http://localhost/lora/organisation/organisationenhed",
             json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
@@ -330,7 +331,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @respx.mock
     async def test_finding_nothing(self):
         respx.get(
-            "/organisation/organisationenhed",
+            "http://localhost/lora/organisation/organisationenhed",
             json={
                 "uuid": ["42"],
                 "virkningfra": "2010-06-01T02:00:00+02:00",
@@ -349,8 +350,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @respx.mock
     async def test_get_effects_2(self):
-        lora_url = config.get_settings().lora_url
-        url = f"{lora_url}organisation/organisationenhed"
+        url = "http://localhost/lora/organisation/organisationenhed"
         route = respx.get(url).mock(
             return_value=Response(
                 200,
@@ -571,7 +571,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # A "no-op" update in LoRa returns a response with an error message,
         # but no "uuid" key.
         uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        respx.patch(f"http://mox/organisation/bruger/{uuid}").mock(
+        respx.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
             return_value=Response(
                 400,
                 json={
@@ -593,7 +593,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # A normal update in LoRa returns a response with a 'uuid' key which
         # matches the object that was updated.
         uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
-        respx.patch(f"/organisation/bruger/{uuid}").mock(
+        respx.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
             return_value=Response(200, json={"uuid": uuid})
         )
         # Assert that `Scope.update` parses the JSON response and returns the
@@ -607,7 +607,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # Updating a nonexistent LoRa object returns a 404 status code, which
         # should not be converted into a MO exception.
         uuid = "00000000-0000-0000-0000-000000000000"
-        respx.patch(f"/organisation/bruger/{uuid}").mock(return_value=Response(404))
+        respx.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
+            return_value=Response(404)
+        )
         # Assert that `Scope.update` does not raise an exception nor return a
         # UUID in this case.
         c = lora.Connector()

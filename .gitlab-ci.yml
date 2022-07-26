@@ -516,7 +516,7 @@ Coverage:
     - pip install coverage
     - coverage combine
   script:
-    - coverage report --fail-under=85 --skip-empty
+    - coverage report --fail-under=80 --skip-empty
   after_script:
     - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
     - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty

@@ -29,6 +29,7 @@ from mora.triggers.internal.http_trigger import register
 from tests import util
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2018-03-15")
     @respx.mock
@@ -148,7 +149,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
         }
 
-        url = "http://mox/organisation/organisationenhed"
+        url = "http://localhost/lora/organisation/organisationenhed"
         route = respx.get(url).mock(
             return_value=Response(
                 200,
@@ -167,11 +168,11 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             )
         )
 
+        mo_url = f"/service/ou/{unitid}/details/org_unit?validity=past"
+        respx.get(mo_url).pass_through()
+
         with util.patch_query_args({"validity": "past"}):
-            await self.assertRequestResponse(
-                "/service/ou/" + unitid + "/details/org_unit?validity=past",
-                [],
-            )
+            await self.assertRequestResponse(mo_url, [])
 
         self.assertEqual(
             json.loads(route.calls[0].request.read()),
