@@ -25,7 +25,7 @@ def group():
     pass
 
 
-_SLEEPING_TIME = 0.25
+_SLEEPING_TIME = 0.5
 
 
 def _wait_for_service(name, wait_fn, unavailable_exception, wait):
@@ -35,9 +35,10 @@ def _wait_for_service(name, wait_fn, unavailable_exception, wait):
             wait_fn()
             return int(wait - (i * _SLEEPING_TIME))
         except unavailable_exception:
-            click.echo("%s is unavailable - attempt %s/%s" % (name, i, attempts))
             if i >= attempts:
+                logger.error(f"{name} is unavailable. Exiting.")
                 sys.exit(1)
+            logger.info(f"{name} is unavailable - attempt {i}/{attempts}")
             time.sleep(_SLEEPING_TIME)
 
 
@@ -72,9 +73,9 @@ def wait_for_rabbitmq(seconds):
             raise ValueError("AMQP not healthy!")
 
     _wait_for_service(
-        "rabbitmq",
+        "RabbitMQ",
         connector,
-        ValueError,
+        (ValueError, ConnectionError),
         seconds,
     )
     return 8

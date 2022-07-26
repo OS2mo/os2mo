@@ -50,6 +50,8 @@ services:
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
       - ./.cov-report:/tmp/.cov-report:rw
+      - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
+    entrypoint: ["/wait-for-rabbitmq.sh"]
     command: [
         # In production, we use gunicorn with the worker class
         # "uvicorn.workers.UvicornWorker", but that does not work with --reload,
