@@ -21,10 +21,10 @@ from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
+from ramodels.mo import Validity
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
-from mora.api.v1.models import Validity
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings

@@ -26,7 +26,6 @@ from structlog import get_logger
 
 from . import service
 from . import triggers
-from .api.v1 import reading_endpoints
 from .common import LoRaConnectorPlugin
 from .config import Environment
 from .exceptions import ErrorCodes
@@ -236,11 +235,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     if settings.graphql_enable:
         gql_router = setup_graphql(settings.graphiql_enable)
         app.include_router(gql_router, prefix="/graphql", dependencies=[Depends(auth)])
-
-    if settings.v1_api_enable:
-        app.include_router(
-            reading_endpoints.router, tags=["Reading"], dependencies=[Depends(auth)]
-        )
 
     if settings.os2mo_auth:
         app.include_router(

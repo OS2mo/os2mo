@@ -77,7 +77,6 @@ class TestEndpointAuthDependency(unittest.TestCase):
 class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
 
     app_settings_overrides = {
-        "v1_api_enable": True,
         "graphql_enable": True,
         "graphiql_enable": True,
     }
@@ -163,9 +162,6 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
             json=[{"not": "important"}],
         )
 
-    async def test_auth_api_v1(self):
-        await self.assertRequestFails("/api/v1/it", HTTP_401_UNAUTHORIZED)
-
     async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
         await self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
@@ -181,11 +177,10 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
 class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
-    and one from the /api/v1 endpoints)
+    and one from the /graphql endpoints)
     """
 
     app_settings_overrides = {
-        "v1_api_enable": True,
         "graphql_enable": True,
         "graphiql_enable": True,
     }
@@ -200,9 +195,6 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
     async def test_auth_service_org(self):
         await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
-    async def test_auth_api_v1(self):
-        await self.assertRequest("/api/v1/it", HTTP_200_OK, set_auth_header=True)
-
     async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
         await self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
@@ -213,16 +205,6 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
             HTTP_200_OK,
             set_auth_header=True,
             json={"query": "{ __typename }"},  # always implemented
-        )
-
-    async def test_client_secret_token(self):
-        # Verify that a token obtained from a client secret (e.g. via the
-        # DIPEX client) is working
-
-        token = self.get_token(use_client_secret=True)
-
-        await self.assertRequest(
-            "/api/v1/it", HTTP_200_OK, headers={"Authorization": "Bearer " + token}
         )
 
 
