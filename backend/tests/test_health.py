@@ -25,26 +25,6 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 )
 
 
-class TestOIORestHealth:
-    @patch("httpx.AsyncClient.get")
-    async def test_oio_rest_returns_true_if_reachable(self, mock_get):
-        mock_get.return_value = HTTPX_MOCK_RESPONSE_200
-        assert await health.oio_rest()
-
-    @patch("httpx.AsyncClient.get")
-    async def test_oio_rest_returns_false_if_unreachable(self, mock_get):
-        mock_get.return_value = HTTPX_MOCK_RESPONSE_404
-        assert not await health.oio_rest()
-
-    @patch("httpx.AsyncClient.get")
-    async def test_oio_rest_returns_false_for_httpx_client_error(self, mock_get):
-        # This is one of the possible erros raised by the httpx client
-        mock_get.side_effect = RuntimeError(
-            "Cannot send a request, as the client has been closed."
-        )
-        assert not await health.oio_rest()
-
-
 class DatasetHealthTests(tests.cases.TestCase):
     @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
     @aioresponses()
@@ -132,15 +112,10 @@ class TestKubernetesProbes(tests.cases.TestCase):
 
     @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_everything_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [True, True]
+        mock_is_endpoint_reachable.side_effect = [True]
         self.assertRequest("/health/ready", HTTP_204_NO_CONTENT)
 
     @patch("mora.graphapi.health._is_endpoint_reachable")
-    def test_readiness_lora_not_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [False, True]
-        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
-
-    @patch("mora.graphapi.health._is_endpoint_reachable")
     def test_readiness_keycloak_not_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [True, False]
+        mock_is_endpoint_reachable.side_effect = [False]
         self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)

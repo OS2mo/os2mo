@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 from typing import Dict
 from typing import Optional
 
@@ -12,7 +11,6 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from mora.graphapi.health import keycloak
-from mora.graphapi.health import oio_rest
 from mora.graphapi.shim import execute_graphql
 
 
@@ -42,9 +40,8 @@ async def readiness(response: Response):
     and Keycloak all are healthy then MO is considered to be ready.
     """
 
-    lora_ready, keycloak_ready = await asyncio.gather(oio_rest(), keycloak())
-
-    if not (lora_ready and keycloak_ready):
+    keycloak_ready = await keycloak()
+    if not keycloak_ready:
         response.status_code = HTTP_503_SERVICE_UNAVAILABLE
 
 
