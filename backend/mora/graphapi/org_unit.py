@@ -10,6 +10,7 @@
 import datetime
 import logging
 from typing import cast
+from typing import Optional
 from uuid import UUID
 
 from strawberry.dataloader import DataLoader
@@ -24,7 +25,7 @@ from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.schema import Response
 from mora.graphapi.types import OrganizationUnit
 from mora.service.orgunit import OrgUnitRequestHandler
-from mora.service.orgunit import terminate_org_unit_validation
+from mora.service.validation import validator
 from mora.triggers import Trigger
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
@@ -72,6 +73,74 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
     return result
 
 
+async def terminate_org_unit_validation(
+    unit_uuid: UUID,
+    from_date: Optional[datetime.date],
+    to_date: Optional[datetime.date],
+) -> None:
+    uuid_str = str(unit_uuid)
+
+    # Verify date
+    date = (
+        _get_valid_from(from_date) if from_date and to_date else _get_valid_to(to_date)
+    )
+
+    c = lora.Connector(effective_date=util.to_iso_date(date))
+    await validator.is_date_range_in_org_unit_range(
+        {"uuid": uuid_str},
+        date - util.MINIMAL_INTERVAL,
+        date,
+    )
+
+    # Find children, roles and addresses, and verify constraints
+    children = set(
+        await c.organisationenhed.load_uuids(
+            overordnet=uuid_str,
+            gyldighed="Aktiv",
+        )
+    )
+
+    roles = set(
+        await c.organisationfunktion.load_uuids(
+            tilknyttedeenheder=uuid_str,
+            gyldighed="Aktiv",
+        )
+    )
+
+    addresses = set(
+        await c.organisationfunktion.load_uuids(
+            tilknyttedeenheder=uuid_str,
+            funktionsnavn=mapping.ADDRESS_KEY,
+            gyldighed="Aktiv",
+        )
+    )
+
+    active_roles = roles - addresses
+    role_counts = set()
+
+    if active_roles:
+        role_counts = set(
+            mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
+            for objid, obj in await c.organisationfunktion.get_all_by_uuid(
+                uuids=active_roles
+            )
+        )
+
+    if children and role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
+            child_count=len(children),
+            roles=", ".join(sorted(role_counts)),
+        )
+    elif children:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
+            child_count=len(children),
+        )
+    elif role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
+            roles=", ".join(sorted(role_counts)),
+        )
+
+
 async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
     # Create lora payload
     # effect = OrgUnitRequestHandler.get_virkning_for_terminate(request)
@@ -106,7 +175,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     # or use proper arguments like:
     # `terminate_org_unit_validation(uuid: str, from: datetime.date, to: datetime.date)`
     try:
-        await terminate_org_unit_validation(uuid, terminate_dict)
+        await terminate_org_unit_validation(unit.uuid, unit.from_date, unit.to_date)
     except Exception as e:
         logger.exception("ERROR validating termination request.")
         raise e
@@ -140,7 +209,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
             Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
         }
     )
-    # trigger_results_after = None
+
     if not util.get_args_flag("triggerless"):
         _ = await Trigger.run(trigger_dict)
 
@@ -175,11 +244,12 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
             "to": unit.to_date.isoformat() if unit.to_date else None,
         },
     )
+    return {}
 
 
-def _get_valid_from(from_date: datetime.date) -> datetime.datetime:
-    if not from_date:
-        exceptions.ErrorCodes.V_MISSING_START_DATE()
+def _get_valid_from(from_date: Optional[datetime.date]) -> datetime.datetime:
+    if not from_date or not isinstance(from_date, datetime.date):
+        raise exceptions.ErrorCodes.V_MISSING_START_DATE()
 
     dt = datetime.datetime.combine(from_date.today(), datetime.datetime.min.time())
     if dt.time() != datetime.time.min:
@@ -187,10 +257,10 @@ def _get_valid_from(from_date: datetime.date) -> datetime.datetime:
             "{!r} is not at midnight!".format(dt.isoformat()),
         )
 
-    return dt
+    return _apply_default_tz(dt)
 
 
-def _get_valid_to(to_date: datetime.date) -> datetime.datetime:
+def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
     if not to_date:
         return POSITIVE_INFINITY
 
@@ -200,7 +270,7 @@ def _get_valid_to(to_date: datetime.date) -> datetime.datetime:
             "{!r} is not at midnight!".format(dt.isoformat()),
         )
 
-    return dt + ONE_DAY
+    return _apply_default_tz(dt + ONE_DAY)
 
 
 def _create_trigger_dict_from_org_unit_input(
@@ -209,17 +279,17 @@ def _create_trigger_dict_from_org_unit_input(
     uuid_str = str(unit.uuid)
 
     # create trigger dict request
+    validity = {}
+    if unit.from_date:
+        validity[mapping.FROM] = unit.from_date.isoformat()
+    if unit.to_date:
+        validity[mapping.TO] = unit.to_date.isoformat()
+
     trigger_request = {
         mapping.TYPE: mapping.ORG_UNIT,
         mapping.UUID: uuid_str,
-        mapping.VALIDITY: {},
+        mapping.VALIDITY: validity,
     }
-
-    if unit.from_date:
-        trigger_request[mapping.VALIDITY][mapping.FROM] = unit.from_date.isoformat()
-
-    if unit.to_date:
-        trigger_request[mapping.VALIDITY][mapping.TO] = unit.to_date.isoformat()
 
     # Create the return dict
     trigger_dict = {
@@ -228,9 +298,17 @@ def _create_trigger_dict_from_org_unit_input(
         Trigger.ROLE_TYPE: mapping.ORG_UNIT,
         Trigger.ORG_UNIT_UUID: uuid_str,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        # Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
         Trigger.UUID: uuid_str,
         Trigger.RESULT: None,
     }
 
     return trigger_dict
+
+
+def _apply_default_tz(dt: datetime.datetime) -> datetime.datetime:
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=util.DEFAULT_TIMEZONE)
+    else:
+        dt = dt.astimezone(util.DEFAULT_TIMEZONE)
+
+    return dt
