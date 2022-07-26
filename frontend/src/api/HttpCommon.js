@@ -19,10 +19,6 @@ const Download = axios.create({
   responseType: 'arraybuffer',
 })
 
-const ApiV1 = axios.create({
-  baseURL: '/api/v1',
-})
-
 Service.interceptors.response.use(
   response => response,
   error => {
@@ -48,11 +44,6 @@ Download.interceptors.request.use(function (config){
   return config
 })
 
-ApiV1.interceptors.request.use(function (config){
-  config.headers["Authorization"] = "Bearer " + keycloak.token
-  return config
-})
-
 function get_by_axios (url, axios) {
   return axios
     .get(url)
@@ -70,8 +61,5 @@ export default {
     return get_by_axios(url, Service)
   },
   post: Service.post,
-  api_v1_get(url) {
-    return get_by_axios(url, ApiV1)
-  },
   download: Download.get,
 }

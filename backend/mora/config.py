@@ -78,8 +78,6 @@ class Settings(BaseSettings):
     testcafe_enable: bool = True
     # Serve frontend
     statics_enable: bool = False
-    # V1 API
-    v1_api_enable: bool = False
     # GraphQL settings
     graphql_enable: bool = True
     graphiql_enable: bool = False
