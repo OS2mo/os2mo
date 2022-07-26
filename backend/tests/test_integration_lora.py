@@ -58,7 +58,6 @@ def mock_requests(*args):
 # Triggers the startup event `init_clients()` that sets base_url for respx/httpx
 @pytest.mark.usefixtures("service_client")
 class TestLoraDataLoader:
-    @pytest.mark.asyncio
     @respx.mock
     async def test_load_single_param(self):
         mock_requests(dict(json__a=[1, 2]))
@@ -73,7 +72,6 @@ class TestLoraDataLoader:
         assert load_a1 == load_a1_again == [a1_b1, a1_b2]
         assert load_a2 == [a2_b1, a2_b2]
 
-    @pytest.mark.asyncio
     @respx.mock
     async def test_load_merge_params(self):
         mock_requests(dict(json__a=[1, 2]), dict(json__b=[1, 2]))
@@ -92,7 +90,6 @@ class TestLoraDataLoader:
         assert load_b1 == [a1_b1, a2_b1]
         assert load_b2 == [a1_b2, a2_b2]
 
-    @pytest.mark.asyncio
     @respx.mock
     async def test_load_multi_params(self):
         mock_requests(dict(json__a=[1]), dict(json__b=[1]))
@@ -106,7 +103,6 @@ class TestLoraDataLoader:
         assert load_a1 == [a1_b1, a1_b2]
         assert load_a1_b1 == [a1_b1]
 
-    @pytest.mark.asyncio
     @respx.mock
     async def test_load_merge_multi_params(self):
         mock_requests(dict(json__a=[1]), dict(json__a=[1, 2]), dict(json__b=[1]))

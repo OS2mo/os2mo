@@ -22,20 +22,17 @@ FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
 class TestRole(object):
-    @pytest.mark.asyncio
     async def test_raise_exception_for_normal_user(self):
         # The user is neither admin or owner
         token = mock_auth()()
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     async def test_raise_exception_when_role_is_owner_and_admin_only_true(self):
         token = mock_auth(OWNER, ANDERS_AND)()
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, True)
 
-    @pytest.mark.asyncio
     async def test_return_when_role_is_admin(self):
         token = mock_auth(ADMIN, ANDERS_AND)()
         r = await _rbac(token, None, False)
@@ -49,7 +46,6 @@ class TestOwnerSingleOrgUnit(object):
     moving an org unit in any of these tests).
     """
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -64,7 +60,6 @@ class TestOwnerSingleOrgUnit(object):
         r = await _rbac(token, None, False)
         assert r is None
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -79,7 +74,6 @@ class TestOwnerSingleOrgUnit(object):
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -94,7 +88,6 @@ class TestOwnerSingleOrgUnit(object):
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -118,7 +111,6 @@ class TestOwnerMultipleOrgUnits(object):
     moving an org unit).
     """
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -133,7 +125,6 @@ class TestOwnerMultipleOrgUnits(object):
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -148,7 +139,6 @@ class TestOwnerMultipleOrgUnits(object):
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -163,7 +153,6 @@ class TestOwnerMultipleOrgUnits(object):
         with pytest.raises(AuthorizationError):
             await _rbac(token, None, False)
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.rbac.get_owners")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_type")
     @unittest.mock.patch("mora.auth.keycloak.rbac.uuid_extractor.get_entity_uuids")
@@ -232,7 +221,6 @@ class TestGetAncestorOwners(object):
             }
         ]
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
@@ -248,7 +236,6 @@ class TestGetAncestorOwners(object):
 
         assert {UUID(ANDERS_AND)} == ancestor_owners
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
@@ -265,7 +252,6 @@ class TestGetAncestorOwners(object):
 
         assert {UUID(FEDTMULE)} == ancestor_owners
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")
@@ -287,7 +273,6 @@ class TestGetAncestorOwners(object):
 
         assert {UUID(ANDERS_AND), UUID(FEDTMULE)} == ancestor_owners
 
-    @pytest.mark.asyncio
     @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
     @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
     @unittest.mock.patch("mora.auth.keycloak.owner.mora.service.orgunit.get_unit_tree")

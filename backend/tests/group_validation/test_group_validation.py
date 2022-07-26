@@ -15,14 +15,12 @@ from mora.service.validation.models import GroupValidation
 class TestGroupValidationConstructors:
     _mock_validation_item = {"foo": "bar"}
 
-    @pytest.mark.asyncio
     async def test_from_requests(self, monkeypatch):
         requests = [{}]
         self._monkeypatch_get_validation_item_from_mo_object(monkeypatch)
         instance = await GroupValidation.from_requests(requests)
         assert instance.validation_items == [self._mock_validation_item]
 
-    @pytest.mark.asyncio
     async def test_from_mo_objects(self, monkeypatch):
         class _MockReadingHandler:
             async def get(self, *args, **kwargs):
@@ -49,7 +47,6 @@ class TestGroupValidationConstructors:
 
 
 class TestGroupValidationStubs:
-    @pytest.mark.asyncio
     async def test_not_implemented_stubs(self):
         with pytest.raises(NotImplementedError):
             await GroupValidation.get_validation_items_from_mo_object({})
