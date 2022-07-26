@@ -5,16 +5,7 @@ stages:
   - sync
   - lint
   - build
-
-  # TODO: gitlab/#293674: variable expansion bug
-  # Jobs for deploying and undeploying review apps are currently unable to use the 'needs'
-  # keyword due to a bug in how GitLab handles variables for deployment environments.
-  # Therefore, we define these jobs as early as possibly -- just after 'build'ing their
-  # dependencies. CTRL+F 'gitlab/#293674' for further information.
   - review
-  - qa
-  - post-qa
-
   - test
   - coverage
   - prepare-release
@@ -36,8 +27,10 @@ variables:
   BACKEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
+  # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_URL: "https://$REVIEW_SLUG.moraci.magentahosted.dk"
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
+  REVIEW_SLUG: "review-os2mo-mr${CI_MERGE_REQUEST_IID}"
 
 include:
   - project: "labs/salt-automation"
@@ -76,12 +69,9 @@ include:
 .if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
   if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Sync::Don't Interrupt/"
 
-# Review / QA Conditions
+# Review Conditions
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
-
-.if-merge-request-labels-run-qa: &if-merge-request-labels-run-qa
-  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run QA/'
 
 
 # Workflow
@@ -94,20 +84,7 @@ workflow:
         # branch pipeline and tag pipeline overriding each other's images arbitrarily when
         # they are both running at the same time on master.
         BACKEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
-    - <<: *if-default-branch-refs
-      variables:
-        # Review values cannot be changed without also modifying salt-automation/config-updater
-        REVIEW_SLUG: "review-os2mo-master-$CI_COMMIT_SHORT_SHA"
-        REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-master?commit_sha=$CI_COMMIT_SHA"
-        REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-master?commit_sha=$CI_COMMIT_SHA"
-        REVIEW_DELETE_TF_STATE_URL: "$REVIEW_CONFIG_UPDATER_URL/delete-master-tf-state?commit_sha=$CI_COMMIT_SHA"
     - <<: *if-merge-request
-      variables:
-        # Review values cannot be changed without also modifying salt-automation/config-updater
-        REVIEW_SLUG: "review-os2mo-mr${CI_MERGE_REQUEST_IID}"
-        REVIEW_DEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
-        REVIEW_UNDEPLOY_URL: "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
-        REVIEW_DELETE_TF_STATE_URL: "$REVIEW_CONFIG_UPDATER_URL/delete-mr-tf-state?mr_id=$CI_MERGE_REQUEST_IID"
 
 default:
   # All jobs are interruptible by default
@@ -585,12 +562,7 @@ Vue-unit-test:
 
 # Review
 #########
-# TODO: gitlab/#293674: variable expansion bug
-# GitLab does not currently expand variables properly in all cases, so instead of defining
-# a single 'Deploy Review' job with `environment: name/url` referencing a variable
-# $REVIEW_SLUG, we need to define two different jobs with the variable values hard-coded.
-# See https://gitlab.com/gitlab-org/gitlab/-/issues/293674 for more information.
-.deploy-review:
+Deploy Review:
   stage: review
   needs:
     - Build OS2MO
@@ -605,202 +577,26 @@ Vue-unit-test:
       --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
-      $REVIEW_DEPLOY_URL
+      "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
     - until $(curl --silent --fail-with-body "${REVIEW_URL}/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
-    #name: "review/$REVIEW_SLUG"
-    #url: $REVIEW_URL
-    #on_stop: Stop Review
+    name: "review/$REVIEW_SLUG"
+    url: $REVIEW_URL
+    on_stop: Stop Review
     auto_stop_in: 1 week
   tags:
     - deploy
-  #rules:
-  #  - <<: *if-schedule
-  #    when: never
-  #  - <<: *if-default-branch-refs
-  #  - <<: *if-merge-request-labels-run-review-app
-  #  - <<: *if-merge-request-labels-run-qa
-  #  - <<: *if-merge-request
-  #    when: manual
-  #    allow_failure: true
-Deploy Review Master:
-  extends:
-    - .deploy-review
-  environment:
-    name: "review/review-os2mo-master-$CI_COMMIT_SHORT_SHA"
-    url: "https://review-os2mo-master-$CI_COMMIT_SHORT_SHA.moraci.magentahosted.dk"
-    on_stop: Stop Review Master
   rules:
     - <<: *if-schedule
       when: never
-    - <<: *if-default-branch-refs
-Deploy Review MR:
-  extends:
-    - .deploy-review
-  environment:
-    name: "review/review-os2mo-mr$CI_MERGE_REQUEST_IID"
-    url: "https://review-os2mo-mr$CI_MERGE_REQUEST_IID.moraci.magentahosted.dk"
-    on_stop: Stop Review MR
-  rules:
     - <<: *if-merge-request-labels-run-review-app
-    - <<: *if-merge-request-labels-run-qa
     - <<: *if-merge-request
       when: manual
       allow_failure: true
 
-
-# QA
-#####
-.qa-base:
-  stage: qa
-  rules:
-    - <<: *if-schedule
-      when: never
-    - <<: *if-default-branch-refs
-    - <<: *if-merge-request-labels-run-qa
-    - <<: *if-merge-request
-      when: manual
-      allow_failure: true
-
-Create Performance Test Keycloak Token:
-  extends:
-    - .qa-base
-  # TODO: gitlab/#293674: variable expansion bug
-  # This would ideally use 'needs', but we're unable to at the moment.
-  #needs:
-  #  - Deploy Review
-  image: registry.gitlab.com/gitlab-org/terraform-images/stable:latest
-  variables:
-    TF_ADDRESS: "$CI_API_V4_URL/projects/$CI_PROJECT_ID/terraform/state/tempotest-$REVIEW_SLUG"
-    TF_VAR_keycloak_admin_password: $REVIEW_KEYCLOAK_ADMIN_PASSWORD
-    TF_VAR_keycloak_url: "$REVIEW_URL"
-    TF_VAR_keycloak_tempotest_client_secret: $TEMPOTEST_CLIENT_SECRET
-  before_script:
-    - cd tempotest/
-    - gitlab-terraform init
-    - gitlab-terraform validate
-  script:
-    - gitlab-terraform plan
-    - gitlab-terraform plan-json
-    - gitlab-terraform apply
-
-Performance Tests:
-  extends:
-    - .qa-base
-  needs:
-    - Create Performance Test Keycloak Token
-  image:
-    name: grafana/k6:0.37.0
-    entrypoint: [""]
-  tags:
-    - high-mem  # we don't want other jobs impacting the test results
-  before_script:
-    - cd tempotest/
-  script:
-    - k6 run script.js
-      --out=csv=load-performance.csv
-      --summary-export=load-performance.json
-      --system-tags="status,method,name,group,check,error,error_code,scenario,expected_response"
-  variables:
-    MO_URL: "$REVIEW_URL"
-    AUTH_SERVER: "$REVIEW_URL/auth"
-    CLIENT_ID: "tempotest"
-    CLIENT_SECRET: "$TEMPOTEST_CLIENT_SECRET"
-  artifacts:
-    name: "tempotest"
-    expire_in: 1 month
-    when: always
-    paths:
-      - tempotest/load-performance.csv
-    reports:
-      load_performance: tempotest/load-performance.json
-
-Upload Performance Test Results:
-  extends:
-    - .qa-base
-  needs:
-    - Performance Tests
-  image:
-    name: postgres:14
-    entrypoint: [""]
-  before_script:
-    - mkdir ~/.postgresql
-    # grafana_events_db google_sql_ssl_cert.clients_shared.server_ca_cert
-    - |
-      cat << EOT > ~/.postgresql/root.crt
-      -----BEGIN CERTIFICATE-----
-      MIIDfzCCAmegAwIBAgIBADANBgkqhkiG9w0BAQsFADB3MS0wKwYDVQQuEyQwNzZm
-      MzVhMS03MjdkLTRlNzQtOWViNy1iOTBkYTA0Mjk4ZWMxIzAhBgNVBAMTGkdvb2ds
-      ZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUsIEluYzELMAkG
-      A1UEBhMCVVMwHhcNMjIwNDIxMDgzOTI0WhcNMzIwNDE4MDg0MDI0WjB3MS0wKwYD
-      VQQuEyQwNzZmMzVhMS03MjdkLTRlNzQtOWViNy1iOTBkYTA0Mjk4ZWMxIzAhBgNV
-      BAMTGkdvb2dsZSBDbG91ZCBTUUwgU2VydmVyIENBMRQwEgYDVQQKEwtHb29nbGUs
-      IEluYzELMAkGA1UEBhMCVVMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
-      AQDJUTpRf6INuo20cJnphO9+9WGMtDxEUXkpWu7G7D6LfwVqeN0Sb+63yY8qpHBu
-      JUgLFFyGQ6jrpCEkVqHGVux6jZB7vY56SqvvEyk/9eEyOxsBt1vVTAa/Ka1K++cL
-      2XAxwcaVfFFF/EqFDjJeKfGZTtxcL0MpnyWjOVQ55AcF5aQiZJHHLys5Or5om/HV
-      SikJvp5pg/rTN9NWGHOgf0fv3p2AgXfAdfNLnYJO2/Ax62yiP77qBa6Nnq95qe9C
-      dkRXHVun03okDRltyEapIUUYxGaIYOP+1v0j02XoC6yJSLr+beIc3NLtKC3l2xoO
-      P1DcNM9v9v5Esx32U/yLNZfvAgMBAAGjFjAUMBIGA1UdEwEB/wQIMAYBAf8CAQAw
-      DQYJKoZIhvcNAQELBQADggEBAFXe3bK2D1vnWdzp+b9namonpn6qwuCcro+bJTHE
-      QgacCIdCzIu8iODsBhX/VmyAggkYoc3qppmH7nkjeTbQYtGxorpRnHNwtPS6tF6C
-      iXIMwMOZmPHdyhUAyosARFWF6sIOGoKZkLh1kamQhE5jJd9kNr7wYD+pPYYFL1VY
-      WSYnz28Puo7QEsZwJNaqyDVm/RG2GB3q6eU9Dl/iaoJGSGnKb4kUz0LSiiuhM7tF
-      4LJasDJdMz0cuOMHVXi8mxs3p/do7d5OWdLuSiZZMqdltCsgsLa7aIL4jskWIsPR
-      f7LBO0OEEKekUK+aYaDWuE+Noi9wSm0h9JnxuHWYFyTgf1k=
-      -----END CERTIFICATE-----
-      EOT
-    # grafana_events_db google_sql_ssl_cert.clients_shared.cert
-    - |
-      cat << EOT > ~/.postgresql/postgresql.crt
-      -----BEGIN CERTIFICATE-----
-      MIIDbDCCAlSgAwIBAgIEIa6H8zANBgkqhkiG9w0BAQsFADCBhjEtMCsGA1UELhMk
-      NWIyMjdhYTktNDgzNC00ZDY3LWE4MmItNGZiMzE1ZDIxYWQ1MTIwMAYDVQQDEylH
-      b29nbGUgQ2xvdWQgU1FMIENsaWVudCBDQSBjbGllbnRzLXNoYXJlZDEUMBIGA1UE
-      ChMLR29vZ2xlLCBJbmMxCzAJBgNVBAYTAlVTMB4XDTIyMDQyMjEzMjg1NFoXDTMy
-      MDQxOTEzMjk1NFowPDEXMBUGA1UEAxMOY2xpZW50cy1zaGFyZWQxFDASBgNVBAoT
-      C0dvb2dsZSwgSW5jMQswCQYDVQQGEwJVUzCCASIwDQYJKoZIhvcNAQEBBQADggEP
-      ADCCAQoCggEBAKvYpWC+DI0ACWRRfmllGGzKgFCdg92iOUvV0wx0QiUh6oFhvy48
-      qhhCKth8jHlaQyM9x9101hQ2GxchBPxwfK/sKscIDG9wQH9HpmWdIzG6bMsHuw2n
-      4xEzWqUlFdqSUl2rXxQMy/HwHFbpKFZheAjR+Z5bU43JecMuo+lvOfmM3UMJhctW
-      vp8VtywUEV+6Xx5jwjj3b9ZbE95Itp7WPI8CfF1RRnMgNQKUxiPrA2wv/ySSF2Id
-      HoHYhv+GPsJwiIAHsrKt9FxkH/bMnqc2DQ3G98Ti4Z3m2Yf781ugZD+6qRFAGfI9
-      PrBOSx50hqkpOYXn05spNQstHEVzXmbTVzMCAwEAAaMrMCkwCQYDVR0TBAIwADAc
-      BgNVHREEFTATgRF2a0BtYWdlbnRhLWFwcy5kazANBgkqhkiG9w0BAQsFAAOCAQEA
-      ha+jR9z+nawVhx17RGu81dLY65dTh0P/dIpwKG8qClOTNOhvgKAyaYDarAZkM64I
-      BoVVg/GZT9YxzwpsiZQ2mGMdbx0F1wp4EI1ABebBVC59cbeDDjAs8MPVuPte6W67
-      XZ8PUoElJICliUUvxae2SXYg1tfIDG/gn4yDm/rXWM4orSAStEKP1pp3se8bdPXm
-      DfP0dO6ZCipNuT3UnZ7DUNYPXl72znXZ1dtlZhVcHP1+eVw3WcptfJZc0t0nJzhg
-      HCmkyDRw7+51C8Xm3gc/IwmDCFZdWfvVgVZTCYxgcpiCFeu/JAiWGPDpIiEGm6F0
-      YfeITRi7JKFul6ELGfi0RA==
-      -----END CERTIFICATE-----
-      EOT
-    # grafana_events_db google_sql_ssl_cert.clients_shared.private_key
-    - echo $TEMPOTEST_DATABASE_CLIENT_KEY | base64 --decode > ~/.postgresql/postgresql.key
-    - chmod 0600 ~/.postgresql/postgresql.key
-    - cd tempotest/
-  script:
-    - ./upload.sh load-performance.csv
-  after_script:
-    - rm ~/.postgresql/postgresql.key
-  variables:
-    PGHOST: grafana-events-db.internal.magentahosted.dk
-    PGDATABASE: events
-    PGUSER: os2mo_k6
-    PGPASSWORD: $TEMPOTEST_DATABASE_PASSWORD
-    PGSSLMODE: verify-ca
-
-
-# Post-QA
-##########
-.post-qa-base:
-  stage: post-qa
-
-# TODO: gitlab/#293674: variable expansion bug
-# See the deploy job for details and discussion about why this is needed.
-.stop-review:
-  extends:
-    - .post-qa-base
+Stop Review:
+  stage: review
+  needs: []
   image: curlimages/curl:7.81.0
   variables:
     GIT_STRATEGY: none  # We do not need the source code
@@ -810,74 +606,16 @@ Upload Performance Test Results:
       --fail-with-body
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
-      $REVIEW_UNDEPLOY_URL
+      "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
   environment:
-    #name: "review/$REVIEW_SLUG"
+    name: "review/$REVIEW_SLUG"
     action: stop
   tags:
     - deploy
-  #rules:
-  #  - <<: *if-schedule
-  #    when: never
-  #  - <<: *if-default-branch-refs
-  #    when: always
-  #  - <<: *if-merge-request
-  #    when: manual
-  #    allow_failure: true
-Stop Review Master:
-  extends:
-    - .stop-review
-  environment:
-    name: "review/review-os2mo-master-$CI_COMMIT_SHORT_SHA"
-  rules:
-    - <<: *if-schedule
-      when: never
-    - <<: *if-default-branch-refs
-      when: always
-Stop Review MR:
-  extends:
-    - .stop-review
-  environment:
-    name: "review/review-os2mo-mr$CI_MERGE_REQUEST_IID"
   rules:
     - <<: *if-merge-request
       when: manual
       allow_failure: true
-
-# TODO: gitlab/#293674: variable expansion bug
-# The 'Delete Review Terraform State' job NEEDS to depend on 'Stop Review' so that it runs
-# iff the environment is stopped. Therefore we cannot simply move it to a later stage.
-.delete-review-terraform-state:
-  extends:
-    - .post-qa-base
-  #needs:
-  #  - Stop Review
-  image: curlimages/curl:7.81.0
-  script:
-    - curl
-      --silent
-      --fail-with-body
-      --request POST
-      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
-      $REVIEW_DELETE_TF_STATE_URL
-  tags:
-    - deploy
-Delete Review Terraform State Master:
-  extends:
-    - .delete-review-terraform-state
-  needs:
-    - Stop Review Master
-  rules:
-    - <<: *if-schedule
-      when: never
-    - <<: *if-default-branch-refs
-Delete Review Terraform State MR:
-  extends:
-    - .delete-review-terraform-state
-  needs:
-    - Stop Review MR
-  rules:
-    - <<: *if-merge-request
 
 
 # Release
