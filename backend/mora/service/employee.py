@@ -25,7 +25,6 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-import ramodels.mo.employee
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
@@ -532,12 +531,10 @@ async def list_employees(
         "400": {"description": "Invalid input"},
     },
 )
-# @util.restrictargs('force', 'triggerless')
 async def terminate_employee(
     uuid: UUID,
-    request: dict = Body(...),
-    permissions=Depends(oidc.rbac_owner)
-    # uuid: UUID, request: EmployeeTerminate = Body(...), permissions=Depends(oidc.rbac_owner)
+    request: EmployeeTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
 ):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -569,11 +566,8 @@ async def terminate_employee(
     """
     uuid = str(uuid)
 
-    date = util.get_valid_to(request)
-    request_dict = request
-
-    # date = _get_valid_to(request.validity.to_date.date())
-    # request_dict = _create_request_dict_from_radatamodel(request)
+    date = _get_valid_to(request.validity.to_date.date())
+    request_dict = _create_request_dict_from_e_terminate(request)
 
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
@@ -717,7 +711,7 @@ def _inject_persons(details, employee_uuid, valid_from, valid_to):
 # Helper methods for termination
 
 
-def _create_request_dict_from_radatamodel(
+def _create_request_dict_from_e_terminate(
     employee_terminate: EmployeeTerminate,
 ) -> dict:
     request_dict = employee_terminate.dict(by_alias=True)
