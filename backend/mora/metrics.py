@@ -13,6 +13,7 @@ from mora.graphapi.health import amqp
 from mora.graphapi.health import dar
 from mora.graphapi.health import dataset
 from mora.graphapi.health import keycloak
+from mora.graphapi.health import oio_rest
 
 
 def setup_metrics(app):
@@ -28,6 +29,7 @@ def setup_metrics(app):
     # Could change periodically
     # if get_settings().amqp_enable:
     #     instrumentator.add(amqp_health())
+    # instrumentator.add(oio_rest_health())
     # instrumentator.add(dataset_health())
     # instrumentator.add(dar_health())
     # instrumentator.add(keycloak_health())
@@ -67,6 +69,18 @@ def amqp_health() -> Callable[[InstInfo], None]:
 
     async def instrumentation(_: InstInfo) -> None:
         METRIC.set(await amqp())
+
+    return instrumentation
+
+
+def oio_rest_health() -> Callable[[InstInfo], None]:
+    """Check if the configured oio_rest can be reached
+    True if reachable. False if not
+    """
+    METRIC = Gauge("oio_rest_health", "OIO REST health")
+
+    async def instrumentation(_: InstInfo) -> None:
+        METRIC.set(await oio_rest())
 
     return instrumentation
 

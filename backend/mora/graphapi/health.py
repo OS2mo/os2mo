@@ -74,6 +74,22 @@ async def amqp() -> Optional[bool]:
 
 
 @register_health_endpoint
+async def oio_rest() -> bool:
+    """Check if the configured oio_rest can be reached.
+
+    Returns:
+        bool: True if reachable. False if not.
+    """
+    settings = config.get_settings()
+    if settings.enable_internal_lora:
+        return True
+
+    url = settings.lora_url + "site-map"
+    parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
+    return await _is_endpoint_reachable(parsed_url)
+
+
+@register_health_endpoint
 async def dataset() -> bool:
     """Check if LoRa contains data.
 

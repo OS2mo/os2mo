@@ -33,6 +33,7 @@ from typing import Union
 
 import httpx
 import lora_utils
+from aiohttp import ClientSession
 from fastapi.encoders import jsonable_encoder
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
@@ -729,8 +730,15 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    settings = get_lora_settings()
-    return settings.commit_tag
+    if config.get_settings().enable_internal_lora:
+        settings = get_lora_settings()
+        return settings.commit_tag
+    async with ClientSession() as session:
+        response = await session.get(config.get_settings().lora_url + "version")
+        try:
+            return (await response.json())["lora_version"]
+        except ValueError:
+            return "Could not find lora version: %s" % await response.text()
 
 
 class AutocompleteScope(BaseScope):
