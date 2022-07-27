@@ -12,6 +12,7 @@ http:get:`/service/(any:type)/(uuid:id)/details/`
 """
 import asyncio
 import copy
+import datetime
 import enum
 from functools import partial
 from operator import contains
@@ -24,10 +25,12 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
+import ramodels.mo.employee
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from ramodels.base import tz_isodate
+from ramodels.mo.employee import EmployeeTerminate
 
 from . import autocomplete
 from . import handlers
@@ -41,6 +44,8 @@ from .. import util
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from ..triggers import Trigger
+from ..util import ONE_DAY
+from ..util import POSITIVE_INFINITY
 from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
@@ -529,7 +534,10 @@ async def list_employees(
 )
 # @util.restrictargs('force', 'triggerless')
 async def terminate_employee(
-    uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
+    uuid: UUID,
+    request: dict = Body(...),
+    permissions=Depends(oidc.rbac_owner)
+    # uuid: UUID, request: EmployeeTerminate = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
     """Terminates an employee and all of his roles beginning at a
     specified date. Except for the manager roles, which we vacate
@@ -560,7 +568,12 @@ async def terminate_employee(
 
     """
     uuid = str(uuid)
+
     date = util.get_valid_to(request)
+    request_dict = request
+
+    # date = _get_valid_to(request.validity.to_date.date())
+    # request_dict = _create_request_dict_from_radatamodel(request)
 
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
@@ -568,7 +581,7 @@ async def terminate_employee(
         await handlers.get_handler_for_function(obj).construct(
             {
                 "uuid": objid,
-                "vacate": util.checked_get(request, "vacate", False),
+                "vacate": util.checked_get(request_dict, "vacate", False),
                 "validity": {
                     "to": util.to_iso_date(
                         # we also want to handle _future_ relations
@@ -588,7 +601,7 @@ async def terminate_employee(
     trigger_dict = {
         Trigger.ROLE_TYPE: mapping.EMPLOYEE,
         Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        Trigger.REQUEST: request,
+        Trigger.REQUEST: request_dict,
         Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
         Trigger.EMPLOYEE_UUID: uuid,
         Trigger.UUID: uuid,
@@ -699,3 +712,51 @@ def _inject_persons(details, employee_uuid, valid_from, valid_to):
         }
 
     return decorated
+
+
+# Helper methods for termination
+
+
+def _create_request_dict_from_radatamodel(
+    employee_terminate: EmployeeTerminate,
+) -> dict:
+    request_dict = employee_terminate.dict(by_alias=True)
+    if employee_terminate.validity.from_date:
+        request_dict[mapping.VALIDITY][
+            mapping.FROM
+        ] = employee_terminate.validity.from_date.strftime("%Y-%m-%d")
+    else:
+        del request_dict[mapping.VALIDITY][mapping.FROM]
+
+    if employee_terminate.validity.to_date:
+        request_dict[mapping.VALIDITY][
+            mapping.TO
+        ] = employee_terminate.validity.to_date.strftime("%Y-%m-%d")
+    else:
+        del request_dict[mapping.VALIDITY][mapping.TO]
+
+    return request_dict
+
+
+def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
+    if not to_date:
+        return POSITIVE_INFINITY
+
+    # dt = _apply_default_tz(to_date)
+
+    dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
+    if dt.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(dt.isoformat()),
+        )
+
+    return _apply_default_tz(dt + ONE_DAY)
+
+
+def _apply_default_tz(dt: datetime.datetime) -> datetime.datetime:
+    if not dt.tzinfo:
+        dt = dt.replace(tzinfo=util.DEFAULT_TIMEZONE)
+    else:
+        dt = dt.astimezone(util.DEFAULT_TIMEZONE)
+
+    return dt
