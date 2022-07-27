@@ -279,10 +279,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     @app.on_event("startup")
     async def startup():
         await triggers.register(app)
-        if settings.enable_internal_lora:
-            await clients.init_clients(app)
-        else:
-            await clients.init_clients()
+        await clients.init_clients(app)
 
     @app.on_event("shutdown")
     async def shutdown():
