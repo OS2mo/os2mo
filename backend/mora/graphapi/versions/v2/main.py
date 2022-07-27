@@ -2,20 +2,19 @@ from datetime import date
 from typing import Any
 
 import strawberry
-from mora.graphapi.shim import execute_graphql
-from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from mora.graphapi.middleware import StarletteContextExtension
-from mora.graphapi.util import GraphQLVersion
-from mora.util import CPR
 from ..latest.main import get_context
 from ..latest.main import Mutation
 from ..latest.main import Query as LatestQuery
 from ..latest.schema import Organisation
 from ..latest.types import CPRType
+from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.shim import execute_graphql
+from mora.graphapi.util import GraphQLVersion
+from mora.util import CPR
 
 
 def get_next_version_query():
@@ -66,12 +65,10 @@ def get_schema() -> strawberry.Schema:
             CPR: CPRType,  # type: ignore
         },
         extensions=[
-            OpenTelemetryExtension,
             StarletteContextExtension,
         ],
     )
     return schema
-
 
 
 def get_version(enable_graphiql: bool, **kwargs: Any) -> GraphQLVersion:

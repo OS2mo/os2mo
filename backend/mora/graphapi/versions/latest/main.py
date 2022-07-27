@@ -20,16 +20,12 @@ from pydantic import parse_obj_as
 from pydantic import ValidationError
 from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
-from strawberry.extensions.tracing import OpenTelemetryExtension
 from strawberry.fastapi import GraphQLRouter
 from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from mora.config import get_public_settings
-from mora.graphapi.middleware import set_graphql_dates
-from mora.graphapi.middleware import StarletteContextExtension
-from mora.util import CPR
+from ...util import GraphQLVersion
 from .dataloaders import get_loaders
 from .dataloaders import MOModel
 from .files import list_files
@@ -65,10 +61,14 @@ from .schema import Response
 from .schema import Role
 from .schema import Version
 from .types import CPRType
+from mora.config import get_public_settings
+from mora.graphapi.middleware import set_graphql_dates
+from mora.graphapi.middleware import StarletteContextExtension
+from mora.util import CPR
+
 # --------------------------------------------------------------------------------------
 # Reads Query
 # --------------------------------------------------------------------------------------
-from ...util import GraphQLVersion
 
 
 class StaticResolver:
@@ -484,7 +484,6 @@ def get_schema() -> strawberry.Schema:
             CPR: CPRType,  # type: ignore
         },
         extensions=[
-            OpenTelemetryExtension,
             StarletteContextExtension,
         ],
     )
