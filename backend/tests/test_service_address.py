@@ -3,6 +3,7 @@
 import json
 
 import freezegun
+import pytest
 import respx
 from httpx import Response
 
@@ -13,6 +14,7 @@ from tests import util
 from tests.util import dar_loader
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     async def test_many_addresses(self):
         addresses = {
@@ -94,7 +96,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2016-06-06")
     @respx.mock
     async def test_autocomplete_no_municipality(self):
-        route = respx.get("/organisation/organisation").mock(
+        route = respx.get("http://localhost/lora/organisation/organisation").mock(
             return_value=Response(
                 200,
                 json={
@@ -128,9 +130,13 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             )
         )
 
+        mo_url = (
+            "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
+        )
+        respx.get(mo_url).pass_through()
+
         await self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            mo_url,
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -153,7 +159,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2016-06-06")
     @respx.mock
     async def test_autocomplete_invalid_municipality(self):
-        route = respx.get("/organisation/organisation").mock(
+        route = respx.get("http://localhost/lora/organisation/organisation").mock(
             return_value=Response(
                 200,
                 json={
@@ -193,10 +199,13 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                 },
             )
         )
+        mo_url = (
+            "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
+        )
+        respx.get(mo_url).pass_through()
 
         await self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            mo_url,
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -219,13 +228,16 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2016-06-06")
     @respx.mock
     async def test_autocomplete_missing_org(self):
-        route = respx.get("/organisation/organisation").mock(
+        route = respx.get("http://localhost/lora/organisation/organisation").mock(
             return_value=Response(200, json={"results": []})
         )
+        mo_url = (
+            "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
+        )
+        respx.get(mo_url).pass_through()
 
         await self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/"
-            "address_autocomplete/?q=42",
+            mo_url,
             {
                 "error": True,
                 "error_key": "E_NO_LOCAL_MUNICIPALITY",
@@ -316,23 +328,24 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
                 }
             },
         ]
-
-        await self.assertRequestResponse(
+        mo_url1 = (
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-            "address_autocomplete/?q=Strandlodsvej+25M&global=1",
-            found,
+            "address_autocomplete/?q=Strandlodsvej+25M&global=1"
         )
-
-        await self.assertRequestResponse(
+        mo_url2 = (
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-            "address_autocomplete/?q=Strandlodsvej+25M&global=true",
-            found,
+            "address_autocomplete/?q=Strandlodsvej+25M&global=true"
         )
+        respx.get(mo_url1).pass_through()
+        respx.get(mo_url2).pass_through()
+
+        await self.assertRequestResponse(mo_url1, found)
+        await self.assertRequestResponse(mo_url2, found)
 
     @freezegun.freeze_time("2017-07-28")
     @respx.mock
     async def test_autocomplete_local(self):
-        url = "http://mox/organisation/organisation"
+        url = "http://localhost/lora/organisation/organisation"
         respx.get(url).mock(
             return_value=Response(
                 200,
@@ -410,9 +423,10 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
             "https://api.dataforsyningen.dk/adresser/autocomplete"
             "?per_side=10&noformat=1&q=Strandlodsvej+25M&kommunekode=751"
         ).pass_through()
-
-        await self.assertRequestResponse(
+        mo_url = (
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-            "address_autocomplete/?q=Strandlodsvej+25M",
-            [],
+            "address_autocomplete/?q=Strandlodsvej+25M"
         )
+        respx.get(mo_url).pass_through()
+
+        await self.assertRequestResponse(mo_url, [])

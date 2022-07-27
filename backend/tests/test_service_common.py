@@ -3,6 +3,7 @@
 import json
 
 import freezegun
+import pytest
 import respx
 from httpx import Response
 
@@ -14,6 +15,7 @@ from mora import mapping
 from mora import util as mora_util
 
 
+@pytest.mark.usefixtures("mock_asgi_transport")
 class AsyncTestClass(tests.cases.AsyncTestCase):
     maxDiff = None
 
@@ -22,7 +24,7 @@ class AsyncTestClass(tests.cases.AsyncTestCase):
     async def test_history_missing(self):
         userid = "00000000-0000-0000-0000-000000000000"
 
-        url = "http://mox/organisation/bruger"
+        url = "http://localhost/lora/organisation/bruger"
         route = respx.get(url).mock(
             return_value=Response(
                 200,

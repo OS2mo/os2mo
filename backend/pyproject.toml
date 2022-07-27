@@ -19,7 +19,9 @@ requests = "^2.25.1"
 lxml = "^4.6.3"
 python-dateutil = "^2.8.1"
 validators = "^0.18.2"
-psycopg2-binary = "^2.8.6"
+# Version 2.9.x always starts a transaction when you connect to a database using a context manager.
+# See: https://stackoverflow.com/a/68112827
+psycopg2-binary = "~2.8"
 gunicorn = "^20.1.0"
 PyJWT = {extras = ["crypto"], version = "^2.1.0"}
 toml = "^0.10.2"
@@ -27,7 +29,7 @@ more-itertools = "^8.8.0"
 SQLAlchemy = "^1.4.17"
 SQLAlchemy-Utils = "^0.37.6"
 aiohttp = "^3.7.4"
-httpx = "^0.22.0"
+httpx = "^0.19.0"
 os2mo-http-trigger-protocol = "^0.0.4"
 fastapi = "0.75.1"
 Jinja2 = "^3.0.1"
@@ -44,11 +46,13 @@ pydantic = {extras = ["email"], version = "^1.7.3"}
 ramodels = "^8.1.0"
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
-respx = "^0.19.2"
 asgi-lifespan = "^1.0.1"
 ramqp = "^3.0.0"
 uvicorn = "^0.18.2"
 strawberry-graphql = {version = "0.95.5", extras = ["fastapi"]}
+pexpect = "^4.8.0"
+pika = "^1.2.1"
+jsonschema = "^4.5.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
@@ -76,6 +80,7 @@ pydocstyle = "^6.1.1"
 black = {version = "^22.1.0"}
 reorder-python-imports = "^3.0.1"
 pre-commit = "^2.18.1"
+respx = "0.17.1"
 
 [build-system]
 requires = ["poetry-core"]

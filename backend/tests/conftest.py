@@ -17,11 +17,13 @@ import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from aioresponses import aioresponses as aioresponses_
 from fastapi.testclient import TestClient
+from httpx import AsyncClient
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from ramodels.mo import Validity
+from respx.mocks import HTTPCoreMocker
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
@@ -29,7 +31,6 @@ from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
 from mora.http import clients
-from tests.cases import fake_auth
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
@@ -56,6 +57,48 @@ def pytest_configure(config):
 
 
 st.register_type_strategy(Validity, validity_model_strat())
+
+
+@pytest.fixture(scope="class")
+def mock_asgi_transport():
+    HTTPCoreMocker.add_targets(
+        "httpx._transports.asgi.ASGITransport",
+        "httpx._transports.wsgi.WSGITransport",
+    )
+    yield
+    HTTPCoreMocker.remove_targets(
+        "httpx._transports.asgi.ASGITransport",
+        "httpx._transports.wsgi.WSGITransport",
+    )
+
+
+def seed_lora_client(fastapi_test_app):
+    clients.lora = AsyncClient(
+        app=fastapi_test_app,
+        base_url="http://localhost/lora",
+        timeout=get_settings().httpx_timeout,
+    )
+
+
+def seed_clients_worker(fastapi_test_app):
+    async def noop():
+        pass
+
+    clients.mo = AsyncClient(timeout=get_settings().httpx_timeout)
+    seed_lora_client(fastapi_test_app)
+    clients.init_clients = noop
+    clients.close_clients = noop
+
+
+@pytest.fixture(autouse=True)
+async def seed_clients(fastapi_test_app):
+    seed_clients_worker(fastapi_test_app)
+    yield
+
+
+@pytest.fixture(autouse=True)
+async def init_clients():
+    await clients.init_clients()
 
 
 @pytest.fixture()
@@ -95,25 +138,48 @@ def mocked_context(monkeypatch) -> _Context:
     return _Context()
 
 
+async def fake_auth():
+    return {
+        "acr": "1",
+        "allowed-origins": ["http://localhost:5001"],
+        "azp": "vue",
+        "email": "bruce@kung.fu",
+        "email_verified": False,
+        "exp": 1621779689,
+        "family_name": "Lee",
+        "given_name": "Bruce",
+        "iat": 1621779389,
+        "iss": "http://localhost:8081/auth/realms/mo",
+        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+        "name": "Bruce Lee",
+        "preferred_username": "bruce",
+        "scope": "email profile",
+        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+        "typ": "Bearer",
+        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+    }
+
+
 def test_app(**overrides: Any):
     app = create_app(overrides)
     app.dependency_overrides[auth] = fake_auth
     return app
 
 
+@pytest.fixture(scope="class")
+def fastapi_test_app():
+    yield test_app()
+
+
 @pytest.fixture
-def service_client():
+def service_client(fastapi_test_app):
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    with TestClient(test_app()) as client:
+    with TestClient(fastapi_test_app) as client:
         yield client
-
-
-@pytest.fixture(autouse=True)
-async def init_clients():
-    await clients.init_clients()
 
 
 @pytest.fixture
@@ -154,22 +220,22 @@ async def sample_structures_minimal(testing_db):
 
 
 @pytest.fixture()
-def service_test_client():
+def service_test_client(fastapi_test_app):
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    with TestClient(test_app()) as client:
+    with TestClient(fastapi_test_app) as client:
         yield client
 
 
 @pytest.fixture()
-def service_test_client_not_raising():
+def service_test_client_not_raising(fastapi_test_app):
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    with TestClient(test_app(), raise_server_exceptions=False) as client:
+    with TestClient(fastapi_test_app, raise_server_exceptions=False) as client:
         yield client
 
 

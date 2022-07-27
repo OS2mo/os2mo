@@ -45,6 +45,7 @@ from .graphapi.middleware import is_graphql
 from .http import clients
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+from oio_rest.config import get_settings as get_lora_settings
 
 
 T = TypeVar("T")
@@ -729,6 +730,9 @@ class Scope(BaseScope):
 
 
 async def get_version():
+    if config.get_settings().enable_internal_lora:
+        settings = get_lora_settings()
+        return settings.commit_tag
     async with ClientSession() as session:
         response = await session.get(config.get_settings().lora_url + "version")
         try:
@@ -745,7 +749,7 @@ class AutocompleteScope(BaseScope):
     async def fetch(self, phrase, class_uuids=None):
         params = {"phrase": phrase}
         if class_uuids:
-            params["class_uuids"] = [str(uuid) for uuid in class_uuids]
+            params["class_uuids"] = list(map(str, class_uuids))
         response = await clients.lora.get(url=self.path, params=params)
         await _check_response(response)
         return {"items": response.json()["results"]}

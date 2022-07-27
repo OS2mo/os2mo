@@ -80,7 +80,11 @@ async def oio_rest() -> bool:
     Returns:
         bool: True if reachable. False if not.
     """
-    url = config.get_settings().lora_url + "site-map"
+    settings = config.get_settings()
+    if settings.enable_internal_lora:
+        return True
+
+    url = settings.lora_url + "site-map"
     parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
     return await _is_endpoint_reachable(parsed_url)
 

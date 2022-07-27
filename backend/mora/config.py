@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     commit_tag: Optional[str]
     commit_sha: Optional[str]
     lora_url: AnyHttpUrl = "http://mox/"
+    enable_internal_lora: bool = False
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
