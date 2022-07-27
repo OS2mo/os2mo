@@ -11,11 +11,9 @@ from mora import config
 
 @dataclass
 class Clients:
-    mo: AsyncClient = AsyncClient()
     lora: AsyncClient = AsyncClient()
 
     async def init_clients(self, app: Optional[FastAPI] = None):
-        self.mo = AsyncClient(timeout=config.get_settings().httpx_timeout)
         # TODO: Setup AuthenticatedAsyncHTTPXClient when dependencies are fixed
         self.lora = AsyncClient(
             app=app,
@@ -24,7 +22,6 @@ class Clients:
         )
 
     async def close_clients(self):
-        await self.mo.aclose()
         await self.lora.aclose()
 
 
