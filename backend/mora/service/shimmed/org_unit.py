@@ -329,7 +329,9 @@ async def trigger_external_integration(
         409: {"description": "Validation failed"},
     },
 )
-async def terminate(uuid: UUID, request: OrganisationUnitTerminate = Body(...)):
+async def terminate_org_unit(
+    uuid: UUID, request: OrganisationUnitTerminate = Body(...)
+):
     mutation_func = "org_unit_terminate"
     query = (
         f"mutation($uuid: UUID!, $from: Date, $to: Date) {{ {mutation_func}"

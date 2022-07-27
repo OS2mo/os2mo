@@ -1130,7 +1130,7 @@ async def terminate_org_unit_validation(unitid, request):
         409: {"description": "Validation failed"},
     },
 )
-async def terminate_org_unit(
+async def terminate_org_unit_old(
     uuid: UUID,
     request: OrganisationUnitTerminate = Body(...),
     permissions=Depends(oidc.rbac_owner),
