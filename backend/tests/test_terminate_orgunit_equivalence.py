@@ -143,7 +143,7 @@ class Tests(tests.cases.AsyncLoRATestCase):
 
         # Run new logic
         try:
-            path = f"/service/ou/{uuid_str}/terminate2"
+            path = f"/service/ou/{uuid_str}/terminate"
             response = await self.request(
                 path,
                 json={
