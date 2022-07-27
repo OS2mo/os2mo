@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
 from parameterized import parameterized
 
 from .cases import AsyncLoRATestCase
@@ -8,7 +7,6 @@ from mora.lora import AutocompleteScope
 from mora.lora import Connector
 
 
-@pytest.mark.asyncio
 class TestAutocompleteScope(AsyncLoRATestCase):
     @parameterized.expand(
         [

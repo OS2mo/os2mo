@@ -497,7 +497,6 @@ GraphAPI-test:
   script:
     - pytest
       backend/tests/graphapi
-      backend/tests/graphapi-shim/
       -p no:cacheprovider
       --color=yes
       --show-capture=no
@@ -505,7 +504,7 @@ GraphAPI-test:
       --cov=backend/mora/graphapi
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
-      --cov-fail-under=40
+      --cov-fail-under=35
   artifacts:
     when: always
     paths:

@@ -30,7 +30,6 @@ class TestITUserGroupValidationBase:
             optional={mapping.UUID: st.none() | st.uuids().map(str)},
         )
     )
-    @pytest.mark.asyncio
     async def test_get_validation_item_from_mo_object(self, mo_object: dict):
         with mock.patch("mora.service.facet.get_one_class", mock.AsyncMock()):
             items = await _ITUserGroupValidation.get_validation_items_from_mo_object(

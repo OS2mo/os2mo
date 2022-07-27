@@ -3,12 +3,12 @@
 from itertools import chain
 from typing import Any
 from typing import Dict
+from typing import Generator
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
 import pytest
-import respx
 from httpx import Response
 from more_itertools import distinct_permutations
 from more_itertools import one
@@ -43,45 +43,42 @@ def gen_organisation(
     return organisation
 
 
-def mock_organisation(respx, *args, **kwargs) -> UUID:
+@pytest.fixture
+def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
     # Clear Organisation cache before mocking a new one
     ConfiguredOrganisation.clear()
 
-    organisation = gen_organisation(*args, **kwargs)
+    organisation = gen_organisation()
 
-    respx.get(
+    respx_mock.get(
         "http://mox/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
-    return organisation["id"]
+    yield organisation["id"]
 
 
-@pytest.mark.asyncio
-@respx.mock
-async def test_mocking_and_cache_clearing():
+async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
     """Test that we can mock organisation endpoints and avoid caching.
 
     The purpose of this test is to easily be able to debug mocking / caching issues.
     """
-    uuid = mock_organisation(respx)
+    uuid = mock_organisation
     raw_org = await get_configured_organisation()
 
     # We expect only one outgoing request to be done
-    assert respx.calls.call_count == 1
+    assert respx_mock.calls.call_count == 1
 
     assert raw_org == {"uuid": str(uuid), "name": "name", "user_key": "user_key"}
 
 
-@pytest.mark.asyncio
-@respx.mock
-async def test_query_organisation():
+async def test_query_organisation(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
-    uuid = mock_organisation(respx)
+    uuid = mock_organisation
 
     query = "query { org { uuid, name, user_key }}"
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert respx.calls.call_count == 1
+    assert respx_mock.calls.call_count == 1
 
     assert result.errors is None
     assert result.data
@@ -92,12 +89,10 @@ async def test_query_organisation():
     }
 
 
-@pytest.mark.asyncio
-@respx.mock
-async def test_invalid_query_no_organisation():
+async def test_invalid_query_no_organisation(respx_mock):
     """Test that we get an error when querying with no organisation."""
     ConfiguredOrganisation.clear()
-    respx.get("http://mox/organisation/organisation").mock(
+    respx_mock.get("http://mox/organisation/organisation").mock(
         return_value=Response(200, json={"results": []})
     )
 
@@ -105,7 +100,7 @@ async def test_invalid_query_no_organisation():
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert respx.calls.call_count == 1
+    assert respx_mock.calls.call_count == 1
 
     # We expect one and only one error
     error = one(result.errors)
@@ -126,15 +121,15 @@ org_fields = ["uuid", "name", "user_key"]
         )
     ),
 )
-@pytest.mark.asyncio
-@respx.mock
-async def test_query_all_permutations_of_organisation(fields):
+async def test_query_all_permutations_of_organisation(
+    respx_mock, fields, mock_organisation
+):
     """Test all permutations (15) of queries against our organisation.
 
     We will only check all permutations here, and for all other entity types we will
     just assume that it works as expected.
     """
-    uuid = mock_organisation(respx)
+    uuid = mock_organisation
 
     # Fields will contain a tuple of field names with atleast 1 element
     combined_fields = ", ".join(fields)
@@ -142,7 +137,7 @@ async def test_query_all_permutations_of_organisation(fields):
     result = await execute(query)
 
     # We expect only one outgoing request to be done
-    assert respx.calls.call_count == 1
+    assert respx_mock.calls.call_count == 1
 
     assert result.errors is None
     # Check that all expected fields are in output
@@ -158,17 +153,13 @@ async def test_query_all_permutations_of_organisation(fields):
     assert org == {}
 
 
-@pytest.mark.asyncio
-@respx.mock
-async def test_non_existing_field_query():
+async def test_non_existing_field_query(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
-    mock_organisation(respx)
-
     query = "query { org { uuid, non_existing_field }}"
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert respx.calls.call_count == 0
+    assert respx_mock.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == (
@@ -177,17 +168,13 @@ async def test_non_existing_field_query():
     assert result.data is None
 
 
-@pytest.mark.asyncio
-@respx.mock
-async def test_no_fields_query():
+async def test_no_fields_query(respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
-    mock_organisation(respx)
-
     query = "query { org { }}"
     result = await execute(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
-    assert respx.calls.call_count == 0
+    assert respx_mock.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
     assert error.message == ("Syntax Error: Expected Name, found '}'.")

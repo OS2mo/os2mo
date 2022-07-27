@@ -3,8 +3,6 @@
 from unittest import mock
 from uuid import uuid4
 
-import pytest
-
 from mora.service.handlers import RequestHandler
 from mora.service.handlers import RequestType
 
@@ -29,7 +27,6 @@ class _DummyRequestHandler(RequestHandler):
 
 
 class TestHandlerValidateDetailRequestsAsGroups:
-    @pytest.mark.asyncio
     async def test_one_call_per_group_validation(self):
         """Test that multiple MO objects trigger only one call to the relevant
         implementation of `GroupValidation.validate`.
