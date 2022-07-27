@@ -1,22 +1,15 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import collections
-import re
 import uuid
 from typing import Any
 from typing import Dict
-from typing import Optional
-from uuid import UUID
 
-import httpx
 from fastapi import APIRouter
-from fastapi import Query
 
 from . import facet
 from . import handlers
 from . import org
 from .. import common
-from .. import config
 from .. import exceptions
 from .. import lora
 from .. import mapping
@@ -25,14 +18,6 @@ from ..triggers import Trigger
 from ..util import ensure_list
 from .address_handler import base
 from .validation import validator
-
-client = httpx.AsyncClient(
-    headers={
-        "User-Agent": "MORA/0.1",
-    }
-)
-
-MUNICIPALITY_CODE_PATTERN = re.compile(r"urn:dk:kommune:(\d+)")
 
 router = APIRouter()
 
@@ -52,133 +37,6 @@ async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, 
     handler = await base.get_handler_for_scope(scope).from_effect(effect)
 
     return await handler.get_mo_address_and_properties(only_primary_uuid)
-
-
-@router.get(
-    "/o/{orgid}/address_autocomplete/",
-    responses={"400": {"description": "Invalid input"}},
-)
-# @util.restrictargs('global', required=['q'])
-async def address_autocomplete(
-    orgid: UUID, q: str, global_lookup: Optional[bool] = Query(False, alias="global")
-):
-    """Perform address autocomplete, resolving both ``adgangsadresse`` and
-    ``adresse``.
-
-    :param orgid: The UUID of the organisation
-
-    .. :quickref: Address; Autocomplete
-
-    :queryparam str q: A query string to be used for lookup
-    :queryparam boolean global: Whether or not the lookup should be in
-        the entire country, or contained to the municipality of the
-        organisation
-
-    **Example Response**:
-
-    :<jsonarr uuid uuid: A UUID of a DAR address
-    :<jsonarr str name: A human readable name for the address
-
-    .. sourcecode:: json
-
-      [
-        {
-          "location": {
-            "uuid": "f0396d0f-ef2d-41e5-a420-b4507b26b6fa",
-            "name": "Rybergsvej 1, Sønderby, 5631 Ebberup"
-          }
-        },
-        {
-          "location": {
-            "uuid": "0a3f50cb-05eb-32b8-e044-0003ba298018",
-            "name": "Wild Westvej 1, 9310 Vodskov"
-          }
-        }
-      ]
-
-    """
-
-    if not config.get_settings().enable_dar:
-        return []
-
-    orgid = str(orgid)
-
-    if not global_lookup:
-        org = await common.get_connector().organisation.get(orgid)
-
-        if not org:
-            exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
-
-        for myndighed in org.get("relationer", {}).get("myndighed", []):
-            m = MUNICIPALITY_CODE_PATTERN.fullmatch(myndighed.get("urn"))
-
-            if m:
-                code = int(m.group(1))
-                break
-        else:
-            exceptions.ErrorCodes.E_NO_LOCAL_MUNICIPALITY()
-    else:
-        code = None
-
-    #
-    # In order to allow reading both access & regular addresses, we
-    # autocomplete both into an ordered dictionary, with the textual
-    # representation as keys. Regular addresses tend to be less
-    # relevant than access addresses, so we list them last.
-    #
-    # The limits are somewhat arbitrary: Since access addresses mostly
-    # differ by street number or similar, we only show five -- by
-    # comparison, ten addresses seems apt since they may refer to
-    # apartments etc.
-    #
-
-    async def get_access_addreses() -> list[dict]:
-        params = {
-            "per_side": 5,
-            "noformat": "1",
-            "q": q,
-        }
-        if code is not None:
-            params["kommunekode"] = code
-
-        r = await client.get(
-            "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
-            params=params,
-        )
-        return r.json()
-
-    addrs = collections.OrderedDict(
-        (addr["tekst"], addr["adgangsadresse"]["id"])
-        for addr in await get_access_addreses()
-    )
-
-    async def get_addresses() -> list[dict]:
-        params = {
-            "per_side": 10,
-            "noformat": "1",
-            "q": q,
-        }
-        if code is not None:
-            params["kommunekode"] = code
-
-        r = await client.get(
-            "https://api.dataforsyningen.dk/adresser/autocomplete",
-            params=params,
-        )
-        return r.json()
-
-    for addr in await get_addresses():
-        addrs.setdefault(addr["tekst"], addr["adresse"]["id"])
-
-    return [
-        {
-            "location": {
-                "name": k,
-                "uuid": addrs[k],
-            },
-        }
-        for k in addrs
-    ]
 
 
 class AddressRequestHandler(handlers.OrgFunkRequestHandler):
