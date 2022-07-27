@@ -226,24 +226,13 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
         )
         return common._create_virkning(_get_valid_to(unit.to_date), "infinity")
 
-    exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-        # key="Validity must be set with either 'to' or both 'from' " "and 'to'",
-        # NOTE: This is the OG way.. the one below is my try to remake it in case we
-        # need them for tests
-        # obj=request,
-        # obj={
-        #     "validity": {
-        #         "from": unit.from_date.isoformat() if unit.from_date else None,
-        #         "to": unit.to_date.isoformat() if unit.to_date else None
-        #     }
-        # },
+    raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
         key="Organization Unit must be set with either 'to' or both 'from' " "and 'to'",
         unit={
             "from": unit.from_date.isoformat() if unit.from_date else None,
             "to": unit.to_date.isoformat() if unit.to_date else None,
         },
     )
-    return {}  # Added so mypy wont complain
 
 
 def _get_valid_from(from_date: Optional[datetime.date]) -> datetime.datetime:
