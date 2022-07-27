@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+5.3.0 - 2022-07-27
+------------------
+
+[#50647] Call directly into LoRa application from MO when using internal LoRa
+
 5.2.0 - 2022-07-27
 ------------------
 
