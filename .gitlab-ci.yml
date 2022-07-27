@@ -28,9 +28,7 @@ variables:
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
   # Review values cannot be changed without also modifying salt-automation/config-updater
-  REVIEW_URL: "https://$REVIEW_SLUG.moraci.magentahosted.dk"
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
-  REVIEW_SLUG: "review-os2mo-mr${CI_MERGE_REQUEST_IID}"
 
 include:
   - project: "labs/salt-automation"
@@ -578,10 +576,10 @@ Deploy Review:
       --request POST
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
-    - until $(curl --silent --fail-with-body "${REVIEW_URL}/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
+    - until $(curl --silent --fail-with-body "https://review-os2mo-mr${CI_MERGE_REQUEST_IID}.moraci.magentahosted.dk/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
   environment:
-    name: "review/$REVIEW_SLUG"
-    url: $REVIEW_URL
+    name: "review/review-os2mo-mr${CI_MERGE_REQUEST_IID}"
+    url: "https://review-os2mo-mr${CI_MERGE_REQUEST_IID}.moraci.magentahosted.dk"
     on_stop: Stop Review
     auto_stop_in: 1 week
   tags:
@@ -608,7 +606,7 @@ Stop Review:
       --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
       "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
   environment:
-    name: "review/$REVIEW_SLUG"
+    name: "review/review-os2mo-mr${CI_MERGE_REQUEST_IID}"
     action: stop
   tags:
     - deploy
