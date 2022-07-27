@@ -81,7 +81,7 @@ def seed_lora_client(fastapi_test_app):
 
 
 def seed_clients_worker(fastapi_test_app):
-    async def noop():
+    async def noop(*args, **kwargs):
         pass
 
     clients.mo = AsyncClient(timeout=get_settings().httpx_timeout)
