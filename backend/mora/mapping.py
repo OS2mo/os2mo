@@ -238,12 +238,6 @@ class FieldTuple(object):
     def get_uuid(self, obj):
         return next(self.get_uuids(obj), None)
 
-    def get_urns(self, obj):
-        return self._get_elems(obj, "urn")
-
-    def get_urn(self, obj):
-        return next(self.get_urns(obj), None)
-
     @property
     def path(self) -> typing.Tuple[str, str]:
         return self.__path
