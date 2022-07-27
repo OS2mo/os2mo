@@ -43,7 +43,6 @@ from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
 from mora.http import clients
-from mora.integrations import serviceplatformen
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
@@ -268,11 +267,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
             static_content_router(),
             tags=["Static"],
         )
-
-    # We serve index.html and favicon.ico here. For the other static files,
-    # Flask automatically adds a static view that takes a path relative to the
-    # `flaskr/static` directory.
-    serviceplatformen.check_config()
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

@@ -12,7 +12,9 @@ from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
 from pydantic import Field
 from pydantic import root_validator
+from pydantic import validator
 from pydantic.types import DirectoryPath
+from pydantic.types import FilePath
 from pydantic.types import PositiveInt
 from pydantic.types import UUID
 from structlog import get_logger
@@ -29,6 +31,21 @@ class Environment(str, Enum):
     DEVELOPMENT = "development"
     TESTING = "testing"
     PRODUCTION = "production"
+
+
+class ServicePlatformenSettings(BaseSettings):
+    sp_service_uuid: UUID
+    sp_agreement_uuid: UUID
+    sp_municipality_uuid: UUID
+    sp_system_uuid: UUID
+    sp_certificate_path: FilePath
+    sp_production: bool = False
+
+    @validator("sp_certificate_path")
+    def validate_certificate_not_empty(cls, v):
+        if not v.stat().st_size:
+            raise ValueError("Serviceplatformen certificate can not be empty")
+        return v
 
 
 class Settings(BaseSettings):
@@ -95,14 +112,22 @@ class Settings(BaseSettings):
     amqp_enable: bool = False
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
+    sp_settings: Optional[ServicePlatformenSettings] = None
 
-    # Serviceplatform settings
-    sp_service_uuid: Optional[UUID]
-    sp_agreement_uuid: Optional[UUID]
-    sp_municipality_uuid: Optional[UUID]
-    sp_system_uuid: Optional[UUID]
-    sp_certificate_path: Optional[str]
-    sp_production: Optional[bool]
+    @root_validator
+    def check_sp_configuration(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        # If SP is not enabled, no reason to check configuration
+        if not values.get("enable_sp"):
+            return values
+        # If SP is in dummy mode, no reason to check configuration
+        # NOTE: This code is kinda similar to is_dummy_mode
+        if values.get("environment") is not Environment.PRODUCTION:
+            return values
+        if values.get("dummy_mode"):
+            return values
+
+        values["sp_settings"] = ServicePlatformenSettings()
+        return values
 
     # Keycloak settings
     keycloak_schema: str = "https"
@@ -175,8 +200,16 @@ class Settings(BaseSettings):
     show_it_associations_tab: bool = False
 
     def is_production(self) -> bool:
-        """Return whether we are running in a production environment"""
+        """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
+
+    def is_dummy_mode(self) -> bool:
+        """Return whether serviceplatform is in dummy mode."""
+        # Force dummy-mode during tests and development,
+        # but make it configurable in production.
+        if not self.is_production():
+            return True
+        return self.dummy_mode
 
     def is_under_test(self) -> bool:
         return os.environ.get("PYTEST_RUNNING") is not None
