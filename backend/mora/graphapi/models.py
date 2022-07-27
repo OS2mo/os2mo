@@ -59,7 +59,7 @@ class OrganisationUnit(BaseModel):
 
 
 class OrganisationUnitTerminate(OrganisationUnit):
-    """Model representing a organization-unit termination"""
+    """Model representing a organization-unit termination."""
 
     from_date: Optional[datetime.date] = Field(
         alias="from", description="Start date of the validity."
