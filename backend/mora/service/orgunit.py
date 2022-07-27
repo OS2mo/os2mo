@@ -1120,7 +1120,7 @@ async def terminate_org_unit_validation(unitid, request):
 
 
 @router.post(
-    "/ou/{uuid}/terminate",
+    "/ou/{uuid}/terminate-old",
     responses={
         200: {
             "description": "The termination succeeded",
