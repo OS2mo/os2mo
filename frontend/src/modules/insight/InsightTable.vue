@@ -14,6 +14,7 @@ SPDX-License-Identifier: MPL-2.0
 <script>
 import DataGrid from '../../components/DataGrid/DataGrid.vue'
 import { get_by_graphql } from '@/api/HttpCommon'
+import keycloak from '../../main'
 
 export default {
     components: {
@@ -90,7 +91,8 @@ export default {
             let employee = employees[i].employee[0]
             row[fields[0].name] = employee.name;
             row[fields[1].name] = this.generateEmailString(employee.addresses);
-            if(employee.itusers.length > 0) {
+            if(employee.itusers.length) {
+              console.log(employee.itusers);
               // F... this line - field returns undefined in front of uuids if it's not there
               row[fields[2].name] = ``
               row[fields[3].name] = ``
@@ -165,14 +167,16 @@ export default {
           // }
         },
         updateView: function(query) {
-          this.fetchData(query)
-          .then((response) => {
+          // if(keycloak.idTokenParsed.admin_role) {
+            this.fetchData(query)
+            .then((response) => {
               this.table_fields = this.configColumns(response.data.data)
               this.table_data = this.sanitizeData(response.data.data)
               // prefer this, but with current solution I need 'itsystems'
               // this.table_data = this.sanitizeData(response.data.data.managers[0].objects[0].org_unit[0].engagements)
-
-          })
+            }
+            )
+          // }
         }
     },
     created: function() {
