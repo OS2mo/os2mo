@@ -67,11 +67,6 @@ include:
 .if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
   if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Sync::Don't Interrupt/"
 
-# Skip Conditions
-.if-merge-request-labels-skip-pipeline: &if-merge-request-labels-skip-pipeline
-  if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Hack::Skip Pipeline/"
-
-
 # Review Conditions
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
@@ -88,8 +83,6 @@ workflow:
         # they are both running at the same time on master.
         BACKEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_TAG}
     - <<: *if-default-branch-refs
-    - <<: *if-merge-request-labels-skip-pipeline
-      when: never
     - <<: *if-merge-request
 
 default:
@@ -149,7 +142,6 @@ default:
     KEYCLOAK_VERIFY_AUDIENCE: "false"
 
     AMQP_ENABLE: "false"
-    QUERY_EXPORT_DIR: "/queries"
     GRAPHQL_AUTH: "false"
     QUERY_EXPORT_DIR: "/tmp"
 
@@ -403,8 +395,6 @@ Build Keycloak DB:
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
-    - <<: *if-merge-request-labels-skip-pipeline
-      when: never
 
 
 # Backend Tests
