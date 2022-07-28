@@ -33,7 +33,7 @@ from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
-from mora.graphapi.models import ConfigurationRead
+from mora.graphapi.models import ClassDelete, ConfigurationRead
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
@@ -429,7 +429,13 @@ class Mutation:
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
 
-
+    @strawberry.mutation(description="Deletes a class by UUID")
+    async def class_delete(
+        self, input: ClassDelete
+    ) -> Class:
+        return Class
+        # await terminate_org_unit_validation(input.uuid, input.from_date, input.to_date)
+        # return await terminate_org_unit(input)
 # --------------------------------------------------------------------------------------
 # Auxiliary functions
 # --------------------------------------------------------------------------------------
