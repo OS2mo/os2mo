@@ -238,7 +238,7 @@ def _get_valid_from(from_date: Optional[datetime.date]) -> datetime.datetime:
     if not from_date or not isinstance(from_date, datetime.date):
         raise exceptions.ErrorCodes.V_MISSING_START_DATE()
 
-    dt = datetime.datetime.combine(from_date.today(), datetime.datetime.min.time())
+    dt = datetime.datetime.combine(from_date, datetime.datetime.min.time())
     if dt.time() != datetime.time.min:
         exceptions.ErrorCodes.E_INVALID_INPUT(
             "{!r} is not at midnight!".format(dt.isoformat()),
@@ -251,7 +251,7 @@ def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
     if not to_date:
         return POSITIVE_INFINITY
 
-    dt = datetime.datetime.combine(to_date.today(), datetime.datetime.min.time())
+    dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
     if dt.time() != datetime.time.min:
         exceptions.ErrorCodes.E_INVALID_INPUT(
             "{!r} is not at midnight!".format(dt.isoformat()),
