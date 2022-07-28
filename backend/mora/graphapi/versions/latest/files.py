@@ -1,22 +1,12 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Helpers for file access."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from pathlib import Path
 from typing import Union
 
 from .models import FileStore
 from mora import config
 from mora import exceptions
-
-# --------------------------------------------------------------------------------------
-# File helpers
-# --------------------------------------------------------------------------------------
 
 
 def get_directory(file_store: FileStore) -> Path:

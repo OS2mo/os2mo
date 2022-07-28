@@ -1,16 +1,10 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 # type: ignore
 """GraphQL executer with the necessary context variables.
 
 Used for shimming the service API.
 """
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 from typing import Any
 from typing import Optional
@@ -31,10 +25,6 @@ from ramodels.mo.details import AddressRead
 from strawberry.types import ExecutionResult
 
 from mora import util
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 class MOEmployee(EmployeeRead):
@@ -203,7 +193,7 @@ class MOAddress(AddressRead):
 
 
 async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    from mora.graphapi.versions.latest.main import get_schema
+    from mora.graphapi.versions.latest.version import get_schema
     from mora.graphapi.versions.latest.dataloaders import get_loaders
     from mora.graphapi.middleware import set_is_shim
 

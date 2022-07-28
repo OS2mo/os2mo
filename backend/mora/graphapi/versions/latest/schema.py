@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Strawberry types describing the MO graph."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import asyncio
 import json
 import re
@@ -48,19 +42,15 @@ from strawberry.types import Info
 from mora import common
 from mora import config
 from mora import lora
+from mora.service.address_handler import dar
+from mora.service.address_handler import multifield_text
+from mora.service.facet import is_class_uuid_primary
 from .files import load_file
 from .health import health_map
 from .models import ConfigurationRead
 from .models import FileRead
 from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
-from mora.service.address_handler import dar
-from mora.service.address_handler import multifield_text
-from mora.service.facet import is_class_uuid_primary
-
-# --------------------------------------------------------------------------------------
-# Schema
-# --------------------------------------------------------------------------------------
 
 MOObject = TypeVar("MOObject")
 

@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Endpoints for health checks."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from collections.abc import Callable
 from typing import Optional
 
@@ -20,11 +14,6 @@ from mora.exceptions import HTTPException
 from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import amqp_system
-
-# --------------------------------------------------------------------------------------
-# Health endpoints
-# --------------------------------------------------------------------------------------
-
 
 logger = get_logger()
 

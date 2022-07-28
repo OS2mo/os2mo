@@ -1,6 +1,6 @@
 from datetime import date
 
-from mora.graphapi.util import GraphQLVersion
+from mora.graphapi.version import GraphQLVersion
 import importlib
 from pathlib import Path
 

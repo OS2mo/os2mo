@@ -6,14 +6,14 @@ from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
-from ..latest.main import get_context
-from ..latest.main import Mutation
-from ..latest.main import Query as LatestQuery
+from ..latest.version import get_context
+from ..latest.mutation import Mutation
+from ..latest.query import Query as LatestQuery
 from ..latest.schema import Organisation
 from ..latest.types import CPRType
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.shim import execute_graphql
-from mora.graphapi.util import GraphQLVersion
+from ...version import GraphQLVersion
 from mora.util import CPR
 
 

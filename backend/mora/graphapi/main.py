@@ -4,11 +4,11 @@ from fastapi import FastAPI
 from starlette import status
 from starlette.responses import Response
 
-from mora.graphapi.versions.v1.main import get_version as get_v1_version
+from mora.graphapi.versions.v1.version import get_version as get_v1_version
 from starlette.responses import RedirectResponse
 
 from mora.auth.keycloak.oidc import auth
-from mora.graphapi.versions.main import get_versions
+from mora.graphapi.versions.version import get_versions
 
 
 def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
