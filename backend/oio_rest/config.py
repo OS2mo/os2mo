@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     db_name: str = "mox"
     db_user: str = "mox"
-    db_password: str
+    db_password: Optional[str]
     db_host: str = "mox-db"
     db_port: str = "5432"
     db_sslmode: Optional[str]
