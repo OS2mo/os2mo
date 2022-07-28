@@ -1,0 +1,22 @@
+# SPDX-FileCopyrightText: 2019-2020 Magenta ApS
+# SPDX-License-Identifier: MPL-2.0
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  localhost;
+
+    # proxy_passes MUST use variables to force DNS lookup on every request
+    # to allow the proxy to start before all services are initialised.
+    resolver 127.0.0.11 valid=5s;  # 127.0.0.11 is the docker DNS server
+
+    # Strip /lora so docs work
+    location ~ ^/lora/(?<path>.*) {
+        set $mo mo;
+        proxy_pass http://$mo/lora/$path;
+    }
+
+    location ~ ^/(?<path>.*) {
+        set $mo mo;
+        proxy_pass http://$mo/lora/$path;
+    }
+}
