@@ -203,9 +203,6 @@ class ConfiguredDBInterface:
             self.searcher: Searcher = DefaultSearcher()
 
 
-configured_db_interface = ConfiguredDBInterface()
-
-
 def typed_get(d, field, default):
     v = d.get(field, default)
     t = type(default)
@@ -490,7 +487,7 @@ class OIORestObject:
             # Fill out a registration object based on the query arguments
             registration = build_registration(cls.__name__, list_args)
             # request.api_operation = "Søg"
-            results = configured_db_interface.searcher.search_objects(
+            results = ConfiguredDBInterface().searcher.search_objects(
                 class_name=cls.__name__,
                 uuid=uuid_param,
                 registration=registration,
