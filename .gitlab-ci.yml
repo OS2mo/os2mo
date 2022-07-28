@@ -658,47 +658,90 @@ Release Frontend version:
     RELEASE_IMAGE: $FRONTEND_RELEASE_REGISTRY_IMAGE
 
 
-# Deploy
-#########
+# Deploy API
+#############
 # Flux
-Deploy to Flux Dev:
+Deploy API to Flux Dev:
   extends: .release-to-dev
   needs:
     - Release API version
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-dev
 
-Deploy to Flux Test:
+Deploy API to Flux Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-test
 
-Deploy to Flux Prod:
+Deploy API to Flux Prod:
   extends: .release-to-prod
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-prod
 
 # Salt
-Deploy to Salt Dev:
+Deploy API to Salt Dev:
   extends: .release-to-dev
   needs:
     - Release API version
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-dev
 
-Deploy to Salt Test:
+Deploy API to Salt Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-test
 
-Deploy to Salt Prod:
+Deploy API to Salt Prod:
   extends: .release-to-prod
   needs: []
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-prod
+
+
+# Deploy Frontend
+##################
+# Flux
+Deploy frontend to Flux Dev:
+  extends: .release-to-dev
+  needs:
+    - Release Frontend version
+  variables:
+    ENDPOINT: os2mo/flux/os2mo-frontend/update-dev
+
+Deploy frontend to Flux Test:
+  extends: .release-to-test
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo-frontend/update-test
+
+Deploy frontend to Flux Prod:
+  extends: .release-to-prod
+  needs: []
+  variables:
+    ENDPOINT: os2mo/flux/os2mo-frontend/update-prod
+
+# Salt
+Deploy frontend to Salt Dev:
+  extends: .release-to-dev
+  needs:
+    - Release Frontend version
+  variables:
+    ENDPOINT: os2mo/salt/os2mo-frontend/update-dev
+
+Deploy frontend to Salt Test:
+  extends: .release-to-test
+  needs: []
+  variables:
+    ENDPOINT: os2mo/salt/os2mo-frontend/update-test
+
+Deploy frontend to Salt Prod:
+  extends: .release-to-prod
+  needs: []
+  variables:
+    ENDPOINT: os2mo/salt/os2mo-frontend/update-prod
 
 
 # Docs
