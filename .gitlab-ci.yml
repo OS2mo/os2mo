@@ -96,41 +96,33 @@ default:
   variables:
     FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
 
-.services:start-mox:
-  extends:
-    - .services-start-base
-  services:
-    - name: magentaaps/postgres-os2mo:11-11.7-test
-      alias: mox-db
-      variables:
-        DB_NAME: mox
-        DB_USER: mox
-        DB_PASSWORD: mox
-
-.services:start-keycloak:
+.services:start-all:
   extends:
     - .services-start-base
   needs:
     - Build Keycloak DB
     - Build Keycloak
   services:
+    # MO
+    - name: ${BACKEND_IMAGE_SHA}
+      alias: mo
+    # mox db
+    - name: magentaaps/postgres-os2mo:11-11.7-test
+      alias: mox-db
+      variables:
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+    # Keycloak
     - name: $KEYCLOAK_DB_IMAGE_SHA
       alias: keycloak-db
     - name: $KEYCLOAK_IMAGE_SHA
       alias: keycloak
 
-.services:start-all:
-  extends:
-    - .services:start-mox
-    - .services:start-keycloak
-  needs: !reference [".services:start-keycloak", needs]
-  services:
-    - !reference [".services:start-mox", services]
-    - !reference [".services:start-keycloak", services]
-    - name: ${BACKEND_IMAGE_SHA}
-      alias: mo
-
-.services:mo-base:
+.services:use-mo:
+  needs:
+    - Build OS2MO
+  image: $BACKEND_IMAGE_SHA
   variables:
     PYTHONASYNCIODEBUG: "1"
     ENVIRONMENT: "testing"
@@ -155,32 +147,6 @@ default:
 
     LORA_URL: "http://localhost/lora/"
     ENABLE_INTERNAL_LORA: "true"
-
-.services:start-mo:
-  extends:
-    - .services:mo-base
-    - .services:start-all
-  needs:
-    - !reference [".services:start-all", needs]
-    - Build OS2MO
-  services:
-    - !reference [".services:start-all", services]
-    - name: ${BACKEND_IMAGE_SHA}
-      alias: mo
-
-.services:use-mo:
-  extends:
-    - .services:mo-base
-  needs:
-    - Build OS2MO
-  image: $BACKEND_IMAGE_SHA
-
-.services:use-frontend:
-  needs:
-    - Build test frontend
-  image: $FRONTEND_TEST_IMAGE_SHA
-  variables:
-    BASE_URL: "http://mo"
 
 
 # Sync
@@ -532,16 +498,15 @@ Coverage:
 
 # Frontend Tests
 #################
-.frontend-test-base:
-  extends:
-    - .test-base
-    - .services:use-frontend
-
 Vue-unit-test:
   extends:
-    - .frontend-test-base
+    - .test-base
+  needs:
+    - Build test frontend
+  image: $FRONTEND_TEST_IMAGE_SHA
   variables:
     GIT_STRATEGY: none
+    BASE_URL: "http://mo"
   script:
     - cd /app/frontend
     - yarn install --dev
