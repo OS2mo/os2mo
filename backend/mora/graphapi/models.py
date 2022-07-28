@@ -7,10 +7,13 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from enum import Enum
+from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+
+from ramodels.mo.class_ import ClassBase
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -46,3 +49,9 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+
+
+class ClassTerminate(ClassBase):
+    """Model representing a mo-class termination."""
+
+    uuid: UUID = Field(description="UUID of the class to be deleted.")
