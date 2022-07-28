@@ -736,7 +736,7 @@ async def get_version():
     try:
         return (await response.json())["lora_version"]
     except ValueError:
-        return "Could not find lora version: %s" % await response.text()
+        return "Could not find lora version: %s" % response.text
 
 
 class AutocompleteScope(BaseScope):
