@@ -103,9 +103,6 @@ default:
     - Build Keycloak DB
     - Build Keycloak
   services:
-    # MO
-    - name: ${BACKEND_IMAGE_SHA}
-      alias: mo
     # mox db
     - name: magentaaps/postgres-os2mo:11-11.7-test
       alias: mox-db
