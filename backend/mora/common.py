@@ -13,7 +13,6 @@ import collections
 import copy
 import datetime
 import functools
-import json
 import typing
 import uuid
 from typing import Union
@@ -678,37 +677,6 @@ def create_klasse_payload(
     return klasse
 
 
-def replace_relation_value(
-    relations: typing.List[dict], old_entry: dict, new_entry: dict = None
-) -> typing.List[dict]:
-    old_from = util.get_effect_from(old_entry)
-    old_to = util.get_effect_to(old_entry)
-
-    old_urn = old_entry.get("urn")
-    old_uuid = old_entry.get("uuid")
-    old_type = old_entry.get("objekttype")
-
-    for i, rel in enumerate(relations):
-        if (
-            util.get_effect_from(rel) == old_from
-            and util.get_effect_to(rel) == old_to
-            and rel.get("urn") == old_urn
-            and rel.get("uuid") == old_uuid
-            and rel.get("objekttype") == old_type
-        ):
-            new_rels = copy.deepcopy(relations)
-
-            if new_entry:
-                new_rels[i] = new_entry
-            else:
-                del new_rels[i]
-
-            return new_rels
-
-    else:
-        exceptions.ErrorCodes.E_ORIGINAL_ENTRY_NOT_FOUND()
-
-
 async def add_history_entry(scope: lora.Scope, id: str, note: str):
     """
     Add a history entry to a given object.
@@ -744,11 +712,6 @@ async def add_history_entry(scope: lora.Scope, id: str, note: str):
     }
 
     await scope.update(payload, id)
-
-
-def stable_json_dumps(v):
-    """like :py:func:`json.dumps()`, but stable."""
-    return json.dumps(v, sort_keys=True, allow_nan=False, ensure_ascii=False)
 
 
 def parse_owner_inference_priority_str(

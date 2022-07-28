@@ -8,25 +8,16 @@ This module contains various utility methods, i.e. a collection of
 various small functions used in many places.
 
 """
-import collections
 import copy
 import datetime
 import io
-import itertools
 import json
-import marshal
 import operator
-import os
 import re
-import tempfile
 import typing
 import urllib.parse
 import uuid
-from asyncio import iscoroutinefunction
-from datetime import date
 from functools import reduce
-from functools import wraps
-from typing import Any
 from typing import Union
 
 import dateutil.parser
@@ -37,9 +28,6 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import mapping
-
-# use this string rather than nothing or N/A in UI -- it's the em dash
-PLACEHOLDER = "\u2014"
 
 _sentinel = object()
 
@@ -127,22 +115,6 @@ def to_lora_time(s: Union[str, datetime.date, datetime.datetime]) -> str:
         return "-infinity"
     else:
         return dt.isoformat()
-
-
-def to_iso_time(s):
-    """Return an ISO 8601 string representing the time and date given by `s`.
-
-    We always localise this to our ‘default’ timezone, since LoRA
-    might be running under something silly such as UTC.
-
-    """
-    dt = parsedatetime(s)
-
-    return (
-        dt.astimezone(DEFAULT_TIMEZONE).isoformat()
-        if dt not in (POSITIVE_INFINITY, NEGATIVE_INFINITY)
-        else None
-    )
 
 
 def to_iso_date(s, is_end: bool = False):
@@ -270,10 +242,6 @@ def now() -> datetime.datetime:
 #     return wrap
 
 
-def is_urn(v):
-    return v and isinstance(v, str) and v.startswith("urn:")
-
-
 def is_uuid(v):
     try:
         uuid.UUID(v)
@@ -326,33 +294,6 @@ class CPR(str):
         return f"CPR({super().__repr__()})"
 
 
-def uniqueify(xs):
-    """return the contents of xs as a list, but stable"""
-    # TODO: is this fast?
-    return list(collections.OrderedDict(itertools.zip_longest(xs, ())).keys())
-
-
-# def log_exception(msg=''):
-#     data = flask.request.get_json()
-#
-#     if data:
-#         if 'password' in data:
-#             data['password'] = 'X' * 8
-#
-#         data_str = '\n' + json.dumps(data, indent=2)
-#
-#     else:
-#         data_str = ''
-#
-#     flask.current_app.logger.exception(
-#         'AN ERROR OCCURRED in {!r}: {}\n{}'.format(
-#             flask.request.url,
-#             msg,
-#             data_str,
-#         )
-#     )
-
-
 def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
     if isinstance(number, str):
         number = int(number)
@@ -379,43 +320,6 @@ def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
         return datetime.datetime(century + year, month, day, tzinfo=DEFAULT_TIMEZONE)
     except ValueError:
         raise ValueError("invalid CPR number {}".format(number))
-
-
-def cached(func):
-    @wraps(func)
-    def wrapper(*args):
-        try:
-            return wrapper.cache[args]
-        except KeyError:
-            wrapper.cache[args] = result = func(*args)
-
-            with open(wrapper.cache_file, "wb") as fp:
-                marshal.dump(wrapper.cache, fp, marshal.version)
-
-            return result
-
-    wrapper.cache = {}
-    wrapper.uncached = wrapper.__wrapped__
-
-    wrapper.cache_file = os.path.join(
-        tempfile.gettempdir(),
-        "-".join(
-            func.__module__.split(".")
-            + [
-                func.__name__,
-                str(os.getuid()),
-            ],
-        )
-        + ".data",
-    )
-
-    try:
-        with open(wrapper.cache_file, "rb") as fp:
-            wrapper.cache = marshal.load(fp)
-    except (IOError, EOFError):
-        wrapper.cache = {}
-
-    return wrapper
 
 
 URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz" b"0123456789" b"+")
@@ -571,19 +475,6 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
         return get_uuid(obj)
     else:
         return None
-
-
-def get_urn(
-    mapping: D, fallback: D = None, *, key: typing.Hashable = mapping.URN
-) -> str:
-    v = checked_get(mapping, key, "", fallback=fallback, required=True)
-
-    if not is_urn(v):
-        exceptions.ErrorCodes.E_INVALID_URN(
-            message="invalid urn for {!r}: {!r}".format(key, v), obj=mapping
-        )
-
-    return v
 
 
 def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
@@ -839,45 +730,6 @@ def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
     :return: List-wrapped obj
     """
     return obj if isinstance(obj, list) else [obj]
-
-
-def _date_to_datetime(value: Any) -> Any:
-    """
-    helper, converts date objs to datetime
-    :param value: A potential candidate for conversion
-    :return:
-    """
-    if isinstance(value, date) and not isinstance(value, datetime.datetime):
-        # all dateimes are dates, but not all dates are datetimes
-        return datetime.datetime.combine(value, datetime.time(0, 0))
-    return value
-
-
-def date_to_datetime(func: typing.Callable) -> typing.Callable:
-    """
-    Loops through args/kwargs and transforms "date"-objs to datetime
-    :param func:
-    :return:
-    """
-    if iscoroutinefunction(func):
-
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            return await func(
-                *map(_date_to_datetime, args),
-                **{key: _date_to_datetime(val) for key, val in kwargs.items()},
-            )
-
-    else:
-
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            return func(
-                *map(_date_to_datetime, args),
-                **{key: _date_to_datetime(val) for key, val in kwargs.items()},
-            )
-
-    return wrapper
 
 
 def query_to_search_phrase(query: str):

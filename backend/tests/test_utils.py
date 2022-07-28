@@ -835,36 +835,3 @@ class TestUtils(TestCase):
             },
             err.exception.detail,
         )
-
-    def test_get_urn(self):
-        with self.subTest("bad string"):
-            with self.assertRaises(exceptions.HTTPException) as ctxt:
-                util.get_urn({"urn": "42"})
-
-            self.assertEqual(
-                {
-                    "description": "invalid urn for 'urn': '42'",
-                    "error": True,
-                    "error_key": "E_INVALID_URN",
-                    "obj": {"urn": "42"},
-                    "status": 400,
-                },
-                ctxt.exception.detail,
-            )
-
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
-            util.get_urn({"urn": 42})
-
-        self.assertEqual(
-            {
-                "description": "Invalid 'urn', expected str, got: 42",
-                "error": True,
-                "error_key": "E_INVALID_TYPE",
-                "expected": "str",
-                "actual": 42,
-                "key": "urn",
-                "obj": {"urn": 42},
-                "status": 400,
-            },
-            ctxt.exception.detail,
-        )
