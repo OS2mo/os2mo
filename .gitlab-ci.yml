@@ -403,6 +403,8 @@ Build Keycloak DB:
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
+    - <<: *if-merge-request-labels-skip-pipeline
+      when: never
 
 
 # Backend Tests
@@ -465,7 +467,7 @@ GraphAPI-Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 2
+  parallel: 4
   script:
     - pytest
       backend/tests/integration/
@@ -493,7 +495,7 @@ Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 8
+  parallel: 32
   script:
     - pytest backend/tests
       -m "serial and not equivalence"
