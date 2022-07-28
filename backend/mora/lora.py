@@ -734,7 +734,7 @@ async def get_version():
         return settings.commit_tag
     response = await clients.lora.get(url="version")
     try:
-        return (await response.json())["lora_version"]
+        return response.json()["lora_version"]
     except ValueError:
         return "Could not find lora version: %s" % response.text
 
