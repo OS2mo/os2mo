@@ -44,7 +44,8 @@ RUN set -ex \
   && useradd -u 72020 --no-log-init -r -g mora mora \
   # Install dependencies
   && apt-get -y update \
-  && apt-get -y install --no-install-recommends git \
+  # TODO: Remove libpq-dev python3-dev when we upgrade to psycopg 2.9+
+  && apt-get -y install --no-install-recommends git libpq-dev python3-dev \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists"
 
