@@ -12,12 +12,14 @@ from typing import Any
 from typing import Callable
 from typing import Generator
 from typing import Optional
+from uuid import UUID
+from uuid import uuid4
 
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
-from aioresponses import aioresponses as aioresponses_
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+from httpx import Response
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
@@ -31,6 +33,7 @@ from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
 from mora.http import clients
+from mora.service.org import ConfiguredOrganisation
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
@@ -84,7 +87,6 @@ def seed_clients_worker(fastapi_test_app):
     async def noop(*args, **kwargs):
         pass
 
-    clients.mo = AsyncClient(timeout=get_settings().httpx_timeout)
     seed_lora_client(fastapi_test_app)
     clients.init_clients = noop
     clients.close_clients = noop
@@ -182,13 +184,6 @@ def service_client(fastapi_test_app):
         yield client
 
 
-@pytest.fixture
-def aioresponses():
-    """Pytest fixture for aioresponses."""
-    with aioresponses_() as aior:
-        yield aior
-
-
 @pytest.fixture(scope="class")
 def testing_db():
     _mox_testing_api("db-setup")
@@ -258,3 +253,41 @@ def graphapi_post(graphapi_test: TestClient):
         return GQLResponse(data=data, errors=errors, status_code=status_code)
 
     yield _post
+
+
+def gen_organisation(
+    uuid: Optional[UUID] = None,
+    name: str = "name",
+    user_key: str = "user_key",
+) -> dict[str, Any]:
+    uuid = uuid or uuid4()
+    organisation = {
+        "id": str(uuid),
+        "registreringer": [
+            {
+                "attributter": {
+                    "organisationegenskaber": [
+                        {
+                            "brugervendtnoegle": user_key,
+                            "organisationsnavn": name,
+                        }
+                    ]
+                },
+                "tilstande": {"organisationgyldighed": [{"gyldighed": "Aktiv"}]},
+            }
+        ],
+    }
+    return organisation
+
+
+@pytest.fixture
+def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
+    # Clear Organisation cache before mocking a new one
+    ConfiguredOrganisation.clear()
+
+    organisation = gen_organisation()
+
+    respx_mock.get(
+        "http://localhost/lora/organisation/organisation",
+    ).mock(return_value=Response(200, json={"results": [[organisation]]}))
+    yield organisation["id"]

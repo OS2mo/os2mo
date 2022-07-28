@@ -13,8 +13,6 @@ from typing import Optional
 import aiohttp
 from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
-from pydantic import AnyUrl
-from pydantic import parse_obj_as
 from structlog import get_logger
 
 from mora import config
@@ -36,27 +34,6 @@ health_map = {}
 def register_health_endpoint(func: Callable) -> Callable:
     health_map[func.__name__] = func
     return func
-
-
-async def _is_endpoint_reachable(url: AnyUrl) -> bool:
-    """Check if a given endpoint is reachable.
-
-    Args:
-        url (AnyUrl): The endpoint to check.
-
-    Returns:
-        bool: True if reachable. False if not.
-    """
-    try:
-        r = await clients.mo.get(url)
-        r.raise_for_status()
-        return True
-    except HTTPStatusError as err:
-        logger.critical(f"Problem contacting {url}", exception=str(err))
-        return False
-    except Exception as err:
-        logger.critical("HTTPX client error", exception=str(err))
-        return False
 
 
 @register_health_endpoint
@@ -83,10 +60,17 @@ async def oio_rest() -> bool:
     settings = config.get_settings()
     if settings.enable_internal_lora:
         return True
-
-    url = settings.lora_url + "site-map"
-    parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
-    return await _is_endpoint_reachable(parsed_url)
+    try:
+        r = await clients.lora.get(url="site-map")
+        r.raise_for_status()
+        return True
+    except HTTPStatusError as err:
+        logger.critical("Problem contacting lora", exception=str(err))
+        return False
+    except Exception as err:
+        logger.critical("HTTPX client error", exception=str(err))
+        return False
+    return False
 
 
 @register_health_endpoint
@@ -122,15 +106,12 @@ async def dar() -> bool:
 
 @register_health_endpoint
 async def keycloak() -> bool:
-    """Check if Keycloak is running.
+    """Check nothing.
+
+    Keycloak healthchecking has been removed completely, as we only communicate
+    with Keycloak once on startup when we fetch the JWKS.
 
     Returns:
-        bool: True if reachable. False if not.
+        bool: True always
     """
-    settings = config.get_settings()
-    url = (
-        f"{settings.keycloak_schema}://{settings.keycloak_host}"
-        f":{settings.keycloak_port}/auth/"
-    )
-    parsed_url: AnyUrl = parse_obj_as(AnyUrl, url)
-    return await _is_endpoint_reachable(parsed_url)
+    return True

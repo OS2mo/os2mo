@@ -1,20 +1,18 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+import respx
 from aiohttp import ClientError
-from aioresponses import aioresponses
 from httpx import Request
 from httpx import Response
+from mock import AsyncMock
 from mock import patch
 from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
-from mora import config
 from mora.graphapi import health
 from tests import util
-
-pytestmark = pytest.mark.asyncio
 
 HTTPX_MOCK_RESPONSE_404 = Response(
     status_code=404, request=Request("GET", "http://some-url.xyz")
@@ -25,58 +23,24 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 )
 
 
-class DatasetHealthTests(tests.cases.TestCase):
-    @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
-    @aioresponses()
-    async def test_dataset_returns_false_if_no_data_found(self, mock):
-        mock.get(
-            config.get_settings().lora_url + "organisation/organisation?"
-            "virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True",
-            payload={"results": [[]]},
+@pytest.mark.usefixtures("mock_asgi_transport")
+class DatasetHealthTests(tests.cases.AsyncTestCase):
+    @respx.mock
+    async def test_dataset_returns_false_if_no_data_found(self):
+        respx.get("http://localhost/lora/organisation/organisation").mock(
+            return_value=Response(200, json={"results": [[]]})
         )
         actual = await health.dataset()
-
         self.assertEqual(False, actual)
 
-    @pytest.mark.skip(reason="LoRa is using HTTPX now, these tests did not run")
-    @aioresponses()
-    async def test_dataset_returns_true_if_data_found(self, mock):
-        mock.get(
-            (
-                config.get_settings().lora_url + "organisation/organisation"
-                "?virkningfra=-infinity&virkningtil=infinity&bvn=%&konsolider=True"
-            ),
-            payload={"results": [["f668b69a-66c4-4ba8-a783-5513178e8df1"]]},
-        )
-
+    @respx.mock
+    @pytest.mark.usefixtures("mock_organisation")
+    async def test_dataset_returns_true_if_data_found(self):
         actual = await health.dataset()
-
         self.assertEqual(True, actual)
 
 
-class TestKeycloakHealth:
-    @patch("httpx.AsyncClient.get")
-    async def test_keycloak_returns_true_if_reachable(self, mock_get):
-        mock_get.return_value = Response(
-            status_code=200, request=Request("GET", "http://keycloak:8080/auth/")
-        )
-        assert await health.keycloak()
-
-    @patch("httpx.AsyncClient.get")
-    async def test_keycloak_returns_false_if_unreachable(self, mock_get):
-        mock_get.return_value = HTTPX_MOCK_RESPONSE_404
-        assert not await health.keycloak()
-
-    @patch("httpx.AsyncClient.get")
-    async def test_keycloak_returns_false_for_httpx_client_error(self, mock_get):
-        # This is one of the possible erros raised by the httpx client
-        mock_get.side_effect = RuntimeError(
-            "Cannot send a request, as the client has been closed."
-        )
-        assert not await health.keycloak()
-
-
-class DARHealthTests(tests.cases.TestCase):
+class DARHealthTests(tests.cases.AsyncTestCase):
     @util.darmock()
     async def test_dar_returns_false_if_unreachable(self, mock):
         mock.get("https://api.dataforsyningen.dk/autocomplete", status=404)
@@ -102,20 +66,20 @@ class DARHealthTests(tests.cases.TestCase):
         self.assertEqual(True, actual)
 
 
-class TestKubernetesProbes(tests.cases.TestCase):
-    """
-    Test the Kubernetes liveness and readiness endpoints
-    """
+def test_liveness(service_client):
+    response = service_client.get("/health/live")
+    assert response.status_code == HTTP_204_NO_CONTENT
 
-    def test_liveness(self):
-        self.assertRequest("/health/live", HTTP_204_NO_CONTENT)
 
-    @patch("mora.graphapi.health._is_endpoint_reachable")
-    def test_readiness_everything_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [True]
-        self.assertRequest("/health/ready", HTTP_204_NO_CONTENT)
+@patch("mora.health.oio_rest", new_callable=AsyncMock)
+def test_readiness_everything_ready(mock_oio_rest, service_client):
+    mock_oio_rest.return_value = True
+    response = service_client.get("/health/ready")
+    assert response.status_code == HTTP_204_NO_CONTENT
 
-    @patch("mora.graphapi.health._is_endpoint_reachable")
-    def test_readiness_keycloak_not_ready(self, mock_is_endpoint_reachable):
-        mock_is_endpoint_reachable.side_effect = [False]
-        self.assertRequest("/health/ready", HTTP_503_SERVICE_UNAVAILABLE)
+
+@patch("mora.health.oio_rest", new_callable=AsyncMock)
+def test_readiness_not_ready(mock_oio_rest, service_client):
+    mock_oio_rest.return_value = False
+    response = service_client.get("/health/ready")
+    assert response.status_code == HTTP_503_SERVICE_UNAVAILABLE

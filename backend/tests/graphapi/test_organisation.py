@@ -1,12 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from itertools import chain
-from typing import Any
-from typing import Dict
-from typing import Generator
-from typing import Optional
-from uuid import UUID
-from uuid import uuid4
 
 import pytest
 from httpx import Response
@@ -16,44 +10,6 @@ from more_itertools import one
 from .util import execute
 from mora.service.org import ConfiguredOrganisation
 from mora.service.org import get_configured_organisation
-
-
-def gen_organisation(
-    uuid: Optional[UUID] = None,
-    name: str = "name",
-    user_key: str = "user_key",
-) -> Dict[str, Any]:
-    uuid = uuid or uuid4()
-    organisation = {
-        "id": str(uuid),
-        "registreringer": [
-            {
-                "attributter": {
-                    "organisationegenskaber": [
-                        {
-                            "brugervendtnoegle": user_key,
-                            "organisationsnavn": name,
-                        }
-                    ]
-                },
-                "tilstande": {"organisationgyldighed": [{"gyldighed": "Aktiv"}]},
-            }
-        ],
-    }
-    return organisation
-
-
-@pytest.fixture
-def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
-    # Clear Organisation cache before mocking a new one
-    ConfiguredOrganisation.clear()
-
-    organisation = gen_organisation()
-
-    respx_mock.get(
-        "http://localhost/lora/organisation/organisation",
-    ).mock(return_value=Response(200, json={"results": [[organisation]]}))
-    yield organisation["id"]
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
