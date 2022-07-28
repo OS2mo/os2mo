@@ -108,6 +108,9 @@ async def dar() -> bool:
 async def keycloak() -> bool:
     """Check nothing.
 
+    Keycloak healthchecking has been removed completely, as we only communicate
+    with Keycloak once on startup when we fetch the JWKS.
+
     Returns:
         bool: True always
     """
