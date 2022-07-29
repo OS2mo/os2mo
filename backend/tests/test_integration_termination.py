@@ -3,13 +3,13 @@
 import copy
 
 import freezegun
-import pytest
 
 import tests.cases
 from mora import lora
+from tests.util import sample_structures_cls_fixture
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     @freezegun.freeze_time("2000-12-01")
     async def test_terminate_employee(self):
@@ -702,7 +702,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2018-01-01")
     def test_validation_missing_validity(self):

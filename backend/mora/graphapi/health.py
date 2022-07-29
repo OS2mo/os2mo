@@ -16,8 +16,8 @@ from os2mo_dar_client import AsyncDARClient
 from structlog import get_logger
 
 from mora import config
+from mora import lora
 from mora.exceptions import HTTPException
-from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import amqp_system
 
@@ -61,7 +61,7 @@ async def oio_rest() -> bool:
     if settings.enable_internal_lora:
         return True
     try:
-        r = await clients.lora.get(url="site-map")
+        r = await lora.client.get(url="site-map")  # type: ignore
         r.raise_for_status()
         return True
     except HTTPStatusError as err:

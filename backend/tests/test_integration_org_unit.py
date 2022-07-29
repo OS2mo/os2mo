@@ -12,6 +12,7 @@ import tests.cases
 from . import util
 from mora import lora
 from mora.service import orgunit as service_orgunit
+from tests.util import sample_structures_cls_fixture
 from tests.util import set_get_configuration
 
 
@@ -63,7 +64,7 @@ def expected_error_response(error_key, **overrides):
     return {"error_key": error_key, **dict(errors[error_key], **overrides)}
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
 
@@ -1514,7 +1515,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             await assert_parent_is(expected_parent, validity_start)
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

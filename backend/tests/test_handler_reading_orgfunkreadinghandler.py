@@ -1,13 +1,12 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
-
 import tests.cases
 from mora.handler.reading import OrgFunkReadingHandler
 from mora.lora import Connector
+from tests.util import sample_structures_minimal_cls_fixture
 
 
-@pytest.mark.usefixtures("sample_structures_minimal")
+@sample_structures_minimal_cls_fixture
 class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
     def setUp(self):
         super().setUp()

@@ -18,7 +18,7 @@ from mora import config
 from mora import service
 from mora.auth.keycloak.oidc import auth
 from tests.conftest import fake_auth
-from tests.conftest import seed_clients_worker
+
 
 logger = get_logger()
 
@@ -46,7 +46,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
             base_url="http://localhost:5000",
             timeout=config.get_settings().httpx_timeout,
         )
-        seed_clients_worker(self.app)
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
@@ -317,7 +316,6 @@ class _BaseTestCase(TestCase):
         super().setUp()
         self.app = self.create_app()
         self.client = TestClient(self.app)
-        seed_clients_worker(self.app)
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
@@ -611,34 +609,9 @@ class AsyncLoRATestCase(_AsyncBaseTestCase):
     instance, and deletes all objects between runs.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-
-    async def asyncTearDown(self):
-        await super().asyncTearDown()
-
 
 @pytest.mark.serial
 class LoRATestCase(_BaseTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-    @classmethod
-    def tearDownClass(cls):
-        super().tearDownClass()
-
-    def setUp(self):
-        super().setUp()

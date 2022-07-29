@@ -27,6 +27,8 @@ from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from tests import util
+from tests.util import sample_structures_cls_fixture
+from tests.util import sample_structures_minimal_cls_fixture
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
@@ -292,7 +294,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         self.assertIn("NOT_FOUND", r.get("error_key"))
 
 
-@pytest.mark.usefixtures("sample_structures_minimal")
+@sample_structures_minimal_cls_fixture
 class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
@@ -359,7 +361,7 @@ class TestGetCountRelated(tests.cases.TestCase):
                 _get_count_related()
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class TestGetUnitAncestorTree(tests.cases.AsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()

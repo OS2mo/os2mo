@@ -5,18 +5,18 @@ from unittest.mock import patch
 
 import freezegun
 import notsouid
-import pytest
 
 import tests.cases
 from mora import lora
 from mora import util as mora_util
+from tests.util import sample_structures_cls_fixture
 
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
@@ -968,7 +968,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 

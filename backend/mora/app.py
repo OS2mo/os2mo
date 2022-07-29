@@ -24,6 +24,7 @@ from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 from structlog import get_logger
 
+from . import lora
 from . import service
 from . import triggers
 from .common import LoRaConnectorPlugin
@@ -42,7 +43,6 @@ from mora.auth.keycloak.router import keycloak_router
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
-from mora.http import clients
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
@@ -279,15 +279,18 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
     @app.on_event("startup")
     async def startup():
         await triggers.register(app)
+        if lora.client is not None:
+            return
         if settings.enable_internal_lora:
-            await clients.init_clients(app)
+            lora.client = await lora.create_lora_client(app)
         else:
-            await clients.init_clients()
+            lora.client = await lora.create_lora_client()
 
     @app.on_event("shutdown")
     async def shutdown():
-        await clients.close_clients()
         await triggers.internal.amqp_trigger.stop_amqp()
+        # Leaking intentional so the test suite will re-use the lora.client.
+        # await lora.client.aclose()
 
     if not settings.is_under_test():
         setup_metrics(app)

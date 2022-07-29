@@ -5,6 +5,9 @@ import pytest
 
 import tests.cases
 from . import util
+from tests.util import sample_structures_cls_fixture
+from tests.util import sample_structures_minimal_cls_fixture
+
 
 org_unit_type_facet = {
     "description": "",
@@ -491,7 +494,7 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures_minimal")
+@sample_structures_minimal_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -546,13 +549,13 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
 
-@pytest.mark.usefixtures("sample_structures_minimal")
+@sample_structures_minimal_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class TestsMinimal(tests.cases.LoRATestCase):
     maxDiff = None
@@ -649,7 +652,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
         self.assertEqual(expected_get, actual_get)
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
