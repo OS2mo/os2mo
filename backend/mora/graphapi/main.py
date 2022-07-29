@@ -34,6 +34,7 @@ from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.files import list_files
 from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
+from mora.graphapi.inputs import EmployeeTerminationInput
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.models import ConfigurationRead
@@ -47,7 +48,6 @@ from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
 from mora.graphapi.schema import Class
 from mora.graphapi.schema import Configuration
-from mora.graphapi.schema import Employee
 from mora.graphapi.schema import Engagement
 from mora.graphapi.schema import EngagementAssociation
 from mora.graphapi.schema import Facet
@@ -67,6 +67,7 @@ from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 from mora.graphapi.types import CPRType
+from mora.graphapi.types import Employee
 from mora.util import CPR
 
 
@@ -452,6 +453,12 @@ class Mutation:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
+
+    @strawberry.mutation(description="Trigger refresh for an organisation unit")
+    async def employee_terminate(
+        self, terminateInput: EmployeeTerminationInput
+    ) -> Employee:
+        pass
 
 
 # --------------------------------------------------------------------------------------
