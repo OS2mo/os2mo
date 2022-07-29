@@ -8,6 +8,7 @@ Used for shimming the service API.
 from datetime import date
 from typing import Any
 from typing import Optional
+from typing import Type
 from typing import Union
 from uuid import UUID
 
@@ -25,6 +26,7 @@ from ramodels.mo.details import AddressRead
 from strawberry.types import ExecutionResult
 
 from mora import util
+from .versions.base import BaseGraphQLVersion
 
 
 class MOEmployee(EmployeeRead):
@@ -192,18 +194,26 @@ class MOAddress(AddressRead):
     name: Optional[str]
 
 
-async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    from mora.graphapi.versions.latest.version import get_schema
-    from mora.graphapi.versions.latest.dataloaders import get_loaders
-    from mora.graphapi.middleware import set_is_shim
+async def execute_graphql(
+    *args: Any,
+    graphql_version: Optional[Type[BaseGraphQLVersion]] = None,
+    **kwargs: Any
+) -> ExecutionResult:
+    # Imports must be done here to avoid circular imports..
+    from .middleware import set_is_shim
+
+    if graphql_version is None:
+        from .versions.latest.version import LatestGraphQL
+
+        graphql_version = LatestGraphQL
 
     set_is_shim()
 
-    loaders = await get_loaders()
     if "context_value" not in kwargs:
-        kwargs["context_value"] = loaders
+        kwargs["context_value"] = await graphql_version.get_context()
 
-    return await get_schema().execute(*args, **kwargs)
+    schema = graphql_version.schema.get()
+    return await schema.execute(*args, **kwargs)
 
 
 def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:

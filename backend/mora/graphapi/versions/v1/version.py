@@ -1,17 +1,18 @@
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
 from datetime import date
-from typing import Any
 
-from ...version import GraphQLVersion
-from ..latest.version import get_version as get_latest_version
+from ..v2.version import GraphQLSchema2
+from ..v2.version import GraphQLVersion2
 
 
-def get_version(enable_graphiql: bool, **kwargs: Any) -> GraphQLVersion:
-    latest = get_latest_version(enable_graphiql)
+class GraphQLSchema1(GraphQLSchema2):
+    pass
 
-    version = GraphQLVersion(
-        version=1,
-        router=latest.router,
-        deprecation_date=date(2023, 1, 1),
-    )
 
-    return version
+class GraphQLVersion1(GraphQLVersion2):
+    """First pinned version of the GraphQL API."""
+
+    version = 1
+    deprecation_date = date(2022, 11, 1)
+    schema = GraphQLSchema1

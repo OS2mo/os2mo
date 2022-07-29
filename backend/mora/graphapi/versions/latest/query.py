@@ -1,18 +1,10 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import Any
-from typing import Any
-from typing import Any
-from typing import Any
 from typing import cast
-from typing import Optional
-from typing import Optional
 from typing import Optional
 
 import strawberry
-from pydantic import parse_obj_as
-from pydantic import parse_obj_as
 from pydantic import parse_obj_as
 from strawberry.types import Info
 
@@ -25,31 +17,16 @@ from mora.graphapi.versions.latest.models import FileStore
 from mora.graphapi.versions.latest.models import HealthRead
 from mora.graphapi.versions.latest.resolvers import EmployeeResolver
 from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import StaticResolver
-from mora.graphapi.versions.latest.resolvers import StaticResolver
 from mora.graphapi.versions.latest.resolvers import StaticResolver
 from mora.graphapi.versions.latest.schema import Address
 from mora.graphapi.versions.latest.schema import Association
 from mora.graphapi.versions.latest.schema import Class
-from mora.graphapi.versions.latest.schema import Configuration
 from mora.graphapi.versions.latest.schema import Configuration
 from mora.graphapi.versions.latest.schema import Employee
 from mora.graphapi.versions.latest.schema import Engagement
 from mora.graphapi.versions.latest.schema import EngagementAssociation
 from mora.graphapi.versions.latest.schema import Facet
 from mora.graphapi.versions.latest.schema import File
-from mora.graphapi.versions.latest.schema import File
-from mora.graphapi.versions.latest.schema import Health
 from mora.graphapi.versions.latest.schema import Health
 from mora.graphapi.versions.latest.schema import ITSystem
 from mora.graphapi.versions.latest.schema import ITUser
@@ -60,19 +37,7 @@ from mora.graphapi.versions.latest.schema import Organisation
 from mora.graphapi.versions.latest.schema import OrganisationUnit
 from mora.graphapi.versions.latest.schema import RelatedUnit
 from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
-from mora.graphapi.versions.latest.schema import Response
 from mora.graphapi.versions.latest.schema import Role
-from mora.graphapi.versions.latest.schema import Version
 from mora.graphapi.versions.latest.schema import Version
 
 
