@@ -24,6 +24,7 @@ from ._shared import OrganisationRef
 from ._shared import validate_cpr
 from ._shared import validate_names
 from .details import EmployeeDetails
+from ramodels.base import RABase
 from ramodels.base import tz_isodate
 
 # --------------------------------------------------------------------------------------
@@ -164,3 +165,7 @@ class Employee(MOBase):
     @validator("seniority", pre=True, always=True)
     def parse_seniority(cls, seniority: Optional[Any]) -> Optional[datetime]:
         return tz_isodate(seniority) if seniority is not None else None
+
+
+class EmployeeTerminate(RABase):
+    validity: OpenValidity
