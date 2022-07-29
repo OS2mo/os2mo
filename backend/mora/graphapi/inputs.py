@@ -13,18 +13,10 @@ from .models import OrganisationUnitTerminate
 
 @strawberry.experimental.pydantic.input(
     model=OrganisationUnitTerminate,
+    all_fields=True,
     description="Input type for terminating organization units",
 )
 class OrganizationUnitTerminateInput:
-    """Data representation of the input fields required to terminate an organization unit.
+    """Data representation of the input fields required to terminate an organization unit."""
 
-    OBS: We specify the fields manually and set their type using strawberry.auto in
-    order for our pre-commit hook "mypy" to pass - if using this class without
-    specifying the fields manually errors like the following will occur:
-    "error: "OrganizationUnitTerminateInput" has no attribute "uuid"".
-    """
-
-    uuid: strawberry.auto
-    from_date: strawberry.auto
-    to_date: strawberry.auto
-    trigger_less: strawberry.auto
+    pass
