@@ -17,7 +17,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM python:3.9.13-slim AS dist
+FROM python:3.9.13 AS dist
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
@@ -46,8 +46,11 @@ RUN set -ex \
   && apt-get -y update \
   # TODO: Remove libpq-dev python3-dev when we upgrade to psycopg 2.9+
   && apt-get -y install --no-install-recommends git libpq-dev python3-dev \
+  && apt-get -y install build-essential \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists"
+
+
 
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
