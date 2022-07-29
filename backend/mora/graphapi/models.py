@@ -68,3 +68,9 @@ class OrganisationUnitTerminate(OrganisationUnit):
     to_date: Optional[datetime.date] = Field(
         alias="to", description="End date of the validity, if applicable."
     )
+
+    trigger_less: Optional[bool] = Field(
+        alias="triggerless",
+        description="Flag specifying if triggers should not be invoked, if true.",
+        default=False,
+    )

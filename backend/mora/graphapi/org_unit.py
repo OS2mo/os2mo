@@ -189,7 +189,8 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
 
     # ON_BEFORE
-    if not util.get_args_flag("triggerless"):
+    # if not util.get_args_flag("triggerless"):
+    if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
@@ -205,7 +206,8 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
         }
     )
 
-    if not util.get_args_flag("triggerless"):
+    # if not util.get_args_flag("triggerless"):
+    if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing

@@ -26,6 +26,7 @@ from ...auth.keycloak import oidc
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
+from mora import util
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -338,8 +339,8 @@ async def terminate_org_unit(
 ):
     mutation_func = "org_unit_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: Date, $to: Date) {{ {mutation_func}"
-        f"(unit: {{uuid: $uuid, from: $from, to: $to}}) {{ uuid }} }}"
+        f"mutation($uuid: UUID!, $from: Date, $to: Date, $triggerless: Boolean) {{ {mutation_func}"
+        f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) {{ uuid }} }}"
     )
 
     response = await execute_graphql(
@@ -352,6 +353,7 @@ async def terminate_org_unit(
             "to": request.validity.to_date.date().isoformat()
             if request.validity.to_date
             else None,
+            "triggerless": util.get_args_flag("triggerless"),
         },
     )
     handle_gql_error(response)

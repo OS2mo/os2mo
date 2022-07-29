@@ -27,3 +27,4 @@ class OrganizationUnitTerminateInput:
     uuid: strawberry.auto
     from_date: strawberry.auto
     to_date: strawberry.auto
+    trigger_less: strawberry.auto
