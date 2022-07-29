@@ -15,12 +15,14 @@ from typing import Union
 from uuid import UUID
 
 from fastapi import Body
+from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
+from ...auth.keycloak import oidc
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
@@ -330,7 +332,9 @@ async def trigger_external_integration(
     },
 )
 async def terminate_org_unit(
-    uuid: UUID, request: OrganisationUnitTerminate = Body(...)
+    uuid: UUID,
+    request: OrganisationUnitTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
 ):
     mutation_func = "org_unit_terminate"
     query = (
