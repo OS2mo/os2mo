@@ -6,11 +6,15 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
 from enum import Enum
+from typing import Optional
+from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -46,3 +50,27 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+
+
+class Employee(BaseModel):
+    """Model representing a employee."""
+
+    uuid: UUID = Field(description="Unique ID identifying the employee")
+
+
+class EmployeeTermination(Employee):
+    """Model representing a EmployeeTermination termination."""
+
+    from_date: Optional[datetime.date] = Field(
+        alias="from", description="Start date of the validity."
+    )
+
+    to_date: Optional[datetime.date] = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )
+
+    trigger_less: Optional[bool] = Field(
+        alias="triggerless",
+        description="Flag specifying if triggers should not be invoked, if true.",
+        default=False,
+    )
