@@ -7,7 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from mora.graphapi.inputs import EmployeeTerminationInput
-from mora.graphapi.models import Employee
+from mora.graphapi.types import Employee
 
 
 async def terminate_employee(terminationInput: EmployeeTerminationInput) -> Employee:
