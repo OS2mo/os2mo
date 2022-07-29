@@ -33,7 +33,9 @@ from typing import Union
 
 import httpx
 import lora_utils
+from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
+from httpx import AsyncClient
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
@@ -41,7 +43,6 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
-from .http import clients
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
 from oio_rest.config import get_settings as get_lora_settings
@@ -54,6 +55,29 @@ ValidityLiteral = Literal["past", "present", "future"]
 
 logger = get_logger()
 settings = config.get_settings()
+
+
+async def create_lora_client(app: Optional[FastAPI] = None) -> httpx.AsyncClient:
+    """Return lora client.
+
+    If `ENABLE_INTERNAL_LORA` is set, this transparently sends requests to the
+    internal LoRa ASGI app. Otherwise, it is an HTTP client.
+    """
+    if config.get_settings().enable_internal_lora:
+        return AsyncClient(
+            app=app,
+            base_url="http://localhost/lora/",
+            timeout=config.get_settings().httpx_timeout,
+        )
+
+    return AsyncClient(
+        base_url=config.get_settings().lora_url,
+        timeout=config.get_settings().httpx_timeout,
+    )
+
+
+# Singleton LoRa client:
+client = None
 
 
 def registration_changed_since(reg: Dict[str, Any], since: datetime) -> bool:
@@ -569,7 +593,7 @@ class Scope(BaseScope):
 
     async def fetch(self, **params):
         params = self.encode_params({**self.connector.defaults, **params})
-        response = await clients.lora.request(
+        response = await client.request(
             method="GET",
             url=self.path,
             # We send the parameters as JSON through the body of the GET request to
@@ -690,22 +714,22 @@ class Scope(BaseScope):
 
         if uuid:
             uuid_path = f"{self.path}/{uuid}"
-            response = await clients.lora.put(uuid_path, json=obj)
+            response = await client.put(uuid_path, json=obj)
             await _check_response(response)
             return response.json()["uuid"]
         else:
-            response = await clients.lora.post(self.path, json=obj)
+            response = await client.post(self.path, json=obj)
             await _check_response(response)
             return response.json()["uuid"]
 
     async def delete(self, uuid):
         url = f"{self.path}/{uuid}"
-        response = await clients.lora.delete(url)
+        response = await client.delete(url)
         await _check_response(response)
 
     async def update(self, obj, uuid):
         url = f"{self.path}/{uuid}"
-        response = await clients.lora.patch(url, json=obj)
+        response = await client.patch(url, json=obj)
         if response.status_code == 404:
             logger.warning("could not update nonexistent LoRa object", url=url)
         else:
@@ -732,7 +756,7 @@ async def get_version():
     if config.get_settings().enable_internal_lora:
         settings = get_lora_settings()
         return settings.commit_tag
-    response = await clients.lora.get(url="version")
+    response = await client.get(url="version")
     try:
         return response.json()["lora_version"]
     except ValueError:
@@ -748,6 +772,6 @@ class AutocompleteScope(BaseScope):
         params = {"phrase": phrase}
         if class_uuids:
             params["class_uuids"] = list(map(str, class_uuids))
-        response = await clients.lora.get(url=self.path, params=params)
+        response = await client.get(url=self.path, params=params)
         await _check_response(response)
         return {"items": response.json()["results"]}

@@ -28,7 +28,7 @@ from tests.util import load_sample_structures
 
 
 @pytest.fixture(autouse=True)
-async def sample_structures(testing_db):
+async def sample_structures(fastapi_test_app, testing_db):
     """Class scoped sample structure.
 
     We only do reads in this integration test, so there is no reason for us to

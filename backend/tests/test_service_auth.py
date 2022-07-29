@@ -23,6 +23,8 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from tests import util
+from tests.util import sample_structures_cls_fixture
+from tests.util import sample_structures_minimal_cls_fixture
 
 
 class TestEndpointAuthDependency(unittest.TestCase):
@@ -244,7 +246,7 @@ class TestTokenModel(tests.cases.TestCase):
         self.assertEqual("type_error.uuid", errors["type"])
 
 
-@pytest.mark.usefixtures("sample_structures_minimal")
+@sample_structures_minimal_cls_fixture
 class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
     @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
     def test_401_when_uuid_missing_in_token(self, mock_auth):
@@ -266,7 +268,7 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
 # TODO: Find a way to test that endpoints works when auth is disabled
 @unittest.skip("Not working...(?)")
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class TestAuthDisabled(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()

@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
-
 import tests.cases
 from mora.config import NavLink
 from mora.config import Settings
 from tests import util
+from tests.util import sample_structures_cls_fixture
 
 
 class AsyncTests(tests.cases.AsyncTestCase):
@@ -52,7 +51,7 @@ class AsyncTests(tests.cases.AsyncTestCase):
         self.assertIn("show_kle", user_settings)
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class LoRaTest(tests.cases.LoRATestCase):
     def test_ou_service_response(self):
         """

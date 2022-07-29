@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import asyncio
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -18,7 +19,6 @@ from uuid import uuid4
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
 from httpx import Response
 from hypothesis import settings as h_settings
 from hypothesis import strategies as st
@@ -29,10 +29,10 @@ from respx.mocks import HTTPCoreMocker
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
+from mora import lora
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
-from mora.http import clients
 from mora.service.org import ConfiguredOrganisation
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
@@ -48,6 +48,15 @@ h_settings.register_profile(
     "debug", max_examples=10, verbosity=Verbosity.verbose, database=h_db
 )
 h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
+
+
+asyncio_mode = "strict"
+
+
+@pytest.fixture(autouse=True, scope="session")
+def seed_lora_client():
+    os.environ["PYTEST_RUNNING"] = "True"
+    lora.client = asyncio.run(lora.create_lora_client(create_app()))
 
 
 def pytest_runtest_setup(item):
@@ -73,34 +82,6 @@ def mock_asgi_transport():
         "httpx._transports.asgi.ASGITransport",
         "httpx._transports.wsgi.WSGITransport",
     )
-
-
-def seed_lora_client(fastapi_test_app):
-    clients.lora = AsyncClient(
-        app=fastapi_test_app,
-        base_url="http://localhost/lora",
-        timeout=get_settings().httpx_timeout,
-    )
-
-
-def seed_clients_worker(fastapi_test_app):
-    async def noop(*args, **kwargs):
-        pass
-
-    seed_lora_client(fastapi_test_app)
-    clients.init_clients = noop
-    clients.close_clients = noop
-
-
-@pytest.fixture(autouse=True)
-async def seed_clients(fastapi_test_app):
-    seed_clients_worker(fastapi_test_app)
-    yield
-
-
-@pytest.fixture(autouse=True)
-async def init_clients():
-    await clients.init_clients()
 
 
 @pytest.fixture()

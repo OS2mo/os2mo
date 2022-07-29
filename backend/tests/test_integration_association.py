@@ -6,12 +6,12 @@ from urllib.parse import urlencode
 from uuid import uuid4
 
 import freezegun
-import pytest
 from parameterized import parameterized
 
 import tests.cases
 from mora import lora
 from mora import mapping
+from tests.util import sample_structures_cls_fixture
 from tests.util import set_settings_contextmanager
 
 
@@ -96,7 +96,7 @@ def _mo_return_it_user_doc():
     return doc
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -1047,7 +1047,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertEqual(actual_association, expected)
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
@@ -1461,7 +1461,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AddressTests(tests.cases.LoRATestCase):
     maxDiff = None

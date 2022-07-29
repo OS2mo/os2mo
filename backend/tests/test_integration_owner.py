@@ -9,7 +9,6 @@ from typing import Union
 from uuid import UUID
 
 import freezegun
-import pytest
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pydantic import Field
@@ -18,6 +17,7 @@ from mora.mapping import OwnerInferencePriority
 from tests.cases import AsyncLoRATestCase
 from tests.cases import LoRATestCase
 from tests.util import load_fixture
+from tests.util import sample_structures_cls_fixture
 
 
 class ConfiguredBase(BaseModel):
@@ -128,7 +128,7 @@ def simplified_owner(
     return owner
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class OwnerOrgUnitTestCase(LoRATestCase):
     def create_helper(
         self,
@@ -292,7 +292,7 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class OrgUnitInheritTests(OwnerOrgUnitTestCase):
     maxDiff = None
@@ -351,7 +351,6 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
 class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
     async def create_helper(
         self,
@@ -383,7 +382,7 @@ class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
             )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class OwnerPersonTestCase(LoRATestCase):
     def create_helper(
         self,
@@ -480,7 +479,7 @@ class PersonTests(OwnerPersonTestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
     async def asyncSetUp(self):
         """
@@ -642,7 +641,7 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
         )
 
 
-@pytest.mark.usefixtures("sample_structures")
+@sample_structures_cls_fixture
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 class OwnerEditCase(OwnerPersonTestCase):
     def setUp(self):
