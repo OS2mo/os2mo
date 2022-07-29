@@ -736,8 +736,6 @@ def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
     if not to_date:
         return POSITIVE_INFINITY
 
-    # dt = _apply_default_tz(to_date)
-
     dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
     if dt.time() != datetime.time.min:
         exceptions.ErrorCodes.E_INVALID_INPUT(
