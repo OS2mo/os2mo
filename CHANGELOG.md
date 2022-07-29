@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+8.4.0 - 2022-07-29
+------------------
+
+[#51183] Created a new data model for Employee terminations
+
 8.3.0 - 2022-07-19
 ------------------
 
