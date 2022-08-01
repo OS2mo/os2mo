@@ -75,15 +75,38 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
 
 async def terminate_org_unit_validation(
     unit_uuid: UUID,
-    from_date: Optional[datetime.date],
-    to_date: Optional[datetime.date],
+    from_date: Optional[datetime.datetime],
+    to_date: Optional[datetime.datetime],
 ) -> None:
     uuid_str = str(unit_uuid)
 
     # Verify date
-    date = (
-        _get_valid_from(from_date) if from_date and to_date else _get_valid_to(to_date)
-    )
+    # date = (
+    #     _get_valid_from(from_date) if from_date and to_date else _get_valid_to(to_date)
+    # )
+
+    # if not to_date:
+    #     date = POSITIVE_INFINITY
+    # else:
+    #     if to_date.time() != datetime.time.min:
+    #         raise exceptions.ErrorCodes.E_INVALID_INPUT(
+    #             "{!r} is not at midnight!".format(dt.isoformat()),
+    #         )
+    #
+    # date = to_date
+
+    if from_date and to_date:
+        if not from_date or not isinstance(from_date, datetime.date):
+            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+        date = from_date
+    else:
+        if to_date and to_date.time() != datetime.time.min:
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                "{!r} is not at midnight!".format(to_date.isoformat()),
+            )
+
+        date = to_date if to_date else POSITIVE_INFINITY
 
     c = lora.Connector(effective_date=util.to_iso_date(date))
     await validator.is_date_range_in_org_unit_range(

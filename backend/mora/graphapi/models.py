@@ -61,11 +61,19 @@ class OrganisationUnit(BaseModel):
 class OrganisationUnitTerminate(OrganisationUnit):
     """Model representing a organization-unit termination."""
 
-    from_date: Optional[datetime.date] = Field(
+    # from_date: Optional[datetime.date] = Field(
+    #     alias="from", description="Start date of the validity."
+    # )
+    #
+    # to_date: Optional[datetime.date] = Field(
+    #     alias="to", description="End date of the validity, if applicable."
+    # )
+
+    from_date: Optional[datetime.datetime] = Field(
         alias="from", description="Start date of the validity."
     )
 
-    to_date: Optional[datetime.date] = Field(
+    to_date: Optional[datetime.datetime] = Field(
         alias="to", description="End date of the validity, if applicable."
     )
 
