@@ -13,13 +13,10 @@ from .models import OrganisationUnitTerminate
 
 @strawberry.experimental.pydantic.input(
     model=OrganisationUnitTerminate,
-    all_fields=True,
     description="Input type for terminating organization units",
+    all_fields=True,
 )
 class OrganizationUnitTerminateInput:
     """Data representation of the input fields required to terminate an organization unit."""
 
-    uuid: strawberry.auto
-    from_date: strawberry.auto
-    to_date: strawberry.auto
-    trigger_less: strawberry.auto
+    pass
