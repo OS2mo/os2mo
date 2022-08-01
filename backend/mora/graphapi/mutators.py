@@ -17,7 +17,6 @@ from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.org_unit import terminate_org_unit
-from mora.graphapi.org_unit import terminate_org_unit_validation
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
 from mora.graphapi.types import OrganizationUnit
@@ -46,5 +45,4 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
-        await terminate_org_unit_validation(unit.uuid, unit.from_date, unit.to_date)
         return await terminate_org_unit(unit)

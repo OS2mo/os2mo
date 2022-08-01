@@ -80,35 +80,19 @@ async def terminate_org_unit_validation(
 ) -> None:
     uuid_str = str(unit_uuid)
 
-    # Verify date
-    # date = (
-    #     _get_valid_from(from_date) if from_date and to_date else _get_valid_to(to_date)
-    # )
-
-    # if not to_date:
-    #     date = POSITIVE_INFINITY
-    # else:
-    #     if to_date.time() != datetime.time.min:
-    #         raise exceptions.ErrorCodes.E_INVALID_INPUT(
-    #             "{!r} is not at midnight!".format(dt.isoformat()),
-    #         )
-    #
-    # date = to_date
-
+    # Get & verify basic date
     if from_date and to_date:
         if not from_date or not isinstance(from_date, datetime.date):
             raise exceptions.ErrorCodes.V_MISSING_START_DATE()
-
         date = from_date
     else:
         if to_date and to_date.time() != datetime.time.min:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 "{!r} is not at midnight!".format(to_date.isoformat()),
             )
+        date = to_date + ONE_DAY if to_date else POSITIVE_INFINITY
 
-        date = to_date if to_date else POSITIVE_INFINITY
-
-    c = lora.Connector(effective_date=util.to_iso_date(date))
+    # Verify date against OrgUnit range
     await validator.is_date_range_in_org_unit_range(
         {"uuid": uuid_str},
         date - util.MINIMAL_INTERVAL,
@@ -116,6 +100,7 @@ async def terminate_org_unit_validation(
     )
 
     # Find children, roles and addresses, and verify constraints
+    c = lora.Connector(effective_date=util.to_iso_date(date))
     children = set(
         await c.organisationenhed.load_uuids(
             overordnet=uuid_str,
@@ -165,34 +150,7 @@ async def terminate_org_unit_validation(
 
 
 async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
-    # Setup terminate dict
-    terminate_dict: dict = {
-        mapping.UUID: str(unit.uuid),
-        mapping.VALIDITY: {mapping.FROM: unit.from_date, mapping.TO: unit.to_date},
-    }
-
-    # Verify the unit UUID
-    uuid = util.get_uuid(terminate_dict)
-
-    # Handle dates
-    if unit.from_date:
-        terminate_dict[mapping.VALIDITY][mapping.FROM] = unit.from_date.strftime(
-            "%Y-%m-%d"
-        )
-    else:
-        del terminate_dict[mapping.VALIDITY][mapping.FROM]
-
-    if unit.to_date:
-        terminate_dict[mapping.VALIDITY][mapping.TO] = unit.to_date.strftime("%Y-%m-%d")
-    else:
-        del terminate_dict[mapping.VALIDITY][mapping.TO]
-
-    # OBS: This validation method ALSO instantiates a lora.Connector().. but with an
-    # "effective_date" arg.. not sure what this does yet, but i will let it be for now.
-    # would be cool if we only had to create 1 connector
-    # ALSO: would be nice to only need a terminate dict since the UUID is added to it..
-    # or use proper arguments like:
-    # `terminate_org_unit_validation(uuid: str, from: datetime.date, to: datetime.date)`
+    # Validate the Organization Unit
     try:
         await terminate_org_unit_validation(unit.uuid, unit.from_date, unit.to_date)
     except Exception as e:
@@ -212,13 +170,12 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
 
     # ON_BEFORE
-    # if not util.get_args_flag("triggerless"):
     if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationenhed.update(lora_payload, uuid)
+    lora_result = await lora_conn.organisationenhed.update(lora_payload, unit.uuid)
     trigger_dict[Trigger.RESULT] = lora_result
 
     # ON_AFTER
@@ -229,7 +186,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
         }
     )
 
-    # if not util.get_args_flag("triggerless"):
+    # ON_AFTER
     if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
 

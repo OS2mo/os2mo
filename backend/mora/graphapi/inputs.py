@@ -19,4 +19,7 @@ from .models import OrganisationUnitTerminate
 class OrganizationUnitTerminateInput:
     """Data representation of the input fields required to terminate an organization unit."""
 
-    pass
+    uuid: strawberry.auto
+    from_date: strawberry.auto
+    to_date: strawberry.auto
+    trigger_less: strawberry.auto
