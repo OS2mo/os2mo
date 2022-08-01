@@ -339,18 +339,20 @@ async def terminate_org_unit(
 ):
     mutation_func = "org_unit_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: Date, $to: Date, $triggerless: Boolean) {{ {mutation_func}"
-        f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) {{ uuid }} }}"
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
+        f"{{ {mutation_func}"
+        f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
+        f"{{ uuid }} }}"
     )
 
     response = await execute_graphql(
         query,
         variable_values={
             "uuid": str(uuid),
-            "from": request.validity.from_date.date().isoformat()
+            "from": request.validity.from_date.isoformat()
             if request.validity.from_date
             else None,
-            "to": request.validity.to_date.date().isoformat()
+            "to": request.validity.to_date.isoformat()
             if request.validity.to_date
             else None,
             "triggerless": util.get_args_flag("triggerless"),
