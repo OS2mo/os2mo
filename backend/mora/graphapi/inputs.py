@@ -9,6 +9,7 @@
 import strawberry
 
 from .models import OrganisationUnitTerminate
+from mora.graphapi.models import ITSystemWrite
 
 
 @strawberry.experimental.pydantic.input(
@@ -17,5 +18,18 @@ from .models import OrganisationUnitTerminate
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
-
     pass
+
+# --------------------------------------------------------------------------------------
+# Graphapi input models
+# --------------------------------------------------------------------------------------
+
+
+@strawberry.experimental.pydantic.input(model=ITSystemWrite)
+class ITSystemInput:
+    """Pydantic -> Strawberry model for class mutator."""
+
+    user_key: strawberry.auto
+    type_: strawberry.auto
+    name: strawberry.auto
+    system_type: strawberry.auto

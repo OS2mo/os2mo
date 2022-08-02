@@ -25,6 +25,7 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 
 logger = logging.getLogger(__name__)
+from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -217,3 +218,16 @@ class OrganisationUnitTerminate(OrganisationUnit, OpenValidity):
             )
 
         return self.to_date + ONE_DAY
+class ITSystemBase(MOBase):
+    """A MO IT-system base object."""
+
+    type_: str = Field("itsystem", alias="type", description="The object type")
+
+
+class ITSystemWrite(ITSystemBase):
+    """A MO IT-system write object."""
+
+    name: str = Field(description="Name/titel of the itsystem.")
+    user_key: str = Field(description="Short, unique key.")
+    uuid: Optional[UUID] = Field(description="The ITSystem UUID")
+    system_type: Optional[str] = Field(description="The ITSystem type.")
