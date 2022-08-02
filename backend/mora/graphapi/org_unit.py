@@ -196,18 +196,16 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
 
 def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
     if unit.from_date and unit.to_date:
-        return common._create_virkning(unit.from_date, unit.to_date)
-        # return common._create_virkning(
-        #     _get_valid_from(unit.from_date),
-        #     _get_valid_to(unit.to_date),
-        # )
+        return common._create_virkning(
+            _get_terminate_effect_from_date(unit), _get_terminate_effect_to_date(unit)
+        )
 
     if not unit.from_date and unit.to_date:
         logger.warning(
             'terminate org unit called without "from" in "validity"',
         )
-        # return common._create_virkning(_get_valid_to(unit.to_date), "infinity")
-        return common._create_virkning(unit.to_date, "infinity")
+
+        return common._create_virkning(_get_terminate_effect_to_date(unit), "infinity")
 
     raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
         key="Organization Unit must be set with either 'to' or both 'from' " "and 'to'",
@@ -218,30 +216,32 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
     )
 
 
-# def _get_valid_from(from_date: Optional[datetime.date]) -> datetime.datetime:
-#     if not from_date or not isinstance(from_date, datetime.date):
-#         raise exceptions.ErrorCodes.V_MISSING_START_DATE()
-#
-#     dt = datetime.datetime.combine(from_date, datetime.datetime.min.time())
-#     if dt.time() != datetime.time.min:
-#         exceptions.ErrorCodes.E_INVALID_INPUT(
-#             "{!r} is not at midnight!".format(dt.isoformat()),
-#         )
-#
-#     return _apply_default_tz(dt)
+def _get_terminate_effect_from_date(
+    unit: OrganizationUnitTerminateInput,
+) -> datetime.datetime:
+    if not unit.from_date or not isinstance(unit.from_date, datetime.datetime):
+        raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+    if unit.from_date.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(unit.from_date.isoformat()),
+        )
+
+    return unit.from_date
 
 
-# def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
-#     if not to_date:
-#         return POSITIVE_INFINITY
-#
-#     dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
-#     if dt.time() != datetime.time.min:
-#         exceptions.ErrorCodes.E_INVALID_INPUT(
-#             "{!r} is not at midnight!".format(dt.isoformat()),
-#         )
-#
-#     return _apply_default_tz(dt + ONE_DAY)
+def _get_terminate_effect_to_date(
+    unit: OrganizationUnitTerminateInput,
+) -> datetime.datetime:
+    if not unit.to_date:
+        return POSITIVE_INFINITY
+
+    if unit.to_date.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(unit.to_date.isoformat()),
+        )
+
+    return unit.to_date + ONE_DAY
 
 
 def _create_trigger_dict_from_org_unit_input(
@@ -274,12 +274,3 @@ def _create_trigger_dict_from_org_unit_input(
     }
 
     return trigger_dict
-
-
-# def _apply_default_tz(dt: datetime.datetime) -> datetime.datetime:
-#     if not dt.tzinfo:
-#         dt = dt.replace(tzinfo=util.DEFAULT_TIMEZONE)
-#     else:
-#         dt = dt.astimezone(util.DEFAULT_TIMEZONE)
-#
-#     return dt
