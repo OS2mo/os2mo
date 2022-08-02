@@ -7,10 +7,12 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from enum import Enum
+from typing import Optional
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -46,3 +48,18 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+
+
+class ITSystemBase(MOBase):
+    """A MO IT-system base object."""
+
+    type_: str = Field("itsystem", alias="type", description="The object type")
+    state: str = Field(description="The state of the IT-system")
+
+
+class ITSystemWrite(ITSystemBase):
+    """A MO IT-system write object."""
+
+    name: str = Field(description="Name/title of the IT-system.", min_length=1)
+    user_key: str = Field(description="Short, unique key.")
+    system_type: Optional[str] = Field(description="The ITSystem type.")
