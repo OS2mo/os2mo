@@ -8,6 +8,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+import json
 import logging
 from typing import cast
 from typing import Optional
@@ -22,6 +23,9 @@ from mora import mapping
 from mora import util
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
+from mora.graphapi.models import MoraTriggerOrgUnit
+from mora.graphapi.models import MoraTriggerRequest
+from mora.graphapi.models import Validity
 from mora.graphapi.schema import Response
 from mora.graphapi.types import OrganizationUnit
 from mora.service.orgunit import OrgUnitRequestHandler
@@ -169,6 +173,24 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
 
     trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
 
+    orgUnitTrigger = MoraTriggerOrgUnit(
+        org_unit_uuid=unit.uuid,
+        request_type=mapping.RequestType.TERMINATE,
+        request=MoraTriggerRequest(
+            type=mapping.ORG_UNIT,
+            uuid=unit.uuid,
+            validity=Validity(
+                from_date=unit.from_date,
+                to_date=unit.to_date,
+            ),
+        ),
+        role_type=mapping.ORG_UNIT,
+        event_type=mapping.EventType.ON_BEFORE,
+        uuid=unit.uuid,
+    )
+
+    trigger_dict2 = orgUnitTrigger.dict(by_alias=True)
+    trigger_dict3 = json.loads(orgUnitTrigger.json())
     # ON_BEFORE
     if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
