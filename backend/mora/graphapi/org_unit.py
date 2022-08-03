@@ -152,7 +152,6 @@ async def terminate_org_unit_validation(
         )
 
 
-# async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
 async def terminate_org_unit(
     ou_terminate: OrganisationUnitTerminate,
 ) -> OrganizationUnit:
