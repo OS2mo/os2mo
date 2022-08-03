@@ -103,6 +103,8 @@ async def terminate_org_unit_validation(
     )
 
     # Find children, roles and addresses, and verify constraints
+
+    # Find & verify there is no children
     c = lora.Connector(effective_date=util.to_iso_date(date))
     children = set(
         await c.organisationenhed.load_uuids(
@@ -110,7 +112,12 @@ async def terminate_org_unit_validation(
             gyldighed="Aktiv",
         )
     )
+    if children:
+        raise exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
+            child_count=len(children),
+        )
 
+    # Find & verify there is no roles
     roles = set(
         await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=uuid_str,
@@ -128,7 +135,6 @@ async def terminate_org_unit_validation(
 
     active_roles = roles - addresses
     role_counts = set()
-
     if active_roles:
         role_counts = set(
             mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
@@ -137,17 +143,8 @@ async def terminate_org_unit_validation(
             )
         )
 
-    if children and role_counts:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
-            child_count=len(children),
-            roles=", ".join(sorted(role_counts)),
-        )
-    elif children:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
-            child_count=len(children),
-        )
-    elif role_counts:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
+    if role_counts:
+        raise exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
 
