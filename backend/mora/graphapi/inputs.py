@@ -17,6 +17,6 @@ from .models import OrganisationUnitTerminate
     all_fields=True,
 )
 class OrganizationUnitTerminateInput:
-    """Data representation of the input fields required to terminate an organization unit."""
+    """input model for terminating organizations units"""
 
     pass
