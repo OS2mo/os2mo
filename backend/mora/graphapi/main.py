@@ -62,7 +62,6 @@ from mora.graphapi.schema import Manager
 from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
-from mora.graphapi.schema import OrganisationUnitRefresh
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role

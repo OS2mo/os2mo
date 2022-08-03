@@ -13,7 +13,6 @@ from .models import OrganisationUnitTerminate
 
 @strawberry.experimental.pydantic.input(
     model=OrganisationUnitTerminate,
-    description="Input type for terminating organization units",
     all_fields=True,
 )
 class OrganizationUnitTerminateInput:
