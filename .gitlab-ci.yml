@@ -380,7 +380,7 @@ Unit-test:
       -m "not serial"
       -k "not graphapi"
       --color=yes
-      --show-capture=no
+      --show-capture=stdout
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
       --workers auto
@@ -399,7 +399,7 @@ GraphAPI-test:
       backend/tests/graphapi
       -p no:cacheprovider
       --color=yes
-      --show-capture=no
+      --show-capture=stdout
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=backend/mora/graphapi
       --cov-report html:$CI_PROJECT_DIR/coverage-html
@@ -427,7 +427,7 @@ GraphAPI-Integration-test:
       -k "graphapi"
       -p no:cacheprovider
       --color=yes
-      --show-capture=no
+      --show-capture=stdout
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
       --group $CI_NODE_INDEX
