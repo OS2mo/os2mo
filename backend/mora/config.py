@@ -33,6 +33,14 @@ class Environment(str, Enum):
     PRODUCTION = "production"
 
 
+class LogLevel(str, Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
 class ServicePlatformenSettings(BaseSettings):
     sp_service_uuid: UUID
     sp_agreement_uuid: UUID
@@ -70,6 +78,7 @@ class Settings(BaseSettings):
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
     graphql_rbac: bool = False
+    log_level: LogLevel = LogLevel.INFO
 
     @root_validator
     def graphql_rbac_dependencies(cls, values: Dict[str, Any]) -> Dict[str, Any]:

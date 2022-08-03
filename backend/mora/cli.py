@@ -82,5 +82,5 @@ def wait_for_rabbitmq(seconds):
 
 
 if __name__ == "__main__":
-    log.init("INFO", json=False)
+    log.init(config.get_settings().log_level, json=False)
     group(prog_name=os.getenv("FLASK_PROG_NAME", sys.argv[0]))
