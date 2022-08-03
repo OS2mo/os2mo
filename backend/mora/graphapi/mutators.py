@@ -45,4 +45,11 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
-        return await terminate_org_unit(unit)
+        # Convert input into pydantic model
+        # NOTE: We set the from_date & to_date manually, due to "to_pydantic()" not
+        # setting these for some reason - pydantic@1.9.1
+        pydantic_model = unit.to_pydantic()
+        pydantic_model.from_date = unit.from_date
+        pydantic_model.to_date = unit.to_date
+
+        return await terminate_org_unit(pydantic_model)

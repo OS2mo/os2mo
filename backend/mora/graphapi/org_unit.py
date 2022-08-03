@@ -21,9 +21,9 @@ from mora import lora
 from mora import mapping
 from mora import util
 from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import MoraTriggerOrgUnit
 from mora.graphapi.models import MoraTriggerRequest
+from mora.graphapi.models import OrganisationUnitTerminate
 from mora.graphapi.models import Validity
 from mora.graphapi.schema import Response
 from mora.graphapi.types import OrganizationUnit
@@ -152,47 +152,47 @@ async def terminate_org_unit_validation(
         )
 
 
-async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
+# async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> OrganizationUnit:
+async def terminate_org_unit(
+    ou_terminate: OrganisationUnitTerminate,
+) -> OrganizationUnit:
     # Validate the Organization Unit
     try:
-        await terminate_org_unit_validation(unit.uuid, unit.from_date, unit.to_date)
+        await terminate_org_unit_validation(
+            ou_terminate.uuid, ou_terminate.from_date, ou_terminate.to_date
+        )
     except Exception as e:
         logger.exception("ERROR validating termination request.")
         raise e
 
     # Create payload to LoRa
-    obj_path = ("tilstande", "organisationenhedgyldighed")
-    effect = _get_terminate_effect(unit)
-    val_inactive = {"gyldighed": "Inaktiv", "virkning": effect}
-
-    lora_payload = util.set_obj_value(dict(), obj_path, [val_inactive])
-    lora_payload["note"] = "Afslut enhed"
-
     org_unit_trigger = MoraTriggerOrgUnit(
-        org_unit_uuid=unit.uuid,
+        org_unit_uuid=ou_terminate.uuid,
         request_type=mapping.RequestType.TERMINATE,
         request=MoraTriggerRequest(
             type=mapping.ORG_UNIT,
-            uuid=unit.uuid,
+            uuid=ou_terminate.uuid,
             validity=Validity(
-                from_date=unit.from_date,
-                to_date=unit.to_date,
+                from_date=ou_terminate.from_date,
+                to_date=ou_terminate.to_date,
             ),
         ),
         role_type=mapping.ORG_UNIT,
         event_type=mapping.EventType.ON_BEFORE,
-        uuid=unit.uuid,
+        uuid=ou_terminate.uuid,
     )
 
     trigger_dict = org_unit_trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not unit.trigger_less:
+    if not ou_terminate.trigger_less:
         _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
-    lora_result = await lora_conn.organisationenhed.update(lora_payload, unit.uuid)
+    lora_result = await lora_conn.organisationenhed.update(
+        ou_terminate.get_lora_payload(), ou_terminate.uuid
+    )
     trigger_dict[Trigger.RESULT] = lora_result
 
     # ON_AFTER
@@ -204,14 +204,14 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     )
 
     # ON_AFTER
-    if not unit.trigger_less:
+    if not ou_terminate.trigger_less:
         _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
     return OrganizationUnit(uuid=trigger_dict.get(Trigger.RESULT))
 
 
-def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
+def _get_terminate_effect(unit: OrganisationUnitTerminate) -> dict:
     if unit.from_date and unit.to_date:
         return common._create_virkning(
             _get_terminate_effect_from_date(unit), _get_terminate_effect_to_date(unit)
@@ -234,7 +234,7 @@ def _get_terminate_effect(unit: OrganizationUnitTerminateInput) -> dict:
 
 
 def _get_terminate_effect_from_date(
-    unit: OrganizationUnitTerminateInput,
+    unit: OrganisationUnitTerminate,
 ) -> datetime.datetime:
     if not unit.from_date or not isinstance(unit.from_date, datetime.datetime):
         raise exceptions.ErrorCodes.V_MISSING_START_DATE()
@@ -248,7 +248,7 @@ def _get_terminate_effect_from_date(
 
 
 def _get_terminate_effect_to_date(
-    unit: OrganizationUnitTerminateInput,
+    unit: OrganisationUnitTerminate,
 ) -> datetime.datetime:
     if not unit.to_date:
         return POSITIVE_INFINITY
@@ -262,7 +262,7 @@ def _get_terminate_effect_to_date(
 
 
 def _create_trigger_dict_from_org_unit_input(
-    unit: OrganizationUnitTerminateInput,
+    unit: OrganisationUnitTerminate,
 ) -> dict:
     uuid_str = str(unit.uuid)
 
