@@ -10,7 +10,6 @@
 import datetime
 import logging
 from typing import cast
-from typing import Optional
 from uuid import UUID
 
 from strawberry.dataloader import DataLoader
@@ -77,23 +76,15 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
 
 
 async def terminate_org_unit_validation(
-    unit_uuid: UUID,
-    from_date: Optional[datetime.datetime],
-    to_date: Optional[datetime.datetime],
+    ou_terminate: OrganisationUnitTerminate,
 ) -> None:
-    uuid_str = str(unit_uuid)
+    uuid_str = str(ou_terminate.uuid)
 
     # Get & verify basic date
-    if from_date and to_date:
-        if not from_date or not isinstance(from_date, datetime.date):
-            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
-        date = from_date
+    if ou_terminate.from_date and ou_terminate.to_date:
+        date = ou_terminate.get_terminate_effect_from_date()
     else:
-        if to_date and to_date.time() != datetime.time.min:
-            raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                "{!r} is not at midnight!".format(to_date.isoformat()),
-            )
-        date = to_date + ONE_DAY if to_date else POSITIVE_INFINITY
+        date = ou_terminate.get_terminate_effect_to_date()
 
     # Verify date against OrgUnit range
     await validator.is_date_range_in_org_unit_range(
@@ -152,11 +143,8 @@ async def terminate_org_unit_validation(
 async def terminate_org_unit(
     ou_terminate: OrganisationUnitTerminate,
 ) -> OrganizationUnit:
-    # Validate the Organization Unit
     try:
-        await terminate_org_unit_validation(
-            ou_terminate.uuid, ou_terminate.from_date, ou_terminate.to_date
-        )
+        await terminate_org_unit_validation(ou_terminate)
     except Exception as e:
         logger.exception("ERROR validating termination request.")
         raise e
