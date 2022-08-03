@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Vue from 'vue'
+import Vue from "vue"
 
 export default Vue.extend({
-  name: 'MoInputBase',
+  name: "MoInputBase",
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   props: {
@@ -26,7 +26,7 @@ export default Vue.extend({
      */
     id: {
       type: [String, Number],
-      default: null
+      default: null,
     },
     /**
      * Set a label.
@@ -35,7 +35,7 @@ export default Vue.extend({
      */
     label: {
       type: String,
-      default: null
+      default: null,
     },
     /**
      * Wether this field is required.
@@ -44,7 +44,7 @@ export default Vue.extend({
      */
     required: {
       type: Boolean,
-      default: false
+      default: false,
     },
     /**
      * Wether this field is disabled.
@@ -53,13 +53,13 @@ export default Vue.extend({
      */
     disabled: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
-  data () {
+  data() {
     return {
-      internalValue: null
+      internalValue: null,
     }
   },
 
@@ -68,15 +68,15 @@ export default Vue.extend({
      * Provide a unique identifier
      * @type {String}
      */
-    identifier () {
-      return this.id ? this.id : 'mo-input-' + this._uid
+    identifier() {
+      return this.id ? this.id : "mo-input-" + this._uid
     },
 
     /**
      * Does it have a label
      * @type {Boolean}
      */
-    hasLabel () {
+    hasLabel() {
       return this.label != null
     },
 
@@ -84,30 +84,30 @@ export default Vue.extend({
      * Is the field required
      * @type {Boolean}
      */
-    isRequired () {
+    isRequired() {
       return this.disabled ? false : this.required
-    }
+    },
   },
   watch: {
     /**
      * Emit internal value when it changes
      * @emits value
      */
-    internalValue (newVal) {
-      this.$emit('input', newVal)
+    internalValue(newVal) {
+      this.$emit("input", newVal)
     },
 
     /**
      * Whenever value change, set selected to the new val and validate the name.
      */
-    value (val) {
+    value(val) {
       this.internalValue = val
       if (document.getElementById(this.identifier)) {
         this.$validator.validate(this.identifier)
       }
-    }
+    },
   },
-  created () {
+  created() {
     this.internalValue = this.value
-  }
+  },
 })

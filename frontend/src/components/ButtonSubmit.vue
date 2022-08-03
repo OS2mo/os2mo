@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <button
@@ -8,10 +7,10 @@ SPDX-License-Identifier: MPL-2.0
       v-if="!isLoading"
       :disabled="disabled"
     >
-      <icon name="check"/>
+      <icon name="check" />
     </button>
 
-    <mo-loader v-else/>
+    <mo-loader v-else />
   </div>
 </template>
 
@@ -20,10 +19,10 @@ SPDX-License-Identifier: MPL-2.0
  * A button submit component.
  */
 
-import MoLoader from '@/components/atoms/MoLoader'
+import MoLoader from "@/components/atoms/MoLoader"
 export default {
   components: {
-    MoLoader
+    MoLoader,
   },
 
   props: {
@@ -32,7 +31,7 @@ export default {
      */
     isLoading: Boolean,
 
-    disabled: Boolean
-  }
+    disabled: Boolean,
+  },
 }
 </script>

@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <h5 :class="smallButtons ? 'h5-label' : ''">
@@ -8,11 +7,11 @@ SPDX-License-Identifier: MPL-2.0
         type="button"
         class="btn btn-outline-success"
         :class="smallButtons ? 'btn-sm' : ''"
-        style="border:none!important"
+        style="border: none !important"
       >
-        <icon name="plus"/>
+        <icon name="plus" />
       </button>
-      {{label}}
+      {{ label }}
     </h5>
     <div v-for="(v, index) in values" :key="index">
       <mo-removable-component
@@ -33,11 +32,11 @@ SPDX-License-Identifier: MPL-2.0
  * A add many component.
  */
 
-import MoRemovableComponent from './MoRemovableComponent'
+import MoRemovableComponent from "./MoRemovableComponent"
 
 export default {
   components: {
-    MoRemovableComponent
+    MoRemovableComponent,
   },
 
   props: {
@@ -47,7 +46,7 @@ export default {
     value: Array,
     entryComponent: {
       type: Object,
-      required: true
+      required: true,
     },
 
     /**
@@ -78,29 +77,29 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The values component value.
        * Used to detect changes and restore the value.
        */
-      values: []
+      values: [],
     }
   },
 
-  updated () {
+  updated() {
     /**
      * Called after data change.
      * Update value if value lenght is not 0.
      */
-    let data = this.values.filter(value => Object.keys(value).length !== 0)
-    this.$emit('input', data)
+    let data = this.values.filter((value) => Object.keys(value).length !== 0)
+    this.$emit("input", data)
   },
 
-  mounted () {
+  mounted() {
     /**
      * Show values else add new values.
      */
@@ -117,10 +116,10 @@ export default {
     /**
      * Push new values.
      */
-    add () {
+    add() {
       this.values.push({})
-    }
-  }
+    },
+  },
 }
 </script>
 

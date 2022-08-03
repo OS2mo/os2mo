@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <mo-address-entry
     facet="org_unit_address_type"
@@ -7,7 +6,7 @@ SPDX-License-Identifier: MPL-2.0
     :validityHidden="validityHidden"
     :required="required"
     :label="label"
-    :disabled-dates="{disabledDates}"
+    :disabled-dates="{ disabledDates }"
   />
 </template>
 
@@ -16,14 +15,14 @@ SPDX-License-Identifier: MPL-2.0
  * A manager address picker component.
  */
 
-import { MoAddressEntry } from '@/components/MoEntry'
+import { MoAddressEntry } from "@/components/MoEntry"
 
 export default {
-  name: 'MoOrgUnitAddressEntry',
+  name: "MoOrgUnitAddressEntry",
   extends: MoAddressEntry,
 
   components: {
-    MoAddressEntry
+    MoAddressEntry,
   },
 
   props: {
@@ -32,8 +31,8 @@ export default {
      */
     facet: {
       type: String,
-      required: false
-    }
-  }
+      required: false,
+    },
+  },
 }
 </script>

@@ -1,10 +1,9 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <mo-cpr-search v-model="result" required/>
+    <mo-cpr-search v-model="result" required />
 
-    <mo-cpr-result v-model="result"/>
+    <mo-cpr-result v-model="result" />
   </div>
 </template>
 
@@ -13,24 +12,24 @@ SPDX-License-Identifier: MPL-2.0
  * A cpr component.
  */
 
-import MoCprSearch from './MoCprSearch'
-import MoCprResult from './MoCprResult'
+import MoCprSearch from "./MoCprSearch"
+import MoCprResult from "./MoCprResult"
 
 export default {
-  name: 'MoCpr',
+  name: "MoCpr",
 
   components: {
     MoCprSearch,
-    MoCprResult
+    MoCprResult,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The result component value.
        * Used to detect changes and restore the value.
        */
-      result: {}
+      result: {},
     }
   },
 
@@ -38,9 +37,9 @@ export default {
     /**
      * Whenever result change update val.
      */
-    result (val) {
-      this.$emit('input', val)
-    }
-  }
+    result(val) {
+      this.$emit("input", val)
+    },
+  },
 }
 </script>

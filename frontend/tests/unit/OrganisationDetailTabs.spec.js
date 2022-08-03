@@ -1,20 +1,21 @@
 // SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import { createLocalVue, mount } from '@vue/test-utils'
-import Vuex from 'vuex'
-import OrganisationDetailTabs from '@/views/organisation/OrganisationDetailTabs.vue'
+import { createLocalVue, mount } from "@vue/test-utils"
+import Vuex from "vuex"
+import OrganisationDetailTabs from "@/views/organisation/OrganisationDetailTabs.vue"
 
-describe('OrganisationDetailTabs.vue', () => {
-  const dateA = '2020-01-01', dateB = '2020-12-31'
-  const spyLoadContent = jest.spyOn(OrganisationDetailTabs.methods, 'loadContent')
+describe("OrganisationDetailTabs.vue", () => {
+  const dateA = "2020-01-01",
+    dateB = "2020-12-31"
+  const spyLoadContent = jest.spyOn(OrganisationDetailTabs.methods, "loadContent")
 
   let mountComponent = () => {
     // Mock Vue '$t' translation function
     const $t = (msg) => msg
 
     // Mock Vue $route
-    const $route = { params: { name: 'name', uuid: 'uuid' } }
+    const $route = { params: { name: "name", uuid: "uuid" } }
 
     // Set up local Vue object
     const localVue = createLocalVue()
@@ -23,13 +24,15 @@ describe('OrganisationDetailTabs.vue', () => {
     // Set up mock Vuex store
     const store = new Vuex.Store({
       getters: {
-        'atDate/GET': () => { return dateA },
+        "atDate/GET": () => {
+          return dateA
+        },
       },
     })
 
     // Mock 'uuid' and 'orgUnitInfo' properties
     const propsData = {
-      uuid: 'uuid',
+      uuid: "uuid",
       orgUnitInfo: {
         user_settings: {
           org_unit: {
@@ -39,9 +42,9 @@ describe('OrganisationDetailTabs.vue', () => {
             show_level: true,
             show_primary_engagement: true,
             show_primary_association: true,
-          }
-        }
-      }
+          },
+        },
+      },
     }
 
     const wrapper = mount(OrganisationDetailTabs, {
@@ -50,8 +53,10 @@ describe('OrganisationDetailTabs.vue', () => {
       propsData: propsData,
       mocks: { $t, $route },
       computed: {
-        route: () => { return $route },
-      }
+        route: () => {
+          return $route
+        },
+      },
     })
 
     return {
@@ -60,22 +65,22 @@ describe('OrganisationDetailTabs.vue', () => {
     }
   }
 
-  it('should read the date when the component is mounted', async () => {
+  it("should read the date when the component is mounted", async () => {
     // This relies on the initial 'atDate' being set to `dateA` in the mock
     // Vuex store
     const env = mountComponent()
     expect(env.wrapper.vm._atDate).toEqual(dateA)
   })
 
-  it('should call `loadContent` for past, present and future on date changes', async () => {
-    const expectedDetail = 'org_unit'
+  it("should call `loadContent` for past, present and future on date changes", async () => {
+    const expectedDetail = "org_unit"
     const env = mountComponent()
     env.wrapper.vm.$options.watch.atDate.call(env.wrapper.vm, dateB)
 
     let showEvents = env.wrapper.emitted().show
     expect(showEvents.length).toEqual(3)
 
-    for (var validity of ['past', 'present', 'future']) {
+    for (var validity of ["past", "present", "future"]) {
       expect(spyLoadContent).toHaveBeenCalledWith(expectedDetail, validity)
       // Find 'show' events emitted from `loadContent`
       var matchingShowEvents = []

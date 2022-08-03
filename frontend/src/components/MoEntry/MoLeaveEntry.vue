@@ -1,19 +1,14 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden || validityHidden"
-      :disabled-dates="{disabledDates}"
+      :disabled-dates="{ disabledDates }"
     />
 
     <div class="form-row">
-      <mo-facet-picker
-        facet="leave_type"
-        v-model="entry.leave_type"
-        required
-      />
+      <mo-facet-picker facet="leave_type" v-model="entry.leave_type" required />
     </div>
 
     <div class="form-row">
@@ -32,34 +27,34 @@ SPDX-License-Identifier: MPL-2.0
  * A leave entry component.
  */
 
-import { MoInputDateRange } from '@/components/MoInput'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
-import MoEntryBase from './MoEntryBase'
+import { MoInputDateRange } from "@/components/MoInput"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoEngagementPicker from "@/components/MoPicker/MoEngagementPicker"
+import MoEntryBase from "./MoEntryBase"
 
 export default {
   extends: MoEntryBase,
-  name: 'MoLeaveEntry',
+  name: "MoLeaveEntry",
   components: {
     MoInputDateRange,
     MoEngagementPicker,
-    MoFacetPicker
+    MoFacetPicker,
   },
 
   props: {
     /**
      * Defines the validity.
      */
-    validity: Object
+    validity: Object,
   },
 
   computed: {
     /**
      * Hides the validity.
      */
-    datePickerHidden () {
+    datePickerHidden() {
       return this.validity != null
-    }
+    },
   },
 
   watch: {
@@ -67,19 +62,19 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'leave'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "leave"
+        this.$emit("input", newVal)
       },
-      deep: true
+      deep: true,
     },
 
     /**
      * When validity change, update newVal.
      */
-    validity (newVal) {
+    validity(newVal) {
       this.entry.validity = newVal
-    }
-  }
+    },
+  },
 }
 </script>

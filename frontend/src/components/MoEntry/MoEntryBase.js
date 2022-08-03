@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Vue from 'vue'
+import Vue from "vue"
 
 export default Vue.extend({
-  name: 'MoEntryBase',
+  name: "MoEntryBase",
 
   props: {
     /**
@@ -14,7 +14,7 @@ export default Vue.extend({
      */
     value: {
       type: Object,
-      default: null
+      default: null,
     },
 
     /**
@@ -24,7 +24,7 @@ export default Vue.extend({
      */
     validityHidden: {
       type: Boolean,
-      default: false
+      default: false,
     },
     /**
      * The valid dates for the entry component date pickers.
@@ -39,18 +39,18 @@ export default Vue.extend({
      */
     isEdit: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
-  data () {
+  data() {
     return {
       /**
-      * The entry component value.
-      * @default {}
-      * @type {Object}
-      */
-      entry: {}
+       * The entry component value.
+       * @default {}
+       * @type {Object}
+       */
+      entry: {},
     }
   },
   computed: {
@@ -59,15 +59,15 @@ export default Vue.extend({
      * @default mo-entry-<uid>
      * @type {String}
      */
-    identifier () {
-      return 'mo-entry-' + this._uid
-    }
+    identifier() {
+      return "mo-entry-" + this._uid
+    },
   },
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set entry to value.
      */
     this.entry = this.value
-  }
+  },
 })

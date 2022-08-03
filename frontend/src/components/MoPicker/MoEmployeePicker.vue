@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <label>{{ label }}</label>
@@ -19,7 +18,7 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <span v-show="errors.has('employee-picker')" class="text-danger">
-      {{ errors.first('employee-picker') }}
+      {{ errors.first("employee-picker") }}
     </span>
   </div>
 </template>
@@ -29,26 +28,26 @@ SPDX-License-Identifier: MPL-2.0
  * A employee picker component.
  */
 
-import sortBy from 'lodash.sortby'
-import Search from '@/api/Search'
-import VAutocomplete from 'v-autocomplete'
-import 'v-autocomplete/dist/v-autocomplete.css'
-import MoSearchBarTemplate from '@/components/MoSearchBar/MoSearchBarTemplate'
+import sortBy from "lodash.sortby"
+import Search from "@/api/Search"
+import VAutocomplete from "v-autocomplete"
+import "v-autocomplete/dist/v-autocomplete.css"
+import MoSearchBarTemplate from "@/components/MoSearchBar/MoSearchBarTemplate"
 
 export default {
-  name: 'MoEmployeePicker',
+  name: "MoEmployeePicker",
 
   components: {
     /* TODO: Use `MoAutocomplete` instead which relies on a better third party
      * autocomplete widget. */
-    VAutocomplete
+    VAutocomplete,
   },
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   props: {
@@ -67,66 +66,65 @@ export default {
      */
     label: {
       type: String,
-      default: function() {
-          return this.$tc('input_fields.employee')
-      }
-    }
+      default: function () {
+        return this.$tc("input_fields.employee")
+      },
+    },
   },
 
-  data () {
+  data() {
     return {
       item: null,
       items: [],
-      template: MoSearchBarTemplate
+      template: MoSearchBarTemplate,
     }
   },
 
   computed: {
-    orderedListOptions () {
-      return sortBy(this.items, 'name')
+    orderedListOptions() {
+      return sortBy(this.items, "name")
     },
-    validations () {
+    validations() {
       let validations = {
         required: this.required,
-        employee: [this.validity]
+        employee: [this.validity],
       }
       if (this.extraValidations) {
         validations = { ...validations, ...this.extraValidations }
       }
       return validations
-    }
+    },
   },
 
   watch: {
-    item (newVal) {
-      this.$validator.validate('employee-picker')
-      this.$emit('input', newVal)
-    }
+    item(newVal) {
+      this.$validator.validate("employee-picker")
+      this.$emit("input", newVal)
+    },
   },
 
   methods: {
     /**
      * Get employee name.
      */
-    getLabel (item) {
+    getLabel(item) {
       return item ? item.name : null
     },
 
     /**
      * Update employees suggestions based on search query.
      */
-    updateItems (query) {
+    updateItems(query) {
       let vm = this
       let org = this.$store.state.organisation
-      Search.employees(org.uuid, query)
-        .then(response => {
-          vm.items = response
-        })
-    }
+      Search.employees(org.uuid, query).then((response) => {
+        vm.items = response
+      })
+    },
   },
 
-  created () {
+  created() {
     this.item = this.value
-  }
+  },
 }
 </script>

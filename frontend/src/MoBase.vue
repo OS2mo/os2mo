@@ -1,22 +1,21 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-    <mo-navbar/>
+    <mo-navbar />
     <div>
-      <router-view/>
+      <router-view />
     </div>
   </div>
 </template>
 
 <script>
-import MoNavbar from '@/components/MoNavbar'
+import MoNavbar from "@/components/MoNavbar"
 
 export default {
   components: {
-    MoNavbar
+    MoNavbar,
   },
 
-  name: 'MoBase'
+  name: "MoBase",
 }
 </script>

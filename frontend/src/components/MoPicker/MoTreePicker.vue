@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group">
     <label :for="nameId">{{ label }}</label>
@@ -15,27 +14,33 @@ SPDX-License-Identifier: MPL-2.0
       v-model="unitName"
       @click.stop="toggleTree()"
       v-validate="validations"
-    >
+    />
 
     <div class="mo-input-group" v-show="showTree">
-      <mo-tree-view v-model="selectedSuperUnitUuid"
-                    ref="moTreeView"
-                    :disabled-unit="disabledUnit && disabledUnit.uuid"
-                    :at-date="validity && validity.from"
-                    :get_ancestor_tree="get_ancestor_tree"
-                    :get_toplevel_children="get_toplevel_children"
-                    :get_children="get_children"
-                    :get_store_uuid="get_store_uuid"
+      <mo-tree-view
+        v-model="selectedSuperUnitUuid"
+        ref="moTreeView"
+        :disabled-unit="disabledUnit && disabledUnit.uuid"
+        :at-date="validity && validity.from"
+        :get_ancestor_tree="get_ancestor_tree"
+        :get_toplevel_children="get_toplevel_children"
+        :get_children="get_children"
+        :get_store_uuid="get_store_uuid"
       />
     </div>
 
-    <div class="mo-input-group search-results"
-         v-show="searchResults.length > 0 || searchResultLoading">
+    <div
+      class="mo-input-group search-results"
+      v-show="searchResults.length > 0 || searchResultLoading"
+    >
       <mo-loader v-show="searchResultLoading" />
-      <a href="#"
-         v-show="!searchResultLoading"
-         v-for="(result, index) in searchResults" :key="index"
-         @click.prevent="selectSearchResult(result)">
+      <a
+        href="#"
+        v-show="!searchResultLoading"
+        v-for="(result, index) in searchResults"
+        :key="index"
+        @click.prevent="selectSearchResult(result)"
+      >
         <span v-for="(part, index) in result.path" :key="index">
           {{ part }}
           <span v-if="index != result.path.length - 1">&raquo;</span>
@@ -54,11 +59,11 @@ SPDX-License-Identifier: MPL-2.0
  * A tree picker component.
  */
 
-import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import MoLoader from '@/components/atoms/MoLoader'
+import MoTreeView from "@/components/MoTreeView/MoTreeView"
+import MoLoader from "@/components/atoms/MoLoader"
 
 export default {
-  name: 'MoTreePicker',
+  name: "MoTreePicker",
 
   components: {
     MoTreeView,
@@ -69,7 +74,7 @@ export default {
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   props: {
@@ -98,7 +103,7 @@ export default {
      */
     validity: {
       type: [Object, undefined],
-      required: false
+      required: false,
     },
 
     /**
@@ -109,10 +114,10 @@ export default {
     /**
      * An object of additional validations to be performed
      */
-    extraValidations: Object
+    extraValidations: Object,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The selectedSuperUnitUuid, showTree, unitName component value.
@@ -124,8 +129,8 @@ export default {
       unitName: null,
       // Data for the search results
       searchResults: [],
-      searchResultLoading: false,  // true if results are currently loading
-      searchResultSelected: false,  // true if a result was just selected
+      searchResultLoading: false, // true if results are currently loading
+      searchResultSelected: false, // true if a result was just selected
     }
   },
 
@@ -133,35 +138,39 @@ export default {
     /**
      * Get name.
      */
-    nameId () {
+    nameId() {
       return this.get_name_id()
     },
 
     /**
      * When its not disable, make it required.
      */
-    isRequired () {
+    isRequired() {
       if (this.isDisabled) return false
       return this.required
     },
 
-    validations () {
+    validations() {
       let validations = {
-        required: this.required
+        required: this.required,
       }
       let subclass_validations = this.get_validations()
       if (this.extraValidations) {
-        validations = { ...validations, ...subclass_validations, ...this.extraValidations }
+        validations = {
+          ...validations,
+          ...subclass_validations,
+          ...this.extraValidations,
+        }
       }
       return validations
-    }
+    },
   },
 
   watch: {
     /**
      * Whenever selectedSuperUnit change, update newVal.
      */
-    async selectedSuperUnitUuid (newVal) {
+    async selectedSuperUnitUuid(newVal) {
       if (!newVal) {
         return
       }
@@ -173,13 +182,12 @@ export default {
       this.$refs[this.nameId].blur()
       this.showTree = false
 
-      await this.$emit('input', unit)
+      await this.$emit("input", unit)
 
       // NB: we don't perform validations until _after_ we've notified
       // the model using the event above. this avoids a race condition
       // where the extraValidations refer to our model (see #29570)
       this.$validator.validate(this.nameId)
-
     },
 
     validity: {
@@ -192,23 +200,25 @@ export default {
             this.showTree = false
             this.unitName = null
             this.unitUuid = null
-            this.$emit('input', null)
+            this.$emit("input", null)
           }
         }
 
         if (newVal && (newVal.from || newVal.to)) {
           this.$refs.moTreeView.updateValidity(newVal)
         }
-      }
-    }
+      },
+    },
   },
 
-  mounted () {
+  mounted() {
     /**
      * Called after the instance has been mounted.
      * Set selectedSuperUnitUuid as value.
      */
-    this.selectedSuperUnitUuid = this.value ? this.value.uuid : this.selectedSuperUnitUuid
+    this.selectedSuperUnitUuid = this.value
+      ? this.value.uuid
+      : this.selectedSuperUnitUuid
   },
 
   methods: {
@@ -279,30 +289,30 @@ export default {
      */
     async get_entry(newVal) {
       console.log("Not overridden: get_entry!")
-    }
-  }
+    },
+  },
 }
 </script>
 
 <style scoped>
-  .form-group {
-    position: relative;
-  }
-  .mo-input-group {
-    z-index: 999;
-    background-color: #fff;
-    width: 100%;
-    padding: 0.375rem 0.75rem;
-    position: absolute;
-    border: 1px solid #ced4da;
-    border-radius: 0 0 0.25rem;
-    transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
-  }
-  .mo-input-group.search-results {
-    max-height: 50vh;
-    overflow-y: scroll;
-  }
-  .mo-input-group.search-results a {
-    display: block;
-  }
+.form-group {
+  position: relative;
+}
+.mo-input-group {
+  z-index: 999;
+  background-color: #fff;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  position: absolute;
+  border: 1px solid #ced4da;
+  border-radius: 0 0 0.25rem;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+.mo-input-group.search-results {
+  max-height: 50vh;
+  overflow-y: scroll;
+}
+.mo-input-group.search-results a {
+  display: block;
+}
 </style>

@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <b-modal
     id="orgUnitRename"
@@ -35,14 +34,14 @@ SPDX-License-Identifier: MPL-2.0
         />
       </div>
       <div class="alert alert-danger" v-if="compareName">
-        {{$t('alerts.error.COMPARE_ORG_RENAME_NAMES')}}
+        {{ $t("alerts.error.COMPARE_ORG_RENAME_NAMES") }}
       </div>
       <div class="alert alert-danger" v-if="backendValidationMessage">
-        {{backendValidationMessage}}
+        {{ backendValidationMessage }}
       </div>
 
       <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading" />
       </div>
     </form>
   </b-modal>
@@ -53,16 +52,16 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation unit rename component.
  */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import { MoInputText, MoInputDate } from '@/components/MoInput'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
-import { mapGetters } from 'vuex'
-import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
-import MoEntryBase from '@/components/MoEntry/MoEntryBase'
-import moment from 'moment'
+import OrganisationUnit from "@/api/OrganisationUnit"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import { MoInputText, MoInputDate } from "@/components/MoInput"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import ValidateForm from "@/mixins/ValidateForm"
+import ModalBase from "@/mixins/ModalBase"
+import { mapGetters } from "vuex"
+import { OrganisationUnit as OrgUnit } from "@/store/actions/organisationUnit"
+import MoEntryBase from "@/components/MoEntry/MoEntryBase"
+import moment from "moment"
 
 export default {
   extends: MoEntryBase,
@@ -73,10 +72,10 @@ export default {
     MoInputDate,
     MoOrganisationUnitPicker,
     MoInputText,
-    ButtonSubmit
+    ButtonSubmit,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The rename, original, isLoading component value.
@@ -84,18 +83,18 @@ export default {
        */
       original: this.orgUnit,
       rename: {
-        type: 'org_unit',
+        type: "org_unit",
         data: {
-          name: '',
-          uuid: '',
+          name: "",
+          uuid: "",
           clamp: true,
           validity: {
-            from: moment(new Date()).format('YYYY-MM-DD')
-          }
-        }
+            from: moment(new Date()).format("YYYY-MM-DD"),
+          },
+        },
       },
       isLoading: false,
-      backendValidationMessage: null
+      backendValidationMessage: null,
     }
   },
 
@@ -104,14 +103,14 @@ export default {
      * Get organisation unit
      */
     ...mapGetters({
-      orgUnit: OrgUnit.getters.GET_ORG_UNIT
+      orgUnit: OrgUnit.getters.GET_ORG_UNIT,
     }),
 
     /**
      * Compare if the unit names are identical.
      * If then return false.
      */
-    compareName () {
+    compareName() {
       if (this.rename.data.name && this.original.name) {
         if (this.original.name == null) return true
         if (this.rename.data.name === this.original.name) return true
@@ -119,14 +118,14 @@ export default {
       return false
     },
 
-    validity () {
+    validity() {
       return {
         // Validation is meant to check an instant in time,
         // which is why 'to' is duplicated
-        'from': this.rename.data.validity.to,
-        'to': this.rename.data.validity.to
+        from: this.rename.data.validity.to,
+        to: this.rename.data.validity.to,
       }
-    }
+    },
   },
 
   watch: {
@@ -134,20 +133,20 @@ export default {
      * Whenever orgUnit changes, this function will run.
      */
     orgUnit: {
-      handler (val) {
+      handler(val) {
         this.original = val
         if (val) {
           this.rename.data.uuid = val.uuid
         }
       },
-      deep: true
+      deep: true,
     },
-    original (val) {
+    original(val) {
       this.rename.data.uuid = val && val.uuid
-    }
+    },
   },
 
-  mounted () {
+  mounted() {
     /**
      * After the entire view has been rendered.
      * Set original to orgUnit.
@@ -161,10 +160,10 @@ export default {
     /**
      * Resets the data fields name and validity.
      */
-    resetData () {
-      this.rename.data.name = ''
+    resetData() {
+      this.rename.data.name = ""
       this.rename.data.uuid = this.original && this.original.uuid
-      this.rename.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
+      this.rename.data.validity.from = moment(new Date()).format("YYYY-MM-DD")
       this.backendValidationMessage = null
     },
 
@@ -172,7 +171,7 @@ export default {
      * Rename a organisation unit and check if the data fields are valid.
      * Then throw a error if not.
      */
-    renameOrganisationUnit (evt) {
+    renameOrganisationUnit(evt) {
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
@@ -188,22 +187,26 @@ export default {
       }
     },
 
-    handle (response) {
+    handle(response) {
       this.isLoading = false
       if (response.error) {
-        this.backendValidationMessage =
-          this.$t('alerts.error.' + response.error_key, response)
+        this.backendValidationMessage = this.$t(
+          "alerts.error." + response.error_key,
+          response
+        )
 
         if (!this.backendValidationMessage) {
-          this.backendValidationMessage = this.$t('alerts.fallback', response)
+          this.backendValidationMessage = this.$t("alerts.fallback", response)
         }
       } else {
         this.backendValidationMessage = null
         this.$refs.orgUnitRename.hide()
-        this.$store.commit('log/newWorkLog', { type: 'ORGANISATION_RENAME',
-          value: {original_name: this.original.name, new_name: this.rename.data.name} })
+        this.$store.commit("log/newWorkLog", {
+          type: "ORGANISATION_RENAME",
+          value: { original_name: this.original.name, new_name: this.rename.data.name },
+        })
       }
-    }
-  }
+    },
+  },
 }
 </script>

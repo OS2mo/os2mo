@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="row" id="employee">
     <div class="col-12">
-      <router-view :key="route.params.uuid"/>
-      <mo-log/>
+      <router-view :key="route.params.uuid" />
+      <mo-log />
     </div>
-    <mo-employee-workflows/>
+    <mo-employee-workflows />
   </div>
 </template>
 
@@ -14,25 +13,25 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A employee component.
  */
-import { mapState } from 'vuex'
-import MoEmployeeWorkflows from './MoEmployeeWorkflows'
-import MoLog from '@/components/MoLog/MoLog'
+import { mapState } from "vuex"
+import MoEmployeeWorkflows from "./MoEmployeeWorkflows"
+import MoLog from "@/components/MoLog/MoLog"
 
 export default {
   components: {
     MoEmployeeWorkflows,
-    MoLog
+    MoLog,
   },
   computed: {
     ...mapState({
-      route: 'route'
-    })
-  }
+      route: "route",
+    }),
+  },
 }
 </script>
 
 <style scoped>
-  #employee {
-    padding: 0 15px 0 15px;
-  }
+#employee {
+  padding: 0 15px 0 15px;
+}
 </style>

@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <b-modal
     id="orgUnitMove"
@@ -34,13 +33,13 @@ SPDX-License-Identifier: MPL-2.0
 
       <div class="form-row">
         <div class="form-group col">
-          <label>{{$t('input_fields.current_super_unit')}}</label>
+          <label>{{ $t("input_fields.current_super_unit") }}</label>
           <input
             type="text"
             class="form-control"
             :value="original && original.parent && original.parent.name"
             disabled
-          >
+          />
         </div>
       </div>
 
@@ -55,11 +54,13 @@ SPDX-License-Identifier: MPL-2.0
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
+        {{
+          $t("alerts.error." + backendValidationError.error_key, backendValidationError)
+        }}
       </div>
 
       <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading" />
       </div>
     </form>
   </b-modal>
@@ -70,15 +71,15 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation unit move component.
  */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import { MoInputDate } from '@/components/MoInput'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
-import { mapGetters } from 'vuex'
-import { OrganisationUnit as OrgUnit } from '@/store/actions/organisationUnit'
-import moment from 'moment'
+import OrganisationUnit from "@/api/OrganisationUnit"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import { MoInputDate } from "@/components/MoInput"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import ValidateForm from "@/mixins/ValidateForm"
+import ModalBase from "@/mixins/ModalBase"
+import { mapGetters } from "vuex"
+import { OrganisationUnit as OrgUnit } from "@/store/actions/organisationUnit"
+import moment from "moment"
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -86,10 +87,10 @@ export default {
   components: {
     MoOrganisationUnitPicker,
     MoInputDate,
-    ButtonSubmit
+    ButtonSubmit,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The move, parentUnit, uuid, original, isLoading, backendValidationError component value.
@@ -98,77 +99,81 @@ export default {
       original: this.orgUnit,
       parent: null,
       move: {
-        type: 'org_unit',
+        type: "org_unit",
         data: {
           parent: {
-            uuid: ''
+            uuid: "",
           },
-          uuid: '',
+          uuid: "",
           clamp: true,
           validity: {
-            from: moment(new Date()).format('YYYY-MM-DD')
-          }
-        }
+            from: moment(new Date()).format("YYYY-MM-DD"),
+          },
+        },
       },
       isLoading: false,
-      backendValidationError: null
+      backendValidationError: null,
     }
   },
 
   computed: {
     ...mapGetters({
-      orgUnit: OrgUnit.getters.GET_ORG_UNIT
+      orgUnit: OrgUnit.getters.GET_ORG_UNIT,
     }),
 
     /**
      * A validity of one day, corresponding to the required validity
      * of units: They only need to be valid on the date of the operation.
      */
-    requiredValidity () {
+    requiredValidity() {
       return {
         from: this.move.data.validity.from,
-        to: this.move.data.validity.from
+        to: this.move.data.validity.from,
       }
     },
 
-    unitValidations () {
+    unitValidations() {
       return {
-        movable_org_unit: [this.original]
+        movable_org_unit: [this.original],
       }
     },
 
-    parentValidations () {
+    parentValidations() {
       return {
-        candidate_parent_org_unit: [this.original, this.move.data.parent, this.move.data.validity]
+        candidate_parent_org_unit: [
+          this.original,
+          this.move.data.parent,
+          this.move.data.validity,
+        ],
       }
-    }
+    },
   },
 
   watch: {
     /**
      * If original exist show its parent.
      */
-    "original.uuid" (newVal) {
+    "original.uuid"(newVal) {
       this.move.data.uuid = newVal
     },
-    "parent.uuid" (newVal) {
+    "parent.uuid"(newVal) {
       this.move.data.parent.uuid = newVal
     },
     orgUnit: {
-      handler (val) {
+      handler(val) {
         this.original = val
         if (val) {
           this.move.data.uuid = val.uuid
         }
       },
-      deep: true
+      deep: true,
     },
-    original (val) {
+    original(val) {
       this.move.data.uuid = val && val.uuid
-    }
+    },
   },
 
-  mounted () {
+  mounted() {
     /**
      * After the entire view has been rendered.
      * Set original to orgUnit.
@@ -180,8 +185,8 @@ export default {
     /**
      * Resets the data fields.
      */
-    resetData () {
-      this.move.data.validity.from = moment(new Date()).format('YYYY-MM-DD')
+    resetData() {
+      this.move.data.validity.from = moment(new Date()).format("YYYY-MM-DD")
       this.move.data.uuid = this.original && this.original.uuid
       this.parent = null
       this.backendValidationError = null
@@ -191,24 +196,25 @@ export default {
      * Move a organisation unit and check if the data fields are valid.
      * Then throw a error if not.
      */
-    moveOrganisationUnit (evt) {
+    moveOrganisationUnit(evt) {
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
         vm.isLoading = true
-        OrganisationUnit.move(this.move, this.original.name, this.parent.name)
-          .then(response => {
+        OrganisationUnit.move(this.move, this.original.name, this.parent.name).then(
+          (response) => {
             vm.isLoading = false
             if (response.error) {
               vm.backendValidationError = response
             } else {
               vm.$refs.orgUnitMove.hide()
             }
-          })
+          }
+        )
       } else {
         this.$validator.validateAll()
       }
-    }
-  }
+    },
+  },
 }
 </script>
