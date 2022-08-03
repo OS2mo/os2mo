@@ -1,29 +1,28 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Service from '@/api/HttpCommon'
+import Service from "@/api/HttpCommon"
 
 const state = {
-  queries: []
+  queries: [],
 }
 
 const actions = {
   getQueries: ({ commit }) => {
-    Service.get('/exports/')
-      .then(response => {
-        commit('setQueries', response.data)
-      })
-  }
+    Service.get("/exports/").then((response) => {
+      commit("setQueries", response.data)
+    })
+  },
 }
 
 const mutations = {
-  setQueries (store, payload) {
+  setQueries(store, payload) {
     store.queries = payload
-  }
+  },
 }
 
 const getters = {
-  getQueries: state => state.queries
+  getQueries: (state) => state.queries,
 }
 
 export default {
@@ -31,5 +30,5 @@ export default {
   state,
   actions,
   mutations,
-  getters
+  getters,
 }

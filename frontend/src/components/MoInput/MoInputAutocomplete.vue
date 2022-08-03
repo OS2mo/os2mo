@@ -1,8 +1,7 @@
-SPDX-FileCopyrightText: 2019-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2019-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group col">
-    <label v-if="hasLabel" :for="identifier">{{label}}</label>
+    <label v-if="hasLabel" :for="identifier">{{ label }}</label>
 
     <v-autocomplete
       v-model="internalValue"
@@ -13,7 +12,7 @@ SPDX-License-Identifier: MPL-2.0
       :component-item="componentItem"
       @update-items="updateItems"
       :min-len="minLen"
-      v-validate="{required: isRequired}"
+      v-validate="{ required: isRequired }"
     />
 
     <span v-show="errors.has(identifier)" class="text-danger">
@@ -26,9 +25,9 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * Autocomplete component
  */
-import MoInputBase from './MoInputBase'
-import VAutocomplete from 'v-autocomplete'
-import 'v-autocomplete/dist/v-autocomplete.css'
+import MoInputBase from "./MoInputBase"
+import VAutocomplete from "v-autocomplete"
+import "v-autocomplete/dist/v-autocomplete.css"
 
 export default {
   /**
@@ -38,17 +37,16 @@ export default {
    */
   extends: VAutocomplete,
   mixins: [MoInputBase],
-  name: 'MoInputAutocomplete',
+  name: "MoInputAutocomplete",
   components: {
     /* TODO: Use `MoAutocomplete` instead which relies on a better third party
      * autocomplete widget. */
-    VAutocomplete
+    VAutocomplete,
   },
   methods: {
-    updateItems (query) {
-      this.$emit('update-items', query)
-    }
-  }
+    updateItems(query) {
+      this.$emit("update-items", query)
+    },
+  },
 }
-
 </script>

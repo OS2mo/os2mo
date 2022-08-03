@@ -1,15 +1,14 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <span>
-    <mo-loader v-show="isLoading"/>
+    <mo-loader v-show="isLoading" />
 
     <p class="col no-address" v-show="!isLoading && noAddresses && orgUnit">
-      {{$t('input_fields.no_addresses_associated_to_org_unit')}}
+      {{ $t("input_fields.no_addresses_associated_to_org_unit") }}
     </p>
 
     <div class="form-group" v-show="!isLoading && !noAddresses">
-      <label :for="nameId">{{label}}</label>
+      <label :for="nameId">{{ label }}</label>
       <select
         class="form-control col"
         v-model="selected"
@@ -20,13 +19,9 @@ SPDX-License-Identifier: MPL-2.0
         :noAddresses="noAddresses"
         @change="updateSelectedAddress()"
       >
-        <option disabled>{{label}}</option>
-        <option
-          v-for="a in orderedListOptions"
-          :key="a.uuid"
-          :value="a"
-        >
-          ({{a.address_type.name}}) {{a.name}}
+        <option disabled>{{ label }}</option>
+        <option v-for="a in orderedListOptions" :key="a.uuid" :value="a">
+          ({{ a.address_type.name }}) {{ a.name }}
         </option>
       </select>
     </div>
@@ -37,22 +32,22 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A address picker component.
  */
-import sortBy from 'lodash.sortby'
-import OrganisationUnit from '@/api/OrganisationUnit'
-import MoLoader from '@/components/atoms/MoLoader'
+import sortBy from "lodash.sortby"
+import OrganisationUnit from "@/api/OrganisationUnit"
+import MoLoader from "@/components/atoms/MoLoader"
 
 export default {
-  name: 'AddressPicker',
+  name: "AddressPicker",
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   components: {
-    MoLoader
+    MoLoader,
   },
 
   props: {
@@ -65,17 +60,17 @@ export default {
      * Defines a orgUnit.
      */
     orgUnit: {
-      type: Object
-    }
+      type: Object,
+    },
   },
 
-  data () {
+  data() {
     return {
       /**
        * The label component value.
        * Used to set a default value.
        */
-      label: 'Adresser',
+      label: "Adresser",
 
       /**
        * The selected, addresses, isLoading component value.
@@ -83,7 +78,7 @@ export default {
        */
       selected: {},
       addresses: [],
-      isLoading: false
+      isLoading: false,
     }
   },
 
@@ -91,43 +86,43 @@ export default {
     /**
      * Get name `mo-address-picker`.
      */
-    nameId () {
-      return 'mo-address-picker-' + this._uid
+    nameId() {
+      return "mo-address-picker-" + this._uid
     },
 
     /**
      * Disable orgUnit.
      */
-    isDisabled () {
+    isDisabled() {
       return this.orgUnit == null
     },
 
     /**
      * Return blank address.
      */
-    noAddresses () {
+    noAddresses() {
       return this.addresses.length === 0
     },
 
-    orderedListOptions () {
-      return sortBy(this.addresses, 'address_type.name')
-    }
+    orderedListOptions() {
+      return sortBy(this.addresses, "address_type.name")
+    },
   },
 
   watch: {
     /**
      * Whenever orgUnit change, get addresses.
      */
-    orgUnit () {
+    orgUnit() {
       this.getAddresses()
-    }
+    },
   },
 
   /**
    * Called after the instance has been mounted.
    * Get addresses and set selected as value.
    */
-  mounted () {
+  mounted() {
     this.getAddresses()
     this.selected = this.value
   },
@@ -136,31 +131,30 @@ export default {
     /**
      * Get organisation unit address details.
      */
-    getAddresses () {
+    getAddresses() {
       if (this.orgUnit == null) return
       let vm = this
       vm.isLoading = true
-      OrganisationUnit.getAddressDetails(this.orgUnit.uuid)
-        .then(response => {
-          vm.isLoading = false
-          vm.addresses = response
-        })
+      OrganisationUnit.getAddressDetails(this.orgUnit.uuid).then((response) => {
+        vm.isLoading = false
+        vm.addresses = response
+      })
     },
 
     /**
      * Update selected address.
      */
-    updateSelectedAddress () {
-      this.$emit('input', this.selected)
-    }
-  }
+    updateSelectedAddress() {
+      this.$emit("input", this.selected)
+    },
+  },
 }
 </script>
 
 <style scoped>
- .no-address {
-    margin-top: 2.5rem;
-    opacity: 0.5;
-    font-style: italic;
-  }
+.no-address {
+  margin-top: 2.5rem;
+  opacity: 0.5;
+  font-style: italic;
+}
 </style>

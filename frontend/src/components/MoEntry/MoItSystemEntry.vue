@@ -1,11 +1,10 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div :id="identifier">
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <div class="form-row">
@@ -22,11 +21,7 @@ SPDX-License-Identifier: MPL-2.0
         required
       />
 
-      <mo-input-primary-check
-        class="col checkbox"
-        v-model="entry.primary"
-      />
-
+      <mo-input-primary-check class="col checkbox" v-model="entry.primary" />
     </div>
   </div>
 </template>
@@ -35,17 +30,17 @@ SPDX-License-Identifier: MPL-2.0
 /**
  * A it system entry component.
  */
-import MoItSystemPicker from '@/components/MoPicker/MoItSystemPicker'
-import MoInputPrimaryCheck from '@/components/MoInput/MoInputPrimaryCheck'
-import { MoInputText, MoInputDateRange } from '@/components/MoInput'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import MoItSystemPicker from "@/components/MoPicker/MoItSystemPicker"
+import MoInputPrimaryCheck from "@/components/MoInput/MoInputPrimaryCheck"
+import { MoInputText, MoInputDateRange } from "@/components/MoInput"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
-  name: 'MoItSystemEntry',
+  name: "MoItSystemEntry",
   components: {
     MoInputText,
     MoInputDateRange,
@@ -58,12 +53,12 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'it'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "it"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 }
 </script>

@@ -1,10 +1,9 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-row">
     <span class="btn btn-link" v-if="hidden">
-      <a @click="hidden=false">
-        {{$t('buttons.select_another_date')}}
+      <a @click="hidden = false">
+        {{ $t("buttons.select_another_date") }}
       </a>
     </span>
 
@@ -29,8 +28,8 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="col-1" v-if="!hidden && initiallyHidden">
-      <button class="btn btn-sm btn-outline-danger" @click="hidden=true">
-        <icon name="minus"/>
+      <button class="btn btn-sm btn-outline-danger" @click="hidden = true">
+        <icon name="minus" />
       </button>
     </div>
   </div>
@@ -41,13 +40,13 @@ SPDX-License-Identifier: MPL-2.0
  * A date picker range component.
  */
 
-import MoInputDate from './MoInputDate'
-import moment from 'moment'
+import MoInputDate from "./MoInputDate"
+import moment from "moment"
 
 export default {
-  name: 'MoInputDateRange',
+  name: "MoInputDateRange",
   components: {
-    MoInputDate
+    MoInputDate,
   },
 
   props: {
@@ -69,18 +68,18 @@ export default {
     /**
      * Defines disable dates.
      */
-    disabledDates: Object
+    disabledDates: Object,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The validFrom, validTo, hidden component value.
        * Used to detect changes and restore the value.
        */
-      validFrom: moment(new Date()).format('YYYY-MM-DD'),
+      validFrom: moment(new Date()).format("YYYY-MM-DD"),
       validTo: null,
-      hidden: false
+      hidden: false,
     }
   },
 
@@ -88,7 +87,7 @@ export default {
     /**
      * Disable the dates before the choosen start date.
      */
-    validStartDateRange () {
+    validStartDateRange() {
       let range = this.getRanges(this.disabledDates)
       if (this.validTo && (!range.to || new Date(this.validTo) < range.to)) {
         range.to = new Date(this.validTo)
@@ -99,13 +98,13 @@ export default {
     /**
      * Disable the dates after the choosen end date.
      */
-    validEndDateRange () {
+    validEndDateRange() {
       let range = this.getRanges(this.disabledDates)
       if (this.validFrom && new Date(this.validFrom) > range.from) {
         range.from = new Date(this.validFrom)
       }
       return range
-    }
+    },
   },
 
   watch: {
@@ -113,24 +112,24 @@ export default {
      * Whenever value change, update the from and to date.
      */
     value: {
-      handler (newVal) {
+      handler(newVal) {
         if (this.hidden) {
           this.validFrom = newVal.from
           this.validTo = newVal.to
         }
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
 
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set the from and to date to value.
      */
     this.hidden = this.initiallyHidden
     if (this.value !== undefined) {
-      this.validFrom = moment(new Date()).format('YYYY-MM-DD')
+      this.validFrom = moment(new Date()).format("YYYY-MM-DD")
       this.validTo = this.value.to
     }
   },
@@ -139,10 +138,10 @@ export default {
     /**
      * Find the earliest from date and latest to date from all disabledDates
      */
-    getRanges (disabledDates) {
+    getRanges(disabledDates) {
       let range = {
         from: null,
-        to: null
+        to: null,
       }
 
       let fromValues = []
@@ -165,10 +164,14 @@ export default {
       }
 
       if (fromValues && fromValues.length > 0) {
-        range.from = fromValues.reduce(function (a, b) { return a < b ? a : b })
+        range.from = fromValues.reduce(function (a, b) {
+          return a < b ? a : b
+        })
       }
       if (toValues && toValues.length > 0) {
-        range.to = toValues.reduce(function (a, b) { return a > b ? a : b })
+        range.to = toValues.reduce(function (a, b) {
+          return a > b ? a : b
+        })
       }
 
       return range
@@ -177,10 +180,10 @@ export default {
     /**
      * Update the from and to date.
      */
-    updateDate () {
+    updateDate() {
       let obj = {
         from: null,
-        to: null
+        to: null,
       }
       if (this.validFrom) {
         obj.from = this.validFrom
@@ -188,8 +191,8 @@ export default {
       if (this.validTo) {
         obj.to = this.validTo
       }
-      this.$emit('input', obj)
-    }
-  }
+      this.$emit("input", obj)
+    },
+  },
 }
 </script>

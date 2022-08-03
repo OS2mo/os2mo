@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-const webpack = require('webpack')
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin
+const webpack = require("webpack")
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin
 
 // Names of folders in "./src/modules/"
 // This duplicates the contents of "./moduleNames.js" (which is an ES6 module
@@ -10,12 +10,12 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const _moduleNames = ["organisationMapper", "query", "insight"]
 
 module.exports = {
-  assetsDir: 'static',
+  assetsDir: "static",
   lintOnSave: true,
   runtimeCompiler: true, // allows the template option in components
-  chainWebpack: config => {
+  chainWebpack: (config) => {
     // disable eslinting for now...
-    config.module.rules.delete('eslint')
+    config.module.rules.delete("eslint")
   },
   configureWebpack: {
     plugins: [
@@ -25,41 +25,39 @@ module.exports = {
         MODULES: JSON.stringify(_moduleNames),
       }),
       new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
-        openAnalyzer: false
-      })
+        analyzerMode: "static",
+        openAnalyzer: false,
+      }),
     ],
     optimization: {
       splitChunks: {
-        chunks: 'all',
+        chunks: "all",
         minSize: 10000,
         maxSize: 250000,
         cacheGroups: {
           vendor: {
             test: /[\\/]node_modules[\\/]/,
-            reuseExistingChunk: true
-          }
-        }
-      }
+            reuseExistingChunk: true,
+          },
+        },
+      },
     },
-    stats: 'errors-warnings'
+    stats: "errors-warnings",
   },
-  transpileDependencies: [
-    /\bvue-awesome\b/
-  ],
+  transpileDependencies: [/\bvue-awesome\b/],
   pluginOptions: {
     i18n: {
       // Specifies the default locale for vue-i18n
-      locale: 'da',
+      locale: "da",
       // Specifies the default fallback locale for vue-i18n
-      fallbackLocale: 'da',
-      localeDir: 'i18n',
-      enableInSFC: false
-    }
+      fallbackLocale: "da",
+      localeDir: "i18n",
+      enableInSFC: false,
+    },
   },
   devServer: {
     disableHostCheck: true,
     progress: false,
-    port: 80
-  }
+    port: 80,
+  },
 }

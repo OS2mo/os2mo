@@ -1,11 +1,10 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <div class="form-row">
@@ -32,23 +31,23 @@ SPDX-License-Identifier: MPL-2.0
  * A role entry component.
  */
 
-import { MoInputDateRange } from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import { MoInputDateRange } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoRoleEntry',
+  name: "MoRoleEntry",
 
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
-    MoFacetPicker
+    MoFacetPicker,
   },
 
   watch: {
@@ -56,12 +55,12 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'role'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "role"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 }
 </script>

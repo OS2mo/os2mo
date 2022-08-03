@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <label>{{ item.location.name }}</label>
@@ -21,11 +20,11 @@ export default {
       type: Object,
       default: () => {
         return {
-          location: {}
+          location: {},
         }
       },
-      required: true
-    }
-  }
+      required: true,
+    },
+  },
 }
 </script>

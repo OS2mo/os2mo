@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       class="address-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
     <div class="form-row">
       <mo-facet-picker
@@ -31,7 +30,9 @@ SPDX-License-Identifier: MPL-2.0
             v-model="address"
             required
           />
-          <label :for="identifier" v-if="!isDarAddress">{{entry.address_type.name}}</label>
+          <label :for="identifier" v-if="!isDarAddress">{{
+            entry.address_type.name
+          }}</label>
           <textarea
             :name="identifier"
             :id="identifier"
@@ -40,7 +41,7 @@ SPDX-License-Identifier: MPL-2.0
             v-model.trim="contactInfo"
             type="text"
             class="form-control"
-            v-validate="{required: true, address: this.entry.address_type}"
+            v-validate="{ required: true, address: this.entry.address_type }"
           >
           </textarea>
           <textarea
@@ -51,7 +52,7 @@ SPDX-License-Identifier: MPL-2.0
             v-model.trim="contactInfo2"
             type="text"
             class="form-control"
-            v-validate="{required: false, address: this.entry.address_type}"
+            v-validate="{ required: false, address: this.entry.address_type }"
           >
           </textarea>
           <input
@@ -62,7 +63,7 @@ SPDX-License-Identifier: MPL-2.0
             v-model.trim="contactInfo"
             type="text"
             class="form-control"
-            v-validate="{required: true, address: this.entry.address_type}"
+            v-validate="{ required: true, address: this.entry.address_type }"
           />
         </div>
         <span v-show="errors.has(identifier)" class="text-danger">
@@ -78,29 +79,29 @@ SPDX-License-Identifier: MPL-2.0
  * A address entry component.
  */
 
-import MoAddressSearch from '@/components/MoAddressSearch'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import { MoInputDateRange } from '@/components/MoInput'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import MoAddressSearch from "@/components/MoAddressSearch"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import { MoInputDateRange } from "@/components/MoInput"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
-  name: 'MoAddressEntry',
+  name: "MoAddressEntry",
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   components: {
     MoAddressSearch,
     MoFacetPicker,
-    MoInputDateRange
+    MoInputDateRange,
   },
 
   props: {
@@ -122,21 +123,21 @@ export default {
      */
     facet: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
 
-  data () {
+  data() {
     return {
       /**
        * The contactInfo, entry, address, addressScope component value.
        * Used to detect changes and restore the value.
        */
-      contactInfo: '',
-      contactInfo2: '',
+      contactInfo: "",
+      contactInfo2: "",
       entry: {},
       address: null,
-      addressScope: null
+      addressScope: null,
     }
   },
 
@@ -145,8 +146,9 @@ export default {
      * If the address is a DAR.
      * @type {Boolean}
      */
-    isDarAddress () {
-      if (this.entry.address_type != null) return this.entry.address_type.scope === 'DAR'
+    isDarAddress() {
+      if (this.entry.address_type != null)
+        return this.entry.address_type.scope === "DAR"
       return false
     },
 
@@ -154,8 +156,9 @@ export default {
      * If the address is a PHONE.
      * @type {Boolean}
      */
-    isPhone () {
-      if (this.entry.address_type != null) return this.entry.address_type.scope === 'PHONE'
+    isPhone() {
+      if (this.entry.address_type != null)
+        return this.entry.address_type.scope === "PHONE"
       return false
     },
 
@@ -163,32 +166,34 @@ export default {
      * If the address requires multi-line input (textarea)
      * @type {Boolean}
      */
-    isMultiLineText () {
-      return (this.entry.address_type != null) && (
-          (this.entry.address_type.scope === 'TEXT') ||
-          (this.entry.address_type.scope === 'MULTIFIELD_TEXT')
+    isMultiLineText() {
+      return (
+        this.entry.address_type != null &&
+        (this.entry.address_type.scope === "TEXT" ||
+          this.entry.address_type.scope === "MULTIFIELD_TEXT")
       )
     },
-
 
     /**
      * If the address requires multi-field input (textarea)
      * @type {Boolean}
      */
-    isMultiFieldText () {
-      return (this.entry.address_type != null) &&
-        (this.entry.address_type.scope === 'MULTIFIELD_TEXT')
+    isMultiFieldText() {
+      return (
+        this.entry.address_type != null &&
+        this.entry.address_type.scope === "MULTIFIELD_TEXT"
+      )
     },
 
     /**
      * Every scopes validity rules.
      */
-    validityRules () {
+    validityRules() {
       return {
         required: true,
-        address: this.entry.address_type
+        address: this.entry.address_type,
       }
-    }
+    },
   },
 
   watch: {
@@ -196,48 +201,48 @@ export default {
      * Whenever contactInfo change, update entry with a Array.
      */
     contactInfo: {
-      handler (newValue) {
-        this.entry.type = 'address'
+      handler(newValue) {
+        this.entry.type = "address"
         this.entry.value = newValue
-        this.$emit('input', this.entry)
-      }
+        this.$emit("input", this.entry)
+      },
     },
 
     contactInfo2: {
-      handler (newValue) {
-        this.entry.type = 'address'
+      handler(newValue) {
+        this.entry.type = "address"
         this.entry.value2 = newValue
-        this.$emit('input', this.entry)
-      }
+        this.$emit("input", this.entry)
+      },
     },
 
     /**
      * When entry change, update the newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'address'
-        newVal.org = this.$store.getters['organisation/GET_ORGANISATION']
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "address"
+        newVal.org = this.$store.getters["organisation/GET_ORGANISATION"]
+        this.$emit("input", newVal)
       },
-      deep: true
+      deep: true,
     },
 
     /**
      * Whenever address change, update.
      */
     address: {
-      handler (val) {
+      handler(val) {
         if (val == null) return
-        if (this.entry.address_type.scope === 'DAR') {
+        if (this.entry.address_type.scope === "DAR") {
           this.entry.value = val.location.uuid
         }
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
 
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set entry and contactInfo to value.
@@ -246,13 +251,13 @@ export default {
       this.address = {
         location: {
           name: this.value.name,
-          uuid: this.value.value
-        }
+          uuid: this.value.value,
+        },
       }
       this.contactInfo = this.value.value
       this.contactInfo2 = this.value.value2
     }
     this.entry = this.value
-  }
+  },
 }
 </script>

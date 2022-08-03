@@ -1,11 +1,10 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <div class="form-row">
@@ -20,11 +19,7 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
     <div class="form-row select-manager">
-      <mo-facet-picker
-        facet="kle_number"
-        v-model="entry.kle_number"
-        required
-      />
+      <mo-facet-picker facet="kle_number" v-model="entry.kle_number" required />
     </div>
 
     <mo-add-many
@@ -43,27 +38,27 @@ SPDX-License-Identifier: MPL-2.0
  * A manager entry component.
  */
 
-import { MoInputDateRange } from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoEntryBase from './MoEntryBase.js'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import { MoInputDateRange } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoAddMany from "@/components/MoAddMany/MoAddMany"
+import MoEmployeePicker from "@/components/MoPicker/MoEmployeePicker"
+import MoEntryBase from "./MoEntryBase.js"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoKLEEntry',
+  name: "MoKLEEntry",
 
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
     MoAddMany,
-    MoEmployeePicker
+    MoEmployeePicker,
   },
 
   props: {
@@ -75,38 +70,38 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
   computed: {
     /**
      * Adds the facetPicker template to the add many component.
      */
-    facetPicker () {
+    facetPicker() {
       return {
         components: {
-          MoFacetPicker
+          MoFacetPicker,
         },
 
         props: {
-          value: Object
+          value: Object,
         },
 
-        data () {
+        data() {
           return {
-            val: this.value
+            val: this.value,
           }
         },
 
         watch: {
-          val (newVal) {
-            this.$emit('input', newVal)
-          }
+          val(newVal) {
+            this.$emit("input", newVal)
+          },
         },
 
-        template: `<div class="form-row"><mo-facet-picker facet="kle_aspect" v-model="val" required/></div>`
+        template: `<div class="form-row"><mo-facet-picker facet="kle_aspect" v-model="val" required/></div>`,
       }
-    }
+    },
   },
 
   watch: {
@@ -114,12 +109,12 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'kle'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "kle"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 }
 </script>

@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2018-2022 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2022 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <mo-employee-picker
@@ -27,7 +26,6 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
     <div class="form-row" style="align-items: flex-end">
-
       <mo-organisation-unit-picker
         v-if="!hideOrgPicker"
         class="col unit-association"
@@ -38,25 +36,12 @@ SPDX-License-Identifier: MPL-2.0
         :extra-validations="validations"
       />
 
-      <mo-it-account-picker
-        class="select-itAccount"
-        v-model="entry.it"
-        required
-      />
+      <mo-it-account-picker class="select-itAccount" v-model="entry.it" required />
 
-      <mo-input-primary-check
-        class="col checkbox"
-        v-model="entry.primary"
-      />
-
+      <mo-input-primary-check class="col checkbox" v-model="entry.primary" />
     </div>
 
-    <mo-facet-picker
-      :facet="jobFunctionFacet"
-      v-model="entry.job_function"
-      required
-    />
-
+    <mo-facet-picker :facet="jobFunctionFacet" v-model="entry.job_function" required />
   </div>
 </template>
 
@@ -65,25 +50,25 @@ SPDX-License-Identifier: MPL-2.0
  * An IT association entry component.
  */
 
-import MoInputPrimaryCheck from '@/components/MoInput/MoInputPrimaryCheck'
-import MoItAccountPicker from '@/components/MoPicker/MoItAccountPicker'
-import { MoInputDateRange, MoInputText} from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoRecursiveFacetPicker from '@/components/MoPicker/MoRecursiveFacetPicker'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
-import { Employee } from '@/store/actions/employee'
-import { mapGetters } from 'vuex'
-import { Facet } from '@/store/actions/facet'
+import MoInputPrimaryCheck from "@/components/MoInput/MoInputPrimaryCheck"
+import MoItAccountPicker from "@/components/MoPicker/MoItAccountPicker"
+import { MoInputDateRange, MoInputText } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoEmployeePicker from "@/components/MoPicker/MoEmployeePicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoRecursiveFacetPicker from "@/components/MoPicker/MoRecursiveFacetPicker"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
+import { Employee } from "@/store/actions/employee"
+import { mapGetters } from "vuex"
+import { Facet } from "@/store/actions/facet"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoItAssociationEntry',
+  name: "MoItAssociationEntry",
 
   props: {
     /**
@@ -94,51 +79,55 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
-  data: function() {
+  data: function () {
     return {
       primary_types: null,
     }
   },
 
   computed: {
-
     ...mapGetters({
-      currentEmployee: Employee.getters.GET_EMPLOYEE
+      currentEmployee: Employee.getters.GET_EMPLOYEE,
     }),
 
-    validations () {
+    validations() {
       return {}
     },
 
-    jobFunctionFacet () {
+    jobFunctionFacet() {
       // Ask backend if an "engagement_job_function_bvn" facet exists
-      let facet = this.$store.getters[Facet.getters.GET_FACET]('engagement_job_function_bvn')
+      let facet = this.$store.getters[Facet.getters.GET_FACET](
+        "engagement_job_function_bvn"
+      )
 
       if (Object.keys(facet).length) {
         // If it does, it contains the user-facing job titles, and we should use it
-        return 'engagement_job_function_bvn'
+        return "engagement_job_function_bvn"
       } else {
         // If not, we should use the regular job title classes instead
-        return 'engagement_job_function'
+        return "engagement_job_function"
       }
+    },
+  },
+
+  created() {
+    if (
+      !(this.entry.person && this.entry.person.name) &&
+      this.currentEmployee &&
+      this.currentEmployee.name
+    ) {
+      this.$set(this.entry, "person", this.currentEmployee)
     }
   },
 
-  created () {
-    if (!(this.entry.person && this.entry.person.name) &&
-      (this.currentEmployee && this.currentEmployee.name)){
-      this.$set(this.entry, 'person', this.currentEmployee)
-    }
-  },
-
-  mounted () {
+  mounted() {
     // Dispatch backend request to check if facet "engagement_job_function_bvn" exists
-    this.$store.dispatch(
-      Facet.actions.SET_FACET, { facet: 'engagement_job_function_bvn' }
-    )
+    this.$store.dispatch(Facet.actions.SET_FACET, {
+      facet: "engagement_job_function_bvn",
+    })
   },
 
   components: {
@@ -149,7 +138,7 @@ export default {
     MoRecursiveFacetPicker,
     MoInputText,
     MoItAccountPicker,
-    MoInputPrimaryCheck
+    MoInputPrimaryCheck,
   },
 
   watch: {
@@ -157,16 +146,15 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'association'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "association"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
 
   methods: {
-
     /**
      * Find the first element in the array fulfilling the predicate
      * @param {Array} arr - Array to search for elements in
@@ -175,11 +163,11 @@ export default {
      * @returns {Any} the found element in the list or null
      */
     find(arr, test, ctx) {
-      let result = null;
-      arr.some(function(el, i) {
-        return test.call(ctx, el, i, arr) ? ((result = el), true) : false;
-      });
-      return result;
+      let result = null
+      arr.some(function (el, i) {
+        return test.call(ctx, el, i, arr) ? ((result = el), true) : false
+      })
+      return result
     },
 
     /**
@@ -193,10 +181,9 @@ export default {
         this.entry.dynamic_classes = []
       }
       // Find the correct element if it exists
-      let entry = this.find(
-        this.entry.dynamic_classes,
-        item => { return item['top_level_facet']['uuid'] === dynamic}
-      )
+      let entry = this.find(this.entry.dynamic_classes, (item) => {
+        return item["top_level_facet"]["uuid"] === dynamic
+      })
       return entry
     },
 
@@ -220,8 +207,8 @@ export default {
      */
     facet_uuid_to_label(uuid) {
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
-      return facet_getter(uuid)['description']
-    }
-  }
+      return facet_getter(uuid)["description"]
+    },
+  },
 }
 </script>

@@ -1,13 +1,9 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div v-if="hasEntryComponent">
-    <button
-      class="btn btn-outline-primary"
-      v-b-modal="nameId"
-    >
-      <icon name="plus"/>
-      {{ $t('buttons.create_new') }}
+    <button class="btn btn-outline-primary" v-b-modal="nameId">
+      <icon name="plus" />
+      {{ $t("buttons.create_new") }}
     </button>
 
     <b-modal
@@ -18,11 +14,7 @@ SPDX-License-Identifier: MPL-2.0
       :ref="nameId"
       lazy
     >
-
-      <mo-input-date-range
-        v-model="validity"
-        :disabled-dates="{disabledDates}"
-      />
+      <mo-input-date-range v-model="validity" :disabled-dates="{ disabledDates }" />
 
       <form @submit.stop.prevent="create">
         <mo-add-many
@@ -36,11 +28,16 @@ SPDX-License-Identifier: MPL-2.0
         />
 
         <div class="alert alert-danger" v-if="backendValidationError">
-          {{ $t('alerts.error.' + backendValidationError.error_key, backendValidationError) }}
+          {{
+            $t(
+              "alerts.error." + backendValidationError.error_key,
+              backendValidationError
+            )
+          }}
         </div>
 
         <div class="float-right">
-          <button-submit :is-loading="isLoading"/>
+          <button-submit :is-loading="isLoading" />
         </div>
       </form>
     </b-modal>
@@ -52,15 +49,15 @@ SPDX-License-Identifier: MPL-2.0
  * A entry create modal component.
  */
 
-import Employee from '@/api/Employee'
-import OrganisationUnit from '@/api/OrganisationUnit'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
-import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import {MoInputDateRange} from "@/components/MoInput"
-import Engagement from '@/api/Engagement'
+import Employee from "@/api/Employee"
+import OrganisationUnit from "@/api/OrganisationUnit"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import ValidateForm from "@/mixins/ValidateForm"
+import ModalBase from "@/mixins/ModalBase"
+import bModalDirective from "bootstrap-vue/es/directives/modal/modal"
+import MoAddMany from "@/components/MoAddMany/MoAddMany"
+import { MoInputDateRange } from "@/components/MoInput"
+import Engagement from "@/api/Engagement"
 
 export default {
   mixins: [ValidateForm, ModalBase],
@@ -68,10 +65,10 @@ export default {
   components: {
     ButtonSubmit,
     MoInputDateRange,
-    MoAddMany
+    MoAddMany,
   },
   directives: {
-    'b-modal': bModalDirective
+    "b-modal": bModalDirective,
   },
 
   props: {
@@ -92,11 +89,12 @@ export default {
       type: String,
       required: true,
       validator(value) {
-        if (value === 'EMPLOYEE' || value === 'ORG_UNIT' || value === 'ENGAGEMENT') return true
-        console.warn('Action must be either EMPLOYEE or ORG_UNIT or ENGAGEMENT')
+        if (value === "EMPLOYEE" || value === "ORG_UNIT" || value === "ENGAGEMENT")
+          return true
+        console.warn("Action must be either EMPLOYEE or ORG_UNIT or ENGAGEMENT")
         return false
-      }
-    }
+      },
+    },
   },
 
   data() {
@@ -109,7 +107,7 @@ export default {
       subject: {},
       validity: {},
       isLoading: false,
-      backendValidationError: null
+      backendValidationError: null,
     }
   },
 
@@ -118,7 +116,7 @@ export default {
      * Get name `moCreate`.
      */
     nameId() {
-      return 'moCreate' + this._uid
+      return "moCreate" + this._uid
     },
 
     /**
@@ -132,37 +130,37 @@ export default {
      * Get hideOrgPicker type.
      */
     hideOrgPicker() {
-      return this.type === 'ORG_UNIT'
+      return this.type === "ORG_UNIT"
     },
 
     /**
      * Get hideEmployeePicker type.
      */
     hideEmployeePicker() {
-      return this.type === 'EMPLOYEE'
+      return this.type === "EMPLOYEE"
     },
 
     disabledDates() {
-      if (this.type === 'ORG_UNIT') {
-        return this.subject.validity;
+      if (this.type === "ORG_UNIT") {
+        return this.subject.validity
       }
-    }
+    },
   },
 
   mounted() {
     /**
      * Whenever it changes, reset data.
      */
-    this.$root.$on('bv::modal::hidden', () => {
+    this.$root.$on("bv::modal::hidden", () => {
       Object.assign(this.$data, this.$options.data())
     })
 
     switch (this.type) {
-      case 'EMPLOYEE':
-        this.subject = {uuid: this.uuid}
+      case "EMPLOYEE":
+        this.subject = { uuid: this.uuid }
         break
-      case 'ORG_UNIT':
-        this.subject = this.$store.getters['organisationUnit/GET_ORG_UNIT']
+      case "ORG_UNIT":
+        this.subject = this.$store.getters["organisationUnit/GET_ORG_UNIT"]
         break
     }
   },
@@ -171,22 +169,22 @@ export default {
     /**
      * Called right before a instance is destroyed.
      */
-    this.$root.$off(['bv::modal::hidden'])
+    this.$root.$off(["bv::modal::hidden"])
   },
 
   watch: {
     entries: {
       deep: true,
       handler: function (val) {
-        if (this.type === 'EMPLOYEE') {
+        if (this.type === "EMPLOYEE") {
           val.forEach((entry) => {
             if (!entry.person) {
-              entry.person = {uuid: this.uuid}
+              entry.person = { uuid: this.uuid }
             }
           })
         }
-      }
-    }
+      },
+    },
   },
 
   methods: {
@@ -199,8 +197,8 @@ export default {
         return
       }
 
-      this.entries.forEach(entry => {
-        entry.org = this.$store.getters['organisation/GET_ORGANISATION']
+      this.entries.forEach((entry) => {
+        entry.org = this.$store.getters["organisation/GET_ORGANISATION"]
         if (!entry.validity) {
           entry.validity = this.validity
         }
@@ -209,21 +207,21 @@ export default {
       this.isLoading = true
 
       switch (this.type) {
-        case 'EMPLOYEE':
+        case "EMPLOYEE":
           this.entries.forEach((entry) => {
-            entry.person = {uuid: this.uuid}
+            entry.person = { uuid: this.uuid }
           })
           this.createEmployeeEntries(this.entries)
           break
-        case 'ORG_UNIT':
+        case "ORG_UNIT":
           this.entries.forEach((entry) => {
-            entry.org_unit = {uuid: this.uuid}
+            entry.org_unit = { uuid: this.uuid }
           })
           this.createOrganisationUnitEntries(this.entries)
           break
-        case 'ENGAGEMENT':
+        case "ENGAGEMENT":
           this.entries.forEach((entry) => {
-            entry.engagement = {uuid: this.uuid}
+            entry.engagement = { uuid: this.uuid }
           })
           this.createEngagementEntries(this.entries)
           break
@@ -236,25 +234,26 @@ export default {
      */
     createEmployeeEntries(data) {
       let vm = this
-      Employee.create(data)
-        .then(response => {
-          vm.isLoading = false
-          if (response.error) {
-            vm.backendValidationError = response
-          } else {
-            vm.$refs[this.nameId].hide()
-            this.$emit('submit')
-            for (const dat of data) {
-              this.$store.commit('log/newWorkLog',
-                {
-                  type: 'FUNCTION_CREATE',
-                  contentType: this.contentType,
-                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
-                },
-                {root: true})
-            }
+      Employee.create(data).then((response) => {
+        vm.isLoading = false
+        if (response.error) {
+          vm.backendValidationError = response
+        } else {
+          vm.$refs[this.nameId].hide()
+          this.$emit("submit")
+          for (const dat of data) {
+            this.$store.commit(
+              "log/newWorkLog",
+              {
+                type: "FUNCTION_CREATE",
+                contentType: this.contentType,
+                value: { type: this.$tc(`shared.${dat.type}`, 1) },
+              },
+              { root: true }
+            )
           }
-        })
+        }
+      })
     },
 
     /**
@@ -263,25 +262,26 @@ export default {
      */
     createOrganisationUnitEntries(data) {
       let vm = this
-      return OrganisationUnit.createEntry(data)
-        .then(response => {
-          vm.isLoading = false
-          if (response.error) {
-            vm.backendValidationError = response
-          } else {
-            vm.$refs[this.nameId].hide()
-            this.$emit('submit')
-            for (const dat of data) {
-              this.$store.commit('log/newWorkLog',
-                {
-                  type: 'FUNCTION_CREATE',
-                  contentType: this.contentType,
-                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
-                },
-                {root: true})
-            }
+      return OrganisationUnit.createEntry(data).then((response) => {
+        vm.isLoading = false
+        if (response.error) {
+          vm.backendValidationError = response
+        } else {
+          vm.$refs[this.nameId].hide()
+          this.$emit("submit")
+          for (const dat of data) {
+            this.$store.commit(
+              "log/newWorkLog",
+              {
+                type: "FUNCTION_CREATE",
+                contentType: this.contentType,
+                value: { type: this.$tc(`shared.${dat.type}`, 1) },
+              },
+              { root: true }
+            )
           }
-        })
+        }
+      })
     },
 
     /**
@@ -290,26 +290,27 @@ export default {
      */
     createEngagementEntries(data) {
       let vm = this
-      return Engagement.createEntry(data)
-        .then(response => {
-          vm.isLoading = false
-          if (response.error) {
-            vm.backendValidationError = response
-          } else {
-            vm.$refs[this.nameId].hide()
-            this.$emit('submit')
-            for (const dat of data) {
-              this.$store.commit('log/newWorkLog',
-                {
-                  type: 'FUNCTION_CREATE',
-                  contentType: this.contentType,
-                  value: {type: this.$tc(`shared.${dat.type}`, 1)}
-                },
-                {root: true})
-            }
+      return Engagement.createEntry(data).then((response) => {
+        vm.isLoading = false
+        if (response.error) {
+          vm.backendValidationError = response
+        } else {
+          vm.$refs[this.nameId].hide()
+          this.$emit("submit")
+          for (const dat of data) {
+            this.$store.commit(
+              "log/newWorkLog",
+              {
+                type: "FUNCTION_CREATE",
+                contentType: this.contentType,
+                value: { type: this.$tc(`shared.${dat.type}`, 1) },
+              },
+              { root: true }
+            )
           }
-        })
-    }
-  }
+        }
+      })
+    },
+  },
 }
 </script>

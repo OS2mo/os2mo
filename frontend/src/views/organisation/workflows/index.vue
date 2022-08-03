@@ -1,11 +1,12 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div
-    v-shortkey="{orgUnitCreate: ['ctrl', 'shift', 'c'],
-    orgUnitRename: ['ctrl', 'shift', 'r'],
-    orgUnitMove: ['ctrl', 'shift', 'm'],
-    orgUnitTerminate: ['ctrl', 'shift', 'd']}"
+    v-shortkey="{
+      orgUnitCreate: ['ctrl', 'shift', 'c'],
+      orgUnitRename: ['ctrl', 'shift', 'r'],
+      orgUnitMove: ['ctrl', 'shift', 'm'],
+      orgUnitTerminate: ['ctrl', 'shift', 'd'],
+    }"
     @shortkey="theAction($event)"
   >
     <mo-workflow>
@@ -39,13 +40,13 @@ SPDX-License-Identifier: MPL-2.0
     </mo-workflow>
 
     <!-- Modal Component -->
-    <mo-organisation-unit-create/>
+    <mo-organisation-unit-create />
 
-    <mo-organisation-unit-rename/>
+    <mo-organisation-unit-rename />
 
-    <mo-organisation-unit-move/>
+    <mo-organisation-unit-move />
 
-    <mo-organisation-unit-terminate/>
+    <mo-organisation-unit-terminate />
   </div>
 </template>
 
@@ -54,13 +55,13 @@ SPDX-License-Identifier: MPL-2.0
  * A Organisation workflow component.
  */
 
-import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
-import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
-import MoOrganisationUnitCreate from './MoOrganisationUnitCreate'
-import MoOrganisationUnitRename from './MoOrganisationUnitRename'
-import MoOrganisationUnitMove from './MoOrganisationUnitMove'
-import MoOrganisationUnitTerminate from './MoOrganisationUnitTerminate'
-import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
+import MoWorkflowButton from "@/components/MoWorkflow/MoWorkflowButton"
+import MoWorkflow from "@/components/MoWorkflow/MoWorkflow"
+import MoOrganisationUnitCreate from "./MoOrganisationUnitCreate"
+import MoOrganisationUnitRename from "./MoOrganisationUnitRename"
+import MoOrganisationUnitMove from "./MoOrganisationUnitMove"
+import MoOrganisationUnitTerminate from "./MoOrganisationUnitTerminate"
+import bModalDirective from "bootstrap-vue/es/directives/modal/modal"
 
 export default {
   components: {
@@ -69,18 +70,18 @@ export default {
     MoOrganisationUnitCreate,
     MoOrganisationUnitRename,
     MoOrganisationUnitMove,
-    MoOrganisationUnitTerminate
+    MoOrganisationUnitTerminate,
   },
   directives: {
-    'b-modal': bModalDirective
+    "b-modal": bModalDirective,
   },
   methods: {
     /**
      * Trigger the popup workflows with the key shortcuts.
      */
-    theAction (event) {
-      this.$root.$emit('bv::show::modal', event.srcKey)
-    }
-  }
+    theAction(event) {
+      this.$root.$emit("bv::show::modal", event.srcKey)
+    },
+  },
 }
 </script>

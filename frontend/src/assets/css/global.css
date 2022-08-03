@@ -8,12 +8,12 @@
 
 body {
   background-color: #f2efed;
-  background-image: url('../logo/os2_logo_white.svg');
+  background-image: url("../logo/os2_logo_white.svg");
   background-position: right 1em bottom 1em; /*Positioning*/
   background-repeat: no-repeat; /*Prevent showing multiple background images*/
   background-attachment: fixed; /*Make background image sticky*/
   background-size: 320px;
-  overflow-x:hidden; /*Keeps workflow buttons from overflowing the page*/
+  overflow-x: hidden; /*Keeps workflow buttons from overflowing the page*/
 }
 
 nav {
@@ -26,10 +26,10 @@ nav button.dropdown-toggle {
 }
 
 .logo {
-  background-image: url('../logo/os2_small.svg');
+  background-image: url("../logo/os2_small.svg");
   background-repeat: no-repeat; /*Prevent showing multiple background images*/
   background-position: center;
-  background-color:#002f5d;
+  background-color: #002f5d;
   background-size: 60px;
   width: 60px;
   height: 50px;
@@ -37,8 +37,8 @@ nav button.dropdown-toggle {
 }
 
 .custom_logo_gir {
-  background-image: url('../logo/OS_GIR.png');
-  background-color:#ffffff;
+  background-image: url("../logo/OS_GIR.png");
+  background-color: #ffffff;
 }
 
 .container-top-margin {
@@ -77,7 +77,8 @@ table th {
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
 
-.form-row.name label, .form-row.nickname label {
+.form-row.name label,
+.form-row.nickname label {
   width: 100%;
   padding: 0.5rem 0 0 5px;
 }

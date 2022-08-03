@@ -1,29 +1,29 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Service from './HttpCommon'
+import Service from "./HttpCommon"
 
 const ClassDetails = {
-    FULL_NAME: 'full_name',
-    // NCHILDREN: '',
-    TOP_LEVEL_FACET: 'top_level_facet',
-    FACET: 'facet'
-};
+  FULL_NAME: "full_name",
+  // NCHILDREN: '',
+  TOP_LEVEL_FACET: "top_level_facet",
+  FACET: "facet",
+}
 
 export default {
-    ClassDetails,
+  ClassDetails,
 
   /**
    * Get IT a list of available IT systems
    * @param {String} uuid - organisation uuid
    * @returns {Array} a list of options
    */
-  itSystems (uuid) {
+  itSystems(uuid) {
     return Service.get(`/o/${uuid}/it/`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
   },
@@ -33,12 +33,12 @@ export default {
    * @param {String} uuid - Uuid for the facet to get
    * @returns {Object} a facet object
    */
-  get (uuid) {
+  get(uuid) {
     return Service.get(`/f/${uuid}/`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
   },
@@ -48,12 +48,12 @@ export default {
    * @param {String} uuid - Uuid for current facet
    * @returns {Array} List of classes under the current facet
    */
-  getChildren (uuid) {
+  getChildren(uuid) {
     return Service.get(`/f/${uuid}/children`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
   },
