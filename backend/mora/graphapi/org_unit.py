@@ -192,7 +192,6 @@ async def terminate_org_unit(
     lora_result = await lora_conn.organisationenhed.update(
         ou_terminate.get_lora_payload(), ou_terminate.uuid
     )
-    trigger_dict[Trigger.RESULT] = lora_result
 
     # ON_AFTER
     trigger_dict.update(
@@ -207,7 +206,7 @@ async def terminate_org_unit(
         _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
-    return OrganizationUnit(uuid=trigger_dict.get(Trigger.RESULT))
+    return OrganizationUnit(uuid=lora_result)
 
 
 def _get_terminate_effect(unit: OrganisationUnitTerminate) -> dict:
