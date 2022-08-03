@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
-
     <mo-collapse
       class="detail-future"
       :title="$t('common.future')"
-      @show="$emit('show', 'future')">
+      @show="$emit('show', 'future')"
+    >
       <mo-table
         class="detail-future"
         :columns="columns"
@@ -23,7 +22,8 @@ SPDX-License-Identifier: MPL-2.0
       class="detail-present"
       :title="$t('common.present')"
       visible
-      @show="$emit('show', 'present')">
+      @show="$emit('show', 'present')"
+    >
       <mo-table
         :columns="columns"
         :content="contentStore.present"
@@ -38,7 +38,8 @@ SPDX-License-Identifier: MPL-2.0
     <mo-collapse
       class="detail-past"
       :title="$t('common.past')"
-      @show="$emit('show', 'past')">
+      @show="$emit('show', 'past')"
+    >
       <mo-table
         :columns="columns"
         :content="contentStore.past"
@@ -57,7 +58,6 @@ SPDX-License-Identifier: MPL-2.0
       :entry-component="entryComponent"
       v-if="!hideCreate"
     />
-
   </div>
 </template>
 
@@ -66,15 +66,15 @@ SPDX-License-Identifier: MPL-2.0
  * A employeedetail component.
  */
 
-import MoTable from '@/components/MoTable/MoTable'
-import MoCollapse from '@/components/atoms/MoCollapse'
-import MoEntryCreateModal from '@/components/MoEntryCreateModal'
+import MoTable from "@/components/MoTable/MoTable"
+import MoCollapse from "@/components/atoms/MoCollapse"
+import MoEntryCreateModal from "@/components/MoEntryCreateModal"
 
 export default {
   components: {
     MoTable,
     MoCollapse,
-    MoEntryCreateModal
+    MoEntryCreateModal,
   },
 
   props: {
@@ -107,7 +107,7 @@ export default {
      * Defines a required uuid.
      */
     uuid: {
-      required: true
+      required: true,
     },
 
     /**
@@ -115,15 +115,15 @@ export default {
      */
     type: {
       type: String,
-      required: true
+      required: true,
     },
 
-    hideCreate: Boolean
+    hideCreate: Boolean,
   },
   computed: {
-    contentStore () {
+    contentStore() {
       return this.content || {}
-    }
-  }
+    },
+  },
 }
 </script>

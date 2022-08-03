@@ -1,123 +1,133 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import { getField, updateField } from 'vuex-map-fields'
-import Service from '@/api/HttpCommon'
-import OrganisationUnit from '@/api/OrganisationUnit'
-import { EventBus, Events } from '@/EventBus'
-import moment from 'moment'
+import { getField, updateField } from "vuex-map-fields"
+import Service from "@/api/HttpCommon"
+import OrganisationUnit from "@/api/OrganisationUnit"
+import { EventBus, Events } from "@/EventBus"
+import moment from "moment"
 
 const defaultState = () => {
   return {
     employees: [],
     selected: [],
-    moveDate: moment(new Date()).format('YYYY-MM-DD'),
+    moveDate: moment(new Date()).format("YYYY-MM-DD"),
     orgUnitSource: null,
     orgUnitDestination: null,
     backendValidationError: null,
     columns: [
-      { label: 'person', data: 'person' },
-      { label: 'engagement_type', data: 'engagement_type' },
-      { label: 'job_function', data: 'job_function' }
-    ]
+      { label: "person", data: "person" },
+      { label: "engagement_type", data: "engagement_type" },
+      { label: "job_function", data: "job_function" },
+    ],
   }
 }
 
 const state = defaultState
 
 const actions = {
-  moveManyEmployees ({ commit, state }) {
-    let moves = state.selected.map(engagement => {
+  moveManyEmployees({ commit, state }) {
+    let moves = state.selected.map((engagement) => {
       return {
-        type: 'engagement',
+        type: "engagement",
         uuid: engagement.uuid,
         data: {
           org_unit: state.orgUnitDestination,
           validity: {
-            from: state.moveDate
-          }
-        }
+            from: state.moveDate,
+          },
+        },
       }
     })
 
-    let human_readable_moves = state.selected.map(engagement => {
+    let human_readable_moves = state.selected.map((engagement) => {
       return {
-          name: engagement.person.name,
-          destination: state.orgUnitDestination.name,
+        name: engagement.person.name,
+        destination: state.orgUnitDestination.name,
       }
     })
 
-    commit('updateIsLoading', true)
+    commit("updateIsLoading", true)
 
-    return Service.post('/details/edit', moves)
-      .then(response => {
+    return Service.post("/details/edit", moves)
+      .then((response) => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
-        commit('resetFields')
+        commit("resetFields")
 
         // attempt nice logging
 
         for (const move of human_readable_moves) {
-        commit('log/newWorkLog',
-          { type: 'EMPLOYEE_MOVE', value: move },
-          { root: true })
+          commit(
+            "log/newWorkLog",
+            { type: "EMPLOYEE_MOVE", value: move },
+            { root: true }
+          )
         }
 
         return response.data
       })
-      .catch(error => {
-        commit('updateError', error.response.data)
-        commit('updateIsLoading', false)
-        commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
+      .catch((error) => {
+        commit("updateError", error.response.data)
+        commit("updateIsLoading", false)
+        commit(
+          "log/newError",
+          { type: "ERROR", value: error.response.data },
+          { root: true }
+        )
         return error.response.data
       })
   },
 
-  getEmployees ({ state, commit }) {
+  getEmployees({ state, commit }) {
     if (!state.orgUnitSource) return
     let validity = undefined
     let atDate = state.moveDate
-    OrganisationUnit.getDetail(state.orgUnitSource.uuid, 'engagement', validity, atDate)
-      .then(response => {
-        commit('updateEmployees', response)
+    OrganisationUnit.getDetail(state.orgUnitSource.uuid, "engagement", validity, atDate)
+      .then((response) => {
+        commit("updateEmployees", response)
       })
-      .catch(error => {
-        commit('log/newError', { type: 'ERROR', value: error.response.data }, { root: true })
+      .catch((error) => {
+        commit(
+          "log/newError",
+          { type: "ERROR", value: error.response.data },
+          { root: true }
+        )
       })
   },
 
-  resetFields ({ commit }) {
-    commit('resetFields')
-  }
+  resetFields({ commit }) {
+    commit("resetFields")
+  },
 }
 
 const mutations = {
   updateField,
 
-  updateError (state, error) {
+  updateError(state, error) {
     state.backendValidationError = error
   },
 
-  updateIsLoading (state, isLoading) {
+  updateIsLoading(state, isLoading) {
     state.isLoading = isLoading
   },
 
-  updateOrgUnitSource (state, orgUnit) {
+  updateOrgUnitSource(state, orgUnit) {
     state.orgUnitSource = orgUnit
   },
 
-  updateEmployees (state, employees) {
+  updateEmployees(state, employees) {
     state.employees = employees
   },
 
-  resetFields (state) {
+  resetFields(state) {
     Object.assign(state, defaultState())
-  }
+  },
 }
 
 const getters = {
   getField,
 
-  employees: state => state.employees
+  employees: (state) => state.employees,
 }
 
 export default {
@@ -125,5 +135,5 @@ export default {
   state,
   actions,
   mutations,
-  getters
+  getters,
 }

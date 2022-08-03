@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <b-modal
     id="orgUnitCreate"
@@ -12,10 +11,7 @@ SPDX-License-Identifier: MPL-2.0
     no-close-on-backdrop
   >
     <form @submit.stop.prevent="createOrganisationUnit">
-      <mo-organisation-unit-entry
-        v-model="entry"
-        :creating-date="true"
-      />
+      <mo-organisation-unit-entry v-model="entry" :creating-date="true" />
 
       <mo-add-many
         class="mt-3 address"
@@ -26,11 +22,13 @@ SPDX-License-Identifier: MPL-2.0
       />
 
       <div class="alert alert-danger" v-if="backendValidationError">
-        {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
+        {{
+          $t("alerts.error." + backendValidationError.error_key, backendValidationError)
+        }}
       </div>
 
       <div class="float-right">
-        <button-submit :is-loading="isLoading"/>
+        <button-submit :is-loading="isLoading" />
       </div>
     </form>
   </b-modal>
@@ -41,16 +39,16 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation unit create component
  */
 
-import OrganisationUnit from '@/api/OrganisationUnit'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry } from '@/components/MoEntry'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import ValidateForm from '@/mixins/ValidateForm'
-import ModalBase from '@/mixins/ModalBase'
+import OrganisationUnit from "@/api/OrganisationUnit"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import { MoOrganisationUnitEntry, MoOrgUnitAddressEntry } from "@/components/MoEntry"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoAddMany from "@/components/MoAddMany/MoAddMany"
+import ValidateForm from "@/mixins/ValidateForm"
+import ModalBase from "@/mixins/ModalBase"
 
 export default {
-  name: 'OrganisationUnitCreate',
+  name: "OrganisationUnitCreate",
   mixins: [ValidateForm, ModalBase],
 
   components: {
@@ -58,17 +56,17 @@ export default {
     MoOrganisationUnitEntry,
     MoOrgUnitAddressEntry,
     MoFacetPicker,
-    MoAddMany
+    MoAddMany,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The entry, postAddress, phone, addresses, isLoading, backendValidationError component value.
        * Used to detect changes and restore the value.
        */
       entry: {
-        validity: {}
+        validity: {},
       },
       addresses: [],
       isLoading: false,
@@ -78,7 +76,7 @@ export default {
        * The addressEntry component.
        * Used to add MoAddressEntry component in `<mo-add-many/>`.
        */
-      addressEntry: MoOrgUnitAddressEntry
+      addressEntry: MoOrgUnitAddressEntry,
     }
   },
 
@@ -86,7 +84,7 @@ export default {
     /**
      * Resets the data fields.
      */
-    resetData () {
+    resetData() {
       Object.assign(this.$data, this.$options.data())
     },
 
@@ -94,37 +92,36 @@ export default {
      * Create a organisation unit and check if the data fields are valid.
      * Then throw a error if not.
      */
-    createOrganisationUnit (evt) {
+    createOrganisationUnit(evt) {
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
         this.isLoading = true
 
-        this.addresses.forEach(a => {
+        this.addresses.forEach((a) => {
           if (!a.validity) {
             a.validity = this.entry.validity
           }
-          a.org = this.$store.getters['organisation/GET_ORGANISATION']
+          a.org = this.$store.getters["organisation/GET_ORGANISATION"]
         })
         this.entry.details = this.addresses
 
-        OrganisationUnit.create(this.entry)
-          .then(organisationUuid => {
-            vm.isLoading = false
-            if (organisationUuid.error) {
-              vm.backendValidationError = organisationUuid
-            } else {
-              vm.$refs.orgUnitCreate.hide()
-              vm.$router.push({
-                name: 'OrganisationDetail',
-                params: { uuid: organisationUuid }
-              })
-            }
-          })
+        OrganisationUnit.create(this.entry).then((organisationUuid) => {
+          vm.isLoading = false
+          if (organisationUuid.error) {
+            vm.backendValidationError = organisationUuid
+          } else {
+            vm.$refs.orgUnitCreate.hide()
+            vm.$router.push({
+              name: "OrganisationDetail",
+              params: { uuid: organisationUuid },
+            })
+          }
+        })
       } else {
         this.$validator.validateAll()
       }
-    }
-  }
+    },
+  },
 }
 </script>

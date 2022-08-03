@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import { getField, updateField } from 'vuex-map-fields'
-import moment from 'moment'
-import Service from '@/api/HttpCommon'
+import { getField, updateField } from "vuex-map-fields"
+import moment from "moment"
+import Service from "@/api/HttpCommon"
 
 const defaultState = () => {
   return {
@@ -16,28 +16,28 @@ const defaultState = () => {
     manager: [],
     owner: [],
     organisation: {},
-    backendValidationError: null
+    backendValidationError: null,
   }
 }
 
 const state = defaultState
 
 const actions = {
-  CREATE_EMPLOYEE ({ commit, state }) {
+  CREATE_EMPLOYEE({ commit, state }) {
     let create = [].concat(
       state.engagement,
       state.address,
       state.association,
       state.role,
       state.itSystem,
-      state.manager,
+      state.manager
     )
 
     let defaultValidity = {
-      from: moment(new Date()).format('YYYY-MM-DD')
+      from: moment(new Date()).format("YYYY-MM-DD"),
     }
 
-    create.forEach(e => {
+    create.forEach((e) => {
       if (!e.validity) {
         e.validity = defaultValidity
       }
@@ -50,11 +50,11 @@ const actions = {
       seniority: state.employee.seniority,
       cpr_no: state.employee.cpr_no,
       org: state.organisation,
-      details: create
+      details: create,
     }
 
-    return Service.post('/e/create', newEmployee)
-      .then(response => {
+    return Service.post("/e/create", newEmployee)
+      .then((response) => {
         if (response.data.error) {
           return response.data
         }
@@ -63,24 +63,24 @@ const actions = {
           employeeUuid = response.data[0]
         }
         commit(
-          'log/newWorkLog',
+          "log/newWorkLog",
           {
-            type: 'EMPLOYEE_CREATE',
+            type: "EMPLOYEE_CREATE",
             value: {
               name: newEmployee.name,
-              org_name: newEmployee.org.name
-            }
+              org_name: newEmployee.org.name,
+            },
           },
           { root: true }
         )
         return employeeUuid
       })
-      .catch(error => {
+      .catch((error) => {
         commit(
-          'log/newError',
+          "log/newError",
           {
-            type: 'ERROR',
-            value: error.response.data
+            type: "ERROR",
+            value: error.response.data,
           },
           { root: true }
         )
@@ -88,29 +88,29 @@ const actions = {
       })
   },
 
-  resetFields ({ commit }) {
-    commit('resetFields')
-  }
+  resetFields({ commit }) {
+    commit("resetFields")
+  },
 }
 
 const mutations = {
   updateField,
 
-  updateError (state, error) {
+  updateError(state, error) {
     state.backendValidationError = error
   },
 
-  updateIsLoading (state, isLoading) {
+  updateIsLoading(state, isLoading) {
     state.isLoading = isLoading
   },
 
-  resetFields (state) {
+  resetFields(state) {
     Object.assign(state, defaultState())
-  }
+  },
 }
 
 const getters = {
-  getField
+  getField,
 }
 
 export default {
@@ -118,5 +118,5 @@ export default {
   state,
   actions,
   mutations,
-  getters
+  getters,
 }

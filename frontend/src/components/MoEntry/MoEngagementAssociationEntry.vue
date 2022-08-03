@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <div class="form-row">
@@ -35,22 +34,22 @@ SPDX-License-Identifier: MPL-2.0
  * An engagement_association entry component.
  */
 
-import { MoInputDateRange, MoInputText} from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
-import { Employee } from '@/store/actions/employee'
-import { mapGetters } from 'vuex'
+import { MoInputDateRange, MoInputText } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
+import { Employee } from "@/store/actions/employee"
+import { mapGetters } from "vuex"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoEngagementAssociationEntry',
+  name: "MoEngagementAssociationEntry",
 
-    props: {
+  props: {
     /**
      * This boolean property hide the org picker.
      */
@@ -59,13 +58,12 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
   computed: {
-
     ...mapGetters({
-      currentEmployee: Employee.getters.GET_EMPLOYEE
+      currentEmployee: Employee.getters.GET_EMPLOYEE,
     }),
 
     validations() {
@@ -73,17 +71,17 @@ export default {
         existing_engagement_associations: [
           this.entry.org_unit,
           this.entry.validity,
-          this.entry.uuid
-        ]
+          this.entry.uuid,
+        ],
       }
-    }
+    },
   },
 
   components: {
     MoInputDateRange,
     MoOrganisationUnitPicker,
     MoFacetPicker,
-    MoInputText
+    MoInputText,
   },
 
   watch: {
@@ -91,12 +89,12 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        newVal.type = 'engagement_association'
-        this.$emit('input', newVal)
+      handler(newVal) {
+        newVal.type = "engagement_association"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
-  }
+      deep: true,
+    },
+  },
 }
 </script>

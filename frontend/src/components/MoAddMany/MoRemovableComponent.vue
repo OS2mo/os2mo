@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div v-if="!removed">
     <div class="row">
@@ -51,7 +50,7 @@ export default {
      */
     entryComponent: {
       type: Object,
-      required: true
+      required: true,
     },
 
     /**
@@ -72,29 +71,29 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The entryValue, removed component value.
        * Used to detect changes and restore the value.
        */
       entryValue: {},
-      removed: false
+      removed: false,
     }
   },
 
-  updated () {
+  updated() {
     /**
      * Called after data change.
      * Update entryValue.
      */
-    this.$emit('input', this.entryValue)
+    this.$emit("input", this.entryValue)
   },
 
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set entryValue to value.
@@ -106,15 +105,15 @@ export default {
     /**
      * Remove a entryValue.
      */
-    remove () {
+    remove() {
       this.entryValue = {}
       this.removed = true
     },
 
-    add () {
-      this.$emit('add')
-    }
-  }
+    add() {
+      this.$emit("add")
+    },
+  },
 }
 </script>
 

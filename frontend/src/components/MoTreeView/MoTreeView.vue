@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="unit-tree">
     <mo-loader v-show="isLoading" />
@@ -24,16 +23,16 @@ SPDX-License-Identifier: MPL-2.0
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { EventBus, Events } from '@/EventBus'
-import MoLoader from '@/components/atoms/MoLoader'
-import LiquorTree from 'liquor-tree'
-import { AtDate } from '@/store/actions/atDate'
+import { mapGetters } from "vuex"
+import { EventBus, Events } from "@/EventBus"
+import MoLoader from "@/components/atoms/MoLoader"
+import LiquorTree from "liquor-tree"
+import { AtDate } from "@/store/actions/atDate"
 
 export default {
   components: {
     MoLoader,
-    LiquorTree
+    LiquorTree,
   },
 
   props: {
@@ -80,15 +79,15 @@ export default {
   },
 
   computed: {
-    unitUuid () {
+    unitUuid() {
       return this.$store.getters[this.get_store_uuid()]
     },
 
     /**
      * @private
      */
-    _nameId () {
-      return 'moTreeView' + this._uid
+    _nameId() {
+      return "moTreeView" + this._uid
     },
 
     /**
@@ -96,7 +95,7 @@ export default {
      *
      * @protected
      */
-    tree () {
+    tree() {
       return this.$refs[this._nameId]
     },
 
@@ -105,14 +104,12 @@ export default {
      * for inspection and tests, with highlighting of expansion and
      * selection states.
      */
-    contents () {
-      function visitNode (node, level) {
+    contents() {
+      function visitNode(node, level) {
         if (!node) {
           return null
         } else if (node instanceof Array) {
-          return node
-            .filter(c => c.visible())
-            .map(c => visitNode(c, level))
+          return node.filter((c) => c.visible()).map((c) => visitNode(c, level))
         }
 
         let text = node.text
@@ -134,7 +131,7 @@ export default {
           r[text] = visitNode(node.children, level + 1)
           return r
         } else if (node.hasChildren()) {
-          return '> ' + text
+          return "> " + text
         } else {
           return text
         }
@@ -144,11 +141,11 @@ export default {
     },
 
     ...mapGetters({
-      'atDate': AtDate.getters.GET
-    })
+      atDate: AtDate.getters.GET,
+    }),
   },
 
-  data () {
+  data() {
     let vm = this
 
     return {
@@ -173,9 +170,9 @@ export default {
         autoDisableChildren: false,
         autoCheckChildren: false,
         minFetchDelay: 1,
-        fetchData (node) {
+        fetchData(node) {
           return vm.fetch(node)
-        }
+        },
       },
 
       isLoading: true,
@@ -184,13 +181,13 @@ export default {
     }
   },
 
-  mounted () {
+  mounted() {
     this._atDate = this.$store.getters[AtDate.getters.GET]
     EventBus.$on(Events.UPDATE_TREE_VIEW, this.listener)
     this.updateTree()
   },
 
-  beforeDestroy () {
+  beforeDestroy() {
     EventBus.$off(Events.UPDATE_TREE_VIEW, this.listener)
   },
 
@@ -198,17 +195,16 @@ export default {
     /**
      * Update the selection when the value changes.
      */
-    value (newVal, oldVal) {
+    value(newVal, oldVal) {
       if (JSON.stringify(newVal) === JSON.stringify(oldVal)) {
         return
       }
 
-      const missing = this.tree.tree ? this.toArray(newVal).filter(
-        v => !this.tree.tree.getNodeById(v)
-      ) : []
+      const missing = this.tree.tree
+        ? this.toArray(newVal).filter((v) => !this.tree.tree.getNodeById(v))
+        : []
 
       if (missing.length) {
-
         this.updateTree()
       } else {
         this.setSelection(newVal)
@@ -218,7 +214,7 @@ export default {
     /**
      * Reset the selection when the organisation changes.
      */
-    unitUuid (newVal, oldVal) {
+    unitUuid(newVal, oldVal) {
       let vm = this
 
       // in order to avoid updating twice, only do so when no unit
@@ -236,7 +232,7 @@ export default {
       }, 100)
     },
 
-    disabledUnit (newVal) {
+    disabledUnit(newVal) {
       for (const oldNode of this.tree.findAll({ disabled: true })) {
         if (oldNode.id !== newVal) {
           oldNode.enable()
@@ -255,18 +251,18 @@ export default {
     /**
      * Re-render the tree when the date changes.
      */
-    atDate (newVal) {
+    atDate(newVal) {
       this._atDate = newVal
       this.updateTree(true)
-    }
+    },
   },
 
   methods: {
-    onNodeCheckedChanged (node) {
+    onNodeCheckedChanged(node) {
       if (this.multiple) {
         let checked = this.getSelection()
 
-        this.$emit('input', checked)
+        this.$emit("input", checked)
       }
     },
 
@@ -275,20 +271,19 @@ export default {
      *
      * @protected
      */
-    onNodeSelected (node) {
+    onNodeSelected(node) {
       if (!this.multiple) {
-        this.$emit('input', node.id)
+        this.$emit("input", node.id)
       }
     },
 
-    getSelection () {
-      let nodes = this.multiple
-        ? this.tree.checked() : this.tree.selected()
-      return this.toArray(nodes.map(n => n.id))
+    getSelection() {
+      let nodes = this.multiple ? this.tree.checked() : this.tree.selected()
+      return this.toArray(nodes.map((n) => n.id))
     },
 
-    toArray (values) {
-      let vs = values ? values instanceof Array ? values : [values] : []
+    toArray(values) {
+      let vs = values ? (values instanceof Array ? values : [values]) : []
 
       vs.sort()
 
@@ -299,13 +294,13 @@ export default {
      * Select the units corresponding to the given IDs, assuming
      * they're present, and updating the tree otherwise.
      */
-    setSelection (unitids) {
+    setSelection(unitids) {
       // wrap the values in a list, if necessary, handling absence
       const newVal = this.toArray(unitids)
       const oldVal = this.getSelection()
 
       // handle removals
-      for (const uuid of oldVal.filter(v => !newVal.includes(v))) {
+      for (const uuid of oldVal.filter((v) => !newVal.includes(v))) {
         const node = this.tree.tree.getNodeById(uuid)
 
         if (this.multiple) {
@@ -316,7 +311,7 @@ export default {
       }
 
       // handle additions
-      for (const uuid of newVal.filter(v => !oldVal.includes(v))) {
+      for (const uuid of newVal.filter((v) => !oldVal.includes(v))) {
         const node = this.tree.tree.getNodeById(uuid)
 
         if (node) {
@@ -334,7 +329,7 @@ export default {
     /**
      * Add the given nodes to the tree.
      */
-    addNodes (units) {
+    addNodes(units) {
       for (let unit of units) {
         this.addNode(unit, null)
       }
@@ -342,14 +337,13 @@ export default {
       this.tree.sort()
       this.setSelection(this.value)
       this.isLoading = false
-
     },
 
     /**
      * Add the given node to the tree, nested under the parent, specified, or
      * root otherwise.
      */
-    addNode (unit, parent) {
+    addNode(unit, parent) {
       let preexisting = this.tree.tree.getNodeById(unit.uuid)
 
       if (preexisting) {
@@ -374,7 +368,7 @@ export default {
      *
      * This method handles both eager and lazy loading of child nodes.
      */
-    toNode (unit) {
+    toNode(unit) {
       return {
         text: unit.name,
         isBatch: unit.children ? false : unit.child_count > 0,
@@ -382,21 +376,21 @@ export default {
         children: unit.children ? unit.children.map(this.toNode.bind(this)) : null,
         state: {
           disabled: unit.uuid === this.disabledUnit,
-          expanded: Boolean(unit.children)
-        }
+          expanded: Boolean(unit.children),
+        },
       }
     },
 
     /**
      * Reset and re-fetch the tree.
      */
-    updateTree (force) {
+    updateTree(force) {
       this.isLoading = true
       if (force) {
         this.tree.remove({}, true)
       }
       if (this.multiple ? this.value.length > 0 : this.value) {
-        this.get_ancestor_tree(this.value, this._atDate).then(response => {
+        this.get_ancestor_tree(this.value, this._atDate).then((response) => {
           // Check if ancestor is empty
           if (response.length === 0) {
             // Ancestor tree is empty, reset to top-level children
@@ -414,7 +408,7 @@ export default {
     /**
      * LiquorTree lazy data fetcher.
      */
-    fetch (node) {
+    fetch(node) {
       let vm = this
 
       if (!this.unitUuid || node.fetching) {
@@ -428,24 +422,25 @@ export default {
       node.fetching = true
 
       return this.get_children(node.id, this._atDate)
-        .then(response => {
+        .then((response) => {
           node.fetching = false
           return response.map(vm.toNode.bind(vm))
-        }).catch(error => {
+        })
+        .catch((error) => {
           node.fetching = false
           throw error
         })
     },
 
-    listener () {
+    listener() {
       this.updateTree(true)
     },
 
-    updateValidity (validity) {
+    updateValidity(validity) {
       this._atDate = validity.from
       this.updateTree(true)
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -453,20 +448,21 @@ export default {
      cannot detect the overwrites. to ensure that we _always_ win, we
      increase the specificity of the selectors  -->
 <style>
-  .unit-tree .tree > .tree-root, .tree-content {
-     padding: 0.2vh;
-  }
+.unit-tree .tree > .tree-root,
+.tree-content {
+  padding: 0.2vh;
+}
 
-  .unit-tree .tree-children {
-     transition-timing-function: ease-in-out;
-     transition-duration: 150ms;
-  }
+.unit-tree .tree-children {
+  transition-timing-function: ease-in-out;
+  transition-duration: 150ms;
+}
 
-  .unit-tree .tree-node.selected > .tree-content {
-    background-color: #007bff;
-  }
+.unit-tree .tree-node.selected > .tree-content {
+  background-color: #007bff;
+}
 
-  .unit-tree .tree-node.selected > .tree-content > .tree-anchor {
-    color: #fff;
-  }
+.unit-tree .tree-node.selected > .tree-content > .tree-anchor {
+  color: #fff;
+}
 </style>

@@ -1,11 +1,10 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       v-model="entry.validity"
       :initially-hidden="datePickerHidden || validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <div class="form-row">
@@ -43,12 +42,17 @@ SPDX-License-Identifier: MPL-2.0
       />
     </div>
 
-    <div class="form-row" v-for="(v, row_index) in numberOfExtensionRows" :key="row_index">
-      <mo-input-text v-for="n in 2"
-        v-if="extensionFields.length >= (2 * row_index + n)"
+    <div
+      class="form-row"
+      v-for="(v, row_index) in numberOfExtensionRows"
+      :key="row_index"
+    >
+      <mo-input-text
+        v-for="n in 2"
+        v-if="extensionFields.length >= 2 * row_index + n"
         class="extension_field"
         v-model="entry['extension_' + (2 * row_index + n)]"
-        :label="extensionFields[(2 * row_index + n - 1)]"
+        :label="extensionFields[2 * row_index + n - 1]"
       />
     </div>
   </div>
@@ -59,31 +63,31 @@ SPDX-License-Identifier: MPL-2.0
  * A engagement entry component.
  */
 
-import {MoInputDateRange, MoInputText} from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
+import { MoInputDateRange, MoInputText } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoEngagementEntry',
+  name: "MoEngagementEntry",
 
   components: {
     MoInputText,
     MoInputDateRange,
     MoOrganisationUnitPicker,
-    MoFacetPicker
+    MoFacetPicker,
   },
 
   props: {
     /**
      * Defines the validity.
      */
-    validity: Object
+    validity: Object,
   },
 
   computed: {
@@ -94,13 +98,13 @@ export default {
       return this.validity != null
     },
     showPrimary() {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
       return conf.show_primary_engagement
     },
 
     extensionFields() {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      let extension_labels = conf.extension_field_ui_labels.split(',')
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
+      let extension_labels = conf.extension_field_ui_labels.split(",")
       if (extension_labels.length > 0 && extension_labels[0] !== "") {
         return extension_labels
       }
@@ -111,7 +115,7 @@ export default {
       let length = this.extensionFields.length
       let n_rows = Math.ceil(length / 2)
       return new Array(n_rows)
-    }
+    },
   },
 
   watch: {
@@ -120,10 +124,10 @@ export default {
      */
     entry: {
       handler(newVal) {
-        newVal.type = 'engagement'
-        this.$emit('input', newVal)
+        newVal.type = "engagement"
+        this.$emit("input", newVal)
       },
-      deep: true
+      deep: true,
     },
 
     /**
@@ -131,7 +135,7 @@ export default {
      */
     validity(newVal) {
       this.entry.validity = newVal
-    }
-  }
+    },
+  },
 }
 </script>

@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <mo-tree-view
     ref="treeview"
@@ -25,16 +24,16 @@ SPDX-License-Identifier: MPL-2.0
  * A organisation unit picker component.
  */
 
-import MoTreeView from '@/components/MoTreeView/MoTreeView'
-import { Organisation as OrgStore } from '@/store/actions/organisation'
-import Organisation from '@/api/Organisation'
-import OrganisationUnit from '@/api/OrganisationUnit'
+import MoTreeView from "@/components/MoTreeView/MoTreeView"
+import { Organisation as OrgStore } from "@/store/actions/organisation"
+import Organisation from "@/api/Organisation"
+import OrganisationUnit from "@/api/OrganisationUnit"
 
 export default {
-  name: 'MoOrgTreeView',
+  name: "MoOrgTreeView",
 
   components: {
-    MoTreeView
+    MoTreeView,
   },
 
   props: {
@@ -62,18 +61,18 @@ export default {
     /**
      * Select more than one node
      */
-    multiple: Boolean
+    multiple: Boolean,
   },
 
   computed: {
     treeValue: {
-      set (val) {
-        this.$emit('input', val)
+      set(val) {
+        this.$emit("input", val)
       },
-      get () {
+      get() {
         return this.value
-      }
-    }
+      },
+    },
   },
 
   data() {
@@ -107,7 +106,7 @@ export default {
   },
 
   methods: {
-    setFilter (val) {
+    setFilter(val) {
       this._extraQueryArgs = val === null ? undefined : { org_unit_hierarchy: val }
       this.$refs.treeview.updateTree(true)
     },

@@ -1,28 +1,27 @@
 // SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Service from './HttpCommon'
-import { EventBus, Events } from '@/EventBus'
-import store from '@/store'
-import URLSearchParams from '@ungap/url-search-params'
-import i18n from '../i18n.js'
+import Service from "./HttpCommon"
+import { EventBus, Events } from "@/EventBus"
+import store from "@/store"
+import URLSearchParams from "@ungap/url-search-params"
+import i18n from "../i18n.js"
 
 export default {
-
   /**
    * Get an organisation unit
    * @param {String} uuid - organisation unit uuid
    * @returns {Object} organisation unit object
    */
-  get (uuid, atDate) {
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+  get(uuid, atDate) {
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
     return Service.get(`/ou/${uuid}/?at=${atDate}`)
-      .then(response => {
+      .then((response) => {
         EventBus.$emit(Events.ORGANISATION_CHANGED, response.data.org)
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
       })
   },
 
@@ -31,13 +30,13 @@ export default {
    * @param {String} uuid - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getChildren (uuid, atDate, extra) {
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+  getChildren(uuid, atDate, extra) {
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
 
     const params = new URLSearchParams()
 
     if (atDate) {
-      params.append('at', atDate)
+      params.append("at", atDate)
     }
 
     if (extra !== undefined) {
@@ -47,11 +46,11 @@ export default {
     }
 
     return Service.get(`/ou/${uuid}/children?${params}`)
-      .then(response => {
-        return response.data.sort((a, b) => (a.name > b.name) ? 1 : -1)
+      .then((response) => {
+        return response.data.sort((a, b) => (a.name > b.name ? 1 : -1))
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
       })
   },
 
@@ -60,8 +59,8 @@ export default {
    * @param {Array|String} uuids - organisation unit uuid
    * @returns {Array} organisation unit children
    */
-  getAncestorTree (uuids, atDate, extra) {
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+  getAncestorTree(uuids, atDate, extra) {
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
 
     if (!(uuids instanceof Array)) {
       uuids = [uuids]
@@ -70,11 +69,11 @@ export default {
     const params = new URLSearchParams()
 
     if (atDate) {
-      params.append('at', atDate)
+      params.append("at", atDate)
     }
 
     for (const uuid of uuids) {
-      params.append('uuid', uuid)
+      params.append("uuid", uuid)
     }
 
     if (extra !== undefined) {
@@ -83,32 +82,30 @@ export default {
       }
     }
 
-    return Service.get(`/ou/ancestor-tree?${params}`)
-      .then(response => {
-        return response.data
-      })
+    return Service.get(`/ou/ancestor-tree?${params}`).then((response) => {
+      return response.data
+    })
   },
 
   /**
    * Get organisation unit details
    * @see getDetail
    */
-  getUnitDetails (uuid, validity) {
-    return this.getDetail(uuid, 'unit', validity)
+  getUnitDetails(uuid, validity) {
+    return this.getDetail(uuid, "unit", validity)
   },
 
   /**
    * Get address for organisation unit details
    * @see getDetail
    */
-  getAddressDetails (uuid, validity) {
-    return this.getDetail(uuid, 'address', validity)
-      .then(response => {
-        response.forEach(addr => {
-          delete addr.validity
-        })
-        return response
+  getAddressDetails(uuid, validity) {
+    return this.getDetail(uuid, "address", validity).then((response) => {
+      response.forEach((addr) => {
+        delete addr.validity
       })
+      return response
+    })
   },
 
   /**
@@ -118,15 +115,17 @@ export default {
    * @param {String} validity - Can be either past, present or future
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail, validity, atDate) {
-    validity = validity || 'present'
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
-    return Service.get(`/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`)
-      .then(response => {
+  getDetail(uuid, detail, validity, atDate) {
+    validity = validity || "present"
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
+    return Service.get(
+      `/ou/${uuid}/details/${detail}?validity=${validity}&at=${atDate}`
+    )
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
       })
   },
 
@@ -136,19 +135,23 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} organisation unit uuid
    */
-  create (create) {
-    return Service.post('/ou/create', create)
-      .then(response => {
+  create(create) {
+    return Service.post("/ou/create", create)
+      .then((response) => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_CREATE',
-            value: {
+        store.commit("log/newWorkLog", {
+          type: "ORGANISATION_CREATE",
+          value: {
             name: create.name,
-                parent:
-                    create.parent ? create.parent.name : i18n.t('shared.main_organisation')}})
+            parent: create.parent
+              ? create.parent.name
+              : i18n.t("shared.main_organisation"),
+          },
+        })
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response.data })
         return error.response.data
       })
   },
@@ -160,14 +163,14 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} organisation unit uuid
    */
-  createEntry (create) {
-    return Service.post('/details/create', create)
-      .then(response => {
+  createEntry(create) {
+    return Service.post("/details/create", create)
+      .then((response) => {
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
         return error.response.data
       })
   },
@@ -176,36 +179,34 @@ export default {
    * Edit an organisation unit
    * @returns {Object} organisation unit uuid
    */
-  editEntry (edit) {
-    return Service.post('/details/edit', edit)
-      .then(response => {
+  editEntry(edit) {
+    return Service.post("/details/edit", edit)
+      .then((response) => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         return response
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
         return error.response
       })
   },
 
-  edit (edit) {
-    return this.editEntry(edit)
-      .then(response => {
-        return response.data
-      })
+  edit(edit) {
+    return this.editEntry(edit).then((response) => {
+      return response.data
+    })
   },
 
   /**
    * Rename a new organisation unit
    * @returns {Object} organisation unit uuid
    * @see edit
-  */
-  rename (edit) {
-    return this.editEntry(edit)
-      .then(response => {
-        return response.data
-      })
+   */
+  rename(edit) {
+    return this.editEntry(edit).then((response) => {
+      return response.data
+    })
   },
 
   /**
@@ -215,18 +216,19 @@ export default {
    * @param {string} human_readable_new_parent - name of the new parent of the moving unit
    * @returns {Object} organisation unit uuid
    * @see edit
-  */
-  move (edit, human_readable_name, human_readable_new_parent) {
-    return this.editEntry(edit)
-      .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
-        EventBus.$emit(Events.UPDATE_TREE_VIEW)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_MOVE',
-            value: {name: human_readable_name, parent: human_readable_new_parent} })
+   */
+  move(edit, human_readable_name, human_readable_new_parent) {
+    return this.editEntry(edit).then((response) => {
+      if (response.data.error) {
         return response.data
+      }
+      EventBus.$emit(Events.UPDATE_TREE_VIEW)
+      store.commit("log/newWorkLog", {
+        type: "ORGANISATION_MOVE",
+        value: { name: human_readable_name, parent: human_readable_new_parent },
       })
+      return response.data
+    })
   },
 
   /**
@@ -236,19 +238,21 @@ export default {
    * @param {String} human_readable_name - the name corresponding to the uuid
    * @returns {Object} organisation unit uuid
    */
-  terminate (uuid, terminate, human_readable_name) {
+  terminate(uuid, terminate, human_readable_name) {
     return Service.post(`/ou/${uuid}/terminate`, terminate)
-      .then(response => {
+      .then((response) => {
         EventBus.$emit(Events.UPDATE_TREE_VIEW)
         EventBus.$emit(Events.ORGANISATION_UNIT_CHANGED)
         console.log(terminate)
-        store.commit('log/newWorkLog', { type: 'ORGANISATION_TERMINATE',
-            value: {name: human_readable_name, terminate: terminate.validity.to} })
+        store.commit("log/newWorkLog", {
+          type: "ORGANISATION_TERMINATE",
+          value: { name: human_readable_name, terminate: terminate.validity.to },
+        })
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response.data })
         return error.response.data
       })
-  }
+  },
 }

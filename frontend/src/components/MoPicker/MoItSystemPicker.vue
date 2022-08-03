@@ -1,8 +1,7 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group col">
-    <label :for="nameId">{{$tc('shared.it_system', 2)}}</label>
+    <label :for="nameId">{{ $tc("shared.it_system", 2) }}</label>
 
     <select
       :name="nameId"
@@ -11,13 +10,11 @@ SPDX-License-Identifier: MPL-2.0
       class="form-control col"
       v-model="selected"
       @change="updateSelectedItSystem()"
-      v-validate="{ required: true }">
-      <option disabled>{{$tc('shared.it_system', 2)}}</option>
-      <option
-        v-for="it in orderedListOptions"
-        v-bind:key="it.uuid"
-        :value="it.uuid">
-          {{it.name}}
+      v-validate="{ required: true }"
+    >
+      <option disabled>{{ $tc("shared.it_system", 2) }}</option>
+      <option v-for="it in orderedListOptions" v-bind:key="it.uuid" :value="it.uuid">
+        {{ it.name }}
       </option>
     </select>
 
@@ -32,12 +29,12 @@ SPDX-License-Identifier: MPL-2.0
  * A it system component.
  */
 
-import sortBy from 'lodash.sortby'
-import Facet from '@/api/Facet'
-import { EventBus, Events } from '@/EventBus'
+import sortBy from "lodash.sortby"
+import Facet from "@/api/Facet"
+import { EventBus, Events } from "@/EventBus"
 
 export default {
-  name: 'MoItSystemPicker',
+  name: "MoItSystemPicker",
 
   props: {
     /**
@@ -48,24 +45,24 @@ export default {
     /**
      * Defines a preselected value.
      */
-    preselected: String
+    preselected: String,
   },
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
-  data () {
+  data() {
     return {
       /**
        * The selected, itSystems component value.
        * Used to detect changes and restore the value.
        */
       selected: {},
-      itSystems: []
+      itSystems: [],
     }
   },
 
@@ -73,16 +70,16 @@ export default {
     /**
      * Get name `it-system-picker`.
      */
-    nameId () {
-      return 'it-system-picker-' + this._uid
+    nameId() {
+      return "it-system-picker-" + this._uid
     },
 
-    orderedListOptions () {
-      return sortBy(this.itSystems, 'name')
-    }
+    orderedListOptions() {
+      return sortBy(this.itSystems, "name")
+    },
   },
 
-  mounted () {
+  mounted() {
     /**
      * Whenever organisation change update.
      */
@@ -91,7 +88,7 @@ export default {
     })
   },
 
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set selected to preselected.
@@ -100,7 +97,7 @@ export default {
     this.getItSystems()
   },
 
-  beforeDestroy () {
+  beforeDestroy() {
     /**
      * Stops receiving update event.
      */
@@ -111,25 +108,24 @@ export default {
     /**
      * Get it systems.
      */
-    getItSystems () {
+    getItSystems() {
       var vm = this
       let org = this.$store.state.organisation
       if (org.uuid === undefined) return
-      Facet.itSystems(org.uuid)
-        .then(response => {
-          vm.itSystems = response
-        })
+      Facet.itSystems(org.uuid).then((response) => {
+        vm.itSystems = response
+      })
     },
 
     /**
      * Update selected it system data.
      */
-    updateSelectedItSystem () {
+    updateSelectedItSystem() {
       let data = {
-        uuid: this.selected
+        uuid: this.selected,
       }
-      this.$emit('input', data)
-    }
-  }
+      this.$emit("input", data)
+    },
+  },
 }
 </script>

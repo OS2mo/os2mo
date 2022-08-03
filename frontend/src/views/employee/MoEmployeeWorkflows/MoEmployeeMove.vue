@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="moveEmployee">
     <div class="form-row">
@@ -46,11 +45,13 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
+      {{
+        $t("alerts.error." + backendValidationError.error_key, backendValidationError)
+      }}
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading"/>
+      <button-submit :is-loading="isLoading" />
     </div>
   </form>
 </template>
@@ -60,17 +61,17 @@ SPDX-License-Identifier: MPL-2.0
  * A employee move component.
  */
 
-import { MoInputDate } from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoEngagementPicker from '@/components/MoPicker/MoEngagementPicker'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import MoConfirmCheckbox from '@/components/MoConfirmCheckbox'
-import ValidateForm from '@/mixins/ValidateForm'
-import { mapFields } from 'vuex-map-fields'
-import store from './_store/employeeMove.js'
+import { MoInputDate } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoEngagementPicker from "@/components/MoPicker/MoEngagementPicker"
+import MoEmployeePicker from "@/components/MoPicker/MoEmployeePicker"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import MoConfirmCheckbox from "@/components/MoConfirmCheckbox"
+import ValidateForm from "@/mixins/ValidateForm"
+import { mapFields } from "vuex-map-fields"
+import store from "./_store/employeeMove.js"
 
-const STORE_KEY = '$_employeeMove'
+const STORE_KEY = "$_employeeMove"
 
 export default {
   mixins: [ValidateForm],
@@ -81,23 +82,23 @@ export default {
     MoEngagementPicker,
     MoEmployeePicker,
     ButtonSubmit,
-    MoConfirmCheckbox
+    MoConfirmCheckbox,
   },
 
   props: {
     show: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
-  data () {
+  data() {
     return {
       /**
        * The isLoading component value.
        * Used to detect changes and restore the value.
        */
-      isLoading: false
+      isLoading: false,
     }
   },
 
@@ -106,18 +107,18 @@ export default {
      * Get mapFields from vuex store.
      */
     ...mapFields(STORE_KEY, [
-      'move',
-      'move.data.person',
-      'move.data.org_unit',
-      'move.data.validity.from',
-      'original',
-      'backendValidationError'
+      "move",
+      "move.data.person",
+      "move.data.org_unit",
+      "move.data.validity.from",
+      "original",
+      "backendValidationError",
     ]),
 
     /**
      * Check if the dates are valid.
      */
-    dateConflict () {
+    dateConflict() {
       if (this.from && this.original) {
         if (this.original.validity.to == null) return true
         const newFrom = new Date(this.from)
@@ -127,27 +128,27 @@ export default {
       return false
     },
 
-    validity () {
+    validity() {
       return {
-        'from': this.from
+        from: this.from,
       }
-    }
+    },
   },
-  beforeCreate () {
+  beforeCreate() {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)
     }
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.$store.unregisterModule(STORE_KEY)
   },
 
   watch: {
-    show (val) {
+    show(val) {
       if (!val) {
         this.onHidden()
       }
-    }
+    },
   },
 
   methods: {
@@ -155,29 +156,28 @@ export default {
      * Move a employee and check if the data fields are valid.
      * Then throw a error if not.
      */
-    moveEmployee (evt) {
+    moveEmployee(evt) {
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
         vm.isLoading = true
 
-        this.$store.dispatch(`${STORE_KEY}/MOVE_EMPLOYEE`)
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response
-            } else {
-              vm.$emit('submitted')
-            }
-          })
+        this.$store.dispatch(`${STORE_KEY}/MOVE_EMPLOYEE`).then((response) => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response
+          } else {
+            vm.$emit("submitted")
+          }
+        })
       } else {
         this.$validator.validateAll()
       }
     },
 
-    onHidden () {
+    onHidden() {
       this.$store.dispatch(`${STORE_KEY}/resetFields`)
-    }
-  }
+    },
+  },
 }
 </script>

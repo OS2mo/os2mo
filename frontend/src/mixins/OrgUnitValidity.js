@@ -3,10 +3,10 @@
 
 export default {
   computed: {
-    orgUnitValidity () {
+    orgUnitValidity() {
       if (this.entry.org_unit) {
         return this.entry.org_unit.validity
       }
-    }
-  }
+    },
+  },
 }

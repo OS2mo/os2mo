@@ -1,12 +1,13 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div
-    v-shortkey="{employeeCreate: ['ctrl', 'shift', 'c'],
-    employeeLeave: ['ctrl', 'shift', 'o'],
-    employeeMove: ['ctrl', 'shift', 'm'],
-    employeeMoveMany: ['ctrl', 'shift', 'y'],
-    employeeTerminate: ['ctrl', 'shift', 'd']}"
+    v-shortkey="{
+      employeeCreate: ['ctrl', 'shift', 'c'],
+      employeeLeave: ['ctrl', 'shift', 'o'],
+      employeeMove: ['ctrl', 'shift', 'm'],
+      employeeMoveMany: ['ctrl', 'shift', 'y'],
+      employeeTerminate: ['ctrl', 'shift', 'd'],
+    }"
     @shortkey="shortcuts($event)"
   >
     <mo-workflow>
@@ -57,7 +58,7 @@ SPDX-License-Identifier: MPL-2.0
       lazy
       v-model="showCreate"
     >
-      <mo-employee-create :show="showCreate" @submitted="$refs.employeeCreate.hide()"/>
+      <mo-employee-create :show="showCreate" @submitted="$refs.employeeCreate.hide()" />
     </b-modal>
 
     <b-modal
@@ -70,7 +71,7 @@ SPDX-License-Identifier: MPL-2.0
       no-close-on-backdrop
       v-model="showLeave"
     >
-      <mo-employee-leave :show="showLeave" @submitted="$refs.employeeLeave.hide()"/>
+      <mo-employee-leave :show="showLeave" @submitted="$refs.employeeLeave.hide()" />
     </b-modal>
 
     <b-modal
@@ -83,7 +84,7 @@ SPDX-License-Identifier: MPL-2.0
       no-close-on-backdrop
       v-model="showMove"
     >
-      <mo-employee-move :show="showMove" @submitted="$refs.employeeMove.hide()"/>
+      <mo-employee-move :show="showMove" @submitted="$refs.employeeMove.hide()" />
     </b-modal>
 
     <b-modal
@@ -96,7 +97,10 @@ SPDX-License-Identifier: MPL-2.0
       no-close-on-backdrop
       v-model="showMoveMany"
     >
-      <mo-employee-move-many :show="showMoveMany" @submitted="$refs.employeeMoveMany.hide()"/>
+      <mo-employee-move-many
+        :show="showMoveMany"
+        @submitted="$refs.employeeMoveMany.hide()"
+      />
     </b-modal>
 
     <b-modal
@@ -109,7 +113,10 @@ SPDX-License-Identifier: MPL-2.0
       no-close-on-backdrop
       v-model="showTerminate"
     >
-      <mo-employee-terminate :show="showTerminate" @submitted="$refs.employeeTerminate.hide()"/>
+      <mo-employee-terminate
+        :show="showTerminate"
+        @submitted="$refs.employeeTerminate.hide()"
+      />
     </b-modal>
   </div>
 </template>
@@ -119,15 +126,15 @@ SPDX-License-Identifier: MPL-2.0
  * A Employee workflow component.
  */
 
-import MoWorkflow from '@/components/MoWorkflow/MoWorkflow'
-import MoWorkflowButton from '@/components/MoWorkflow/MoWorkflowButton'
-import MoEmployeeCreate from './MoEmployeeCreate'
-import MoEmployeeLeave from './MoEmployeeLeave'
-import MoEmployeeMove from './MoEmployeeMove'
-import MoEmployeeMoveMany from './MoEmployeeMoveMany'
-import MoEmployeeTerminate from './MoEmployeeTerminate'
-import bModalDirective from 'bootstrap-vue/es/directives/modal/modal'
-import bModal from 'bootstrap-vue/es/components/modal/modal'
+import MoWorkflow from "@/components/MoWorkflow/MoWorkflow"
+import MoWorkflowButton from "@/components/MoWorkflow/MoWorkflowButton"
+import MoEmployeeCreate from "./MoEmployeeCreate"
+import MoEmployeeLeave from "./MoEmployeeLeave"
+import MoEmployeeMove from "./MoEmployeeMove"
+import MoEmployeeMoveMany from "./MoEmployeeMoveMany"
+import MoEmployeeTerminate from "./MoEmployeeTerminate"
+import bModalDirective from "bootstrap-vue/es/directives/modal/modal"
+import bModal from "bootstrap-vue/es/components/modal/modal"
 
 export default {
   components: {
@@ -138,28 +145,28 @@ export default {
     MoEmployeeMove,
     MoEmployeeMoveMany,
     MoEmployeeTerminate,
-    'b-modal': bModal
+    "b-modal": bModal,
   },
   directives: {
-    'b-modal': bModalDirective
+    "b-modal": bModalDirective,
   },
 
-  data () {
+  data() {
     return {
       showCreate: false,
       showLeave: false,
       showMove: false,
       showMoveMany: false,
-      showTerminate: false
+      showTerminate: false,
     }
   },
   methods: {
     /**
      * Trigger the popup workflows with the key shortcuts.
      */
-    shortcuts (event) {
-      this.$root.$emit('bv::show::modal', event.srcKey)
-    }
-  }
+    shortcuts(event) {
+      this.$root.$emit("bv::show::modal", event.srcKey)
+    },
+  },
 }
 </script>

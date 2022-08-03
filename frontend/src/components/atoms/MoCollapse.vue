@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="wrapper">
     <div class="card" @click="open = !open">
@@ -9,8 +8,8 @@ SPDX-License-Identifier: MPL-2.0
         aria-expanded="true"
         :aria-controls="nameId"
       >
-        <icon class="mr-1" :name="open ? 'caret-down' : 'caret-right'"/>
-        <strong>{{title}}</strong>
+        <icon class="mr-1" :name="open ? 'caret-down' : 'caret-right'" />
+        <strong>{{ title }}</strong>
       </div>
     </div>
 
@@ -25,15 +24,15 @@ SPDX-License-Identifier: MPL-2.0
  * A collapse component.
  */
 
-import bCollapse from 'bootstrap-vue/es/components/collapse/collapse'
-import bToggleDirective from 'bootstrap-vue/es/directives/toggle/toggle'
+import bCollapse from "bootstrap-vue/es/components/collapse/collapse"
+import bToggleDirective from "bootstrap-vue/es/directives/toggle/toggle"
 
 export default {
   components: {
-    'b-collapse': bCollapse
+    "b-collapse": bCollapse,
   },
   directives: {
-    'b-toggle': bToggleDirective
+    "b-toggle": bToggleDirective,
   },
   props: {
     /**
@@ -41,22 +40,22 @@ export default {
      */
     title: {
       type: String,
-      required: true
+      required: true,
     },
 
     /**
      * This Boolean property defines the visible.
      */
-    visible: Boolean
+    visible: Boolean,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The open component value.
        * Used to detect changes and restore the value.
        */
-      open: false
+      open: false,
     }
   },
 
@@ -64,29 +63,29 @@ export default {
     /**
      * Get name `mo-collapse`.
      */
-    nameId () {
-      return 'mo-collapse-' + this._uid
-    }
+    nameId() {
+      return "mo-collapse-" + this._uid
+    },
   },
 
-  created () {
+  created() {
     /**
      * Called synchronously after the instance is created.
      * Set open to initiallyOpen.
      */
     this.open = this.visible
-    if (this.visible) this.$emit('show')
-  }
+    if (this.visible) this.$emit("show")
+  },
 }
 </script>
 
 <style scoped>
-  .wrapper {
-    margin-top: 1em;
-  }
+.wrapper {
+  margin-top: 1em;
+}
 
-  .card-header {
-    border-bottom: none;
-    padding: 0.25rem 1.25rem;
-  }
+.card-header {
+  border-bottom: none;
+  padding: 0.25rem 1.25rem;
+}
 </style>

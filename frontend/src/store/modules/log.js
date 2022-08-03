@@ -3,26 +3,26 @@
 
 const state = {
   workLog: [],
-  errors: []
+  errors: [],
 }
 
 const mutations = {
-  newWorkLog (state, value) {
+  newWorkLog(state, value) {
     state.workLog.push(value)
   },
-  newError (state, log) {
+  newError(state, log) {
     state.errors.push(log)
-  }
+  },
 }
 
 const getters = {
-  getWorkLog: state => state.workLog,
-  getErrors: state => state.errors
+  getWorkLog: (state) => state.workLog,
+  getErrors: (state) => state.errors,
 }
 
 export default {
   namespaced: true,
   state,
   mutations,
-  getters
+  getters,
 }

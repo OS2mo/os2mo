@@ -1,18 +1,17 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 
 <script>
 /**
  * A facet picker component.
  */
 
-import MoTreePicker from '@/components/MoPicker/MoTreePicker'
-import { Facet as FacetStore } from '@/store/actions/facet'
-import Class from '@/api/Class'
-import Facet from '@/api/Facet'
+import MoTreePicker from "@/components/MoPicker/MoTreePicker"
+import { Facet as FacetStore } from "@/store/actions/facet"
+import Class from "@/api/Class"
+import Facet from "@/api/Facet"
 
 export default {
-  name: 'MoRecursiveFacetPicker',
+  name: "MoRecursiveFacetPicker",
 
   extends: MoTreePicker,
 
@@ -20,13 +19,16 @@ export default {
     facet_uuid: String,
   },
 
-  created () {
-    this.$store.dispatch(FacetStore.actions.SET_FACET, {facet: this.facet_uuid, full: true})
+  created() {
+    this.$store.dispatch(FacetStore.actions.SET_FACET, {
+      facet: this.facet_uuid,
+      full: true,
+    })
   },
 
   methods: {
     get_name_id() {
-      return 'facet-' + this._uid
+      return "facet-" + this._uid
     },
 
     async get_entry(newVal) {
@@ -54,7 +56,7 @@ export default {
        * whenever it changes.
        */
       return FacetStore.getters.GET_UUID
-    }
-  }
+    },
+  },
 }
 </script>

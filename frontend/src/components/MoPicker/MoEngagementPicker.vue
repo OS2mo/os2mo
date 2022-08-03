@@ -1,9 +1,8 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div class="form-group col">
-    <label>{{$tc('shared.engagement', 2)}}</label>
-    <mo-loader v-show="isLoading"/>
+    <label>{{ $tc("shared.engagement", 2) }}</label>
+    <mo-loader v-show="isLoading" />
 
     <select
       :name="nameId"
@@ -15,11 +14,11 @@ SPDX-License-Identifier: MPL-2.0
       v-model="selected"
       @change="updateSelectedEngagement()"
       :disabled="!employeeDefined"
-      v-validate="{required: true}"
+      v-validate="{ required: true }"
     >
-      <option disabled>{{$tc('shared.engagement', 2)}}</option>
+      <option disabled>{{ $tc("shared.engagement", 2) }}</option>
       <option v-for="e in orderedListOptions" :key="e.uuid" :value="e">
-          {{e.job_function.name}}, {{e.org_unit.name}}
+        {{ e.job_function.name }}, {{ e.org_unit.name }}
       </option>
     </select>
 
@@ -34,21 +33,21 @@ SPDX-License-Identifier: MPL-2.0
  * A engagement picker component.
  */
 
-import Employee from '@/api/Employee'
-import MoLoader from '@/components/atoms/MoLoader'
+import Employee from "@/api/Employee"
+import MoLoader from "@/components/atoms/MoLoader"
 
 export default {
-  name: 'MoEngagementPicker',
+  name: "MoEngagementPicker",
 
   components: {
-    MoLoader
+    MoLoader,
   },
 
   /**
    * Validator scope, sharing all errors and validation state.
    */
   inject: {
-    $validator: '$validator'
+    $validator: "$validator",
   },
 
   props: {
@@ -61,16 +60,16 @@ export default {
      * Defines a required employee.
      */
     employee: {
-      required: true
+      required: true,
     },
 
     /**
      * This boolean property requires a selected name.
      */
-    required: Boolean
+    required: Boolean,
   },
 
-  data () {
+  data() {
     return {
       /**
        * The selected, engagements, isLoading component value.
@@ -78,7 +77,7 @@ export default {
        */
       selected: null,
       engagements: [],
-      isLoading: false
+      isLoading: false,
     }
   },
 
@@ -86,14 +85,14 @@ export default {
     /**
      * Get name `engagement-picker`
      */
-    nameId () {
-      return 'engagement-picker-' + this._uid
+    nameId() {
+      return "engagement-picker-" + this._uid
     },
 
     /**
      * Set employee as required.
      */
-    isRequired () {
+    isRequired() {
       if (!this.employeeDefined) return false
       return this.required
     },
@@ -101,7 +100,7 @@ export default {
     /**
      * If employee is not defined, return false and disable.
      */
-    employeeDefined () {
+    employeeDefined() {
       for (let key in this.employee) {
         if (this.employee.hasOwnProperty(key)) {
           return true
@@ -110,26 +109,34 @@ export default {
       return false
     },
 
-    orderedListOptions () {
+    orderedListOptions() {
       return this.engagements.slice().sort((a, b) => {
-        if (a.job_function.name && a.org_unit.name < b.job_function.name && b.org_unit.name) {
+        if (
+          a.job_function.name &&
+          a.org_unit.name < b.job_function.name &&
+          b.org_unit.name
+        ) {
           return -1
         }
-        if (a.job_function.name && a.org_unit.name > b.job_function.name && b.org_unit.name) {
+        if (
+          a.job_function.name &&
+          a.org_unit.name > b.job_function.name &&
+          b.org_unit.name
+        ) {
           return 1
         }
         return 0
       })
-    }
+    },
   },
 
   /**
    * Whenever employee change, get engagements.
    */
   watch: {
-    employee () {
+    employee() {
       this.getEngagements()
-    }
+    },
   },
 
   mounted: function () {
@@ -143,24 +150,23 @@ export default {
     /**
      * Get engagement details.
      */
-    getEngagements () {
+    getEngagements() {
       if (this.employeeDefined) {
         let vm = this
         vm.isLoading = true
-        Employee.getEngagementDetails(this.employee.uuid)
-          .then(response => {
-            vm.isLoading = false
-            vm.engagements = response
-          })
+        Employee.getEngagementDetails(this.employee.uuid).then((response) => {
+          vm.isLoading = false
+          vm.engagements = response
+        })
       }
     },
 
     /**
      * Update selected engagement.
      */
-    updateSelectedEngagement () {
-      this.$emit('input', this.selected)
-    }
-  }
+    updateSelectedEngagement() {
+      this.$emit("input", this.selected)
+    },
+  },
 }
 </script>

@@ -1,24 +1,23 @@
 // SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Service from './HttpCommon'
-import URLSearchParams from '@ungap/url-search-params'
+import Service from "./HttpCommon"
+import URLSearchParams from "@ungap/url-search-params"
 
 export default {
-
   /**
    * Get a list of all organisations
    * @param {Date} atDate - the date
    * @returns {Array} List of all organisations
    */
-  getAll (atDate) {
+  getAll(atDate) {
     atDate = atDate || new Date()
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
     return Service.get(`/o/?at=${atDate}`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
   },
@@ -28,12 +27,12 @@ export default {
    * @param {String} OrgUuid - Uuid for the organisation to get
    * @returns {Object} an organisation object
    */
-  get (uuid) {
+  get(uuid) {
     return Service.get(`/o/${uuid}/`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
   },
@@ -44,13 +43,13 @@ export default {
    * @param {Date} atDate - Date
    * @returns {Array} List of organisation units within the organisation
    */
-  getChildren (uuid, atDate, extra) {
-    if (atDate instanceof Date) atDate = atDate.toISOString().split('T')[0]
+  getChildren(uuid, atDate, extra) {
+    if (atDate instanceof Date) atDate = atDate.toISOString().split("T")[0]
 
     const params = new URLSearchParams()
 
     if (atDate) {
-      params.append('at', atDate)
+      params.append("at", atDate)
     }
 
     if (extra !== undefined) {
@@ -60,11 +59,11 @@ export default {
     }
 
     return Service.get(`/o/${uuid}/children?${params}`)
-      .then(response => {
-        return response.data.sort((a, b) => (a.name > b.name) ? 1 : -1)
+      .then((response) => {
+        return response.data.sort((a, b) => (a.name > b.name ? 1 : -1))
       })
-      .catch(error => {
+      .catch((error) => {
         console.log(error.response)
       })
-  }
+  },
 }

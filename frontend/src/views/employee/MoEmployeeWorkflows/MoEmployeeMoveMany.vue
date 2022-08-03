@@ -1,5 +1,4 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="moveMany">
     <div class="form-row">
@@ -43,15 +42,17 @@ SPDX-License-Identifier: MPL-2.0
       v-if="orgUnitSource"
       name="selected-employees-count"
       :value="selected.length"
-      v-validate="{min_value: 1, required: true}"
-    >
+      v-validate="{ min_value: 1, required: true }"
+    />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
+      {{
+        $t("alerts.error." + backendValidationError.error_key, backendValidationError)
+      }}
     </div>
 
     <div class="float-right">
-      <button-submit :is-loading="isLoading" :disabled="isDisabled"/>
+      <button-submit :is-loading="isLoading" :disabled="isDisabled" />
     </div>
   </form>
 </template>
@@ -61,16 +62,16 @@ SPDX-License-Identifier: MPL-2.0
  * A employee move many component.
  */
 
-import { MoInputDate } from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoTable from '@/components/MoTable/MoTable'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import ValidateForm from '@/mixins/ValidateForm'
-import { mapFields } from 'vuex-map-fields'
-import { mapGetters } from 'vuex'
-import store from './_store/employeeMoveMany.js'
+import { MoInputDate } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoTable from "@/components/MoTable/MoTable"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import ValidateForm from "@/mixins/ValidateForm"
+import { mapFields } from "vuex-map-fields"
+import { mapGetters } from "vuex"
+import store from "./_store/employeeMoveMany.js"
 
-const STORE_KEY = '$_employeeMoveMany'
+const STORE_KEY = "$_employeeMoveMany"
 
 export default {
   mixins: [ValidateForm],
@@ -79,18 +80,18 @@ export default {
     MoInputDate,
     MoOrganisationUnitPicker,
     MoTable,
-    ButtonSubmit
+    ButtonSubmit,
   },
   props: {
     show: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
-  data () {
+  data() {
     return {
       isLoading: false,
-      orgUnitSource: undefined
+      orgUnitSource: undefined,
     }
   },
 
@@ -99,41 +100,39 @@ export default {
      * generate getter/setters from store
      */
     ...mapFields(STORE_KEY, [
-      'selected',
-      'moveDate',
-      'orgUnitDestination',
-      'columns',
-      'backendValidationError'
+      "selected",
+      "moveDate",
+      "orgUnitDestination",
+      "columns",
+      "backendValidationError",
     ]),
 
-    ...mapGetters(STORE_KEY, [
-      'employees'
-    ]),
+    ...mapGetters(STORE_KEY, ["employees"]),
 
     /**
      * Set dateSelected to disabled if moveDate is selected.
      */
-    dateSelected () {
+    dateSelected() {
       return !this.moveDate
     },
 
-    isDisabled () {
+    isDisabled() {
       if (this.formValid && this.selected.length) {
         return false
       }
       return true
     },
 
-    validity () {
-      return { 'from': this.moveDate }
-    }
+    validity() {
+      return { from: this.moveDate }
+    },
   },
-  beforeCreate () {
+  beforeCreate() {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)
     }
   },
-  beforeDestroy () {
+  beforeDestroy() {
     this.$store.unregisterModule(STORE_KEY)
   },
 
@@ -143,18 +142,18 @@ export default {
      * @todo this could probably be improved. right now we need to reset orgUnitSource in the moveMany response.
      */
     orgUnitSource: {
-      handler (newVal) {
+      handler(newVal) {
         this.$store.commit(`${STORE_KEY}/updateOrgUnitSource`, newVal)
         this.$store.dispatch(`${STORE_KEY}/getEmployees`)
       },
-      deep: true
+      deep: true,
     },
 
-    show (val) {
+    show(val) {
       if (!val) {
         this.onHidden()
       }
-    }
+    },
   },
 
   methods: {
@@ -162,30 +161,29 @@ export default {
      * Check if fields are valid, and move employees if they are.
      * Otherwise validate the fields.
      */
-    moveMany (evt) {
+    moveMany(evt) {
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
         vm.isLoading = true
 
-        this.$store.dispatch(`${STORE_KEY}/moveManyEmployees`)
-          .then(response => {
-            vm.isLoading = false
-            if (response.error) {
-              vm.backendValidationError = response
-            } else {
-              vm.orgUnitSource = undefined
-              vm.$emit('submitted')
-            }
-          })
+        this.$store.dispatch(`${STORE_KEY}/moveManyEmployees`).then((response) => {
+          vm.isLoading = false
+          if (response.error) {
+            vm.backendValidationError = response
+          } else {
+            vm.orgUnitSource = undefined
+            vm.$emit("submitted")
+          }
+        })
       } else {
         this.$validator.validateAll()
       }
     },
 
-    onHidden () {
+    onHidden() {
       this.$store.dispatch(`${STORE_KEY}/resetFields`)
-    }
-  }
+    },
+  },
 }
 </script>

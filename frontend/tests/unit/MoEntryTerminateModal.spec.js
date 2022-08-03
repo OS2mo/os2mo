@@ -1,25 +1,25 @@
 // SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import { createLocalVue, mount } from '@vue/test-utils'
-import Vuex from 'vuex'
-import VeeValidate from 'vee-validate'
-import Service from '@/api/HttpCommon'
-import { EventBus, Events } from '@/EventBus'
-import MoEntryTerminateModal from '@/components/MoEntryTerminateModal.vue'
+import { createLocalVue, mount } from "@vue/test-utils"
+import Vuex from "vuex"
+import VeeValidate from "vee-validate"
+import Service from "@/api/HttpCommon"
+import { EventBus, Events } from "@/EventBus"
+import MoEntryTerminateModal from "@/components/MoEntryTerminateModal.vue"
 
-jest.mock('@/api/HttpCommon')
+jest.mock("@/api/HttpCommon")
 
-describe('MoEntryTerminateModal.vue', () => {
+describe("MoEntryTerminateModal.vue", () => {
   let defaultPropsData = {
     content: {
-      validity: { from: '2021-01-01', to: null },
-      parent: { uuid: 'parent-uuid' },
+      validity: { from: "2021-01-01", to: null },
+      parent: { uuid: "parent-uuid" },
     },
-    type: 'org_unit',
+    type: "org_unit",
   }
 
-  const event = { preventDefault: () => {} };
+  const event = { preventDefault: () => {} }
 
   Service.post.mockResolvedValue([])
 
@@ -39,8 +39,8 @@ describe('MoEntryTerminateModal.vue', () => {
     // Mock Vuex store
     const store = new Vuex.Store({
       mutations: {
-        'log/newWorkLog': () => undefined,
-      }
+        "log/newWorkLog": () => undefined,
+      },
     })
 
     const wrapper = mount(MoEntryTerminateModal, {
@@ -60,31 +60,31 @@ describe('MoEntryTerminateModal.vue', () => {
 
   it('should call the "/details/terminate" API upon termination', async () => {
     const env = mountComponent(defaultPropsData)
-    const spyServicePost = jest.spyOn(Service, 'post')
-    const expectedUrl = '/details/terminate'
+    const spyServicePost = jest.spyOn(Service, "post")
+    const expectedUrl = "/details/terminate"
     const expectedPayload = {
       type: defaultPropsData.type,
       validity: defaultPropsData.content.validity,
       uuid: undefined,
     }
-    await env.wrapper.vm.terminate(event)  // invoke event handler
+    await env.wrapper.vm.terminate(event) // invoke event handler
     expect(spyServicePost).toHaveBeenCalledWith(expectedUrl, expectedPayload)
   })
 
-  it('should navigate to the parent OU upon termination', async () => {
+  it("should navigate to the parent OU upon termination", async () => {
     const env = mountComponent(defaultPropsData)
     const expectedRoute = {
-      name: 'OrganisationDetail',
-      params: { uuid: 'parent-uuid' },
+      name: "OrganisationDetail",
+      params: { uuid: "parent-uuid" },
     }
-    await env.wrapper.vm.terminate(event)  // invoke event handler
+    await env.wrapper.vm.terminate(event) // invoke event handler
     expect(env.wrapper.vm.$router.push).toHaveBeenCalledWith(expectedRoute)
   })
 
-  it('should update the org tree view upon termination', async () => {
+  it("should update the org tree view upon termination", async () => {
     const env = mountComponent(defaultPropsData)
-    const spyEventBusEmit = jest.spyOn(EventBus, '$emit')
-    await env.wrapper.vm.terminate(event)  // invoke event handler
+    const spyEventBusEmit = jest.spyOn(EventBus, "$emit")
+    await env.wrapper.vm.terminate(event) // invoke event handler
     expect(spyEventBusEmit).toHaveBeenCalledWith(Events.UPDATE_TREE_VIEW)
   })
 })

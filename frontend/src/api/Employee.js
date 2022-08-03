@@ -1,19 +1,17 @@
 // SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 // SPDX-License-Identifier: MPL-2.0
 
-import Service from './HttpCommon'
-import { EventBus, Events } from '@/EventBus'
-import store from '@/store'
+import Service from "./HttpCommon"
+import { EventBus, Events } from "@/EventBus"
+import store from "@/store"
 
-const identfyItAssociationData = function(data) {
-
+const identfyItAssociationData = function (data) {
   // When creating an IT association, we must scrub the data to conform to
   // the special snowflake API request format that is supported by the backend.
 
   if (Array.isArray(data) && data[0].it) {
-
     // Probably data for creating a new IT association
-    return data.map(d => {
+    return data.map((d) => {
       return {
         type: "association",
         person: { uuid: d.person.uuid },
@@ -22,12 +20,10 @@ const identfyItAssociationData = function(data) {
         primary: { uuid: d.primary.uuid },
         validity: { from: d.validity.from, to: d.validity.to },
         job_function: { uuid: d.job_function.uuid },
-        it: { uuid: d.it.uuid }
+        it: { uuid: d.it.uuid },
       }
     })
-
   } else if (data.data && data.data.it) {
-
     // Probably data for editing an IT association
 
     var it_user_uuid
@@ -46,26 +42,23 @@ const identfyItAssociationData = function(data) {
         org_unit: { uuid: data.data.org_unit.uuid },
         it: { uuid: it_user_uuid },
         validity: { from: data.data.validity.from, to: data.data.validity.to },
-        primary: { uuid: data.data.primary.uuid }
-      }
+        primary: { uuid: data.data.primary.uuid },
+      },
     }
-
   } else {
-
     // Nothing special. Just patch it through.
     return data
   }
 }
 
 export default {
-
   /**
    * Get engagement details for employee
    * @param {String} uuid - employee uuid
    * @see getDetail
    */
-  getEngagementDetails (uuid, validity) {
-    return this.getDetail(uuid, 'engagement', validity)
+  getEngagementDetails(uuid, validity) {
+    return this.getDetail(uuid, "engagement", validity)
   },
 
   /**
@@ -74,14 +67,14 @@ export default {
    * @param {String} detail - Name of the detail
    * @returns {Array} A list of options for the detail
    */
-  getDetail (uuid, detail, validity) {
-    validity = validity || 'present'
+  getDetail(uuid, detail, validity) {
+    validity = validity || "present"
     return Service.get(`/e/${uuid}/details/${detail}?validity=${validity}`)
-      .then(response => {
+      .then((response) => {
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response })
       })
   },
 
@@ -91,28 +84,26 @@ export default {
    * @param {Array} create - A list of elements to create
    * @returns {Object} employee uuid
    */
-  createEntry (create) {
-    return Service.post('/details/create', create)
-      .then(response => {
+  createEntry(create) {
+    return Service.post("/details/create", create)
+      .then((response) => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response
       })
-      .catch(error => {
+      .catch((error) => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
-        store.commit('log/newError', { type: 'ERROR', value: error.response })
+        store.commit("log/newError", { type: "ERROR", value: error.response })
         return error.response
       })
   },
 
-  create (create) {
-
-    return this.createEntry(identfyItAssociationData(create))
-      .then(response => {
-        if (response.data.error) {
-          return response.data
-        }
+  create(create) {
+    return this.createEntry(identfyItAssociationData(create)).then((response) => {
+      if (response.data.error) {
         return response.data
-      })
+      }
+      return response.data
+    })
   },
 
   /**
@@ -121,16 +112,16 @@ export default {
    * @param {Array} edit - A list of elements to edit
    * @returns {Object} employeee uuid
    */
-  edit (edit) {
+  edit(edit) {
     let editData = identfyItAssociationData(edit)
-    return Service.post('/details/edit', editData)
-      .then(response => {
+    return Service.post("/details/edit", editData)
+      .then((response) => {
         EventBus.$emit(Events.EMPLOYEE_CHANGED)
         return response.data
       })
-      .catch(error => {
-        store.commit('log/newError', { type: 'ERROR', value: error.response.data })
+      .catch((error) => {
+        store.commit("log/newError", { type: "ERROR", value: error.response.data })
         return error.response.data
       })
-  }
+  },
 }

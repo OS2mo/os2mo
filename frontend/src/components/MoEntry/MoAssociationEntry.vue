@@ -1,12 +1,11 @@
-SPDX-FileCopyrightText: 2018-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <div>
     <mo-input-date-range
       class="from-date"
       v-model="entry.validity"
       :initially-hidden="validityHidden"
-      :disabled-dates="{orgUnitValidity, disabledDates}"
+      :disabled-dates="{ orgUnitValidity, disabledDates }"
     />
 
     <mo-employee-picker
@@ -53,17 +52,22 @@ SPDX-License-Identifier: MPL-2.0
     </div>
 
     <div v-for="(dynamic, index) in dynamicFacets" :key="dynamic">
-        <mo-recursive-facet-picker
-          :label="facet_uuid_to_label(dynamic)"
-          class="select-association"
-          :facet_uuid="dynamic"
-          v-bind:value="fetch_entry(dynamic)"
-          v-on:input="set_entry($event, dynamic)"
-        />
+      <mo-recursive-facet-picker
+        :label="facet_uuid_to_label(dynamic)"
+        class="select-association"
+        :facet_uuid="dynamic"
+        v-bind:value="fetch_entry(dynamic)"
+        v-on:input="set_entry($event, dynamic)"
+      />
     </div>
 
-    <div v-if="entry.association_type && substituteRoles.indexOf(entry.association_type.uuid) !== -1">
-      <hr>
+    <div
+      v-if="
+        entry.association_type &&
+        substituteRoles.indexOf(entry.association_type.uuid) !== -1
+      "
+    >
+      <hr />
       <mo-employee-picker
         class="search-employee mb-3"
         :label="$tc('input_fields.employee_substitute')"
@@ -79,25 +83,25 @@ SPDX-License-Identifier: MPL-2.0
  * A association entry component.
  */
 
-import { MoInputDateRange, MoInputText} from '@/components/MoInput'
-import MoOrganisationUnitPicker from '@/components/MoPicker/MoOrganisationUnitPicker'
-import MoEmployeePicker from '@/components/MoPicker/MoEmployeePicker'
-import MoFacetPicker from '@/components/MoPicker/MoFacetPicker'
-import MoRecursiveFacetPicker from '@/components/MoPicker/MoRecursiveFacetPicker'
-import MoEntryBase from './MoEntryBase'
-import OrgUnitValidity from '@/mixins/OrgUnitValidity'
-import { Employee } from '@/store/actions/employee'
-import { mapGetters } from 'vuex'
-import { Facet } from '@/store/actions/facet'
+import { MoInputDateRange, MoInputText } from "@/components/MoInput"
+import MoOrganisationUnitPicker from "@/components/MoPicker/MoOrganisationUnitPicker"
+import MoEmployeePicker from "@/components/MoPicker/MoEmployeePicker"
+import MoFacetPicker from "@/components/MoPicker/MoFacetPicker"
+import MoRecursiveFacetPicker from "@/components/MoPicker/MoRecursiveFacetPicker"
+import MoEntryBase from "./MoEntryBase"
+import OrgUnitValidity from "@/mixins/OrgUnitValidity"
+import { Employee } from "@/store/actions/employee"
+import { mapGetters } from "vuex"
+import { Facet } from "@/store/actions/facet"
 
 export default {
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
 
-  name: 'MoAssociationEntry',
+  name: "MoAssociationEntry",
 
-    props: {
+  props: {
     /**
      * This boolean property hide the org picker.
      */
@@ -106,45 +110,46 @@ export default {
     /**
      * This boolean property hide the employee picker.
      */
-    hideEmployeePicker: Boolean
+    hideEmployeePicker: Boolean,
   },
 
   computed: {
-
     ...mapGetters({
-      currentEmployee: Employee.getters.GET_EMPLOYEE
+      currentEmployee: Employee.getters.GET_EMPLOYEE,
     }),
 
-
-    validations () {
+    validations() {
       return {}
     },
 
-    showPrimary () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
+    showPrimary() {
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
 
       return conf.show_primary_association
     },
 
-    substituteRoles () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      if ('substitute_roles' in conf){
-        return conf.substitute_roles.split(',').filter(elem => elem !== "")
+    substituteRoles() {
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
+      if ("substitute_roles" in conf) {
+        return conf.substitute_roles.split(",").filter((elem) => elem !== "")
       } else {
         return []
       }
     },
 
-    dynamicFacets () {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
-      return conf.association_dynamic_facets.split(',').filter(elem => elem !== "")
+    dynamicFacets() {
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
+      return conf.association_dynamic_facets.split(",").filter((elem) => elem !== "")
     },
   },
 
-  created () {
-    if (!(this.entry.person && this.entry.person.name) &&
-      (this.currentEmployee && this.currentEmployee.name)){
-      this.$set(this.entry, 'person', this.currentEmployee)
+  created() {
+    if (
+      !(this.entry.person && this.entry.person.name) &&
+      this.currentEmployee &&
+      this.currentEmployee.name
+    ) {
+      this.$set(this.entry, "person", this.currentEmployee)
     }
   },
 
@@ -154,7 +159,7 @@ export default {
     MoEmployeePicker,
     MoFacetPicker,
     MoRecursiveFacetPicker,
-    MoInputText
+    MoInputText,
   },
 
   watch: {
@@ -162,17 +167,17 @@ export default {
      * Whenever entry change, update newVal.
      */
     entry: {
-      handler (newVal) {
-        if ('association_type' in newVal){
+      handler(newVal) {
+        if ("association_type" in newVal) {
           if (this.substituteRoles.indexOf(newVal.association_type.uuid) === -1) {
             delete newVal.substitute
           }
         }
-        newVal.type = 'association'
-        this.$emit('input', newVal)
+        newVal.type = "association"
+        this.$emit("input", newVal)
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
 
   methods: {
@@ -184,11 +189,11 @@ export default {
      * @returns {Any} the found element in the list or null
      */
     find(arr, test, ctx) {
-      let result = null;
-      arr.some(function(el, i) {
-        return test.call(ctx, el, i, arr) ? ((result = el), true) : false;
-      });
-      return result;
+      let result = null
+      arr.some(function (el, i) {
+        return test.call(ctx, el, i, arr) ? ((result = el), true) : false
+      })
+      return result
     },
 
     /**
@@ -202,10 +207,9 @@ export default {
         this.entry.dynamic_classes = []
       }
       // Find the correct element if it exists
-      let entry = this.find(
-        this.entry.dynamic_classes,
-        item => { return item['top_level_facet']['uuid'] === dynamic}
-      )
+      let entry = this.find(this.entry.dynamic_classes, (item) => {
+        return item["top_level_facet"]["uuid"] === dynamic
+      })
       return entry
     },
 
@@ -229,8 +233,8 @@ export default {
      */
     facet_uuid_to_label(uuid) {
       let facet_getter = this.$store.getters[Facet.getters.GET_FACET]
-      return facet_getter(uuid)['description']
-    }
-  }
+      return facet_getter(uuid)["description"]
+    },
+  },
 }
 </script>

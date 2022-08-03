@@ -1,20 +1,19 @@
-SPDX-FileCopyrightText: 2017-2020 Magenta ApS
-SPDX-License-Identifier: MPL-2.0
+SPDX-FileCopyrightText: 2017-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
 <template>
   <form @submit.stop.prevent="createEmployee">
-    <mo-cpr v-if="enableCPR" v-model="employee"/>
+    <mo-cpr v-if="enableCPR" v-model="employee" />
 
     <div class="form-row name">
-      <label>{{ $t('shared.name') }}</label>
+      <label>{{ $t("shared.name") }}</label>
       <mo-input-text
         :placeholder="$t('input_fields.givenname')"
         v-model="employee.name"
-        :disabled=disableManualName
+        :disabled="disableManualName"
       />
     </div>
 
     <div class="form-row nickname">
-      <label>{{ $t('shared.nickname') }}</label>
+      <label>{{ $t("shared.nickname") }}</label>
       <mo-input-text
         :placeholder="$t('input_fields.givenname')"
         v-model="employee.nickname_givenname"
@@ -89,7 +88,9 @@ SPDX-License-Identifier: MPL-2.0
     />
 
     <div class="alert alert-danger" v-if="backendValidationError">
-      {{$t('alerts.error.' + backendValidationError.error_key, backendValidationError)}}
+      {{
+        $t("alerts.error." + backendValidationError.error_key, backendValidationError)
+      }}
     </div>
 
     <div class="float-right">
@@ -103,16 +104,24 @@ SPDX-License-Identifier: MPL-2.0
  * A employee create component.
  */
 
-import { mapFields } from 'vuex-map-fields'
-import ButtonSubmit from '@/components/ButtonSubmit'
-import MoCpr from '@/components/MoCpr'
-import { MoInputText, MoInputDate } from '@/components/MoInput'
-import MoAddMany from '@/components/MoAddMany/MoAddMany'
-import ValidateForm from '@/mixins/ValidateForm'
-import { MoEmployeeAddressEntry, MoAssociationEntry, MoEngagementEntry, MoRoleEntry, MoItSystemEntry, MoManagerEntry, MoOwnerEntry } from '@/components/MoEntry'
-import store from './_store/employeeCreate.js'
+import { mapFields } from "vuex-map-fields"
+import ButtonSubmit from "@/components/ButtonSubmit"
+import MoCpr from "@/components/MoCpr"
+import { MoInputText, MoInputDate } from "@/components/MoInput"
+import MoAddMany from "@/components/MoAddMany/MoAddMany"
+import ValidateForm from "@/mixins/ValidateForm"
+import {
+  MoEmployeeAddressEntry,
+  MoAssociationEntry,
+  MoEngagementEntry,
+  MoRoleEntry,
+  MoItSystemEntry,
+  MoManagerEntry,
+  MoOwnerEntry,
+} from "@/components/MoEntry"
+import store from "./_store/employeeCreate.js"
 
-const STORE_KEY = '$_employeeCreate'
+const STORE_KEY = "$_employeeCreate"
 
 export default {
   mixins: [ValidateForm],
@@ -128,11 +137,11 @@ export default {
   props: {
     show: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 
-  data () {
+  data() {
     return {
       /**
        * The isLoading component value.
@@ -152,8 +161,8 @@ export default {
         role: MoRoleEntry,
         it: MoItSystemEntry,
         manager: MoManagerEntry,
-        owner: MoOwnerEntry
-      }
+        owner: MoOwnerEntry,
+      },
     }
   },
 
@@ -162,58 +171,60 @@ export default {
      * Get mapFields from vuex store.
      */
     ...mapFields(STORE_KEY, [
-      'employee',
-      'engagement',
-      'address',
-      'association',
-      'role',
-      'itSystem',
-      'manager',
-      'owner',
-      'organisation',
-      'backendValidationError'
+      "employee",
+      "engagement",
+      "address",
+      "association",
+      "role",
+      "itSystem",
+      "manager",
+      "owner",
+      "organisation",
+      "backendValidationError",
     ]),
 
     disableManualName() {
       // disable when using cpr (as cpr implies a name)
-      return this.employee && 'cpr_no' in this.employee
+      return this.employee && "cpr_no" in this.employee
     },
 
     enableCPR() {
       // Keep enabled if name is disabled.
       // Otherwise, disable if we have a non-empty name.
-      return this.disableManualName || !('name' in this.employee) || (
-        'name' in this.employee &&
-        (this.employee.name === '' || this.employee.name == null)
+      return (
+        this.disableManualName ||
+        !("name" in this.employee) ||
+        ("name" in this.employee &&
+          (this.employee.name === "" || this.employee.name == null))
       )
     },
 
     show_seniority() {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
       return conf.show_seniority
     },
     show_owner() {
-      let conf = this.$store.getters['conf/GET_CONF_DB']
+      let conf = this.$store.getters["conf/GET_CONF_DB"]
       return conf.show_owner
-    }
+    },
   },
 
-  beforeCreate () {
+  beforeCreate() {
     if (!(STORE_KEY in this.$store._modules.root._children)) {
       this.$store.registerModule(STORE_KEY, store)
     }
   },
 
-  beforeDestroy () {
+  beforeDestroy() {
     this.$store.unregisterModule(STORE_KEY)
   },
 
   watch: {
-    show (val) {
+    show(val) {
       if (!val) {
         this.onHidden()
       }
-    }
+    },
   },
 
   methods: {
@@ -221,35 +232,34 @@ export default {
      * Create a employee and check if the data fields are valid.
      * Then throw a error if not.
      */
-    updateOrganisation () {
-      this.organisation = this.$store.getters['organisation/GET_ORGANISATION']
+    updateOrganisation() {
+      this.organisation = this.$store.getters["organisation/GET_ORGANISATION"]
     },
 
-    createEmployee (evt) {
+    createEmployee(evt) {
       this.updateOrganisation()
       evt.preventDefault()
       if (this.formValid) {
         let vm = this
         this.isLoading = true
 
-        this.$store.dispatch(`${STORE_KEY}/CREATE_EMPLOYEE`)
-          .then(employeeUuid => {
-            vm.isLoading = false
-            if (employeeUuid.error) {
-              vm.backendValidationError = employeeUuid
-            } else {
-              vm.$emit('submitted')
-              vm.$router.push({ name: 'EmployeeDetail', params: { uuid: employeeUuid } })
-            }
-          })
+        this.$store.dispatch(`${STORE_KEY}/CREATE_EMPLOYEE`).then((employeeUuid) => {
+          vm.isLoading = false
+          if (employeeUuid.error) {
+            vm.backendValidationError = employeeUuid
+          } else {
+            vm.$emit("submitted")
+            vm.$router.push({ name: "EmployeeDetail", params: { uuid: employeeUuid } })
+          }
+        })
       } else {
         this.$validator.validateAll()
       }
     },
 
-    onHidden () {
+    onHidden() {
       this.$store.dispatch(`${STORE_KEY}/resetFields`)
-    }
-  }
+    },
+  },
 }
 </script>
