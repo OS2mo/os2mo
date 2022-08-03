@@ -16,12 +16,13 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+from ramodels.mo import OpenValidity
+from ramodels.mo._shared import UUIDBase
 
 from mora import common
 from mora import exceptions
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
-
 
 logger = logging.getLogger(__name__)
 
@@ -61,25 +62,16 @@ class ConfigurationRead(BaseModel):
     key: str = Field(description="Settings key.")
 
 
-class OrganisationUnit(BaseModel):
+class OrganisationUnit(UUIDBase):
     """Model representing a Organization-Unit."""
 
-    uuid: UUID = Field(description="Unique ID identifying the organization unit")
+    pass
 
 
-class OrganisationUnitTerminate(OrganisationUnit):
+class OrganisationUnitTerminate(OrganisationUnit, OpenValidity):
     """Model representing a organization-unit termination."""
 
-    from_date: Optional[datetime.datetime] = Field(
-        alias="from", description="Start date of the validity."
-    )
-
-    to_date: Optional[datetime.datetime] = Field(
-        alias="to", description="End date of the validity, if applicable."
-    )
-
-    trigger_less: Optional[bool] = Field(
-        alias="triggerless",
+    triggerless: Optional[bool] = Field(
         description="Flag specifying if triggers should not be invoked, if true.",
         default=False,
     )

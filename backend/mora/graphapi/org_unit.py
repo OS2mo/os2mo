@@ -169,7 +169,7 @@ async def terminate_org_unit(
     trigger_dict = org_unit_trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not ou_terminate.trigger_less:
+    if not ou_terminate.triggerless:
         _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
@@ -187,7 +187,7 @@ async def terminate_org_unit(
     )
 
     # ON_AFTER
-    if not ou_terminate.trigger_less:
+    if not ou_terminate.triggerless:
         _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
