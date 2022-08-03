@@ -131,7 +131,28 @@ class MoraTrigger(BaseModel):
 
     result: typing.Any = Field(description="Result of the trigger", default=None)
 
-    # org_unit_uuid: str
+    def to_trigger_dict(self) -> dict:
+        trigger_dict = self.dict(by_alias=True)
+        return MoraTrigger.convert_trigger_dict_fields(trigger_dict)
+
+    @staticmethod
+    def convert_trigger_dict_fields(trigger_dict: dict) -> dict:
+        for key in trigger_dict.keys():
+            if isinstance(trigger_dict[key], dict):
+                trigger_dict[key] = MoraTrigger.convert_trigger_dict_fields(
+                    trigger_dict[key]
+                )
+                continue
+
+            if isinstance(trigger_dict[key], UUID):
+                trigger_dict[key] = str(trigger_dict[key])
+                continue
+
+            if isinstance(trigger_dict[key], datetime.datetime):
+                trigger_dict[key] = trigger_dict[key].isoformat()
+                continue
+
+        return trigger_dict
 
 
 class MoraTriggerOrgUnit(MoraTrigger):

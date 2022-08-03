@@ -8,7 +8,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
-import json
 import logging
 from typing import cast
 from typing import Optional
@@ -169,11 +168,7 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
     lora_payload = util.set_obj_value(dict(), obj_path, [val_inactive])
     lora_payload["note"] = "Afslut enhed"
 
-    # TODO: Finish the termiante logic
-
-    trigger_dict = _create_trigger_dict_from_org_unit_input(unit)
-
-    orgUnitTrigger = MoraTriggerOrgUnit(
+    org_unit_trigger = MoraTriggerOrgUnit(
         org_unit_uuid=unit.uuid,
         request_type=mapping.RequestType.TERMINATE,
         request=MoraTriggerRequest(
@@ -189,8 +184,8 @@ async def terminate_org_unit(unit: OrganizationUnitTerminateInput) -> Organizati
         uuid=unit.uuid,
     )
 
-    trigger_dict2 = orgUnitTrigger.dict(by_alias=True)
-    trigger_dict3 = json.loads(orgUnitTrigger.json())
+    trigger_dict = org_unit_trigger.to_trigger_dict()
+
     # ON_BEFORE
     if not unit.trigger_less:
         _ = await Trigger.run(trigger_dict)
