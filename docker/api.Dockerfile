@@ -50,8 +50,6 @@ RUN set -ex \
   # clean up after apt-get and man-pages
   && apt-get clean && rm -rf "/var/lib/apt/lists"
 
-
-
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
   PYTHONPATH=/app:/app/backend \
