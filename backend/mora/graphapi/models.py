@@ -6,15 +6,14 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import datetime
 from enum import Enum
 from typing import Optional
-from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
-
+from ramodels.mo import OpenValidity
+from ramodels.mo._shared import UUIDBase
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -52,22 +51,14 @@ class ConfigurationRead(BaseModel):
     key: str = Field(description="Settings key.")
 
 
-class Employee(BaseModel):
+class Employee(UUIDBase):
     """Model representing a employee."""
 
-    uuid: UUID = Field(description="Unique ID identifying the employee")
+    pass
 
 
-class EmployeeTermination(Employee):
+class EmployeeTermination(Employee, OpenValidity):
     """Model representing a EmployeeTermination termination."""
-
-    from_date: Optional[datetime.date] = Field(
-        alias="from", description="Start date of the validity."
-    )
-
-    to_date: Optional[datetime.date] = Field(
-        alias="to", description="End date of the validity, if applicable."
-    )
 
     trigger_less: Optional[bool] = Field(
         alias="triggerless",
