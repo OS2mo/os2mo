@@ -51,6 +51,7 @@ class ConfigurationRead(BaseModel):
     key: str = Field(description="Settings key.")
 
 
+# class EmployeeModel(UUIDBase):
 class Employee(UUIDBase):
     """Model representing a employee."""
 
