@@ -13,17 +13,23 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+from fastapi import Body
+from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from ramodels.mo.employee import EmployeeTerminate
 
 from .errors import handle_gql_error
 from mora import exceptions
+from mora import util
+from mora.auth.keycloak import oidc
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOEmployee
 from mora.service.employee import router as employee_router
+
 
 # --------------------------------------------------------------------------------------
 # Code
@@ -100,5 +106,43 @@ async def get_employee(
     return transformer(response.data)
 
 
-async def terminate_employee():
-    pass
+@employee_router.post(
+    "/e/{uuid}/terminate2",
+    responses={
+        "400": {"description": "Invalid input"},
+    },
+)
+async def terminate_employee(
+    uuid: UUID,
+    request: EmployeeTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
+):
+    mutation_func = "employee_terminate"
+    query = (
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
+        f"{{ {mutation_func}"
+        f"(et: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
+        f"{{ uuid }} }}"
+    )
+
+    response = await execute_graphql(
+        query,
+        variable_values={
+            "uuid": str(uuid),
+            "from": request.validity.from_date.isoformat()
+            if request.validity.from_date
+            else None,
+            "to": request.validity.to_date.isoformat()
+            if request.validity.to_date
+            else None,
+            "triggerless": util.get_args_flag("triggerless"),
+        },
+    )
+    handle_gql_error(response)
+
+    # result = response.data[mutation_func]
+    result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+    if not result_uuid:
+        raise Exception("Did not get a valid UUID from GraphQL response")
+
+    return UUID(result_uuid)
