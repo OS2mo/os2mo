@@ -83,14 +83,6 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
     )
 
     trigger_dict = employee_trigger.to_trigger_dict()
-    # trigger_dict = {
-    #     Trigger.ROLE_TYPE: mapping.EMPLOYEE,
-    #     Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-    #     Trigger.REQUEST: request_dict,
-    #     Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-    #     Trigger.EMPLOYEE_UUID: uuid,
-    #     Trigger.UUID: uuid,
-    # }
 
     if not e_termination.triggerless:
         await Trigger.run(trigger_dict)
