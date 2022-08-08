@@ -145,3 +145,9 @@ class EmployeeTermination(Employee, OpenValidity):
         description="Flag specifying if triggers should not be invoked, if true.",
         default=False,
     )
+
+
+class EmployeeTrigger(MoraTrigger):
+    """Model representing a mora-trigger, specific for employees."""
+
+    employee_uuid: UUID = Field(description="UUID for the employee in question.")

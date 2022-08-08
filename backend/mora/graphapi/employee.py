@@ -19,6 +19,9 @@ from mora import lora
 from mora import mapping
 from mora import util
 from mora.graphapi.models import EmployeeTermination
+from mora.graphapi.models import EmployeeTrigger
+from mora.graphapi.models import MoraTriggerRequest
+from mora.graphapi.models import Validity
 from mora.graphapi.types import EmployeeType
 from mora.service import handlers
 from mora.triggers import Trigger
@@ -35,7 +38,9 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
         )
     )
 
-    date = _get_valid_to(ramodel.validity.to_date.date())
+    date = _get_valid_to(
+        ramodel.validity.to_date.date() if ramodel.validity.to_date else None
+    )
     request_dict = _create_request_dict_from_e_terminate(ramodel)
 
     c = lora.Connector(effective_date=date, virkningtil="infinity")
@@ -61,16 +66,33 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
         )
     ]
 
-    trigger_dict = {
-        Trigger.ROLE_TYPE: mapping.EMPLOYEE,
-        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        Trigger.REQUEST: request_dict,
-        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-        Trigger.EMPLOYEE_UUID: uuid,
-        Trigger.UUID: uuid,
-    }
+    employee_trigger = EmployeeTrigger(
+        employee_uuid=e_termination.uuid,
+        request_type=mapping.RequestType.TERMINATE,
+        request=MoraTriggerRequest(
+            type=mapping.ORG_UNIT,
+            uuid=e_termination.uuid,
+            validity=Validity(
+                from_date=e_termination.from_date,
+                to_date=e_termination.to_date,
+            ),
+        ),
+        role_type=mapping.ORG_UNIT,
+        event_type=mapping.EventType.ON_BEFORE,
+        uuid=e_termination.uuid,
+    )
 
-    if not util.get_args_flag("triggerless"):
+    trigger_dict = employee_trigger.to_trigger_dict()
+    # trigger_dict = {
+    #     Trigger.ROLE_TYPE: mapping.EMPLOYEE,
+    #     Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
+    #     Trigger.REQUEST: request_dict,
+    #     Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
+    #     Trigger.EMPLOYEE_UUID: uuid,
+    #     Trigger.UUID: uuid,
+    # }
+
+    if not e_termination.triggerless:
         await Trigger.run(trigger_dict)
 
     for handler in request_handlers:
@@ -81,13 +103,16 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
     trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
 
-    if not util.get_args_flag("triggerless"):
+    if not e_termination.triggerless:
         await Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
     return EmployeeType(uuid=result)
+
+
+# PRIVATE methods for this module.
 
 
 def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
