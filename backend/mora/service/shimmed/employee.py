@@ -98,3 +98,7 @@ async def get_employee(
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(response.data)
+
+
+async def terminate_employee():
+    pass
