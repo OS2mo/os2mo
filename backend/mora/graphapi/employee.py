@@ -6,15 +6,11 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-import datetime
-from typing import Optional
-
 from ramodels.mo.employee import EmployeeTerminate
 from ramodels.mo.employee import EmployeeTerminate as RaModelEmployeeTerminate
 from ramodels.mo.employee import OpenValidity
 
 from mora import common
-from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
@@ -25,8 +21,6 @@ from mora.graphapi.models import Validity
 from mora.graphapi.types import EmployeeType
 from mora.service import handlers
 from mora.triggers import Trigger
-from mora.util import ONE_DAY
-from mora.util import POSITIVE_INFINITY
 
 
 async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType:
@@ -105,28 +99,6 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
 
 
 # PRIVATE methods for this module.
-
-
-def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
-    if not to_date:
-        return POSITIVE_INFINITY
-
-    dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
-    if dt.time() != datetime.time.min:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            "{!r} is not at midnight!".format(dt.isoformat()),
-        )
-
-    return _apply_default_tz(dt + ONE_DAY)
-
-
-def _apply_default_tz(dt: datetime.datetime) -> datetime.datetime:
-    if not dt.tzinfo:
-        dt = dt.replace(tzinfo=util.DEFAULT_TIMEZONE)
-    else:
-        dt = dt.astimezone(util.DEFAULT_TIMEZONE)
-
-    return dt
 
 
 def _create_request_dict_from_e_terminate(
