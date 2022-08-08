@@ -489,7 +489,9 @@ Coverage:
     paths:
       - coverage-html
     reports:
-      cobertura: $CI_PROJECT_DIR/coverage.xml
+      coverage_report: 
+        coverage_format: cobertura
+        path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - <<: *if-merge-request
 
