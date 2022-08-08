@@ -6,6 +6,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
+
 from ramodels.mo.employee import EmployeeTerminate
 from ramodels.mo.employee import EmployeeTerminate as RaModelEmployeeTerminate
 from ramodels.mo.employee import OpenValidity
@@ -38,6 +40,10 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
 
     request_dict = _create_request_dict_from_e_terminate(ramodel)
     c = lora.Connector(effective_date=date, virkningtil="infinity")
+
+    terminate_handlers = await _get_employee_terminate_methods(
+        e_termination, date, request_dict
+    )
 
     request_handlers = [
         await handlers.get_handler_for_function(obj).construct(
@@ -120,3 +126,61 @@ def _create_request_dict_from_e_terminate(
         del request_dict[mapping.VALIDITY][mapping.TO]
 
     return request_dict
+
+
+async def _get_employee_terminate_methods(
+    e_termination: EmployeeTermination, date: datetime.datetime, request_dict: dict
+):
+    c = lora.Connector(effective_date=date, virkningtil="infinity")
+    org_functions = await c.organisationfunktion.get_all(
+        tilknyttedebrugere=e_termination.uuid, gyldighed="Aktiv"
+    )
+
+    termination_handlers = []
+    for objid, obj in org_functions:
+        termination_obj = {
+            "uuid": objid,
+            "vacate": util.checked_get(request_dict, "vacate", False),
+            "validity": {
+                "to": util.to_iso_date(
+                    # we also want to handle _future_ relations
+                    max(date, min(map(util.get_effect_from, util.get_states(obj)))),
+                    is_end=True,
+                ),
+            },
+        }
+
+        termination_handlers.append((terminate_employee_engagments, termination_obj))
+
+    tap = "test"
+
+
+# Employee termination handlers Handlers
+
+
+def terminate_employee_engagments(termination_obj):
+    pass
+
+
+def terminate_employee_addresses():
+    pass
+
+
+def terminate_employee_roles():
+    pass
+
+
+def terminate_employee_it():
+    pass
+
+
+def terminate_employee_it_relations():
+    pass
+
+
+def terminate_employee_leave_of_absence():
+    pass
+
+
+def terminate_employee_leader():
+    pass
