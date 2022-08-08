@@ -9,6 +9,7 @@ from mora.util import CPR
 # the following error from uvicorn:
 #       Error loading ASGI app factory: Mutation fields cannot be resolved.
 #       Unexpected type '<class 'mora.graphapi.models.Employee'>'
+# OBS2: pre-commit hook `Reorder python imports` keeps moving this comment block.
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
 CPRType = strawberry.scalar(
