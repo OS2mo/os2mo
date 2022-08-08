@@ -12,7 +12,6 @@ http:get:`/service/(any:type)/(uuid:id)/details/`
 """
 import asyncio
 import copy
-import datetime
 import enum
 from functools import partial
 from operator import contains
@@ -44,8 +43,6 @@ from ..graphapi.middleware import is_graphql
 from ..graphapi.models import EmployeeTermination
 from ..lora import LoraObjectType
 from ..triggers import Trigger
-from ..util import ONE_DAY
-from ..util import POSITIVE_INFINITY
 from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.graphapi.employee import terminate_employee as graphapi_terminate_employee
@@ -662,49 +659,3 @@ def _inject_persons(details, employee_uuid, valid_from, valid_to):
         }
 
     return decorated
-
-
-# Helper methods for termination
-
-
-def _create_request_dict_from_e_terminate(
-    employee_terminate: EmployeeTerminate,
-) -> dict:
-    request_dict = employee_terminate.dict(by_alias=True)
-    if employee_terminate.validity.from_date:
-        request_dict[mapping.VALIDITY][
-            mapping.FROM
-        ] = employee_terminate.validity.from_date.strftime("%Y-%m-%d")
-    else:
-        del request_dict[mapping.VALIDITY][mapping.FROM]
-
-    if employee_terminate.validity.to_date:
-        request_dict[mapping.VALIDITY][
-            mapping.TO
-        ] = employee_terminate.validity.to_date.strftime("%Y-%m-%d")
-    else:
-        del request_dict[mapping.VALIDITY][mapping.TO]
-
-    return request_dict
-
-
-def _get_valid_to(to_date: Optional[datetime.date]) -> datetime.datetime:
-    if not to_date:
-        return POSITIVE_INFINITY
-
-    dt = datetime.datetime.combine(to_date, datetime.datetime.min.time())
-    if dt.time() != datetime.time.min:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            "{!r} is not at midnight!".format(dt.isoformat()),
-        )
-
-    return _apply_default_tz(dt + ONE_DAY)
-
-
-def _apply_default_tz(dt: datetime.datetime) -> datetime.datetime:
-    if not dt.tzinfo:
-        dt = dt.replace(tzinfo=util.DEFAULT_TIMEZONE)
-    else:
-        dt = dt.astimezone(util.DEFAULT_TIMEZONE)
-
-    return dt
