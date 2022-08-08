@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+import logging
 import typing
 from enum import Enum
 from typing import Optional
@@ -17,6 +18,14 @@ from pydantic import BaseModel
 from pydantic import Field
 from ramodels.mo import OpenValidity
 from ramodels.mo._shared import UUIDBase
+
+from mora import common
+from mora import exceptions
+from mora.util import ONE_DAY
+from mora.util import POSITIVE_INFINITY
+
+
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -137,6 +146,62 @@ class EmployeeTermination(Employee, OpenValidity):
         description="Flag specifying if triggers should not be invoked, if true.",
         default=False,
     )
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afslut enhed",
+        }
+
+    def get_termination_effect(self) -> dict:
+        if self.from_date and self.to_date:
+            return common._create_virkning(
+                self.get_terminate_effect_from_date(),
+                self.get_terminate_effect_to_date(),
+            )
+
+        if not self.from_date and self.to_date:
+            logger.warning(
+                'terminate org unit called without "from" in "validity"',
+            )
+            return common._create_virkning(
+                self.get_terminate_effect_to_date(), "infinity"
+            )
+
+        raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            key="Organization Unit must be set with either 'to' or both 'from' "
+            "and 'to'",
+            unit={
+                "from": self.from_date.isoformat() if self.from_date else None,
+                "to": self.to_date.isoformat() if self.to_date else None,
+            },
+        )
+
+    def get_terminate_effect_from_date(self) -> datetime.datetime:
+        if not self.from_date or not isinstance(self.from_date, datetime.datetime):
+            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+        if self.from_date.time() != datetime.time.min:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "{!r} is not at midnight!".format(self.from_date.isoformat()),
+            )
+
+        return self.from_date
+
+    def get_terminate_effect_to_date(self) -> datetime.datetime:
+        if not self.to_date:
+            return POSITIVE_INFINITY
+
+        if self.to_date.time() != datetime.time.min:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "{!r} is not at midnight!".format(self.to_date.isoformat()),
+            )
+
+        return self.to_date + ONE_DAY
 
 
 class EmployeeTrigger(MoraTrigger):

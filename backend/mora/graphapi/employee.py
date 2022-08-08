@@ -38,11 +38,11 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
         )
     )
 
-    date = _get_valid_to(
-        ramodel.validity.to_date.date() if ramodel.validity.to_date else None
-    )
-    request_dict = _create_request_dict_from_e_terminate(ramodel)
+    date = e_termination.get_terminate_effect_to_date()
+    if e_termination.from_date and e_termination.to_date:
+        date = e_termination.get_terminate_effect_from_date()
 
+    request_dict = _create_request_dict_from_e_terminate(ramodel)
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
     request_handlers = [
