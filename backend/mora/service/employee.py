@@ -41,12 +41,14 @@ from .. import lora
 from .. import mapping
 from .. import util
 from ..graphapi.middleware import is_graphql
+from ..graphapi.models import EmployeeTermination
 from ..lora import LoraObjectType
 from ..triggers import Trigger
 from ..util import ONE_DAY
 from ..util import POSITIVE_INFINITY
 from .validation import validator
 from mora.auth.keycloak import oidc
+from mora.graphapi.employee import terminate_employee as graphapi_terminate_employee
 from mora.request_scoped.bulking import request_wide_bulk
 
 router = APIRouter()
@@ -564,61 +566,15 @@ async def terminate_employee(
       }
 
     """
-    uuid = str(uuid)
-
-    date = _get_valid_to(request.validity.to_date.date())
-    request_dict = _create_request_dict_from_e_terminate(request)
-
-    c = lora.Connector(effective_date=date, virkningtil="infinity")
-
-    request_handlers = [
-        await handlers.get_handler_for_function(obj).construct(
-            {
-                "uuid": objid,
-                "vacate": util.checked_get(request_dict, "vacate", False),
-                "validity": {
-                    "to": util.to_iso_date(
-                        # we also want to handle _future_ relations
-                        max(date, min(map(util.get_effect_from, util.get_states(obj)))),
-                        is_end=True,
-                    ),
-                },
-            },
-            mapping.RequestType.TERMINATE,
+    graphapi_result = await graphapi_terminate_employee(
+        EmployeeTermination(
+            uuid=str(uuid),
+            from_date=request.validity.from_date,
+            to_date=request.validity.to_date,
+            triggerless=util.get_args_flag("triggerless"),
         )
-        for objid, obj in await c.organisationfunktion.get_all(
-            tilknyttedebrugere=uuid,
-            gyldighed="Aktiv",
-        )
-    ]
-
-    trigger_dict = {
-        Trigger.ROLE_TYPE: mapping.EMPLOYEE,
-        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        Trigger.REQUEST: request_dict,
-        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-        Trigger.EMPLOYEE_UUID: uuid,
-        Trigger.UUID: uuid,
-    }
-
-    if not util.get_args_flag("triggerless"):
-        await Trigger.run(trigger_dict)
-
-    for handler in request_handlers:
-        await handler.submit()
-
-    result = uuid
-
-    trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
-    trigger_dict[Trigger.RESULT] = result
-
-    if not util.get_args_flag("triggerless"):
-        await Trigger.run(trigger_dict)
-
-    # Write a noop entry to the user, to be used for the history
-    await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
-
-    return result
+    )
+    return graphapi_result.uuid
 
 
 # When RBAC enabled: currently, only the admin role can create employees

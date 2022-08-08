@@ -27,6 +27,7 @@ from mora.util import POSITIVE_INFINITY
 
 
 async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType:
+    """Termination handler for employee."""
     uuid = str(e_termination.uuid)
     ramodel = RaModelEmployeeTerminate(
         validity=OpenValidity(
