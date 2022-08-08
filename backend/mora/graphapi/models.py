@@ -60,8 +60,7 @@ class Employee(UUIDBase):
 class EmployeeTermination(Employee, OpenValidity):
     """Model representing a EmployeeTermination termination."""
 
-    trigger_less: Optional[bool] = Field(
-        alias="triggerless",
+    triggerless: Optional[bool] = Field(
         description="Flag specifying if triggers should not be invoked, if true.",
         default=False,
     )
