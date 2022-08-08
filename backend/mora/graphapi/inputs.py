@@ -18,7 +18,9 @@ from mora.graphapi.models import ITSystemWrite
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
+
     pass
+
 
 # --------------------------------------------------------------------------------------
 # Graphapi input models
@@ -32,4 +34,5 @@ class ITSystemInput:
     user_key: strawberry.auto
     type_: strawberry.auto
     name: strawberry.auto
+    uuid: strawberry.auto
     system_type: strawberry.auto

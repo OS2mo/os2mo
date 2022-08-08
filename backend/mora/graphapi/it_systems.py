@@ -21,6 +21,7 @@ async def upsert_it_system(
     name: str,
     user_key: str = None,
     uuid: Optional[UUID] = None,
+    system_type: Optional[str] = None,
 ) -> ITSystem:
 
     if not user_key:
@@ -41,8 +42,5 @@ async def upsert_it_system(
     uuid = await c.itsystem.create(jsonified, uuid)
 
     return ITSystem(
-        type_=type_,
-        name=name,
-        user_key=user_key,
-        uuid=uuid,
+        type_=type_, name=name, user_key=user_key, uuid=uuid, system_type=system_type
     )

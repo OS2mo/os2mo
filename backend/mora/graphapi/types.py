@@ -21,6 +21,7 @@ CPRType = strawberry.scalar(
 class OrganizationUnit:
     pass
 
+
 @strawberry.type
 class GenericError:
     error_message: str

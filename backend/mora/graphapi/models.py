@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 import datetime
 import logging
+import re
 import typing
 from enum import Enum
 from typing import Optional
@@ -15,8 +16,11 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import ConstrainedStr
 from pydantic import Field
+from pydantic import types
 from ramodels.mo import OpenValidity
+from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 from mora import common
@@ -25,7 +29,6 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 
 logger = logging.getLogger(__name__)
-from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -218,16 +221,26 @@ class OrganisationUnitTerminate(OrganisationUnit, OpenValidity):
             )
 
         return self.to_date + ONE_DAY
+
+
+class AlphaStr(ConstrainedStr):
+    """Define custom type for name string to make it strict alphanumeric."""
+
+    regex = re.compile("^[a-zA-Z0-9_]+$")
+    min_length = 1
+
+
 class ITSystemBase(MOBase):
     """A MO IT-system base object."""
 
     type_: str = Field("itsystem", alias="type", description="The object type")
+    system_type: Optional[str] = Field(description="The ITSystem type.")
 
 
 class ITSystemWrite(ITSystemBase):
     """A MO IT-system write object."""
 
-    name: str = Field(description="Name/titel of the itsystem.")
-    user_key: str = Field(description="Short, unique key.")
-    uuid: Optional[UUID] = Field(description="The ITSystem UUID")
-    system_type: Optional[str] = Field(description="The ITSystem type.")
+    types._registered(AlphaStr)
+
+    name: AlphaStr = Field(description="Mo-class name.")
+    user_key: AlphaStr = Field(description="Mo-class name.")

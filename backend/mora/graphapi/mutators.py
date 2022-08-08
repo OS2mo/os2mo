@@ -13,31 +13,19 @@ import strawberry
 from strawberry.file_uploads import Upload
 
 from mora.graphapi.files import save_file
+from mora.graphapi.inputs import ITSystemInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
+from mora.graphapi.it_systems import upsert_it_system
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
+from mora.graphapi.schema import ITSystem
 from mora.graphapi.schema import OrganisationUnitRefresh
 from mora.graphapi.types import OrganizationUnit
 
 logger = logging.getLogger(__name__)
-from typing import Union
-from uuid import UUID
 
-import strawberry
-from pydantic import ValidationError
-from strawberry.file_uploads import Upload
-
-from .models import FileStore
-from mora.graphapi.files import save_file
-from mora.graphapi.inputs import ITSystemInput
-from mora.graphapi.it_systems import upsert_it_system
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.org_unit import trigger_org_unit_refresh
-from mora.graphapi.schema import ITSystem
-from mora.graphapi.schema import OrganisationUnitRefresh
-from mora.graphapi.types import GenericError
 
 # --------------------------------------------------------------------------------------
 # Graphapi mutators
@@ -68,19 +56,14 @@ class Mutation:
         return await terminate_org_unit(unit.to_pydantic())
 
     @strawberry.mutation(description="Create new it system")
-    async def create_it_system(
-        self, input: ITSystemInput
-    ) -> Union[ITSystem, GenericError]:
+    async def create_it_system(self, input: ITSystemInput) -> ITSystem:
 
-        try:
-            instance = input.to_pydantic()
+        instance = input.to_pydantic()
 
-            return await upsert_it_system(
-                uuid=instance.uuid,
-                type_=instance.type_,
-                name=instance.name,
-                user_key=instance.user_key,
-            )
-
-        except ValidationError as e:
-            return GenericError(error_message=(str(e)))
+        return await upsert_it_system(
+            uuid=instance.uuid,
+            type_=instance.type_,
+            name=instance.name,
+            user_key=instance.user_key,
+            system_type=instance.system_type,
+        )
