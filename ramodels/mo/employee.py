@@ -169,3 +169,8 @@ class Employee(MOBase):
 
 class EmployeeTerminate(RABase):
     validity: OpenValidity
+    vacate: Optional[bool] = Field(
+        description="Specifies if the termination was vacate related.. "
+        "Leaders & Owners are not allowed to be removed, they are just vacated.",
+        default=False,
+    )
