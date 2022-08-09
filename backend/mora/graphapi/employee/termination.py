@@ -38,18 +38,18 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
     if e_termination.from_date and e_termination.to_date:
         date = e_termination.get_terminate_effect_from_date()
 
-    request_dict = _create_request_dict_from_e_terminate(ramodel)
+    terminate_request_dict = _create_request_dict_from_e_terminate(ramodel)
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
-    terminate_handlers = await _get_employee_terminate_methods(
-        e_termination, date, request_dict
-    )
+    # terminate_handlers = await _get_employee_terminate_methods(
+    #     e_termination, date, terminate_request_dict
+    # )
 
     request_handlers = [
         await handlers.get_handler_for_function(obj).construct(
             {
                 "uuid": objid,
-                "vacate": util.checked_get(request_dict, "vacate", False),
+                "vacate": util.checked_get(terminate_request_dict, "vacate", False),
                 "validity": {
                     "to": util.to_iso_date(
                         # we also want to handle _future_ relations
@@ -155,32 +155,18 @@ async def _get_employee_terminate_methods(
     tap = "test"
 
 
-# Employee termination handlers Handlers
+def get_key_for_function(obj: dict) -> str:
+    """Obtain the function key class corresponding to the given LoRA object"""
+
+    # use unpacking to ensure that the set contains just one element
+    (key,) = {
+        attrs["funktionsnavn"] for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
+    }
+
+    return key
 
 
-def terminate_employee_engagments(termination_obj):
-    pass
+def get_handler_for_function(obj: dict):
+    """Obtain the handler class corresponding to the given LoRA object"""
 
-
-def terminate_employee_addresses():
-    pass
-
-
-def terminate_employee_roles():
-    pass
-
-
-def terminate_employee_it():
-    pass
-
-
-def terminate_employee_it_relations():
-    pass
-
-
-def terminate_employee_leave_of_absence():
-    pass
-
-
-def terminate_employee_leader():
-    pass
+    return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
