@@ -150,19 +150,17 @@ class Tests(tests.cases.AsyncLoRATestCase):
             result_expected = ErrorCodes.E_INVALID_INPUT
 
         # Run new logic
+        result_new = None
         try:
             path = f"/service/ou/{uuid_str}/terminate"
-            response = await self.request(
-                path,
-                json={
-                    mapping.UUID: uuid_str,
-                    mapping.VALIDITY: {
-                        mapping.FROM: from_date.isoformat() if from_date else None,
-                        mapping.TO: to_date.isoformat() if to_date else None,
-                    },
+            terminate_object = {
+                mapping.VALIDITY: {
+                    mapping.FROM: from_date.isoformat() if from_date else None,
+                    mapping.TO: to_date.isoformat() if to_date else None,
                 },
-            )
+            }
 
+            response = await self.request(path, json=terminate_object)
             response_json = json.loads(response.content)
 
             if not (200 <= response.status_code < 300):

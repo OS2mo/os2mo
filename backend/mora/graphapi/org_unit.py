@@ -103,12 +103,7 @@ async def terminate_org_unit_validation(
             gyldighed="Aktiv",
         )
     )
-    if children:
-        raise exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
-            child_count=len(children),
-        )
 
-    # Find & verify there is no roles
     roles = set(
         await c.organisationfunktion.load_uuids(
             tilknyttedeenheder=uuid_str,
@@ -134,8 +129,17 @@ async def terminate_org_unit_validation(
             )
         )
 
-    if role_counts:
-        raise exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
+    if children and role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(
+            child_count=len(children),
+            roles=", ".join(sorted(role_counts)),
+        )
+    elif children:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN(
+            child_count=len(children),
+        )
+    elif role_counts:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
 
