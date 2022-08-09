@@ -225,7 +225,6 @@ def frozen_time_today():
     return frozen_time_now().replace(hour=0, minute=0, second=0, microsecond=0)
 
 
-# class TestUtilsPy:
 @pytest.mark.parametrize(
     "trying_time, expected_time",
     [
@@ -245,7 +244,7 @@ def frozen_time_today():
         ("2018-06-01", "2018-06-01T00:00:00+02:00"),
     ],
 )
-def test_to_lora_time_py(trying_time, expected_time):
+def test_to_lora_time(trying_time, expected_time):
     assert util.to_lora_time(trying_time) == expected_time
 
 
@@ -258,7 +257,7 @@ def test_to_lora_time_py(trying_time, expected_time):
         ("31-12-9999", util.POSITIVE_INFINITY),
     ],
 )
-def test_parse_datetime_py(trying_parse_date, expected_parse_date):
+def test_parse_datetime(trying_parse_date, expected_parse_date):
     assert util.parsedatetime(trying_parse_date) == expected_parse_date
 
 
@@ -266,7 +265,7 @@ def test_parse_datetime_py(trying_parse_date, expected_parse_date):
     "trying_uuid, expected",
     [("00000000-0000-0000-0000-000000000000", True), ("42", False), (None, False)],
 )
-def test_is_uuid_py(trying_uuid, expected):
+def test_is_uuid(trying_uuid, expected):
     assert util.is_uuid(trying_uuid) == expected
 
 
@@ -274,7 +273,7 @@ def test_is_uuid_py(trying_uuid, expected):
     "trying_cpr, expected",
     [("0101011000", True), ("123456789", False), ("42", False), (None, False)],
 )
-def test_is_cpr_number_py(trying_cpr, expected):
+def test_is_cpr_number(trying_cpr, expected):
     assert util.is_cpr_number(trying_cpr) == expected
 
 
@@ -298,7 +297,7 @@ def test_is_cpr_number_py(trying_cpr, expected):
         (10101010000, "", pytest.raises(ValueError, match="^invalid CPR number")),
     ],
 )
-def test_get_cpr_birthdate_py(valid_cpr, isodate, expected_raise):
+def test_get_cpr_birthdate(valid_cpr, isodate, expected_raise):
     with expected_raise:
         assert util.get_cpr_birthdate(valid_cpr) == util.from_iso_time(isodate)
 
@@ -313,7 +312,7 @@ def test_get_cpr_birthdate_py(valid_cpr, isodate, expected_raise):
         ("El Niño", "%45l%20%4ei%c3%b1o"),
     ],
 )
-def test_urnquote_py(quote, expected_quote):
+def test_urnquote(quote, expected_quote):
     assert util.urnquote(quote) == expected_quote
     assert util.urnunquote(util.urnquote(quote)) == quote
 
@@ -337,7 +336,7 @@ def test_urnquote_py(quote, expected_quote):
         ({"whatever": "no", "test1": 42}, ("test1", "test2"), None),  # Weird
     ],
 )
-def test_get_obj_py(obj, path, expected_location):
+def test_get_obj(obj, path, expected_location):
     assert util.get_obj_value(obj, path) == expected_location
 
 
@@ -365,7 +364,7 @@ def test_get_obj_py(obj, path, expected_location):
         ({}, ("test1", "test2"), "42", {"test1": {"test2": "42"}}),  # New path string.
     ],
 )
-def test_set_obj_py(obj, path, value, expected_result):
+def test_set_obj(obj, path, value, expected_result):
     assert util.set_obj_value(obj, path, value) == expected_result
 
 
@@ -410,7 +409,7 @@ def test_set_obj_py(obj, path, value, expected_result):
         # 511
     ],
 )
-def test_get_valid_from_py(valid_from, expected_result, expected_raise):
+def test_get_valid_from(valid_from, expected_result, expected_raise):
     with expected_raise:
         assert util.get_valid_from(valid_from[0], valid_from[1]) == expected_result
 
@@ -444,7 +443,7 @@ def test_get_valid_from_py(valid_from, expected_result, expected_raise):
         ),
     ],
 )
-def test_get_valid_to_py(valid_to, expected_result):
+def test_get_valid_to(valid_to, expected_result):
     assert util.get_valid_to(valid_to[0], valid_to[1]) == expected_result
 
 
@@ -517,7 +516,7 @@ def test_get_valid_to_py(valid_to, expected_result):
         ),
     ],
 )
-def test_get_validities_py(validations, expected_result, expected_raise):
+def test_get_validities(validations, expected_result, expected_raise):
     with expected_raise:
         assert util.get_validities(validations) == expected_result
 
@@ -530,13 +529,13 @@ def test_get_validities_py(validations, expected_result, expected_raise):
         (({"uuid": 42}, None), pytest.raises(exceptions.HTTPException)),
     ],
 )
-def test_get_uuid_py(value, expected_raise):
+def test_get_uuid(value, expected_raise):
     with expected_raise:
         assert util.get_uuid(value[0], value[1]) == get_uuid_test_id()
 
 
 @pytest.mark.parametrize("value, expected_result", [(({}, False), None)])
-def test_get_uuid_with_required_py(value, expected_result):
+def test_get_uuid_with_required(value, expected_result):
     assert util.get_uuid(value[0], value[1], required=False) == expected_result
 
 
@@ -549,5 +548,5 @@ def test_get_uuid_with_required_py(value, expected_result):
         )
     ],
 )
-def test_get_uuid_with_key_py(value):
+def test_get_uuid_with_key(value):
     assert util.get_uuid(value[0], value[1], key="kaflaflibob") == get_uuid_test_id()
