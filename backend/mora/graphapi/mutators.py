@@ -16,7 +16,6 @@ from mora.graphapi.files import save_file
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.models import OrganisationUnitTerminate
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
@@ -46,13 +45,4 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
-        # Convert input into pydantic model
-        # NOTE: We set the from_date & to_date manually, due to "to_pydantic()" not
-        # setting these for some reason - pydantic@1.9.1
-        pydantic_model = OrganisationUnitTerminate(
-            **unit.to_pydantic().dict(exclude={"from_date", "to_date"}),
-            from_date=unit.from_date,
-            to_date=unit.to_date
-        )
-
-        return await terminate_org_unit(pydantic_model)
+        return await terminate_org_unit(unit.to_pydantic())
