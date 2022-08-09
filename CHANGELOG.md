@@ -6,6 +6,11 @@ SPDX-License-Identifier: MPL-2.0
 CHANGELOG
 =========
 
+8.4.1 - 2022-08-09
+------------------
+
+[#51183] Added missing vacate-field to EmployeeTerminate.
+
 8.4.0 - 2022-07-29
 ------------------
 
