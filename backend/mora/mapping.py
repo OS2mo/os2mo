@@ -121,6 +121,7 @@ ORG_UNIT_HIERARCHY = "org_unit_hierarchy"
 
 # Owner
 OWNER = "owner"
+OWNER_KEY = "owner"
 OWNER_INFERENCE_PRIORITY = "owner_inference_priority"
 
 # Auth

@@ -16,6 +16,7 @@ from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.graphapi.employee import termination_handlers
 from mora.graphapi.models import EmployeeTermination
 from mora.graphapi.models import EmployeeTrigger
 from mora.graphapi.models import MoraTriggerRequest
@@ -41,9 +42,9 @@ async def terminate_employee(e_termination: EmployeeTermination) -> EmployeeType
     terminate_request_dict = _create_request_dict_from_e_terminate(ramodel)
     c = lora.Connector(effective_date=date, virkningtil="infinity")
 
-    # terminate_handlers = await _get_employee_terminate_methods(
-    #     e_termination, date, terminate_request_dict
-    # )
+    terminate_handlers = await _get_employee_terminate_methods(
+        e_termination, date, terminate_request_dict
+    )
 
     request_handlers = [
         await handlers.get_handler_for_function(obj).construct(
@@ -136,8 +137,22 @@ async def _get_employee_terminate_methods(
         tilknyttedebrugere=e_termination.uuid, gyldighed="Aktiv"
     )
 
-    termination_handlers = []
+    handlers = []
     for objid, obj in org_functions:
+        obj_function_key = ""
+        (key,) = {
+            attrs["funktionsnavn"] for attrs in mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
+        }
+
+        # Find termination handler for this org-function
+        org_func_term_handler = termination_handlers.HANDLERS_BY_FUNCTION_KEY.get(
+            obj_function_key, None
+        )
+
+        if not org_func_term_handler:
+            continue
+
+        # Create termination object for org-function
         termination_obj = {
             "uuid": objid,
             "vacate": util.checked_get(request_dict, "vacate", False),
@@ -150,7 +165,12 @@ async def _get_employee_terminate_methods(
             },
         }
 
-        termination_handlers.append((terminate_employee_engagments, termination_obj))
+        handlers.append(
+            (
+                termination_handlers.HANDLERS_BY_FUNCTION_KEY.get(obj_function_key),
+                termination_obj,
+            )
+        )
 
     tap = "test"
 
@@ -164,9 +184,3 @@ def get_key_for_function(obj: dict) -> str:
     }
 
     return key
-
-
-def get_handler_for_function(obj: dict):
-    """Obtain the handler class corresponding to the given LoRA object"""
-
-    return HANDLERS_BY_FUNCTION_KEY[get_key_for_function(obj)]
