@@ -209,7 +209,11 @@ export default {
       switch (this.type) {
         case "EMPLOYEE":
           this.entries.forEach((entry) => {
+            entry.org_unit = { uuid: entry.org_unit.uuid }
+            entry.engagement_type = { uuid: entry.engagement_type.uuid }
+            entry.job_function = { uuid: entry.job_function.uuid }
             entry.person = { uuid: this.uuid }
+            delete entry.org
           })
           this.createEmployeeEntries(this.entries)
           break

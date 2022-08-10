@@ -14,6 +14,8 @@ from itertools import chain
 from more_itertools import partition
 from more_itertools import repeatfunc
 from more_itertools import take
+from pydantic import validate_arguments
+from ramodels.mo.details.engagement import EngagementWrite
 
 from . import handlers
 from . import org
@@ -30,7 +32,22 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ENGAGEMENT
     function_key = mapping.ENGAGEMENT_KEY
 
-    async def prepare_create(self, req):
+    @validate_arguments
+    async def prepare_create(self, req: EngagementWrite):
+
+        req = req.dict(by_alias=True)
+        req["uuid"] = str(req.get("uuid"))
+
+        # Has to be done since we cannot handle UUID objects or datetime onjects
+        for key, value in req.items():
+            if type(value) is dict:
+                if key == "validity":
+                    value["from"] = str(value.get("from"))
+                    if value.get("to"):
+                        value["to"] = str(value.get("to"))
+                else:
+                    value["uuid"] = str(value.get("uuid"))
+
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
