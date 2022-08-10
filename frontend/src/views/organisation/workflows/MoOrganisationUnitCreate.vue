@@ -93,6 +93,16 @@ export default {
      * Then throw a error if not.
      */
     createOrganisationUnit(evt) {
+      // Removes unused data from the object by overriding with the reference UUIDs
+      this.entry.org_unit_level = { uuid: this.entry.org_unit_level.uuid }
+      this.entry.org_unit_type = { uuid: this.entry.org_unit_type.uuid }
+      if ("org_unit_hierarchy" in this.entry) {
+        this.entry.org_unit_hierarchy = { uuid: this.entry.org_unit_hierarchy.uuid }
+      }
+      if ("parent" in this.entry) {
+        this.entry.parent = { uuid: this.entry.parent.uuid }
+      }
+
       evt.preventDefault()
       if (this.formValid) {
         let vm = this

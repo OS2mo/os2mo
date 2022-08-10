@@ -209,13 +209,19 @@ export default {
       switch (this.type) {
         case "EMPLOYEE":
           this.entries.forEach((entry) => {
+            // Removes unused data from the object by overriding with the reference UUIDs
+            entry.org_unit = { uuid: entry.org_unit.uuid }
+            entry.engagement_type = { uuid: entry.engagement_type.uuid }
+            entry.job_function = { uuid: entry.job_function.uuid }
             entry.person = { uuid: this.uuid }
+            delete entry.org
           })
           this.createEmployeeEntries(this.entries)
           break
         case "ORG_UNIT":
           this.entries.forEach((entry) => {
             entry.org_unit = { uuid: this.uuid }
+            entry.address_type = { uuid: entry.address_type.uuid }
           })
           this.createOrganisationUnitEntries(this.entries)
           break
