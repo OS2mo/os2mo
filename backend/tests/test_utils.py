@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import datetime
+from contextlib import nullcontext as does_not_raise
 
 import dateutil.tz
 import freezegun
 import pytest
 
-from contextlib import nullcontext as does_not_raise
 from .cases import TestCase
 from mora import exceptions
 from mora import util
