@@ -12,7 +12,6 @@ from uuid import UUID
 
 from pydantic import Field
 
-from .._shared import EmployeeRef
 from .._shared import EngagementType
 from .._shared import JobFunction
 from .._shared import LeaveRef
@@ -83,7 +82,7 @@ class EngagementWrite(EngagementBase):
             "for which the engagement should be created."
         )
     )
-    employee: EmployeeRef = Field(
+    person: PersonRef = Field(
         description=(
             "Reference to the employee for which the engagement should be created."
         )

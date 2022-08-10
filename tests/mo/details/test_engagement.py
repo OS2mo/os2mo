@@ -9,7 +9,6 @@
 from hypothesis import given
 from hypothesis import strategies as st
 
-from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import EngagementType
 from ramodels.mo._shared import JobFunction
 from ramodels.mo._shared import LeaveRef
@@ -75,7 +74,7 @@ def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit": st.builds(OrgUnitRef),
-        "employee": st.builds(EmployeeRef),
+        "person": st.builds(PersonRef),
         "engagement_type": st.builds(EngagementType),
         "job_function": st.builds(JobFunction),
     }
