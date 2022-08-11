@@ -443,12 +443,10 @@ async def create(
       ]
 
     """
-    new_reqs = []
-    for req in reqs:
-        if isinstance(req, dict):
-            new_reqs.append(req)
-        else:
-            new_reqs.append(jsonable_encoder(req.dict(by_alias=True)))
+    new_reqs = [
+        req if isinstance(req, dict) else jsonable_encoder(req.dict(by_alias=True))
+        for req in reqs
+    ]
 
     return await handle_requests(new_reqs, mapping.RequestType.CREATE)
 
