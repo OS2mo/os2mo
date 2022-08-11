@@ -203,20 +203,10 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
         create_employment_payload = deepcopy(self.payload)
         create_employment_payload[0]["type"] = "engagement"
         create_employment_payload[0]["job_function"] = {
-            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-            "name": "Bogopsætter",
-            "user_key": "Bogopsætter",
-            "example": None,
-            "scope": None,
-            "owner": None,
+            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4"
         }
         create_employment_payload[0]["engagement_type"] = {
-            "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "name": "Ansat",
-            "user_key": "ansat",
-            "example": None,
-            "scope": None,
-            "owner": None,
+            "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23"
         }
 
         self.create_employment_payload = create_employment_payload

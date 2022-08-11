@@ -17,6 +17,13 @@ import typing
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
+from ramodels.mo.details.address import AddressWrite
+from ramodels.mo.details.association import AssociationWrite
+from ramodels.mo.details.engagement import EngagementWrite
+from ramodels.mo.details.it_system import ITUserWrite
+from ramodels.mo.details.manager import ManagerWrite
+from ramodels.mo.details.role import RoleWrite
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers
@@ -54,7 +61,17 @@ async def handle_requests(
 )
 # @util.restrictargs('force', 'triggerless')
 async def create(
-    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    reqs: typing.List[
+        typing.Union[
+            EngagementWrite,
+            AssociationWrite,
+            RoleWrite,
+            ManagerWrite,
+            AddressWrite,
+            ITUserWrite,
+            dict,
+        ]
+    ] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     """Creates new relations on employees and units
@@ -426,7 +443,14 @@ async def create(
       ]
 
     """
-    return await handle_requests(reqs, mapping.RequestType.CREATE)
+    new_reqs = []
+    for req in reqs:
+        if isinstance(req, dict):
+            new_reqs.append(req)
+        else:
+            new_reqs.append(jsonable_encoder(req.dict(by_alias=True)))
+
+    return await handle_requests(new_reqs, mapping.RequestType.CREATE)
 
 
 @router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})

@@ -8,6 +8,10 @@ This section describes how to interact with employee manager roles.
 """
 import uuid
 
+from fastapi.encoders import jsonable_encoder
+from pydantic.decorator import validate_arguments
+from ramodels.mo.details.manager import ManagerWrite
+
 from . import handlers
 from . import org
 from .. import common
@@ -22,9 +26,12 @@ class ManagerRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.MANAGER
     function_key = mapping.MANAGER_KEY
 
-    async def prepare_create(self, req):
+    @validate_arguments
+    async def prepare_create(self, req: ManagerWrite):
         """To create a vacant manager postition, set employee_uuid to None
         and set a value org_unit_uuid"""
+        req = jsonable_encoder(req.dict(by_alias=True))
+
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 

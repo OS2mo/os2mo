@@ -14,7 +14,10 @@ from typing import Dict
 from typing import List
 from typing import TYPE_CHECKING
 
+from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from pydantic.decorator import validate_arguments
+from ramodels.mo.details.association import AssociationWrite
 from structlog import get_logger
 
 from . import handlers
@@ -117,13 +120,16 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             return False
 
-    async def prepare_create(self, req: Dict[Any, Any]):
+    @validate_arguments
+    async def prepare_create(self, req: AssociationWrite):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
         :param req: request as received by flask
         :return:
         """
+        req = jsonable_encoder(req.dict(by_alias=True))
+
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 

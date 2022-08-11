@@ -17,6 +17,9 @@ from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
+from pydantic.decorator import validate_arguments
+from ramodels.mo.details.it_system import ITUserWrite
 from structlog import get_logger
 
 from . import handlers
@@ -91,7 +94,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         ITUserPrimaryGroupValidation,
     ]
 
-    async def prepare_create(self, req):
+    @validate_arguments
+    async def prepare_create(self, req: ITUserWrite):
+        req = jsonable_encoder(req.dict(by_alias=True))
         c = lora.Connector()
 
         systemid = util.get_mapping_uuid(req, mapping.ITSYSTEM, required=True)

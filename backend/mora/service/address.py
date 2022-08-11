@@ -5,6 +5,9 @@ from typing import Any
 from typing import Dict
 
 from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
+from pydantic.decorator import validate_arguments
+from ramodels.mo.details.address import AddressWrite
 
 from . import facet
 from . import handlers
@@ -43,7 +46,10 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ADDRESS
     function_key = mapping.ADDRESS_KEY
 
-    async def prepare_create(self, req):
+    @validate_arguments
+    async def prepare_create(self, req: AddressWrite):
+        req = jsonable_encoder(req.dict(by_alias=True))
+
         org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=False)
 
         employee_uuid = util.get_mapping_uuid(req, mapping.PERSON, required=False)

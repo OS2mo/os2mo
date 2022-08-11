@@ -9,6 +9,10 @@ This section describes how to interact with employee roles.
 """
 import uuid
 
+from fastapi.encoders import jsonable_encoder
+from pydantic.decorator import validate_arguments
+from ramodels.mo.details.role import RoleWrite
+
 from . import handlers
 from . import org
 from .. import common
@@ -23,7 +27,10 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ROLE
     function_key = mapping.ROLE_KEY
 
-    async def prepare_create(self, req):
+    @validate_arguments
+    async def prepare_create(self, req: RoleWrite):
+        req = jsonable_encoder(req.dict(by_alias=True))
+
         org_unit = util.checked_get(req, mapping.ORG_UNIT, {}, required=True)
         org_unit_uuid = util.get_uuid(org_unit, required=True)
 
