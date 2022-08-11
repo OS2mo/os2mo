@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+5.7.0 - 2022-08-11
+------------------
+
+[#50137] Updated Python image for support of M1. Rewrote remaining tests from unittest to pytest.
+
 5.6.0 - 2022-08-03
 ------------------
 
