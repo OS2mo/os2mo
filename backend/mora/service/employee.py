@@ -714,10 +714,10 @@ def _inject_persons(details, employee_uuid, valid_from, valid_to):
 def _create_request_dict_from_e_terminate(
     employee_terminate: EmployeeTerminate,
 ) -> dict:
-    """Converts a EmployeeTerminate model from RaModels to a basic dict (legacy).
+    """Converts a EmployeeTerminate model from RaModels to a basic dict.
 
-    The main reason for this method to exist, is be compatible with legacy code, which
-    assumes request is formatted in a certain way.. Ex if a date field is None it
+    The main reason for this method to exist, is to be compatible with legacy code,
+    which assumes request is formatted in a certain way.. Ex if a date field is None it
     should be removed entierly from dict.
 
     The dict is used by the service to fetch the vacate-flag for the service
