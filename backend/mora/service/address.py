@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import uuid
-from typing import Any
-from typing import Dict
 
 from fastapi import APIRouter
 
@@ -20,23 +18,6 @@ from .address_handler import base
 from .validation import validator
 
 router = APIRouter()
-
-
-async def get_address_type(effect):
-    c = common.get_connector()
-    address_type_uuid = mapping.ADDRESS_TYPE_FIELD(effect)[0].get("uuid")
-    only_primary_uuid = util.get_args_flag("only_primary_uuid")
-
-    return await facet.get_one_class(
-        c, address_type_uuid, only_primary_uuid=only_primary_uuid
-    )
-
-
-async def get_one_address(effect, only_primary_uuid: bool = False) -> Dict[Any, Any]:
-    scope = mapping.SINGLE_ADDRESS_FIELD(effect)[0].get("objekttype")
-    handler = await base.get_handler_for_scope(scope).from_effect(effect)
-
-    return await handler.get_mo_address_and_properties(only_primary_uuid)
 
 
 class AddressRequestHandler(handlers.OrgFunkRequestHandler):
