@@ -149,8 +149,19 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
                 GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
             ),
-        )
+        ),
+        log.AccesslogMiddleware,
     ]
+    if settings.enable_cors:
+        middleware.append(
+            CORSMiddleware(
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        )
+
     tags_metadata = chain(
         [
             {
@@ -198,14 +209,6 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         middleware=middleware,
         openapi_tags=list(tags_metadata),
     )
-    if settings.enable_cors:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=True,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
 
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
@@ -294,7 +297,5 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
 
     if not settings.is_under_test():
         setup_metrics(app)
-
-    app.add_middleware(log.AccesslogMiddleware)
 
     return app
