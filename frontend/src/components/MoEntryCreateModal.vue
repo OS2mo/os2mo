@@ -220,6 +220,31 @@ export default {
         case "ORG_UNIT":
           this.entries.forEach((entry) => {
             entry.org_unit = { uuid: this.uuid }
+            switch (entry.type) {
+              case "manager":
+                delete entry.org
+                entry.manager_level = { uuid: entry.manager_level.uuid }
+                entry.manager_type = { uuid: entry.manager_type.uuid }
+                entry.person = { uuid: entry.person.uuid }
+                for (let i in entry.responsibility) {
+                  entry.responsibility[i] = { uuid: entry.responsibility[i].uuid }
+                }
+                break
+              case "address":
+                delete entry.org
+                entry.address_type = { uuid: entry.address_type.uuid }
+                entry.visibility = { uuid: entry.visibility.uuid }
+                break
+              case "association":
+                delete entry.org
+                entry.association_type = { uuid: entry.association_type.uuid }
+                entry.person = { uuid: entry.person.uuid }
+                break
+              case "it":
+                delete entry.org
+                // should primary be there?
+                delete entry.primary
+            }
           })
           this.createOrganisationUnitEntries(this.entries)
           break
