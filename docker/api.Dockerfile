@@ -17,7 +17,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM python:3.9.13-slim AS dist
+FROM python:3.9.13 AS dist
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
