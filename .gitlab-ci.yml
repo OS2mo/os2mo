@@ -6,6 +6,7 @@ stages:
   - lint
   - build
   - review
+  - install
   - test
   - coverage
   - prepare-release

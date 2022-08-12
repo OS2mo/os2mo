@@ -15,7 +15,7 @@
 
 .source-venv: &source-venv
   image: python:3.8-slim
-  needs: [Install]
+  needs: [Install ramodels]
   before_script:
     - source .venv/bin/activate
 
