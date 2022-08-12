@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+5.8.0 - 2022-08-12
+------------------
+
+[#51165] Implemented RA Data Models for the organisation-unit termination endpoint, instead of dict.
+[#51166] Implemented GraphQL mutator for terminating organisation-unit
+[#51166] Implemented GraphQL mutator for terminating organisation-unit
+
 5.7.1 - 2022-08-11
 ------------------
 
