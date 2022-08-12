@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "ramodels"
+version = "8.4.1"
+description = "Pydantic data models for OS2mo"
+authors = ["Magenta <info@magenta.dk>"]
+license = "MPL-2.0"
+readme = "README.md"
+homepage = "https://magenta.dk/"
+repository = "https://git.magenta.dk/rammearkitektur/ra-data-models"
+keywords = ["os2mo", "data models"]
+packages = [ { include = "ramodels" } ]
+include = ["ramodels/py.typed"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+pydantic = "^1.8.2"
+"backports.zoneinfo" = {version = "^0.2.1", python = "<3.9"}
+more-itertools = "^8.11.0"
+python-dateutil = "^2.8.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.3"
+black = "^22.3.0"
+flake8 = "^3.9.1"
+mypy = "^0.812"
+reorder-python-imports = "^2.5.0"
+pre-commit = "^2.13.0"
+hypothesis = {extras = ["zoneinfo"], version = "6.36.1"}
+pytest-dotenv = "^0.5.2"
+pytest-cov = "^2.12.0"
+pytest-xdist = "^2.2.1"
+mkdocs-material = "^7.1.7"
+mkdocstrings = "^0.15.2"
+pytest-shard = "^0.1.2"
+pydocstyle = "^6.1.1"
+
+[tool.autopub]
+git-username = "MagentaBot"
+git-email = "info@magenta.dk"
+
+[tool.poetry.scripts]
+lorafetch = 'ramodels.fetch:gen_models'
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

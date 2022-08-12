@@ -1,0 +1,71 @@
+site_name: RA Data Models
+site_url: ""
+use_directory_urls: False
+site_description: Data models used by OS2mo
+repo_name: ra-data-models
+# TODO: Use the GitHub repo when it's ready
+repo_url: https://git.magenta.dk/rammearkitektur/ra-data-models
+
+nav:
+  - Home:
+      - Introduction: index.md
+      - Changelog: CHANGELOG.md
+  - Examples:
+      - Creating Organisation Units: examples/org_units.md
+      - Creating Employees: examples/employees.md
+  - Schemas:
+      - MO Schemas: mo/schemas.md
+      - LoRa Schemas: lora/schemas.md
+  - API Reference:
+      - MO API Models: mo/api.md
+      - LoRa API Models: lora/api.md
+      - Base & Custom Exceptions: base.md
+
+theme:
+  name: "material"
+  palette:
+    - scheme:
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/weather-sunny
+  features:
+    - navigation.top
+    - navigation.tabs
+
+# Adds Magenta's colour scheme
+extra_css:
+  - stylesheets/extra.css
+  - stylesheets/mkdocstrings.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            docstring_options:
+              replace_admonitions: no
+          rendering:
+            members_order: source
+            show_signature_annotations: true
+            show_root_toc_entry: false
+      watch:
+        - ramodels
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - toc:
+      toc_depth: 3
+      permalink: "#"
