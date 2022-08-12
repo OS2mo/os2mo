@@ -707,7 +707,7 @@ def get_args_flag(name: str):
     values '0', 'false', 'no' or 'n'. Anything else is true.
 
     """
-    query_args = context.get("query_args")
+    query_args = context.get("query_args", {})
     v = query_args.get(name, "")
 
     if v.lower() in ("", "0", "no", "n", "false"):

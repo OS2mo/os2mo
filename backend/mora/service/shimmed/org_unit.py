@@ -14,14 +14,19 @@ from typing import Optional
 from typing import Union
 from uuid import UUID
 
+from fastapi import Body
+from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
+from ...auth.keycloak import oidc
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
+from mora import util
 from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -314,3 +319,50 @@ async def trigger_external_integration(
     handle_gql_error(response)
     result = response.data["org_unit_refresh"]
     return OrganisationUnitRefreshRead(**result)
+
+
+@org_unit_router.post(
+    "/ou/{uuid}/terminate",
+    responses={
+        200: {
+            "description": "The termination succeeded",
+            "model": UUID,
+        },
+        404: {"description": "No such unit found"},
+        409: {"description": "Validation failed"},
+    },
+)
+async def terminate_org_unit(
+    uuid: UUID,
+    request: OrganisationUnitTerminate = Body(...),
+    permissions=Depends(oidc.rbac_owner),
+):
+    mutation_func = "org_unit_terminate"
+    query = (
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
+        f"{{ {mutation_func}"
+        f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
+        f"{{ uuid }} }}"
+    )
+
+    response = await execute_graphql(
+        query,
+        variable_values={
+            "uuid": str(uuid),
+            "from": request.validity.from_date.isoformat()
+            if request.validity.from_date
+            else None,
+            "to": request.validity.to_date.isoformat()
+            if request.validity.to_date
+            else None,
+            "triggerless": util.get_args_flag("triggerless"),
+        },
+    )
+    handle_gql_error(response)
+
+    # result = response.data[mutation_func]
+    result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+    if not result_uuid:
+        raise Exception("Did not get a valid UUID from GraphQL response")
+
+    return UUID(result_uuid)

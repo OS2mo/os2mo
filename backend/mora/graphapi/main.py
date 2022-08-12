@@ -22,7 +22,6 @@ from pydantic import ValidationError
 from strawberry.arguments import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.fastapi import GraphQLRouter
-from strawberry.file_uploads import Upload
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
 
@@ -32,7 +31,6 @@ from mora.config import get_public_settings
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
 from mora.graphapi.files import list_files
-from mora.graphapi.files import save_file
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
@@ -40,8 +38,7 @@ from mora.graphapi.models import ConfigurationRead
 from mora.graphapi.models import FileRead
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import HealthRead
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.org_unit import trigger_org_unit_refresh
+from mora.graphapi.mutators import Mutation
 from mora.graphapi.permissions import gen_read_permission
 from mora.graphapi.schema import Address
 from mora.graphapi.schema import Association
@@ -61,14 +58,12 @@ from mora.graphapi.schema import Manager
 from mora.graphapi.schema import OpenValidityModel
 from mora.graphapi.schema import Organisation
 from mora.graphapi.schema import OrganisationUnit
-from mora.graphapi.schema import OrganisationUnitRefresh
 from mora.graphapi.schema import RelatedUnit
 from mora.graphapi.schema import Response
 from mora.graphapi.schema import Role
 from mora.graphapi.schema import Version
 from mora.graphapi.types import CPRType
 from mora.util import CPR
-
 
 # --------------------------------------------------------------------------------------
 # Reads Query
@@ -434,24 +429,6 @@ class Query:
         settings = list(map(construct, settings_keys))
         parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
         return cast(list[Configuration], parsed_settings)
-
-
-@strawberry.type
-class Mutation:
-    @strawberry.mutation(description="Upload a file")
-    async def upload_file(
-        self, file_store: FileStore, file: Upload, force: bool = False
-    ) -> str:
-        file_name = file.filename
-        file_bytes = await file.read()
-        save_file(file_store, file_name, file_bytes, force)
-        return "OK"
-
-    @strawberry.mutation(description="Trigger refresh for an organisation unit")
-    async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
-        result = await trigger_org_unit_refresh(uuid)
-        organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
-        return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
 
 
 # --------------------------------------------------------------------------------------
