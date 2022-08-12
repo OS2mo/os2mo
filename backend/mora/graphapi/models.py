@@ -140,7 +140,6 @@ class MoraTrigger(BaseModel):
         return trigger_dict
 
 
-# class MoraTriggerOrgUnit(MoraTrigger):
 class OrgUnitTrigger(MoraTrigger):
     """Model representing a mora-trigger, specific for organization-units."""
 
