@@ -20,7 +20,6 @@ from uuid import uuid4
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
-
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 

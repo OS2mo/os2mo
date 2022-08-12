@@ -10,7 +10,6 @@ import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import ValidationError
-
 from ramodels.mo._shared import KLEAspectRef
 from ramodels.mo._shared import KLENumberRef
 from ramodels.mo._shared import OrgUnitRef
@@ -19,6 +18,7 @@ from ramodels.mo.details import KLEBase
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import KLEWrite
 from ramodels.mo.details.kle import KLE
+
 from tests.conftest import not_from_regex
 
 

@@ -4,6 +4,6 @@ SPDX-License-Identifier: MPL-2.0
 */
 
 :root {
-    --md-primary-fg-color:        #E00099;
-    --md-primary-fg-color--light: #F731B9;
+  --md-primary-fg-color: #e00099;
+  --md-primary-fg-color--light: #f731b9;
 }

@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo._shared import OrgUnitHierarchy
 from ramodels.mo._shared import OrgUnitLevel
 from ramodels.mo._shared import OrgUnitType
@@ -24,6 +23,7 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramodels.mo.organisation_unit import OrganisationUnitBase
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 from ramodels.mo.organisation_unit import OrganisationUnitWrite
+
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
 from tests.mo.details.test_engagement_association import engagement_assoc_strat

@@ -5,12 +5,12 @@
 
 /* Indentation. */
 div.doc-contents:not(.first) {
-    padding-left: 25px;
-    border-left: 4px solid #58595B;
-    margin-bottom: 80px;
-  }
-  
-  /* Avoid breaking parameters name, etc. in table cells. */
-  td code {
-    word-break: normal !important;
-  }
+  padding-left: 25px;
+  border-left: 4px solid #58595b;
+  margin-bottom: 80px;
+}
+
+/* Avoid breaking parameters name, etc. in table cells. */
+td code {
+  word-break: normal !important;
+}

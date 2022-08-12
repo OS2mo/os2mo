@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo.facet import FacetClass
 from ramodels.mo.facet import FacetRead
 
