@@ -30,7 +30,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.config import get_public_settings
 from mora.graphapi.dataloaders import get_loaders
 from mora.graphapi.dataloaders import MOModel
-from mora.graphapi.files import list_files
+from mora.graphapi.files import get_filestorage
 from mora.graphapi.health import health_map
 from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.middleware import StarletteContextExtension
@@ -397,9 +397,10 @@ class Query:
         permission_classes=[gen_read_permission("files")],
     )
     async def files(
-        self, file_store: FileStore, file_names: Optional[list[str]] = None
+        self, info: Info, file_store: FileStore, file_names: Optional[list[str]] = None
     ) -> list[File]:
-        found_files = list_files(file_store)
+        filestorage = info.context["filestorage"]
+        found_files = filestorage.list_files(file_store)
         if file_names is not None:
             found_files = found_files.intersection(set(file_names))
 
@@ -493,7 +494,7 @@ def get_schema() -> strawberry.Schema:
 
 async def get_context(token: Token = Depends(auth)) -> dict[str, Any]:
     loaders = await get_loaders()
-    return {**loaders, "token": token}
+    return {**loaders, "token": token, "filestorage": get_filestorage()}
 
 
 def setup_graphql(enable_graphiql: bool = False) -> GraphQLRouter:

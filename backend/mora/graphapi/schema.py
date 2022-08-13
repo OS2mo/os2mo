@@ -48,7 +48,6 @@ from strawberry.types import Info
 from mora import common
 from mora import config
 from mora import lora
-from mora.graphapi.files import load_file
 from mora.graphapi.health import health_map
 from mora.graphapi.models import ConfigurationRead
 from mora.graphapi.models import FileRead
@@ -1137,12 +1136,16 @@ class Health:
 )
 class File:
     @strawberry.field(description="Text contents")
-    def text_contents(self, root: FileRead) -> str:
-        return cast(str, load_file(root.file_store, root.file_name))
+    def text_contents(self, root: FileRead, info: Info) -> str:
+        filestorage = info.context["filestorage"]
+        return cast(str, filestorage.load_file(root.file_store, root.file_name))
 
     @strawberry.field(description="Base64 encoded contents")
-    def base64_contents(self, root: FileRead) -> str:
-        data = cast(bytes, load_file(root.file_store, root.file_name, binary=True))
+    def base64_contents(self, root: FileRead, info: Info) -> str:
+        filestorage = info.context["filestorage"]
+        data = cast(
+            bytes, filestorage.load_file(root.file_store, root.file_name, binary=True)
+        )
         data = b64encode(data)
         return data.decode("ascii")
 
