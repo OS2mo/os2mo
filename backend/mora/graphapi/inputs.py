@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 import strawberry
 
+from .models import EngagementTerminate
 from .models import OrganisationUnitTerminate
 
 
@@ -17,5 +18,15 @@ from .models import OrganisationUnitTerminate
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=EngagementTerminate,
+    all_fields=True,
+)
+class EngagementTerminateInput:
+    """input model for terminating Engagements."""
 
     pass

@@ -21,6 +21,7 @@ from ramodels.mo._shared import UUIDBase
 
 from mora import common
 from mora import exceptions
+from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 
@@ -70,6 +71,51 @@ class Validity(OpenValidity):
         json_encoders = {
             datetime: lambda v: v.isoformat(),
         }
+
+    def get_termination_effect(self) -> dict:
+        if self.from_date and self.to_date:
+            return common._create_virkning(
+                self.get_terminate_effect_from_date(),
+                self.get_terminate_effect_to_date(),
+            )
+
+        if not self.from_date and self.to_date:
+            logger.warning(
+                'terminate org unit called without "from" in "validity"',
+            )
+            return common._create_virkning(
+                self.get_terminate_effect_to_date(), "infinity"
+            )
+        raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+            key="Organization Unit must be set with either 'to' or both 'from' "
+            "and 'to'",
+            unit={
+                "from": self.from_date.isoformat() if self.from_date else None,
+                "to": self.to_date.isoformat() if self.to_date else None,
+            },
+        )
+
+    def get_terminate_effect_from_date(self) -> datetime.datetime:
+        if not self.from_date or not isinstance(self.from_date, datetime.datetime):
+            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+        if self.from_date.time() != datetime.time.min:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "{!r} is not at midnight!".format(self.from_date.isoformat()),
+            )
+
+        return self.from_date
+
+    def get_terminate_effect_to_date(self) -> datetime.datetime:
+        if not self.to_date:
+            return POSITIVE_INFINITY
+
+        if self.to_date.time() != datetime.time.min:
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                "{!r} is not at midnight!".format(self.to_date.isoformat()),
+            )
+
+        return self.to_date + ONE_DAY
 
 
 class MoraTriggerRequest(BaseModel):
@@ -132,12 +178,49 @@ class MoraTrigger(BaseModel):
         return trigger_dict
 
 
-class OrgUnitTrigger(MoraTrigger):
-    """Model representing a mora-trigger, specific for organization-units."""
+class Triggerless(BaseModel):
+    triggerless: Optional[bool] = Field(
+        description="Flag specifying if triggers should not be invoked, if true.",
+        default=False,
+    )
+
+
+class OrgFuncTrigger(MoraTrigger):
+    """General model for Mora-Organization-Function triggers."""
 
     org_unit_uuid: UUID = Field(
         description="UUID for the organization unit in question."
     )
+
+    employee_id: Optional[UUID] = Field(description="OrgFunc Related employee UUID.")
+
+
+class OrgUnitTrigger(OrgFuncTrigger):
+    """Model representing a mora-trigger, specific for organization-units."""
+
+    pass
+
+
+class EngagementTrigger(OrgFuncTrigger):
+    """
+    Model representing a mora-trigger, specific for engagements.
+    Has the folling fields:
+        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
+
+        request: MoraTriggerRequest  description="The Request for the trigger."
+
+        role_type: str  description="Role type for the trigger, ex 'org_unit'."
+
+        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
+
+        uuid: UUID
+
+        org_unit_uuid: UUID
+
+        employee_id: Optional[UUID]
+    """
+
+    pass
 
 
 class OrganisationUnit(UUIDBase):
@@ -146,13 +229,8 @@ class OrganisationUnit(UUIDBase):
     pass
 
 
-class OrganisationUnitTerminate(OrganisationUnit, OpenValidity):
+class OrganisationUnitTerminate(OrganisationUnit, Validity, Triggerless):
     """Model representing a organization-unit termination."""
-
-    triggerless: Optional[bool] = Field(
-        description="Flag specifying if triggers should not be invoked, if true.",
-        default=False,
-    )
 
     def get_lora_payload(self) -> dict:
         return {
@@ -164,48 +242,38 @@ class OrganisationUnitTerminate(OrganisationUnit, OpenValidity):
             "note": "Afslut enhed",
         }
 
-    def get_termination_effect(self) -> dict:
-        if self.from_date and self.to_date:
-            return common._create_virkning(
-                self.get_terminate_effect_from_date(),
-                self.get_terminate_effect_to_date(),
-            )
 
-        if not self.from_date and self.to_date:
-            logger.warning(
-                'terminate org unit called without "from" in "validity"',
-            )
-            return common._create_virkning(
-                self.get_terminate_effect_to_date(), "infinity"
-            )
+class EngagementModel(UUIDBase):
+    """Model representing an Engagement."""
 
-        raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organization Unit must be set with either 'to' or both 'from' "
-            "and 'to'",
-            unit={
-                "from": self.from_date.isoformat() if self.from_date else None,
-                "to": self.to_date.isoformat() if self.to_date else None,
+    pass
+
+
+class EngagementTerminate(EngagementModel, Validity, Triggerless):
+    """Model representing an engagement termination
+    (or rather end-date update).
+    """
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
             },
+            "note": "Afsluttet",
+        }
+
+    def get_engagement_trigger(self) -> EngagementTrigger:
+        return EngagementTrigger(
+            role_type=mapping.ENGAGEMENT,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ENGAGEMENT,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
         )
-
-    def get_terminate_effect_from_date(self) -> datetime.datetime:
-        if not self.from_date or not isinstance(self.from_date, datetime.datetime):
-            raise exceptions.ErrorCodes.V_MISSING_START_DATE()
-
-        if self.from_date.time() != datetime.time.min:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                "{!r} is not at midnight!".format(self.from_date.isoformat()),
-            )
-
-        return self.from_date
-
-    def get_terminate_effect_to_date(self) -> datetime.datetime:
-        if not self.to_date:
-            return POSITIVE_INFINITY
-
-        if self.to_date.time() != datetime.time.min:
-            exceptions.ErrorCodes.E_INVALID_INPUT(
-                "{!r} is not at midnight!".format(self.to_date.isoformat()),
-            )
-
-        return self.to_date + ONE_DAY

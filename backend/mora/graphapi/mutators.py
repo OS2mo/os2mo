@@ -19,6 +19,7 @@ from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
+from mora.graphapi.types import EngagementTerminateType
 from mora.graphapi.types import OrganizationUnit
 
 logger = logging.getLogger(__name__)
@@ -48,3 +49,9 @@ class Mutation:
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
         return await terminate_org_unit(unit.to_pydantic())
+
+    @strawberry.mutation(description="Terminates an engagement by UUID")
+    async def engagement_terminate(
+        self, unit: EngagementTerminateInput
+    ) -> EngagementTerminateType:
+        return await terminate_engagement(unit.to_pydantic())
