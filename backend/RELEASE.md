@@ -1,3 +1,3 @@
 Release type: patch
 
-[#50137] Rewrote uuid extractor from Unittest
+[#50137] Rewrote testing of Create Organisation functions
