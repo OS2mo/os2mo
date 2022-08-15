@@ -30,6 +30,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 from more_itertools import one
+from ramodels.mo.class_ import ClassWrite
 
 from . import handlers
 from .. import common
@@ -41,7 +42,6 @@ from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import request_wide_bulk
-from mora.service.models import MOClass
 
 router = APIRouter()
 
@@ -529,7 +529,7 @@ class ClassRequestHandler(handlers.RequestHandler):
 @router.post("/f/{facet}/")
 async def create_or_update_class(
     facet: str,
-    class_model: MOClass,
+    class_model: ClassWrite,
 ):
     """Will create a new class if there's no UUID or it doesnt match an exiting class
     Will update an existing class if there's a matching UUID
