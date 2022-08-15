@@ -1,8 +1,12 @@
+# Reusables
+################################################################################
+variables:
+  POETRY_VERSION: "1.1.11"
+  POETRY_VIRTUALENVS_CREATE: "true"
+  POETRY_VIRTUALENVS_IN_PROJECT: "true"
+
 .install-deps: &install-deps
-  variables:
-    POETRY_VERSION: "1.1.11"
-    POETRY_VIRTUALENVS_CREATE: "true"
-    POETRY_VIRTUALENVS_IN_PROJECT: "true"
+  needs: []
   before_script:
     - cd ra-data-models
     - pip install --no-cache-dir poetry==${POETRY_VERSION}
@@ -11,19 +15,23 @@
     when: always
     expire_in: 1 day
     paths:
-      - .venv/
+      - ra-data-models/.venv/
 
 .source-venv: &source-venv
   image: python:3.8-slim
   needs: [Install ramodels]
   before_script:
+    - cd ra-data-models
     - source .venv/bin/activate
+
+# Jobs
+################################################################################
 
 
 Install ramodels:
   <<: *install-deps
   image: python:3.8-slim
-  stage: install
+  stage: build
   script:
     - poetry --version
 
@@ -34,7 +42,7 @@ Test ramodels:
     HYPOTHESIS_PROFILE: ci
   parallel: 8
   script:
-    - pytest ra-data-models
+    - pytest
       --cov=ramodels
       --cov-report=html
       --shard-id=$(($CI_NODE_INDEX - 1))
@@ -43,29 +51,30 @@ Test ramodels:
   artifacts:
     when: always
     paths:
-      - ".coverage.$(($CI_NODE_INDEX - 1))"
+      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
 
 Check coverage ramodels:
   stage: coverage
   image: python:3.8-slim
   needs: [Test ramodels]
   before_script:
+    - cd ra-data-models
     - pip install coverage
     - coverage combine
   script:
     - coverage report -m --fail-under=100
 
 # Release to PyPI:
-  # <<: *install-deps
-  # stage: release
-  # image: python:3.8-slim
-  # script: poetry publish --build -u __token__ -p $PYPI_TOKEN
-  # rules:
-  #   # Matches <version core> from SemVer 2.0.0 BNF grammar.
-  #   # Ex. 2.3.4, but not 2.3.4-rc
-  #   - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+# <<: *install-deps
+# stage: release
+# image: python:3.8-slim
+# script: poetry publish --build -u __token__ -p $PYPI_TOKEN
+# rules:
+#   # Matches <version core> from SemVer 2.0.0 BNF grammar.
+#   # Ex. 2.3.4, but not 2.3.4-rc
+#   - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 
-pages ramodels:
+ramodel pages:
   <<: *source-venv
   stage: release
   script:
