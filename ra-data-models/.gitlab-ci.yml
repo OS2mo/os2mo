@@ -64,15 +64,15 @@ Check coverage ramodels:
   script:
     - coverage report -m --fail-under=100
 
-# Release to PyPI:
-# <<: *install-deps
-# stage: release
-# image: python:3.8-slim
-# script: poetry publish --build -u __token__ -p $PYPI_TOKEN
-# rules:
-#   # Matches <version core> from SemVer 2.0.0 BNF grammar.
-#   # Ex. 2.3.4, but not 2.3.4-rc
-#   - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+Release to PyPI:
+  <<: *install-deps
+  stage: release
+  image: python:3.8-slim
+  script: poetry publish --build -u __token__ -p $PYPI_TOKEN
+  rules:
+    # Matches <version core> from SemVer 2.0.0 BNF grammar.
+    # Ex. 2.3.4, but not 2.3.4-rc
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 
 ramodel pages:
   <<: *source-venv
