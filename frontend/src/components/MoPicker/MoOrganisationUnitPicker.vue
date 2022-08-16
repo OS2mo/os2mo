@@ -130,7 +130,7 @@ export default {
       var req
       let conf = store.getters[Conf.getters.GET_CONF_DB]
 
-      if (conf.confdb_autocomplete_use_new_api) {
+      if (conf.autocomplete_use_new_api) {
         req = Autocomplete.organisations(query)
       } else {
         let org = this.$store.state.organisation
@@ -185,7 +185,7 @@ export default {
     processSearchResultsResponse(query, response) {
       let conf = store.getters[Conf.getters.GET_CONF_DB]
 
-      if (conf.confdb_autocomplete_use_new_api) {
+      if (conf.autocomplete_use_new_api) {
         // Use response as-is
         return response
       } else {

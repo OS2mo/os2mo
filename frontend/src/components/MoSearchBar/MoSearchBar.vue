@@ -112,7 +112,7 @@ export default {
         }
 
         if (vm.routeName === "EmployeeDetail") {
-          if (conf.confdb_autocomplete_use_new_api) {
+          if (conf.autocomplete_use_new_api) {
             req = Autocomplete.employees(query)
           } else {
             req = Search.employees(org.uuid, query)
@@ -120,7 +120,7 @@ export default {
         }
 
         if (vm.routeName === "OrganisationDetail") {
-          if (conf.confdb_autocomplete_use_new_api) {
+          if (conf.autocomplete_use_new_api) {
             req = Autocomplete.organisations(query)
           } else {
             req = Search.organisations(org.uuid, query, this.atDate)
