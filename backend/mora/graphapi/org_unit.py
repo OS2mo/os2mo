@@ -20,9 +20,9 @@ from mora import lora
 from mora import mapping
 from mora import util
 from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.models import MoraTriggerOrgUnit
 from mora.graphapi.models import MoraTriggerRequest
 from mora.graphapi.models import OrganisationUnitTerminate
+from mora.graphapi.models import OrgUnitTrigger
 from mora.graphapi.models import Validity
 from mora.graphapi.schema import Response
 from mora.graphapi.types import OrganizationUnit
@@ -154,7 +154,7 @@ async def terminate_org_unit(
         raise e
 
     # Create payload to LoRa
-    org_unit_trigger = MoraTriggerOrgUnit(
+    org_unit_trigger = OrgUnitTrigger(
         org_unit_uuid=ou_terminate.uuid,
         request_type=mapping.RequestType.TERMINATE,
         request=MoraTriggerRequest(
