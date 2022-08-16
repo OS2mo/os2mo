@@ -211,7 +211,14 @@ async def filter_address_types(
     description="Dynamic class overload for associations",
 )
 class DynamicClasses:
-    pass
+    @strawberry.field(
+        description="dynamic class",
+        permission_classes=[gen_read_permission("classes")],
+    )
+    async def dynamic_classes(self, root: AssociationRead, info: Info) -> Optional["Class"]:
+        loader: DataLoader = info.context["facet_loader"]
+        return await loader.load(root.facet_uuid)
+    
 
 
 @strawberry.experimental.pydantic.type(
@@ -242,6 +249,7 @@ class Association:
         if root.primary_uuid is None:
             return None
         return await loader.load(root.primary_uuid)
+    
 
     @strawberry.field(
         description="Connected employee",
