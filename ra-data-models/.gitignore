@@ -1,0 +1,16 @@
+# Cache
+.cache
+__pycache__
+
+# Env
+.env
+
+# Generated schemas
+*schemas.md
+
+.hypothesis/
+venv/
+.python-version
+
+#IDEs
+.vscode
