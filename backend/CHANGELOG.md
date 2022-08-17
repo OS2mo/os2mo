@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+5.9.3 - 2022-08-17
+------------------
+
+[#50484] Fix group-wise validation of "IT associations" when editing (disallow multiple associations in same organisation unit.)
+
 5.9.2 - 2022-08-17
 ------------------
 
