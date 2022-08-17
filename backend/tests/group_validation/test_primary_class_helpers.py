@@ -3,6 +3,7 @@
 from unittest import mock
 from uuid import uuid4
 
+import pytest
 from parameterized import parameterized
 
 from mora import mapping
@@ -37,6 +38,7 @@ class TestPrimaryClassHelpers:
             ("not-primary", False),
         ]
     )
+    @pytest.mark.asyncio
     async def test_is_class_uuid_primary(
         self, primary_class_user_key: str, expected_result: bool
     ):
@@ -60,6 +62,7 @@ class TestPrimaryClassHelpers:
             ({mapping.PRIMARY: None}, False),
         ]
     )
+    @pytest.mark.asyncio
     async def test_get_mo_object_primary_value(
         self, mo_object: dict, expected_result: bool
     ):
