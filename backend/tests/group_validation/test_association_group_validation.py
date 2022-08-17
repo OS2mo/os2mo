@@ -59,6 +59,7 @@ class TestITAssociationGroupValidationBase:
             ),
         ]
     )
+    @pytest.mark.asyncio
     async def test_get_validation_item_from_mo_object(
         self,
         mo_object: dict,
@@ -101,6 +102,7 @@ class TestITAssociationPrimaryGroupValidation:
 
 
 class TestAssociationRequestHandlerGroupValidation:
+    @pytest.mark.asyncio
     async def test_get_it_system_uuid(self):
         handler = AssociationRequestHandler({}, RequestType.CREATE)
         expected_it_system_uuid = "it-system-uuid"
