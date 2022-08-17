@@ -1,7 +1,12 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import strawberry
+from typing import Optional
+from uuid import UUID
 
+import strawberry
+from pydantic import Field
+
+from mora.graphapi.models import Address as AddressModel
 from mora.graphapi.models import EngagementModel
 from mora.graphapi.models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
@@ -31,4 +36,13 @@ class OrganizationUnit:
 class EngagementTerminateType:
     """GraphQL type for an engagement."""
 
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=AddressModel,
+    all_fields=True,
+)
+class Address:
+    """GraphQL type for/of an address (detail)."""
     pass

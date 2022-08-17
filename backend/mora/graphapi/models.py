@@ -275,3 +275,48 @@ class EngagementTerminate(EngagementModel, Validity, Triggerless):
                 validity=Validity(from_date=self.from_date, to_date=self.to_date),
             ),
         )
+
+        return self.to_date + ONE_DAY
+
+
+class AddressTrigger(OrgUnitTrigger):
+    """Model representing a mora-trigger, specific for addresses."""
+
+    pass
+
+
+class Address(UUIDBase):
+    """Address (detail) model."""
+
+    pass
+
+
+class AddressTerminate(Address, Validity, Triggerless):
+    """Model representing an address-termination."""
+
+    def get_address_trigger(self) -> AddressTrigger:
+        return AddressTrigger(
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ADDRESS,
+                uuid=self.uuid,
+                validity=Validity(
+                    from_date=self.from_date,
+                    to_date=self.to_date,
+                ),
+            ),
+            role_type=mapping.ADDRESS,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+        )
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }

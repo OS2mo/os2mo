@@ -13,6 +13,8 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
+from mora.graphapi.address import terminate_addr
+from mora.graphapi.inputs import AddressTerminateInput
 from mora.graphapi.engagements import terminate_engagement
 from mora.graphapi.inputs import EngagementTerminateInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
@@ -21,6 +23,7 @@ from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
+from mora.graphapi.types import Address
 from mora.graphapi.types import EngagementTerminateType
 from mora.graphapi.types import OrganizationUnit
 
@@ -57,3 +60,8 @@ class Mutation:
         self, unit: EngagementTerminateInput
     ) -> EngagementTerminateType:
         return await terminate_engagement(unit.to_pydantic())
+
+    @strawberry.mutation(description="Terminates an address by UUID")
+    async def address_terminate(self, at: AddressTerminateInput) -> Address:
+        result = await terminate_addr(at.to_pydantic())
+        return result
