@@ -992,8 +992,6 @@ async def terminate(
 
     """
 
-    # Convert data-objects to dict(s) in order to be compatible with current logic.
     reqs = [reqs] if not isinstance(reqs, list) else reqs
     reqs_list = [req.to_dict() for req in reqs]
-
     return await handle_requests(reqs_list, mapping.RequestType.TERMINATE)
