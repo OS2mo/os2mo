@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+5.9.2 - 2022-08-17
+------------------
+
+[#51858] Frontend code should now read the feature flag `autocomplete_use_new_api` without the `confdb_` prefix
+
 5.9.1 - 2022-08-16
 ------------------
 
