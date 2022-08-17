@@ -165,32 +165,18 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             validator.is_substitute_self(
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
+
+        # Group validation: primary attr
         if employee_uuid and org_unit_uuid and it_user_uuid:
-            validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
-                dict(
-                    tilknyttedebrugere=employee_uuid,
-                    tilknyttedeenheder=org_unit_uuid,
-                ),
+            await self.validate_primary_group_on_create(
+                employee_uuid,
+                it_user_uuid,
+                org_unit_uuid,
             )
-            validation.add_validation_item(
-                dict(
-                    employee_uuid=employee_uuid,
-                    org_unit_uuid=org_unit_uuid,
-                    it_user_uuid=it_user_uuid,
-                ),
-            ).validate()
+
+        # Group validation: uniqueness
         if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
-            validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
-                dict(tilknyttedebrugere=employee_uuid),
-            )
-            validation.add_validation_item(
-                dict(
-                    employee_uuid=employee_uuid,
-                    it_user_uuid=it_user_uuid,
-                    it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
-                    is_primary=True,
-                ),
-            ).validate()
+            await self.validate_unique_group_on_create(employee_uuid, it_user_uuid)
 
         if substitute_uuid:
             rel_orgfunc_uuids = [substitute_uuid]
@@ -378,35 +364,22 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         if employee:
             await validator.is_date_range_in_employee_range(employee, new_from, new_to)
 
+        # Group validation: uniqueness
         if employee_uuid and org_unit_uuid and it_user_uuid:
-            validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
-                dict(
-                    tilknyttedebrugere=employee_uuid,
-                    tilknyttedeenheder=org_unit_uuid,
-                ),
-            )
-            validation.update_validation_item(
+            await self.validate_unique_group_on_edit(
                 association_uuid,
-                dict(
-                    employee_uuid=employee_uuid,
-                    org_unit_uuid=org_unit_uuid,
-                    it_user_uuid=it_user_uuid,
-                ),
-            ).validate()
+                employee_uuid,
+                it_user_uuid,
+                org_unit_uuid,
+            )
 
+        # Group validation: primary attr
         if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
-            validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
-                dict(tilknyttedebrugere=employee_uuid),
-            )
-            validation.update_validation_item(
+            await self.validate_primary_group_on_edit(
                 association_uuid,
-                dict(
-                    employee_uuid=employee_uuid,
-                    it_user_uuid=it_user_uuid,
-                    it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
-                    is_primary=True,
-                ),
-            ).validate()
+                employee_uuid,
+                it_user_uuid,
+            )
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
@@ -444,6 +417,74 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             self.termination_value = {}
 
         await super().prepare_terminate(request)
+
+    async def validate_primary_group_on_create(
+        self,
+        employee_uuid,
+        it_user_uuid,
+        org_unit_uuid,
+    ):
+        validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
+            dict(
+                tilknyttedebrugere=employee_uuid,
+                tilknyttedeenheder=org_unit_uuid,
+            ),
+        )
+        validation.add_validation_item(
+            dict(
+                employee_uuid=employee_uuid,
+                org_unit_uuid=org_unit_uuid,
+                it_user_uuid=it_user_uuid,
+            ),
+        ).validate()
+
+    async def validate_unique_group_on_create(self, employee_uuid, it_user_uuid):
+        validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
+            dict(tilknyttedebrugere=employee_uuid),
+        )
+        validation.add_validation_item(
+            dict(
+                employee_uuid=employee_uuid,
+                it_user_uuid=it_user_uuid,
+                it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
+                is_primary=True,
+            ),
+        ).validate()
+
+    async def validate_unique_group_on_edit(
+        self,
+        association_uuid,
+        employee_uuid,
+        it_user_uuid,
+        org_unit_uuid,
+    ):
+        validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
+            dict(tilknyttedebrugere=employee_uuid),
+        )
+        validation.update_validation_item(
+            association_uuid,
+            dict(
+                employee_uuid=employee_uuid,
+                org_unit_uuid=org_unit_uuid,
+                it_user_uuid=it_user_uuid,
+            ),
+        ).validate()
+
+    async def validate_primary_group_on_edit(
+        self, association_uuid, employee_uuid, it_user_uuid
+    ):
+        validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
+            dict(tilknyttedebrugere=employee_uuid),
+        )
+        validation.update_validation_item(
+            association_uuid,
+            dict(
+                employee_uuid=employee_uuid,
+                it_user_uuid=it_user_uuid,
+                it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
+                is_primary=True,
+            ),
+        ).validate()
 
     async def _get_it_system_uuid(self, it_user_uuid: str) -> str:
         from ..handler.impl.it import ItSystemBindingReader
