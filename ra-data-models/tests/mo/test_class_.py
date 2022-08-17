@@ -11,7 +11,6 @@ from typing import Dict
 
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
 

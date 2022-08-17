@@ -12,7 +12,6 @@ import pytest
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import DynamicClasses
 from ramodels.mo._shared import EmployeeRef
@@ -26,6 +25,7 @@ from ramodels.mo.details import Association
 from ramodels.mo.details import AssociationBase
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import AssociationWrite
+
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat

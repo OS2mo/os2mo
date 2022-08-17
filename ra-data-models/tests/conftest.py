@@ -20,7 +20,6 @@ import pytest
 from hypothesis import HealthCheck
 from hypothesis import strategies as st
 from pydantic import ValidationError
-
 from ramodels.mo import Validity
 
 

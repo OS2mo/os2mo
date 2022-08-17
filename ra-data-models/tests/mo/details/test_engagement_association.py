@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo._shared import EngagementAssociationType
 from ramodels.mo._shared import EngagementRef
 from ramodels.mo._shared import OrgUnitRef
@@ -16,6 +15,7 @@ from ramodels.mo._shared import Validity
 from ramodels.mo.details.engagement_association import EngagementAssociation
 from ramodels.mo.details.engagement_association import EngagementAssociationBase
 from ramodels.mo.details.engagement_association import EngagementAssociationRead
+
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat

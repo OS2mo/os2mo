@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-
 from ramodels.mo.details.it_system import ITSystemRead
 
 

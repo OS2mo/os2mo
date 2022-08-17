@@ -14,10 +14,10 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pydantic import Field
 from pydantic import ValidationError
-
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 from ramodels.exceptions import ISOParseError
+
 from tests.conftest import date_strat
 from tests.conftest import tz_dt_strat
 

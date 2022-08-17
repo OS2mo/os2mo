@@ -22,7 +22,6 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
-
 from ramodels.base import NEG_INF
 from ramodels.base import POS_INF
 from ramodels.base import RABase
