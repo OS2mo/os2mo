@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest.case import TestCase
-
 from mora.common import create_organisationsfunktion_payload
 
 
@@ -122,7 +120,7 @@ def test_create_organisation_full():
         {"uuid": "8017363b-e836-41c1-8511-2287d8fbc8a2"},
     ]
 
-    TestCase().assertDictEqual(
+    assert (
         create_organisationsfunktion_payload(
             funktionsnavn=funktionsnavn,
             valid_from=valid_from,
@@ -133,13 +131,12 @@ def test_create_organisation_full():
             tilknyttedeenheder=tilknyttedeenheder,
             funktionstype=funktionstype,
             opgaver=opgaver,
-        ),
-        output_org_funk,
-        "Org funktion not created correctly from FE req",
-    )
+        )
+        == output_org_funk
+    ), "Org funktion not created correctly from FE req"
 
 
-def test_create_organisationfunktion_minimal_py():
+def test_create_organisationfunktion_minimal():
     output_org_funk = {
         "attributter": {
             "organisationfunktionegenskaber": [
@@ -194,7 +191,7 @@ def test_create_organisationfunktion_minimal_py():
     tilknyttedebrugere = ["0b745aa2-6cf8-44a7-a7bc-9b7f75ce0ad6"]
     tilknyttedeorganisationer = ["f494ad89-039d-478e-91f2-a63566554bd6"]
 
-    TestCase().assertDictEqual(
+    assert (
         create_organisationsfunktion_payload(
             funktionsnavn=funktionsnavn,
             valid_from=valid_from,
@@ -202,7 +199,6 @@ def test_create_organisationfunktion_minimal_py():
             brugervendtnoegle=brugervendtnoegle,
             tilknyttedebrugere=tilknyttedebrugere,
             tilknyttedeorganisationer=tilknyttedeorganisationer,
-        ),
-        output_org_funk,
-        "Org funktion not created correctly from FE req",
-    )
+        )
+        == output_org_funk
+    ), "Org funktion not created correctly from FE req"

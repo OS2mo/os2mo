@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import datetime
 import json
-import unittest
 
 import freezegun
 import pytest
@@ -142,59 +140,4 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
                 "virkningtil": "3000-01-01T00:00:00+01:00",
                 "konsolider": "True",
             },
-        )
-
-
-class TestGetEndpointDate(unittest.TestCase):
-    def setUp(self):
-        self.org_unit = {
-            "tilstande": {
-                "organisationenhedgyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from": "2017-01-01 00:00:00+00",
-                            "from_included": True,
-                            "to": "2017-08-29 00:00:00+00",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "gyldighed": "Inaktiv",
-                        "virkning": {
-                            "from": "-infinity",
-                            "from_included": True,
-                            "to": "2017-01-01 00:00:00+00",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "gyldighed": "Inaktiv",
-                        "virkning": {
-                            "from": "2017-08-29 00:00:00+00",
-                            "from_included": True,
-                            "to": "infinity",
-                            "to_included": False,
-                        },
-                    },
-                ]
-            }
-        }
-        self.enddate = datetime.datetime(
-            2017,
-            8,
-            29,
-            0,
-            0,
-            0,
-            tzinfo=datetime.timezone(datetime.timedelta(0), "+00:00"),
-        )
-        self.startdate = datetime.datetime(
-            2017,
-            1,
-            1,
-            0,
-            0,
-            0,
-            tzinfo=datetime.timezone(datetime.timedelta(0), "+00:00"),
         )

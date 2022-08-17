@@ -1,3 +1,3 @@
 Release type: patch
 
-[#50137] Rewrote testing of Create Organisation functions
+[#50137] Rewrote testings of various functions
