@@ -1,10 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
-from uuid import UUID
-
 import strawberry
-from pydantic import Field
 
 from mora.graphapi.models import Address as AddressModel
 from mora.graphapi.models import EngagementModel
@@ -43,6 +39,6 @@ class EngagementTerminateType:
     model=AddressModel,
     all_fields=True,
 )
-class Address:
+class AddressTerminateType:
     """GraphQL type for/of an address (detail)."""
     pass
