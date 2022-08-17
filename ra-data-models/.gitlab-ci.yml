@@ -1,67 +1,41 @@
-# Workflow
-################################################################################
-
-stages:
-  - install
-  - lint
-  - test
-  - coverage
-  - prepare-release
-  - release
-
-workflow:
-  rules:
-    - if: $CI_COMMIT_TAG
-    - if: $CI_COMMIT_BRANCH
-
-
 # Reusables
 ################################################################################
+variables:
+  POETRY_VERSION: "1.1.11"
+  POETRY_VIRTUALENVS_CREATE: "true"
+  POETRY_VIRTUALENVS_IN_PROJECT: "true"
 
 .install-deps: &install-deps
-  variables:
-    POETRY_VERSION: "1.1.11"
-    POETRY_VIRTUALENVS_CREATE: "true"
-    POETRY_VIRTUALENVS_IN_PROJECT: "true"
+  needs: []
   before_script:
+    - cd ra-data-models
     - pip install --no-cache-dir poetry==${POETRY_VERSION}
     - poetry install
   artifacts:
     when: always
     expire_in: 1 day
     paths:
-      - .venv/
+      - ra-data-models/.venv/
 
 .source-venv: &source-venv
   image: python:3.8-slim
-  needs: [Install]
+  needs: [Install ramodels]
   before_script:
+    - cd ra-data-models
     - source .venv/bin/activate
 
 # Jobs
 ################################################################################
 
-include:
-  - project: 'labs/salt-automation'
-    ref: 'master'
-    file: '/gitlab-ci-templates/common/autopub.v1.yml'
 
-Install:
+Install ramodels:
   <<: *install-deps
   image: python:3.8-slim
-  stage: install
+  stage: build
   script:
     - poetry --version
 
-Lint Project:
-  <<: *source-venv
-  stage: lint
-  image: python:3.8
-  script:
-    - pre-commit install
-    - pre-commit run --all-files
-
-Test:
+Test ramodels:
   <<: *source-venv
   stage: test
   variables:
@@ -77,13 +51,14 @@ Test:
   artifacts:
     when: always
     paths:
-      - ".coverage.$(($CI_NODE_INDEX - 1))"
+      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
 
-Check coverage:
+Check coverage ramodels:
   stage: coverage
   image: python:3.8-slim
-  needs: [Test]
+  needs: [Test ramodels]
   before_script:
+    - cd ra-data-models
     - pip install coverage
     - coverage combine
   script:
@@ -99,11 +74,11 @@ Release to PyPI:
     # Ex. 2.3.4, but not 2.3.4-rc
     - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
 
-pages:
+ramodel pages:
   <<: *source-venv
   stage: release
   script:
-    - python docs/generate_schemas.py
+    - python ra-data-models/docs/generate_schemas.py
     - mkdocs build --site-dir public
   artifacts:
     paths:
