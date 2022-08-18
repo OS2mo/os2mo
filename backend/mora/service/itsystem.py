@@ -9,10 +9,8 @@ This section describes how to interact with IT systems.
 """
 from operator import itemgetter
 from typing import Any
-from typing import Awaitable
 from typing import Dict
 from typing import List
-from typing import Optional
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -26,13 +24,11 @@ from .. import exceptions
 from .. import lora
 from .. import mapping
 from .. import util
-from ..lora import LoraObjectType
 from ..service.facet import get_mo_object_primary_value
 from ..service.facet import is_class_uuid_primary
 from ..triggers import Trigger
 from .validation import validator
 from .validation.models import GroupValidation
-from mora.request_scoped.bulking import request_wide_bulk
 
 if TYPE_CHECKING:  # pragma: no cover
     from ..handler.reading import ReadingHandler
@@ -332,136 +328,3 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 ),
             }
         )
-
-
-async def __get_itsystem_from_cache(
-    systemid: str, only_primary_uuid: bool = False
-) -> MO_OBJ_TYPE:
-    """
-    Get org unit from cache and process it
-    :param systemid: uuid of it-system
-    :param only_primary_uuid:
-    :return: A processed system
-    """
-    return await get_one_itsystem(
-        c=request_wide_bulk.connector,
-        systemid=systemid,
-        system=await request_wide_bulk.get_lora_object(
-            type_=LoraObjectType.it_system, uuid=systemid
-        )
-        if not only_primary_uuid
-        else None,
-        only_primary_uuid=only_primary_uuid,
-    )
-
-
-async def request_bulked_get_one_itsystem(
-    systemid: str, only_primary_uuid: bool = False
-) -> Awaitable[MO_OBJ_TYPE]:
-    """
-    EAGERLY adds a uuid to a LAZILY-processed cache. Return an awaitable. Once the
-    result is awaited, the FULL cache is processed. Useful to 'under-the-hood' bulk.
-
-    :param systemid: uuid of it-system
-    :param only_primary_uuid:
-    :return: Awaitable returning the processed system
-    """
-    return __get_itsystem_from_cache(
-        systemid=systemid, only_primary_uuid=only_primary_uuid
-    )
-
-
-async def get_one_itsystem(
-    c: lora.Connector, systemid, system=None, only_primary_uuid=False
-) -> Optional[MO_OBJ_TYPE]:
-    """Obtain the list of engagements corresponding to a user.
-
-    .. :quickref: IT system; Get by user
-
-    :queryparam date at: Current time in ISO-8601 format.
-    :queryparam string validity: Only show *past*, *present* or
-        *future* values -- which the default being to show *present*
-        values.
-
-    :param uuid id: The UUID to query, i.e. the ID of the employee or
-        unit.
-
-    All requests contain validity objects on the following form:
-
-    :<jsonarr string from: The from date, in ISO 8601.
-    :<jsonarr string to: The to date, in ISO 8601.
-
-    .. sourcecode:: json
-
-      {
-        "from": "2016-01-01",
-        "to": "2017-12-31",
-      }
-
-    :<jsonarr string name:
-        The name of the IT system in question.
-    :<jsonarr string user_key:
-        Short, unique key identifying the IT-system in question.
-    :<jsonarr string reference:
-        Optional string describing the elements of the IT system.
-    :<jsonarr string system_type:
-        Optional string describing the system_type of the IT system.
-    :<jsonarr string name:
-        The name of the IT system in question.
-    :<jsonarr string uuid: Machine-friendly UUID.
-    :<jsonarr string validity: The validity times of the object.
-
-    :status 200: Always.
-
-    **Example response**:
-
-    .. sourcecode:: json
-
-      [
-        {
-          "name": "Lokal Rammearkitektur",
-          "reference": null,
-          "system_type": null,
-          "user_key": "LoRa",
-          "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-          "validity": {
-            "from": "2016-01-01",
-            "to": "2017-12-31"
-          },
-        },
-        {
-          "name": "Active Directory",
-          "reference": null,
-          "system_type": null,
-          "user_key": "AD",
-          "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-          "validity": {
-            "from": "2002-02-14",
-            "to": null
-          },
-        }
-      ]
-
-    """
-
-    if only_primary_uuid:
-        return {mapping.UUID: systemid}
-
-    if not system:
-        system = await c.itsystem.get(systemid)
-
-        if not system or not util.is_reg_valid(system):
-            return None
-
-    system_attrs = system["attributter"]["itsystemegenskaber"][0]
-
-    return {
-        "uuid": systemid,
-        "name": system_attrs.get("itsystemnavn"),
-        "reference": system_attrs.get("konfigurationreference"),
-        "system_type": system_attrs.get("itsystemtype"),
-        "user_key": system_attrs.get("brugervendtnoegle"),
-        mapping.VALIDITY: util.get_effect_validity(
-            system["tilstande"]["itsystemgyldighed"][0],
-        ),
-    }
