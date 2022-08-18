@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 [tool.poetry]
 name = "OS2mo"
-version = "5.9.3"
+version = "8.99.99"
 authors = ["Magenta ApS <info@magenta.dk>"]
 description = "OS2mo - Medarbejder og Organisation"
 license = "MPL-2.0"
@@ -43,7 +43,7 @@ service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
 prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
 pydantic = {extras = ["email"], version = "^1.7.3"}
-ramodels = "^8.1.0"
+ramodels = {path = "../ra-data-models", develop = true }
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 asgi-lifespan = "^1.0.1"

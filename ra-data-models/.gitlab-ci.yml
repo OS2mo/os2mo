@@ -1,0 +1,87 @@
+# Reusables
+################################################################################
+variables:
+  POETRY_VERSION: "1.1.11"
+  POETRY_VIRTUALENVS_CREATE: "true"
+  POETRY_VIRTUALENVS_IN_PROJECT: "true"
+
+.install-deps: &install-deps
+  needs: []
+  before_script:
+    - cd ra-data-models
+    - pip install --no-cache-dir poetry==${POETRY_VERSION}
+    - poetry install
+  artifacts:
+    when: always
+    expire_in: 1 day
+    paths:
+      - ra-data-models/.venv/
+
+.source-venv: &source-venv
+  image: python:3.8-slim
+  needs: [Install ramodels]
+  before_script:
+    - cd ra-data-models
+    - source .venv/bin/activate
+
+# Jobs
+################################################################################
+
+
+Install ramodels:
+  <<: *install-deps
+  image: python:3.8-slim
+  stage: build
+  script:
+    - poetry --version
+
+Test ramodels:
+  <<: *source-venv
+  stage: test
+  variables:
+    HYPOTHESIS_PROFILE: ci
+  parallel: 8
+  script:
+    - pytest
+      --cov=ramodels
+      --cov-report=html
+      --shard-id=$(($CI_NODE_INDEX - 1))
+      --num-shards=$CI_NODE_TOTAL
+    - mv .coverage ".coverage.$(($CI_NODE_INDEX - 1))"
+  artifacts:
+    when: always
+    paths:
+      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
+
+Check coverage ramodels:
+  stage: coverage
+  image: python:3.8-slim
+  needs: [Test ramodels]
+  before_script:
+    - cd ra-data-models
+    - pip install coverage
+    - coverage combine
+  script:
+    - coverage report -m --fail-under=100
+
+Release to PyPI:
+  <<: *install-deps
+  stage: release
+  image: python:3.8-slim
+  script: poetry publish --build -u __token__ -p $PYPI_TOKEN
+  rules:
+    # Matches <version core> from SemVer 2.0.0 BNF grammar.
+    # Ex. 2.3.4, but not 2.3.4-rc
+    - if: $CI_COMMIT_TAG =~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/
+
+ramodel pages:
+  <<: *source-venv
+  stage: release
+  script:
+    - python ra-data-models/docs/generate_schemas.py
+    - mkdocs build --site-dir public
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master"

@@ -31,6 +31,7 @@ variables:
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
 include:
+  - local: "ra-data-models/.gitlab-ci.yml"
   - project: "labs/salt-automation"
     ref: "master"
     file: "/gitlab-ci-templates/common/autopub.v1.yml"

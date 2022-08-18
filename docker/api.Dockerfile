@@ -57,6 +57,7 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
 # Install requirements
 RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
 COPY backend/poetry.lock backend/pyproject.toml /app/backend/
+COPY ra-data-models ra-data-models/
 WORKDIR /app/backend
 RUN poetry install --no-interaction && rm -rf /root/.cache
 WORKDIR /app
