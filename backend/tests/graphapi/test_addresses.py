@@ -14,6 +14,8 @@ from pytest import MonkeyPatch
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.address import terminate_addr
+from mora.graphapi.models import AddressTerminate
 from mora import lora
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.models import AddressTerminate
