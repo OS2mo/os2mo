@@ -279,7 +279,7 @@ class EngagementTerminate(EngagementModel, Validity, Triggerless):
         return self.to_date + ONE_DAY
 
 
-class AddressTrigger(OrgUnitTrigger):
+class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
     pass
