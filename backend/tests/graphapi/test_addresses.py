@@ -4,10 +4,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
-import logging
-import traceback
-from typing import Optional
-from uuid import UUID
 
 import mock
 import datetime
@@ -24,7 +20,6 @@ from .strategies import graph_data_uuids_strat
 from mora import lora
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.models import AddressTerminate
-from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
@@ -105,6 +100,9 @@ class TestAddresssQuery:
         assert len(result_uuids) == len(set(test_uuids))
 
 
+# st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
+#     lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+# ),
 class TestAddressTerminate:
     @given(
         st.uuids(),
