@@ -4,10 +4,10 @@
 import Service from "./HttpCommon"
 
 const ClassDetails = {
-  FULL_NAME: "full_name",
+  FULL_NAME: "full_name=1",
   // NCHILDREN: '',
-  TOP_LEVEL_FACET: "top_level_facet",
-  FACET: "facet",
+  TOP_LEVEL_FACET: "top_level_facet=1",
+  FACET: "facet=1",
 }
 
 export default {
