@@ -7,10 +7,19 @@ import mora.main
 
 class TestEndpointUniqueness(unittest.TestCase):
     def test_ensure_endpoint_function_names_are_unique(self):
-        non_unique_endpoints = {"index", "get_keycloak_config"}
-        endpoint_func_names = [
-            route.name
-            for route in mora.main.app.routes
-            if route.name not in non_unique_endpoints
+        # RBAC requires these endpoints to be unique
+        must_be_unique = [
+            "create_org_unit",
+            "terminate",
+            "terminate_org_unit",
+            "terminate_employee",
         ]
-        self.assertCountEqual(endpoint_func_names, set(endpoint_func_names))
+        endpoint_func_names = [route.name for route in mora.main.app.routes]
+
+        for endpoint in must_be_unique:
+            endpoint_func_names.remove(endpoint)
+
+        without_uniques = set(endpoint_func_names)
+
+        for endpoint in must_be_unique:
+            self.assertNotIn(endpoint, without_uniques)
