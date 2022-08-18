@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.1.2 - 2022-08-18
+------------------
+
+[#50998] Fix issue with picking dynamic classes on associations
+
 9.1.1 - 2022-08-18
 ------------------
 
