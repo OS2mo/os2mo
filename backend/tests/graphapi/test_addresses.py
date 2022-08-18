@@ -4,6 +4,13 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+import logging
+import traceback
+from typing import Optional
+from uuid import UUID
+
+import mock
+import datetime
 
 import mock
 from fastapi.encoders import jsonable_encoder
@@ -14,11 +21,10 @@ from pytest import MonkeyPatch
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora.graphapi.address import terminate_addr
-from mora.graphapi.models import AddressTerminate
 from mora import lora
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.models import AddressTerminate
+from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
