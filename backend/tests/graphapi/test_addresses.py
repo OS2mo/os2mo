@@ -97,9 +97,6 @@ class TestAddresssQuery:
         assert len(result_uuids) == len(set(test_uuids))
 
 
-# st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
-#     lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
-# ),
 class TestAddressTerminate:
     @given(
         st.uuids(),
