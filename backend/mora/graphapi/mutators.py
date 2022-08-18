@@ -11,8 +11,8 @@ from uuid import UUID
 
 import strawberry
 from strawberry.file_uploads import Upload
+from strawberry.types import Info
 
-from mora.graphapi.files import save_file
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
@@ -28,11 +28,13 @@ logger = logging.getLogger(__name__)
 class Mutation:
     @strawberry.mutation(description="Upload a file")
     async def upload_file(
-        self, file_store: FileStore, file: Upload, force: bool = False
+        self, info: Info, file_store: FileStore, file: Upload, force: bool = False
     ) -> str:
+        filestorage = info.context["filestorage"]
+
         file_name = file.filename
         file_bytes = await file.read()
-        save_file(file_store, file_name, file_bytes, force)
+        filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
 
     @strawberry.mutation(description="Trigger refresh for an organisation unit")

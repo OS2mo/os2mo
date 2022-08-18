@@ -56,6 +56,11 @@ class ServicePlatformenSettings(BaseSettings):
         return v
 
 
+class FileSystemSettings(BaseSettings):
+    query_export_dir: DirectoryPath = "/queries"
+    query_insight_dir: Optional[DirectoryPath] = None
+
+
 class Settings(BaseSettings):
     """
     These settings can be overwritten by environment variables
@@ -72,9 +77,20 @@ class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
-    query_export_dir: DirectoryPath = "/queries"
-    query_insight_dir: Optional[DirectoryPath] = None
     navlinks: List[NavLink] = []
+
+    # File Store settings
+    file_storage: str = "filesystem"
+    filesystem_settings: Optional[FileSystemSettings] = None
+
+    @root_validator
+    def check_filesystem_settings(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if values.get("file_storage") != "filesystem":
+            return values
+
+        values["filesystem_settings"] = FileSystemSettings()
+        return values
+
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
     graphql_rbac: bool = False

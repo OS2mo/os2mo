@@ -206,12 +206,13 @@ async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
     from mora.graphapi.main import get_schema
     from mora.graphapi.dataloaders import get_loaders
     from mora.graphapi.middleware import set_is_shim
+    from mora.graphapi.files import get_filestorage
 
     set_is_shim()
 
     loaders = await get_loaders()
     if "context_value" not in kwargs:
-        kwargs["context_value"] = loaders
+        kwargs["context_value"] = {**loaders, "filestorage": get_filestorage()}
 
     return await get_schema().execute(*args, **kwargs)
 
