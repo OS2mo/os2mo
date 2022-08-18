@@ -11,6 +11,8 @@ from ramodels.mo.details import AddressRead
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.address import terminate_addr
+from mora.graphapi.models import AddressTerminate
 from mora.graphapi.shim import flatten_data
 from tests.conftest import GQLResponse
 
@@ -87,3 +89,10 @@ class TestAddresssQuery:
         result_uuids = [addr.get("uuid") for addr in response.data["addresses"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+    def test_terminate(self):
+        # Init
+        at = AddressTerminate()
+
+        # Invoke
+        result = terminate_addr()
