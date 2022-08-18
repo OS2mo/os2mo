@@ -37,7 +37,6 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
         }
     )
 
-    # ON_AFTER
     if not address_terminate.triggerless:
         _ = await Trigger.run(trigger_dict)
 
