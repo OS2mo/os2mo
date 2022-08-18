@@ -210,6 +210,16 @@ export default {
         case "EMPLOYEE":
           this.entries.forEach((entry) => {
             entry.person = { uuid: this.uuid }
+            console.log(entry)
+            switch (entry.type) {
+              case "engagement":
+                delete entry.org
+                entry.org_unit = { uuid: entry.org_unit.uuid }
+                entry.engagement_type = { uuid: entry.engagement_type.uuid }
+                entry.job_function = { uuid: entry.job_function.uuid }
+                entry.person = { uuid: this.uuid }
+                break
+            }
           })
           this.createEmployeeEntries(this.entries)
           break
