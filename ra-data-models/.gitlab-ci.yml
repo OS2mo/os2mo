@@ -78,7 +78,7 @@ ramodel pages:
   <<: *source-venv
   stage: release
   script:
-    - python ra-data-models/docs/generate_schemas.py
+    - python docs/generate_schemas.py
     - mkdocs build --site-dir public
   artifacts:
     paths:
