@@ -206,44 +206,82 @@ export default {
 
       this.isLoading = true
 
+      console.log(this.entries)
       switch (this.type) {
         case "EMPLOYEE":
           this.entries.forEach((entry) => {
-            entry.org_unit = { uuid: entry.org_unit.uuid }
-            entry.engagement_type = { uuid: entry.engagement_type.uuid }
-            entry.job_function = { uuid: entry.job_function.uuid }
-            entry.person = { uuid: this.uuid }
-            delete entry.org
+            console.log("hest", entry)
+            switch (entry.type) {
+              case "engagement":
+                delete entry.org
+                entry.org_unit = { uuid: entry.org_unit.uuid }
+                entry.engagement_type = { uuid: entry.engagement_type.uuid }
+                entry.job_function = { uuid: entry.job_function.uuid }
+                entry.person = { uuid: this.uuid }
+                break
+
+              case "address":
+                delete entry.org
+                entry.address_type = { uuid: entry.address_type.uuid }
+                entry.visibility = { uuid: entry.visibility.uuid }
+                break
+
+              case "role":
+                delete entry.org
+                entry.org_unit = { uuid: entry.org_unit.uuid }
+                entry.role_type = { uuid: entry.role_type.uuid }
+                break
+
+              case "it":
+                // should primary be there?
+                // FIXME: doesn't work
+                delete entry.org
+                delete entry.person
+                delete entry.primary
+                break
+
+              case "association":
+                // FIXME: Works for affiliation, but not IT-affiliation
+                delete entry.org
+                entry.org_unit = { uuid: entry.org_unit.uuid }
+                entry.person = { uuid: entry.person.uuid }
+                entry.org_unit = { uuid: entry.org_unit.uuid }
+                entry.association_type = { uuid: entry.association_type.uuid }
+                break
+            }
           })
           this.createEmployeeEntries(this.entries)
           break
         case "ORG_UNIT":
           this.entries.forEach((entry) => {
             entry.org_unit = { uuid: this.uuid }
+            delete entry.org
             switch (entry.type) {
               case "manager":
-                delete entry.org
                 entry.manager_level = { uuid: entry.manager_level.uuid }
                 entry.manager_type = { uuid: entry.manager_type.uuid }
-                entry.person = { uuid: entry.person.uuid }
+                if (entry.person) {
+                  entry.person = { uuid: entry.person.uuid }
+                }
                 for (let i in entry.responsibility) {
                   entry.responsibility[i] = { uuid: entry.responsibility[i].uuid }
                 }
                 break
+
               case "address":
-                delete entry.org
                 entry.address_type = { uuid: entry.address_type.uuid }
                 entry.visibility = { uuid: entry.visibility.uuid }
                 break
+
               case "association":
-                delete entry.org
                 entry.association_type = { uuid: entry.association_type.uuid }
                 entry.person = { uuid: entry.person.uuid }
                 break
+
               case "it":
-                delete entry.org
                 // should primary be there?
                 delete entry.primary
+                break
             }
           })
           this.createOrganisationUnitEntries(this.entries)

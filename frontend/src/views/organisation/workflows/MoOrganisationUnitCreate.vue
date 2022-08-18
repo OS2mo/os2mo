@@ -102,10 +102,14 @@ export default {
           if (!a.validity) {
             a.validity = this.entry.validity
           }
-          a.org = this.$store.getters["organisation/GET_ORGANISATION"]
+          // a.org = this.$store.getters["organisation/GET_ORGANISATION"]
+          console.log("orgunit create", a)
+          a.address_type = { uuid: a.address_type.uuid }
+          a.visibility = { uuid: a.visibility.uuid }
         })
         this.entry.details = this.addresses
 
+        console.log("this entry", this.entry)
         OrganisationUnit.create(this.entry).then((organisationUuid) => {
           vm.isLoading = false
           if (organisationUuid.error) {
