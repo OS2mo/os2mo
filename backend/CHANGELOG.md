@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.1.1 - 2022-08-18
+------------------
+
+[#51760] Use tag from OS2MO when releasing ra-data-models to pypi.
+
 9.1.0 - 2022-08-18
 ------------------
 
