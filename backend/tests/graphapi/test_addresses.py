@@ -3,18 +3,29 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
+import logging
+import traceback
+from typing import Optional
+from uuid import UUID
+
+import mock
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
 from pytest import MonkeyPatch
 from ramodels.mo.details import AddressRead
 
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora import lora
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.models import AddressTerminate
+from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from tests.conftest import GQLResponse
+
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -90,9 +101,37 @@ class TestAddresssQuery:
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
 
-    def test_terminate(self):
-        # Init
-        at = AddressTerminate()
 
-        # Invoke
-        result = terminate_addr()
+class TestAddressTerminate:
+    @given(
+        st.uuids(),
+        st.booleans(),
+        st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
+            lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+        ),
+    )
+    async def test_terminate(self, given_uuid, triggerless, given_validity_dts):
+        # if not given_uuid:
+        #     tap="test1"
+
+        # Init
+        from_date, to_date = given_validity_dts
+        at = AddressTerminate(
+            uuid=given_uuid,
+            triggerless=triggerless,
+            from_date=from_date,
+            to_date=to_date,
+        )
+
+        # Patching / Mocking
+        async def mock_update(self, lora_payload, uuid_str):
+            return uuid_str
+
+        terminate_result = None
+        with mock.patch.object(lora.Scope, "update", new=mock_update):
+            terminate_result = await terminate_addr(address_terminate=at)
+
+        if not terminate_result:
+            tap = "test"
+
+        assert terminate_result.uuid == at.uuid
