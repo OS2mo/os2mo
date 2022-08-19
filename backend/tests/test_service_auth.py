@@ -16,8 +16,8 @@ from pydantic.error_wrappers import ErrorWrapper
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_401_UNAUTHORIZED
 
+import mora.auth.keycloak.oidc
 import tests.cases
-from mora import main
 from mora.auth.keycloak.models import KeycloakToken
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
@@ -27,57 +27,35 @@ from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
-class TestEndpointAuthDependency(unittest.TestCase):
+def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints):
     """
     Test that OIDC auth is enabled on all endpoints except from those
     specified in an explicit exclude list (see the NO_AUTH_ENDPOINTS below)
     """
-
     # No fancy logic (for security reasons) to set the excluded endpoints -
     # all excluded endpoints must be explicitly specified in the list
 
-    def setUp(self) -> None:
-        self.no_auth_endpoints = {
-            "/health/",
-            "/health/live",
-            "/health/ready",
-            "/health/{identifier}",
-            "/version/",
-            "/{path:path}",
-            "/favicon.ico",
-            "/service/keycloak.json",
-            "/service/token",
-            "/service/exports/{file_name}",
-            "/service/{rest_of_path:path}",
-            "/testing/testcafe-db-setup",
-            "/testing/testcafe-db-teardown",
-            "/metrics",
-            "/saml/sso/",
-        }
-        # List of endpoints to not evaluate
-        skip_endpoints = {
-            # This URL has both a protected and unprotected endpoint
-            "/service/exports/{file_name}",
-        }
-        routes = main.app.routes
-        routes = filter(lambda route: route.path not in skip_endpoints, routes)
-        self.all_routes = routes
+    ensure_endpoints_depend_on_oidc_auth_function(
+        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.auth
+    )
 
-        self.auth_coroutine = auth
 
-    def test_ensure_endpoints_depend_on_oidc_auth_function(self):
-        ensure_endpoints_depend_on_oidc_auth_function(
-            self.all_routes, self.no_auth_endpoints, self.auth_coroutine
-        )
+def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
+    all_routes, no_auth_endpoints
+):
+    """
+    Test that OIDC auth is enabled on all endpoints except from those
+    specified in an explicit exclude list (see the NO_AUTH_ENDPOINTS below)
+    """
+    # No fancy logic (for security reasons) to set the excluded endpoints -
+    # all excluded endpoints must be explicitly specified in the list
 
-    def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(self):
-        ensure_no_auth_endpoints_do_not_depend_on_auth_function(
-            self.all_routes, self.no_auth_endpoints, self.auth_coroutine
-        )
+    ensure_no_auth_endpoints_do_not_depend_on_auth_function(
+        all_routes, no_auth_endpoints, mora.auth.keycloak.oidc.auth
+    )
 
 
 class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
-
     app_settings_overrides = {
         "graphql_enable": True,
         "graphiql_enable": True,
