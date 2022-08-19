@@ -49,7 +49,6 @@ h_settings.register_profile(
 )
 h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 
-
 asyncio_mode = "strict"
 
 
