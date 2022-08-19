@@ -30,7 +30,6 @@ from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
 from mora import lora
-from mora import main
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
@@ -272,42 +271,3 @@ def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
         "http://localhost/lora/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
     yield organisation["id"]
-
-
-@pytest.fixture
-def no_auth_endpoints():
-    """Fixture yielding endpoint URL paths that should not have authentication."""
-    no_auth_endpoints = {
-        "/health/",
-        "/health/live",
-        "/health/ready",
-        "/health/{identifier}",
-        "/version/",
-        "/{path:path}",
-        "/favicon.ico",
-        "/service/keycloak.json",
-        "/service/token",
-        "/service/exports/{file_name}",
-        "/service/{rest_of_path:path}",
-        "/testing/testcafe-db-setup",
-        "/testing/testcafe-db-teardown",
-        "/metrics",
-        "/saml/sso/",
-    }
-    yield no_auth_endpoints
-
-
-@pytest.fixture
-def all_routes():
-    """Fixture yields all routes defined in the FASTAPI app, excluding endpoints that
-    which are NOT to be evaluated."""
-    # List of endpoints to not evaluate
-    skip_endpoints = {
-        # This URL has both a protected and unprotected endpoint
-        "/service/exports/{file_name}",
-    }
-    routes = main.app.routes
-    routes = filter(lambda route: route.path not in skip_endpoints, routes)
-    all_routes = routes
-
-    yield all_routes

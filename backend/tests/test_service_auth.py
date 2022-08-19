@@ -27,6 +27,45 @@ from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
+@pytest.fixture
+def no_auth_endpoints():
+    """Fixture yielding endpoint URL paths that should not have authentication."""
+    no_auth_endpoints = {
+        "/health/",
+        "/health/live",
+        "/health/ready",
+        "/health/{identifier}",
+        "/version/",
+        "/{path:path}",
+        "/favicon.ico",
+        "/service/keycloak.json",
+        "/service/token",
+        "/service/exports/{file_name}",
+        "/service/{rest_of_path:path}",
+        "/testing/testcafe-db-setup",
+        "/testing/testcafe-db-teardown",
+        "/metrics",
+        "/saml/sso/",
+    }
+    yield no_auth_endpoints
+
+
+@pytest.fixture
+def all_routes(fastapi_test_app):
+    """Fixture yields all routes defined in the FASTAPI app, excluding endpoints that
+    which are NOT to be evaluated."""
+    # List of endpoints to not evaluate
+    skip_endpoints = {
+        # This URL has both a protected and unprotected endpoint
+        "/service/exports/{file_name}",
+    }
+    routes = fastapi_test_app.routes
+    routes = filter(lambda route: route.path not in skip_endpoints, routes)
+    all_routes = routes
+
+    yield all_routes
+
+
 def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints):
     """
     Test that OIDC auth is enabled on all endpoints except from those
