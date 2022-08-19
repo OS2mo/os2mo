@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.1.3 - 2022-08-19
+------------------
+
+[#50137] Rewrote tests to make independant from unittest.
+
 9.1.2 - 2022-08-18
 ------------------
 
