@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.1.5 - 2022-08-19
+------------------
+
+[#50137] Rewrote last unittest.Testcase to pytest style
+
 9.1.4 - 2022-08-19
 ------------------
 
