@@ -242,6 +242,7 @@ async def is_date_range_in_obj_range(
     if obj.get("allow_nonexistent"):
         obj_valid_from = obj.get(mapping.VALID_FROM)
         obj_valid_to = obj.get(mapping.VALID_TO)
+
         is_contained_in_range(
             obj_valid_from,
             obj_valid_to,
@@ -270,8 +271,45 @@ async def is_date_range_in_obj_range(
 
 @forceable
 def is_contained_in_range(
-    candidate_from, candidate_to, valid_from, valid_to, exception
+    candidate_from: typing.Optional[datetime.datetime],
+    candidate_to: typing.Optional[datetime.datetime],
+    valid_from: datetime.datetime,
+    valid_to: datetime.datetime,
+    exception,
 ):
+    if candidate_from:
+        assert isinstance(candidate_from, datetime.datetime)
+    if candidate_to:
+        assert isinstance(candidate_to, datetime.datetime)
+    assert isinstance(valid_from, datetime.datetime)
+
+    assert isinstance(valid_to, datetime.datetime)
+
+    if not candidate_from and not candidate_to:
+        return
+
+    if not candidate_from:
+        assert candidate_to
+        if candidate_to < valid_to:
+            exception(
+                valid_from=util.to_iso_date(candidate_from),
+                valid_to=util.to_iso_date(candidate_to),
+                wanted_valid_from=util.to_iso_date(valid_from),
+                wanted_valid_to=util.to_iso_date(valid_to),
+            )
+
+    if not candidate_to:
+        assert candidate_from
+        if valid_from < candidate_from:
+            exception(
+                valid_from=util.to_iso_date(candidate_from),
+                valid_to=util.to_iso_date(candidate_to),
+                wanted_valid_from=util.to_iso_date(valid_from),
+                wanted_valid_to=util.to_iso_date(valid_to),
+            )
+
+    assert candidate_from
+    assert candidate_to
     if valid_from < candidate_from or candidate_to < valid_to:
         exception(
             valid_from=util.to_iso_date(candidate_from),

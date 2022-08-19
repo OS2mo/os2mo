@@ -368,11 +368,11 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
 
 class TestIsContainedInRange(TestHelper):
     def test_raises_when_outside_range_upper(self):
-        empl_from = datetime.date(2010, 1, 1)
-        empl_to = datetime.date(2018, 1, 1)
+        empl_from = datetime.datetime(2010, 1, 1)
+        empl_to = datetime.datetime(2018, 1, 1)
 
-        valid_from = datetime.date(2012, 1, 1)
-        valid_to = datetime.date(2020, 1, 1)
+        valid_from = datetime.datetime(2012, 1, 1)
+        valid_to = datetime.datetime(2020, 1, 1)
 
         with self.assertRaises(exceptions.HTTPException):
             validator.is_contained_in_range(
@@ -384,11 +384,11 @@ class TestIsContainedInRange(TestHelper):
             )
 
     def test_raises_when_outside_range_lower(self):
-        empl_from = datetime.date(2010, 1, 1)
-        empl_to = datetime.date(2018, 1, 1)
+        empl_from = datetime.datetime(2010, 1, 1)
+        empl_to = datetime.datetime(2018, 1, 1)
 
-        valid_from = datetime.date(2008, 1, 1)
-        valid_to = datetime.date(2016, 1, 1)
+        valid_from = datetime.datetime(2008, 1, 1)
+        valid_to = datetime.datetime(2016, 1, 1)
 
         with self.assertRaises(exceptions.HTTPException):
             validator.is_contained_in_range(
@@ -400,11 +400,11 @@ class TestIsContainedInRange(TestHelper):
             )
 
     def test_passes_when_inside_range(self):
-        empl_from = datetime.date(2010, 1, 1)
-        empl_to = datetime.date(2018, 1, 1)
+        empl_from = datetime.datetime(2010, 1, 1)
+        empl_to = datetime.datetime(2018, 1, 1)
 
-        valid_from = datetime.date(2010, 1, 1)
-        valid_to = datetime.date(2018, 1, 1)
+        valid_from = datetime.datetime(2010, 1, 1)
+        valid_to = datetime.datetime(2018, 1, 1)
 
         # Should not raise an exception
         validator.is_contained_in_range(
