@@ -166,17 +166,17 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 employee_uuid=employee_uuid, substitute_uuid=substitute_uuid
             )
 
-        # Group validation: primary attr
+        # Group validation: uniqueness
         if employee_uuid and org_unit_uuid and it_user_uuid:
-            await self.validate_primary_group_on_create(
+            await self.validate_unique_group_on_create(
                 employee_uuid,
                 it_user_uuid,
                 org_unit_uuid,
             )
 
-        # Group validation: uniqueness
+        # Group validation: primary attr
         if employee_uuid and it_user_uuid and (await is_class_uuid_primary(primary)):
-            await self.validate_unique_group_on_create(employee_uuid, it_user_uuid)
+            await self.validate_primary_group_on_create(employee_uuid, it_user_uuid)
 
         if substitute_uuid:
             rel_orgfunc_uuids = [substitute_uuid]
@@ -418,11 +418,8 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
 
         await super().prepare_terminate(request)
 
-    async def validate_primary_group_on_create(
-        self,
-        employee_uuid,
-        it_user_uuid,
-        org_unit_uuid,
+    async def validate_unique_group_on_create(
+        self, employee_uuid, it_user_uuid, org_unit_uuid
     ):
         validation = await ITAssociationUniqueGroupValidation.from_mo_objects(
             dict(
@@ -438,7 +435,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             ),
         ).validate()
 
-    async def validate_unique_group_on_create(self, employee_uuid, it_user_uuid):
+    async def validate_primary_group_on_create(self, employee_uuid, it_user_uuid):
         validation = await ITAssociationPrimaryGroupValidation.from_mo_objects(
             dict(tilknyttedebrugere=employee_uuid),
         )

@@ -15,8 +15,8 @@ class TestAssociationRequestHandlerGroupValidation:
     _it_system_uuid = "it-system-uuid"
     _org_unit_uuid = "org-unit-uuid"
 
-    _expected_kwargs_a = {"tilknyttedebrugere": _employee_uuid}
-    _expected_kwargs_b = {
+    _expected_kwargs_normal = {"tilknyttedebrugere": _employee_uuid}
+    _expected_kwargs_extended = {
         "tilknyttedebrugere": _employee_uuid,
         "tilknyttedeenheder": _org_unit_uuid,
     }
@@ -28,29 +28,29 @@ class TestAssociationRequestHandlerGroupValidation:
             # uses `ITAssociationUniqueGroupValidation` correctly.
             (
                 "validate_unique_group_on_create",
-                (_employee_uuid, _it_user_uuid),
-                _expected_kwargs_a,
+                (_employee_uuid, _it_user_uuid, _org_unit_uuid),
+                _expected_kwargs_extended,
             ),
             # 1b. Test that `AssociationRequestHandler.validate_primary_group_on_create`
             # uses `ITAssociationPrimaryGroupValidation` correctly.
             (
                 "validate_primary_group_on_create",
-                (_employee_uuid, _it_user_uuid, _org_unit_uuid),
-                _expected_kwargs_b,
+                (_employee_uuid, _it_user_uuid),
+                _expected_kwargs_normal,
             ),
             # 2a. Test that `AssociationRequestHandler.validate_unique_group_on_edit`
             # uses `ITAssociationUniqueGroupValidation` correctly.
             (
                 "validate_unique_group_on_edit",
                 (_association_uuid, _employee_uuid, _it_user_uuid, _org_unit_uuid),
-                _expected_kwargs_a,
+                _expected_kwargs_normal,
             ),
             # 2b. Test that `AssociationRequestHandler.validate_primary_group_on_edit`
             # uses `ITAssociationPrimaryGroupValidation` correctly.
             (
                 "validate_primary_group_on_edit",
                 (_association_uuid, _employee_uuid, _it_user_uuid),
-                _expected_kwargs_a,
+                _expected_kwargs_normal,
             ),
         ],
     )
