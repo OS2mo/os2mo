@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.1.4 - 2022-08-19
+------------------
+
+[#50484] Fix accidental switchup between `validate_unique_group_on_create` and `validate_primary_group_on_create`
+
 9.1.3 - 2022-08-19
 ------------------
 
