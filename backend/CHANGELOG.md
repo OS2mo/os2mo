@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.2.0 - 2022-08-22
+------------------
+
+[#51173] Created new model DetailTermination, representing a termination of os2mo-service-details.
+
 9.1.5 - 2022-08-19
 ------------------
 
