@@ -77,29 +77,33 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 "primary_uuid": primary_uuid,
             }
 
-        it_system_task = get_itsystem_only_primary(itsystem_uuid)
-        if not only_primary_uuid:
+        if only_primary_uuid:
+            it_system_task = get_itsystem_only_primary(itsystem_uuid)
+        else:
             it_system_task = get_itsystem(itsystem_uuid)
 
-        person_task = noop_task()
         if person_uuid:
             person_task = employee.request_bulked_get_one_employee(
                 person_uuid, only_primary_uuid=only_primary_uuid
             )
+        else:
+            person_task = noop_task()
 
-        org_unit_task = noop_task()
         if org_unit_uuid:
             org_unit_task = orgunit.request_bulked_get_one_orgunit(
                 org_unit_uuid,
                 details=orgunit.UnitDetails.MINIMAL,
                 only_primary_uuid=only_primary_uuid,
             )
+        else:
+            org_unit_task = noop_task()
 
-        primary_task = noop_task()
         if primary_uuid:
             primary_task = facet.request_bulked_get_one_class_full(
                 primary_uuid, only_primary_uuid=only_primary_uuid
             )
+        else:
+            primary_task = noop_task()
 
         itsystem, person, org_unit, primary = await gather(
             it_system_task, person_task, org_unit_task, primary_task
