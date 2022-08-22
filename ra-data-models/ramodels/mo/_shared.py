@@ -261,6 +261,32 @@ class Visibility(MORef):
     """Visbility type reference."""
 
 
+class DetailTermination(UUIDBase):
+    type: str = Field(description="Name of the type of detail we wish to terminate.")
+
+    validity: OpenValidity = Field(
+        description="MO unit validity, determining in what date-interval "
+        "a unit is available."
+    )
+
+    def to_dict(self) -> dict:
+        request_dict = self.dict(by_alias=True)
+        request_dict["uuid"] = str(self.uuid)
+        if self.validity.from_date:
+            request_dict["validity"][
+                "from"
+            ] = self.validity.from_date.date().isoformat()
+        else:
+            del request_dict["validity"]["from"]
+
+        if self.validity.to_date:
+            request_dict["validity"]["to"] = self.validity.to_date.date().isoformat()
+        else:
+            del request_dict["validity"]["to"]
+
+        return request_dict
+
+
 # --------------------------------------------------------------------------------------
 # Auxiliary validator functions
 # --------------------------------------------------------------------------------------
