@@ -17,7 +17,7 @@ import typing
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
-from ramodels.mo._shared import DetailTermination
+from ramodels.mo.detail import DetailTermination
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers
