@@ -994,4 +994,9 @@ async def terminate(
 
     reqs = [reqs] if not isinstance(reqs, list) else reqs
     reqs_list = [req.to_dict() for req in reqs]
-    return await handle_requests(reqs_list, mapping.RequestType.TERMINATE)
+    return await handle_requests(
+        # OBS: Below if-statement is needed in order for tests to pass, since we don't
+        # want to make too big of a change-set outside this method
+        reqs_list[0] if len(reqs_list) == 1 else reqs_list,
+        mapping.RequestType.TERMINATE,
+    )
