@@ -14,7 +14,9 @@ from ramodels.mo._shared import UUIDBase
 
 
 class Detail(UUIDBase):
-    type: Literal["address", "association", "engagement"] = Field(
+    type: Literal[
+        "address", "association", "engagement", "org_unit", "manager"
+    ] = Field(
         description="Name of the type of detail we wish to terminate. "
         "Must be a valid lora role_type like:  'address', "
         "'association' etc."
