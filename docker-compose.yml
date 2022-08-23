@@ -167,7 +167,7 @@ services:
       KEYCLOAK_DIPEX_CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       KEYCLOAK_LORA_DIPEX_CLIENT_ENABLED: "true"
       KEYCLOAK_LORA_DIPEX_CLIENT_SECRET: "a091ed82-6e82-4efc-a8f0-001e2b127853"
-      KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5000/*", "http://localhost:5001/*, "http://localhost:5173/*"]'
+      KEYCLOAK_MO_CLIENT_REDIRECT_URI: '["http://localhost:5000/*", "http://localhost:5001/*", "http://localhost:5173/*"]'
       KEYCLOAK_MO_CLIENT_WEB_ORIGIN: '["http://localhost:5000", "http://localhost:5001", "http://localhost:5173"]'
       KEYCLOAK_RBAC_ENABLED: "true"
       KEYCLOAK_REALM_USERS: '[
