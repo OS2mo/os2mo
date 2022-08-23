@@ -12,6 +12,8 @@ from uuid import UUID
 from pydantic import Field
 from ramodels.mo._shared import MOBase
 
+from ._shared import AlphaStr
+
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
@@ -44,6 +46,6 @@ class ClassWrite(ClassBase):
 
     """A MO Class write object."""
 
-    name: Optional[str] = Field(description="Name/title of the class.")
+    name: AlphaStr = Field(description="Mo-class name.")
     facet_uuid: Optional[UUID] = Field(description="UUID of the related facet.")
-    org_uuid: Optional[UUID] = Field(description="UUID of the related organisation.")
+    org_uuid: UUID = Field(description="UUID of the related organisation.")

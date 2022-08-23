@@ -17,6 +17,7 @@ from .employee import EmployeeRead
 from .employee import EmployeeWrite
 from .facet import FacetClass
 from .facet import FacetRead
+from .facet import FacetWrite
 from .organisation import OrganisationRead
 from .organisation_unit import OrganisationUnit
 from .organisation_unit import OrganisationUnitRead
@@ -34,6 +35,7 @@ __all__ = [
     "EmployeeWrite",
     "FacetClass",
     "FacetRead",
+    "FacetWrite",
     "MOBase",
     "MORef",
     "OpenValidity",

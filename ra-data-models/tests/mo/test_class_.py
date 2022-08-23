@@ -6,11 +6,9 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import Any
-from typing import Dict
-
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels.mo._shared import AlphaStr
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
 
@@ -43,20 +41,16 @@ def read_strat(draw):
 
 @st.composite
 def write_strat(draw):
-    required: Dict[str, Any] = {}
-    optional = OPTIONAL.copy()
-    optional.update(
-        {
-            "name": st.none() | st.text(),
-            "org_uuid": st.none() | st.uuids(),
-            "type_": st.just("class"),
-            "user_key": st.none() | st.text(),
-            "facet_uuid": st.none() | st.uuids(),
-            "uuid": st.none() | st.uuids(),
-        }
-    )
+    required = {
+        "uuid": st.uuids(),
+        "type": st.just("class"),
+        "user_key": st.text(),
+        "name": st.from_regex(AlphaStr.regex),
+        "facet_uuid": st.uuids(),
+        "org_uuid": st.uuids(),
+    }
 
-    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
+    st_dict = draw(st.fixed_dictionaries(required, optional=OPTIONAL))  # type: ignore
     return st_dict
 
 
