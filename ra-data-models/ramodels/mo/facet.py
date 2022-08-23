@@ -39,4 +39,3 @@ class FacetWrite(MOBase):
     user_key: str = Field(description="Short, unique key.")
     published: Optional[str] = Field(description="Published state of the facet object.")
     parent_uuid: Optional[UUID] = Field(description="UUID of the parent facet.")
-    description: str = Field(description="Description of the facet object.", default="")
