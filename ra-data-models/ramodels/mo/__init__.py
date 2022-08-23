@@ -15,7 +15,6 @@ from .class_ import ClassWrite
 from .employee import Employee
 from .employee import EmployeeRead
 from .employee import EmployeeWrite
-from .facet import FacetClass
 from .facet import FacetRead
 from .facet import FacetWrite
 from .organisation import OrganisationRead
@@ -33,7 +32,6 @@ __all__ = [
     "Employee",
     "EmployeeRead",
     "EmployeeWrite",
-    "FacetClass",
     "FacetRead",
     "FacetWrite",
     "MOBase",
