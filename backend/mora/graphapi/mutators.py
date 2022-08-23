@@ -13,6 +13,8 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
+from mora.graphapi.engagements import terminate_engagement
+from mora.graphapi.inputs import EngagementTerminateInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
