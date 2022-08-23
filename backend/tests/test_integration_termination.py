@@ -707,38 +707,92 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2018-01-01")
     def test_validation_missing_validity(self):
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
+        terminate_uri = "/service/details/terminate"
 
-        for req in (
+        # Requests to be tested (after changing to pydantic validation)
+        req_1 = {
+            "type": "manager",
+            "uuid": manager_uuid,
+        }
+        req_2 = {
+            "type": "manager",
+            "uuid": manager_uuid,
+            "validity": {},
+        }
+        req_3 = {
+            "type": "manager",
+            "uuid": manager_uuid,
+            "validity": {
+                "from": "2000-12-01T00:00:00+02:00",
+            },
+        }
+
+        validity_missing_to_date_expected_errs = [
             {
-                "type": "manager",
-                "uuid": manager_uuid,
+                "loc": ["body"],
+                "msg": "value is not a valid list",
+                "type": "type_error.list",
             },
             {
-                "type": "manager",
-                "uuid": manager_uuid,
-                "validity": {},
+                "loc": ["body", "validity", "to"],
+                "msg": "field required",
+                "type": "value_error.missing",
             },
-            {
-                "type": "manager",
-                "uuid": manager_uuid,
-                "validity": {
-                    "from": "2000-12-01",
+        ]
+        test_request = [
+            (
+                req_1,
+                {
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_1,
+                    "errors": [
+                        {
+                            "loc": ["body"],
+                            "msg": "value is not a valid list",
+                            "type": "type_error.list",
+                        },
+                        {
+                            "loc": ["body", "validity"],
+                            "msg": "field required",
+                            "type": "value_error.missing",
+                        },
+                    ],
                 },
-            },
-        ):
+            ),
+            (
+                req_2,
+                {
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_2,
+                    "errors": validity_missing_to_date_expected_errs,
+                },
+            ),
+            (
+                req_3,
+                {
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_3,
+                    "errors": validity_missing_to_date_expected_errs,
+                },
+            ),
+        ]
+
+        for req_test_tuple in test_request:
+            req, expted_response = req_test_tuple
             with self.subTest(req):
                 self.assertRequestResponse(
-                    "/service/details/terminate",
-                    {
-                        "description": "Missing required value.",
-                        "error": True,
-                        "error_key": "V_MISSING_REQUIRED_VALUE",
-                        "key": "Validity must be set with either 'to' or both "
-                        "'from' and 'to'",
-                        "obj": req,
-                        "status": 400,
-                    },
-                    status_code=400,
+                    path=terminate_uri,
+                    expected=expted_response,
+                    status_code=expted_response.get("status"),
                     json=req,
                 )
 
@@ -750,7 +804,7 @@ class Tests(tests.cases.LoRATestCase):
                     "type": "association",
                     "uuid": manager_uuid,
                     "validity": {
-                        "to": "2018-01-01",
+                        "to": "2018-01-01T00:00:00+02:00",
                     },
                 },
             )
