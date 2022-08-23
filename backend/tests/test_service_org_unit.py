@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import json
 from asyncio import Future
+from contextlib import nullcontext as does_not_raise
 from uuid import UUID
 
 import freezegun
@@ -331,34 +332,35 @@ class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
         self.assertSetEqual(set(orgunit.keys()), expected_keys)
 
 
-class TestGetCountRelated(tests.cases.TestCase):
-    def setUp(self):
-        super().setUp()
-        self._simple = {"association"}
-        self._multiple = {"association", "engagement"}
-
-    def test_valid_name(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            self.assertSetEqual(self._simple, _get_count_related())
-
-    def test_valid_name_repeated(self):
-        with util.patch_query_args(
-            ImmutableMultiDict([("count", "association"), ("count", "association")])
-        ):
-            self.assertSetEqual(self._simple, _get_count_related())
-
-    def test_multiple_valid_names(self):
-        with util.patch_query_args(
-            ImmutableMultiDict([("count", "association"), ("count", "engagement")])
-        ):
-            self.assertSetEqual(self._multiple, _get_count_related())
-
-    def test_invalid_name(self):
-        with util.patch_query_args(
-            ImmutableMultiDict([("count", "association"), ("count", "foobar")])
-        ):
-            with self.assertRaises(HTTPException):
-                _get_count_related()
+@pytest.mark.parametrize(
+    "arguments, value, expected_raise",
+    [
+        # Testing valid name.
+        ({"count": "association"}, {"association"}, does_not_raise()),
+        # Testing valid name repeated.
+        (
+            [("count", "association"), ("count", "association")],
+            {"association"},
+            does_not_raise(),
+        ),
+        # Testing multiple valid names.
+        (
+            [("count", "association"), ("count", "engagement")],
+            {"association", "engagement"},
+            does_not_raise(),
+        ),
+        # Testing invalid name with HTTP Exception raise.
+        (
+            [("count", "association"), ("count", "foobar")],
+            None,
+            pytest.raises(HTTPException),
+        ),
+    ],
+)
+def test_valid_name(arguments, value, expected_raise):
+    with expected_raise:
+        with util.patch_query_args(ImmutableMultiDict(arguments)):
+            assert value == _get_count_related()
 
 
 @sample_structures_cls_fixture
