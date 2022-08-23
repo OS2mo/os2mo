@@ -202,8 +202,8 @@ class OrgUnitTrigger(OrgFuncTrigger):
 
 
 class EngagementTrigger(OrgFuncTrigger):
-    """
-    Model representing a mora-trigger, specific for engagements.
+    """Model representing a mora-trigger, specific for engagements.
+
     Has the folling fields:
         request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
 
@@ -250,9 +250,7 @@ class EngagementModel(UUIDBase):
 
 
 class EngagementTerminate(EngagementModel, Validity, Triggerless):
-    """Model representing an engagement termination
-    (or rather end-date update).
-    """
+    """Model representing an engagement termination(or rather end-date update)."""
 
     def get_lora_payload(self) -> dict:
         return {

@@ -52,3 +52,10 @@ repos:
       - id: prettier
         exclude: tempotest
         files: \.(js|vue|css|html)$
+
+  - repo: https://github.com/pycqa/pydocstyle
+    rev: 6.1.1
+    hooks:
+    -   id: pydocstyle
+        files: backend/mora/graphapi/
+        args: ["--convention=google", "--add-ignore=D1"]

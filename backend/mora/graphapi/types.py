@@ -17,16 +17,18 @@ CPRType = strawberry.scalar(
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitModel,
     all_fields=True,
-    description="GraphQL type for/of a organization unit",
 )
 class OrganizationUnit:
+    """GraphQL type for/of a organization unit."""
+
     pass
 
 
 @strawberry.experimental.pydantic.type(
     model=EngagementModel,
     all_fields=True,
-    description="GraphQL type for an engagement",
 )
 class EngagementTerminateType:
+    """GraphQL type for an engagement."""
+
     pass
