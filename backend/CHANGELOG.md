@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.3.0 - 2022-08-23
+------------------
+
+[#51650] GraphQL write models for Facets and mo-classes
+
 9.2.0 - 2022-08-22
 ------------------
 
