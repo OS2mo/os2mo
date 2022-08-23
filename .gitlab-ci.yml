@@ -181,7 +181,7 @@ Don't Interrupt:
 Pre-commit:
   extends: .lint-base
   before_script:
-    - pip install pre-commit pydocstyle
+    - pip install pre-commit
     - pre-commit install
     # Fetch terraform
     - TERRAFORM_VERSION="1.1.6"
@@ -192,7 +192,6 @@ Pre-commit:
     - chmod +x /usr/bin/terraform
   script:
     - pre-commit run --all-files
-    - pydocstyle backend/mora/graphapi/ --convention=google --add-ignore=D1
   variables:
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
     PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from mora.graphapi.models import EngagementModel
 from mora.graphapi.models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 
@@ -16,7 +17,18 @@ CPRType = strawberry.scalar(
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitModel,
     all_fields=True,
-    description="GraphQL type for/of a organization unit",
 )
 class OrganizationUnit:
+    """GraphQL type for/of a organization unit."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=EngagementModel,
+    all_fields=True,
+)
+class EngagementTerminateType:
+    """GraphQL type for an engagement."""
+
     pass
