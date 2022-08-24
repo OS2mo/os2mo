@@ -723,7 +723,7 @@ class Tests(tests.cases.LoRATestCase):
             "type": "manager",
             "uuid": manager_uuid,
             "validity": {
-                "from": "2000-12-01T00:00:00+02:00",
+                "from": "2000-12-01",
             },
         }
 
