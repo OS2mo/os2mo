@@ -804,7 +804,7 @@ class Tests(tests.cases.LoRATestCase):
                     "type": "association",
                     "uuid": manager_uuid,
                     "validity": {
-                        "to": "2018-01-01T00:00:00+02:00",
+                        "to": "2018-01-01",
                     },
                 },
             )
