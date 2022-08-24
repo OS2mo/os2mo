@@ -992,11 +992,9 @@ async def terminate(
 
     """
 
-    reqs = [reqs] if not isinstance(reqs, list) else reqs
-    reqs_list = [req.to_dict() for req in reqs]
-    return await handle_requests(
-        # OBS: Below if-statement is needed in order for tests to pass, since we don't
-        # want to make too big of a change-set outside this method
-        reqs_list[0] if len(reqs_list) == 1 else reqs_list,
-        mapping.RequestType.TERMINATE,
-    )
+    if isinstance(reqs, list):
+        reqs = [req.to_dict() for req in reqs]
+    elif isinstance(reqs, DetailTermination):
+        reqs = reqs.to_dict()
+
+    return await handle_requests(reqs, mapping.RequestType.TERMINATE)
