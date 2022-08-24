@@ -258,18 +258,17 @@ class Validity(OpenValidity):
     from_date: datetime = Field(alias="from", description="Start date of the validity.")
 
 
-class TerminateValidity(RABase):
-    from_date: Optional[datetime] = Field(
-        alias="from", description="Start date of the validity."
-    )
-
+class TerminateValidity(OpenValidity):
     to_date: datetime = Field(
-        alias="to", description="When the validity should end - requed when terminating"
+        alias="to",
+        description="When the validity should end " "- required when terminating",
     )
 
 
 class Visibility(MORef):
     """Visbility type reference."""
+
+    pass
 
 
 # --------------------------------------------------------------------------------------
