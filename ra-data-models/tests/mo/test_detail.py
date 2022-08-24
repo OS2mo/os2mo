@@ -14,7 +14,7 @@ from ramodels.mo.detail import DetailTermination
 
 class TestDetailTerminate:
     @given(
-        st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
+        st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
             lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
         )
     )
