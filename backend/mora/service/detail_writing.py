@@ -17,6 +17,7 @@ import typing
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from ramodels.mo.detail import DetailTermination
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers
@@ -945,9 +946,8 @@ async def edit(
 @router.post(
     "/details/terminate", responses={"400": {"description": "Unknown role type"}}
 )
-# @util.restrictargs('force', 'triggerless')
 async def terminate(
-    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    reqs: typing.Union[typing.List[DetailTermination], DetailTermination] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     """Terminate a relation as of a given day.
@@ -991,5 +991,10 @@ async def terminate(
       "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
 
     """
+
+    if isinstance(reqs, list):
+        reqs = [req.to_dict() for req in reqs]
+    elif isinstance(reqs, DetailTermination):
+        reqs = reqs.to_dict()
 
     return await handle_requests(reqs, mapping.RequestType.TERMINATE)
