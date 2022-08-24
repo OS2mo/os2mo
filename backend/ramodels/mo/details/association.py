@@ -7,7 +7,6 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Dict
-from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -16,7 +15,6 @@ from pydantic import Field
 from pydantic import validator
 
 from .._shared import AssociationType
-from .._shared import DynamicClasses
 from .._shared import EmployeeRef
 from .._shared import ITUserRef
 from .._shared import JobFunction
@@ -37,9 +35,7 @@ class AssociationBase(MOBase):
 
     type_: str = Field("association", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the association object.")
-    dynamic_classes: Optional[List[DynamicClasses]] = Field(
-        description="Attached classes"
-    )
+    dynamic_class_uuid: Optional[UUID] = Field(description="Attached class")
 
 
 class AssociationRead(AssociationBase):

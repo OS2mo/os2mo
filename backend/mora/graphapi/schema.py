@@ -43,7 +43,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo._shared import DynamicClasses as DynamicClassesRead
 from ramodels.mo._shared import OpenValidity as OpenValidityModel
 from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
@@ -206,22 +205,6 @@ async def filter_address_types(
 
 
 @strawberry.experimental.pydantic.type(
-    model=DynamicClassesRead,
-    all_fields=True,
-    description="Dynamic class overload for associations",
-)
-class DynamicClasses:
-    @strawberry.field(
-        description="dynamic class",
-        permission_classes=[gen_read_permission("classes")],
-    )
-    async def dynamic_classes(self, root: AssociationRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["facet_loader"]
-        return await loader.load(root.facet_uuid)
-    
-
-
-@strawberry.experimental.pydantic.type(
     model=AssociationRead,
     all_fields=True,
     description="Connects organisation units and employees",
@@ -241,6 +224,19 @@ class Association:
             return None
 
     @strawberry.field(
+        description="dynamic class",
+        permission_classes=[gen_read_permission("classes")],
+    )
+    async def dynamic_class(
+        self, root: AssociationRead, info: Info
+    ) -> Optional["Class"]:
+        loader: DataLoader = info.context["class_loader"]
+        if root.dynamic_class_uuid:
+            return await loader.load(root.dynamic_class_uuid)
+        else:
+            return None
+
+    @strawberry.field(
         description="Primary status",
         permission_classes=[gen_read_permission("classes")],
     )
@@ -249,7 +245,6 @@ class Association:
         if root.primary_uuid is None:
             return None
         return await loader.load(root.primary_uuid)
-    
 
     @strawberry.field(
         description="Connected employee",
