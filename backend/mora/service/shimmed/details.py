@@ -22,7 +22,9 @@ from mora.service.util import handle_gql_error
 
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
 GRAPHQL_COMPATIBLE_TYPES = {
-    "address": lambda dt: _address_terminate_graphql_handler(dt)
+    mapping.RequestType.TERMINATE: {
+        "address": lambda dt: _address_terminate_graphql_handler(dt)
+    }
 }
 
 
@@ -33,43 +35,43 @@ async def terminate(
     reqs: typing.Union[typing.List[DetailTermination], DetailTermination] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
-    # Convert to list to overcome legacy reqs-argument in method-prototype
-    requests: typing.List[DetailTermination] = (
-        [reqs] if not isinstance(reqs, list) else reqs
-    )
-
-    # Run the termination requests and collect the results
     results: typing.List[str] = []
-    for req in requests:
+    for req in [reqs] if not isinstance(reqs, list) else reqs:
         results.append(await _termination_request_handler(req))
 
     # Format response to be compatible with legacy interactions
+    if isinstance(reqs, list):
+        return results
+
     if len(results) == 0:
         return ""
 
     return results if len(results) > 1 else results[0]
-    # return await handle_requests(reqs, mapping.RequestType.TERMINATE)
 
 
 # Private methods
 
 
 async def _termination_request_handler(detail_termination: DetailTermination) -> str:
-    """Tries to find a GraphQL mutation handler for the termination, or defaults to
-    legacy implementation."""
+    """Tries to find a GraphQL mutation handler for the detail-termination, or defaults
+    to legacy implementation."""
 
-    # Find the GraphQL mutation handler and return it for the request
-    if detail_termination.type in GRAPHQL_COMPATIBLE_TYPES.keys():
-        handler = GRAPHQL_COMPATIBLE_TYPES.get(detail_termination.type)
-        return await handler(detail_termination)
-
-    # LEGACY implementation for details missing GraphQL mutators (uses: .to_dict())
-    legacy_requests = await handlers.generate_requests(
-        [detail_termination.to_dict()], mapping.RequestType.TERMINATE
+    grapql_terminate_handlers = GRAPHQL_COMPATIBLE_TYPES.get(
+        mapping.RequestType.TERMINATE, {}
     )
 
-    uuids = await handlers.submit_requests(legacy_requests)
-    return uuids[0]
+    # LEGACY implementation for details missing GraphQL mutators (uses: .to_dict())
+    if detail_termination.type not in grapql_terminate_handlers.keys():
+        legacy_requests = await handlers.generate_requests(
+            [detail_termination.to_dict()], mapping.RequestType.TERMINATE
+        )
+
+        uuids = await handlers.submit_requests(legacy_requests)
+        return uuids[0]
+
+    # Find the GraphQL mutation handler and return it for the request
+    handler = grapql_terminate_handlers.get(detail_termination.type)
+    return await handler(detail_termination)
 
 
 async def _address_terminate_graphql_handler(
@@ -98,7 +100,6 @@ async def _address_terminate_graphql_handler(
     )
     handle_gql_error(response)
 
-    # result = response.data[mutation_func]
     result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
     if not result_uuid:
         raise Exception("Did not get a valid UUID from GraphQL response")
