@@ -12,7 +12,7 @@ from mora.service import handlers
 from mora.service.detail_writing import router as details_router
 from mora.service.util import handle_gql_error
 
-# List of ramodels.mo.detail.Detail-types we have GraphQL mutators for
+# Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
 GRAPHQL_COMPATIBLE_TYPES = {
     "address": lambda dt: _address_terminate_graphql_handler(dt)
 }
