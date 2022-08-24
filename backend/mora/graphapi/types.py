@@ -41,4 +41,5 @@ class EngagementTerminateType:
 )
 class AddressTerminateType:
     """GraphQL type for/of an address (detail)."""
+
     pass
