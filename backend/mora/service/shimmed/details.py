@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# --------------------------------------------------------------------------------------
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+# --------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------
+# Imports
+# --------------------------------------------------------------------------------------
 import typing
 
 from fastapi import Body
@@ -19,7 +27,7 @@ GRAPHQL_COMPATIBLE_TYPES = {
 
 
 @details_router.post(
-    "/details/terminate2", responses={"400": {"description": "Unknown role type"}}
+    "/details/terminate", responses={"400": {"description": "Unknown role type"}}
 )
 async def terminate(
     reqs: typing.Union[typing.List[DetailTermination], DetailTermination] = Body(...),
