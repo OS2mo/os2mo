@@ -42,7 +42,5 @@ class DetailTermination(Detail):
 
         if self.validity.to_date:
             request_dict["validity"]["to"] = self.validity.to_date.date().isoformat()
-        else:
-            del request_dict["validity"]["to"]
 
         return request_dict
