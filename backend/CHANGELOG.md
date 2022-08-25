@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.7.0 - 2022-08-25
+------------------
+
+[#51174] Created new GraphQL mutator for terminating address-details.
+
 9.6.0 - 2022-08-25
 ------------------
 
