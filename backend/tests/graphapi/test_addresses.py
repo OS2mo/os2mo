@@ -3,16 +3,24 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import datetime
+
+import mock
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
 from pytest import MonkeyPatch
 from ramodels.mo.details import AddressRead
 
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora import lora
+from mora.graphapi.address import terminate_addr
+from mora.graphapi.models import AddressTerminate
 from mora.graphapi.shim import flatten_data
 from tests.conftest import GQLResponse
+
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -87,3 +95,49 @@ class TestAddresssQuery:
         result_uuids = [addr.get("uuid") for addr in response.data["addresses"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+
+class TestAddressTerminate:
+    @given(
+        st.uuids(),
+        st.booleans(),
+        st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
+            lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+        ),
+    )
+    async def test_terminate(self, given_uuid, triggerless, given_validity_dts):
+        from_date, to_date = given_validity_dts
+
+        # The terminate logic have a check that verifies we don't use times other than:
+        # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
+        # expect an exception.
+        expect_exception = False
+        if to_date.time() != datetime.time.min:
+            expect_exception = True
+
+        # Configure the addr-terminate we want to perform
+        at = AddressTerminate(
+            uuid=given_uuid,
+            triggerless=triggerless,
+            from_date=from_date,
+            to_date=to_date,
+        )
+
+        # Patching / Mocking
+        async def mock_update(*args):
+            return args[-1]
+
+        terminate_result_uuid = None
+        caught_exception = None
+        with mock.patch.object(lora.Scope, "update", new=mock_update):
+            try:
+                tr = await terminate_addr(address_terminate=at)
+                terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+            except Exception as e:
+                caught_exception = e
+
+        # Assert
+        if not expect_exception:
+            assert terminate_result_uuid == at.uuid
+        else:
+            assert caught_exception is not None
