@@ -18,8 +18,8 @@ from ramodels.mo.details import Leave
 from ramodels.mo.details import LeaveBase
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import LeaveWrite
-from tests.conftest import not_from_regex
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import unexpected_value_error
 
 # -----------------------------------------------------------------------------
 # Tests

@@ -24,9 +24,9 @@ from ramodels.mo._shared import UUIDBase
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo._shared import validate_names
 from ramodels.mo._shared import Validity
-from tests.conftest import from_date_strat
-from tests.conftest import not_from_regex
-from tests.conftest import to_date_strat
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import to_date_strat
 
 # --------------------------------------------------------------------------------------
 # Base models

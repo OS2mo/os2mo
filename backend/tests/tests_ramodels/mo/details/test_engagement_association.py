@@ -16,10 +16,10 @@ from ramodels.mo._shared import Validity
 from ramodels.mo.details.engagement_association import EngagementAssociation
 from ramodels.mo.details.engagement_association import EngagementAssociationBase
 from ramodels.mo.details.engagement_association import EngagementAssociationRead
-from tests.conftest import from_date_strat
-from tests.conftest import not_from_regex
-from tests.conftest import to_date_strat
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import to_date_strat
+from tests.tests_ramodels.conftest import unexpected_value_error
 
 
 @st.composite

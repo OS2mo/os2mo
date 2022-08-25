@@ -19,7 +19,7 @@ from ramodels.mo.details import KLEBase
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import KLEWrite
 from ramodels.mo.details.kle import KLE
-from tests.conftest import not_from_regex
+from tests.tests_ramodels.conftest import not_from_regex
 
 
 # ---------------------------------------------------------------------------------------

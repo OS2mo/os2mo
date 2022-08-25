@@ -18,8 +18,8 @@ from ramodels.mo.details import Role
 from ramodels.mo.details import RoleBase
 from ramodels.mo.details import RoleRead
 from ramodels.mo.details import RoleWrite
-from tests.conftest import not_from_regex
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import unexpected_value_error
 
 # -----------------------------------------------------------------------------
 # Tests

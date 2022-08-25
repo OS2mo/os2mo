@@ -17,8 +17,8 @@ from .test__shared import valid_facet_relations
 from .test__shared import valid_facet_states
 from ramodels.lora import Facet
 from ramodels.lora import FacetRead
-from tests.conftest import from_date_strat
-from tests.conftest import to_date_strat
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import to_date_strat
 
 
 # -----------------------------------------------------------------------------

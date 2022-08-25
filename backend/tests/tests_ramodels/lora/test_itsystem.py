@@ -13,8 +13,8 @@ from .test__shared import valid_itsys_attr
 from .test__shared import valid_itsys_relations
 from .test__shared import valid_itsys_states
 from ramodels.lora import ITSystem
-from tests.conftest import from_date_strat
-from tests.conftest import to_date_strat
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import to_date_strat
 
 # -----------------------------------------------------------------------------
 # Tests

@@ -20,10 +20,10 @@ from ramodels.mo.details import Manager
 from ramodels.mo.details import ManagerBase
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import ManagerWrite
-from tests.conftest import from_date_strat
-from tests.conftest import not_from_regex
-from tests.conftest import to_date_strat
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import to_date_strat
+from tests.tests_ramodels.conftest import unexpected_value_error
 
 # -----------------------------------------------------------------------------
 # Tests

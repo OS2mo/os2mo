@@ -23,10 +23,10 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.address import AddressBase
 from ramodels.mo.details.address import AddressRead
 from ramodels.mo.details.address import AddressWrite
-from tests.conftest import from_date_strat
-from tests.conftest import not_from_regex
-from tests.conftest import to_date_strat
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import to_date_strat
+from tests.tests_ramodels.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
 # Tests

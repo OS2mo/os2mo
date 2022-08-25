@@ -50,10 +50,10 @@ from ramodels.lora._shared import OwnerRef
 from ramodels.lora._shared import Published
 from ramodels.lora._shared import Relation
 from ramodels.lora._shared import Responsible
-from tests.conftest import date_strat
-from tests.conftest import not_from_regex
-from tests.conftest import tz_dt_strat
-from tests.conftest import unexpected_value_error
+from tests.tests_ramodels.conftest import date_strat
+from tests.tests_ramodels.conftest import not_from_regex
+from tests.tests_ramodels.conftest import tz_dt_strat
+from tests.tests_ramodels.conftest import unexpected_value_error
 from tests.tests_ramodels.test_base import is_isodt_str
 
 single_item_error = partial(

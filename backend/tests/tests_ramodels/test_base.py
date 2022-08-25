@@ -18,8 +18,8 @@ from pydantic import ValidationError
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 from ramodels.exceptions import ISOParseError
-from tests.conftest import date_strat
-from tests.conftest import tz_dt_strat
+from tests.tests_ramodels.conftest import date_strat
+from tests.tests_ramodels.conftest import tz_dt_strat
 
 # --------------------------------------------------------------------------------------
 # Tests

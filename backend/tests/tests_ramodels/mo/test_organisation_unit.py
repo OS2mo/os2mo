@@ -24,8 +24,8 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramodels.mo.organisation_unit import OrganisationUnitBase
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 from ramodels.mo.organisation_unit import OrganisationUnitWrite
-from tests.conftest import from_date_strat
-from tests.conftest import to_date_strat
+from tests.tests_ramodels.conftest import from_date_strat
+from tests.tests_ramodels.conftest import to_date_strat
 from tests.tests_ramodels.mo.details.test_engagement_association import (
     engagement_assoc_strat,
 )
