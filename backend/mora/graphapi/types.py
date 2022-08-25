@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from mora.graphapi.models import Address as AddressModel
 from mora.graphapi.models import EngagementModel
 from mora.graphapi.models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
@@ -30,5 +31,15 @@ class OrganizationUnit:
 )
 class EngagementTerminateType:
     """GraphQL type for an engagement."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=AddressModel,
+    all_fields=True,
+)
+class AddressTerminateType:
+    """GraphQL type for/of an address (detail)."""
 
     pass

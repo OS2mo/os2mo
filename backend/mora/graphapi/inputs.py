@@ -8,8 +8,19 @@
 # --------------------------------------------------------------------------------------
 import strawberry
 
+from .models import AddressTerminate
 from .models import EngagementTerminate
 from .models import OrganisationUnitTerminate
+
+
+@strawberry.experimental.pydantic.input(
+    model=AddressTerminate,
+    all_fields=True,
+)
+class AddressTerminateInput:
+    """input model for terminating addresses."""
+
+    pass
 
 
 @strawberry.experimental.pydantic.input(
