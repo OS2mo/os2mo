@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.7.1 - 2022-08-25
+------------------
+
+[#51091] Remove integrationdata from lora responses
+
 9.7.0 - 2022-08-25
 ------------------
 
