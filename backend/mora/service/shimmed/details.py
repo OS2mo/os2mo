@@ -23,7 +23,7 @@ from mora.service.util import handle_gql_error
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
 GRAPHQL_COMPATIBLE_TYPES = {
     mapping.RequestType.TERMINATE: {
-        "address": lambda dt: _address_terminate_graphql_handler(dt)
+        mapping.ADDRESS: lambda dt: _address_terminate_graphql_handler(dt),
     }
 }
 
