@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import ITSystemRef
 from ramodels.mo._shared import OrgUnitRef
@@ -17,7 +18,6 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.details.it_system import ITUserBase
 from ramodels.mo.details.it_system import ITUserRead
 from ramodels.mo.details.it_system import ITUserWrite
-
 from tests.conftest import from_date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import to_date_strat

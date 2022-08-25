@@ -8,6 +8,8 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+
+from ramodels.mo._shared import AlphaStr
 from ramodels.mo.facet import FacetRead
 from ramodels.mo.facet import FacetWrite
 

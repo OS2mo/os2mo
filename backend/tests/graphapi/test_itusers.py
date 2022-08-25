@@ -5,12 +5,12 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from pytest import MonkeyPatch
-from ramodels.mo.details import ITUserRead
 
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora.graphapi.shim import flatten_data
+from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
 
 # --------------------------------------------------------------------------------------

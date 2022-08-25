@@ -10,8 +10,9 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
-from ramodels.mo._shared import MOBase
 
+from ._shared import AlphaStr
+from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
 # Code

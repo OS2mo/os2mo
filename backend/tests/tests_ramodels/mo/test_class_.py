@@ -8,6 +8,8 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+
+from ramodels.mo._shared import AlphaStr
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
 

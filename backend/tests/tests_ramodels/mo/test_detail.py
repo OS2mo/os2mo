@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.mo._shared import OpenValidity
 from ramodels.mo.detail import DetailTermination
 

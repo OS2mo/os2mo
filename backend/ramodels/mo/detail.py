@@ -9,6 +9,7 @@
 from typing import Literal
 
 from pydantic import Field
+
 from ramodels.mo._shared import TerminateValidity
 from ramodels.mo._shared import UUIDBase
 

@@ -20,7 +20,6 @@ from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
-from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 from ...auth.keycloak import oidc
 from .errors import handle_gql_error
@@ -35,6 +34,7 @@ from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
 from mora.service.orgunit import router as org_unit_router
 from mora.service.util import get_configuration
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 
 # --------------------------------------------------------------------------------------

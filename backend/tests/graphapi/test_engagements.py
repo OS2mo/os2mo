@@ -9,7 +9,6 @@ from unittest import mock
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
-from ramodels.mo.details import EngagementRead
 
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
@@ -18,6 +17,7 @@ from mora import lora
 from mora.graphapi.engagements import terminate_engagement
 from mora.graphapi.models import EngagementTerminate
 from mora.graphapi.shim import flatten_data
+from ramodels.mo.details import EngagementRead
 from tests.conftest import GQLResponse
 
 # import mock as mk

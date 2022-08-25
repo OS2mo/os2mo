@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+
 from ramodels.mo._shared import OrgUnitRef
 from ramodels.mo._shared import Validity
 from ramodels.mo.details.related_unit import RelatedUnitBase

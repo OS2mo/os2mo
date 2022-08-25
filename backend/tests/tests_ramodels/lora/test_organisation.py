@@ -11,12 +11,12 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
-from ramodels.lora import Organisation
-from ramodels.lora import OrganisationRead
 
 from .test__shared import valid_org_attrs
 from .test__shared import valid_org_relations
 from .test__shared import valid_org_states
+from ramodels.lora import Organisation
+from ramodels.lora import OrganisationRead
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
 
