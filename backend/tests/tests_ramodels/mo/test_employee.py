@@ -23,7 +23,9 @@ from ramodels.mo.employee import Employee
 from ramodels.mo.employee import EmployeeBase
 from ramodels.mo.employee import EmployeeRead
 from ramodels.mo.employee import EmployeeWrite
-from tests.mo.details.test_engagement_association import engagement_assoc_strat
+from tests.tests_ramodels.mo.details.test_engagement_association import (
+    engagement_assoc_strat,
+)
 
 # ---------------------------------------------------------------------------------------
 # Tests

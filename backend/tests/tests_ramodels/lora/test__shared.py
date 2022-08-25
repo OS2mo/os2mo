@@ -54,7 +54,7 @@ from tests.conftest import date_strat
 from tests.conftest import not_from_regex
 from tests.conftest import tz_dt_strat
 from tests.conftest import unexpected_value_error
-from tests.test_base import is_isodt_str
+from tests.tests_ramodels.test_base import is_isodt_str
 
 single_item_error = partial(
     pytest.raises,
