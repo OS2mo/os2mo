@@ -26,7 +26,7 @@ from ramodels.mo.organisation_unit import OrganisationUnitWrite
 
 from tests.conftest import from_date_strat
 from tests.conftest import to_date_strat
-from tests.mo.details.test_engagement_association import engagement_assoc_strat
+from tests_ramodels.mo.details.test_engagement_association import engagement_assoc_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
