@@ -8,10 +8,9 @@ authors = ["Magenta <info@magenta.dk>"]
 license = "MPL-2.0"
 readme = "README.md"
 homepage = "https://magenta.dk/"
-repository = "https://git.magenta.dk/rammearkitektur/ra-data-models"
+repository = "https://git.magenta.dk/rammearkitektur/os2mo"
 keywords = ["os2mo", "data models"]
 packages = [ { include = "ramodels", from = "../backend" } ]
-include = ["ramodels/py.typed"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
