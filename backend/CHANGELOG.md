@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.7.3 - 2022-08-26
+------------------
+
+[#52021] Make new ClassWrite backwards-compatible with old FacetClass
+
 9.7.2 - 2022-08-26
 ------------------
 
