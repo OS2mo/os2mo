@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.7.2 - 2022-08-26
+------------------
+
+[#50137] Rewrote additional testcases and made corrected coding errors
+
 9.7.1 - 2022-08-25
 ------------------
 
