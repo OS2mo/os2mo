@@ -12,6 +12,10 @@ import pytest
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels_tests.conftest import from_date_strat
+from ramodels_tests.conftest import not_from_regex
+from ramodels_tests.conftest import to_date_strat
+from ramodels_tests.conftest import unexpected_value_error
 
 from ramodels.mo._shared import AssociationType
 from ramodels.mo._shared import DynamicClasses
@@ -26,10 +30,6 @@ from ramodels.mo.details import Association
 from ramodels.mo.details import AssociationBase
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import AssociationWrite
-from tests.tests_ramodels.conftest import from_date_strat
-from tests.tests_ramodels.conftest import not_from_regex
-from tests.tests_ramodels.conftest import to_date_strat
-from tests.tests_ramodels.conftest import unexpected_value_error
 
 # ---------------------------------------------------------------------------------------
 # Tests

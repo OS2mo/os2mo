@@ -8,18 +8,18 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels_tests.conftest import not_from_regex
+from ramodels_tests.conftest import unexpected_value_error
 
 from ramodels.mo._shared import EmployeeRef
-from ramodels.mo._shared import OrgUnitRef
+from ramodels.mo._shared import EngagementRef
+from ramodels.mo._shared import LeaveType
 from ramodels.mo._shared import PersonRef
-from ramodels.mo._shared import RoleType
 from ramodels.mo._shared import Validity
-from ramodels.mo.details import Role
-from ramodels.mo.details import RoleBase
-from ramodels.mo.details import RoleRead
-from ramodels.mo.details import RoleWrite
-from tests.tests_ramodels.conftest import not_from_regex
-from tests.tests_ramodels.conftest import unexpected_value_error
+from ramodels.mo.details import Leave
+from ramodels.mo.details import LeaveBase
+from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import LeaveWrite
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -32,7 +32,8 @@ def base_strat(draw):
         "validity": st.builds(Validity),
     }
     optional = {
-        "type": st.just("role"),
+        "type": st.just("leave"),
+        "user_key": st.none() | st.text(),
     }
     st_dict = st.fixed_dictionaries(required, optional=optional)  # type: ignore
     return draw(st_dict)
@@ -42,12 +43,13 @@ def base_strat(draw):
 def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "org_unit_uuid": st.uuids(),
         "employee_uuid": st.uuids(),
-        "role_type_uuid": st.uuids(),
+        "leave_type_uuid": st.uuids(),
     }
-
-    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    optional = {
+        "engagement_uuid": st.none() | st.uuids(),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
 
 
@@ -55,50 +57,49 @@ def read_strat(draw):
 def write_strat(draw):
     base_dict = draw(base_strat())
     required = {
-        "org_unit": st.builds(OrgUnitRef),
         "employee": st.builds(EmployeeRef),
-        "role_type": st.builds(RoleType),
+        "leave_type": st.builds(LeaveType),
     }
-    st_dict = draw(st.fixed_dictionaries(required))  # type: ignore
+    optional = {
+        "engagement": st.none() | st.builds(EngagementRef),
+    }
+    st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict}
 
 
 @st.composite
-def role_strat(draw):
+def leave_strat(draw):
     required = {
         "user_key": st.text(),
-        "role_type": st.builds(RoleType),
+        "leave_type": st.builds(LeaveType),
         "validity": st.builds(Validity),
-        "org_unit": st.builds(OrgUnitRef),
         "person": st.builds(PersonRef),
     }
-    optional = {
-        "type": st.just("role"),
-    }
+    optional = {"type": st.just("leave"), "engagement": st.builds(EngagementRef)}
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return st_dict
 
 
-class TestRole:
+class TestLeave:
     @given(base_strat())
     def test_base(self, model_dict):
-        assert RoleBase(**model_dict)
+        assert LeaveBase(**model_dict)
 
     @given(read_strat())
     def test_read(self, model_dict):
-        assert RoleRead(**model_dict)
+        assert LeaveRead(**model_dict)
 
     @given(write_strat())
     def test_write(self, model_dict):
-        assert RoleWrite(**model_dict)
+        assert LeaveWrite(**model_dict)
 
-    @given(role_strat())
+    @given(leave_strat())
     def test_init(self, model_dict):
-        assert Role(**model_dict)
+        assert Leave(**model_dict)
 
-    @given(role_strat(), not_from_regex(r"^role$"))
+    @given(leave_strat(), not_from_regex(r"^leave$"))
     def test_validators(self, model_dict, invalid_type):
         with unexpected_value_error():
             model_dict["type"] = invalid_type
-            Role(**model_dict)
+            Leave(**model_dict)

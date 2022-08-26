@@ -36,17 +36,22 @@ Install ramodels:
     - poetry --version
 
 Test ramodels:
-  extends:
-    - .backend-test-base
+  <<: *source-venv
+  stage: test
+  variables:
+    HYPOTHESIS_PROFILE: ci
+  parallel: 8
   script:
-    - pytest backend/tests/tests_ramodels
+    - pytest
       --cov=ramodels
       --cov-report=html
+      --shard-id=$(($CI_NODE_INDEX - 1))
+      --num-shards=$CI_NODE_TOTAL
     - mv .coverage ".coverage.$(($CI_NODE_INDEX - 1))"
   artifacts:
     when: always
     paths:
-    - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
+      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
 
 Check coverage ramodels:
   stage: coverage

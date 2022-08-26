@@ -11,14 +11,14 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels_tests.conftest import from_date_strat
+from ramodels_tests.conftest import to_date_strat
 
 from .test__shared import valid_org_attrs
 from .test__shared import valid_org_relations
 from .test__shared import valid_org_states
 from ramodels.lora import Organisation
 from ramodels.lora import OrganisationRead
-from tests.tests_ramodels.conftest import from_date_strat
-from tests.tests_ramodels.conftest import to_date_strat
 
 # -----------------------------------------------------------------------------
 # Tests
@@ -65,6 +65,6 @@ class TestOrganisation:
         assert Organisation.from_simplified_fields(**simp_fields_dict)
 
     def test_fixture(self):
-        content = Path("tests/fixture/lora/organisation.json").read_text()
+        content = Path("ramodels_tests/fixture/lora/organisation.json").read_text()
         payload = json.loads(content)
         assert OrganisationRead(**payload)

@@ -11,14 +11,14 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels_tests.conftest import from_date_strat
+from ramodels_tests.conftest import to_date_strat
 
 from .test__shared import valid_facet_attrs
 from .test__shared import valid_facet_relations
 from .test__shared import valid_facet_states
 from ramodels.lora import Facet
 from ramodels.lora import FacetRead
-from tests.tests_ramodels.conftest import from_date_strat
-from tests.tests_ramodels.conftest import to_date_strat
 
 
 # -----------------------------------------------------------------------------
@@ -64,6 +64,6 @@ class TestFacet:
         assert Facet.from_simplified_fields(**simp_fields_dict)
 
     def test_fixture(self):
-        content = Path("tests/fixture/lora/facet.json").read_text()
+        content = Path("ramodels_tests/fixture/lora/facet.json").read_text()
         payload = json.loads(content)
         assert FacetRead(**payload)

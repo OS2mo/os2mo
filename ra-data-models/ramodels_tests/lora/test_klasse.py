@@ -11,14 +11,14 @@ from pathlib import Path
 
 from hypothesis import given
 from hypothesis import strategies as st
+from ramodels_tests.conftest import from_date_strat
+from ramodels_tests.conftest import to_date_strat
 
 from .test__shared import valid_klasse_attrs
 from .test__shared import valid_klasse_relations
 from .test__shared import valid_klasse_states
 from ramodels.lora import Klasse
 from ramodels.lora import KlasseRead
-from tests.tests_ramodels.conftest import from_date_strat
-from tests.tests_ramodels.conftest import to_date_strat
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -68,6 +68,6 @@ class TestKlasse:
         assert Klasse.from_simplified_fields(**simp_fields_dict)
 
     def test_fixture(self):
-        content = Path("tests/fixture/lora/klasse.json").read_text()
+        content = Path("ramodels_tests/fixture/lora/klasse.json").read_text()
         payload = json.loads(content)
         assert KlasseRead(**payload)

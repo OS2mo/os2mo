@@ -384,7 +384,6 @@ Unit-test:
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
       --workers auto
-      --ignore=tests_ramodels
   artifacts:
     when: always
     paths:
