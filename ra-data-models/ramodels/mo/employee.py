@@ -14,6 +14,7 @@ from typing import List
 from typing import Literal
 from typing import Optional
 
+from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -165,6 +166,33 @@ class Employee(MOBase):
     @validator("seniority", pre=True, always=True)
     def parse_seniority(cls, seniority: Optional[Any]) -> Optional[datetime]:
         return tz_isodate(seniority) if seniority is not None else None
+
+
+# class EmployeeCreateOrg(OrganisationRef):
+class EmployeeCreateOrg(MOBase):
+    """Representation of the organization which a org-unit belongs to.
+
+    When creating an employee.
+    """
+
+    name: str = Field(description="Name of the organization.")
+
+
+class EmployeeCreate(BaseModel):
+    name: str = Field(description="Name of the new employee.")
+
+    cpr_no: str = Field(
+        description="CPR Number for the new employee.",
+        regex=r"^\d{10}$",
+    )
+
+    org: EmployeeCreateOrg = Field(
+        description="Main organisation the new employee belongs to."
+    )
+
+    details: List[dict] = Field(
+        description="Details about the relations to create for the employee."
+    )
 
 
 class EmployeeTerminate(RABase):
