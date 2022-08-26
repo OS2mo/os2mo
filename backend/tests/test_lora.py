@@ -618,26 +618,23 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
-class Tests(tests.cases.TestCase):
-    def test_raise_on_status_detects_noop_change(self):
-        status_code = 400
-        msg_noop = (
-            "ERROR:  Aborted updating bruger with id "
-            "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
-            "not give raise to a new registration. Aborted reg: ..."
-        )
-        msg_other = "ERROR: Some other error"
-        # Assert the 'noop' error does not raise an exception
-        self.assertIsNone(lora.raise_on_status(status_code, msg_noop))
-        # Assert that any other error does raise an exception
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
-            lora.raise_on_status(status_code, msg_other)
-        self.assertEqual(
-            {
-                "error": True,
-                "status": status_code,
-                "error_key": "E_INVALID_INPUT",
-                "description": msg_other,
-            },
-            ctxt.exception.detail,
-        )
+def test_raise_on_status_detects_noop_change():
+    status_code = 400
+    msg_noop = (
+        "ERROR:  Aborted updating bruger with id "
+        "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
+        "not give raise to a new registration. Aborted reg: ..."
+    )
+    msg_other = "ERROR: Some other error"
+    # Assert the 'noop' error does not raise an exception
+    assert lora.raise_on_status(status_code, msg_noop) is None
+
+    # Assert that any other error does raise an exception
+    with pytest.raises(exceptions.HTTPException) as ctxt:
+        lora.raise_on_status(status_code, msg_other)
+    assert ctxt.value.detail == {
+        "error": True,
+        "status": status_code,
+        "error_key": "E_INVALID_INPUT",
+        "description": msg_other,
+    }

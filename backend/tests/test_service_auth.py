@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import unittest.mock
+from uuid import UUID
 
 import pytest
+from more_itertools import one
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.test_helper import (
     ensure_endpoints_depend_on_oidc_auth_function,
@@ -227,40 +229,42 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
         )
 
 
-class TestTokenModel(tests.cases.TestCase):
-    @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
-    def test_uuid_required_if_client_is_mo(self):
-        with self.assertRaises(ValidationError) as err:
-            KeycloakToken(azp="mo-frontend")
-        errors = err.exception.errors()[0]
+@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+def test_uuid_required_if_client_is_mo():
+    with pytest.raises(ValidationError) as err:
+        KeycloakToken(azp="mo-frontend")
+    # Testing for one error only.
+    error = one(err.value.errors())
 
-        self.assertEqual(
-            "The uuid user attribute is missing in the token", errors["msg"]
-        )
-        self.assertEqual("value_error", errors["type"])
+    assert error["msg"] == "The uuid user attribute is missing in the token"
+    assert error["type"] == "value_error"
+    assert len(err.value.errors()) == 1
 
-    @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
-    def test_uuid_parsed_correctly_uuid(self):
-        token = KeycloakToken(
-            azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
-        )
 
-        self.assertEqual("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e", str(token.uuid))
+@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+def test_uuid_parsed_correctly_uuid():
+    token = KeycloakToken(
+        azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
+    )
+    assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
-    @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
-    def test_uuid_parsed_correctly_base64(self):
-        token = KeycloakToken(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
-        self.assertEqual("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e", str(token.uuid))
+@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+def test_uuid_parsed_correctly_base64():
+    token = KeycloakToken(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
-    @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
-    def test_uuid_parse_fails_on_garbage(self):
-        with self.assertRaises(ValidationError) as err:
-            KeycloakToken(azp="mo-frontend", uuid="garbageasdasd")
-        errors = err.exception.errors()[0]
+    assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
-        self.assertEqual("value is not a valid uuid", errors["msg"])
-        self.assertEqual("type_error.uuid", errors["type"])
+
+@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+def test_uuid_parse_fails_on_garbage():
+    with pytest.raises(ValidationError) as err:
+        KeycloakToken(azp="mo-frontend", uuid="garbageasdasd")
+    errors = err.value.errors()[0]
+
+    assert errors["msg"] == "value is not a valid uuid"
+    assert errors["type"] == "type_error.uuid"
+    assert len(err.value.errors()) == 2
 
 
 @sample_structures_minimal_cls_fixture
