@@ -10,6 +10,7 @@ from typing import Literal
 from typing import Optional
 from uuid import UUID
 
+from pydantic import Extra
 from pydantic import Field
 
 from .._shared import EngagementType
@@ -106,6 +107,9 @@ class EngagementWrite(EngagementBase):
     primary: Optional[Primary] = Field(
         description="Reference to the primary klasse for the created engagement object."
     )
+
+    class Config:
+        extra = Extra.ignore
 
 
 class EngagementDetail(EngagementWrite, Details):

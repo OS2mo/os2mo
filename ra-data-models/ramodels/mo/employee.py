@@ -6,6 +6,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import typing
 from datetime import date
 from datetime import datetime
 from typing import Any
@@ -21,6 +22,7 @@ from pydantic import root_validator
 from pydantic import validator
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
+from ramodels.mo.details import EngagementWrite
 
 from ._shared import MOBase
 from ._shared import OpenValidity
@@ -190,9 +192,13 @@ class EmployeeCreate(BaseModel):
         description="Main organisation the new employee belongs to."
     )
 
-    details: List[dict] = Field(
+    details: List[typing.Union[EngagementWrite, dict]] = Field(
         description="Details about the relations to create for the employee."
     )
+
+    # details: List[dict] = Field(
+    #     description="Details about the relations to create for the employee."
+    # )
 
     def to_dict(self) -> dict:
         """Converts pydantic class to an anonymous dict + converts fields."""
@@ -201,10 +207,24 @@ class EmployeeCreate(BaseModel):
     @staticmethod
     def convert_dict_fields(dict_to_convert: dict) -> dict:
         for key in dict_to_convert.keys():
+            # if dict_to_convert.get("type") == "engagement":
+            #     dict_to_convert = EngagementWrite(**dict_to_convert)
+            #     continue
+
             if isinstance(dict_to_convert[key], dict):
                 dict_to_convert[key] = EmployeeCreate.convert_dict_fields(
                     dict_to_convert[key]
                 )
+                continue
+
+            if isinstance(dict_to_convert[key], list):
+                for idx, value in enumerate(dict_to_convert[key]):
+                    if isinstance(value, dict):
+                        dict_to_convert[key][idx] = EmployeeCreate.convert_dict_fields(
+                            value
+                        )
+                    else:
+                        dict_to_convert[key][idx] = value
                 continue
 
             if isinstance(dict_to_convert[key], UUID):
