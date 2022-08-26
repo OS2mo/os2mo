@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-from ramodels.mo._shared import AlphaStr
 from ramodels.mo.facet import FacetRead
 from ramodels.mo.facet import FacetWrite
 
@@ -40,7 +39,7 @@ def facet_write_strat(draw):
     required = {
         "uuid": st.uuids(),
         "type_": st.just("facet"),
-        "description": st.from_regex(AlphaStr.regex),
+        "description": st.text(),
         "user_key": st.text(),
         "org_uuid": st.uuids(),
     }

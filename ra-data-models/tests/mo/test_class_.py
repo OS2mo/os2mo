@@ -8,7 +8,6 @@
 # --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
-from ramodels.mo._shared import AlphaStr
 from ramodels.mo.class_ import ClassRead
 from ramodels.mo.class_ import ClassWrite
 
@@ -45,7 +44,7 @@ def write_strat(draw):
         "uuid": st.uuids(),
         "type": st.just("class"),
         "user_key": st.text(),
-        "name": st.from_regex(AlphaStr.regex),
+        "name": st.text(),
         "facet_uuid": st.uuids(),
         "org_uuid": st.uuids(),
     }
