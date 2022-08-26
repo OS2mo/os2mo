@@ -28,6 +28,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from ramodels.base import tz_isodate
+from ramodels.mo.employee import EmployeeCreate
 
 from . import autocomplete
 from . import handlers
@@ -616,7 +617,9 @@ async def terminate_employee(
 
 # When RBAC enabled: currently, only the admin role can create employees
 @router.post("/e/create", status_code=201)
-async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_admin)):
+async def create_employee(
+    req: EmployeeCreate = Body(...), permissions=Depends(oidc.rbac_admin)
+):
     """Create a new employee
 
     .. :quickref: Employee; Create
@@ -684,7 +687,9 @@ async def create_employee(req: dict = Body(...), permissions=Depends(oidc.rbac_a
     :returns: UUID of created employee
 
     """
-    request = await EmployeeRequestHandler.construct(req, mapping.RequestType.CREATE)
+    request = await EmployeeRequestHandler.construct(
+        req.to_dict(), mapping.RequestType.CREATE
+    )
     return await request.submit()
 
 

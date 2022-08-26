@@ -13,6 +13,7 @@ from typing import Dict
 from typing import List
 from typing import Literal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -168,7 +169,6 @@ class Employee(MOBase):
         return tz_isodate(seniority) if seniority is not None else None
 
 
-# class EmployeeCreateOrg(OrganisationRef):
 class EmployeeCreateOrg(MOBase):
     """Representation of the organization which a org-unit belongs to.
 
@@ -193,6 +193,29 @@ class EmployeeCreate(BaseModel):
     details: List[dict] = Field(
         description="Details about the relations to create for the employee."
     )
+
+    def to_dict(self) -> dict:
+        """Converts pydantic class to an anonymous dict + converts fields."""
+        return EmployeeCreate.convert_dict_fields(self.dict(by_alias=True))
+
+    @staticmethod
+    def convert_dict_fields(dict_to_convert: dict) -> dict:
+        for key in dict_to_convert.keys():
+            if isinstance(dict_to_convert[key], dict):
+                dict_to_convert[key] = EmployeeCreate.convert_dict_fields(
+                    dict_to_convert[key]
+                )
+                continue
+
+            if isinstance(dict_to_convert[key], UUID):
+                dict_to_convert[key] = str(dict_to_convert[key])
+                continue
+
+            if isinstance(dict_to_convert[key], datetime):
+                dict_to_convert[key] = dict_to_convert[key].isoformat()
+                continue
+
+        return dict_to_convert
 
 
 class EmployeeTerminate(RABase):
