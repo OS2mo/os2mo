@@ -12,7 +12,6 @@ from uuid import UUID
 from pydantic import Field
 from ramodels.mo._shared import MOBase
 
-from ._shared import AlphaStr
 
 # --------------------------------------------------------------------------------------
 # Facet models
@@ -34,7 +33,7 @@ class FacetWrite(MOBase):
     """A MO Facet write object."""
 
     type_: str = Field("facet", alias="type", description="The object type")
-    description: AlphaStr = Field(description="Description of the facet object.")
+    description: str = Field(description="Description of the facet object.")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
     user_key: str = Field(description="Short, unique key.")
     published: Optional[str] = Field(description="Published state of the facet object.")

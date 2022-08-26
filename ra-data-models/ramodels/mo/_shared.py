@@ -17,7 +17,6 @@ from typing import Tuple
 from uuid import UUID
 from uuid import uuid4
 
-from pydantic import ConstrainedStr
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -384,13 +383,3 @@ def validate_cpr(cpr_no: Optional[str]) -> Optional[str]:
     except Exception:
         raise ValueError("CPR number is invalid.")
     return cpr_no
-
-
-class AlphaStr(ConstrainedStr):
-    """
-    Define custom type for string to make it
-    strict alphanumeric and min length of 1
-    Typically use in Pydantic models
-    """
-
-    regex = re.compile("^[a-zA-Z0-9_]+$")
