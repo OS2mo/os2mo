@@ -16,7 +16,6 @@ from uuid import UUID
 import pytest
 from parameterized import parameterized
 from pydantic.error_wrappers import ValidationError
-from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 import tests.cases
 from mora import mapping
@@ -24,6 +23,7 @@ from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.orgunit import terminate_org_unit_validation
+from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 
 async def terminate_orgunit(

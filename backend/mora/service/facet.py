@@ -30,7 +30,6 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 from more_itertools import one
-from ramodels.mo.class_ import ClassWrite
 
 from . import handlers
 from .. import common
@@ -42,6 +41,7 @@ from ..exceptions import ErrorCodes
 from ..lora import LoraObjectType
 from .tree_helper import prepare_ancestor_tree
 from mora.request_scoped.bulking import request_wide_bulk
+from ramodels.mo.class_ import ClassWrite
 
 router = APIRouter()
 

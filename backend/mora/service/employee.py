@@ -27,7 +27,6 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
-from ramodels.base import tz_isodate
 
 from . import autocomplete
 from . import handlers
@@ -44,6 +43,7 @@ from ..triggers import Trigger
 from .validation import validator
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
+from ramodels.base import tz_isodate
 
 router = APIRouter()
 

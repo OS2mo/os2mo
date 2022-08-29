@@ -13,27 +13,16 @@ repos:
     hooks:
       - id: mypy
         args: [--config-file=backend/pyproject.toml]
-        exclude: ra-data-models
         additional_dependencies:
           - aiohttp
           - fastapi
           - httpx
           - os2mo_dar_client==1.0.1
           - pydantic
-          - ramodels==7.0.1
           - starlette_context
           - strawberry-graphql
           - structlog
           - prometheus_client
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.942
-    hooks:
-      - id: mypy
-        args: [--config-file=ra-data-models/mypy.ini]
-        files: ra-data-models
-        types: [file, python]
-        additional_dependencies:
-          - pydantic
           - types-python-dateutil
   - repo: https://github.com/asottile/reorder_python_imports
     rev: v3.1.0

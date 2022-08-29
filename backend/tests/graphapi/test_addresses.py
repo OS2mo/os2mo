@@ -10,7 +10,6 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
-from ramodels.mo.details import AddressRead
 
 import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
@@ -19,6 +18,7 @@ from mora import lora
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.models import AddressTerminate
 from mora.graphapi.shim import flatten_data
+from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
 
 

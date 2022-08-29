@@ -11,12 +11,13 @@ from typing import Any
 from typing import Optional
 from typing import Union
 
-from ramodels.mo import OpenValidity
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
 from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
+
+from ramodels.mo import OpenValidity
 
 # --------------------------------------------------------------------------------------
 # Middleware

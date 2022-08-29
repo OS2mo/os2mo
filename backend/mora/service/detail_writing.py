@@ -17,13 +17,13 @@ import typing
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
-from ramodels.mo.detail import DetailTermination
 from starlette.status import HTTP_201_CREATED
 
 from . import handlers
 from .. import exceptions
 from .. import mapping
 from mora.auth.keycloak import oidc
+from ramodels.mo.detail import DetailTermination
 
 router = APIRouter()
 

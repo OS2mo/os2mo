@@ -10,14 +10,14 @@ from uuid import uuid4
 
 import pytest
 from os2mo_fastapi_utils.auth.models import RealmAccess
-from ramodels.mo import OrganisationRead
-from ramodels.mo import OrganisationUnitRead
 from strawberry.dataloader import DataLoader
 
 from mora.auth.keycloak.models import Token
 from mora.graphapi.schema import AddressRead
 from mora.graphapi.schema import Response
 from mora.graphapi.shim import execute_graphql
+from ramodels.mo import OrganisationRead
+from ramodels.mo import OrganisationUnitRead
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { uuid } }"

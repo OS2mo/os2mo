@@ -16,8 +16,6 @@ from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import ilen
 from more_itertools import one
-from ramodels.mo import OpenValidity
-from ramodels.mo import OrganisationRead
 
 from .errors import handle_gql_error
 from .util import filter_data
@@ -29,6 +27,8 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import OrganisationLevelRead
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.service.org import router as org_router
+from ramodels.mo import OpenValidity
+from ramodels.mo import OrganisationRead
 
 
 # --------------------------------------------------------------------------------------

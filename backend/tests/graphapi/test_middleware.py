@@ -17,10 +17,10 @@ from dateutil.tz import tzutc
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
-from ramodels.mo import OpenValidity
 from starlette_context import context
 
 import mora.graphapi.dataloaders as dataloaders
+from ramodels.mo import OpenValidity
 
 # --------------------------------------------------------------------------------------
 # Code

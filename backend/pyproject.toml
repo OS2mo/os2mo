@@ -21,7 +21,6 @@ python-dateutil = "^2.8.1"
 validators = "^0.18.2"
 # Version 2.9.x always starts a transaction when you connect to a database using a context manager.
 # See: https://stackoverflow.com/a/68112827
-psycopg2-binary = "~2.8"
 gunicorn = "^20.1.0"
 PyJWT = {extras = ["crypto"], version = "^2.1.0"}
 toml = "^0.10.2"
@@ -43,7 +42,6 @@ service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
 prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
 pydantic = {extras = ["email"], version = "^1.7.3"}
-ramodels = {path = "../ra-data-models", develop = true }
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 asgi-lifespan = "^1.0.1"
@@ -53,6 +51,8 @@ strawberry-graphql = {extras = ["fastapi"], version = "^0.125.1"}
 pexpect = "^4.8.0"
 pika = "^1.2.1"
 jsonschema = "^4.5.1"
+hypothesis = "^6.54.4"
+psycopg2-binary = "~2.8"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
