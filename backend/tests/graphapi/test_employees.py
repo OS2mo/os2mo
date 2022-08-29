@@ -3,13 +3,19 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+from typing import Any
+
 from hypothesis import given
+from more_itertools import one
 from parameterized import parameterized
 from pytest import MonkeyPatch
+from strawberry.types import ExecutionResult
 
 import mora.graphapi.dataloaders as dataloaders
+import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
@@ -85,12 +91,43 @@ class TestEmployeesQuery:
         assert len(result_uuids) == len(set(test_uuids))
 
 
-class TestEmployeeCreate:
+class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
     @parameterized.expand(
         [
             ("Laura Christensen", "0103882148"),
             ("Jens Jensen", "0103882149"),
         ]
     )
-    def test_create(self, given_name, given_cprno):
-        pass
+    async def test_create_employee(self, given_name, given_cprno):
+        mutation_func = "employee_create"
+        query = (
+            f"mutation($name: String!, $cpr_no: String!) {{"
+            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
+            f"{{ uuid }}"
+            f"}}"
+        )
+
+        response = await _execute_graphql(
+            query,
+            variable_values={
+                "name": given_name,
+                "cpr_no": given_cprno,
+            },
+        )
+        handle_gql_error(response)
+
+        assert 1 == True
+
+
+async def _execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
+    return await get_schema().execute(*args, **kwargs)
+
+
+# Originalle from "backend/mora/service/util.py", but moved to this file since its
+# located insinde the mora.service-package
+def handle_gql_error(response: ExecutionResult) -> None:
+    if response.errors:
+        error = one(response.errors)
+        if error.original_error:
+            raise error.original_error
+        raise ValueError(error)
