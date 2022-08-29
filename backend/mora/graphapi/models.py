@@ -16,14 +16,14 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
-from ramodels.mo import OpenValidity
-from ramodels.mo._shared import UUIDBase
 
 from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from ramodels.mo import OpenValidity
+from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
 

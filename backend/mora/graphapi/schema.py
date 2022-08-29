@@ -22,6 +22,22 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
+from starlette_context import context
+from strawberry.dataloader import DataLoader
+from strawberry.types import Info
+
+from mora import common
+from mora import config
+from mora import lora
+from mora.graphapi.health import health_map
+from mora.graphapi.models import ConfigurationRead
+from mora.graphapi.models import FileRead
+from mora.graphapi.models import HealthRead
+from mora.graphapi.models import OrganisationUnitRefreshRead
+from mora.graphapi.permissions import gen_read_permission
+from mora.service.address_handler import dar
+from mora.service.address_handler import multifield_text
+from mora.service.facet import is_class_uuid_primary
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -41,22 +57,6 @@ from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
-from starlette_context import context
-from strawberry.dataloader import DataLoader
-from strawberry.types import Info
-
-from mora import common
-from mora import config
-from mora import lora
-from mora.graphapi.health import health_map
-from mora.graphapi.models import ConfigurationRead
-from mora.graphapi.models import FileRead
-from mora.graphapi.models import HealthRead
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.permissions import gen_read_permission
-from mora.service.address_handler import dar
-from mora.service.address_handler import multifield_text
-from mora.service.facet import is_class_uuid_primary
 
 # --------------------------------------------------------------------------------------
 # Schema

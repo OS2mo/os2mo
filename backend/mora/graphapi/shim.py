@@ -22,15 +22,15 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
+from strawberry.types import ExecutionResult
+
+from mora import util
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
-from strawberry.types import ExecutionResult
-
-from mora import util
 
 # --------------------------------------------------------------------------------------
 # Code
