@@ -19,7 +19,7 @@ import strawberry
 from fastapi import Depends
 from pydantic import parse_obj_as
 from pydantic import ValidationError
-from strawberry.arguments import UNSET
+from strawberry.unset import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
