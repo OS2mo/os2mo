@@ -3,13 +3,12 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from typing import Any
+from uuid import UUID
 
 from hypothesis import given
-from more_itertools import one
+from mock import patch
 from parameterized import parameterized
 from pytest import MonkeyPatch
-from strawberry.types import ExecutionResult
 
 import mora.graphapi.dataloaders as dataloaders
 import tests.cases
@@ -98,36 +97,41 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             ("Jens Jensen", "0103882149"),
         ]
     )
-    async def test_create_employee(self, given_name, given_cprno):
-        mutation_func = "employee_create"
-        query = (
-            f"mutation($name: String!, $cpr_no: String!) {{"
-            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
-            f"{{ uuid }}"
-            f"}}"
-        )
+    async def test_success(self, given_name, given_cprno):
+        with patch("mora.lora.Scope.create") as mock_create:
+            mock_create.side_effect = lambda *args: args[-1]
 
-        response = await _execute_graphql(
-            query,
-            variable_values={
-                "name": given_name,
-                "cpr_no": given_cprno,
-            },
-        )
-        handle_gql_error(response)
+            with patch(
+                "mora.service.employee.validator.does_employee_with_cpr_already_exist"
+            ):
+                # GraphQL
+                mutation_func = "employee_create"
+                query = (
+                    f"mutation($name: String!, $cpr_no: String!) {{"
+                    f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
+                    f"{{ uuid }}"
+                    f"}}"
+                )
 
-        assert 1 == True
+                response = await get_schema().execute(
+                    query,
+                    variable_values={
+                        "name": given_name,
+                        "cpr_no": given_cprno,
+                    },
+                )
 
+                # Asserts
+                mock_create.assert_called()
+                assert not response.errors
+                assert response.data
 
-async def _execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    return await get_schema().execute(*args, **kwargs)
+                uuid = None
+                try:
+                    # Verify the returned UUID can be parsed
+                    uuid = UUID(response.data.get(mutation_func, {}).get("uuid", ""))
+                except Exception:
+                    uuid = uuid
 
-
-# Originalle from "backend/mora/service/util.py", but moved to this file since its
-# located insinde the mora.service-package
-def handle_gql_error(response: ExecutionResult) -> None:
-    if response.errors:
-        error = one(response.errors)
-        if error.original_error:
-            raise error.original_error
-        raise ValueError(error)
+                assert uuid
+                assert len(str(uuid)) > 0
