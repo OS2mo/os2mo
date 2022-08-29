@@ -1,3 +1,4 @@
 Release type: patch
 
-[#50137] Rewrote additional testcases and made corrected coding errors
+[#5082] Rewrote EAN address handler and made independent test functions. Removed inheritance from
+AddressHandlerTestCase.
