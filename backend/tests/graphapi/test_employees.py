@@ -4,6 +4,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from hypothesis import given
+from parameterized import parameterized
 from pytest import MonkeyPatch
 
 import mora.graphapi.dataloaders as dataloaders
@@ -82,3 +83,14 @@ class TestEmployeesQuery:
         result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+
+class TestEmployeeCreate:
+    @parameterized.expand(
+        [
+            ("Laura Christensen", "0103882148"),
+            ("Jens Jensen", "0103882149"),
+        ]
+    )
+    def test_create(self, given_name, given_cprno):
+        pass
