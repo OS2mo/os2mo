@@ -80,10 +80,12 @@ USER mora:mora
 
 VOLUME /queries
 
+ENV ALEMBIC_CONFIG=/app/backend/alembic.ini
+
 # Add build version to the environment last to avoid build cache misses
 ARG COMMIT_TAG
 ARG COMMIT_SHA
 ENV COMMIT_TAG=${COMMIT_TAG:-HEAD} \
     COMMIT_SHA=${COMMIT_SHA}
 
-CMD ["gunicorn", "--config", "/app/docker/gunicorn-settings.py", "main:app"]
+CMD ["./docker/start.sh"]

@@ -59,7 +59,7 @@ services:
         # This has one issue in dev where the service won't restart (because of
         # the --reload flag) when an error occurs. The service restarts as soon
         # as a file is edited though.
-        "uvicorn", "--reload", "--host", "0.0.0.0", "--port", "80", "main:app"
+        "./docker/start.sh"
     ]
     ports:
       - "127.0.0.1:5002:80"
