@@ -320,3 +320,17 @@ class AddressTerminate(Address, Validity, Triggerless):
             },
             "note": "Afsluttet",
         }
+
+
+class Employee(UUIDBase):
+    """OS2Mo employee model."""
+
+    pass
+
+
+class EmployeeCreate(BaseModel):
+    """Model representing an employee creation."""
+
+    name: str = Field(description="Full name of the employee.")
+
+    cpr_no: str = Field(description="Danish CPR number of the employee.")
