@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.7.4 - 2022-08-29
+------------------
+
+[#52011] Moves ramodels into backend while maintaining the poetry project in the root folder.
+
 9.7.3 - 2022-08-26
 ------------------
 
