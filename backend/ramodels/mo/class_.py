@@ -11,7 +11,6 @@ from uuid import UUID
 
 from pydantic import Field
 
-from ._shared import AlphaStr
 from ramodels.mo._shared import MOBase
 
 # --------------------------------------------------------------------------------------
