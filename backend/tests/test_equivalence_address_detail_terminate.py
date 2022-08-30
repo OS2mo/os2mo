@@ -17,13 +17,13 @@ import pytest
 from fastapi import Body
 from parameterized import parameterized
 from pydantic.error_wrappers import ValidationError
-from ramodels.mo.detail import DetailTermination
 
 import tests.cases
 from mora import mapping
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
 from mora.service.detail_writing import handle_requests
+from ramodels.mo.detail import DetailTermination
 
 
 # Generate a set of test scenarios

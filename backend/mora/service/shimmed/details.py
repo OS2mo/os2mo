@@ -10,7 +10,6 @@ import typing
 
 from fastapi import Body
 from fastapi import Depends
-from ramodels.mo.detail import DetailTermination
 
 from mora import mapping
 from mora import util
@@ -19,6 +18,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.service import handlers
 from mora.service.detail_writing import router as details_router
 from mora.service.util import handle_gql_error
+from ramodels.mo.detail import DetailTermination
 
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
 GRAPHQL_COMPATIBLE_TYPES = {
