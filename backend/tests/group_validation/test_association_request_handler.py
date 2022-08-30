@@ -12,7 +12,6 @@ class TestAssociationRequestHandlerGroupValidation:
     _association_uuid = "association-uuid"
     _employee_uuid = "employee-uuid"
     _it_user_uuid = "it-user-uuid"
-    _it_system_uuid = "it-system-uuid"
     _org_unit_uuid = "org-unit-uuid"
 
     _expected_kwargs_normal = {"tilknyttedebrugere": _employee_uuid}
@@ -69,11 +68,6 @@ class TestAssociationRequestHandlerGroupValidation:
             ctx.setattr(
                 "mora.service.validation.models.GroupValidation.from_mo_objects",
                 mock_from_mo_objects,
-            )
-            ctx.setattr(
-                handler,
-                "_get_it_system_uuid",
-                AsyncMock(return_value=self._it_system_uuid),
             )
             method = getattr(handler, method_name)
             # Act
