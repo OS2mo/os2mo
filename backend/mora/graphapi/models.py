@@ -118,6 +118,13 @@ class Validity(OpenValidity):
         return self.to_date + ONE_DAY
 
 
+class ValidityTerminate(Validity):
+    to_date: datetime.datetime = Field(
+        alias="to",
+        description="When the validity should end " "- required when terminating",
+    )
+
+
 class MoraTriggerRequest(BaseModel):
     """Model representing a MoRa Trigger Request."""
 
@@ -345,3 +352,9 @@ class EmployeeCreate(BaseModel):
         Organisation(),
         description="The organization the new employee will be created under.",
     )
+
+
+class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
+    """Model representing an employee termination."""
+
+    pass
