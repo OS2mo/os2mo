@@ -23,7 +23,6 @@ from . import handlers
 from .. import exceptions
 from .. import mapping
 from mora.auth.keycloak import oidc
-from ramodels.mo.detail import DetailTermination
 
 router = APIRouter()
 
@@ -46,6 +45,9 @@ async def handle_requests(
     if is_single_request:
         uuids = uuids[0]
     return uuids
+
+
+1
 
 
 @router.post(
