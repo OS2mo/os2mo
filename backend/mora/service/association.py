@@ -86,7 +86,7 @@ class ITAssociationUniqueGroupValidation(_ITAssociationGroupValidation):
 class ITAssociationPrimaryGroupValidation(_ITAssociationGroupValidation):
     def validate(self) -> None:
         self.validate_at_most_one(
-            itemgetter("it_system_uuid"),
+            itemgetter("it_user_uuid"),
             itemgetter("is_primary"),
             exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY,
         )

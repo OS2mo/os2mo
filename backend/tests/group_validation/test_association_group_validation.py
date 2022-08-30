@@ -95,7 +95,7 @@ class TestITAssociationUniqueGroupValidation:
 
 class TestITAssociationPrimaryGroupValidation:
     def test_validate_additional_object(self):
-        obj = {"it_system_uuid": "uuid", "is_primary": True}
+        obj = {"it_user_uuid": "uuid", "is_primary": True}
         validation = ITAssociationPrimaryGroupValidation([obj])
         with pytest.raises(HTTPException):
             validation.add_validation_item(obj).validate()
