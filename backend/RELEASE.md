@@ -1,3 +1,3 @@
 Release type: patch
 
-[#xxxxx] Added missing 'it'-type as a possible ramodels.Detail.type value.
+[#51091] Added missing 'it'-type as a possible ramodels.Detail.type value.
