@@ -5,6 +5,7 @@
 # --------------------------------------------------------------------------------------
 from uuid import UUID
 
+from graphql import ExecutionResult
 from hypothesis import given
 from mock import patch
 from parameterized import parameterized
@@ -14,8 +15,10 @@ import mora.graphapi.dataloaders as dataloaders
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora import exceptions
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
+from mora.service.util import handle_gql_error
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
@@ -95,9 +98,11 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         [
             ("Laura Christensen", "0103882148"),
             ("Jens Jensen", "0103882149"),
+            # empty CPRs are converted to: 0001-01-01 00:00:00+00:00
+            ("Hans Hansen", ""),
         ]
     )
-    async def test_success(self, given_name, given_cprno):
+    async def _test_success(self, given_name, given_cprno):
         with patch("mora.lora.Scope.create") as mock_create:
             mock_create.side_effect = lambda *args: args[-1]
 
@@ -135,3 +140,53 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
 
                 assert uuid
                 assert len(str(uuid)) > 0
+
+    @parameterized.expand(
+        [
+            (
+                "Laura Christensen",
+                "0000000000",
+                exceptions.ErrorCodes.V_CPR_NOT_VALID.name,
+            ),
+            ("", "0000000000", exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name),
+            ("", "", exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name),
+        ]
+    )
+    async def test_fails(self, given_name, given_cprno, expected_result):
+        """
+        NOTE: an empty CPR="", is converted into: 0001-01-01 00:00:00+00:00, by our
+        existing logic.
+        """
+
+        with patch("mora.lora.Scope.create") as mock_create:
+            mock_create.side_effect = lambda *args: args[-1]
+
+            result = None
+            try:
+                response = await gql_create_employee(given_name, given_cprno)
+                handle_gql_error(response)
+            except Exception as e:
+                if hasattr(e, "key") and hasattr(e.key, "name"):
+                    result = e.key.name
+
+            # Assert
+            mock_create.assert_not_called()
+            assert result == expected_result
+
+
+async def gql_create_employee(name: str, cprno: str) -> ExecutionResult:
+    mutation_func = "employee_create"
+    query = (
+        f"mutation($name: String!, $cpr_no: String!) {{"
+        f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
+        f"{{ uuid }}"
+        f"}}"
+    )
+
+    return await get_schema().execute(
+        query,
+        variable_values={
+            "name": name,
+            "cpr_no": cprno,
+        },
+    )
