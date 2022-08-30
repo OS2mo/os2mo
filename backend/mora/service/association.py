@@ -14,7 +14,6 @@ from typing import Dict
 from typing import List
 from typing import TYPE_CHECKING
 
-from more_itertools import one
 from structlog import get_logger
 
 from . import handlers
@@ -41,23 +40,12 @@ logger = get_logger()
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
     async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
-        def get_it_user_uuid_and_system_uuid(it_user: dict):
-            try:
-                it_user_uuid = it_user[mapping.UUID]
-                it_system_uuid = it_user[mapping.ITSYSTEM][mapping.UUID]
-            except KeyError:
-                pass  # not an "IT association", skip it
-            else:
-                return it_user_uuid, it_system_uuid
-
         async def get_validation_item(mo_object: dict, it_user: dict):
-            it_user_uuid, it_system_uuid = get_it_user_uuid_and_system_uuid(it_user)
             return {
                 "uuid": util.get_uuid(mo_object),
                 "employee_uuid": util.get_mapping_uuid(mo_object, mapping.PERSON),
                 "org_unit_uuid": util.get_mapping_uuid(mo_object, mapping.ORG_UNIT),
-                "it_user_uuid": it_user_uuid,
-                "it_system_uuid": it_system_uuid,
+                "it_user_uuid": it_user[mapping.UUID],
                 "is_primary": await get_mo_object_primary_value(mo_object),
             }
 
@@ -67,7 +55,7 @@ class _ITAssociationGroupValidation(GroupValidation):
         return [
             await get_validation_item(mo_object, it_user)
             for it_user in (mo_object.get(mapping.IT) or [])
-            if get_it_user_uuid_and_system_uuid(it_user)
+            if (mo_object.get(mapping.UUID) and it_user.get(mapping.UUID))
         ]
 
     @classmethod
@@ -86,7 +74,7 @@ class ITAssociationUniqueGroupValidation(_ITAssociationGroupValidation):
 class ITAssociationPrimaryGroupValidation(_ITAssociationGroupValidation):
     def validate(self) -> None:
         self.validate_at_most_one(
-            itemgetter("it_system_uuid"),
+            itemgetter("it_user_uuid"),
             itemgetter("is_primary"),
             exceptions.ErrorCodes.V_MORE_THAN_ONE_PRIMARY,
         )
@@ -443,7 +431,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             dict(
                 employee_uuid=employee_uuid,
                 it_user_uuid=it_user_uuid,
-                it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
                 is_primary=True,
             ),
         ).validate()
@@ -478,18 +465,6 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             dict(
                 employee_uuid=employee_uuid,
                 it_user_uuid=it_user_uuid,
-                it_system_uuid=(await self._get_it_system_uuid(it_user_uuid)),
                 is_primary=True,
             ),
         ).validate()
-
-    async def _get_it_system_uuid(self, it_user_uuid: str) -> str:
-        from ..handler.impl.it import ItSystemBindingReader
-
-        connector = lora.Connector()
-        reader = ItSystemBindingReader()
-        it_system_uuids = {
-            it_user[mapping.ITSYSTEM][mapping.UUID]
-            for it_user in await reader.get(connector, {"uuid": it_user_uuid})
-        }
-        return one(it_system_uuids)
