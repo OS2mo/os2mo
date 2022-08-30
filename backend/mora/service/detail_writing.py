@@ -23,7 +23,6 @@ from . import handlers
 from .. import exceptions
 from .. import mapping
 from mora.auth.keycloak import oidc
-from ramodels.mo.detail import DetailTermination
 
 router = APIRouter()
 
@@ -46,6 +45,9 @@ async def handle_requests(
     if is_single_request:
         uuids = uuids[0]
     return uuids
+
+
+1
 
 
 @router.post(
@@ -941,60 +943,3 @@ async def edit(
 
     """
     return await handle_requests(reqs, mapping.RequestType.EDIT)
-
-
-@router.post(
-    "/details/terminate", responses={"400": {"description": "Unknown role type"}}
-)
-async def terminate(
-    reqs: typing.Union[typing.List[DetailTermination], DetailTermination] = Body(...),
-    permissions=Depends(oidc.rbac_owner),
-):
-    """Terminate a relation as of a given day.
-
-    .. :quickref: Writing; Terminate relation
-
-    :<jsonarr str type: Same as for
-              http:post:`/service/details/create` and
-              http:post:`/service/details/edit`.
-    :<jsonarr str uuid: The UUID of the related to terminate.
-    :<json boolean vacate: *Optiona l* - mark applicable — currently
-        only ``manager`` -- functions as _vacant_, i.e. simply detach
-        the employee from them.
-    :<jsonarr object validity: A validity object; but only the ``to`` is
-              used.
-
-
-    **Example request**:
-
-    .. sourcecode:: http
-
-      POST /service/details/terminate HTTP/1.1
-      Host: example.com
-      Content-Type: application/json
-
-      {
-        "type": "association",
-        "uuid": "be4642c4-ba97-48d6-b19a-fc18ca0740b5",
-        "validity": {
-          "to": "2018-01-01"
-        }
-      }
-
-    **Example response**:
-
-    .. sourcecode:: http
-
-      HTTP/1.1 200 OK
-      Content-Type: application/json
-
-      "be4642c4-ba97-48d6-b19a-fc18ca0740b5"
-
-    """
-
-    if isinstance(reqs, list):
-        reqs = [req.to_dict() for req in reqs]
-    elif isinstance(reqs, DetailTermination):
-        reqs = reqs.to_dict()
-
-    return await handle_requests(reqs, mapping.RequestType.TERMINATE)

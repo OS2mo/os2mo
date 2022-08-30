@@ -3,6 +3,7 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
+import asyncio
 import datetime
 
 import mock
@@ -20,6 +21,19 @@ from mora.graphapi.models import AddressTerminate
 from mora.graphapi.shim import flatten_data
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
+
+
+# --------------------------------------------------------------------------------------
+# Mocks
+# --------------------------------------------------------------------------------------
+def async_lora_return(*args):
+    """Returns last positional argument using asyncio.Future.
+
+    This is used to mock lora.Scope methods like 'get' and 'update'."""
+
+    f = asyncio.Future()
+    f.set_result(args[-1])
+    return f
 
 
 # --------------------------------------------------------------------------------------
@@ -105,6 +119,8 @@ class TestAddressTerminate:
             lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
         ),
     )
+    @mock.patch.object(lora.Scope, "update", async_lora_return)
+    @mock.patch.object(lora.Scope, "get", async_lora_return)
     async def test_terminate(self, given_uuid, triggerless, given_validity_dts):
         from_date, to_date = given_validity_dts
 
@@ -123,18 +139,13 @@ class TestAddressTerminate:
             to_date=to_date,
         )
 
-        # Patching / Mocking
-        async def mock_update(*args):
-            return args[-1]
-
         terminate_result_uuid = None
         caught_exception = None
-        with mock.patch.object(lora.Scope, "update", new=mock_update):
-            try:
-                tr = await terminate_addr(address_terminate=at)
-                terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
-            except Exception as e:
-                caught_exception = e
+        try:
+            tr = await terminate_addr(address_terminate=at)
+            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+        except Exception as e:
+            caught_exception = e
 
         # Assert
         if not expect_exception:
