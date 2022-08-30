@@ -654,6 +654,16 @@ class ITUser:
             return None
         return (await loader.load(root.org_unit_uuid)).objects
 
+    @strawberry.field(
+        description="Connected itsystem",
+        permission_classes=[gen_read_permission("itsystems")],
+    )
+    async def itsystem(
+        self, root: ITUserRead, info: Info
+    ) -> list["ITSystem"]:
+        loader: DataLoader = info.context["itsystem_loader"]
+        return (await loader.load(root.itsystem_uuid)).objects
+
 
 # KLE
 # ---
