@@ -7,7 +7,7 @@ set -ex
 
 # Run prerequisites that are the same across dev, CI and prod.
 # (Currently this means applying Alembic migrations to the `mox` database.)
-. /app/docker/prestart.sh
+. ./docker/prestart.sh
 
 if [ "$ENVIRONMENT" = "development" ]; then
     echo "Running MO in development mode (live reload)"
