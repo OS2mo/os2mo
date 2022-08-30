@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
+from uuid import UUID
 
 import pytest
 
@@ -8,20 +9,23 @@ from mora import exceptions
 from mora.service.address_handler.pnumber import PNumberAddressHandler
 from tests import util
 
-VISIBILITY = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-VALUE = "1234567890"
+
+@pytest.fixture
+def visibility_uuid() -> UUID:
+    return UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")
 
 
-async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {"uuid": y}
+@pytest.fixture
+def value_string() -> str:
+    return "1234567890"
 
 
-async def test_from_effect():
+async def test_from_effect(value_string):
     # Arrange
 
     effect = {
         "relationer": {
-            "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(VALUE)}]
+            "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value_string)}]
         }
     }
 
@@ -31,48 +35,50 @@ async def test_from_effect():
     actual_value = address_handler.value
 
     # Assert
-    assert VALUE == actual_value
+    assert value_string == actual_value
 
 
-async def test_from_request():
+async def test_from_request(value_string):
     # Arrange
-    request = {"value": VALUE}
+    request = {"value": value_string}
     address_handler = await PNumberAddressHandler.from_request(request)
 
     # Act
     actual_value = address_handler.value
 
     # Assert
-    assert VALUE == actual_value
+    assert value_string == actual_value
 
 
-@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-async def test_get_mo_address():
+async def test_get_mo_address(value_string, visibility_uuid):
+    async def async_facet_get_one_class(x, y, *args, **kwargs):
+        return {"uuid": y}
+
     # Arrange
-    address_handler = PNumberAddressHandler(VALUE, VISIBILITY)
+    address_handler = PNumberAddressHandler(value_string, visibility_uuid)
 
     expected = {
         "href": None,
         "name": "1234567890",
         "value": "1234567890",
         "value2": None,
-        "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
+        "visibility": {"uuid": UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")},
     }
-
-    # Act
-    actual = await address_handler.get_mo_address_and_properties()
+    with patch("mora.service.facet.get_one_class", new=async_facet_get_one_class):
+        # Act
+        actual = await address_handler.get_mo_address_and_properties()
 
     # Assert
     assert expected == actual
 
 
-def test_get_lora_address():
+def test_get_lora_address(value_string):
     # Arrange
-    address_handler = PNumberAddressHandler(VALUE, None)
+    address_handler = PNumberAddressHandler(value_string, None)
 
     expected = {
         "objekttype": "PNUMBER",
-        "urn": "urn:dk:cvr:produktionsenhed:{}".format(VALUE),
+        "urn": "urn:dk:cvr:produktionsenhed:{}".format(value_string),
     }
 
     # Act
