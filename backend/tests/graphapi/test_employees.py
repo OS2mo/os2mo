@@ -152,8 +152,11 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                 response = await self._gql_create_employee(given_name, given_cprno)
                 handle_gql_error(response)
             except Exception as e:
-                if hasattr(e, "key") and hasattr(e.key, "name"):
-                    result = e.key.name
+                result = (
+                    e.key.name
+                    if hasattr(e, "key") and hasattr(e.key, "name")
+                    else result
+                )
 
             # Assert
             mock_create.assert_not_called()
