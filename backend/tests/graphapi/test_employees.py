@@ -22,6 +22,7 @@ from mora.service.util import handle_gql_error
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
+
 # --------------------------------------------------------------------------------------
 # Tests
 # --------------------------------------------------------------------------------------
@@ -111,19 +112,8 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             ):
                 # GraphQL
                 mutation_func = "employee_create"
-                query = (
-                    f"mutation($name: String!, $cpr_no: String!) {{"
-                    f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
-                    f"{{ uuid }}"
-                    f"}}"
-                )
-
-                response = await get_schema().execute(
-                    query,
-                    variable_values={
-                        "name": given_name,
-                        "cpr_no": given_cprno,
-                    },
+                response = await self._gql_create_employee(
+                    given_name, given_cprno, mutation_func=mutation_func
                 )
 
                 # Asserts
@@ -163,7 +153,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
 
             result = None
             try:
-                response = await gql_create_employee(given_name, given_cprno)
+                response = await self._gql_create_employee(given_name, given_cprno)
                 handle_gql_error(response)
             except Exception as e:
                 if hasattr(e, "key") and hasattr(e.key, "name"):
@@ -173,20 +163,20 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             mock_create.assert_not_called()
             assert result == expected_result
 
+    @staticmethod
+    async def _gql_create_employee(name: str, cprno: str, **kwargs) -> ExecutionResult:
+        mutation_func = kwargs.get("mutation_func", "employee_create")
+        query = (
+            f"mutation($name: String!, $cpr_no: String!) {{"
+            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
+            f"{{ uuid }}"
+            f"}}"
+        )
 
-async def gql_create_employee(name: str, cprno: str) -> ExecutionResult:
-    mutation_func = "employee_create"
-    query = (
-        f"mutation($name: String!, $cpr_no: String!) {{"
-        f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
-        f"{{ uuid }}"
-        f"}}"
-    )
-
-    return await get_schema().execute(
-        query,
-        variable_values={
-            "name": name,
-            "cpr_no": cprno,
-        },
-    )
+        return await get_schema().execute(
+            query,
+            variable_values={
+                "name": name,
+                "cpr_no": cprno,
+            },
+        )
