@@ -1,4 +1,4 @@
 Release type: patch
 
-[#5082] Rewrote EAN address handler and made independent test functions. Removed inheritance from
-AddressHandlerTestCase.
+[#52139] Rewrote EmailAddressHandlerTests and made into independent test functions. Removed inheritance from
+AsyncMockRequestContextTestCase.
