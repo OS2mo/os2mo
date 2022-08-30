@@ -99,7 +99,8 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         [
             ("Laura Christensen", "0103882148"),
             ("Jens Jensen", "0103882149"),
-            # empty CPRs are converted to: 0001-01-01 00:00:00+00:00
+            # empty CPRs are converted to: 0001-01-01 00:00:00+00:00 in
+            # current implementation - Because of this, these args will succeed.
             ("Hans Hansen", ""),
         ]
     )
