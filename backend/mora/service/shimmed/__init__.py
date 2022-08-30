@@ -9,6 +9,7 @@
 from . import address
 from . import configuration
 from . import cpr
+from . import details
 from . import employee
 from . import exports
 from . import facet
@@ -31,4 +32,5 @@ __all__ = [
     "it_systems",
     "org",
     "org_unit",
+    "details",
 ]
