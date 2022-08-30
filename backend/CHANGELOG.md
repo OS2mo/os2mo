@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.8.0 - 2022-08-30
+------------------
+
+[#51175] Endpoint "/service/details/terminate" now uses the new ra-data-model "DetailTermination" instead of an anonymous dict.
+
 9.7.5 - 2022-08-30
 ------------------
 
