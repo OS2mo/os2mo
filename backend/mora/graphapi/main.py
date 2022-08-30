@@ -19,11 +19,11 @@ import strawberry
 from fastapi import Depends
 from pydantic import parse_obj_as
 from pydantic import ValidationError
-from strawberry.unset import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 from strawberry.types import Info
+from strawberry.unset import UNSET
 
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
