@@ -2,9 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 
-import tests.cases
+import pytest
+
 from mora import exceptions
-from mora.service.address_handler import email
+from mora.service.address_handler.email import EmailAddressHandler
 from tests import util
 
 
@@ -12,91 +13,92 @@ async def async_facet_get_one_class(x, y, *args, **kwargs):
     return {"uuid": y}
 
 
+VISIBILITY = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+
+VALUE = "mail@mail.dk"
+
+
+async def test_from_effect():
+    # Arrange
+    effect = {"relationer": {"adresser": [{"urn": "urn:mailto:{}".format(VALUE)}]}}
+
+    address_handler = await EmailAddressHandler.from_effect(effect)
+
+    # Act
+    actual_value = address_handler.value
+
+    # Assert
+    assert VALUE == actual_value
+
+
+async def test_from_request():
+    # Arrange
+    request = {"value": VALUE}
+    address_handler = await EmailAddressHandler.from_request(request)
+
+    # Act
+    actual_value = address_handler.value
+
+    # Assert
+    assert VALUE == actual_value
+
+
 @patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class EmailAddressHandlerTests(tests.cases.AsyncMockRequestContextTestCase):
-    handler = email.EmailAddressHandler
-    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = "mail@mail.dk"
+async def test_get_mo_address():
+    # Arrange
+    address_handler = EmailAddressHandler(VALUE, VISIBILITY)
 
-    async def test_from_effect(self):
-        # Arrange
-        value = "mail@mail.dk"
+    expected = {
+        "href": "mailto:mail@mail.dk",
+        "name": "mail@mail.dk",
+        "value": "mail@mail.dk",
+        "value2": None,
+        "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
+    }
 
-        effect = {"relationer": {"adresser": [{"urn": "urn:mailto:{}".format(value)}]}}
+    # Act
+    actual = await address_handler.get_mo_address_and_properties()
 
-        address_handler = await self.handler.from_effect(effect)
+    # Assert
+    assert expected == actual
 
-        # Act
-        actual_value = address_handler.value
 
-        # Assert
-        self.assertEqual(value, actual_value)
+def test_get_lora_address():
+    # Arrange
+    address_handler = EmailAddressHandler(VALUE, None)
 
-    async def test_from_request(self):
-        # Arrange
-        value = "mail@mail.dk"
+    expected = {"objekttype": "EMAIL", "urn": "urn:mailto:{}".format(VALUE)}
 
-        request = {"value": value}
-        address_handler = await self.handler.from_request(request)
+    # Act
+    actual = address_handler.get_lora_address()
 
-        # Act
-        actual_value = address_handler.value
+    # Assert
+    assert expected == actual
 
-        # Assert
-        self.assertEqual(value, actual_value)
 
-    async def test_get_mo_address(self):
-        # Arrange
-        address_handler = self.handler(self.value, self.visibility)
+async def test_fails_on_invalid_value():
+    # Arrange
+    value = "asdasd"  # Not a valid email address
 
-        expected = {
-            "href": "mailto:mail@mail.dk",
-            "name": "mail@mail.dk",
-            "value": "mail@mail.dk",
-            "value2": None,
-            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
-        }
+    # Act & Assert
+    with pytest.raises(exceptions.HTTPException):
+        await EmailAddressHandler.validate_value(value)
 
-        # Act
-        actual = await address_handler.get_mo_address_and_properties()
 
-        # Assert
-        self.assertEqual(expected, actual)
+async def test_validation_succeeds_on_correct_values():
+    # Arrange
+    valid_values = ["test@test.com", "test+hest@test.com", "t.e.s.t@test.com"]
 
-    def test_get_lora_address(self):
-        # Arrange
-        value = "mail@mail.dk"
-        address_handler = self.handler(value, None)
+    # Act & Assert
+    for value in valid_values:
+        # Shouldn't raise exception
+        await EmailAddressHandler.validate_value(value)
 
-        expected = {"objekttype": "EMAIL", "urn": "urn:mailto:{}".format(value)}
 
-        # Act
-        actual = address_handler.get_lora_address()
+async def test_validation_succeeds_with_force():
+    # Arrange
+    value = "GARBAGEGARBAGE"  # Not a valid email address
 
-        # Assert
-        self.assertEqual(expected, actual)
-
-    async def test_fails_on_invalid_value(self):
-        # Arrange
-        value = "asdasd"  # Not a valid email address
-
-        # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
-            await self.handler.validate_value(value)
-
-    async def test_validation_succeeds_on_correct_values(self):
-        # Arrange
-        valid_values = ["test@test.com", "test+hest@test.com", "t.e.s.t@test.com"]
-
-        # Act & Assert
-        for value in valid_values:
-            # Shouldn't raise exception
-            await self.handler.validate_value(value)
-
-    async def test_validation_succeeds_with_force(self):
-        # Arrange
-        value = "GARBAGEGARBAGE"  # Not a valid email address
-
-        # Act & Assert
-        with util.patch_query_args({"force": "1"}):
-            await self.handler.validate_value(value)
+    # Act & Assert
+    with util.patch_query_args({"force": "1"}):
+        await EmailAddressHandler.validate_value(value)
