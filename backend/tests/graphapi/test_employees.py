@@ -144,11 +144,6 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         ]
     )
     async def test_fails(self, given_name, given_cprno, expected_result):
-        """
-        NOTE: an empty CPR="", is converted into: 0001-01-01 00:00:00+00:00, by our
-        existing logic.
-        """
-
         with patch("mora.lora.Scope.create") as mock_create:
             mock_create.side_effect = lambda *args: args[-1]
 
