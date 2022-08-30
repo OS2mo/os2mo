@@ -2,110 +2,110 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 
-import tests.cases
+import pytest
+
 from mora import exceptions
-from mora.service.address_handler import pnumber
+from mora.service.address_handler.pnumber import PNumberAddressHandler
 from tests import util
+
+VISIBILITY = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+VALUE = "1234567890"
 
 
 async def async_facet_get_one_class(x, y, *args, **kwargs):
     return {"uuid": y}
 
 
+async def test_from_effect():
+    # Arrange
+
+    effect = {
+        "relationer": {
+            "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(VALUE)}]
+        }
+    }
+
+    address_handler = await PNumberAddressHandler.from_effect(effect)
+
+    # Act
+    actual_value = address_handler.value
+
+    # Assert
+    assert VALUE == actual_value
+
+
+async def test_from_request():
+    # Arrange
+    request = {"value": VALUE}
+    address_handler = await PNumberAddressHandler.from_request(request)
+
+    # Act
+    actual_value = address_handler.value
+
+    # Assert
+    assert VALUE == actual_value
+
+
 @patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class PNumberAddressHandlerTests(tests.cases.AsyncMockRequestContextTestCase):
-    handler = pnumber.PNumberAddressHandler
-    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = "1234567890"
+async def test_get_mo_address():
+    # Arrange
+    address_handler = PNumberAddressHandler(VALUE, VISIBILITY)
 
-    async def test_from_effect(self):
-        # Arrange
-        value = "1234567890"
+    expected = {
+        "href": None,
+        "name": "1234567890",
+        "value": "1234567890",
+        "value2": None,
+        "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
+    }
 
-        effect = {
-            "relationer": {
-                "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value)}]
-            }
-        }
+    # Act
+    actual = await address_handler.get_mo_address_and_properties()
 
-        address_handler = await self.handler.from_effect(effect)
+    # Assert
+    assert expected == actual
 
-        # Act
-        actual_value = address_handler.value
 
-        # Assert
-        self.assertEqual(value, actual_value)
+def test_get_lora_address():
+    # Arrange
+    address_handler = PNumberAddressHandler(VALUE, None)
 
-    async def test_from_request(self):
-        # Arrange
-        value = "1234567890"
+    expected = {
+        "objekttype": "PNUMBER",
+        "urn": "urn:dk:cvr:produktionsenhed:{}".format(VALUE),
+    }
 
-        request = {"value": value}
-        address_handler = await self.handler.from_request(request)
+    # Act
+    actual = address_handler.get_lora_address()
 
-        # Act
-        actual_value = address_handler.value
+    # Assert
+    assert expected == actual
 
-        # Assert
-        self.assertEqual(value, actual_value)
 
-    async def test_get_mo_address(self):
-        # Arrange
-        value = "1234567890"
-        address_handler = self.handler(value, self.visibility)
+async def test_fails_on_invalid_value():
+    # Arrange
+    invalid_values = ["1234", "12341234123412341234"]  # Not a valid P-number
 
-        expected = {
-            "href": None,
-            "name": "1234567890",
-            "value": "1234567890",
-            "value2": None,
-            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
-        }
+    # Act & Assert
+    for value in invalid_values:
+        with pytest.raises(exceptions.HTTPException):
+            await PNumberAddressHandler.validate_value(value)
 
-        # Act
-        actual = await address_handler.get_mo_address_and_properties()
 
-        # Assert
-        self.assertEqual(expected, actual)
+async def test_validation_succeeds_on_correct_values():
+    # Arrange
+    valid_values = ["1234123412"]
 
-    def test_get_lora_address(self):
-        # Arrange
-        value = "1234567890"
-        address_handler = self.handler(value, None)
+    # Act & Assert
+    for value in valid_values:
+        # Shouldn't raise exception
+        await PNumberAddressHandler.validate_value(value)
 
-        expected = {
-            "objekttype": "PNUMBER",
-            "urn": "urn:dk:cvr:produktionsenhed:{}".format(value),
-        }
 
-        # Act
-        actual = address_handler.get_lora_address()
+async def test_validation_succeeds_with_force():
+    # Arrange
+    value = "GARBAGEGARBAGE"  # Not a valid P-number
 
-        # Assert
-        self.assertEqual(expected, actual)
-
-    async def test_fails_on_invalid_value(self):
-        # Arrange
-        invalid_values = ["1234", "12341234123412341234"]  # Not a valid P-number
-
-        # Act & Assert
-        for value in invalid_values:
-            with self.assertRaises(exceptions.HTTPException):
-                await self.handler.validate_value(value)
-
-    async def test_validation_succeeds_on_correct_values(self):
-        # Arrange
-        valid_values = ["1234123412"]
-
-        # Act & Assert
-        for value in valid_values:
-            # Shouldn't raise exception
-            await self.handler.validate_value(value)
-
-    async def test_validation_succeeds_with_force(self):
-        # Arrange
-        value = "GARBAGEGARBAGE"  # Not a valid P-number
-
-        # Act & Assert
-        with util.patch_query_args({"force": "1"}):
-            await self.handler.validate_value(value)
+    # Act & Assert
+    with util.patch_query_args({"force": "1"}):
+        await PNumberAddressHandler.validate_value(value)
