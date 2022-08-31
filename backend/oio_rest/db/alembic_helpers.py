@@ -18,16 +18,24 @@ def get_alembic_cfg() -> Config:
     return alembic_cfg
 
 
-def is_schema_installed() -> bool:
-    "Return True if LoRa database schema is already installed"
-    query_schema_installed = "select 1 from actual_state.bruger limit 1"
+def _test_query(sql_query: str) -> bool:
     with get_connection() as connection, connection.cursor() as cursor:
         try:
-            cursor.execute(query_schema_installed)
+            cursor.execute(sql_query)
         except UndefinedTable:
             return False
         else:
             return True
+
+
+def is_schema_installed() -> bool:
+    "Return True if LoRa database schema is already installed"
+    return _test_query("select 1 from actual_state.bruger limit 1")
+
+
+def is_alembic_installed() -> bool:
+    "Return True if Alembic migration table is installed in database"
+    return _test_query("select 1 from alembic_version")
 
 
 def get_prerequisites(
