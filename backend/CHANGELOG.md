@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.8.1 - 2022-08-31
+------------------
+
+[#51935] Run Alembic migrations for `mox` database on MO container startup
+
 9.8.0 - 2022-08-30
 ------------------
 
