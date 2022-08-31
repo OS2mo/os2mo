@@ -17,6 +17,7 @@ from typing import Tuple
 from uuid import UUID
 from uuid import uuid4
 
+from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
@@ -267,7 +268,7 @@ class Visibility(MORef):
     pass
 
 
-class TestValidity(RABase):
+class TestValidity(BaseModel):
     from_date: Optional[datetime] = Field(
         alias="from", description="Start date of the validity."
     )
