@@ -8,6 +8,7 @@ import psycopg2
 
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
+from oio_rest.db.alembic_helpers import is_alembic_installed
 from oio_rest.db.alembic_helpers import is_schema_installed
 from oio_rest.db.alembic_helpers import setup_database
 from oio_rest.db.alembic_helpers import stamp_database
@@ -64,8 +65,12 @@ def initdb(wait):
 
     if is_schema_installed():
         click.echo("Detected existing LoRa database")
-        stamp_database()
-        click.echo("Stamped existing LoRa database")
+        # A "legacy" database without Alembic migrations is "stamped", meaning a "fake"
+        # Alembic migration is installed, setting its migration level to 'initial'.
+        if not is_alembic_installed():
+            stamp_database()
+            click.echo("Stamped existing LoRa database")
+        # Apply Alembic migrations (= upgrade to latest migration)
         setup_database()
         click.echo("Upgraded LoRa database schema")
     else:
