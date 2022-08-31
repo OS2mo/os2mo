@@ -16,6 +16,7 @@ import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import exceptions
+from mora import mapping
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
 from mora.service.util import handle_gql_error
@@ -137,40 +138,69 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             (
                 "Laura Christensen",
                 "0000000000",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
                 exceptions.ErrorCodes.V_CPR_NOT_VALID.name,
             ),
-            ("", "0000000000", exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name),
-            ("", "", exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name),
+            (
+                "Laura Christensen",
+                "0101701234",
+                "00000000-0000-0000-0000-000000000000",
+                exceptions.ErrorCodes.E_ORG_UNCONFIGURED.name,
+            ),
+            (
+                "",
+                "0000000000",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name,
+            ),
+            (
+                "",
+                "",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name,
+            ),
         ]
     )
-    async def test_fails(self, given_name, given_cprno, expected_result):
-        # with patch("mora.service.org.get_configured_organisation") as gc_org:
-        #     gc_org.return_value = {"uuid": None}
+    async def test_fails(
+        self, given_name, given_cprno, given_org_uuid, expected_result
+    ):
+        with patch("mora.service.org.get_valid_organisations") as mock_get_valid_orgs:
+            mock_get_valid_orgs.return_value = (
+                [{mapping.UUID: given_org_uuid}]
+                if given_org_uuid != "00000000-0000-0000-0000-000000000000"
+                else []
+            )
 
-        with patch("mora.lora.Scope.create") as mock_create:
-            mock_create.side_effect = lambda *args: args[-1]
+            with patch("mora.lora.Scope.create") as mock_create:
+                mock_create.side_effect = lambda *args: args[-1]
 
-            result = None
-            try:
-                response = await self._gql_create_employee(given_name, given_cprno)
-                handle_gql_error(response)
-            except Exception as e:
-                result = (
-                    e.key.name
-                    if hasattr(e, "key") and hasattr(e.key, "name")
-                    else result
-                )
+                result = None
+                try:
+                    response = await self._gql_create_employee(
+                        given_name,
+                        given_cprno,
+                        given_org_uuid,
+                    )
+                    handle_gql_error(response)
+                except Exception as e:
+                    result = (
+                        e.key.name
+                        if hasattr(e, "key") and hasattr(e.key, "name")
+                        else result
+                    )
 
-            # Assert
-            mock_create.assert_not_called()
-            assert result == expected_result
+                # Assert
+                mock_create.assert_not_called()
+                assert result == expected_result
 
     @staticmethod
-    async def _gql_create_employee(name: str, cprno: str, **kwargs) -> ExecutionResult:
+    async def _gql_create_employee(
+        name: str, cprno: str, org_uuid: str, **kwargs
+    ) -> ExecutionResult:
         mutation_func = kwargs.get("mutation_func", "employee_create")
         query = (
-            f"mutation($name: String!, $cpr_no: String!) {{"
-            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no}}) "
+            f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
+            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
             f"{{ uuid }}"
             f"}}"
         )
@@ -180,5 +210,6 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             variable_values={
                 "name": name,
                 "cpr_no": cprno,
+                "org": {mapping.UUID: org_uuid},
             },
         )

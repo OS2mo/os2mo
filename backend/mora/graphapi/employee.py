@@ -15,12 +15,11 @@ from mora.service.employee import EmployeeRequestHandler
 
 
 async def create(ec: EmployeeCreate) -> EmployeeType:
+    # Convert data model to dict to fit into existing logic
     req_dict = ec.dict(by_alias=True)
     req_dict[mapping.ORG][mapping.UUID] = str(req_dict[mapping.ORG][mapping.UUID])
-    # req_dict[mapping.ORG] = {
-    #     mapping.UUID: str(req_dict[mapping.ORG])
-    # }
 
+    # Copied service-logic
     request = await EmployeeRequestHandler.construct(
         req_dict, mapping.RequestType.CREATE
     )
