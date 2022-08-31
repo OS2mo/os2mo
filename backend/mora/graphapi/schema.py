@@ -662,7 +662,7 @@ class ITUser:
         self, root: ITUserRead, info: Info
     ) -> list["ITSystem"]:
         loader: DataLoader = info.context["itsystem_loader"]
-        return (await loader.load(root.itsystem_uuid)).objects
+        return await loader.load(root.itsystem_uuid)
 
 
 # KLE
