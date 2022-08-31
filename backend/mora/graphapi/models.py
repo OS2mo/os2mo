@@ -357,10 +357,10 @@ class TestModel(Triggerless):
     )
 
     from_date: Optional[datetime.datetime] = Field(
-        alias="from", description="Start date of the validity."
+        description="Start date of the validity."
     )
     to_date: Optional[datetime.datetime] = Field(
-        alias="to", description="End date of the validity, if applicable."
+        description="End date of the validity, if applicable."
     )
 
     class Config:
