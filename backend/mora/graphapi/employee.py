@@ -15,8 +15,14 @@ from mora.service.employee import EmployeeRequestHandler
 
 
 async def create(ec: EmployeeCreate) -> EmployeeType:
+    req_dict = ec.dict(by_alias=True)
+    req_dict[mapping.ORG][mapping.UUID] = str(req_dict[mapping.ORG][mapping.UUID])
+    # req_dict[mapping.ORG] = {
+    #     mapping.UUID: str(req_dict[mapping.ORG])
+    # }
+
     request = await EmployeeRequestHandler.construct(
-        ec.dict(), mapping.RequestType.CREATE
+        req_dict, mapping.RequestType.CREATE
     )
     uuid = await request.submit()
 

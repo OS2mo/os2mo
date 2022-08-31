@@ -11,6 +11,7 @@ import strawberry
 from .models import AddressTerminate
 from .models import EmployeeCreate
 from .models import EngagementTerminate
+from .models import Organisation
 from .models import OrganisationUnitTerminate
 
 
@@ -20,6 +21,16 @@ from .models import OrganisationUnitTerminate
 )
 class AddressTerminateInput:
     """input model for terminating addresses."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=Organisation,
+    all_fields=True,
+)
+class OrganizationInput:
+    """input model for terminating organizations units."""
 
     pass
 

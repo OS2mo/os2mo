@@ -225,6 +225,12 @@ class EngagementTrigger(OrgFuncTrigger):
     pass
 
 
+class Organisation(UUIDBase):
+    """Model representing an Organization."""
+
+    pass
+
+
 class OrganisationUnit(UUIDBase):
     """Model representing a Organization-Unit."""
 
@@ -334,3 +340,10 @@ class EmployeeCreate(BaseModel):
     name: str = Field(description="Full name of the employee.")
 
     cpr_no: str = Field(description="Danish CPR number of the employee.")
+
+    # org_uuid: UUID = Field(
+    #     description="UUID for the organization the employee should be created under."
+    # )
+    org: Organisation = Field(
+        description="The organization the new employee will be created under."
+    )

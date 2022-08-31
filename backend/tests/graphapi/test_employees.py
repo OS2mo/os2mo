@@ -144,26 +144,26 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         ]
     )
     async def test_fails(self, given_name, given_cprno, expected_result):
-        with patch("mora.service.org.get_configured_organisation") as gc_org:
-            gc_org.return_value = {"uuid": None}
+        # with patch("mora.service.org.get_configured_organisation") as gc_org:
+        #     gc_org.return_value = {"uuid": None}
 
-            with patch("mora.lora.Scope.create") as mock_create:
-                mock_create.side_effect = lambda *args: args[-1]
+        with patch("mora.lora.Scope.create") as mock_create:
+            mock_create.side_effect = lambda *args: args[-1]
 
-                result = None
-                try:
-                    response = await self._gql_create_employee(given_name, given_cprno)
-                    handle_gql_error(response)
-                except Exception as e:
-                    result = (
-                        e.key.name
-                        if hasattr(e, "key") and hasattr(e.key, "name")
-                        else result
-                    )
+            result = None
+            try:
+                response = await self._gql_create_employee(given_name, given_cprno)
+                handle_gql_error(response)
+            except Exception as e:
+                result = (
+                    e.key.name
+                    if hasattr(e, "key") and hasattr(e.key, "name")
+                    else result
+                )
 
-                # Assert
-                mock_create.assert_not_called()
-                assert result == expected_result
+            # Assert
+            mock_create.assert_not_called()
+            assert result == expected_result
 
     @staticmethod
     async def _gql_create_employee(name: str, cprno: str, **kwargs) -> ExecutionResult:
