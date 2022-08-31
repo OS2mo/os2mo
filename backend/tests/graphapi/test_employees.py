@@ -5,7 +5,6 @@
 # --------------------------------------------------------------------------------------
 from uuid import uuid4
 
-from graphql import ExecutionResult
 from hypothesis import given
 from mock import patch
 from mock.mock import AsyncMock
@@ -114,9 +113,83 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             (None, "0103882148", None, False),
             (None, None, "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
             (None, None, None, False),
+            ("Laura Christensen", None, "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
+            ("Laura Christensen", "0103882148", None, False),
         ]
     )
     async def test_mutator(
+        self, given_name, given_cprno, given_org_uuid, expected_result
+    ):
+        with patch("mora.service.handlers.RequestHandler.construct") as mock_construct:
+            mock_new_uuid = str(uuid4())
+            mock_submit = AsyncMock(return_value=mock_new_uuid)
+            mock_construct.return_value = AsyncMock(submit=mock_submit)
+
+            # GraphQL
+            mutation_func = "employee_create"
+            query = (
+                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
+                f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
+                f"{{ uuid }}"
+                f"}}"
+            )
+
+            var_values = {}
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_cprno:
+                var_values["cpr_no"] = given_cprno
+
+            if given_org_uuid:
+                var_values["org"] = {mapping.UUID: given_org_uuid}
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            # Asserts
+            if expected_result:
+                mock_construct.assert_called()
+                mock_submit.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    mock_new_uuid,
+                )
+            else:
+                mock_construct.assert_not_called()
+                mock_submit.assert_not_called()
+
+    @parameterized.expand(
+        [
+            # Empty values
+            (
+                "Laura Christensen",
+                "0103882148",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                True,
+            ),
+            ("Laura Christensen", "", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
+            ("Laura Christensen", "0103882148", "", False),
+            ("Laura Christensen", "", "", False),
+            ("", "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
+            ("", "", "", False),
+            # Formats
+            (
+                "Laura Christensen",
+                "0000000000",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                True,
+            ),
+            (
+                "Laura Christensen",
+                "0103882148",
+                "00000000-0000-0000-0000-000000000000",
+                True,
+            ),
+            ("Laura", "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", True),
+        ]
+    )
+    async def test_pydantic_dataclass(
         self, given_name, given_cprno, given_org_uuid, expected_result
     ):
         with patch("mora.service.handlers.RequestHandler.construct") as mock_construct:
@@ -201,10 +274,19 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
 
                 result = None
                 try:
-                    response = await self._gql_create_employee(
-                        given_name,
-                        given_cprno,
-                        given_org_uuid,
+                    query = (
+                        "mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {"
+                        "employee_create(input: {name: $name, cpr_no: $cpr_no, org: $org}) "
+                        "{ uuid }"
+                        "}"
+                    )
+                    response = await get_schema().execute(
+                        query,
+                        variable_values={
+                            "name": given_name,
+                            "cpr_no": given_cprno,
+                            "org": {mapping.UUID: given_org_uuid},
+                        },
                     )
                     handle_gql_error(response)
                 except Exception as e:
@@ -217,24 +299,3 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                 # Assert
                 mock_create.assert_not_called()
                 assert result == expected_result
-
-    @staticmethod
-    async def _gql_create_employee(
-        name: str, cprno: str, org_uuid: str, **kwargs
-    ) -> ExecutionResult:
-        mutation_func = kwargs.get("mutation_func", "employee_create")
-        query = (
-            f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
-            f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
-            f"{{ uuid }}"
-            f"}}"
-        )
-
-        return await get_schema().execute(
-            query,
-            variable_values={
-                "name": name,
-                "cpr_no": cprno,
-                "org": {mapping.UUID: org_uuid},
-            },
-        )
