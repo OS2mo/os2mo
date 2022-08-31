@@ -13,7 +13,7 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from mora.graphapi.address import terminate_addr
+from mora.graphapi.address import terminate_addr_test
 from mora.graphapi.employee import create as employee_create
 from mora.graphapi.engagements import terminate_engagement
 from mora.graphapi.inputs import AddressTerminateInput
@@ -71,11 +71,13 @@ class Mutation:
     ) -> AddressTerminateType:
         pydantic_model = at.to_pydantic()
         tst_model = TestModel(
+            uuid=pydantic_model.uuid,
             from_date=pydantic_model.from_date,
             to_date=pydantic_model.to_date,
         )
 
-        return await terminate_addr(pydantic_model, tst_model)
+        return await terminate_addr_test(tst_model)
+        # return await terminate_addr(pydantic_model, tst_model)
         # return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(description="Terminates an address by UUID")

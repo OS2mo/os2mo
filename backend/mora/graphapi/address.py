@@ -19,6 +19,10 @@ from mora.graphapi.types import AddressTerminateType
 from mora.triggers import Trigger
 
 
+async def terminate_addr_test(test_model: TestModel) -> AddressTerminateType:
+    return AddressTerminateType(uuid=test_model.uuid)
+
+
 async def terminate_addr(
     address_terminate: AddressTerminate, test_model: TestModel
 ) -> AddressTerminateType:
