@@ -12,16 +12,19 @@ import typing
 from enum import Enum
 from typing import Optional
 from uuid import UUID
+from uuid import uuid4
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import validator
 
 from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
+from ramodels.base import tz_isodate
 from ramodels.mo import OpenValidity
 from ramodels.mo._shared import UUIDBase
 
@@ -368,3 +371,20 @@ class TestModel(BaseModel):
         json_encoders = {
             datetime.datetime: lambda v: v.isoformat(),
         }
+
+    # Autogenerate UUID if necessary
+    @validator("uuid", pre=True, always=True)
+    def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
+        return _uuid or uuid4()
+
+    @validator("from_date", pre=True, always=True)
+    def parse_from_date(
+        cls, from_date: Optional[typing.Any]
+    ) -> Optional[datetime.datetime]:
+        return tz_isodate(from_date) if from_date is not None else None
+
+    @validator("to_date", pre=True, always=True)
+    def parse_to_date(
+        cls, to_date: Optional[typing.Any]
+    ) -> Optional[datetime.datetime]:
+        return tz_isodate(to_date) if to_date is not None else None
