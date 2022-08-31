@@ -270,8 +270,9 @@ class EngagementTerminate(EngagementModel, Validity, Triggerless):
             "note": "Afsluttet",
         }
 
-    def get_engagement_trigger(self) -> EngagementTrigger:
+    def get_engagement_trigger(self, **kwargs: dict) -> EngagementTrigger:
         return EngagementTrigger(
+            employee_id=kwargs.get("employee_id", None),
             role_type=mapping.ENGAGEMENT,
             event_type=mapping.EventType.ON_BEFORE,
             uuid=self.uuid,
@@ -300,8 +301,9 @@ class Address(UUIDBase):
 class AddressTerminate(Address, Validity, Triggerless):
     """Model representing an address-termination."""
 
-    def get_address_trigger(self) -> AddressTrigger:
+    def get_address_trigger(self, **kwargs: dict) -> AddressTrigger:
         return AddressTrigger(
+            employee_id=kwargs.get("employee_id", None),
             org_unit_uuid=self.uuid,
             request_type=mapping.RequestType.TERMINATE,
             request=MoraTriggerRequest(

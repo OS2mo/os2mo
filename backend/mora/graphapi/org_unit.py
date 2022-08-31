@@ -155,6 +155,7 @@ async def terminate_org_unit(
 
     # Create payload to LoRa
     org_unit_trigger = OrgUnitTrigger(
+        employee_id=None,
         org_unit_uuid=ou_terminate.uuid,
         request_type=mapping.RequestType.TERMINATE,
         request=MoraTriggerRequest(
