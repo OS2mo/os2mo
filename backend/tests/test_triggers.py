@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import pytest
 
 import tests.cases
 from mora.exceptions import HTTPException
@@ -26,173 +27,6 @@ class MockHandler(RequestHandler):
 
     async def submit(self):
         await super().submit()
-
-
-class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
-    maxDiff = None
-
-    def tearDown(self):
-        del Trigger.registry["mock"]
-        super().tearDown()
-
-    def setUp(self):
-        if "mock" in Trigger.registry:
-            self.fail(
-                "No role_type named 'mock' allowed in "
-                "Trigger.registry outside this test"
-            )
-        super().setUp()
-
-    async def test_handler_trigger_any_exception(self):
-        @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            raise Exception("Bummer")
-
-        with self.assertRaises(HTTPException) as err:
-            await MockHandler.construct({}, RequestType.EDIT)
-        self.assertEqual(
-            {
-                "description": "Bummer",
-                "error": True,
-                "error_key": "E_INTEGRATION_ERROR",
-                "status": 400,
-            },
-            err.exception.detail,
-        )
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_own_error(self):
-        @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            raise Trigger.Error("Bummer", stage="final")
-
-        with self.assertRaises(HTTPException) as ctxt:
-            await MockHandler.construct({}, RequestType.EDIT)
-        self.assertEqual(
-            {
-                "error": True,
-                "error_key": "E_INTEGRATION_ERROR",
-                "stage": "final",
-                "description": "Bummer",
-                "status": 400,
-            },
-            ctxt.exception.detail,
-        )
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_before_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_BEFORE,
-                    "request": {},
-                    "request_type": RequestType.EDIT,
-                    "role_type": "mock",
-                    "uuid": "edit",
-                },
-                trigger_dict,
-            )
-
-        await MockHandler.construct({}, RequestType.EDIT)
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_after_edit(self):
-        @Trigger.on("mock", RequestType.EDIT, EventType.ON_AFTER)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_AFTER,
-                    "request": {},
-                    "request_type": RequestType.EDIT,
-                    "role_type": "mock",
-                    "uuid": "edit",
-                    "result": "okidoki",
-                },
-                trigger_dict,
-            )
-
-        await (await MockHandler.construct({}, RequestType.EDIT)).submit()
-
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_before_create(self):
-        @Trigger.on("mock", RequestType.CREATE, EventType.ON_BEFORE)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_BEFORE,
-                    "request": {},
-                    "request_type": RequestType.CREATE,
-                    "role_type": "mock",
-                    "uuid": "create",
-                },
-                trigger_dict,
-            )
-
-        await MockHandler.construct({}, RequestType.CREATE)
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_after_create(self):
-        @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_AFTER,
-                    "request": {},
-                    "request_type": RequestType.CREATE,
-                    "uuid": "create",
-                    "role_type": "mock",
-                    "result": "okidoki",
-                },
-                trigger_dict,
-            )
-
-        await (await MockHandler.construct({}, RequestType.CREATE)).submit()
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_before_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_BEFORE)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_BEFORE,
-                    "request": {},
-                    "request_type": RequestType.TERMINATE,
-                    "role_type": "mock",
-                    "uuid": "terminate",
-                },
-                trigger_dict,
-            )
-
-        await MockHandler.construct({}, RequestType.TERMINATE)
-        self.assertTrue(self.trigger_called)
-
-    async def test_handler_trigger_after_terminate(self):
-        @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_AFTER)
-        async def trigger(trigger_dict):
-            self.trigger_called = True
-            self.assertEqual(
-                {
-                    "event_type": EventType.ON_AFTER,
-                    "request": {},
-                    "request_type": RequestType.TERMINATE,
-                    "uuid": "terminate",
-                    "role_type": "mock",
-                    "result": "okidoki",
-                },
-                trigger_dict,
-            )
-
-        await (await MockHandler.construct({}, RequestType.TERMINATE)).submit()
-        self.assertTrue(self.trigger_called)
 
 
 @sample_structures_cls_fixture
@@ -238,3 +72,137 @@ class TriggerlessTests(tests.cases.LoRATestCase):
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
         self.assertTrue(self.trigger_called)
+
+
+async def test_handler_trigger_any_exception():
+    @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            raise Exception("Bummer")
+
+    with pytest.raises(HTTPException) as err:
+        await MockHandler.construct({}, RequestType.EDIT)
+    assert err.value.detail == {
+        "description": "Bummer",
+        "error": True,
+        "error_key": "E_INTEGRATION_ERROR",
+        "status": 400,
+    }
+
+
+async def test_handler_trigger_own_error():
+    @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            raise Trigger.Error("Bummer", stage="final")
+
+    with pytest.raises(HTTPException) as ctxt:
+        await MockHandler.construct({}, RequestType.EDIT)
+    assert ctxt.value.detail == {
+        "error": True,
+        "error_key": "E_INTEGRATION_ERROR",
+        "stage": "final",
+        "description": "Bummer",
+        "status": 400,
+    }
+
+
+async def test_handler_trigger_before_edit():
+    @Trigger.on("mock", RequestType.EDIT, EventType.ON_BEFORE)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_BEFORE,
+                "request": {},
+                "request_type": RequestType.EDIT,
+                "role_type": "mock",
+                "uuid": "edit",
+            }
+
+    await MockHandler.construct({}, RequestType.EDIT)
+
+
+async def test_handler_trigger_after_edit():
+    @Trigger.on("mock", RequestType.EDIT, EventType.ON_AFTER)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_AFTER,
+                "request": {},
+                "request_type": RequestType.EDIT,
+                "role_type": "mock",
+                "uuid": "edit",
+                "result": "okidoki",
+            }
+
+    await (await MockHandler.construct({}, RequestType.EDIT)).submit()
+
+
+async def test_handler_trigger_before_create():
+    @Trigger.on("mock", RequestType.CREATE, EventType.ON_BEFORE)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_BEFORE,
+                "request": {},
+                "request_type": RequestType.CREATE,
+                "role_type": "mock",
+                "uuid": "create",
+            }
+
+    await MockHandler.construct({}, RequestType.CREATE)
+
+
+async def test_handler_trigger_after_create():
+    @Trigger.on("mock", RequestType.CREATE, EventType.ON_AFTER)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_AFTER,
+                "request": {},
+                "request_type": RequestType.CREATE,
+                "uuid": "create",
+                "role_type": "mock",
+                "result": "okidoki",
+            }
+
+    await (await MockHandler.construct({}, RequestType.CREATE)).submit()
+
+
+async def test_handler_trigger_before_terminate():
+    @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_BEFORE)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_BEFORE,
+                "request": {},
+                "request_type": RequestType.TERMINATE,
+                "role_type": "mock",
+                "uuid": "terminate",
+            }
+
+    await MockHandler.construct({}, RequestType.TERMINATE)
+
+
+async def test_handler_trigger_after_terminate():
+    @Trigger.on("mock", RequestType.TERMINATE, EventType.ON_AFTER)
+    async def trigger(trigger_dict):
+        trigger_called = True
+        if trigger_called:
+            assert trigger_dict == {
+                "event_type": EventType.ON_AFTER,
+                "request": {},
+                "request_type": RequestType.TERMINATE,
+                "uuid": "terminate",
+                "role_type": "mock",
+                "result": "okidoki",
+            }
+
+    await (await MockHandler.construct({}, RequestType.TERMINATE)).submit()
