@@ -8,6 +8,7 @@ from uuid import UUID
 from graphql import ExecutionResult
 from hypothesis import given
 from mock import patch
+from more_itertools import one
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
@@ -18,7 +19,6 @@ from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
-from mora.service.util import handle_gql_error
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
@@ -150,9 +150,12 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             result = None
             try:
                 response = await self._gql_create_employee(given_name, given_cprno)
-                handle_gql_error(response)
+                if response.errors:
+                    error = one(response.errors)
+                    if error.original_error:
+                        raise error.original_error
+                    raise ValueError(error)
             except Exception as e:
-                raise e
                 result = (
                     e.key.name
                     if hasattr(e, "key") and hasattr(e.key, "name")
