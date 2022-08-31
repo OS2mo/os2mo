@@ -25,7 +25,7 @@ from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.base import tz_isodate
-from ramodels.mo._shared import TestValidity
+from ramodels.mo import OpenValidity
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -66,8 +66,7 @@ class ConfigurationRead(BaseModel):
     key: str = Field(description="Settings key.")
 
 
-# class Validity(OpenValidity):
-class Validity(TestValidity):
+class Validity(OpenValidity):
     """Model representing an entities validity range."""
 
     class Config:
