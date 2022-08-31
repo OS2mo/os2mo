@@ -3,11 +3,12 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import UUID
+from uuid import uuid4
 
 from graphql import ExecutionResult
 from hypothesis import given
 from mock import patch
+from mock.mock import AsyncMock
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
@@ -22,7 +23,6 @@ from mora.graphapi.shim import flatten_data
 from mora.service.util import handle_gql_error
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
-
 
 # --------------------------------------------------------------------------------------
 # Tests
@@ -98,40 +98,65 @@ class TestEmployeesQuery:
 class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
     @parameterized.expand(
         [
-            ("Laura Christensen", "0103882148"),
-            ("Jens Jensen", "0103882149"),
-            # empty CPRs are converted to: 0001-01-01 00:00:00+00:00 in
-            # current implementation - Because of this, these args will succeed.
-            ("Hans Hansen", ""),
+            (
+                "Laura Christensen",
+                "0103882148",
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                True,
+            ),
+            (
+                "Laura Christensen",
+                "0000000000",
+                "00000000-0000-0000-0000-000000000000",
+                True,
+            ),
+            (None, "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
+            (None, "0103882148", None, False),
+            (None, None, "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
+            (None, None, None, False),
         ]
     )
-    async def _test_success(self, given_name, given_cprno):
-        with patch("mora.lora.Scope.create") as mock_create:
-            mock_create.side_effect = lambda *args: args[-1]
+    async def test_mutator(
+        self, given_name, given_cprno, given_org_uuid, expected_result
+    ):
+        with patch("mora.service.handlers.RequestHandler.construct") as mock_construct:
+            mock_new_uuid = str(uuid4())
+            mock_submit = AsyncMock(return_value=mock_new_uuid)
+            mock_construct.return_value = AsyncMock(submit=mock_submit)
 
-            with patch(
-                "mora.service.employee.validator.does_employee_with_cpr_already_exist"
-            ):
-                # GraphQL
-                mutation_func = "employee_create"
-                response = await self._gql_create_employee(
-                    given_name, given_cprno, mutation_func=mutation_func
+            # GraphQL
+            mutation_func = "employee_create"
+            query = (
+                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
+                f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
+                f"{{ uuid }}"
+                f"}}"
+            )
+
+            var_values = {}
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_cprno:
+                var_values["cpr_no"] = given_cprno
+
+            if given_org_uuid:
+                var_values["org"] = {mapping.UUID: given_org_uuid}
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            # Asserts
+            if expected_result:
+                mock_construct.assert_called()
+                mock_submit.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    mock_new_uuid,
                 )
-
-                # Asserts
-                mock_create.assert_called()
-                assert not response.errors
-                assert response.data
-
-                uuid = None
-                try:
-                    # Verify the returned UUID can be parsed
-                    uuid = UUID(response.data.get(mutation_func, {}).get("uuid", ""))
-                except Exception:
-                    uuid = uuid
-
-                assert uuid
-                assert len(str(uuid)) > 0
+            else:
+                mock_construct.assert_not_called()
+                mock_submit.assert_not_called()
 
     @parameterized.expand(
         [
