@@ -329,9 +329,6 @@ class AddressTerminate(Address, Validity, Triggerless):
             "note": "Afsluttet",
         }
 
-    class Config:
-        allow_population_by_field_name = True
-
 
 class Employee(UUIDBase):
     """OS2Mo employee model."""
@@ -352,3 +349,18 @@ class EmployeeCreate(BaseModel):
     org: Organisation = Field(
         description="The organization the new employee will be created under."
     )
+
+
+class TestModel(BaseModel):
+    from_date: Optional[datetime.datetime] = Field(
+        alias="from", description="Start date of the validity."
+    )
+    to_date: Optional[datetime.datetime] = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )
+
+    class Config:
+        allow_population_by_field_name = True
+        json_encoders = {
+            datetime.datetime: lambda v: v.isoformat(),
+        }

@@ -22,6 +22,7 @@ from mora.graphapi.inputs import EngagementTerminateInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
+from mora.graphapi.models import TestModel
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
@@ -68,7 +69,14 @@ class Mutation:
     async def address_terminate(
         self, at: AddressTerminateInput
     ) -> AddressTerminateType:
-        return await terminate_addr(at.to_pydantic())
+        pydantic_model = at.to_pydantic()
+        tst_model = TestModel(
+            from_date=pydantic_model.from_date,
+            to_date=pydantic_model.to_date,
+        )
+
+        return await terminate_addr(pydantic_model, tst_model)
+        # return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(description="Terminates an address by UUID")
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
