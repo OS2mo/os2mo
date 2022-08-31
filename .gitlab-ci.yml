@@ -193,8 +193,8 @@ Pre-commit:
   script:
     - pre-commit run --all-files
   variables:
-    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
-    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
+    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip-busted
+    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit-busted
   cache:
     paths:
       - ${PIP_CACHE_DIR}
