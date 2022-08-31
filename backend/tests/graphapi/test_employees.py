@@ -5,6 +5,8 @@
 # --------------------------------------------------------------------------------------
 from uuid import uuid4
 
+import datetime
+
 from hypothesis import given
 from mock import patch
 from mock.mock import AsyncMock
@@ -18,14 +20,13 @@ from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora import mapping
 from mora.graphapi.main import get_schema
+from mora import mapping
+from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
 from mora.service.util import handle_gql_error
+from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
-
-# --------------------------------------------------------------------------------------
-# Tests
-# --------------------------------------------------------------------------------------
 
 
 class TestEmployeesQuery:
@@ -287,3 +288,104 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                 # Assert
                 mock_create.assert_not_called()
                 assert result == expected_result
+
+
+class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
+    @parameterized.expand(
+        [
+            (
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                None,
+                datetime.datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ),
+                True,
+            ),
+            (
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                datetime.datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ),
+                None,
+                False,
+            ),
+            (
+                None,
+                datetime.datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ),
+                None,
+                False,
+            ),
+            (
+                None,
+                None,
+                datetime.datetime.now().replace(
+                    hour=0, minute=0, second=0, microsecond=0
+                ),
+                False,
+            ),
+            ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, None, False),
+            (None, None, None, False),
+        ]
+    )
+    async def test_mutator(
+        self, given_uuid, given_from_date, given_to_date, expected_result
+    ):
+        with patch("mora.lora.Scope.get_all") as mock_lora_get_all, patch(
+            "mora.service.handlers.get_handler_for_function"
+        ) as mock_get_handler_for_function, patch(
+            "mora.common.add_history_entry"
+        ) as mock_add_history_entry:
+
+            mock_lora_get_all.return_value = {
+                "2874e1dc-85e6-4269-823a-e1125484dfd3": {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
+                        ]
+                    }
+                }
+            }.items()
+
+            mock_get_handler_for_function.return_value = AsyncMock(
+                constructor=AsyncMock(), submit=AsyncMock()
+            )
+
+            # with patch("mora.common.add_history_entry") as mock_add_history_entry:
+            mutation_func = "employee_terminate"
+            query = (
+                f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, "
+                f"$triggerless: Boolean) {{"
+                f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, "
+                f"triggerless: $triggerless}}) "
+                f"{{ uuid }}"
+                f"}}"
+            )
+
+            var_values = {}
+            if given_uuid:
+                var_values["uuid"] = given_uuid
+
+            if given_from_date:
+                var_values["from"] = given_from_date.isoformat()
+
+            if given_to_date:
+                var_values["to"] = given_to_date.isoformat()
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            # Asserts
+            if expected_result:
+                mock_lora_get_all.assert_called()
+                mock_get_handler_for_function.assert_called()
+                mock_add_history_entry.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    given_uuid,
+                )
+            else:
+                mock_lora_get_all.assert_not_called()
+                mock_get_handler_for_function.assert_not_called()
+                mock_add_history_entry.assert_not_called()
