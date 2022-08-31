@@ -14,13 +14,8 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora.graphapi.models import AddressTerminate
-from mora.graphapi.models import TestModel
 from mora.graphapi.types import AddressTerminateType
 from mora.triggers import Trigger
-
-
-async def terminate_addr_test(test_model: TestModel) -> AddressTerminateType:
-    return AddressTerminateType(uuid=test_model.uuid)
 
 
 async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:

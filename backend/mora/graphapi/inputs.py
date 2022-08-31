@@ -8,15 +8,15 @@
 # --------------------------------------------------------------------------------------
 import strawberry
 
+from .models import AddressTerminate
 from .models import EmployeeCreate
 from .models import EngagementTerminate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
-from .models import TestModel
 
 
 @strawberry.experimental.pydantic.input(
-    model=TestModel,
+    model=AddressTerminate,
     all_fields=True,
 )
 class AddressTerminateInput:
