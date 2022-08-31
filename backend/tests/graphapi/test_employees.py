@@ -8,7 +8,6 @@ from uuid import UUID
 from graphql import ExecutionResult
 from hypothesis import given
 from mock import patch
-from more_itertools import one
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
@@ -19,6 +18,7 @@ from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
+from mora.service.util import handle_gql_error
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
@@ -144,27 +144,26 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         ]
     )
     async def test_fails(self, given_name, given_cprno, expected_result):
-        with patch("mora.lora.Scope.create") as mock_create:
-            mock_create.side_effect = lambda *args: args[-1]
+        with patch("mora.service.org.get_configured_organisation") as gc_org:
+            gc_org.return_value = {"uuid": None}
 
-            result = None
-            try:
-                response = await self._gql_create_employee(given_name, given_cprno)
-                if response.errors:
-                    error = one(response.errors)
-                    if error.original_error:
-                        raise error.original_error
-                    raise ValueError(error)
-            except Exception as e:
-                result = (
-                    e.key.name
-                    if hasattr(e, "key") and hasattr(e.key, "name")
-                    else result
-                )
+            with patch("mora.lora.Scope.create") as mock_create:
+                mock_create.side_effect = lambda *args: args[-1]
 
-            # Assert
-            mock_create.assert_not_called()
-            assert result == expected_result
+                result = None
+                try:
+                    response = await self._gql_create_employee(given_name, given_cprno)
+                    handle_gql_error(response)
+                except Exception as e:
+                    result = (
+                        e.key.name
+                        if hasattr(e, "key") and hasattr(e.key, "name")
+                        else result
+                    )
+
+                # Assert
+                mock_create.assert_not_called()
+                assert result == expected_result
 
     @staticmethod
     async def _gql_create_employee(name: str, cprno: str, **kwargs) -> ExecutionResult:
