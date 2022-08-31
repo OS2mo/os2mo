@@ -13,7 +13,7 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from mora.graphapi.address import terminate_addr_test
+from mora.graphapi.address import terminate_addr
 from mora.graphapi.employee import create as employee_create
 from mora.graphapi.engagements import terminate_engagement
 from mora.graphapi.inputs import AddressTerminateInput
@@ -22,7 +22,6 @@ from mora.graphapi.inputs import EngagementTerminateInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
 from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.models import TestModel
 from mora.graphapi.org_unit import terminate_org_unit
 from mora.graphapi.org_unit import trigger_org_unit_refresh
 from mora.graphapi.schema import OrganisationUnitRefresh
@@ -69,16 +68,17 @@ class Mutation:
     async def address_terminate(
         self, at: AddressTerminateInput
     ) -> AddressTerminateType:
-        pydantic_model = at.to_pydantic()
-        tst_model = TestModel(
-            uuid=pydantic_model.uuid,
-            from_date=pydantic_model.from_date,
-            to_date=pydantic_model.to_date,
-        )
+        # pydantic_model = at.to_pydantic()
+        # tst_model = TestModel(
+        #     uuid=pydantic_model.uuid,
+        #     from_date=pydantic_model.from_date,
+        #     to_date=pydantic_model.to_date,
+        # )
+        #
+        # return await terminate_addr_test(tst_model)
 
-        return await terminate_addr_test(tst_model)
         # return await terminate_addr(pydantic_model, tst_model)
-        # return await terminate_addr(at.to_pydantic())
+        return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(description="Terminates an address by UUID")
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:

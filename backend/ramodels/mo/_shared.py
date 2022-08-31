@@ -267,6 +267,23 @@ class Visibility(MORef):
     pass
 
 
+class TestValidity(RABase):
+    from_date: Optional[datetime] = Field(
+        alias="from", description="Start date of the validity."
+    )
+    to_date: Optional[datetime] = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )
+
+    @validator("from_date", pre=True, always=True)
+    def parse_from_date(cls, from_date: Optional[Any]) -> Optional[datetime]:
+        return tz_isodate(from_date) if from_date is not None else None
+
+    @validator("to_date", pre=True, always=True)
+    def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
+        return tz_isodate(to_date) if to_date is not None else None
+
+
 # --------------------------------------------------------------------------------------
 # Auxiliary validator functions
 # --------------------------------------------------------------------------------------

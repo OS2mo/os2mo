@@ -23,9 +23,7 @@ async def terminate_addr_test(test_model: TestModel) -> AddressTerminateType:
     return AddressTerminateType(uuid=test_model.uuid)
 
 
-async def terminate_addr(
-    address_terminate: AddressTerminate, test_model: TestModel
-) -> AddressTerminateType:
+async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )
