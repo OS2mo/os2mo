@@ -658,9 +658,7 @@ class ITUser:
         description="Connected itsystem",
         permission_classes=[gen_read_permission("itsystems")],
     )
-    async def itsystem(
-        self, root: ITUserRead, info: Info
-    ) -> list["ITSystem"]:
+    async def itsystem(self, root: ITUserRead, info: Info) -> ITSystem:
         loader: DataLoader = info.context["itsystem_loader"]
         return await loader.load(root.itsystem_uuid)
 
