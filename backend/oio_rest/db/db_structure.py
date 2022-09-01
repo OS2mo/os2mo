@@ -17,7 +17,6 @@ DATABASE_STRUCTURE = {
                 "plan",
                 "supplement",
                 "retskilde",
-
             ],
         },
         "attributter_metadata": {
@@ -34,7 +33,6 @@ DATABASE_STRUCTURE = {
                 "beskrivelse",
                 "kaldenavn",
                 "ophavsret",
-
             ],
         },
         "attributter_metadata": {
@@ -57,7 +55,6 @@ DATABASE_STRUCTURE = {
                 "titel",
                 "retskilde",
                 "aendringsnotat",
-
             ],
         },
         "attributter_metadata": {
@@ -83,7 +80,6 @@ DATABASE_STRUCTURE = {
                 "brugervendtnoegle",
                 "brugernavn",
                 "brugertype",
-
             ],
             "udvidelser": [
                 "fornavn",
@@ -116,7 +112,6 @@ DATABASE_STRUCTURE = {
                 "brugervendtnoegle",
                 "interessefaellesskabsnavn",
                 "interessefaellesskabstype",
-
             ],
         },
         "attributter_metadata": {
@@ -148,7 +143,6 @@ DATABASE_STRUCTURE = {
                 "itsystemnavn",
                 "itsystemtype",
                 "konfigurationreference",
-
             ],
         },
         "attributter_metadata": {
@@ -177,7 +171,6 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "organisationsnavn",
-
             ],
         },
         "attributter_metadata": {
@@ -213,7 +206,6 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "enhedsnavn",
-
             ],
         },
         "attributter_metadata": {
@@ -248,7 +240,6 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "funktionsnavn",
-
             ],
             "udvidelser": [
                 "primær",
@@ -303,7 +294,6 @@ DATABASE_STRUCTURE = {
                 "principiel",
                 "sagsnummer",
                 "titel",
-
             ],
         },
         "attributter_metadata": {
@@ -383,7 +373,6 @@ DATABASE_STRUCTURE = {
                 "offentlighedundtaget",
                 "titel",
                 "dokumenttype",
-
             ],
         },
         "attributter_metadata": {
@@ -436,7 +425,6 @@ DATABASE_STRUCTURE = {
             "egenskaber": [
                 "brugervendtnoegle",
                 "beskrivelse",
-
             ],
         },
         "attributter_metadata": {
@@ -474,7 +462,6 @@ DATABASE_STRUCTURE = {
                 "sluttidspunkt",
                 "tidsforbrug",
                 "formaal",
-
             ],
         },
         "attributter_metadata": {
@@ -527,7 +514,6 @@ DATABASE_STRUCTURE = {
                 "beskrivelse",
                 "starttidspunkt",
                 "sluttidspunkt",
-
             ],
         },
         "attributter_metadata": {
@@ -567,7 +553,6 @@ DATABASE_STRUCTURE = {
                 "returkode",
                 "returtekst",
                 "note",
-
             ],
         },
         "attributter_metadata": {

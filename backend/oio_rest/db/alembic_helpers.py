@@ -3,13 +3,13 @@
 import os
 from typing import List
 
-from alembic import command
-from alembic import op
-from alembic.config import Config
 from psycopg2.errors import UndefinedTable
 from sqlalchemy.orm import sessionmaker
 
 from . import get_connection
+from alembic import command
+from alembic import op
+from alembic.config import Config
 
 
 def get_alembic_cfg() -> Config:
