@@ -318,6 +318,12 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 now_beginning,
                 True,
             ),
+            (
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                now_beginning,
+                now_beginning,
+                True,
+            ),
             ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, now_beginning, True),
             ("3b866d97-0b1f-48e0-8078-686d96f430b3", now_beginning, None, False),
             ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, None, False),
@@ -391,6 +397,12 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
             (
                 "3b866d97-0b1f-48e0-8078-686d96f430b3",
                 NEGATIVE_INFINITY,
+                now_beginning,
+                True,
+            ),
+            (
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                now_beginning,
                 now_beginning,
                 True,
             ),
