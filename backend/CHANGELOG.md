@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+10.0.0 - 2022-09-01
+-------------------
+
+[#50998] Change dynamic classes in association models to be a single UUID in stead of a list.
+Adds loader for Dynamic classes in graphql.
+
 9.8.2 - 2022-09-01
 ------------------
 
