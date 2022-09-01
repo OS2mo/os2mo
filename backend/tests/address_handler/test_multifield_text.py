@@ -2,118 +2,125 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 
+import pytest
+
 from mora.service.address_handler.multifield_text import MultifieldTextAddressHandler
-from tests.cases import IsolatedAsyncioTestCase
 
 
-async def async_facet_get_one_class(x, y, *args, **kwargs):
-    return {"uuid": y}
+@pytest.fixture
+def text_value_one() -> str:
+    return "Test text whatever"
 
 
-@patch("mora.service.facet.get_one_class", new=async_facet_get_one_class)
-class TextAddressHandlerTests(IsolatedAsyncioTestCase):
-    handler = MultifieldTextAddressHandler
+@pytest.fixture
+def text_value_two() -> str:
+    return "Test text whatever2"
+
+
+async def test_from_effect(text_value_one, text_value_two):
+    # Arrange
+    effect = {
+        "relationer": {
+            "adresser": [
+                {"urn": "urn:multifield_text:%54est%20text%20whatever"},
+                {"urn": "urn:multifield_text2:%54est%20text%20whatever2"},
+            ]
+        }
+    }
+
+    address_handler = await MultifieldTextAddressHandler.from_effect(effect)
+
+    # Act
+    actual_value = address_handler.value
+    actual_value2 = address_handler.value2
+
+    # Assert
+    assert text_value_one == actual_value
+    assert text_value_two == actual_value2
+
+
+async def test_from_request(text_value_one, text_value_two):
+    # Arrange
+
+    request = {"value": text_value_one, "value2": text_value_two}
+    address_handler = await MultifieldTextAddressHandler.from_request(request)
+
+    # Act
+    actual_value = address_handler.value
+    actual_value2 = address_handler.value2
+
+    # Assert
+    assert text_value_one == actual_value
+    assert text_value_two == actual_value2
+
+
+async def test_get_mo_address(text_value_one, text_value_two):
+    async def async_facet_get_one_class(x, y, *args, **kwargs):
+        return {"uuid": y}
+
+    # Arrange
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    value = "Test text whatever"
+    address_handler = MultifieldTextAddressHandler(
+        text_value_one, visibility, text_value_two
+    )
 
-    async def test_from_effect(self):
-        # Arrange
-        value = "Test text whatever"
-        value2 = "Test text whatever2"
+    expected = {
+        "href": None,
+        "name": "Test text whatever :: Test text whatever2",
+        "value": "Test text whatever",
+        "value2": "Test text whatever2",
+        "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
+    }
 
-        effect = {
-            "relationer": {
-                "adresser": [
-                    {"urn": "urn:multifield_text:%54est%20text%20whatever"},
-                    {"urn": "urn:multifield_text2:%54est%20text%20whatever2"},
-                ]
-            }
-        }
-
-        address_handler = await self.handler.from_effect(effect)
-
-        # Act
-        actual_value = address_handler.value
-        actual_value2 = address_handler.value2
-
-        # Assert
-        self.assertEqual(value, actual_value)
-        self.assertEqual(value2, actual_value2)
-
-    async def test_from_request(self):
-        # Arrange
-        value = "Test text whatever"
-        value2 = "Test text whatever2"
-
-        request = {"value": value, "value2": value2}
-        address_handler = await self.handler.from_request(request)
-
-        # Act
-        actual_value = address_handler.value
-        actual_value2 = address_handler.value2
-
-        # Assert
-        self.assertEqual(value, actual_value)
-        self.assertEqual(value2, actual_value2)
-
-    async def test_get_mo_address(self):
-        # Arrange
-        value = "Test text whatever"
-        value2 = "Test text whatever2"
-        address_handler = self.handler(value, self.visibility, value2)
-
-        expected = {
-            "href": None,
-            "name": "Test text whatever :: Test text whatever2",
-            "value": "Test text whatever",
-            "value2": "Test text whatever2",
-            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
-        }
-
-        # Act
+    # Act
+    with patch("mora.service.facet.get_one_class", new=async_facet_get_one_class):
         actual = await address_handler.get_mo_address_and_properties()
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
-    async def test_get_mo_address_w_default(self):
-        # Arrange
-        value = "Test text whatever"
-        address_handler = self.handler(value, self.visibility)
 
-        expected = {
-            "href": None,
-            "name": "Test text whatever",
-            "value": "Test text whatever",
-            "value2": None,
-            "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
-        }
+async def test_get_mo_address_w_default(text_value_one):
+    async def async_facet_get_one_class(x, y, *args, **kwargs):
+        return {"uuid": y}
 
-        # Act
+    # Arrange
+    visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
+    address_handler = MultifieldTextAddressHandler(text_value_one, visibility)
+
+    expected = {
+        "href": None,
+        "name": "Test text whatever",
+        "value": "Test text whatever",
+        "value2": None,
+        "visibility": {"uuid": "dd5699af-b233-44ef-9107-7a37016b2ed1"},
+    }
+
+    # Act
+    with patch("mora.service.facet.get_one_class", new=async_facet_get_one_class):
         actual = await address_handler.get_mo_address_and_properties()
 
-        # Assert
-        self.assertEqual(expected, actual)
+    # Assert
+    assert expected == actual
 
-    def test_get_lora_address(self):
-        # Arrange
-        value = "Test text whatever"
-        value2 = "Test text whatever2"
-        address_handler = self.handler(value, None, value2)
 
-        expected = [
-            {
-                "objekttype": "MULTIFIELD_TEXT",
-                "urn": "urn:multifield_text:%54est%20text%20whatever",
-            },
-            {
-                "objekttype": "MULTIFIELD_TEXT",
-                "urn": "urn:multifield_text2:%54est%20text%20whatever2",
-            },
-        ]
+def test_get_lora_address(text_value_one, text_value_two):
+    # Arrange
+    address_handler = MultifieldTextAddressHandler(text_value_one, None, text_value_two)
 
-        # Act
-        actual = address_handler.get_lora_address()
+    expected = [
+        {
+            "objekttype": "MULTIFIELD_TEXT",
+            "urn": "urn:multifield_text:%54est%20text%20whatever",
+        },
+        {
+            "objekttype": "MULTIFIELD_TEXT",
+            "urn": "urn:multifield_text2:%54est%20text%20whatever2",
+        },
+    ]
 
-        # Assert
-        self.assertEqual(expected, actual)
+    # Act
+    actual = address_handler.get_lora_address()
+
+    # Assert
+    assert expected == actual
