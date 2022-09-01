@@ -6,6 +6,7 @@
 from uuid import uuid4
 
 import datetime
+from asyncio import Future
 
 from hypothesis import given
 from mock import patch
@@ -27,6 +28,24 @@ from mora.service.util import handle_gql_error
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
+
+# Helpers
+now_beginning = datetime.datetime.now().replace(
+    hour=0, minute=0, second=0, microsecond=0
+)
+
+
+class AwaitableMock(AsyncMock):
+    def __await__(self, *args, **kwargs):
+        future = Future()
+        future.set_result(self)
+
+        result = yield from future
+        return result
+
+    # def __await__(self) -> Iterator[Any]:
+    #     self.await_count += 1
+    #     return iter([])
 
 
 class TestEmployeesQuery:
@@ -295,37 +314,15 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         [
             (
                 "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                None,
-                datetime.datetime.now().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ),
+                NEGATIVE_INFINITY,
+                now_beginning,
                 True,
             ),
-            (
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                datetime.datetime.now().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ),
-                None,
-                False,
-            ),
-            (
-                None,
-                datetime.datetime.now().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ),
-                None,
-                False,
-            ),
-            (
-                None,
-                None,
-                datetime.datetime.now().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                ),
-                False,
-            ),
+            ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, now_beginning, True),
+            ("3b866d97-0b1f-48e0-8078-686d96f430b3", now_beginning, None, False),
             ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, None, False),
+            (None, now_beginning, None, False),
+            (None, None, now_beginning, False),
             (None, None, None, False),
         ]
     )
@@ -337,9 +334,9 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         ) as mock_get_handler_for_function, patch(
             "mora.common.add_history_entry"
         ) as mock_add_history_entry:
-
+            # Mocking
             mock_lora_get_all.return_value = {
-                "2874e1dc-85e6-4269-823a-e1125484dfd3": {
+                given_uuid: {
                     "tilstande": {
                         "organisationenhedgyldighed": [
                             {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
@@ -348,30 +345,23 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 }
             }.items()
 
+            mock_request_handler_submit = AsyncMock()
+            mock_request_handler_construct = AwaitableMock(
+                return_value=AsyncMock(submit=mock_request_handler_submit)
+            )
+
             mock_get_handler_for_function.return_value = AsyncMock(
-                constructor=AsyncMock(), submit=AsyncMock()
+                construct=mock_request_handler_construct,
             )
 
-            # with patch("mora.common.add_history_entry") as mock_add_history_entry:
+            # Invoke GraphQL
             mutation_func = "employee_terminate"
-            query = (
-                f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, "
-                f"$triggerless: Boolean) {{"
-                f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, "
-                f"triggerless: $triggerless}}) "
-                f"{{ uuid }}"
-                f"}}"
+            query, var_values = self._get_graphql_query_and_vars(
+                mutation_func,
+                uuid=given_uuid,
+                from_date=given_from_date,
+                to_date=given_to_date,
             )
-
-            var_values = {}
-            if given_uuid:
-                var_values["uuid"] = given_uuid
-
-            if given_from_date:
-                var_values["from"] = given_from_date.isoformat()
-
-            if given_to_date:
-                var_values["to"] = given_to_date.isoformat()
 
             response = await get_schema().execute(query, variable_values=var_values)
 
@@ -381,6 +371,9 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 mock_get_handler_for_function.assert_called()
                 mock_add_history_entry.assert_called()
 
+                mock_request_handler_construct.assert_called()
+                mock_request_handler_submit.assert_called()
+
                 self.assertEqual(
                     response.data.get(mutation_func, {}).get("uuid", None),
                     given_uuid,
@@ -389,3 +382,109 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 mock_lora_get_all.assert_not_called()
                 mock_get_handler_for_function.assert_not_called()
                 mock_add_history_entry.assert_not_called()
+
+                mock_request_handler_construct.assert_not_called()
+                mock_request_handler_submit.assert_not_called()
+
+    @parameterized.expand(
+        [
+            (
+                "3b866d97-0b1f-48e0-8078-686d96f430b3",
+                NEGATIVE_INFINITY,
+                now_beginning,
+                True,
+            ),
+            ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", now_beginning, True),
+            ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", "", False),
+            ("", now_beginning, "", False),
+            ("", "", now_beginning, False),
+            ("", NEGATIVE_INFINITY, now_beginning, False),
+            ("", "", "", False),
+        ]
+    )
+    async def test_pydantic_dataclass(
+        self, given_uuid, given_from_date, given_to_date, expected_result
+    ):
+        with patch("mora.lora.Scope.get_all") as mock_lora_get_all, patch(
+            "mora.service.handlers.get_handler_for_function"
+        ) as mock_get_handler_for_function, patch(
+            "mora.common.add_history_entry"
+        ) as mock_add_history_entry:
+            # Mocking
+            mock_lora_get_all.return_value = {
+                given_uuid: {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
+                        ]
+                    }
+                }
+            }.items()
+
+            mock_request_handler_submit = AsyncMock()
+            mock_request_handler_construct = AwaitableMock(
+                return_value=AsyncMock(submit=mock_request_handler_submit)
+            )
+
+            mock_get_handler_for_function.return_value = AsyncMock(
+                construct=mock_request_handler_construct,
+            )
+
+            # Invoke GraphQL
+            mutation_func = "employee_terminate"
+            query, var_values = self._get_graphql_query_and_vars(
+                mutation_func,
+                uuid=given_uuid,
+                from_date=given_from_date,
+                to_date=given_to_date,
+            )
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            if expected_result:
+                mock_lora_get_all.assert_called()
+                mock_get_handler_for_function.assert_called()
+                mock_add_history_entry.assert_called()
+
+                mock_request_handler_construct.assert_called()
+                mock_request_handler_submit.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    given_uuid,
+                )
+            else:
+                mock_lora_get_all.assert_not_called()
+                mock_get_handler_for_function.assert_not_called()
+                mock_add_history_entry.assert_not_called()
+
+                mock_request_handler_construct.assert_not_called()
+                mock_request_handler_submit.assert_not_called()
+
+    @staticmethod
+    def _get_graphql_query_and_vars(
+        mutation_func: str = "employee_terminate", **kwargs
+    ):
+        query = (
+            f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, "
+            f"$triggerless: Boolean) {{"
+            f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, "
+            f"triggerless: $triggerless}}) "
+            f"{{ uuid }}"
+            f"}}"
+        )
+
+        var_values = {}
+        uuid = kwargs.get("uuid", None)
+        if uuid:
+            var_values["uuid"] = uuid
+
+        from_date = kwargs.get("from_date", None)
+        if from_date:
+            var_values["from"] = from_date.isoformat()
+
+        to_date = kwargs.get("to_date", None)
+        if to_date:
+            var_values["to"] = to_date.isoformat()
+
+        return query, var_values
