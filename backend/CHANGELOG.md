@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+9.8.2 - 2022-09-01
+------------------
+
+[#52254] Fixes mypy error by setting None as default value in optional fields.
+
 9.8.1 - 2022-08-31
 ------------------
 
