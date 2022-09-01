@@ -178,7 +178,7 @@ Don't Interrupt:
   rules:
     - <<: *if-not-default-branch
 
-Pre-commit:
+.Pre-commit:
   extends: .lint-base
   before_script:
     - pip install pre-commit
@@ -200,7 +200,7 @@ Pre-commit:
       - ${PIP_CACHE_DIR}
       - ${PRE_COMMIT_HOME}
 
-Lint Dockerfiles:
+.Lint Dockerfiles:
   extends: .lint-base
   image: hadolint/hadolint:latest-alpine
   before_script:
@@ -213,7 +213,7 @@ Lint Dockerfiles:
     # Run hadolint on every Dockerfile
     - fd Dockerfile --exec hadolint
 
-REUSE compliance:
+.REUSE compliance:
   # TODO: Do this as part of pre-commit instead
   extends: .lint-base
   image:
@@ -222,7 +222,7 @@ REUSE compliance:
   script:
     - reuse lint
 
-Lint shell scripts:
+.Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
   extends: .lint-base
   image: koalaman/shellcheck-alpine:latest
@@ -271,7 +271,7 @@ Build OS2MO:
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
-Build frontend:
+.Build frontend:
   extends: .build:release-image
   # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
   script:
@@ -284,7 +284,7 @@ Build frontend:
       --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
       --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
-Build test frontend:
+.Build test frontend:
   extends: .build:test-image
   # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
   script:
@@ -391,7 +391,7 @@ Unit-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
-GraphAPI-test:
+.GraphAPI-test:
   extends:
     - .backend-test-base
   script:
@@ -413,7 +413,7 @@ GraphAPI-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
-GraphAPI-Integration-test:
+.GraphAPI-Integration-test:
   extends:
     - .backend-test-base
     - .services:start-all
@@ -441,7 +441,7 @@ GraphAPI-Integration-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
-Integration-test:
+.Integration-test:
   extends:
     - .backend-test-base
     - .services:start-all
@@ -468,7 +468,7 @@ Integration-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
-Coverage:
+.Coverage:
   stage: coverage
   image: python:3.9-slim
   needs:
@@ -489,7 +489,7 @@ Coverage:
     paths:
       - coverage-html
     reports:
-      coverage_report: 
+      coverage_report:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
@@ -497,7 +497,7 @@ Coverage:
 
 # Frontend Tests
 #################
-Vue-unit-test:
+.Vue-unit-test:
   extends:
     - .test-base
   needs:
@@ -524,7 +524,7 @@ Vue-unit-test:
 
 # Review
 #########
-Deploy Review:
+.Deploy Review:
   stage: review
   needs:
     - Build OS2MO
@@ -556,7 +556,7 @@ Deploy Review:
       when: manual
       allow_failure: true
 
-Stop Review:
+.Stop Review:
   stage: review
   needs: []
   image: curlimages/curl:7.81.0
@@ -583,28 +583,28 @@ Stop Review:
 # Release
 ##########
 
-Release API master:
+.Release API master:
   extends:
     - .release-master
   variables:
     CI_IMAGE: $BACKEND_IMAGE_SHA
     RELEASE_IMAGE: $BACKEND_RELEASE_REGISTRY_IMAGE
 
-Release API version:
+.Release API version:
   extends:
     - .release-version
   variables:
     CI_IMAGE: $BACKEND_IMAGE_SHA
     RELEASE_IMAGE: $BACKEND_RELEASE_REGISTRY_IMAGE
 
-Release Frontend master:
+.Release Frontend master:
   extends:
     - .release-master
   variables:
     CI_IMAGE: $FRONTEND_IMAGE_SHA
     RELEASE_IMAGE: $FRONTEND_RELEASE_REGISTRY_IMAGE
 
-Release Frontend version:
+.Release Frontend version:
   extends:
     - .release-version
   variables:
@@ -615,40 +615,40 @@ Release Frontend version:
 # Deploy API
 #############
 # Flux
-Deploy API to Flux Dev:
+.Deploy API to Flux Dev:
   extends: .release-to-dev
   needs:
     - Release API version
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-dev
 
-Deploy API to Flux Test:
+.Deploy API to Flux Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-test
 
-Deploy API to Flux Prod:
+.Deploy API to Flux Prod:
   extends: .release-to-prod
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo/update-prod
 
 # Salt
-Deploy API to Salt Dev:
+.Deploy API to Salt Dev:
   extends: .release-to-dev
   needs:
     - Release API version
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-dev
 
-Deploy API to Salt Test:
+.Deploy API to Salt Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-test
 
-Deploy API to Salt Prod:
+.Deploy API to Salt Prod:
   extends: .release-to-prod
   needs: []
   variables:
@@ -658,40 +658,40 @@ Deploy API to Salt Prod:
 # Deploy Frontend
 ##################
 # Flux
-Deploy frontend to Flux Dev:
+.Deploy frontend to Flux Dev:
   extends: .release-to-dev
   needs:
     - Release Frontend version
   variables:
     ENDPOINT: os2mo/flux/os2mo-frontend/update-dev
 
-Deploy frontend to Flux Test:
+.Deploy frontend to Flux Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo-frontend/update-test
 
-Deploy frontend to Flux Prod:
+.Deploy frontend to Flux Prod:
   extends: .release-to-prod
   needs: []
   variables:
     ENDPOINT: os2mo/flux/os2mo-frontend/update-prod
 
 # Salt
-Deploy frontend to Salt Dev:
+.Deploy frontend to Salt Dev:
   extends: .release-to-dev
   needs:
     - Release Frontend version
   variables:
     ENDPOINT: os2mo/salt/os2mo-frontend/update-dev
 
-Deploy frontend to Salt Test:
+.Deploy frontend to Salt Test:
   extends: .release-to-test
   needs: []
   variables:
     ENDPOINT: os2mo/salt/os2mo-frontend/update-test
 
-Deploy frontend to Salt Prod:
+.Deploy frontend to Salt Prod:
   extends: .release-to-prod
   needs: []
   variables:
@@ -720,7 +720,7 @@ Deploy frontend to Salt Prod:
     - !reference [".docs:rules:deploy-branch-docs", rules]
     - !reference [".docs:rules:deploy-master-docs", rules]
 
-Export GQL Schema:
+.Export GQL Schema:
   extends:
     - .docs-base
     - .docs:rules:build-docs
@@ -754,7 +754,7 @@ Export GQL Schema:
       - $CI_PROJECT_DIR/site
     expire_in: 1 week
 
-Build and deploy branch docs:
+.Build and deploy branch docs:
   extends:
     - .build-docs
     - .docs:rules:deploy-branch-docs
@@ -763,13 +763,13 @@ Build and deploy branch docs:
     url: $CI_JOB_URL/artifacts/file/site/index.html
     auto_stop_in: 1 week
 
-Build master docs:
+.Build master docs:
     extends:
     - .build-docs
     - .docs:rules:deploy-master-docs
 
 # To release to GitLab Pages, the job must be called 'pages'
-pages:
+.pages:
   extends:
     - .docs-base
     - .docs:rules:deploy-master-docs
