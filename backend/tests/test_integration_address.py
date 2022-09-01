@@ -585,7 +585,6 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
             "/service/ou/create",
             json={
                 "name": "Fake Corp",
-                "integration_data": {"fakekey": 42},
                 "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
                 "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
                 "validity": {
