@@ -273,6 +273,7 @@ def get_public_settings() -> set[str]:
         "navlinks",
         "show_it_associations_tab",
         "keycloak_rbac_enabled",
+        "file_storage",
     }
     confdb_keys = filter(
         lambda key: key.startswith("confdb_"), Settings.__fields__.keys()
