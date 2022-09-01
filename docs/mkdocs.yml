@@ -8,37 +8,35 @@ repo_url: https://github.com/OS2mo/os2mo
 docs_dir: src/
 
 nav:
-  - Velkommen:
-      - OS2mo: index.md
-      - Release History: news.md
-  - Arkitektur og design:
-      - arkitektur-design/overview.md
-      - arkitektur-design/facets.md
-      - arkitektur-design/system.md
-  - User and developer guides:
-      - Getting started:
-          - guides/environment/docker.md
-          - guides/environment/install-source.md
-      - Tests: guides/tests.md
-      - Conventions: guides/conventions.md
-      - ADFS:
-        - guides/adfs-setup.md
-        - guides/adfs-rbac-setup.md
-  - Drift og support:
-      - drift-support/auth.md
-      - drift-support/cookbook.md
-      - drift-support/manual.md
-      - drift-support/settings.md
-      - drift-support/mocloud.md
-      - drift-support/keycloak.md
-  - API Dokumentation:
-      - api-dokumentation/amqp.md
-      - api-dokumentation/triggers.md
-      - api-dokumentation/user-configuration.md
-  - GraphQL:
-      - graphql/intro.md
-      - graphql/reads.md
-  - LoRa MOX:
+  - OS2MO:
+    - Velkommen: index.md
+    - Release History: news.md
+    - Arkitektur og design:
+        - arkitektur-design/overview.md
+        - arkitektur-design/facets.md
+        - arkitektur-design/system.md
+    - User and developer guides:
+        - Getting started:
+            - guides/environment/docker.md
+            - guides/environment/install-source.md
+        - Tests: guides/tests.md
+        - Conventions: guides/conventions.md
+        - ADFS:
+          - guides/adfs-setup.md
+          - guides/adfs-rbac-setup.md
+    - Drift og support:
+        - drift-support/auth.md
+        - drift-support/cookbook.md
+        - drift-support/manual.md
+        - drift-support/settings.md
+    - API Dokumentation:
+        - api-dokumentation/amqp.md
+        - api-dokumentation/triggers.md
+        - api-dokumentation/user-configuration.md
+    - GraphQL:
+        - graphql/intro.md
+        - graphql/reads.md
+  - LoRa:
     - Introduction: lora/index.md
     - User Documentation: 
       - lora/user/overview.md
@@ -81,7 +79,6 @@ nav:
       - lora/dev/testing-rest.md
       - lora/dev/building-docs.md
       - lora/dev/beskedfordeler.md
-      - lora/dev/news.md
   - DIPEX:
     - data-import-export/intro.md
     - Integrationer:
@@ -102,7 +99,6 @@ nav:
       - data-import-export/os2mo_data_import/integration-abstraction.md
     - data-import-export/reports.md
     - data-import-export/tools.md
-    - data-import-export/changelog.md
 theme:
   name: "material"
   palette:
