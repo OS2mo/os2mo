@@ -120,6 +120,7 @@ class Validity(OpenValidity):
 
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
+        None,
         alias="to",
         description="When the validity should end " "- required when terminating",
     )
