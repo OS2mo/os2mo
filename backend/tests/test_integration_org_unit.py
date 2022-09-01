@@ -1144,7 +1144,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         },
                         "brugervendtnoegle": "hum",
                         "enhedsnavn": "Humanistisk fakultet",
-                        "integrationsdata": "{}",
                     }
                 ]
             },
