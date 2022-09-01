@@ -245,7 +245,7 @@ class OrganisationUnit(UUIDBase):
     pass
 
 
-class OrganisationUnitTerminate(OrganisationUnit, Validity, Triggerless):
+class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
     """Model representing a organization-unit termination."""
 
     def get_lora_payload(self) -> dict:
@@ -265,7 +265,7 @@ class EngagementModel(UUIDBase):
     pass
 
 
-class EngagementTerminate(EngagementModel, Validity, Triggerless):
+class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
     """Model representing an engagement termination(or rather end-date update)."""
 
     def get_lora_payload(self) -> dict:
@@ -305,7 +305,7 @@ class Address(UUIDBase):
     pass
 
 
-class AddressTerminate(Address, Validity, Triggerless):
+class AddressTerminate(Address, ValidityTerminate, Triggerless):
     """Model representing an address-termination."""
 
     def get_address_trigger(self) -> AddressTrigger:
