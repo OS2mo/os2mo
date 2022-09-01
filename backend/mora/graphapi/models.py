@@ -192,7 +192,9 @@ class OrgFuncTrigger(MoraTrigger):
         description="UUID for the organization unit in question."
     )
 
-    employee_id: Optional[UUID] = Field(description="OrgFunc Related employee UUID.")
+    employee_id: Optional[UUID] = Field(
+        None, description="OrgFunc Related employee UUID."
+    )
 
 
 class OrgUnitTrigger(OrgFuncTrigger):

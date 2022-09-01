@@ -223,10 +223,10 @@ class OpenValidity(RABase):
     """Validity of a MO object with optional `from_date`."""
 
     from_date: Optional[datetime] = Field(
-        alias="from", description="Start date of the validity."
+        None, alias="from", description="Start date of the validity."
     )
     to_date: Optional[datetime] = Field(
-        alias="to", description="End date of the validity, if applicable."
+        None, alias="to", description="End date of the validity, if applicable."
     )
 
     @validator("from_date", pre=True, always=True)
