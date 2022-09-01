@@ -375,7 +375,7 @@ Unit-test:
   extends:
     - .backend-test-base
   script:
-    - pytest backend/tests
+    - pytest backend/tests/test_triggers.py
       -p no:cacheprovider
       -m "not serial"
       -k "not graphapi"
