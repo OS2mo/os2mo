@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-
 """remove integrationsdata
 
 Revision ID: b162ba90c028
