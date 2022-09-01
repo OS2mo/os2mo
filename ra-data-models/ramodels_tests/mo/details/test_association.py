@@ -18,7 +18,6 @@ from ramodels_tests.conftest import to_date_strat
 from ramodels_tests.conftest import unexpected_value_error
 
 from ramodels.mo._shared import AssociationType
-from ramodels.mo._shared import DynamicClasses
 from ramodels.mo._shared import EmployeeRef
 from ramodels.mo._shared import ITUserRef
 from ramodels.mo._shared import JobFunction
@@ -44,7 +43,7 @@ def base_strat(draw):
     optional = {
         "type": st.just("association"),
         "user_key": st.none() | st.text(),
-        "dynamic_classes": st.none() | st.lists(st.builds(DynamicClasses)),
+        "dynamic_class_uuid": st.none() | st.uuids(),
     }
     st_dict = st.fixed_dictionaries(required, optional=optional)  # type: ignore
     return draw(st_dict)

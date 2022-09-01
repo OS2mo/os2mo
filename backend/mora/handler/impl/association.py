@@ -10,6 +10,7 @@ from typing import Iterable
 from typing import List
 from typing import Optional
 
+from more_itertools import only
 from more_itertools import partition
 from structlog import get_logger
 
@@ -203,7 +204,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
                 "employee_uuid": person,
                 "org_unit_uuid": org_unit,
                 "association_type_uuid": association_type,
-                "dynamic_classes": classes,
+                "dynamic_class_uuid": only(classes),
                 "primary_uuid": primary,
                 "substitute_uuid": (
                     associated_function_uuid

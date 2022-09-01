@@ -51,7 +51,7 @@ class TestAssociationsQuery:
                             substitute_uuid
                             job_function_uuid
                             it_user_uuid
-                            dynamic_classes { uuid }
+                            dynamic_class_uuid
                             type
                             validity {from to}
                         }
