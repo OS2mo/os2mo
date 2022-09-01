@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+10.0.1 - 2022-09-01
+-------------------
+
+[#51091] Added missing 'it'-type as a possible ramodels.Detail.type value.
+
 10.0.0 - 2022-09-01
 -------------------
 
