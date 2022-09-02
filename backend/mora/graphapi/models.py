@@ -366,4 +366,35 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(Employee):
-    pass
+    # uuid
+    # - comes from Employee
+
+    # name
+    name: Optional[str] = Field(
+        None, description="New value for the name of the employee"
+    )
+
+    # nickname_givenname
+    nicknameFirstname: Optional[str] = Field(
+        None, description="New first-name value of the employee nickname."
+    )
+
+    # nickname_surname
+    nicknameLastname: Optional[str] = Field(
+        None, description="New last-name value of the employee nickname."
+    )
+
+    # seniority
+    seniority: Optional[str] = Field(
+        None, description="New seniority value of the employee."
+    )
+
+    # cpr_no
+    cpr_no: Optional[str] = Field(
+        None, description="New seniority value of the employee."
+    )
+
+    # org
+    # validity
+
+    # user_key

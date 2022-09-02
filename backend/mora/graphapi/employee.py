@@ -20,6 +20,7 @@ from mora.service import handlers
 from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
+from mora.service.detail_writing import handle_requests
 
 async def create(ec: EmployeeCreate) -> EmployeeType:
     # Convert data model to dict to fit into existing logic
@@ -100,4 +101,13 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
 
 
 async def update(employee_update: EmployeeUpdate) -> EmployeeType:
+    update_dict = employee_update.dict(by_alias=True)
+
+    req = {
+        mapping.TYPE: mapping.EMPLOYEE,
+        mapping.UUID: employee_update.uuid,
+    }
+
+    # Invoke existing update-logic
+    result = await handle_requests(req, mapping.RequestType.EDIT)
     return EmployeeType(uuid=employee_update.uuid)
