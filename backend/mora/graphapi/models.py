@@ -363,3 +363,7 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
     """Model representing an employee termination."""
 
     pass
+
+
+class EmployeeUpdate(Employee):
+    pass

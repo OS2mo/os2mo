@@ -14,6 +14,7 @@ from mora import mapping
 from mora import util
 from mora.graphapi.models import EmployeeCreate
 from mora.graphapi.models import EmployeeTerminate
+from mora.graphapi.models import EmployeeUpdate
 from mora.graphapi.types import EmployeeType
 from mora.service import handlers
 from mora.service.employee import EmployeeRequestHandler
@@ -96,3 +97,7 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
     return EmployeeType(uuid=UUID(result))
+
+
+async def update(employee_update: EmployeeUpdate) -> EmployeeType:
+    return EmployeeType(uuid=employee_update.uuid)
