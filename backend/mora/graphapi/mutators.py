@@ -76,7 +76,7 @@ class Mutation:
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
         return await employee_create(input.to_pydantic())
 
-    @strawberry.mutation(description="Terminates an address by UUID")
+    @strawberry.mutation(description="Terminates an employee by UUID")
     async def employee_terminate(
         self, et: EmployeeTerminateInput
     ) -> EmployeeType:
