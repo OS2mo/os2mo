@@ -301,9 +301,8 @@ class Address(UUIDBase):
 class AddressTerminate(Address, Validity, Triggerless):
     """Model representing an address-termination."""
 
-    def get_address_trigger(self, **kwargs: dict) -> AddressTrigger:
+    def get_address_trigger(self) -> AddressTrigger:
         return AddressTrigger(
-            employee_id=kwargs.get("employee_id", None),
             org_unit_uuid=self.uuid,
             request_type=mapping.RequestType.TERMINATE,
             request=MoraTriggerRequest(
