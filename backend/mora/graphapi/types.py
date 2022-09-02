@@ -3,6 +3,7 @@
 import strawberry
 
 from mora.graphapi.models import Address as AddressModel
+from mora.graphapi.models import Employee as EmployeeModel
 from mora.graphapi.models import EngagementModel
 from mora.graphapi.models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
@@ -42,4 +43,12 @@ class EngagementTerminateType:
 class AddressTerminateType:
     """GraphQL type for/of an address (detail)."""
 
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=EmployeeModel,
+    all_fields=True,
+)
+class EmployeeType:
     pass

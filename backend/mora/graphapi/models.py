@@ -225,6 +225,12 @@ class EngagementTrigger(OrgFuncTrigger):
     pass
 
 
+class Organisation(UUIDBase):
+    """Model representing an Organization."""
+
+    pass
+
+
 class OrganisationUnit(UUIDBase):
     """Model representing a Organization-Unit."""
 
@@ -320,3 +326,22 @@ class AddressTerminate(Address, Validity, Triggerless):
             },
             "note": "Afsluttet",
         }
+
+
+class Employee(UUIDBase):
+    """OS2Mo employee model."""
+
+    pass
+
+
+class EmployeeCreate(BaseModel):
+    """Model representing an employee creation."""
+
+    name: str = Field("", description="Full name of the employee.")
+
+    cpr_no: str = Field("", description="Danish CPR number of the employee.")
+
+    org: Organisation = Field(
+        Organisation(),
+        description="The organization the new employee will be created under.",
+    )
