@@ -6,7 +6,6 @@
 from uuid import uuid4
 
 import datetime
-from asyncio import Future
 
 from hypothesis import given
 from mock import patch
@@ -33,19 +32,6 @@ from tests.conftest import GQLResponse
 now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
 )
-
-
-class AwaitableMock(AsyncMock):
-    def __await__(self, *args, **kwargs):
-        future = Future()
-        future.set_result(self)
-
-        result = yield from future
-        return result
-
-    # def __await__(self) -> Iterator[Any]:
-    #     self.await_count += 1
-    #     return iter([])
 
 
 class TestEmployeesQuery:
@@ -352,7 +338,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
             }.items()
 
             mock_request_handler_submit = AsyncMock()
-            mock_request_handler_construct = AwaitableMock(
+            mock_request_handler_construct = AsyncMock(
                 return_value=AsyncMock(submit=mock_request_handler_submit)
             )
 
