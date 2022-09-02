@@ -270,9 +270,8 @@ class EngagementTerminate(EngagementModel, Validity, Triggerless):
             "note": "Afsluttet",
         }
 
-    def get_engagement_trigger(self, **kwargs: dict) -> EngagementTrigger:
+    def get_engagement_trigger(self) -> EngagementTrigger:
         return EngagementTrigger(
-            employee_id=kwargs.get("employee_id", None),
             role_type=mapping.ENGAGEMENT,
             event_type=mapping.EventType.ON_BEFORE,
             uuid=self.uuid,
