@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+10.2.0 - 2022-09-02
+-------------------
+
+[#52089] Created GraphQL mutator for creating employees.
+
 10.1.0 - 2022-09-02
 -------------------
 
