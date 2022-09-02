@@ -417,31 +417,9 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
     async def test_pydantic_dataclass(
         self, given_uuid, given_from_date, given_to_date, expected_result
     ):
-        with patch("mora.lora.Scope.get_all") as mock_lora_get_all, patch(
-            "mora.service.handlers.get_handler_for_function"
-        ) as mock_get_handler_for_function, patch(
-            "mora.common.add_history_entry"
-        ) as mock_add_history_entry:
-            # Mocking
-            mock_lora_get_all.return_value = {
-                given_uuid: {
-                    "tilstande": {
-                        "organisationenhedgyldighed": [
-                            {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
-                        ]
-                    }
-                }
-            }.items()
-
-            mock_request_handler_submit = AsyncMock()
-            mock_request_handler_construct = AwaitableMock(
-                return_value=AsyncMock(submit=mock_request_handler_submit)
-            )
-
-            mock_get_handler_for_function.return_value = AsyncMock(
-                construct=mock_request_handler_construct,
-            )
-
+        with patch(
+            "mora.graphapi.mutators.terminate_employee"
+        ) as mock_terminate_employee:
             # Invoke GraphQL
             mutation_func = "employee_terminate"
             query, var_values = self._get_graphql_query_and_vars(
@@ -451,27 +429,12 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 to_date=given_to_date,
             )
 
-            response = await get_schema().execute(query, variable_values=var_values)
+            _ = await get_schema().execute(query, variable_values=var_values)
 
             if expected_result:
-                mock_lora_get_all.assert_called()
-                mock_get_handler_for_function.assert_called()
-                mock_add_history_entry.assert_called()
-
-                mock_request_handler_construct.assert_called()
-                mock_request_handler_submit.assert_called()
-
-                self.assertEqual(
-                    response.data.get(mutation_func, {}).get("uuid", None),
-                    given_uuid,
-                )
+                mock_terminate_employee.assert_called()
             else:
-                mock_lora_get_all.assert_not_called()
-                mock_get_handler_for_function.assert_not_called()
-                mock_add_history_entry.assert_not_called()
-
-                mock_request_handler_construct.assert_not_called()
-                mock_request_handler_submit.assert_not_called()
+                mock_terminate_employee.assert_not_called()
 
     @staticmethod
     def _get_graphql_query_and_vars(
