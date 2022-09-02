@@ -192,12 +192,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
     async def test_pydantic_dataclass(
         self, given_name, given_cprno, given_org_uuid, expected_result
     ):
-        with patch("mora.service.handlers.RequestHandler.construct") as mock_construct:
-            mock_new_uuid = str(uuid4())
-            mock_submit = AsyncMock(return_value=mock_new_uuid)
-            mock_construct.return_value = AsyncMock(submit=mock_submit)
-
-            # GraphQL
+        with patch("mora.graphapi.mutators.employee_create") as mock_employee_create:
             mutation_func = "employee_create"
             query = (
                 f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
@@ -216,20 +211,13 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             if given_org_uuid:
                 var_values["org"] = {mapping.UUID: given_org_uuid}
 
-            response = await get_schema().execute(query, variable_values=var_values)
+            _ = await get_schema().execute(query, variable_values=var_values)
 
             # Asserts
             if expected_result:
-                mock_construct.assert_called()
-                mock_submit.assert_called()
-
-                self.assertEqual(
-                    response.data.get(mutation_func, {}).get("uuid", None),
-                    mock_new_uuid,
-                )
+                mock_employee_create.assert_called()
             else:
-                mock_construct.assert_not_called()
-                mock_submit.assert_not_called()
+                mock_employee_create.assert_not_called()
 
     @parameterized.expand(
         [
