@@ -20,6 +20,7 @@ from pydantic import Field
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -120,7 +121,10 @@ class Validity(OpenValidity):
 
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
-        None,
+        util.NEGATIVE_INFINITY,
+        # OBS: Above line should not be necessary, but due to mypy and strawberry not
+        # working together properly, this is required in order to prevent mypy from
+        # complaining about the strawberry inputs in "mora.graphapi.inputs" (and types)
         alias="to",
         description="When the validity should end " "- required when terminating",
     )
