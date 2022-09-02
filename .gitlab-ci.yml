@@ -49,9 +49,6 @@ include:
 .if-default-branch-refs: &if-default-branch-refs
   if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
 
-.if-not-default-branch: &if-not-default-branch
-  if: '$CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
-
 .if-tag: &if-tag
   if: '$CI_COMMIT_TAG'
 
@@ -176,7 +173,7 @@ Don't Interrupt:
   image: python:3.9
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
-    - <<: *if-not-default-branch
+    - <<: *if-merge-request
 
 Pre-commit:
   extends: .lint-base
@@ -489,7 +486,7 @@ Coverage:
     paths:
       - coverage-html
     reports:
-      coverage_report: 
+      coverage_report:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
