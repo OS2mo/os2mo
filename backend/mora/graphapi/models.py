@@ -28,6 +28,7 @@ from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
 
+
 # --------------------------------------------------------------------------------------
 # Models
 # --------------------------------------------------------------------------------------
@@ -366,22 +367,23 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(Employee):
-    # uuid
-    # - comes from Employee
-
     # name
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
     )
 
     # nickname_givenname
-    nicknameFirstname: Optional[str] = Field(
-        None, description="New first-name value of the employee nickname."
+    nickname_firstname: Optional[str] = Field(
+        None,
+        alias="nickname_givenname",
+        description="New first-name value of the employee nickname.",
     )
 
     # nickname_surname
-    nicknameLastname: Optional[str] = Field(
-        None, description="New last-name value of the employee nickname."
+    nickname_lastname: Optional[str] = Field(
+        None,
+        alias="nickname_surname",
+        description="New last-name value of the employee nickname.",
     )
 
     # seniority
@@ -395,6 +397,15 @@ class EmployeeUpdate(Employee):
     )
 
     # org
+    org: Optional[Organisation] = Field(
+        None, description="Organization the employee belongs to."
+    )
+
     # validity
+    validity: Optional[Validity] = Field(
+        None,
+        description="Validity range for the employee, "
+        "for when the employee is accessible",
+    )
 
     # user_key
