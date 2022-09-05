@@ -52,7 +52,15 @@ jinja_env = Environment(
 )
 
 
+def escape_char(text):
+    if isinstance(text, str) and not ("\n" in text):
+        return repr(text).replace("\\", "").strip("'")
+    return text
+
+
 def adapt(value):
+    value = escape_char(value)
+
     connection = get_connection()
 
     adapter = psyco_adapt(value)
@@ -264,14 +272,6 @@ class Livscyklus(enum.Enum):
 """
 
 
-def remove_escape_char(periods):
-    def remove_escape(str_):
-        return repr(str_).replace("\\", "").strip("'")
-
-    [p] = [remove_escape(x) if isinstance(x, str) else x for x in [periods]]
-    return p
-
-
 def sql_state_array(state, periods, class_name):
     """Return an SQL array of type <state>TilsType."""
     t = jinja_env.get_template("state_array.sql")
@@ -281,7 +281,6 @@ def sql_state_array(state, periods, class_name):
 
 def sql_attribute_array(attribute, periods):
     """Return an SQL array of type <attribute>AttrType[]."""
-    periods = remove_escape_char(periods)
     t = jinja_env.get_template("attribute_array.sql")
     sql = t.render(attribute_name=attribute, attribute_periods=periods)
     return sql
