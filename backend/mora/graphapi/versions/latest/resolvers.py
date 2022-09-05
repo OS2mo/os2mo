@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import re
 from datetime import datetime
 from datetime import timedelta
@@ -26,9 +20,6 @@ from strawberry.unset import UNSET
 from mora.util import CPR
 
 
-# --------------------------------------------------------------------------------------
-# Reads Query
-# --------------------------------------------------------------------------------------
 class StaticResolver:
     def __init__(self, getter: str, loader: str) -> None:
         """Create a field resolver by specifying getter and loader.

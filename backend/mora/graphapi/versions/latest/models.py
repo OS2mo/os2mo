@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import datetime
 import logging
 import typing
@@ -27,11 +21,6 @@ from ramodels.mo import OpenValidity
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
-
-
-# --------------------------------------------------------------------------------------
-# Models
-# --------------------------------------------------------------------------------------
 
 
 @strawberry.enum

@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """LoRa data read helpers."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import Any
 from typing import Union
 from uuid import UUID
@@ -14,10 +8,6 @@ from uuid import UUID
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.mapping import MoOrgFunk
-
-# --------------------------------------------------------------------------------------
-# Readers
-# --------------------------------------------------------------------------------------
 
 ORGFUNK_VALUES = tuple(map(lambda x: x.value, MoOrgFunk))
 

@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from asyncio import gather
 from functools import partial
 from itertools import starmap
@@ -49,11 +43,6 @@ from mora.handler.reading import get_handler_for_type
 from mora.service import org
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
-
-# --------------------------------------------------------------------------------------
-# Dataloaders
-# --------------------------------------------------------------------------------------
 
 
 MOModel = TypeVar(

@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """GraphQL org-unit related helper functions."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import datetime
 import logging
 from typing import cast
@@ -33,11 +27,6 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 
 logger = logging.getLogger(__name__)
-
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 async def load_org_unit(uuid: UUID) -> Response:
