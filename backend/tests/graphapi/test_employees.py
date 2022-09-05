@@ -4,6 +4,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+from itertools import product
 from uuid import uuid4
 
 from hypothesis import given
@@ -448,27 +449,40 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         return query, var_values
 
 
-class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
-    @parameterized.expand(
-        [
-            # Success
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", None, None, None, True),
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", None, None, True),
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "Jens", None, True),
-            (
-                "720d3063-9649-4371-9c38-5a8af04b96dd",
-                "Jens Jensen",
-                "Jens",
-                "Lyn",
-                True,
-            ),
-            # Fails
-            (None, None, None, None, False),
-            (None, "Jens Jensen", None, None, False),
-            (None, "Jens Jensen", "Jens", None, False),
-            (None, "Jens Jensen", "Jens", "Lyn", False),
-        ]
+# Create lists of possible values
+test_mutator_names = [None, "Jens Jensen"]
+test_mutator_nickname_firsts = [None, "Jens"]
+test_mutator_nickname_lasts = [None, "Lyn"]
+test_mutator_success_uuids = [
+    "00000000-0000-0000-0000-000000000000",
+    "720d3063-9649-4371-9c38-5a8af04b96dd",
+]
+test_mutator_fail_uuids = [None]
+
+
+# Create parm lists
+success_params = list(
+    product(
+        test_mutator_success_uuids,
+        test_mutator_names,
+        test_mutator_nickname_firsts,
+        test_mutator_nickname_lasts,
     )
+)
+fail_params = list(
+    product(
+        test_mutator_fail_uuids,
+        test_mutator_names,
+        test_mutator_nickname_firsts,
+        test_mutator_nickname_lasts,
+    )
+)
+params_test_mutator = [param + (True,) for param in success_params]
+params_test_mutator += [param + (False,) for param in fail_params]
+
+
+class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
+    @parameterized.expand(params_test_mutator)
     async def test_mutator(
         self,
         given_uuid,
@@ -477,7 +491,6 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
         given_nickname_last,
         expected_result,
     ):
-        # with patch("mora.service.detail_writing.handle_requests") as mock_handle_requests:
         with patch("mora.graphapi.employee.handle_requests") as mock_handle_requests:
             mock_handle_requests.return_value = given_uuid
 
