@@ -72,5 +72,3 @@ class EmployeeCreateInput:
 )
 class EmployeeTerminateInput:
     pass
-
-

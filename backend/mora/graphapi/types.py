@@ -52,4 +52,3 @@ class AddressTerminateType:
 )
 class EmployeeType:
     pass
-
