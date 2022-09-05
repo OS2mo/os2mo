@@ -5,6 +5,7 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import datetime
+from uuid import UUID
 from unittest.mock import patch
 
 from fastapi.encoders import jsonable_encoder
@@ -12,9 +13,18 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
 
+import mora.graphapi.dataloaders as dataloaders
+import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
+from mora.graphapi.address import terminate as address_terminate
+from mora.graphapi.main import get_schema
+from mora.graphapi.models import AddressTerminate
+from mora.graphapi.models import AddressType
+from mora.graphapi.models import AddressVisibility
+from mora.graphapi.models import Organisation
+from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.address import terminate_addr
@@ -111,6 +121,64 @@ class TestAddresssQuery:
         assert len(result_uuids) == len(set(test_uuids))
 
 
+class TestAddressCreate(tests.cases.AsyncLoRATestCase):
+    # @parameterized.expand(
+    #     [
+    #         ("test",),
+    #     ]
+    # )
+    async def test_mutator(self):
+        # INPUT before parameterized
+        given_org = Organisation(uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b3"))
+
+        given_visibility = AddressVisibility(
+            uuid=UUID("940b39cd-828e-4b6d-a98c-007e512f694c"),
+            name="M\\u00e5 vises eksternt",
+            user_key="Ekstern",
+            example=None,
+            scope="PUBLIC",
+            owner=None,
+        )
+
+        given_address_type = AddressType(
+            uuid=UUID("61c22b75-01b0-4e83-954c-9cf0c8dc79fe"),
+            name="Email",
+            user_key="EmailUnit",
+            example=None,
+            scope="EMAIL",
+            owner=None,
+        )
+
+        given_validity = Validity(from_date=datetime.datetime.now())
+
+        given_value = "yeehaaa@magenta-aps.dk"
+        # expected_result = True
+
+        # GraphQL
+        mutation_func = "address_create"
+        query = (
+            "mutation($org: UUID!, $visibility: UUID!, $addressType: UUID!, "
+            "$from: DateTime!, $to: DateTime, $value: String!) {"
+            f"{mutation_func}(input: {{org: $org, visibility: $visibility, "
+            f"address_type: $addressType, from: $from, to: $to, value: $value}})"
+            "{ uuid }"
+            "}"
+        )
+
+        var_values = {
+            "org": str(given_org.uuid),
+            "visibility": str(given_visibility.uuid),
+            "addressType": str(given_address_type.uuid),
+            "from": given_validity.from_date.date().isoformat(),
+            "value": given_value,
+        }
+
+        if given_validity.to_date:
+            var_values["to"] = given_validity.to_date.date().isoformat()
+
+        _ = await get_schema().execute(query, variable_values=var_values)
+
+
 class TestAddressTerminate:
     @given(
         given_uuid=st.uuids(),
@@ -142,7 +210,7 @@ class TestAddressTerminate:
         terminate_result_uuid = None
         caught_exception = None
         try:
-            tr = await terminate_addr(address_terminate=at)
+            tr = await address_terminate(address_terminate=at)
             terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
         except Exception as e:
             caught_exception = e

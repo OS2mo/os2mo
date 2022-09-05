@@ -5,6 +5,7 @@ import strawberry
 from .models import Address as AddressModel
 from .models import Employee as EmployeeModel
 from .models import EngagementModel
+from .models import Organisation as OrganisationModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
@@ -15,6 +16,16 @@ CPRType = strawberry.scalar(
     serialize=str,
     parse_value=CPR.validate,
 )
+
+
+@strawberry.experimental.pydantic.type(
+    model=OrganisationModel,
+    all_fields=True,
+)
+class OrganisationType:
+    """GraphQL type for/of a organization unit."""
+
+    pass
 
 
 @strawberry.experimental.pydantic.type(
@@ -41,10 +52,20 @@ class EngagementTerminateType:
     model=AddressModel,
     all_fields=True,
 )
-class AddressTerminateType:
+class AddressType:
     """GraphQL type for/of an address (detail)."""
 
     pass
+
+
+# @strawberry.experimental.pydantic.type(
+#     model=AddressVisibility,
+#     all_fields=True,
+# )
+# class AddressVisibilityType:
+#     """GraphQL type for/of an address (detail)."""
+#
+#     pass
 
 
 @strawberry.experimental.pydantic.type(

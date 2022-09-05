@@ -18,6 +18,7 @@ from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
+from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,17 @@ class Validity(OpenValidity):
         json_encoders = {
             datetime: lambda v: v.isoformat(),
         }
+
+
+class ValidityTerminate(Validity):
+    to_date: datetime.datetime = Field(
+        util.NEGATIVE_INFINITY,
+        # OBS: Above line should not be necessary, but due to mypy and strawberry not
+        # working together properly, this is required in order to prevent mypy from
+        # complaining about the strawberry inputs in "mora.graphapi.inputs" (and types)
+        alias="to",
+        description="When the validity should end " "- required when terminating",
+    )
 
     def get_termination_effect(self) -> dict:
         if self.from_date and self.to_date:
@@ -109,17 +121,6 @@ class Validity(OpenValidity):
         return self.to_date + ONE_DAY
 
 
-class ValidityTerminate(Validity):
-    to_date: datetime.datetime = Field(
-        util.NEGATIVE_INFINITY,
-        # OBS: Above line should not be necessary, but due to mypy and strawberry not
-        # working together properly, this is required in order to prevent mypy from
-        # complaining about the strawberry inputs in ".inputs" (and types)
-        alias="to",
-        description="When the validity should end " "- required when terminating",
-    )
-
-
 class MoraTriggerRequest(BaseModel):
     """Model representing a MoRa Trigger Request."""
 
@@ -130,7 +131,7 @@ class MoraTriggerRequest(BaseModel):
         "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
     )
 
-    validity: Validity = Field(description="Type of the request, ex. 'org_unit'.")
+    validity: Validity = Field(description="Validity for the specified UUID.")
 
 
 class MoraTrigger(BaseModel):
@@ -297,6 +298,74 @@ class Address(UUIDBase):
     """Address (detail) model."""
 
     pass
+
+
+class AddressType(MOBase):
+    name: str = Field("", description="Name of the address type, ex. 'Email'.")
+
+    scope: str = Field("", description="Scopeof the address type, ex. 'EMAIL'.")
+
+    example: Optional[str] = Field(None, description="Example value for the address.")
+
+    owner: Optional[UUID] = Field(None, description="UUID of the owner")
+
+
+class AddressVisibility(MOBase):
+    name: str = Field(
+        "", description="Name for the visibility, ex. 'M\\u00e5 vises eksternt'."
+    )
+
+    scope: str = Field("", description="Scopeof the address type, ex. 'EMAIL'.")
+
+    example: Optional[str] = Field(None, description="Example value for the address.")
+
+    owner: Optional[UUID] = Field(None, description="UUID of the owner")
+
+
+class AddressCreate(Validity):
+    """Model representing an address creation."""
+
+    value: str = Field("", description="The actual address value.")
+
+    address_type: UUID = Field(
+        UUID("00000000-0000-0000-0000-000000000000"), description="Type of the address."
+    )
+
+    visibility: UUID = Field(
+        UUID("00000000-0000-0000-0000-000000000000"),
+        description="Visibility for the address.",
+    )
+
+    org: Optional[UUID] = Field(
+        None, description="Organization the address belongs to."
+    )
+
+    org_unit: Optional[UUID] = Field(
+        None, description="OrganizationUnit the address belongs to."
+    )
+
+    person: Optional[UUID] = Field(None, description="Employee the address belongs to.")
+
+    engagement: Optional[UUID] = Field(
+        None, description="Related engagement for the address."
+    )
+
+    def get_legacy_request(self) -> dict:
+        validity = {}
+        if self.from_date:
+            validity[mapping.FROM] = self.from_date.date().isoformat()
+
+        if self.to_date:
+            validity[mapping.TO] = self.to_date.date().isoformat()
+
+        return {
+            mapping.TYPE: mapping.ADDRESS,
+            mapping.ORG: {mapping.UUID: str(self.org)},
+            mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
+            mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
+            mapping.VALUE: self.value,
+            mapping.VALIDITY: validity,
+        }
 
 
 class AddressTerminate(Address, ValidityTerminate, Triggerless):

@@ -5,14 +5,26 @@ from typing import Optional
 from uuid import UUID
 
 from .models import AddressTerminate
-from .types import AddressTerminateType
+from ....mapping import RequestType
 from mora import exceptions
 from mora import lora
 from mora import mapping
+from .models import AddressCreate
+from .models import AddressTerminate
+from .types import AddressType
+from mora.service import handlers
 from mora.triggers import Trigger
 
 
-async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
+async def create(address_create: AddressCreate) -> AddressType:
+    legacy_request = address_create.get_legacy_request()
+
+    requests = await handlers.generate_requests([legacy_request], RequestType.CREATE)
+    uuids = await handlers.submit_requests(requests)
+    return AddressType(uuid=UUID(uuids[0]))
+
+
+async def terminate(address_terminate: AddressTerminate) -> AddressType:
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )
@@ -46,7 +58,7 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
     if not address_terminate.triggerless:
         _ = await Trigger.run(trigger_dict)
 
-    return AddressTerminateType(uuid=UUID(lora_result))
+    return AddressType(uuid=UUID(lora_result))
 
 
 async def _get_original_addr(

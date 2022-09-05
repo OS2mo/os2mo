@@ -2,7 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from .models import AddressCreate
 from .models import AddressTerminate
+from .models import AddressVisibility
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
@@ -22,6 +24,26 @@ class ValidityInput:
 
 
 @strawberry.experimental.pydantic.input(
+    model=Organisation,
+    all_fields=True,
+)
+class OrganizationInput:
+    """input model for terminating organizations units."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=AddressCreate,
+    all_fields=True,
+)
+class AddressCreateInput:
+    """input model for address creation."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
     model=AddressTerminate,
     all_fields=True,
 )
@@ -32,11 +54,11 @@ class AddressTerminateInput:
 
 
 @strawberry.experimental.pydantic.input(
-    model=Organisation,
+    model=AddressVisibility,
     all_fields=True,
 )
-class OrganizationInput:
-    """input model for terminating organizations units."""
+class AddressVisibilityInput:
+    """input model for terminating addresses."""
 
     pass
 

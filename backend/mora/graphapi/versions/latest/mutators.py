@@ -7,7 +7,8 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from .address import terminate_addr
+from .address import create as address_create
+from .address import terminate as address_terminate
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
@@ -19,18 +20,19 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementTerminateInput
 from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitTerminateInput
+from .inputs import AddressCreateInput
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
-from .types import AddressTerminateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import GenericUUIDType
 from .types import OrganizationUnit
 from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
+from .types import AddressType
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +86,13 @@ class Mutation:
     ) -> EngagementTerminateType:
         return await terminate_engagement(unit.to_pydantic())
 
+    @strawberry.mutation(description="Terminates an address by UUID")
+    async def address_create(self, input: AddressCreateInput) -> AddressType:
+        return await address_create(input.to_pydantic())
+
+    @strawberry.mutation(description="Terminates an address by UUID")
+    async def address_terminate(self, at: AddressTerminateInput) -> AddressType:
+        return await address_terminate(at.to_pydantic())
     @strawberry.mutation(
         description="Terminates an address by UUID",
         permission_classes=[admin_permission_class],
