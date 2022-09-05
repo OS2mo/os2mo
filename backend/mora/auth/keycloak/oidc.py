@@ -13,7 +13,7 @@ from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import Token
-from mora.graphapi.permissions import PERMISSIONS
+from mora.graphapi.versions.latest.permissions import PERMISSIONS
 
 logger = get_logger()
 

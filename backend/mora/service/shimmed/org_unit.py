@@ -26,12 +26,12 @@ from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
 from mora import util
-from mora.graphapi.models import OrganisationUnitRefreshRead
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.graphapi.shim import UUIDObject
+from mora.graphapi.versions.latest.models import OrganisationUnitRefreshRead
 from mora.service.orgunit import router as org_unit_router
 from mora.service.util import get_configuration
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate

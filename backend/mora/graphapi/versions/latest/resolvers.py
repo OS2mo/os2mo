@@ -8,15 +8,15 @@ from typing import Any
 from typing import Optional
 from uuid import UUID
 
-from mora.graphapi.dataloaders import MOModel
-from mora.graphapi.middleware import set_graphql_dates
-from mora.graphapi.schema import OpenValidityModel
-from mora.graphapi.schema import Response
 from pydantic import ValidationError
+from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
-from strawberry.unset import UNSET
 
+from ...middleware import set_graphql_dates
+from .dataloaders import MOModel
+from .schema import OpenValidityModel
+from .schema import Response
 from mora.util import CPR
 
 
@@ -168,11 +168,6 @@ class EmployeeResolver(Resolver):
             to_date=to_date,
             **kwargs,
         )
-
-
-# --------------------------------------------------------------------------------------
-# Auxiliary functions
-# --------------------------------------------------------------------------------------
 
 
 def get_date_interval(

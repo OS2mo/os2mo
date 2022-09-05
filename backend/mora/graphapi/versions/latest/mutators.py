@@ -7,26 +7,26 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from mora.graphapi.address import terminate_addr
-from mora.graphapi.employee import create as employee_create
-from mora.graphapi.employee import terminate as terminate_employee
-from mora.graphapi.employee import update as employee_update
-from mora.graphapi.engagements import terminate_engagement
-from mora.graphapi.inputs import AddressTerminateInput
-from mora.graphapi.inputs import EmployeeCreateInput
-from mora.graphapi.inputs import EmployeeTerminateInput
-from mora.graphapi.inputs import EmployeeUpdateInput
-from mora.graphapi.inputs import EngagementTerminateInput
-from mora.graphapi.inputs import OrganizationUnitTerminateInput
-from mora.graphapi.models import FileStore
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.org_unit import terminate_org_unit
-from mora.graphapi.org_unit import trigger_org_unit_refresh
-from mora.graphapi.schema import OrganisationUnitRefresh
-from mora.graphapi.types import AddressTerminateType
-from mora.graphapi.types import EmployeeType
-from mora.graphapi.types import EngagementTerminateType
-from mora.graphapi.types import OrganizationUnit
+from .address import terminate_addr
+from .employee import create as employee_create
+from .employee import terminate as terminate_employee
+from .employee import update as employee_update
+from .engagements import terminate_engagement
+from .inputs import AddressTerminateInput
+from .inputs import EmployeeCreateInput
+from .inputs import EmployeeTerminateInput
+from .inputs import EmployeeUpdateInput
+from .inputs import EngagementTerminateInput
+from .inputs import OrganizationUnitTerminateInput
+from .models import FileStore
+from .models import OrganisationUnitRefreshRead
+from .org_unit import terminate_org_unit
+from .org_unit import trigger_org_unit_refresh
+from .schema import OrganisationUnitRefresh
+from .types import AddressTerminateType
+from .types import EmployeeType
+from .types import EngagementTerminateType
+from .types import OrganizationUnit
 
 logger = logging.getLogger(__name__)
 

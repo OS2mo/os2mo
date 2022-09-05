@@ -5,36 +5,39 @@ from typing import cast
 from typing import Optional
 
 import strawberry
-from mora.graphapi.health import health_map
-from mora.graphapi.models import ConfigurationRead
-from mora.graphapi.models import FileRead
-from mora.graphapi.models import FileStore
-from mora.graphapi.models import HealthRead
-from mora.graphapi.permissions import gen_read_permission
-from mora.graphapi.schema import Address
-from mora.graphapi.schema import Association
-from mora.graphapi.schema import Class
-from mora.graphapi.schema import Configuration
-from mora.graphapi.schema import Employee
-from mora.graphapi.schema import Engagement
-from mora.graphapi.schema import EngagementAssociation
-from mora.graphapi.schema import Facet
-from mora.graphapi.schema import File
-from mora.graphapi.schema import Health
-from mora.graphapi.schema import ITSystem
-from mora.graphapi.schema import ITUser
-from mora.graphapi.schema import KLE
-from mora.graphapi.schema import Leave
-from mora.graphapi.schema import Manager
-from mora.graphapi.schema import Organisation
-from mora.graphapi.schema import OrganisationUnit
-from mora.graphapi.schema import RelatedUnit
-from mora.graphapi.schema import Response
-from mora.graphapi.schema import Role
-from mora.graphapi.schema import Version
 from pydantic import parse_obj_as
 from strawberry.types import Info
 
+from .health import health_map
+from .models import ConfigurationRead
+from .models import FileRead
+from .models import FileStore
+from .models import HealthRead
+from .permissions import gen_read_permission
+from .resolvers import EmployeeResolver
+from .resolvers import Resolver
+from .resolvers import StaticResolver
+from .schema import Address
+from .schema import Association
+from .schema import Class
+from .schema import Configuration
+from .schema import Employee
+from .schema import Engagement
+from .schema import EngagementAssociation
+from .schema import Facet
+from .schema import File
+from .schema import Health
+from .schema import ITSystem
+from .schema import ITUser
+from .schema import KLE
+from .schema import Leave
+from .schema import Manager
+from .schema import Organisation
+from .schema import OrganisationUnit
+from .schema import RelatedUnit
+from .schema import Response
+from .schema import Role
+from .schema import Version
 from mora.config import get_public_settings
 
 

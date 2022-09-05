@@ -8,18 +8,18 @@ from uuid import UUID
 
 from strawberry.dataloader import DataLoader
 
+from .dataloaders import get_loaders
+from .models import MoraTriggerRequest
+from .models import OrganisationUnitTerminate
+from .models import OrgUnitTrigger
+from .models import Validity
+from .schema import Response
+from .types import OrganizationUnit
 from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
-from mora.graphapi.dataloaders import get_loaders
-from mora.graphapi.models import MoraTriggerRequest
-from mora.graphapi.models import OrganisationUnitTerminate
-from mora.graphapi.models import OrgUnitTrigger
-from mora.graphapi.models import Validity
-from mora.graphapi.schema import Response
-from mora.graphapi.types import OrganizationUnit
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 from mora.triggers import Trigger

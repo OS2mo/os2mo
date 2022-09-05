@@ -9,11 +9,11 @@ from prometheus_fastapi_instrumentator.metrics import default
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 
 from .config import get_settings
-from mora.graphapi.health import amqp
-from mora.graphapi.health import dar
-from mora.graphapi.health import dataset
-from mora.graphapi.health import keycloak
-from mora.graphapi.health import oio_rest
+from mora.graphapi.versions.latest.health import amqp
+from mora.graphapi.versions.latest.health import dar
+from mora.graphapi.versions.latest.health import dataset
+from mora.graphapi.versions.latest.health import keycloak
+from mora.graphapi.versions.latest.health import oio_rest
 
 
 def setup_metrics(app):

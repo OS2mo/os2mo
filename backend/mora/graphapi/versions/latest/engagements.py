@@ -3,10 +3,10 @@
 """GraphQL engagement related helper functions."""
 from uuid import UUID
 
+from .models import EngagementTerminate
+from .types import EngagementTerminateType
 from mora import lora
 from mora import mapping
-from mora.graphapi.models import EngagementTerminate
-from mora.graphapi.types import EngagementTerminateType
 from mora.triggers import Trigger
 
 

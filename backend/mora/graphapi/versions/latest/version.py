@@ -1,19 +1,19 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-
 from typing import Any
 
 from fastapi import Depends
 
-from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import auth
-from mora.util import CPR
+from ..base import BaseGraphQLSchema
+from ..base import BaseGraphQLVersion
 from .dataloaders import get_loaders
 from .files import get_filestorage
 from .mutators import Mutation
 from .query import Query
-from ..base import BaseGraphQLSchema
-from ..base import BaseGraphQLVersion
+from .types import CPRType
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import auth
+from mora.util import CPR
 
 
 class LatestGraphQLSchema(BaseGraphQLSchema):

@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from .models import EmployeeCreate
+from .models import EmployeeTerminate
+from .models import EmployeeUpdate
+from .types import EmployeeType
 from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
-from mora.graphapi.models import EmployeeCreate
-from mora.graphapi.models import EmployeeTerminate
-from mora.graphapi.models import EmployeeUpdate
-from mora.graphapi.types import EmployeeType
 from mora.service import handlers
 from mora.service.detail_writing import handle_requests
 from mora.service.employee import EmployeeRequestHandler

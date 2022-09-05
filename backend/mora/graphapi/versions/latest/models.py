@@ -114,7 +114,7 @@ class ValidityTerminate(Validity):
         util.NEGATIVE_INFINITY,
         # OBS: Above line should not be necessary, but due to mypy and strawberry not
         # working together properly, this is required in order to prevent mypy from
-        # complaining about the strawberry inputs in "mora.graphapi.inputs" (and types)
+        # complaining about the strawberry inputs in ".inputs" (and types)
         alias="to",
         description="When the validity should end " "- required when terminating",
     )

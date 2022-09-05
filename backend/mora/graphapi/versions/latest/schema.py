@@ -20,15 +20,15 @@ from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
+from .health import health_map
+from .models import ConfigurationRead
+from .models import FileRead
+from .models import HealthRead
+from .models import OrganisationUnitRefreshRead
+from .permissions import gen_read_permission
 from mora import common
 from mora import config
 from mora import lora
-from mora.graphapi.health import health_map
-from mora.graphapi.models import ConfigurationRead
-from mora.graphapi.models import FileRead
-from mora.graphapi.models import HealthRead
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.permissions import gen_read_permission
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary

@@ -18,7 +18,10 @@ from pydantic import root_validator
 from pydantic import validator
 from strawberry.types import ExecutionResult
 
+from .middleware import set_is_shim
+from .versions.base import BaseGraphQLVersion
 from mora import util
+from mora.auth.keycloak.oidc import noauth
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead

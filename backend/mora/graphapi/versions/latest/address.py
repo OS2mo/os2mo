@@ -4,11 +4,11 @@ import datetime
 from typing import Optional
 from uuid import UUID
 
+from .models import AddressTerminate
+from .types import AddressTerminateType
 from mora import exceptions
 from mora import lora
 from mora import mapping
-from mora.graphapi.models import AddressTerminate
-from mora.graphapi.types import AddressTerminateType
 from mora.triggers import Trigger
 
 

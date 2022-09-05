@@ -11,8 +11,8 @@ from starlette import status
 from starlette.responses import RedirectResponse
 from starlette.responses import Response
 
-from mora.auth.keycloak.oidc import auth
 from .versions.v1.version import GraphQLVersion1
+from mora.auth.keycloak.oidc import auth
 
 versions = [
     # Latest is never exposed directly, forcing clients to pin to a specific version
