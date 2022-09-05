@@ -5,35 +5,48 @@ from pathlib import Path
 from typing import Optional
 
 import mock
+import pytest
 from fastapi import Request
+from fastapi.testclient import TestClient
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_401_UNAUTHORIZED
+from starlette.status import HTTP_404_NOT_FOUND
+from starlette.status import HTTP_409_CONFLICT
+from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
-import tests.cases
 from mora.config import get_settings
 from mora.service.shimmed.exports import oauth2_scheme
+from tests.conftest import test_app
 
 
 async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
     pass
 
 
-async def _noop_oauth2_scheme(request: Request) -> Optional[str]:
-    return "jwt-goes-here"
+@pytest.fixture(scope="class")
+def fastapi_test_app_weird_auth():
+    async def _noop_oauth2_scheme(request: Request) -> Optional[str]:
+        return "jwt-goes-here"
+
+    def test_app_weird_auth():
+        app = test_app()
+        app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
+        return app
+
+    yield test_app_weird_auth()
 
 
-class AuthTests(tests.cases.AsyncTestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
+@pytest.fixture
+def service_client_weird_auth(fastapi_test_app_weird_auth):
+    with TestClient(fastapi_test_app_weird_auth) as client:
+        yield client
 
-        # Bypass Oauth2 per default
-        self.app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "iterdir")
-    async def test_list_export_files_sets_cookie(self, mock_listdir):
+class TestAuth:
+    async def test_list_export_files_sets_cookie(self, service_client_weird_auth):
         """Ensure that list sets a token."""
-        response = await self.request("/service/exports/")
+        response = service_client_weird_auth.get("/service/exports/")
+        assert response.status_code == HTTP_200_OK
         cookie_set = set(response.headers["set-cookie"].split("; "))
         assert cookie_set == {
             "MO_FILE_DOWNLOAD=jwt-goes-here",
@@ -44,7 +57,7 @@ class AuthTests(tests.cases.AsyncTestCase):
         }
 
     @mock.patch("mora.service.shimmed.exports.execute_graphql")
-    async def test_get_export_reads_cookie(self, execute):
+    async def test_get_export_reads_cookie(self, execute, service_client_weird_auth):
         """Ensure that get reads our token and attempts to validate it."""
         response = mock.MagicMock()
         response.errors = {}
@@ -54,12 +67,12 @@ class AuthTests(tests.cases.AsyncTestCase):
         execute.return_value = response
 
         # No cookie, not okay
-        response = await self.request("/service/exports/filename")
+        response = service_client_weird_auth.get("/service/exports/filename")
         assert response.status_code == HTTP_401_UNAUTHORIZED
         assert response.text == '"Missing download cookie!"'
 
         # Invalid cookie, jwt says no
-        response = await self.request(
+        response = service_client_weird_auth.get(
             "/service/exports/filename", cookies={"MO_FILE_DOWNLOAD": "invalid"}
         )
         assert response.status_code == HTTP_401_UNAUTHORIZED
@@ -72,38 +85,32 @@ class AuthTests(tests.cases.AsyncTestCase):
         with mock.patch(
             "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
         ):
-            response = await self.request("/service/exports/filename")
+            response = service_client_weird_auth.get("/service/exports/filename")
             assert response.status_code == HTTP_200_OK
             assert response.text == "I am a file"
 
 
-class FileTests(tests.cases.AsyncTestCase):
-    maxDiff = None
-
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-
-        # Bypass Oauth2 per default
-        self.app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
-
+class TestFile:
     @mock.patch.object(Path, "is_dir", lambda x: False)
-    async def test_list_export_files_raises_on_invalid_dir(self):
+    async def test_list_export_files_raises_on_invalid_dir(
+        self, service_client_weird_auth
+    ):
         """Ensure we handle missing export dir"""
-        await self.assertRequestResponse(
-            "/service/exports/",
-            {
-                "description": "Directory does not exist.",
-                "directory": str(get_settings().filesystem_settings.query_export_dir),
-                "error": True,
-                "error_key": "E_DIR_NOT_FOUND",
-                "status": 500,
-            },
-            status_code=500,
-        )
+        response = service_client_weird_auth.get("/service/exports/")
+        assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {
+            "description": "Directory does not exist.",
+            "directory": str(get_settings().filesystem_settings.query_export_dir),
+            "error": True,
+            "error_key": "E_DIR_NOT_FOUND",
+            "status": HTTP_500_INTERNAL_SERVER_ERROR,
+        }
 
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "iterdir")
-    async def test_list_export_files_returns_filenames(self, mock_listdir):
+    async def test_list_export_files_returns_filenames(
+        self, mock_listdir, service_client_weird_auth
+    ):
         """Ensure that we only return filenames from the export directory"""
         filenames = ["file1", "file2"]
         dirnames = ["dir"]
@@ -115,51 +122,55 @@ class FileTests(tests.cases.AsyncTestCase):
         mock_listdir.return_value = list(map(Path, filenames + dirnames))
 
         with mock.patch.object(Path, "is_file", mocked_isfile):
-            await self.assertRequestResponse("/service/exports/", filenames)
+            response = service_client_weird_auth.get("/service/exports/")
+            assert response.status_code == HTTP_200_OK
+            assert set(response.json()) == set(filenames)
 
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
     )
     @mock.patch.object(Path, "is_dir", lambda x: False)
-    async def test_get_export_file_raises_on_invalid_dir(self):
+    async def test_get_export_file_raises_on_invalid_dir(
+        self, service_client_weird_auth
+    ):
         """Ensure we handle missing export dir"""
-        await self.assertRequestResponse(
-            "/service/exports/whatever",
-            {
-                "description": "Directory does not exist.",
-                "directory": str(get_settings().filesystem_settings.query_export_dir),
-                "error": True,
-                "error_key": "E_DIR_NOT_FOUND",
-                "status": 500,
-            },
-            status_code=500,
-        )
+        response = service_client_weird_auth.get("/service/exports/whatever")
+        assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json() == {
+            "description": "Directory does not exist.",
+            "directory": str(get_settings().filesystem_settings.query_export_dir),
+            "error": True,
+            "error_key": "E_DIR_NOT_FOUND",
+            "status": HTTP_500_INTERNAL_SERVER_ERROR,
+        }
 
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
     )
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "iterdir")
-    async def test_get_export_file_raises_on_file_not_found(self, mock_listdir):
+    async def test_get_export_file_raises_on_file_not_found(
+        self, mock_listdir, service_client_weird_auth
+    ):
         """Ensure we handle nonexistent files"""
         mock_listdir.return_value = []
-        await self.assertRequestResponse(
-            "/service/exports/whatever",
-            {
-                "description": "Not found.",
-                "error": True,
-                "error_key": "E_NOT_FOUND",
-                "filename": "whatever",
-                "status": 404,
-            },
-            status_code=404,
-        )
+        response = service_client_weird_auth.get("/service/exports/whatever")
+        assert response.status_code == HTTP_404_NOT_FOUND
+        assert response.json() == {
+            "description": "Not found.",
+            "error": True,
+            "error_key": "E_NOT_FOUND",
+            "filename": "whatever",
+            "status": HTTP_404_NOT_FOUND,
+        }
 
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
     )
     @mock.patch("mora.service.shimmed.exports.execute_graphql")
-    async def test_get_export_file_returns_file(self, execute):
+    async def test_get_export_file_returns_file(
+        self, execute, service_client_weird_auth
+    ):
         """Ensure we return a file if found"""
         response = mock.MagicMock()
         response.errors = {}
@@ -168,56 +179,56 @@ class FileTests(tests.cases.AsyncTestCase):
         }
         execute.return_value = response
 
-        await self.assertRequestResponse("/service/exports/whatever", "I am a file")
+        response = service_client_weird_auth.get("/service/exports/whatever")
+        assert response.status_code == HTTP_200_OK
+        assert response.text == "I am a file"
         execute.assert_called_once()
 
 
-class FileUploadTests(tests.cases.AsyncTestCase):
-    maxDiff = None
-
+class TestFileUpload:
     @mock.patch.object(Path, "is_dir", lambda x: False)
-    async def test_folder_missing(self):
+    async def test_folder_missing(self, service_client_weird_auth):
         """Ensure we handle missing export dir."""
-        response = await self.client.post(
+        response = service_client_weird_auth.post(
             "/service/exports/filename.csv", files=dict(file=b"bar")
         )
-        assert response.status_code == 500
+        assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {
             "description": "Directory does not exist.",
             "directory": str(get_settings().filesystem_settings.query_export_dir),
             "error": True,
             "error_key": "E_DIR_NOT_FOUND",
-            "status": 500,
+            "status": HTTP_500_INTERNAL_SERVER_ERROR,
         }
 
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "is_file", lambda x: True)
-    async def test_file_exists(self):
+    async def test_file_exists(self, service_client_weird_auth):
         """Ensure that we cannot upload files if they already exist."""
         open_mock = mock.mock_open()
         with mock.patch("mora.service.shimmed.exports.open", open_mock, create=True):
-            response = await self.client.post(
+            response = service_client_weird_auth.post(
                 "/service/exports/filename.csv", files=dict(file=b"bar")
             )
-            assert response.status_code == 409
+            assert response.status_code == HTTP_409_CONFLICT
             assert response.json() == {
                 "description": "File already exists.",
                 "error": True,
                 "error_key": "E_ALREADY_EXISTS",
                 "filename": "filename.csv",
-                "status": 409,
+                "status": HTTP_409_CONFLICT,
             }
 
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "is_file", lambda x: True)
-    async def test_file_exists_but_forced(self):
+    async def test_file_exists_but_forced(self, service_client_weird_auth):
         """Ensure that we can upload files with force, even if a file exists."""
         open_mock = mock.mock_open()
         with mock.patch.object(Path, "open", open_mock, create=True):
-            response = await self.client.post(
+            response = service_client_weird_auth.post(
                 "/service/exports/filename.csv?force=true", files=dict(file=b"bar")
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_200_OK
             assert response.json() == "OK"
 
         open_mock.assert_called_once_with("wb")
@@ -225,14 +236,14 @@ class FileUploadTests(tests.cases.AsyncTestCase):
 
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "is_file", lambda x: False)
-    async def test_successful_file_upload(self):
+    async def test_successful_file_upload(self, service_client_weird_auth):
         """Ensure that we can upload files."""
         open_mock = mock.mock_open()
         with mock.patch.object(Path, "open", open_mock, create=True):
-            response = await self.client.post(
+            response = service_client_weird_auth.post(
                 "/service/exports/filename.csv", files=dict(file=b"bar")
             )
-            assert response.status_code == 200
+            assert response.status_code == HTTP_200_OK
             assert response.json() == "OK"
 
         open_mock.assert_called_once_with("wb")
