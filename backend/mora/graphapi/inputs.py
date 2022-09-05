@@ -10,6 +10,7 @@ import strawberry
 
 from .models import AddressTerminate
 from .models import EmployeeCreate
+from .models import EmployeeTerminate
 from .models import EngagementTerminate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
@@ -62,4 +63,12 @@ class EngagementTerminateInput:
 class EmployeeCreateInput:
     """Input model for creating an employee."""
 
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=EmployeeTerminate,
+    all_fields=True,
+)
+class EmployeeTerminateInput:
     pass

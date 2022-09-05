@@ -20,6 +20,7 @@ from pydantic import Field
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -116,6 +117,17 @@ class Validity(OpenValidity):
             )
 
         return self.to_date + ONE_DAY
+
+
+class ValidityTerminate(Validity):
+    to_date: datetime.datetime = Field(
+        util.NEGATIVE_INFINITY,
+        # OBS: Above line should not be necessary, but due to mypy and strawberry not
+        # working together properly, this is required in order to prevent mypy from
+        # complaining about the strawberry inputs in "mora.graphapi.inputs" (and types)
+        alias="to",
+        description="When the validity should end " "- required when terminating",
+    )
 
 
 class MoraTriggerRequest(BaseModel):
@@ -237,7 +249,7 @@ class OrganisationUnit(UUIDBase):
     pass
 
 
-class OrganisationUnitTerminate(OrganisationUnit, Validity, Triggerless):
+class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
     """Model representing a organization-unit termination."""
 
     def get_lora_payload(self) -> dict:
@@ -257,7 +269,7 @@ class EngagementModel(UUIDBase):
     pass
 
 
-class EngagementTerminate(EngagementModel, Validity, Triggerless):
+class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
     """Model representing an engagement termination(or rather end-date update)."""
 
     def get_lora_payload(self) -> dict:
@@ -297,7 +309,7 @@ class Address(UUIDBase):
     pass
 
 
-class AddressTerminate(Address, Validity, Triggerless):
+class AddressTerminate(Address, ValidityTerminate, Triggerless):
     """Model representing an address-termination."""
 
     def get_address_trigger(self) -> AddressTrigger:
@@ -345,3 +357,9 @@ class EmployeeCreate(BaseModel):
         Organisation(),
         description="The organization the new employee will be created under.",
     )
+
+
+class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
+    """Model representing an employee termination."""
+
+    pass
