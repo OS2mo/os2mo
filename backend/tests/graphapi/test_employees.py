@@ -31,6 +31,10 @@ now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
 )
 
+# --------------------------------------------------------------------------------------
+# Query tests
+# --------------------------------------------------------------------------------------
+
 
 class TestEmployeesQuery:
     """Class collecting employees query tests.
@@ -96,6 +100,11 @@ class TestEmployeesQuery:
         result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+
+# --------------------------------------------------------------------------------------
+# Create tests
+# --------------------------------------------------------------------------------------
 
 
 class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
@@ -449,19 +458,29 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         return query, var_values
 
 
+# --------------------------------------------------------------------------------------
+# Update tests
+# --------------------------------------------------------------------------------------
+
+
 # Create lists of possible values
-test_mutator_names = [None, "Jens Jensen"]
-test_mutator_nickname_firsts = [None, "Jens"]
-test_mutator_nickname_lasts = [None, "Lyn"]
 test_mutator_success_uuids = [
     "00000000-0000-0000-0000-000000000000",
     "720d3063-9649-4371-9c38-5a8af04b96dd",
 ]
 test_mutator_fail_uuids = [None]
+test_mutator_names = [None, "Jens Jensen"]
+test_mutator_nickname_firsts = [None, "Jens"]
+test_mutator_nickname_lasts = [None, "Lyn"]
 
+test_pydantic_dataclass_uuids_success = test_mutator_success_uuids
+test_pydantic_dataclass_uuids_fail = ["", "something-darkside"]
+test_pydantic_dataclass_names = ["", "Jens Jensen"]
+test_pydantic_dataclass_nickname_firsts = ["", "Jens"]
+test_pydantic_dataclass_nickname_lasts = ["", "Lyn"]
 
 # Create parm lists
-success_params = list(
+test_mutator_success_params = list(
     product(
         test_mutator_success_uuids,
         test_mutator_names,
@@ -469,7 +488,7 @@ success_params = list(
         test_mutator_nickname_lasts,
     )
 )
-fail_params = list(
+test_mutator_fail_params = list(
     product(
         test_mutator_fail_uuids,
         test_mutator_names,
@@ -477,8 +496,33 @@ fail_params = list(
         test_mutator_nickname_lasts,
     )
 )
-params_test_mutator = [param + (True,) for param in success_params]
-params_test_mutator += [param + (False,) for param in fail_params]
+
+test_pydantic_dataclass_success_params = list(
+    product(
+        test_pydantic_dataclass_uuids_success,
+        test_pydantic_dataclass_names,
+        test_pydantic_dataclass_nickname_firsts,
+        test_pydantic_dataclass_nickname_lasts,
+    )
+)
+test_pydantic_dataclass_fail_params = list(
+    product(
+        test_pydantic_dataclass_uuids_fail,
+        test_pydantic_dataclass_names,
+        test_pydantic_dataclass_nickname_firsts,
+        test_pydantic_dataclass_nickname_lasts,
+    )
+)
+
+params_test_mutator = [param + (True,) for param in test_mutator_success_params]
+params_test_mutator += [param + (False,) for param in test_mutator_fail_params]
+
+params_test_pydantic_dataclass = [
+    param + (True,) for param in test_pydantic_dataclass_success_params
+]
+params_test_pydantic_dataclass += [
+    param + (False,) for param in test_pydantic_dataclass_fail_params
+]
 
 
 class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
@@ -500,7 +544,7 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
                 "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
                 "$nicknameLast: String) {"
                 f"{mutation_func}(input: {{uuid: $uuid, name: $name, "
-                f"nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}}) "
+                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
                 "{ uuid }"
                 "}"
             )
@@ -531,25 +575,7 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             else:
                 mock_handle_requests.assert_not_called()
 
-    @parameterized.expand(
-        [
-            # Success
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", "", "", "", True),
-            ("00000000-0000-0000-0000-000000000000", "", "", "", True),
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "", "", True),
-            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "Jens", "", True),
-            (
-                "720d3063-9649-4371-9c38-5a8af04b96dd",
-                "Jens Jensen",
-                "Jens",
-                "Lyn",
-                True,
-            ),
-            # Fails
-            ("", "", "", "", False),
-            ("something-darkside", "", "", "", False),
-        ]
-    )
+    @parameterized.expand(params_test_pydantic_dataclass)
     async def test_pydantic_dataclass(
         self,
         given_uuid,
