@@ -8,19 +8,17 @@
 # --------------------------------------------------------------------------------------
 from uuid import UUID
 
-from mora import mapping
-from mora.graphapi.models import EmployeeCreate
-from mora.graphapi.types import EmployeeType
-from mora.service.employee import EmployeeRequestHandler
-from uuid import UUID
-
 from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.graphapi.models import EmployeeCreate
 from mora.graphapi.models import EmployeeTerminate
+from mora.graphapi.types import EmployeeType
 from mora.service import handlers
+from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
+
 
 async def create(ec: EmployeeCreate) -> EmployeeType:
     # Convert data model to dict to fit into existing logic

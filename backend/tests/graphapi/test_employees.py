@@ -3,9 +3,8 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from uuid import uuid4
-
 import datetime
+from uuid import uuid4
 
 from hypothesis import given
 from mock import patch
@@ -18,8 +17,6 @@ import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import exceptions
-from mora import mapping
-from mora.graphapi.main import get_schema
 from mora import mapping
 from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
