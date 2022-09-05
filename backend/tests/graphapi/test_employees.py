@@ -446,3 +446,77 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
             var_values["to"] = to_date.isoformat()
 
         return query, var_values
+
+
+class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
+    @parameterized.expand(
+        [
+            # Success
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", None, None, None, True),
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", None, None, True),
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "Jens", None, True),
+            (
+                "720d3063-9649-4371-9c38-5a8af04b96dd",
+                "Jens Jensen",
+                "Jens",
+                "Lyn",
+                True,
+            ),
+            # Fails
+            (None, None, None, None, False),
+            (None, "Jens Jensen", None, None, False),
+            (None, "Jens Jensen", "Jens", None, False),
+            (None, "Jens Jensen", "Jens", "Lyn", False),
+        ]
+    )
+    async def test_mutator(
+        self,
+        given_uuid,
+        given_name,
+        given_nickname_first,
+        given_nickname_last,
+        expected_result,
+    ):
+        # with patch("mora.service.detail_writing.handle_requests") as mock_handle_requests:
+        with patch("mora.graphapi.employee.handle_requests") as mock_handle_requests:
+            mock_handle_requests.return_value = given_uuid
+
+            # GraphQL
+            mutation_func = "employee_update"
+            query = (
+                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
+                "$nicknameLast: String) {"
+                f"{mutation_func}(input: {{uuid: $uuid, name: $name, "
+                f"nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}}) "
+                "{ uuid }"
+                "}"
+            )
+
+            var_values = {}
+            if given_uuid:
+                var_values["uuid"] = given_uuid
+
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_nickname_first:
+                var_values["nicknameFirst"] = given_nickname_first
+
+            if given_nickname_last:
+                var_values["nicknameLast"] = given_nickname_last
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            # Asserts
+            if expected_result:
+                mock_handle_requests.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    given_uuid,
+                )
+            else:
+                mock_handle_requests.assert_not_called()
+
+    async def _test_pydantic_dataclass(self):
+        pass

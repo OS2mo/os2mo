@@ -114,4 +114,3 @@ async def update(employee_update: EmployeeUpdate) -> EmployeeType:
     # Invoke existing update-logic
     result = await handle_requests(req, mapping.RequestType.EDIT)
     return EmployeeType(uuid=UUID(result))
-    # return EmployeeType(uuid=employee_update.uuid)
