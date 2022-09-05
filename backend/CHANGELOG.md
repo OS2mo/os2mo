@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+10.3.0 - 2022-09-05
+-------------------
+
+[#51184] Created GraphQL mutator for terminating employees.
+
 10.2.0 - 2022-09-02
 -------------------
 
