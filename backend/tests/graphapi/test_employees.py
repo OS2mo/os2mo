@@ -518,5 +518,59 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             else:
                 mock_handle_requests.assert_not_called()
 
-    async def _test_pydantic_dataclass(self):
-        pass
+    @parameterized.expand(
+        [
+            # Success
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", "", "", "", True),
+            ("00000000-0000-0000-0000-000000000000", "", "", "", True),
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "", "", True),
+            ("720d3063-9649-4371-9c38-5a8af04b96dd", "Jens Jensen", "Jens", "", True),
+            (
+                "720d3063-9649-4371-9c38-5a8af04b96dd",
+                "Jens Jensen",
+                "Jens",
+                "Lyn",
+                True,
+            ),
+            # Fails
+            ("", "", "", "", False),
+            ("something-darkside", "", "", "", False),
+        ]
+    )
+    async def test_pydantic_dataclass(
+        self,
+        given_uuid,
+        given_name,
+        given_nickname_first,
+        given_nickname_last,
+        expected_result,
+    ):
+        with patch("mora.graphapi.mutators.employee_update") as mock_employee_update:
+            query = (
+                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
+                "$nicknameLast: String) {"
+                "employee_update(input: {uuid: $uuid, name: $name, "
+                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
+                "{ uuid }"
+                "}"
+            )
+
+            var_values = {}
+            if given_uuid:
+                var_values["uuid"] = given_uuid
+
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_nickname_first:
+                var_values["nicknameFirst"] = given_nickname_first
+
+            if given_nickname_last:
+                var_values["nicknameLast"] = given_nickname_last
+
+            _ = await get_schema().execute(query, variable_values=var_values)
+
+            if expected_result:
+                mock_employee_update.assert_called()
+            else:
+                mock_employee_update.assert_not_called()
