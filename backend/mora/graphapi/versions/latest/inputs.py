@@ -3,6 +3,7 @@
 import strawberry
 
 from .models import AddressCreate
+from .models import AddressRelation
 from .models import AddressTerminate
 from .models import AddressVisibility
 from .models import EmployeeCreate
@@ -29,6 +30,16 @@ class ValidityInput:
 )
 class OrganizationInput:
     """input model for terminating organizations units."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=AddressRelation,
+    all_fields=True,
+)
+class AddressRelationInput:
+    """input model for address creation."""
 
     pass
 

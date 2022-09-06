@@ -7,6 +7,7 @@ import asyncio
 import datetime
 from uuid import UUID
 from unittest.mock import patch
+from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -19,6 +20,7 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
 from mora.graphapi.address import terminate as address_terminate
+from mora.graphapi.inputs import AddressRelationInput
 from mora.graphapi.main import get_schema
 from mora.graphapi.models import AddressTerminate
 from mora.graphapi.models import Validity
@@ -132,31 +134,22 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
         # INPUT params - before using parameterized
         given_address_type = "61c22b75-01b0-4e83-954c-9cf0c8dc79fe"
         given_visibility = "940b39cd-828e-4b6d-a98c-007e512f694c"
+
+        given_relation = {
+            "type": "org_unit",
+            "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b4",
+        }
+        # given_relation = AddressRelationInput(
+        #     type="org_unit",
+        #     uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b4")
+        # )
+
         given_org = "3b866d97-0b1f-48e0-8078-686d96f430b3"
-        given_org_unit = "3b866d97-0b1f-48e0-8078-686d96f430b4"  # NOT VALID / imaginary
-        given_person = "3b866d97-0b1f-48e0-8078-686d96f430b5"  # NOT VALID / imaginary
-        given_engagement = (
-            "3b866d97-0b1f-48e0-8078-686d96f430b6"  # NOT VALID / imaginary
-        )
 
-        # given_org = Organisation(uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b3"))
-        # given_visibility = AddressVisibility(
-        #     uuid=UUID("940b39cd-828e-4b6d-a98c-007e512f694c"),
-        #     name="M\\u00e5 vises eksternt",
-        #     user_key="Ekstern",
-        #     example=None,
-        #     scope="PUBLIC",
-        #     owner=None,
-        # )
-
-        # given_address_type = AddressType(
-        #     uuid=UUID("61c22b75-01b0-4e83-954c-9cf0c8dc79fe"),
-        #     name="Email",
-        #     user_key="EmailUnit",
-        #     example=None,
-        #     scope="EMAIL",
-        #     owner=None,
-        # )
+        # OBS: Below UUIDs are made up
+        given_org_unit = "3b866d97-0b1f-48e0-8078-686d96f430b4"
+        given_person = "3b866d97-0b1f-48e0-8078-686d96f430b5"
+        given_engagement = "3b866d97-0b1f-48e0-8078-686d96f430b6"
 
         given_validity = Validity(from_date=datetime.datetime.now())
 
@@ -166,34 +159,42 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
         # GraphQL
         mutation_func = "address_create"
         query = (
-            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
-            "$org: UUID, $orgUnit: UUID, $person: UUID, $engagement: UUID, "
-            "$from: DateTime, $to: DateTime) {"
-            f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
-            "visibility: $visibility, org: $org, org_unit: $orgUnit, person: $person, "
-            "engagement: $engagement, from: $from, to: $to})"
+            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, $relation: AddressRelationInput, $from: DateTime, $to: DateTime) {"
+            f"{mutation_func}(input: {{value: $value, address_type: $addressType, visibility: $visibility, relation: $relation, from: $from, to: $to}})"
             "{ uuid }"
             "}"
         )
+
+        # query = (
+        #     "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
+        #     "$org: UUID, $orgUnit: UUID, $person: UUID, $engagement: UUID, "
+        #     "$from: DateTime, $to: DateTime) {"
+        #     f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
+        #     "visibility: $visibility, org: $org, org_unit: $orgUnit, person: $person, "
+        #     "engagement: $engagement, from: $from, to: $to})"
+        #     "{ uuid }"
+        #     "}"
+        # )
 
         # Create GraphQL arguments, starting with the required ones
         var_values = {
             "value": given_value,
             "addressType": given_address_type,
             "visibility": given_visibility,
+            "relation": given_relation,
         }
 
-        if given_org:
-            var_values["org"] = given_org
-
-        if given_org_unit:
-            var_values["org_unit"] = given_org_unit
-
-        if given_person:
-            var_values["person"] = given_person
-
-        if given_engagement:
-            var_values["engagement"] = given_engagement
+        # if given_org:
+        #     var_values["org"] = given_org
+        #
+        # if given_org_unit:
+        #     var_values["orgUnit"] = given_org_unit
+        #
+        # if given_person:
+        #     var_values["person"] = given_person
+        #
+        # if given_engagement:
+        #     var_values["engagement"] = given_engagement
 
         if given_validity.from_date:
             var_values["from"] = given_validity.from_date.date().isoformat()
@@ -201,7 +202,8 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
         if given_validity.to_date:
             var_values["to"] = given_validity.to_date.date().isoformat()
 
-        _ = await get_schema().execute(query, variable_values=var_values)
+        response = await get_schema().execute(query, variable_values=var_values)
+        tap = "test"
 
 
 class TestAddressTerminate:

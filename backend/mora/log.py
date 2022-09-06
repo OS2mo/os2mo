@@ -30,7 +30,6 @@ class AccesslogMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next):
         start_time = time.perf_counter_ns()
-
         response = await call_next(request)
 
         process_time = round((time.perf_counter_ns() - start_time) / 10**9, 3)

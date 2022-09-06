@@ -2,14 +2,16 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import logging
-import typing
 from enum import Enum
+from typing import Any
+from typing import Literal
 from typing import Optional
 from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import validator
 
 from mora import common
 from mora import exceptions
@@ -155,7 +157,7 @@ class MoraTrigger(BaseModel):
         "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
-    result: typing.Any = Field(description="Result of the trigger", default=None)
+    result: Any = Field(description="Result of the trigger", default=None)
 
     def to_trigger_dict(self) -> dict:
         trigger_dict = self.dict(by_alias=True)
@@ -322,6 +324,26 @@ class AddressVisibility(MOBase):
     owner: Optional[UUID] = Field(None, description="UUID of the owner")
 
 
+class AddressRelation(UUIDBase):
+    type: str = Field(
+        "", description="The type of the address relation, ex 'org_unit' or 'person'."
+    )
+
+    @validator("type")
+    def validate_type(cls, value: str) -> str:
+        if len(value) < 1:
+            raise ValueError("AddressRelation.type, must have a value longer than 0.")
+
+        supported_type = [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+
+        if value not in supported_type:
+            raise ValueError(
+                f"AddressRelation.type only supports: {', '.join(supported_type)}"
+            )
+
+        return value
+
+
 class AddressCreate(Validity):
     """Model representing an address creation."""
 
@@ -336,19 +358,23 @@ class AddressCreate(Validity):
         description="Visibility for the address.",
     )
 
-    org: Optional[UUID] = Field(
-        None, description="Organization the address belongs to."
+    relation: AddressRelation = Field(
+        description="Field representing the relation the address belongs to."
     )
 
-    org_unit: Optional[UUID] = Field(
-        None, description="OrganizationUnit the address belongs to."
-    )
+    # org: Optional[UUID] = Field(
+    #     None, description="Organization the address belongs to."
+    # )
 
-    person: Optional[UUID] = Field(None, description="Employee the address belongs to.")
-
-    engagement: Optional[UUID] = Field(
-        None, description="Related engagement for the address."
-    )
+    # org_unit: Optional[UUID] = Field(
+    #     None, description="OrganizationUnit the address belongs to."
+    # )
+    #
+    # person: Optional[UUID] = Field(None, description="Employee the address belongs to.")
+    #
+    # engagement: Optional[UUID] = Field(
+    #     None, description="Related engagement for the address."
+    # )
 
     def get_legacy_request(self) -> dict:
         validity = {}
@@ -363,10 +389,10 @@ class AddressCreate(Validity):
             mapping.VALUE: self.value,
             mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
             mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
-            mapping.ORG: {mapping.UUID: str(self.org)},
-            mapping.ORG_UNIT: {mapping.UUID: str(self.org_unit)},
-            mapping.PERSON: {mapping.UUID: str(self.person)},
-            mapping.ENGAGEMENT: {mapping.UUID: str(self.engagement)},
+            # mapping.ORG: {mapping.UUID: str(self.org)},
+            # mapping.ORG_UNIT: {mapping.UUID: str(self.org_unit)},
+            # mapping.PERSON: {mapping.UUID: str(self.person)},
+            # mapping.ENGAGEMENT: {mapping.UUID: str(self.engagement)},
             mapping.VALIDITY: validity,
         }
 
