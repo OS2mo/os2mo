@@ -17,7 +17,7 @@ RUN yarn build
 CMD ["yarn", "dev"]
 
 
-FROM python:3.9.13 AS dist
+FROM python:3.10 AS dist
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
@@ -51,7 +51,7 @@ RUN set -ex \
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
   PYTHONPATH=/app:/app/backend \
-  POETRY_VERSION="1.1.8" \
+  POETRY_VERSION="1.2.0" \
   POETRY_VIRTUALENVS_CREATE=false
 
 # Install requirements
