@@ -27,8 +27,8 @@ class TestServiceApp:
             b'"status":500,"error_key":"E_UNKNOWN"}'
         )
 
-    def test_failing_service(self, service_test_client: TestClient):
-        response = service_test_client.get("/service/kaflaflibob")
+    def test_failing_service(self, service_client: TestClient):
+        response = service_client.get("/service/kaflaflibob")
         assert response.status_code == 404
         assert response.json() == {
             "error": True,
@@ -38,13 +38,13 @@ class TestServiceApp:
         }
 
     def test_exception_handling(
-        self, service_test_client_not_raising: TestClient, monkeypatch
+        self, service_client_not_raising: TestClient, monkeypatch
     ):
         def raise_value_error():
             raise ValueError("ARGH")
 
         monkeypatch.setattr(org, "get_configured_organisation", raise_value_error)
-        response = service_test_client_not_raising.get("/service/o/")
+        response = service_client_not_raising.get("/service/o/")
         assert response.status_code == 500
         assert response.json() == {
             "error": True,
