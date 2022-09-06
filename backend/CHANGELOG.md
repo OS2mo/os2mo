@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+10.4.0 - 2022-09-06
+-------------------
+
+[#51150] Created GraphQL mutator for updating an employee.
+
 10.3.0 - 2022-09-05
 -------------------
 
