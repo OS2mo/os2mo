@@ -99,7 +99,7 @@ async def test_fails_on_invalid_value():
 
 async def test_validation_succeeds_on_correct_values():
     # Arrange
-    valid_values = ["+4520931217" "12341234" "123"]
+    valid_values = ["+4520931217", "12341234", "123"]
 
     # Act & Assert
     for value in valid_values:

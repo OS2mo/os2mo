@@ -15,7 +15,7 @@ def valid_value() -> str:
 
 async def test_from_effect(valid_value):
     # Arrange
-    effect = {"relationer": {"adresser": [{"urn": "urn:dar:{}".format(valid_value)}]}}
+    effect = {"relationer": {"adresser": [{"urn": f"urn:dar:{valid_value}"}]}}
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
             address_handler = await DARAddressHandler.from_effect(effect)

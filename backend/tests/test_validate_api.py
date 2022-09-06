@@ -73,7 +73,7 @@ def test_cpr(mock, service_client):
     )
 
 
-@patch("mora.service.validate.validator." "does_employee_have_active_engagement")
+@patch("mora.service.validate.validator.does_employee_have_active_engagement")
 def test_employee_engagements(mock, service_client, person_uuid, from_date):
     payload = {
         "person": {"uuid": person_uuid},
@@ -88,7 +88,7 @@ def test_employee_engagements(mock, service_client, person_uuid, from_date):
     )
 
 
-@patch("mora.service.validate.validator." "does_employee_have_existing_association")
+@patch("mora.service.validate.validator.does_employee_have_existing_association")
 def test_existing_associations(
     mock, service_client, person_uuid, org_unit_uuid, from_date
 ):
@@ -109,7 +109,7 @@ def test_existing_associations(
     )
 
 
-@patch("mora.service.validate.validator." "is_candidate_parent_valid")
+@patch("mora.service.validate.validator.is_candidate_parent_valid")
 def test_parent_org_unit(mock, service_client, org_unit_uuid, from_date):
     parent_uuid = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 
