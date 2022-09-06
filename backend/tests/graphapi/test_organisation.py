@@ -7,9 +7,9 @@ from httpx import Response
 from more_itertools import distinct_permutations
 from more_itertools import one
 
-from .util import execute
 from mora.service.org import ConfiguredOrganisation
 from mora.service.org import get_configured_organisation
+from tests.conftest import GQLResponse
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
@@ -28,15 +28,12 @@ async def test_mocking_and_cache_clearing(respx_mock, mock_organisation):
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-async def test_query_organisation(respx_mock, mock_organisation):
+def test_query_organisation(graphapi_post, mock_organisation):
     """Test that we are able to query our organisation."""
     uuid = mock_organisation
 
     query = "query { org { uuid, name, user_key }}"
-    result = await execute(query)
-
-    # We expect only one outgoing request to be done
-    assert respx_mock.calls.call_count == 1
+    result: GQLResponse = graphapi_post(query)
 
     assert result.errors is None
     assert result.data
@@ -48,7 +45,7 @@ async def test_query_organisation(respx_mock, mock_organisation):
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-async def test_invalid_query_no_organisation(respx_mock):
+async def test_invalid_query_no_organisation(graphapi_post, respx_mock):
     """Test that we get an error when querying with no organisation."""
     ConfiguredOrganisation.clear()
     respx_mock.get("http://localhost/lora/organisation/organisation").mock(
@@ -56,14 +53,14 @@ async def test_invalid_query_no_organisation(respx_mock):
     )
 
     query = "query { org { uuid, name, user_key }}"
-    result = await execute(query)
+    result: GQLResponse = graphapi_post(query)
 
     # We expect only one outgoing request to be done
     assert respx_mock.calls.call_count == 1
 
     # We expect one and only one error
     error = one(result.errors)
-    assert error.message == ("ErrorCodes.E_ORG_UNCONFIGURED")
+    assert error["message"] == "ErrorCodes.E_ORG_UNCONFIGURED"
     assert result.data is None
 
 
@@ -82,7 +79,7 @@ org_fields = ["uuid", "name", "user_key"]
 )
 @pytest.mark.usefixtures("mock_asgi_transport")
 async def test_query_all_permutations_of_organisation(
-    respx_mock, fields, mock_organisation
+    graphapi_post, respx_mock, fields, mock_organisation
 ):
     """Test all permutations (15) of queries against our organisation.
 
@@ -94,7 +91,7 @@ async def test_query_all_permutations_of_organisation(
     # Fields will contain a tuple of field names with atleast 1 element
     combined_fields = ", ".join(fields)
     query = "query { org { %s }}" % combined_fields
-    result = await execute(query)
+    result: GQLResponse = graphapi_post(query)
 
     # We expect only one outgoing request to be done
     assert respx_mock.calls.call_count == 1
@@ -114,30 +111,30 @@ async def test_query_all_permutations_of_organisation(
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-async def test_non_existing_field_query(respx_mock, mock_organisation):
+async def test_non_existing_field_query(graphapi_post, respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
     query = "query { org { uuid, non_existing_field }}"
-    result = await execute(query)
+    result: GQLResponse = graphapi_post(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
     assert respx_mock.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
-    assert error.message == (
+    assert error["message"] == (
         "Cannot query field 'non_existing_field' on type 'Organisation'."
     )
     assert result.data is None
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-async def test_no_fields_query(respx_mock, mock_organisation):
+async def test_no_fields_query(graphapi_post, respx_mock, mock_organisation):
     """Test that we are able to query our organisation."""
     query = "query { org { }}"
-    result = await execute(query)
+    result: GQLResponse = graphapi_post(query)
 
     # We expect parsing to have failed, and thus no outgoing request to be done
     assert respx_mock.calls.call_count == 0
     # We expect one and only one error
     error = one(result.errors)
-    assert error.message == ("Syntax Error: Expected Name, found '}'.")
+    assert error["message"] == "Syntax Error: Expected Name, found '}'."
     assert result.data is None
