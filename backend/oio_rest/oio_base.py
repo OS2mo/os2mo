@@ -198,9 +198,13 @@ class QuickSearcher(Searcher):
 class ConfiguredDBInterface:
     def __init__(self):
         if config.get_settings().quick_search:
-            self.searcher: Searcher = QuickSearcher()
+            self._searcher: Searcher = QuickSearcher()
         else:
-            self.searcher: Searcher = DefaultSearcher()
+            self._searcher: Searcher = DefaultSearcher()
+
+    @property
+    def searcher(self):
+        return self._searcher
 
 
 def typed_get(d, field, default):
