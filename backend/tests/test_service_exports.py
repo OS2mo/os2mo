@@ -69,12 +69,27 @@ def mock_execute_graphql(monkeypatch):
 
 
 @pytest.fixture
-def mock_is_dir_false(monkeypatch):
-    class MockPath(PosixPath):
-        def is_dir(self):
-            return False
+def mock_path(monkeypatch):
+    def _mock_path(is_dir_ret=None, is_file_ret=None, iterdir_ret=None):
+        class MockPath(PosixPath):
+            def is_dir(self):
+                if is_dir_ret is None:
+                    return super().is_dir()
+                return is_dir_ret
 
-    monkeypatch.setattr(mora.graphapi.versions.latest.files, "Path", MockPath)
+            def is_file(self):
+                if is_file_ret is None:
+                    return super().is_file()
+                return is_file_ret
+
+            def iterdir(self):
+                if iterdir_ret is None:
+                    return super().iterdir()
+                return iterdir_ret
+
+        monkeypatch.setattr(mora.graphapi.versions.latest.files, "Path", MockPath)
+
+    return _mock_path
 
 
 class TestAuth:
@@ -125,9 +140,11 @@ class TestAuth:
 
 class TestFile:
     async def test_list_export_files_raises_on_invalid_dir(
-        self, service_client_weird_auth, mock_is_dir_false
+        self, service_client_weird_auth, mock_path
     ):
         """Ensure we handle missing export dir"""
+        mock_path(is_dir_ret=False)
+
         response = service_client_weird_auth.get("/service/exports/")
         assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {
@@ -138,30 +155,34 @@ class TestFile:
             "status": HTTP_500_INTERNAL_SERVER_ERROR,
         }
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "iterdir")
     async def test_list_export_files_returns_filenames(
-        self, mock_listdir, service_client_weird_auth
+        self, service_client_weird_auth, mock_path, monkeypatch
     ):
         """Ensure that we only return filenames from the export directory"""
         filenames = ["file1", "file2"]
         dirnames = ["dir"]
 
-        def mocked_isfile(self):
+        mock_path(
+            is_dir_ret=True,
+            iterdir_ret=list(map(Path, filenames + dirnames)),
+        )
+
+        def mock_is_file(self):
             filename = str(self)
             return filename in filenames
 
-        mock_listdir.return_value = list(map(Path, filenames + dirnames))
+        monkeypatch.setattr(Path, "is_file", mock_is_file)
 
-        with mock.patch.object(Path, "is_file", mocked_isfile):
-            response = service_client_weird_auth.get("/service/exports/")
-            assert response.status_code == HTTP_200_OK
-            assert set(response.json()) == set(filenames)
+        response = service_client_weird_auth.get("/service/exports/")
+        assert response.status_code == HTTP_200_OK
+        assert set(response.json()) == set(filenames)
 
     async def test_get_export_file_raises_on_invalid_dir(
-        self, service_client_weird_auth, mock_is_dir_false, mock_no_auth_cookie
+        self, service_client_weird_auth, mock_path, mock_no_auth_cookie
     ):
         """Ensure we handle missing export dir"""
+        mock_path(is_dir_ret=False)
+
         response = service_client_weird_auth.get("/service/exports/whatever")
         assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
         assert response.json() == {
@@ -172,13 +193,12 @@ class TestFile:
             "status": HTTP_500_INTERNAL_SERVER_ERROR,
         }
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "iterdir")
     async def test_get_export_file_raises_on_file_not_found(
-        self, mock_listdir, service_client_weird_auth, mock_no_auth_cookie
+        self, service_client_weird_auth, mock_path, mock_no_auth_cookie
     ):
         """Ensure we handle nonexistent files"""
-        mock_listdir.return_value = []
+        mock_path(is_dir_ret=True, iterdir_ret=[])
+
         response = service_client_weird_auth.get("/service/exports/whatever")
         assert response.status_code == HTTP_404_NOT_FOUND
         assert response.json() == {
@@ -202,8 +222,10 @@ class TestFile:
 
 
 class TestFileUpload:
-    async def test_folder_missing(self, service_client_weird_auth, mock_is_dir_false):
+    async def test_folder_missing(self, service_client_weird_auth, mock_path):
         """Ensure we handle missing export dir."""
+        mock_path(is_dir_ret=False)
+
         response = service_client_weird_auth.post(
             "/service/exports/filename.csv", files=dict(file=b"bar")
         )
@@ -216,10 +238,10 @@ class TestFileUpload:
             "status": HTTP_500_INTERNAL_SERVER_ERROR,
         }
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: True)
-    async def test_file_exists(self, service_client_weird_auth):
+    async def test_file_exists(self, service_client_weird_auth, mock_path):
         """Ensure that we cannot upload files if they already exist."""
+        mock_path(is_dir_ret=True, is_file_ret=True)
+
         open_mock = mock.mock_open()
         with mock.patch("mora.service.shimmed.exports.open", open_mock, create=True):
             response = service_client_weird_auth.post(
@@ -234,10 +256,10 @@ class TestFileUpload:
                 "status": HTTP_409_CONFLICT,
             }
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: True)
-    async def test_file_exists_but_forced(self, service_client_weird_auth):
+    async def test_file_exists_but_forced(self, service_client_weird_auth, mock_path):
         """Ensure that we can upload files with force, even if a file exists."""
+        mock_path(is_dir_ret=True, is_file_ret=True)
+
         open_mock = mock.mock_open()
         with mock.patch.object(Path, "open", open_mock, create=True):
             response = service_client_weird_auth.post(
@@ -249,10 +271,10 @@ class TestFileUpload:
         open_mock.assert_called_once_with("wb")
         open_mock().write.assert_called_once_with(b"bar")
 
-    @mock.patch.object(Path, "is_dir", lambda x: True)
-    @mock.patch.object(Path, "is_file", lambda x: False)
-    async def test_successful_file_upload(self, service_client_weird_auth):
+    async def test_successful_file_upload(self, service_client_weird_auth, mock_path):
         """Ensure that we can upload files."""
+        mock_path(is_dir_ret=True, is_file_ret=False)
+
         open_mock = mock.mock_open()
         with mock.patch.object(Path, "open", open_mock, create=True):
             response = service_client_weird_auth.post(
