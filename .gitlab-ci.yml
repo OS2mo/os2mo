@@ -465,9 +465,13 @@ Integration-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
-LoRa-test:
+LoRa-integration-test:
   extends:
     - .backend-test-base
+    - .services:start-all
+  needs:
+    - !reference [".backend-test-base", needs]
+    - !reference [".services:start-all", needs]
   script:
     - pytest backend/oio_rest/tests
       -p no:cacheprovider
