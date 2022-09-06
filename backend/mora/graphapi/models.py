@@ -366,7 +366,7 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
     pass
 
 
-class EmployeeUpdate(Employee):
+class EmployeeUpdate(UUIDBase):
     # name
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
