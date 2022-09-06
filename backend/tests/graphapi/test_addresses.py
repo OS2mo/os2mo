@@ -21,9 +21,6 @@ from mora import lora
 from mora.graphapi.address import terminate as address_terminate
 from mora.graphapi.main import get_schema
 from mora.graphapi.models import AddressTerminate
-from mora.graphapi.models import AddressType
-from mora.graphapi.models import AddressVisibility
-from mora.graphapi.models import Organisation
 from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -31,6 +28,10 @@ from mora.graphapi.versions.latest.address import terminate_addr
 from mora.graphapi.versions.latest.models import AddressTerminate
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
+
+# from mora.graphapi.models import AddressType
+# from mora.graphapi.models import AddressVisibility
+# from mora.graphapi.models import Organisation
 
 
 # --------------------------------------------------------------------------------------
@@ -128,26 +129,34 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
     #     ]
     # )
     async def test_mutator(self):
-        # INPUT before parameterized
-        given_org = Organisation(uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b3"))
-
-        given_visibility = AddressVisibility(
-            uuid=UUID("940b39cd-828e-4b6d-a98c-007e512f694c"),
-            name="M\\u00e5 vises eksternt",
-            user_key="Ekstern",
-            example=None,
-            scope="PUBLIC",
-            owner=None,
+        # INPUT params - before using parameterized
+        given_address_type = "61c22b75-01b0-4e83-954c-9cf0c8dc79fe"
+        given_visibility = "940b39cd-828e-4b6d-a98c-007e512f694c"
+        given_org = "3b866d97-0b1f-48e0-8078-686d96f430b3"
+        given_org_unit = "3b866d97-0b1f-48e0-8078-686d96f430b4"  # NOT VALID / imaginary
+        given_person = "3b866d97-0b1f-48e0-8078-686d96f430b5"  # NOT VALID / imaginary
+        given_engagement = (
+            "3b866d97-0b1f-48e0-8078-686d96f430b6"  # NOT VALID / imaginary
         )
 
-        given_address_type = AddressType(
-            uuid=UUID("61c22b75-01b0-4e83-954c-9cf0c8dc79fe"),
-            name="Email",
-            user_key="EmailUnit",
-            example=None,
-            scope="EMAIL",
-            owner=None,
-        )
+        # given_org = Organisation(uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b3"))
+        # given_visibility = AddressVisibility(
+        #     uuid=UUID("940b39cd-828e-4b6d-a98c-007e512f694c"),
+        #     name="M\\u00e5 vises eksternt",
+        #     user_key="Ekstern",
+        #     example=None,
+        #     scope="PUBLIC",
+        #     owner=None,
+        # )
+
+        # given_address_type = AddressType(
+        #     uuid=UUID("61c22b75-01b0-4e83-954c-9cf0c8dc79fe"),
+        #     name="Email",
+        #     user_key="EmailUnit",
+        #     example=None,
+        #     scope="EMAIL",
+        #     owner=None,
+        # )
 
         given_validity = Validity(from_date=datetime.datetime.now())
 
@@ -157,21 +166,37 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
         # GraphQL
         mutation_func = "address_create"
         query = (
-            "mutation($org: UUID!, $visibility: UUID!, $addressType: UUID!, "
-            "$from: DateTime!, $to: DateTime, $value: String!) {"
-            f"{mutation_func}(input: {{org: $org, visibility: $visibility, "
-            f"address_type: $addressType, from: $from, to: $to, value: $value}})"
+            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
+            "$org: UUID, $orgUnit: UUID, $person: UUID, $engagement: UUID, "
+            "$from: DateTime, $to: DateTime) {"
+            f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
+            "visibility: $visibility, org: $org, org_unit: $orgUnit, person: $person, "
+            "engagement: $engagement, from: $from, to: $to})"
             "{ uuid }"
             "}"
         )
 
+        # Create GraphQL arguments, starting with the required ones
         var_values = {
-            "org": str(given_org.uuid),
-            "visibility": str(given_visibility.uuid),
-            "addressType": str(given_address_type.uuid),
-            "from": given_validity.from_date.date().isoformat(),
             "value": given_value,
+            "addressType": given_address_type,
+            "visibility": given_visibility,
         }
+
+        if given_org:
+            var_values["org"] = given_org
+
+        if given_org_unit:
+            var_values["org_unit"] = given_org_unit
+
+        if given_person:
+            var_values["person"] = given_person
+
+        if given_engagement:
+            var_values["engagement"] = given_engagement
+
+        if given_validity.from_date:
+            var_values["from"] = given_validity.from_date.date().isoformat()
 
         if given_validity.to_date:
             var_values["to"] = given_validity.to_date.date().isoformat()

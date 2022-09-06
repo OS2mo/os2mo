@@ -360,10 +360,13 @@ class AddressCreate(Validity):
 
         return {
             mapping.TYPE: mapping.ADDRESS,
-            mapping.ORG: {mapping.UUID: str(self.org)},
-            mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
-            mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
             mapping.VALUE: self.value,
+            mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
+            mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
+            mapping.ORG: {mapping.UUID: str(self.org)},
+            mapping.ORG_UNIT: {mapping.UUID: str(self.org_unit)},
+            mapping.PERSON: {mapping.UUID: str(self.person)},
+            mapping.ENGAGEMENT: {mapping.UUID: str(self.engagement)},
             mapping.VALIDITY: validity,
         }
 
