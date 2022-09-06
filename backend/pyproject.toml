@@ -53,6 +53,7 @@ pika = "^1.2.1"
 jsonschema = "^4.5.1"
 hypothesis = "^6.54.4"
 psycopg2-binary = "~2.8"
+"tap.py" = "^3.1"
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.9.2"
