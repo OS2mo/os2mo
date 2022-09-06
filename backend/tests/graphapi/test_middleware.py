@@ -19,7 +19,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 from starlette_context import context
 
-import mora.graphapi.dataloaders as dataloaders
+from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo import OpenValidity
 
 # --------------------------------------------------------------------------------------

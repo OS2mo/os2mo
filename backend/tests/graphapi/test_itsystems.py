@@ -7,10 +7,10 @@ from hypothesis import given
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
-import mora.graphapi.dataloaders as dataloaders
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.versions.latest import dataloaders
 from ramodels.mo.details import ITSystemRead
 from tests.conftest import GQLResponse
 

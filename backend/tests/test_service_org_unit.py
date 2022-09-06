@@ -191,7 +191,7 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
 class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
     @patch("mora.triggers.internal.http_trigger.fetch_endpoint_trigger")
     @patch("mora.triggers.internal.http_trigger.http_sender")
-    @patch("mora.graphapi.org_unit.load_org_unit")
+    @patch("mora.graphapi.versions.latest.org_unit.load_org_unit")
     async def test_returns_integration_error_on_wrong_status(
         self, mock, t_sender_mock, t_fetch_mock
     ):
@@ -239,7 +239,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
     @patch(
         "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
     )
-    @patch("mora.graphapi.org_unit.load_org_unit")
+    @patch("mora.graphapi.versions.latest.org_unit.load_org_unit")
     async def test_returns_message_on_success(self, mock, t_sender_mock, t_fetch_mock):
         with util.override_config(Settings(http_endpoints=["http://whatever"])):
             t_fetch_mock.return_value = [
@@ -285,7 +285,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
             ]
         )
 
-    @patch("mora.graphapi.org_unit.load_org_unit")
+    @patch("mora.graphapi.versions.latest.org_unit.load_org_unit")
     async def test_returns_404_on_unknown_unit(self, mock):
         mock.return_value.objects = []
 

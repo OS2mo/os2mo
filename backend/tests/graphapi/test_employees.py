@@ -13,14 +13,14 @@ from mock.mock import AsyncMock
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
-import mora.graphapi.dataloaders as dataloaders
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora import mapping
-from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
+from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from mora.service.util import handle_gql_error
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
@@ -157,7 +157,9 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             if given_org_uuid:
                 var_values["org"] = {mapping.UUID: given_org_uuid}
 
-            response = await get_schema().execute(query, variable_values=var_values)
+            response = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             # Asserts
             if expected_result:
@@ -205,7 +207,9 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
     async def test_pydantic_dataclass(
         self, given_name, given_cprno, given_org_uuid, expected_result
     ):
-        with patch("mora.graphapi.mutators.employee_create") as mock_employee_create:
+        with patch(
+            "mora.graphapi.versions.latest.mutators.employee_create"
+        ) as mock_employee_create:
             mutation_func = "employee_create"
             query = (
                 f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
@@ -224,7 +228,9 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             if given_org_uuid:
                 var_values["org"] = {mapping.UUID: given_org_uuid}
 
-            _ = await get_schema().execute(query, variable_values=var_values)
+            _ = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             # Asserts
             if expected_result:
@@ -281,7 +287,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                         "{ uuid }"
                         "}"
                     )
-                    response = await get_schema().execute(
+                    response = await LatestGraphQLSchema.get().execute(
                         query,
                         variable_values={
                             "name": given_name,
@@ -362,7 +368,9 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 to_date=given_to_date,
             )
 
-            response = await get_schema().execute(query, variable_values=var_values)
+            response = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             # Asserts
             if expected_result:
@@ -411,7 +419,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         self, given_uuid, given_from_date, given_to_date, expected_result
     ):
         with patch(
-            "mora.graphapi.mutators.terminate_employee"
+            "mora.graphapi.versions.latest.mutators.terminate_employee"
         ) as mock_terminate_employee:
             # Invoke GraphQL
             mutation_func = "employee_terminate"
@@ -422,7 +430,9 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 to_date=given_to_date,
             )
 
-            _ = await get_schema().execute(query, variable_values=var_values)
+            _ = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             if expected_result:
                 mock_terminate_employee.assert_called()
@@ -535,7 +545,9 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
         given_nickname_last,
         expected_result,
     ):
-        with patch("mora.graphapi.employee.handle_requests") as mock_handle_requests:
+        with patch(
+            "mora.graphapi.versions.latest.employee.handle_requests"
+        ) as mock_handle_requests:
             mock_handle_requests.return_value = given_uuid
 
             # GraphQL
@@ -584,7 +596,9 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
         given_nickname_last,
         expected_result,
     ):
-        with patch("mora.graphapi.mutators.employee_update") as mock_employee_update:
+        with patch(
+            "mora.graphapi.versions.latest.mutators.employee_update"
+        ) as mock_employee_update:
             query = (
                 "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
                 "$nicknameLast: String) {"

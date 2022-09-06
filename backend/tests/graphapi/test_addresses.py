@@ -12,13 +12,13 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
 
-import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
-from mora.graphapi.address import terminate_addr
-from mora.graphapi.models import AddressTerminate
 from mora.graphapi.shim import flatten_data
+from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.models import AddressTerminate
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
 
