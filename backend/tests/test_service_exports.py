@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64encode
 from pathlib import Path
+from pathlib import PosixPath
 from typing import Optional
 
 import mock
@@ -40,6 +41,15 @@ def fastapi_test_app_weird_auth():
 def service_client_weird_auth(fastapi_test_app_weird_auth):
     with TestClient(fastapi_test_app_weird_auth) as client:
         yield client
+
+
+@pytest.fixture
+def mock_is_dir_false(monkeypatch):
+    class MockPath(PosixPath):
+        def is_dir(self):
+            return False
+
+    monkeypatch.setattr(mora.graphapi.versions.latest.files, "Path", MockPath)
 
 
 class TestAuth:
@@ -91,9 +101,8 @@ class TestAuth:
 
 
 class TestFile:
-    @mock.patch.object(Path, "is_dir", lambda x: False)
     async def test_list_export_files_raises_on_invalid_dir(
-        self, service_client_weird_auth
+        self, service_client_weird_auth, mock_is_dir_false
     ):
         """Ensure we handle missing export dir"""
         response = service_client_weird_auth.get("/service/exports/")
@@ -129,9 +138,8 @@ class TestFile:
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
     )
-    @mock.patch.object(Path, "is_dir", lambda x: False)
     async def test_get_export_file_raises_on_invalid_dir(
-        self, service_client_weird_auth
+        self, service_client_weird_auth, mock_is_dir_false
     ):
         """Ensure we handle missing export dir"""
         response = service_client_weird_auth.get("/service/exports/whatever")
@@ -186,8 +194,7 @@ class TestFile:
 
 
 class TestFileUpload:
-    @mock.patch.object(Path, "is_dir", lambda x: False)
-    async def test_folder_missing(self, service_client_weird_auth):
+    async def test_folder_missing(self, service_client_weird_auth, mock_is_dir_false):
         """Ensure we handle missing export dir."""
         response = service_client_weird_auth.post(
             "/service/exports/filename.csv", files=dict(file=b"bar")
