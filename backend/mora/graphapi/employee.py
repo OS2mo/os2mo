@@ -17,11 +17,9 @@ from mora.graphapi.models import EmployeeTerminate
 from mora.graphapi.models import EmployeeUpdate
 from mora.graphapi.types import EmployeeType
 from mora.service import handlers
-from mora.service.employee import EmployeeRequestHandler
-from mora.triggers import Trigger
-
 from mora.service.detail_writing import handle_requests
 from mora.service.employee import EmployeeRequestHandler
+from mora.triggers import Trigger
 
 
 async def create(ec: EmployeeCreate) -> EmployeeType:
