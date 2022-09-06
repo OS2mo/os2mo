@@ -479,7 +479,6 @@ LoRa-integration-test:
       --show-capture=stdout
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=oio_rest
-      --workers 1
   artifacts:
     when: always
     paths:
