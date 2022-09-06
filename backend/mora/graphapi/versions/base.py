@@ -69,9 +69,9 @@ class BaseGraphQLVersion:
     schema: Type[BaseGraphQLSchema]
 
     @classmethod
-    async def get_context(cls, **kwargs: Any) -> dict[str, Any]:
+    async def get_context(cls) -> dict[str, Any]:
         """Strawberry context getter."""
-        return {**kwargs}
+        return {}
 
     @classmethod
     def get_router(cls, **kwargs: Any) -> APIRouter:

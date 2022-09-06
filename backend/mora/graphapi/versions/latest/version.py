@@ -41,11 +41,9 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
     schema = LatestGraphQLSchema
 
     @classmethod
-    async def get_context(
-        cls, token: Token = Depends(auth), **kwargs: Any
-    ) -> dict[str, Any]:
+    async def get_context(cls, token: Token = Depends(auth)) -> dict[str, Any]:
         return {
-            **await super().get_context(**kwargs),
+            **await super().get_context(),
             **await get_loaders(),
             "token": token,
             "filestorage": get_filestorage(),
