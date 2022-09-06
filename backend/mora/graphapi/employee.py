@@ -14,8 +14,10 @@ from mora import mapping
 from mora import util
 from mora.graphapi.models import EmployeeCreate
 from mora.graphapi.models import EmployeeTerminate
+from mora.graphapi.models import EmployeeUpdate
 from mora.graphapi.types import EmployeeType
 from mora.service import handlers
+from mora.service.detail_writing import handle_requests
 from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
@@ -95,4 +97,18 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     # Write a noop entry to the user, to be used for the history
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
+    return EmployeeType(uuid=UUID(result))
+
+
+async def update(employee_update: EmployeeUpdate) -> EmployeeType:
+    # Convert pydantic model to request-dict, to match legacy implementation.
+    update_dict = employee_update.dict(by_alias=True)
+    req = {
+        mapping.TYPE: mapping.EMPLOYEE,
+        mapping.UUID: employee_update.uuid,
+        mapping.DATA: update_dict,
+    }
+
+    # Invoke existing update-logic
+    result = await handle_requests(req, mapping.RequestType.EDIT)
     return EmployeeType(uuid=UUID(result))

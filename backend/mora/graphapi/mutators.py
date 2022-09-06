@@ -16,10 +16,12 @@ from strawberry.types import Info
 from mora.graphapi.address import terminate_addr
 from mora.graphapi.employee import create as employee_create
 from mora.graphapi.employee import terminate as terminate_employee
+from mora.graphapi.employee import update as employee_update
 from mora.graphapi.engagements import terminate_engagement
 from mora.graphapi.inputs import AddressTerminateInput
 from mora.graphapi.inputs import EmployeeCreateInput
 from mora.graphapi.inputs import EmployeeTerminateInput
+from mora.graphapi.inputs import EmployeeUpdateInput
 from mora.graphapi.inputs import EngagementTerminateInput
 from mora.graphapi.inputs import OrganizationUnitTerminateInput
 from mora.graphapi.models import FileStore
@@ -79,3 +81,7 @@ class Mutation:
     @strawberry.mutation(description="Terminates an employee by UUID")
     async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
         return await terminate_employee(input.to_pydantic())
+
+    @strawberry.mutation(description="Terminates an employee by UUID")
+    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
+        return await employee_update(input.to_pydantic())

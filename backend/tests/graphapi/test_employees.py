@@ -4,6 +4,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+from itertools import product
 from uuid import uuid4
 
 from hypothesis import given
@@ -29,6 +30,10 @@ from tests.conftest import GQLResponse
 now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
 )
+
+# --------------------------------------------------------------------------------------
+# Query tests
+# --------------------------------------------------------------------------------------
 
 
 class TestEmployeesQuery:
@@ -95,6 +100,11 @@ class TestEmployeesQuery:
         result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
         assert set(result_uuids) == set(test_uuids)
         assert len(result_uuids) == len(set(test_uuids))
+
+
+# --------------------------------------------------------------------------------------
+# Create tests
+# --------------------------------------------------------------------------------------
 
 
 class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
@@ -446,3 +456,160 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
             var_values["to"] = to_date.isoformat()
 
         return query, var_values
+
+
+# --------------------------------------------------------------------------------------
+# Update tests
+# --------------------------------------------------------------------------------------
+
+
+# Create lists of possible values
+test_mutator_success_uuids = [
+    "00000000-0000-0000-0000-000000000000",
+    "720d3063-9649-4371-9c38-5a8af04b96dd",
+]
+test_mutator_fail_uuids = [None]
+test_mutator_names = [None, "Jens Jensen"]
+test_mutator_nickname_firsts = [None, "Jens"]
+test_mutator_nickname_lasts = [None, "Lyn"]
+
+test_pydantic_dataclass_uuids_success = test_mutator_success_uuids
+test_pydantic_dataclass_uuids_fail = ["", "something-darkside"]
+test_pydantic_dataclass_names = ["", "Jens Jensen"]
+test_pydantic_dataclass_nickname_firsts = ["", "Jens"]
+test_pydantic_dataclass_nickname_lasts = ["", "Lyn"]
+
+# Create parm lists
+test_mutator_success_params = list(
+    product(
+        test_mutator_success_uuids,
+        test_mutator_names,
+        test_mutator_nickname_firsts,
+        test_mutator_nickname_lasts,
+    )
+)
+test_mutator_fail_params = list(
+    product(
+        test_mutator_fail_uuids,
+        test_mutator_names,
+        test_mutator_nickname_firsts,
+        test_mutator_nickname_lasts,
+    )
+)
+
+test_pydantic_dataclass_success_params = list(
+    product(
+        test_pydantic_dataclass_uuids_success,
+        test_pydantic_dataclass_names,
+        test_pydantic_dataclass_nickname_firsts,
+        test_pydantic_dataclass_nickname_lasts,
+    )
+)
+test_pydantic_dataclass_fail_params = list(
+    product(
+        test_pydantic_dataclass_uuids_fail,
+        test_pydantic_dataclass_names,
+        test_pydantic_dataclass_nickname_firsts,
+        test_pydantic_dataclass_nickname_lasts,
+    )
+)
+
+params_test_mutator = [param + (True,) for param in test_mutator_success_params]
+params_test_mutator += [param + (False,) for param in test_mutator_fail_params]
+
+params_test_pydantic_dataclass = [
+    param + (True,) for param in test_pydantic_dataclass_success_params
+]
+params_test_pydantic_dataclass += [
+    param + (False,) for param in test_pydantic_dataclass_fail_params
+]
+
+
+class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
+    @parameterized.expand(params_test_mutator)
+    async def test_mutator(
+        self,
+        given_uuid,
+        given_name,
+        given_nickname_first,
+        given_nickname_last,
+        expected_result,
+    ):
+        with patch("mora.graphapi.employee.handle_requests") as mock_handle_requests:
+            mock_handle_requests.return_value = given_uuid
+
+            # GraphQL
+            mutation_func = "employee_update"
+            query = (
+                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
+                "$nicknameLast: String) {"
+                f"{mutation_func}(input: {{uuid: $uuid, name: $name, "
+                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
+                "{ uuid }"
+                "}"
+            )
+
+            var_values = {}
+            if given_uuid:
+                var_values["uuid"] = given_uuid
+
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_nickname_first:
+                var_values["nicknameFirst"] = given_nickname_first
+
+            if given_nickname_last:
+                var_values["nicknameLast"] = given_nickname_last
+
+            response = await get_schema().execute(query, variable_values=var_values)
+
+            # Asserts
+            if expected_result:
+                mock_handle_requests.assert_called()
+
+                self.assertEqual(
+                    response.data.get(mutation_func, {}).get("uuid", None),
+                    given_uuid,
+                )
+            else:
+                mock_handle_requests.assert_not_called()
+
+    @parameterized.expand(params_test_pydantic_dataclass)
+    async def test_pydantic_dataclass(
+        self,
+        given_uuid,
+        given_name,
+        given_nickname_first,
+        given_nickname_last,
+        expected_result,
+    ):
+        with patch("mora.graphapi.mutators.employee_update") as mock_employee_update:
+            query = (
+                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
+                "$nicknameLast: String) {"
+                "employee_update(input: {uuid: $uuid, name: $name, "
+                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
+                "{ uuid }"
+                "}"
+            )
+
+            var_values = {}
+            if given_uuid:
+                var_values["uuid"] = given_uuid
+
+            if given_name:
+                var_values["name"] = given_name
+
+            if given_nickname_first:
+                var_values["nicknameFirst"] = given_nickname_first
+
+            if given_nickname_last:
+                var_values["nicknameLast"] = given_nickname_last
+
+            _ = await get_schema().execute(query, variable_values=var_values)
+
+            if expected_result:
+                mock_employee_update.assert_called()
+            else:
+                mock_employee_update.assert_not_called()
