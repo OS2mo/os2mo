@@ -11,9 +11,19 @@ import strawberry
 from .models import AddressTerminate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
+from .models import EmployeeUpdate
 from .models import EngagementTerminate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
+from .models import Validity
+
+
+@strawberry.experimental.pydantic.input(
+    model=Validity,
+    all_fields=True,
+)
+class ValidityInput:
+    pass
 
 
 @strawberry.experimental.pydantic.input(
@@ -71,4 +81,14 @@ class EmployeeCreateInput:
     all_fields=True,
 )
 class EmployeeTerminateInput:
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=EmployeeUpdate,
+    all_fields=True,
+)
+class EmployeeUpdateInput:
+    """Input model for updating an employee."""
+
     pass

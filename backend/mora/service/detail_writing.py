@@ -47,9 +47,6 @@ async def handle_requests(
     return uuids
 
 
-1
-
-
 @router.post(
     "/details/create",
     status_code=HTTP_201_CREATED,
