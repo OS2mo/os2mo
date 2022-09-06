@@ -64,4 +64,8 @@ def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
     # The legacy router is included last, so it only defines routes that have not
     # already been defined, i.e. POST /graphql.
     # TODO: This should be removed ASAP when everything is migrated
-    app.include_router(oldest.get_router(path="/graphql"), deprecated=True)
+    app.include_router(
+        oldest.get_router(path="/graphql"),
+        deprecated=True,
+        dependencies=[Depends(auth)],
+    )
