@@ -23,10 +23,6 @@ from mora.service.shimmed.exports import oauth2_scheme
 from tests.conftest import test_app
 
 
-async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
-    pass
-
-
 @pytest.fixture(scope="class")
 def fastapi_test_app_weird_auth():
     async def _noop_oauth2_scheme(request: Request) -> Optional[str]:
@@ -44,6 +40,17 @@ def fastapi_test_app_weird_auth():
 def service_client_weird_auth(fastapi_test_app_weird_auth):
     with TestClient(fastapi_test_app_weird_auth) as client:
         yield client
+
+
+async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
+    pass
+
+
+@pytest.fixture
+def mock_no_auth_cookie(monkeypatch):
+    monkeypatch.setattr(
+        mora.service.shimmed.exports, "_check_auth_cookie", _noop_check_auth_cookie
+    )
 
 
 @pytest.fixture
@@ -105,9 +112,12 @@ class TestAuth:
         }
 
         # No validation, no problem
-        with mock.patch(
-            "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
-        ):
+        with monkeypatch.context() as m:
+            m.setattr(
+                mora.service.shimmed.exports,
+                "_check_auth_cookie",
+                _noop_check_auth_cookie,
+            )
             response = service_client_weird_auth.get("/service/exports/filename")
             assert response.status_code == HTTP_200_OK
             assert response.text == "I am a file"
@@ -148,11 +158,8 @@ class TestFile:
             assert response.status_code == HTTP_200_OK
             assert set(response.json()) == set(filenames)
 
-    @mock.patch(
-        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
-    )
     async def test_get_export_file_raises_on_invalid_dir(
-        self, service_client_weird_auth, mock_is_dir_false
+        self, service_client_weird_auth, mock_is_dir_false, mock_no_auth_cookie
     ):
         """Ensure we handle missing export dir"""
         response = service_client_weird_auth.get("/service/exports/whatever")
@@ -165,13 +172,10 @@ class TestFile:
             "status": HTTP_500_INTERNAL_SERVER_ERROR,
         }
 
-    @mock.patch(
-        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
-    )
     @mock.patch.object(Path, "is_dir", lambda x: True)
     @mock.patch.object(Path, "iterdir")
     async def test_get_export_file_raises_on_file_not_found(
-        self, mock_listdir, service_client_weird_auth
+        self, mock_listdir, service_client_weird_auth, mock_no_auth_cookie
     ):
         """Ensure we handle nonexistent files"""
         mock_listdir.return_value = []
@@ -185,11 +189,11 @@ class TestFile:
             "status": HTTP_404_NOT_FOUND,
         }
 
-    @mock.patch(
-        "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
-    )
     async def test_get_export_file_returns_file(
-        self, service_client_weird_auth, mock_execute_graphql
+        self,
+        service_client_weird_auth,
+        mock_execute_graphql,
+        mock_no_auth_cookie,
     ):
         """Ensure we return a file if found"""
         response = service_client_weird_auth.get("/service/exports/whatever")
