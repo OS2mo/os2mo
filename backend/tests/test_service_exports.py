@@ -3,6 +3,7 @@
 from base64 import b64encode
 from pathlib import Path
 from pathlib import PosixPath
+from typing import Any
 from typing import Optional
 
 import mock
@@ -14,7 +15,9 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 from starlette.status import HTTP_404_NOT_FOUND
 from starlette.status import HTTP_409_CONFLICT
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
+from strawberry.types import ExecutionResult
 
+import mora.graphapi.versions.latest.files
 from mora.config import get_settings
 from mora.service.shimmed.exports import oauth2_scheme
 from tests.conftest import test_app
@@ -44,6 +47,21 @@ def service_client_weird_auth(fastapi_test_app_weird_auth):
 
 
 @pytest.fixture
+def mock_execute_graphql(monkeypatch):
+    async def _mock_execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
+        response = mock.MagicMock()
+        response.errors = {}
+        response.data = {
+            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
+        }
+        return response
+
+    monkeypatch.setattr(
+        mora.service.shimmed.exports, "execute_graphql", _mock_execute_graphql
+    )
+
+
+@pytest.fixture
 def mock_is_dir_false(monkeypatch):
     class MockPath(PosixPath):
         def is_dir(self):
@@ -66,15 +84,10 @@ class TestAuth:
             "Secure",
         }
 
-    @mock.patch("mora.service.shimmed.exports.execute_graphql")
-    async def test_get_export_reads_cookie(self, execute, service_client_weird_auth):
+    async def test_get_export_reads_cookie(
+        self, service_client_weird_auth, mock_execute_graphql, monkeypatch
+    ):
         """Ensure that get reads our token and attempts to validate it."""
-        response = mock.MagicMock()
-        response.errors = {}
-        response.data = {
-            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
-        }
-        execute.return_value = response
 
         # No cookie, not okay
         response = service_client_weird_auth.get("/service/exports/filename")
@@ -175,22 +188,13 @@ class TestFile:
     @mock.patch(
         "mora.service.shimmed.exports._check_auth_cookie", _noop_check_auth_cookie
     )
-    @mock.patch("mora.service.shimmed.exports.execute_graphql")
     async def test_get_export_file_returns_file(
-        self, execute, service_client_weird_auth
+        self, service_client_weird_auth, mock_execute_graphql
     ):
         """Ensure we return a file if found"""
-        response = mock.MagicMock()
-        response.errors = {}
-        response.data = {
-            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
-        }
-        execute.return_value = response
-
         response = service_client_weird_auth.get("/service/exports/whatever")
         assert response.status_code == HTTP_200_OK
         assert response.text == "I am a file"
-        execute.assert_called_once()
 
 
 class TestFileUpload:
