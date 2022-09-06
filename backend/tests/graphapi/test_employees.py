@@ -574,7 +574,9 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             if given_nickname_last:
                 var_values["nicknameLast"] = given_nickname_last
 
-            response = await get_schema().execute(query, variable_values=var_values)
+            response = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             # Asserts
             if expected_result:
@@ -621,7 +623,9 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             if given_nickname_last:
                 var_values["nicknameLast"] = given_nickname_last
 
-            _ = await get_schema().execute(query, variable_values=var_values)
+            _ = await LatestGraphQLSchema.get().execute(
+                query, variable_values=var_values
+            )
 
             if expected_result:
                 mock_employee_update.assert_called()
