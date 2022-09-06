@@ -8,6 +8,7 @@ Used for shimming the service API.
 from datetime import date
 from typing import Any
 from typing import Optional
+from typing import Type
 from typing import Union
 from uuid import UUID
 
@@ -195,19 +196,27 @@ class MOAddress(AddressRead):
     name: Optional[str]
 
 
-async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    from mora.graphapi.main import get_schema
-    from mora.graphapi.dataloaders import get_loaders
-    from mora.graphapi.middleware import set_is_shim
-    from mora.graphapi.files import get_filestorage
+async def execute_graphql(
+    *args: Any,
+    graphql_version: Optional[Type[BaseGraphQLVersion]] = None,
+    **kwargs: Any
+) -> ExecutionResult:
+    # Imports must be done here to avoid circular imports... eww
+    if graphql_version is None:
+        from .versions.latest.version import LatestGraphQLVersion
+
+        graphql_version = LatestGraphQLVersion
 
     set_is_shim()
 
-    loaders = await get_loaders()
     if "context_value" not in kwargs:
-        kwargs["context_value"] = {**loaders, "filestorage": get_filestorage()}
+        # TODO: The token should be passed from the original caller, such that the
+        #  service API shims get RBAC equivalent to the GraphQL API for free.
+        token = await noauth()
+        kwargs["context_value"] = await graphql_version.get_context(token=token)
 
-    return await get_schema().execute(*args, **kwargs)
+    schema = graphql_version.schema.get()
+    return await schema.execute(*args, **kwargs)
 
 
 def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:
