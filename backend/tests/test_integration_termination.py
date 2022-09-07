@@ -806,23 +806,25 @@ class Tests(tests.cases.LoRATestCase):
             (
                 req_1,
                 {
-                    "error": True,
-                    "description": "Invalid input.",
-                    "status": 400,
-                    "error_key": "E_INVALID_INPUT",
-                    "request": req_1,
-                    "errors": [
-                        {
-                            "loc": ["body"],
-                            "msg": "value is not a valid list",
-                            "type": "type_error.list",
-                        },
-                        {
-                            "loc": ["body", "validity"],
-                            "msg": "field required",
-                            "type": "value_error.missing",
-                        },
-                    ],
+                    # "error": True,
+                    # "description": "Invalid input.",
+                    # "status": 400,
+                    # "error_key": "E_INVALID_INPUT",
+                    # "request": req_1,
+                    # "errors": [
+                    #     {
+                    #         "loc": ["body"],
+                    #         "msg": "value is not a valid list",
+                    #         "type": "type_error.list",
+                    #     },
+                    #     {
+                    #         "loc": ["body", "validity"],
+                    #         "msg": "field required",
+                    #         "type": "value_error.missing",
+                    #     },
+                    # ],
+                    **legacy_open_validity_expected_result,
+                    "obj": req_1,
                 },
             ),
             (
