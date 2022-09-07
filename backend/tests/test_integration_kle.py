@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
 import notsouid
+import pytest
 
 import tests.cases
-from tests.util import sample_structures_cls_fixture
 
 kle_aspekt_facet = {
     "description": "",
@@ -19,7 +19,7 @@ kle_nummer_facet = {
 }
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

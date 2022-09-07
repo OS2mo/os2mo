@@ -445,7 +445,7 @@ Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 32
+  parallel: 4 
   script:
     - pytest backend/tests
       -m "serial and not equivalence"

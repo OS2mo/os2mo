@@ -524,7 +524,7 @@ def quick_search(
     sql = qb.get_query()
 
     # execute query against LoRa
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         cursor.execute(sql)
         output = cursor.fetchall()
 

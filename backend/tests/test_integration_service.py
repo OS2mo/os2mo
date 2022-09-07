@@ -5,7 +5,6 @@ import pytest
 
 import tests.cases
 from . import util
-from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
@@ -549,7 +548,7 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -652,7 +651,7 @@ class TestsMinimal(tests.cases.LoRATestCase):
         self.assertEqual(expected_get, actual_get)
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

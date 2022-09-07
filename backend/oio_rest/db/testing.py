@@ -59,10 +59,17 @@ def setup_testing_database():
 
 def reset_testing_database():
     """Truncate all tables in the 'actual_state' schema, in the testing database"""
+    # HACK as long as we have two ways to generate sample structure data
+    # the are_fixtures_loaded needs to be set to false to ensure
+    # the correct change between minimal and full sample structure data
 
+    from tests import conftest
+
+    conftest.are_fixtures_loaded
     _begin_or_continue_testing()
     _check_current_database_is_testing()
     truncate_all_tables()
+    conftest.are_fixtures_loaded = False
 
 
 def teardown_testing_database():
@@ -88,7 +95,7 @@ def get_testing() -> bool:
 
 def _check_current_database_is_testing():
     # Check that we are operating on the testing database
-    with get_connection() as connection, connection.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         cursor.execute("select current_database()")
         current_database = cursor.fetchone()[0]
         assert current_database.endswith("_test")
@@ -96,7 +103,7 @@ def _check_current_database_is_testing():
 
 def _is_alembic_installed() -> bool:
     query_migrations_applied = "select count(*) from alembic_version"
-    with get_connection() as connection, connection.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(query_migrations_applied)
         except UndefinedTable:
