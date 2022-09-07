@@ -10,7 +10,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from ramodels.mo._shared import OpenValidity
+from ramodels.mo._shared import TerminateValidity
 from ramodels.mo._shared import UUIDBase
 
 
@@ -26,7 +26,7 @@ class Detail(UUIDBase):
 
 class DetailTermination(Detail):
 
-    validity: OpenValidity = Field(
+    validity: TerminateValidity = Field(
         description="MO unit validity, determining in what date-interval "
         "a unit is available."
     )
@@ -43,5 +43,9 @@ class DetailTermination(Detail):
 
         if self.validity.to_date:
             request_dict["validity"]["to"] = self.validity.to_date.date().isoformat()
+
+        # LEGACY: After changing TerminateValidity to NOT require to_date.
+        else:
+            del request_dict["validity"]["to"]
 
         return request_dict
