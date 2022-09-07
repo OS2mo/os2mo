@@ -134,8 +134,8 @@ class TestJinjaAttributeArray:
         sql = db.sql_attribute_array(attribute, periods)
 
         """
-        Removing first chars "-- SPDX..."
-        as they interfere with copyright compliance check
+        Removing first chars from sql strings: "-- SPDX..."
+        as they trigger copyright compliance error
         """
         sql_no_spdx = sql[sql.find("ARRAY") :]
         assert sql_ref == sql_no_spdx
