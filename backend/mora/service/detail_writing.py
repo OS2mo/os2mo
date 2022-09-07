@@ -226,7 +226,7 @@ async def create(
         }
       ]
 
-    **IT system**:
+    **IT User**:
 
     :<json string type: ``"it"``
     :<json string user_key: The account name on the IT system.
@@ -675,7 +675,7 @@ async def edit(
         }
       ]
 
-    **IT system**:
+    **IT User**:
 
     :<json string type: ``"it"``
     :<json string uuid: The UUID of the role or relation
