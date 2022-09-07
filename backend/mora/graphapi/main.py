@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
+from typing import Type
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -13,24 +14,32 @@ from starlette.responses import Response
 
 from .versions.v1.version import GraphQLVersion1
 from mora.auth.keycloak.oidc import auth
+from mora.graphapi.versions.base import BaseGraphQLVersion
 
-versions = [
+graphql_versions: list[Type[BaseGraphQLVersion]] = [
     # Latest is never exposed directly, forcing clients to pin to a specific version
     GraphQLVersion1,
 ]
 
 
-def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
+def setup_graphql(
+    app: FastAPI,
+    enable_graphiql: bool = False,
+    versions: list[Type[BaseGraphQLVersion]] | None = None,
+) -> None:
+    if versions is None:
+        versions = graphql_versions
+
     router = APIRouter()
 
     oldest = first(versions)
-    latest = last(versions)
+    newest = last(versions)
 
     # GraphiQL interface redirect
     @router.get("")
     async def redirect_to_latest_graphiql() -> RedirectResponse:
         """Redirect unversioned GraphiQL so developers can pin to the newest version."""
-        return RedirectResponse(f"/graphql/v{latest.version}")
+        return RedirectResponse(f"/graphql/v{newest.version}")
 
     # Active routers
     active_versions = (
@@ -48,7 +57,7 @@ def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
     @router.post("/v{version_number}", status_code=status.HTTP_404_NOT_FOUND)
     async def non_existent(response: Response, version_number: int) -> None:
         """Return 404/410 properly depending on the requested version."""
-        if 0 < version_number < oldest.version:
+        if 0 < version_number <= oldest.version:
             response.status_code = status.HTTP_410_GONE
 
     # Subscriptions could be implemented using our trigger system.
@@ -61,8 +70,8 @@ def setup_graphql(app: FastAPI, enable_graphiql: bool = False) -> None:
     # prefix, but this causes issues when routing the "empty" `/graphql` path.
     app.include_router(router, prefix="/graphql", dependencies=[Depends(auth)])
 
-    # The legacy router is included last, so it only defines routes that have not
-    # already been defined, i.e. POST /graphql.
+    # The legacy router is included last (with GraphiQL disabled), so it only defines
+    # routes that have not already been defined, i.e. POST /graphql.
     # TODO: This should be removed ASAP when everything is migrated
     app.include_router(
         oldest.get_router(path="/graphql"),

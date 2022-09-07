@@ -6,8 +6,7 @@ from operator import attrgetter
 
 from mora.app import create_app
 from mora.config import Environment
-from mora.graphapi.main import versions as graphql_versions
-
+from mora.graphapi.main import graphql_versions
 
 doc_endpoints = {
     "/docs",
