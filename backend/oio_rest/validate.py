@@ -375,7 +375,7 @@ def generate_json_schema(obj, do_create):
         required,
     )
 
-    schema["$schema"] = "http://json-schema.org/schema#"
+    schema["$schema"] = "http://json-schema.org/draft-07/schema"
     schema["id"] = "http://github.com/magenta-aps/mox"
 
     schema["definitions"] = {
