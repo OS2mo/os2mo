@@ -22,9 +22,9 @@ from ramodels.mo.detail import DetailTermination
 
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
 GRAPHQL_COMPATIBLE_TYPES = {
-    mapping.RequestType.TERMINATE: {
-        mapping.ADDRESS: lambda dt: _address_terminate_graphql_handler(dt),
-    }
+    # mapping.RequestType.TERMINATE: {
+    #     mapping.ADDRESS: lambda dt: _address_terminate_graphql_handler(dt),
+    # }
 }
 
 

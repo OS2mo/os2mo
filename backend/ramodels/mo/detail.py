@@ -7,10 +7,10 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Literal
+from typing import Optional
 
 from pydantic import Field
 
-from ramodels.mo._shared import TerminateValidity
 from ramodels.mo._shared import UUIDBase
 
 
@@ -26,7 +26,7 @@ class Detail(UUIDBase):
 
 class DetailTermination(Detail):
 
-    validity: TerminateValidity = Field(
+    validity: Optional[dict] = Field(
         description="MO unit validity, determining in what date-interval "
         "a unit is available."
     )
@@ -34,14 +34,8 @@ class DetailTermination(Detail):
     def to_dict(self) -> dict:
         request_dict = self.dict(by_alias=True)
         request_dict["uuid"] = str(self.uuid)
-        if self.validity.from_date:
-            request_dict["validity"][
-                "from"
-            ] = self.validity.from_date.date().isoformat()
-        else:
-            del request_dict["validity"]["from"]
 
-        if self.validity.to_date:
-            request_dict["validity"]["to"] = self.validity.to_date.date().isoformat()
+        if request_dict["validity"] is None:
+            del request_dict["validity"]
 
         return request_dict
