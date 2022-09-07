@@ -707,6 +707,57 @@ class Tests(tests.cases.LoRATestCase):
     @freezegun.freeze_time("2018-01-01")
     def test_validation_missing_validity(self):
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
+
+        for req in (
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+            },
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+                "validity": {},
+            },
+            {
+                "type": "manager",
+                "uuid": manager_uuid,
+                "validity": {
+                    "from": "2000-12-01",
+                },
+            },
+        ):
+            with self.subTest(req):
+                self.assertRequestResponse(
+                    "/service/details/terminate",
+                    {
+                        "description": "Missing required value.",
+                        "error": True,
+                        "error_key": "V_MISSING_REQUIRED_VALUE",
+                        "key": "Validity must be set with either 'to' or both "
+                        "'from' and 'to'",
+                        "obj": req,
+                        "status": 400,
+                    },
+                    status_code=400,
+                    json=req,
+                )
+
+        with self.subTest("invalid type"):
+            self.assertRequestFails(
+                "/service/details/terminate",
+                404,
+                json={
+                    "type": "association",
+                    "uuid": manager_uuid,
+                    "validity": {
+                        "to": "2018-01-01",
+                    },
+                },
+            )
+
+    @freezegun.freeze_time("2018-01-01")
+    def _test_validation_missing_validity(self):
+        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
         terminate_uri = "/service/details/terminate"
 
         # Requests to be tested (after changing to pydantic validation)

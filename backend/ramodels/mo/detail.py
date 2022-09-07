@@ -7,6 +7,7 @@
 # Imports
 # --------------------------------------------------------------------------------------
 from typing import Literal
+from typing import Optional
 
 from pydantic import Field
 
@@ -26,7 +27,7 @@ class Detail(UUIDBase):
 
 class DetailTermination(Detail):
 
-    validity: OpenValidity = Field(
+    validity: Optional[OpenValidity] = Field(
         description="MO unit validity, determining in what date-interval "
         "a unit is available."
     )
@@ -34,18 +35,24 @@ class DetailTermination(Detail):
     def to_dict(self) -> dict:
         request_dict = self.dict(by_alias=True)
         request_dict["uuid"] = str(self.uuid)
-        if self.validity.from_date:
-            request_dict["validity"][
-                "from"
-            ] = self.validity.from_date.date().isoformat()
-        else:
-            del request_dict["validity"]["from"]
 
-        if self.validity.to_date:
-            request_dict["validity"]["to"] = self.validity.to_date.date().isoformat()
+        if self.validity:
+            if self.validity.from_date:
+                request_dict["validity"][
+                    "from"
+                ] = self.validity.from_date.date().isoformat()
+            else:
+                del request_dict["validity"]["from"]
 
-        # LEGACY: After changing TerminateValidity to NOT require to_date.
+            if self.validity.to_date:
+                request_dict["validity"][
+                    "to"
+                ] = self.validity.to_date.date().isoformat()
+
+            # LEGACY: After changing TerminateValidity to NOT require to_date.
+            else:
+                del request_dict["validity"]["to"]
         else:
-            del request_dict["validity"]["to"]
+            del request_dict["validity"]
 
         return request_dict
