@@ -29,7 +29,8 @@ services:
       # To reload on file changes, we mount the current folder into `/code`.
       # However we do not want node_modules on the host machine, so we create
       # an additional volume for it.
-      - .:/app/
+      - ./frontend:/app/frontend
+      - ./docker/nginx.conf.template:/app/docker
       - /app/frontend/node_modules
     restart: unless-stopped
 
