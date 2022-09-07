@@ -1,10 +1,12 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections import ChainMap
+from datetime import date
 from operator import attrgetter
 
 from mora.app import create_app
 from mora.config import Environment
+from mora.graphapi.main import versions as graphql_versions
 
 
 doc_endpoints = {
@@ -75,17 +77,27 @@ service_api = {
     "/service/{type}/{id}/details/",
     "/service/{type}/{id}/details/{function}",
 }
+# This mirrors the implementation a little too much, but we need it to be dynamic for
+# when routes are dropped automatically due to deprecation.
+graphql_endpoints = {
+    f"/graphql/v{version.version}"
+    for version in graphql_versions
+    if version.deprecation_date is None or version.deprecation_date > date.today()
+}
+
 
 all_endpoints = (
     {
         "",
         "/graphql",
+        "/graphql/v{version_number}",
         "/version/",
         "/saml/sso/",
     }
     | doc_endpoints
     | health_endpoints
     | service_api
+    | graphql_endpoints
 )
 
 testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
