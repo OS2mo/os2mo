@@ -52,14 +52,14 @@ jinja_env = Environment(
 )
 
 
-def escape_char(text):
+def catch_char(text):
     if isinstance(text, str) and not ("\n" in text):
-        return repr(text).replace("\\", "").strip("'")
+        text = repr(text).replace("\\", "").replace('"', "").strip("'")
     return text
 
 
 def adapt(value):
-    value = escape_char(value)
+    value = catch_char(value)
 
     connection = get_connection()
 

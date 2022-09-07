@@ -126,6 +126,26 @@ class TestJinjaAttributeArray:
                     "  ] :: klasseegenskaberAttrType[]\n"
                 ),
             ),
+            (
+                "organisationegenskaber",
+                [
+                    [
+                        "Peter's",
+                        "Apostrophe dept.",
+                        None,
+                        {"from": "2016-01-01 00:00:00+01:00", "to": "infinity"},
+                    ]
+                ],
+                (
+                    "ARRAY[\n   "
+                    "     ROW('Peter''s',\n            'Apostrophe dept.',\n"
+                    "            NULL,\n            ROW(\n              "
+                    "  '[2016-01-01 00:00:00+01:00, infinity)',\n       "
+                    "     NULL,\n            NULL,\n            ''\n    "
+                    "        )\n         :: Virkning\n            )\n    "
+                    "    ] :: organisationegenskaberAttrType[]\n"
+                ),
+            ),
         ]
     )
     def test_sql_attribute_array(
