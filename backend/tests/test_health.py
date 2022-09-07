@@ -11,7 +11,7 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
-from mora.graphapi import health
+from mora.graphapi.versions.latest import health
 from tests import util
 
 HTTPX_MOCK_RESPONSE_404 = Response(

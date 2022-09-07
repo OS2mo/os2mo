@@ -1,18 +1,12 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """GraphQL engagement related helper functions."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from uuid import UUID
 
+from .models import EngagementTerminate
+from .types import EngagementTerminateType
 from mora import lora
 from mora import mapping
-from mora.graphapi.models import EngagementTerminate
-from mora.graphapi.types import EngagementTerminateType
 from mora.triggers import Trigger
 
 

@@ -11,20 +11,20 @@ import pytest
 from hypothesis import given
 from pytest import MonkeyPatch
 
-import mora.graphapi.dataloaders as dataloaders
 from .strategies import data_strat
 from .strategies import data_with_uuids_strat
-from mora.graphapi.schema import AddressRead
-from mora.graphapi.schema import AssociationRead
-from mora.graphapi.schema import EmployeeRead
-from mora.graphapi.schema import EngagementRead
-from mora.graphapi.schema import ITUserRead
-from mora.graphapi.schema import KLERead
-from mora.graphapi.schema import LeaveRead
-from mora.graphapi.schema import ManagerRead
-from mora.graphapi.schema import OrganisationUnitRead
-from mora.graphapi.schema import RelatedUnitRead
-from mora.graphapi.schema import RoleRead
+from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.schema import AddressRead
+from mora.graphapi.versions.latest.schema import AssociationRead
+from mora.graphapi.versions.latest.schema import EmployeeRead
+from mora.graphapi.versions.latest.schema import EngagementRead
+from mora.graphapi.versions.latest.schema import ITUserRead
+from mora.graphapi.versions.latest.schema import KLERead
+from mora.graphapi.versions.latest.schema import LeaveRead
+from mora.graphapi.versions.latest.schema import ManagerRead
+from mora.graphapi.versions.latest.schema import OrganisationUnitRead
+from mora.graphapi.versions.latest.schema import RelatedUnitRead
+from mora.graphapi.versions.latest.schema import RoleRead
 
 # --------------------------------------------------------------------------------------
 # Tests

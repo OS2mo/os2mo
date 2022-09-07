@@ -15,8 +15,8 @@ from hypothesis import strategies as st
 from hypothesis_graphql import strategies as gql_st
 from more_itertools import all_equal
 
-from mora.graphapi.main import get_schema
 from mora.graphapi.shim import flatten_data
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from tests.conftest import GQLResponse
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
@@ -43,7 +43,7 @@ async def sample_structures(fastapi_test_app, testing_db):
 # GraphAPI Reads integration tests
 # --------------------------------------------------------------------------------------
 
-SCHEMA = str(get_schema())
+SCHEMA = str(LatestGraphQLSchema.get())
 UUID_SEARCHABLE_FIELDS = [
     "addresses",
     "associations",

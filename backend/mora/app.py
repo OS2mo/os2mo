@@ -233,8 +233,7 @@ def create_app(settings_overrides: Optional[Dict[str, Any]] = None):
         )
 
     if settings.graphql_enable:
-        gql_router = setup_graphql(settings.graphiql_enable)
-        app.include_router(gql_router, prefix="/graphql", dependencies=[Depends(auth)])
+        setup_graphql(app=app, enable_graphiql=settings.graphiql_enable)
 
     if settings.os2mo_auth:
         app.include_router(

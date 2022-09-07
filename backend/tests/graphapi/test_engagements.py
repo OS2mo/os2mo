@@ -10,15 +10,16 @@ from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
 
-import mora.graphapi.dataloaders as dataloaders
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
-from mora.graphapi.engagements import terminate_engagement
-from mora.graphapi.models import EngagementTerminate
 from mora.graphapi.shim import flatten_data
+from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.engagements import terminate_engagement
+from mora.graphapi.versions.latest.models import EngagementTerminate
 from ramodels.mo.details import EngagementRead
 from tests.conftest import GQLResponse
+
 
 # import mock as mk
 
@@ -123,7 +124,8 @@ class TestEngagementsQuery:
             patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
             # Patch check for is_primary
             with mock.patch(
-                "mora.graphapi.schema.is_class_uuid_primary", return_value=True
+                "mora.graphapi.versions.latest.schema.is_class_uuid_primary",
+                return_value=True,
             ) as primary_mock:
                 response: GQLResponse = graphapi_post(query)
 

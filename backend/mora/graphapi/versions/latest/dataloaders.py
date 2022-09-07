@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from asyncio import gather
 from functools import partial
 from itertools import starmap
@@ -24,36 +18,31 @@ from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
+from .readers import _extract_search_params
+from .readers import get_role_type_by_uuid
+from .readers import search_role_type
+from .schema import AddressRead
+from .schema import AssociationRead
+from .schema import ClassRead
+from .schema import EmployeeRead
+from .schema import EngagementAssociationRead
+from .schema import EngagementRead
+from .schema import FacetRead
+from .schema import ITSystemRead
+from .schema import ITUserRead
+from .schema import KLERead
+from .schema import LeaveRead
+from .schema import ManagerRead
+from .schema import OrganisationRead
+from .schema import OrganisationUnitRead
+from .schema import RelatedUnitRead
+from .schema import Response
+from .schema import RoleRead
 from mora.common import get_connector
-from mora.graphapi.readers import _extract_search_params
-from mora.graphapi.readers import get_role_type_by_uuid
-from mora.graphapi.readers import search_role_type
-from mora.graphapi.schema import AddressRead
-from mora.graphapi.schema import AssociationRead
-from mora.graphapi.schema import ClassRead
-from mora.graphapi.schema import EmployeeRead
-from mora.graphapi.schema import EngagementAssociationRead
-from mora.graphapi.schema import EngagementRead
-from mora.graphapi.schema import FacetRead
-from mora.graphapi.schema import ITSystemRead
-from mora.graphapi.schema import ITUserRead
-from mora.graphapi.schema import KLERead
-from mora.graphapi.schema import LeaveRead
-from mora.graphapi.schema import ManagerRead
-from mora.graphapi.schema import OrganisationRead
-from mora.graphapi.schema import OrganisationUnitRead
-from mora.graphapi.schema import RelatedUnitRead
-from mora.graphapi.schema import Response
-from mora.graphapi.schema import RoleRead
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
-
-# --------------------------------------------------------------------------------------
-# Dataloaders
-# --------------------------------------------------------------------------------------
 
 
 MOModel = TypeVar(

@@ -11,9 +11,9 @@ from more_itertools import one
 from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
-from mora.graphapi.health import keycloak
-from mora.graphapi.health import oio_rest
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.health import keycloak
+from mora.graphapi.versions.latest.health import oio_rest
 
 
 router = APIRouter()

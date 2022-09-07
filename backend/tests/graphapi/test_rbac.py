@@ -13,9 +13,9 @@ from os2mo_fastapi_utils.auth.models import RealmAccess
 from strawberry.dataloader import DataLoader
 
 from mora.auth.keycloak.models import Token
-from mora.graphapi.schema import AddressRead
-from mora.graphapi.schema import Response
 from mora.graphapi.shim import execute_graphql
+from mora.graphapi.versions.latest.schema import AddressRead
+from mora.graphapi.versions.latest.schema import Response
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 

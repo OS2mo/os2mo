@@ -1,19 +1,14 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 # type: ignore
 """GraphQL executer with the necessary context variables.
 
 Used for shimming the service API.
 """
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 from typing import Any
 from typing import Optional
+from typing import Type
 from typing import Union
 from uuid import UUID
 
@@ -24,17 +19,16 @@ from pydantic import root_validator
 from pydantic import validator
 from strawberry.types import ExecutionResult
 
+from .middleware import set_is_shim
+from .versions.base import BaseGraphQLVersion
 from mora import util
+from mora.auth.keycloak.oidc import noauth
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 class MOEmployee(EmployeeRead):
@@ -202,19 +196,27 @@ class MOAddress(AddressRead):
     name: Optional[str]
 
 
-async def execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
-    from mora.graphapi.main import get_schema
-    from mora.graphapi.dataloaders import get_loaders
-    from mora.graphapi.middleware import set_is_shim
-    from mora.graphapi.files import get_filestorage
+async def execute_graphql(
+    *args: Any,
+    graphql_version: Optional[Type[BaseGraphQLVersion]] = None,
+    **kwargs: Any
+) -> ExecutionResult:
+    # Imports must be done here to avoid circular imports... eww
+    if graphql_version is None:
+        from .versions.latest.version import LatestGraphQLVersion
+
+        graphql_version = LatestGraphQLVersion
 
     set_is_shim()
 
-    loaders = await get_loaders()
     if "context_value" not in kwargs:
-        kwargs["context_value"] = {**loaders, "filestorage": get_filestorage()}
+        # TODO: The token should be passed from the original caller, such that the
+        #  service API shims get RBAC equivalent to the GraphQL API for free.
+        token = await noauth()
+        kwargs["context_value"] = await graphql_version.get_context(token=token)
 
-    return await get_schema().execute(*args, **kwargs)
+    schema = graphql_version.schema.get()
+    return await schema.execute(*args, **kwargs)
 
 
 def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:

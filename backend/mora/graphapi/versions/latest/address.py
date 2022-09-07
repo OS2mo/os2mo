@@ -1,20 +1,14 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import datetime
 from typing import Optional
 from uuid import UUID
 
+from .models import AddressTerminate
+from .types import AddressTerminateType
 from mora import exceptions
 from mora import lora
 from mora import mapping
-from mora.graphapi.models import AddressTerminate
-from mora.graphapi.types import AddressTerminateType
 from mora.triggers import Trigger
 
 

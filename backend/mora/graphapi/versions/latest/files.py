@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Helpers for file access."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
@@ -18,10 +12,6 @@ from mora import exceptions
 from mora.config import FileSystemSettings
 from mora.config import get_settings
 from mora.config import Settings
-
-# --------------------------------------------------------------------------------------
-# File helpers
-# --------------------------------------------------------------------------------------
 
 
 class FileStorage(ABC):

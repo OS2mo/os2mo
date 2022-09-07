@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Strawberry types describing the MO graph."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import asyncio
 import json
 import re
@@ -26,15 +20,15 @@ from starlette_context import context
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
+from .health import health_map
+from .models import ConfigurationRead
+from .models import FileRead
+from .models import HealthRead
+from .models import OrganisationUnitRefreshRead
+from .permissions import gen_read_permission
 from mora import common
 from mora import config
 from mora import lora
-from mora.graphapi.health import health_map
-from mora.graphapi.models import ConfigurationRead
-from mora.graphapi.models import FileRead
-from mora.graphapi.models import HealthRead
-from mora.graphapi.models import OrganisationUnitRefreshRead
-from mora.graphapi.permissions import gen_read_permission
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
@@ -57,9 +51,6 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-# --------------------------------------------------------------------------------------
-# Schema
-# --------------------------------------------------------------------------------------
 
 MOObject = TypeVar("MOObject")
 

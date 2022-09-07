@@ -12,7 +12,7 @@ from typing import List
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
 
-from mora.graphapi.dataloaders import MOModel
+from mora.graphapi.versions.latest.dataloaders import MOModel
 
 # --------------------------------------------------------------------------------------
 # Custom hypothesis strategies

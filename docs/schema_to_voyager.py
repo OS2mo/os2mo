@@ -19,7 +19,7 @@ from jinja2 import Template
 from pydantic import BaseSettings
 
 try:
-    from mora.graphapi.main import get_schema
+    from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 except ImportError:
     raise ImportError(
         "Could not import mora.graphapi. "
@@ -42,7 +42,7 @@ def main() -> None:
     settings = Settings()
 
     # Get introspection from loaded schema
-    schema: GraphQLSchema = gql_util.build_schema(get_schema().as_str())
+    schema: GraphQLSchema = gql_util.build_schema(LatestGraphQLSchema.get().as_str())
     introspect: Dict[str, Any] = gql_util.introspection_from_schema(schema)
 
     # Apply to template & write out

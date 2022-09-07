@@ -20,10 +20,11 @@ from fastapi.testclient import TestClient
 
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
-from mora.graphapi.dataloaders import MOModel
-from mora.graphapi.main import get_loaders
-from mora.graphapi.main import get_schema
+from mora.graphapi.versions.latest.dataloaders import get_loaders
+from mora.graphapi.versions.latest.dataloaders import MOModel
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from tests.cases import fake_auth
+
 
 # --------------------------------------------------------------------------------------
 # Dataloader patch fixture
@@ -97,7 +98,7 @@ def execute():
     """
 
     async def _execute(query: str, values: Optional[dict] = None):
-        schema = get_schema()
+        schema = LatestGraphQLSchema.get()
         loaders = await get_loaders()
         result = await schema.execute(
             query, variable_values=values, context_value=loaders

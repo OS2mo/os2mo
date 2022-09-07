@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Starlette plugins to create context variables that can be used in the service app."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import Any
 from typing import Optional
 from typing import Union
@@ -18,10 +12,6 @@ from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
 
 from ramodels.mo import OpenValidity
-
-# --------------------------------------------------------------------------------------
-# Middleware
-# --------------------------------------------------------------------------------------
 
 
 class GraphQLContextPlugin(Plugin):
