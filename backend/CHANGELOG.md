@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+10.5.1 - 2022-09-07
+-------------------
+
+[#51898] Fixed DetailsTerminate in mora.service, so its validity argument is of type OpenValidity, which allows to_date to be none.
+
 10.5.0 - 2022-09-07
 -------------------
 
