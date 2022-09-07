@@ -80,7 +80,7 @@ class Settings(BaseSettings):
     navlinks: List[NavLink] = []
 
     # File Store settings
-    file_storage: str = "filesystem"
+    file_storage: str = "noop"
     filesystem_settings: Optional[FileSystemSettings] = None
 
     @root_validator
