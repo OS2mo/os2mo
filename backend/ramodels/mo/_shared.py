@@ -255,10 +255,10 @@ class Validity(OpenValidity):
 
 
 class TerminateValidity(OpenValidity):
-    # to_date: datetime = Field(
-    #     alias="to",
-    #     description="When the validity should end " "- required when terminating",
-    # )
+    to_date: datetime = Field(
+        alias="to",
+        description="When the validity should end " "- required when terminating",
+    )
     pass
 
 
