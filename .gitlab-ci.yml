@@ -170,7 +170,7 @@ Don't Interrupt:
 .lint-base:
   stage: lint
   needs: []
-  image: python:3.9
+  image: python:3.10
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
@@ -467,7 +467,7 @@ Integration-test:
 
 Coverage:
   stage: coverage
-  image: python:3.9-slim
+  image: python:3.10-slim
   needs:
     - Unit-test
     - GraphAPI-test
@@ -737,7 +737,7 @@ Export GQL Schema:
     - .docs:rules:build-docs
   needs:
     - Export GQL Schema
-  image: python:3.9
+  image: python:3.10
   variables:
     POETRY_VERSION: 1.1.12
     POETRY_VIRTUALENVS_CREATE: "false"
