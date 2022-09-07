@@ -259,7 +259,6 @@ class TerminateValidity(OpenValidity):
         alias="to",
         description="When the validity should end " "- required when terminating",
     )
-    pass
 
 
 class Visibility(MORef):
