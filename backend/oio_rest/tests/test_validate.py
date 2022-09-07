@@ -531,7 +531,6 @@ class TestGenerateJSONSchema(TestBase):
                             "properties": {
                                 "brugervendtnoegle": {"type": "string"},
                                 "organisationsnavn": {"type": "string"},
-
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -558,7 +557,6 @@ class TestGenerateJSONSchema(TestBase):
                                 "brugervendtnoegle": {"type": "string"},
                                 "brugernavn": {"type": "string"},
                                 "brugertype": {"type": "string"},
-
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -604,7 +602,6 @@ class TestGenerateJSONSchema(TestBase):
                             "titel": {"type": "string"},
                             "retskilde": {"type": "string"},
                             "aendringsnotat": {"type": "string"},
-
                             "soegeord": {
                                 "type": "array",
                                 "items": {"type": "array", "items": {"type": "string"}},
@@ -647,7 +644,6 @@ class TestGenerateJSONSchema(TestBase):
                                     "type": "array",
                                     "items": {"type": "string"},
                                 },
-
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": ["brugervendtnoegle", "virkning"],
@@ -682,7 +678,6 @@ class TestGenerateJSONSchema(TestBase):
                                 "principiel": {"type": "boolean"},
                                 "kassationskode": {"type": "string"},
                                 "afleveret": {"type": "boolean"},
-
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": [
@@ -724,7 +719,6 @@ class TestGenerateJSONSchema(TestBase):
                                     "$ref": "#/definitions/" "offentlighedundtaget"
                                 },
                                 "titel": {"type": "string"},
-
                                 "virkning": {"$ref": "#/definitions/virkning"},
                             },
                             "required": [
