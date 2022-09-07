@@ -92,18 +92,6 @@ async def test_validation_succeeds_on_correct_uuid(valid_value):
             await DARAddressHandler.validate_value(valid_value)
 
 
-async def test_validation_succeeds_on_correct_values(valid_value):
-    # Arrange
-    valid_values = [valid_value]
-
-    # Act & Assert
-    with util.darmock("dawa-addresses.json", real_http=True):
-        for value in valid_values:
-            # Shouldn't raise exception
-            with dar_loader():
-                await DARAddressHandler.validate_value(value)
-
-
 async def test_validation_succeeds_with_force():
     # Arrange
     value = "GARBAGEGARBAGE"  # Not a valid DAR UUID
