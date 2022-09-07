@@ -465,6 +465,27 @@ Integration-test:
     reports:
       junit: $CI_PROJECT_DIR/junit.xml
 
+LoRa-integration-test:
+  extends:
+    - .backend-test-base
+    - .services:start-all
+  needs:
+    - !reference [".backend-test-base", needs]
+    - !reference [".services:start-all", needs]
+  script:
+    - pytest backend/oio_rest/tests
+      -p no:cacheprovider
+      --color=yes
+      --show-capture=stdout
+      --junitxml $CI_PROJECT_DIR/junit.xml
+      --cov=oio_rest
+  artifacts:
+    when: always
+    paths:
+      - $COVERAGE_FILE
+    reports:
+      junit: $CI_PROJECT_DIR/junit.xml
+
 Coverage:
   stage: coverage
   image: python:3.10-slim

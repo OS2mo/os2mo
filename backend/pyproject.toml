@@ -81,6 +81,7 @@ black = {version = "^22.1.0"}
 reorder-python-imports = "^3.0.1"
 pre-commit = "^2.18.1"
 respx = "0.17.1"
+"tap.py" = "^3.1"
 
 [build-system]
 requires = ["poetry-core"]
