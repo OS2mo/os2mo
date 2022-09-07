@@ -778,79 +778,62 @@ class Tests(tests.cases.LoRATestCase):
             },
         }
 
-        # validity_missing_to_date_expected_errs = [
-        #     {
-        #         "loc": ["body"],
-        #         "msg": "value is not a valid list",
-        #         "type": "type_error.list",
-        #     },
-        #     {
-        #         "loc": ["body", "validity", "to"],
-        #         "msg": "field required",
-        #         "type": "value_error.missing",
-        #     },
-        # ]
-
-        # Legacy OpenValidity expectation - because it allows to_date=None,
-        # but then throws custom exceptions.
-        # Added due to integrations sending to_date=None, on terminate calls
-        legacy_open_validity_expected_result = {
-            "error": True,
-            "description": "Missing required value.",
-            "status": 400,
-            "error_key": "V_MISSING_REQUIRED_VALUE",
-            "key": "Validity must be set with either 'to' or both 'from' and 'to'",
-        }
+        validity_missing_to_date_expected_errs = [
+            {
+                "loc": ["body"],
+                "msg": "value is not a valid list",
+                "type": "type_error.list",
+            },
+            {
+                "loc": ["body", "validity", "to"],
+                "msg": "field required",
+                "type": "value_error.missing",
+            },
+        ]
 
         test_request = [
             (
                 req_1,
                 {
-                    # "error": True,
-                    # "description": "Invalid input.",
-                    # "status": 400,
-                    # "error_key": "E_INVALID_INPUT",
-                    # "request": req_1,
-                    # "errors": [
-                    #     {
-                    #         "loc": ["body"],
-                    #         "msg": "value is not a valid list",
-                    #         "type": "type_error.list",
-                    #     },
-                    #     {
-                    #         "loc": ["body", "validity"],
-                    #         "msg": "field required",
-                    #         "type": "value_error.missing",
-                    #     },
-                    # ],
-                    **legacy_open_validity_expected_result,
-                    "obj": req_1,
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_1,
+                    "errors": [
+                        {
+                            "loc": ["body"],
+                            "msg": "value is not a valid list",
+                            "type": "type_error.list",
+                        },
+                        {
+                            "loc": ["body", "validity"],
+                            "msg": "field required",
+                            "type": "value_error.missing",
+                        },
+                    ],
                 },
             ),
             (
                 req_2,
                 {
-                    # "error": True,
-                    # "description": "Invalid input.",
-                    # "status": 400,
-                    # "error_key": "E_INVALID_INPUT",
-                    # "request": req_2,
-                    # "errors": validity_missing_to_date_expected_errs,
-                    **legacy_open_validity_expected_result,
-                    "obj": req_2,
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_2,
+                    "errors": validity_missing_to_date_expected_errs,
                 },
             ),
             (
                 req_3,
                 {
-                    # "error": True,
-                    # "description": "Invalid input.",
-                    # "status": 400,
-                    # "error_key": "E_INVALID_INPUT",
-                    # "request": req_3,
-                    # "errors": validity_missing_to_date_expected_errs,
-                    **legacy_open_validity_expected_result,
-                    "obj": req_3,
+                    "error": True,
+                    "description": "Invalid input.",
+                    "status": 400,
+                    "error_key": "E_INVALID_INPUT",
+                    "request": req_3,
+                    "errors": validity_missing_to_date_expected_errs,
                 },
             ),
         ]
