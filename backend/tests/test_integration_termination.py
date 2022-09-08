@@ -755,21 +755,18 @@ class Tests(tests.cases.LoRATestCase):
                 },
             )
 
-    # @freezegun.freeze_time("2018-01-01")
+    @freezegun.freeze_time("2018-01-01")
     def test_validation_allow_to_equal_none(self):
-        req = {
-            "type": "address",
-            "uuid": "10000000-0000-0000-0000-000000000000",
-            "validity": {"from": "2000-12-01", "to": None},
-        }
-
+        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
         self.assertRequestResponse(
             "/service/details/terminate",
-            json=req,
-            status_code=200,
-            expected={
-                "description": "Missing required value.",
+            json={
+                "type": "address",
+                "uuid": manager_uuid,
+                "validity": {"from": "2000-12-01", "to": None},
             },
+            status_code=200,
+            expected=manager_uuid,
         )
 
     @freezegun.freeze_time("2018-01-01")
