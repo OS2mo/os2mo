@@ -41,12 +41,7 @@ RUN set -ex \
   #
   # See `doc/user/installation.rst` for instructions on how to overwrite this.
   && groupadd -g 72020 -r mora\
-  && useradd -u 72020 --no-log-init -r -g mora mora \
-  # Install dependencies
-  && apt-get -y update \
-  && apt-get -y install --no-install-recommends git \
-  # clean up after apt-get and man-pages
-  && apt-get clean && rm -rf "/var/lib/apt/lists"
+  && useradd -u 72020 --no-log-init -r -g mora mora
 
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
