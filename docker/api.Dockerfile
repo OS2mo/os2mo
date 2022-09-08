@@ -28,7 +28,8 @@ LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=1 \
+    ALEMBIC_CONFIG=/app/backend/alembic.ini
 
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
@@ -41,6 +42,8 @@ RUN set -ex \
   # See `doc/user/installation.rst` for instructions on how to overwrite this.
   && groupadd -g 72020 -r mora\
   && useradd -u 72020 --no-log-init -r -g mora mora
+
+VOLUME /queries
 
 # Enviroment variables for poetry
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
@@ -56,11 +59,11 @@ RUN poetry install --no-interaction && rm -rf /root/.cache
 WORKDIR /app
 
 # Copy and install backend code.
+COPY LICENSE .
+COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
-COPY README.rst .
 COPY NEWS.md .
-COPY LICENSE .
 COPY backend/mora/main.py .
 
 # Copy frontend code.
@@ -68,10 +71,6 @@ COPY --from=frontend /app/frontend/dist ./frontend/dist
 
 # Run the server as the mora user on port 5000
 USER mora:mora
-
-VOLUME /queries
-
-ENV ALEMBIC_CONFIG=/app/backend/alembic.ini
 
 # Add build version to the environment last to avoid build cache misses
 ARG COMMIT_TAG
