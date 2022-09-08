@@ -54,6 +54,11 @@ def mock_no_auth_cookie(monkeypatch):
 
 
 @pytest.fixture
+def file_storage_filesystem(set_settings):
+    set_settings(file_storage="filesystem")
+
+
+@pytest.fixture
 def mock_execute_graphql(monkeypatch):
     async def _mock_execute_graphql(*args: Any, **kwargs: Any) -> ExecutionResult:
         response = mock.MagicMock()
@@ -138,6 +143,7 @@ class TestAuth:
             assert response.text == "I am a file"
 
 
+@pytest.mark.usefixtures("file_storage_filesystem")
 class TestFile:
     async def test_list_export_files_raises_on_invalid_dir(
         self, service_client_weird_auth, mock_path
@@ -221,6 +227,7 @@ class TestFile:
         assert response.text == "I am a file"
 
 
+@pytest.mark.usefixtures("file_storage_filesystem")
 class TestFileUpload:
     async def test_folder_missing(self, service_client_weird_auth, mock_path):
         """Ensure we handle missing export dir."""
