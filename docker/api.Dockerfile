@@ -30,7 +30,6 @@ LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1
 
-WORKDIR /app/
 # hadolint ignore=DL3008,DL4006
 RUN set -ex \
   # Add a mox group and user. Note: this is a system user/group, but have
