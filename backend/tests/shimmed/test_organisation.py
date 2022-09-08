@@ -20,8 +20,8 @@ pytestmark = pytest.mark.serial
 
 @pytest.mark.usefixtures("sample_structures")
 class TestOrganisationEndpoints:
-    def test_list_organisation(self, service_test_client: TestClient):
-        response = service_test_client.get("/service/o/")
+    def test_list_organisation(self, service_client: TestClient):
+        response = service_client.get("/service/o/")
         assert response.status_code == 200
         assert response.json() == [
             {
@@ -145,14 +145,14 @@ class TestOrganisationEndpoints:
             },
         ]
 
-    def test_get_children_invalid(self, service_test_client: TestClient):
+    def test_get_children_invalid(self, service_client: TestClient):
         # Doesn't exist
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/o/00000000-0000-0000-0000-000000000000/children"
         )
         assert response.status_code == 404
         # Is an org unit
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/o/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
         )
         assert response.status_code == 404

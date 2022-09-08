@@ -27,22 +27,22 @@ class TestOrganisationUnitRead:
         "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
     }
 
-    def test_nonexistent(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_nonexistent(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/00000000-0000-0000-0000-000000000000/"
         )
         assert response.status_code == 404
 
-    def test_nonexistent_at(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_nonexistent_at(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/",
             params={"at": "2000-01-01T00:00:00Z"},
         )
         assert response.status_code == 404
 
     @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
-    def test_get(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_get(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
         )
         assert response.status_code == 200
@@ -77,8 +77,8 @@ class TestOrganisationUnitRead:
             "location": "",
         }
 
-    def test_get_with_counts(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_get_with_counts(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e/",
             params={"count": {"engagement", "association"}},
         )
@@ -87,8 +87,8 @@ class TestOrganisationUnitRead:
         assert response.json()["association_count"] == 1
 
     @set_get_configuration("mora.service.orgunit.get_configuration")
-    def test_ou_details(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_ou_details(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/details/org_unit"
         )
         assert response.status_code == 200
@@ -125,8 +125,8 @@ class TestOrganisationUnitRead:
             }
         ]
 
-    def test_get_children(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_get_children(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
         )
         assert response.status_code == 200
@@ -161,8 +161,8 @@ class TestOrganisationUnitRead:
             },
         ]
 
-    def test_get_children_with_counts(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_get_children_with_counts(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
             params={"count": {"engagement", "association"}},
         )
@@ -206,29 +206,29 @@ class TestOrganisationUnitRead:
             },
         ]
 
-    def test_no_children(self, service_test_client: TestClient):
+    def test_no_children(self, service_client: TestClient):
         # b688513d-11f7-4efc-b679-ab082a2055d0 samf has no children
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/ou/b688513d-11f7-4efc-b679-ab082a2055d0/children",
         )
         assert response.status_code == 200
         assert response.json() == []
 
-    def test_get_children_invalid(self, service_test_client: TestClient):
+    def test_get_children_invalid(self, service_client: TestClient):
         # Doesn't exist
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/ou/00000000-0000-0000-0000-000000000000/children"
         )
         assert response.status_code == 404
         # Is the root org
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/ou/456362c4-0ee4-4e5e-a72c-751239745e62/children"
         )
         assert response.status_code == 404
 
     @set_get_configuration("mora.service.shimmed.org_unit.get_configuration")
-    def test_read_root(self, service_test_client: TestClient):
-        response = service_test_client.get(
+    def test_read_root(self, service_client: TestClient):
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/"
         )
         assert response.status_code == 200
@@ -263,12 +263,12 @@ class TestOrganisationUnitRead:
             },
         }
 
-    def test_children_filtered(self, service_test_client: TestClient):
+    def test_children_filtered(self, service_client: TestClient):
         # When asking for "&org_unit_hierarchy=<uuid>", the result should only
         # contain org units which have an 'opmærkning' with a UUID of '<uuid>'.
         # With the default test database contents, that means nothing should be
         # returned.
-        response = service_test_client.get(
+        response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
             "?org_unit_hierarchy=321f1a2f-e185-42ef-a5f3-bebb2c69f1ba"
         )
@@ -278,10 +278,10 @@ class TestOrganisationUnitRead:
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("sample_structures")
 class TestOrganisationUnitWrite:
-    def test_create_root_unit_without_org_id(self, service_test_client: TestClient):
+    def test_create_root_unit_without_org_id(self, service_client: TestClient):
         unitid = "00000000-0000-0000-0000-000000000000"
         orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
-        create = service_test_client.post(
+        create = service_client.post(
             "/service/ou/create",
             json={
                 "name": "Fake Corp",
@@ -300,13 +300,13 @@ class TestOrganisationUnitWrite:
         assert create.status_code == 201
         assert create.json() == unitid
 
-        read = service_test_client.get(f"/service/ou/{unitid}/")
+        read = service_client.get(f"/service/ou/{unitid}/")
         assert read.status_code == 200
         expected_parent = None
         actual_parent = read.json().get("parent")
         assert expected_parent == actual_parent
 
-        org_children = service_test_client.get(f"/service/o/{orgid}/children")
+        org_children = service_client.get(f"/service/o/{orgid}/children")
         assert {
             "child_count": 0,
             "name": "Fake Corp",

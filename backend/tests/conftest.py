@@ -195,17 +195,7 @@ async def sample_structures_minimal(testing_db):
 
 
 @pytest.fixture()
-def service_test_client(fastapi_test_app):
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
-    with TestClient(fastapi_test_app) as client:
-        yield client
-
-
-@pytest.fixture()
-def service_test_client_not_raising(fastapi_test_app):
+def service_client_not_raising(fastapi_test_app):
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
