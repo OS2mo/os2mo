@@ -52,8 +52,7 @@ RUN set -ex \
 ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
   PYTHONPATH=/app:/app/backend \
   POETRY_VERSION="1.2.0" \
-  POETRY_VIRTUALENVS_CREATE=true \
-  POETRY_VIRTUALENVS_IN_PROJECT=true
+  POETRY_VIRTUALENVS_CREATE=false 
 
 # Install requirements
 RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
