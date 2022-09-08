@@ -66,8 +66,6 @@ COPY backend/mora/main.py .
 # Copy frontend code.
 COPY --from=frontend /app/frontend/dist ./frontend/dist
 
-RUN install -g mora -o mora -d /log
-
 # Run the server as the mora user on port 5000
 USER mora:mora
 
