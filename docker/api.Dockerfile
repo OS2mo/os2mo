@@ -29,6 +29,11 @@ LABEL org.opencontainers.image.source="https://github.com/OS2mo/os2mo"
 # Force the stdout and stderr streams from python to be unbuffered. See
 # https://docs.python.org/3/using/cmdline.html#cmdoption-u
 ENV PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    # We don't install the backend as a package, so we add it to PYTHONPATH.
+    PYTHONPATH=/app:/app/backend \
+    POETRY_VERSION="1.2.0" \
+    POETRY_HOME=/opt/poetry \
     ALEMBIC_CONFIG=/app/backend/alembic.ini
 
 # hadolint ignore=DL3008,DL4006
@@ -41,22 +46,23 @@ RUN set -ex \
   #
   # See `doc/user/installation.rst` for instructions on how to overwrite this.
   && groupadd -g 72020 -r mora\
-  && useradd -u 72020 --no-log-init -r -g mora mora
+  && useradd -u 72020 --no-log-init -r -g mora mora \
+  # Install Poetry. In an isolated environment, following the upstream
+  # recommendations https://python-poetry.org/docs/#ci-recommendations
+  && python3 -m venv $POETRY_HOME \
+  && $POETRY_HOME/bin/pip3 install --no-cache-dir poetry==${POETRY_VERSION}
 
 VOLUME /queries
 
-# Enviroment variables for poetry
-ENV PIP_DISABLE_PIP_VERSION_CHECK=on \
-  PYTHONPATH=/app:/app/backend \
-  POETRY_VERSION="1.2.0" \
-  POETRY_VIRTUALENVS_CREATE=false
-
-# Install requirements
-RUN pip3 install --no-cache-dir poetry==${POETRY_VERSION}
+# Install project dependencies in an isolated environment
+ENV VIRTUAL_ENV=/poetry-env \
+    PATH="/poetry-env/bin:$POETRY_HOME/bin:$PATH"
+WORKDIR /app/backend/
 COPY backend/poetry.lock backend/pyproject.toml /app/backend/
-WORKDIR /app/backend
-RUN poetry install --no-interaction && rm -rf /root/.cache
-WORKDIR /app
+RUN python3 -m venv $VIRTUAL_ENV \
+    && poetry install --no-interaction \
+    && rm -rf /root/.cache
+WORKDIR /app/
 
 # Copy and install backend code.
 COPY LICENSE .
