@@ -15,6 +15,7 @@ from fastapi import Path
 from fastapi import Query
 from pydantic import BaseModel
 from pydantic import Field
+from structlog import get_logger
 
 from mora import config
 from mora import exceptions
@@ -24,6 +25,8 @@ from mora.service.address import router as address_router
 # --------------------------------------------------------------------------------------
 # Code
 # --------------------------------------------------------------------------------------
+
+logger = get_logger()
 
 client = httpx.AsyncClient(
     headers={
@@ -87,8 +90,9 @@ async def address_autocomplete(
 
     Address resolution is run against both ``adgangsadresse`` and ``adresse``.
     """
+    settings = config.get_settings()
 
-    if not config.get_settings().enable_dar:
+    if not settings.enable_dar:
         return []
 
     code: Optional[int] = None
@@ -137,13 +141,20 @@ async def address_autocomplete(
         )
         return r.json()
 
-    access_addrs, addrs = await gather(get_access_addreses(), get_addresses())
-
-    result_addrs = {
-        addr["tekst"]: addr["adgangsadresse"]["id"] for addr in access_addrs
-    }
-    for addr in addrs:
-        result_addrs.setdefault(addr["tekst"], addr["adresse"]["id"])
+    if settings.dar_address_autocomplete_includes_access_addresses:
+        logger.info(
+            event="address_autocomplete, looking at both access addresses and addresses"
+        )
+        access_addrs, addrs = await gather(get_access_addreses(), get_addresses())
+        result_addrs = {
+            addr["tekst"]: addr["adgangsadresse"]["id"] for addr in access_addrs
+        }
+        for addr in addrs:
+            result_addrs.setdefault(addr["tekst"], addr["adresse"]["id"])
+    else:
+        logger.info(event="address_autocomplete, only looking at addresses")
+        addrs = await get_addresses()
+        result_addrs = {addr["tekst"]: addr["adresse"]["id"] for addr in addrs}
 
     return [
         {
