@@ -840,7 +840,7 @@ class OrganisationUnit:
     )
     async def parent(
         self, root: OrganisationUnitRead, info: Info
-    ) -> Optional[list["OrganisationUnit"]]:
+    ) -> Optional["OrganisationUnit"]:
         """Get the immediate ancestor in the organisation tree.
 
         Returns:
@@ -849,7 +849,7 @@ class OrganisationUnit:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.parent_uuid is None:
             return None
-        return (await loader.load(root.parent_uuid)).objects
+        return one((await loader.load(root.parent_uuid)).objects)
 
     @strawberry.field(
         description="The immediate descendants in the organisation tree",
