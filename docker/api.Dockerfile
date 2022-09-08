@@ -68,8 +68,9 @@ COPY --from=frontend /app/frontend/dist ./frontend/dist
 
 RUN install -g mora -o mora -d /log
 
-# Run the server as the mora user on port 5000
+# Run the server as the mora user
 USER mora:mora
+EXPOSE 80
 
 VOLUME /queries
 
