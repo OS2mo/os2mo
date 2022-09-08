@@ -17,6 +17,7 @@ from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
 from .inputs import EngagementTerminateInput
+from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitTerminateInput
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
@@ -26,7 +27,9 @@ from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
+from .types import GenericUUIDType
 from .types import OrganizationUnit
+from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
 
 logger = logging.getLogger(__name__)
 
@@ -82,3 +85,7 @@ class Mutation:
     @strawberry.mutation(description="Terminates an employee by UUID")
     async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
         return await employee_update(input.to_pydantic())
+
+    @strawberry.mutation(description="Terminates IT-user by UUID")
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> GenericUUIDType:
+        return await terminate_ituser(input.to_pydantic())

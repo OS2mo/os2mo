@@ -7,6 +7,7 @@ from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 from .models import EngagementTerminate
+from .models import ITUserTerminate
 from .models import Organisation
 from .models import OrganisationUnitTerminate
 from .models import Validity
@@ -84,5 +85,15 @@ class EmployeeTerminateInput:
 )
 class EmployeeUpdateInput:
     """Input model for updating an employee."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=ITUserTerminate,
+    all_fields=True,
+)
+class ITUserTerminateInput:
+    """input model for terminating IT-user."""
 
     pass

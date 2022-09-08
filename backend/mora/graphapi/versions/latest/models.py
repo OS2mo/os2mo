@@ -397,3 +397,39 @@ class EmployeeUpdate(UUIDBase):
     )
 
     # user_key
+
+
+class ITUserTerminate(UUIDBase, ValidityTerminate, Triggerless):
+    """Model representing termination of it-user."""
+
+    """(or rather end-date update for access to IT-system)."""
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.IT,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.IT,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
+
+
+class GenericUUIDModel(UUIDBase):
+    """Generic UUID model for return types."""
+
+    pass
