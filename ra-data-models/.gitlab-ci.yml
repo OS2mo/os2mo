@@ -22,6 +22,7 @@ variables:
   needs: []
   before_script:
     - cd ra-data-models
+    - cp -r ../backend/ramodels ramodels
     - pip install --no-cache-dir poetry==${POETRY_VERSION}
     - poetry install
   artifacts:
@@ -35,6 +36,7 @@ variables:
   needs: [Install ramodels]
   before_script:
     - cd ra-data-models
+    - cp -r ../backend/ramodels ramodels
     - source .venv/bin/activate
 
 # Jobs
@@ -77,6 +79,7 @@ Check coverage ramodels:
   needs: [Test ramodels]
   before_script:
     - cd ra-data-models
+    - cp -r ../backend/ramodels ramodels
     - pip install coverage
     - coverage combine
   script:
