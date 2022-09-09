@@ -95,11 +95,11 @@ def engagement_strat(draw):
         "job_function": st.builds(JobFunction),
         "engagement_type": st.builds(EngagementType),
         "validity": st.builds(Validity),
-        "primary": st.builds(Primary),
         "user_key": st.text(),
     }
     optional = {
         "type": st.just("engagement"),
+        "primary": st.none() | st.builds(Primary),
         "extension_1": st.none() | st.text(),
         "extension_2": st.none() | st.text(),
         "extension_3": st.none() | st.text(),
@@ -122,12 +122,12 @@ def engagement_fsf_strat(draw):
         "person_uuid": st.uuids(),
         "job_function_uuid": st.uuids(),
         "engagement_type_uuid": st.uuids(),
-        "primary_uuid": st.uuids(),
         "user_key": st.text(),
         "from_date": from_date_strat(),
     }
     optional = {
         "uuid": st.none() | st.uuids(),
+        "primary_uuid": st.none() | st.uuids(),
         "to_date": st.none() | to_date_strat(),
         "extension_1": st.none() | st.text(),
         "extension_2": st.none() | st.text(),

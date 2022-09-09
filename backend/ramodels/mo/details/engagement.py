@@ -140,7 +140,7 @@ class Engagement(MOBase):
         )
     )
     validity: Validity = Field(description="Validity of the created engagement object.")
-    primary: Primary = Field(
+    primary: Optional[Primary] = Field(
         description="Reference to the primary klasse for the created engagement object."
     )
     user_key: str = Field(description="Short, unique key.")
@@ -162,11 +162,11 @@ class Engagement(MOBase):
         person_uuid: UUID,
         job_function_uuid: UUID,
         engagement_type_uuid: UUID,
-        primary_uuid: UUID,
         user_key: str,
         from_date: str,
         to_date: Optional[str] = None,
         uuid: Optional[UUID] = None,
+        primary_uuid: Optional[UUID] = None,
         extension_1: Optional[str] = None,
         extension_2: Optional[str] = None,
         extension_3: Optional[str] = None,
@@ -184,7 +184,7 @@ class Engagement(MOBase):
         job_function = JobFunction(uuid=job_function_uuid)
         engagement_type = EngagementType(uuid=engagement_type_uuid)
         validity = Validity(from_date=from_date, to_date=to_date)
-        primary = Primary(uuid=primary_uuid)
+        primary = Primary(uuid=primary_uuid) if primary_uuid else None
         return cls(
             uuid=uuid,
             org_unit=org_unit,
