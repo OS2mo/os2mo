@@ -10,7 +10,7 @@ readme = "README.md"
 homepage = "https://magenta.dk/"
 repository = "https://git.magenta.dk/rammearkitektur/os2mo"
 keywords = ["os2mo", "data models"]
-packages = [ { include = "ramodels", from = "../backend" } ]
+packages = [ { include = "ramodels" } ]
 
 [tool.poetry.dependencies]
 python = "^3.8"
