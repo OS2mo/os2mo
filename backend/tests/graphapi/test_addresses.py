@@ -18,7 +18,6 @@ from mock import patch
 from pytest import MonkeyPatch
 from strawberry.types import ExecutionResult
 
-import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
@@ -171,7 +170,7 @@ class TestAddressCreate:
         st.uuids(),
         st.sampled_from(["org_unit", "person", "engagement"]),
         st.uuids(),
-        st.uuids(),
+        st.uuids() | st.none(),
         st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
             lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
         ),
@@ -190,7 +189,7 @@ class TestAddressCreate:
         given_address_type_uuid = str(given_address_type_uuid)
         given_visibility_uuid = str(given_visibility_uuid)
         given_relation_uuid = str(given_relation_uuid)
-        given_org_uuid = str(given_org_uuid)
+        given_org_uuid = str(given_org_uuid) if given_org_uuid else given_org_uuid
 
         given_validity_from, given_validity_to = given_validity_dts
         given_relation = {
@@ -245,3 +244,6 @@ class TestAddressCreate:
                 else None
             )
             assert new_addr_uuid == mock_submit_requests.return_value[0]
+
+    async def test_pydantic_dataclass(self):
+        pass
