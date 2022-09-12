@@ -13,6 +13,7 @@ from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
 from .engagements import terminate_engagement
+from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -20,13 +21,13 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementTerminateInput
 from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitTerminateInput
-from .inputs import AddressCreateInput
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
+from .types import AddressType
 from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import GenericUUIDType
