@@ -121,90 +121,6 @@ class TestAddresssQuery:
         assert len(result_uuids) == len(set(test_uuids))
 
 
-class TestAddressCreate(tests.cases.AsyncLoRATestCase):
-    # @parameterized.expand(
-    #     [
-    #         ("test",),
-    #     ]
-    # )
-    async def test_mutator(self):
-        # INPUT params - before using parameterized
-        given_value = "yeehaaa5@magenta-aps.dk"
-        given_address_type = "61c22b75-01b0-4e83-954c-9cf0c8dc79fe"
-        given_visibility = "940b39cd-828e-4b6d-a98c-007e512f694c"
-
-        # given_relation_type = "org_unit"
-        # given_relation_uuid = "2ce6baf5-9cd5-4278-8799-bb3d4328f527"
-
-        given_relation_type = "person"
-        given_relation_uuid = "7c9f4a69-1c57-4e24-8353-938eb1e8ba6b"
-        # A manually created employee
-
-        given_relation = {
-            "type": given_relation_type,
-            "uuid": given_relation_uuid,
-        }
-
-        given_org = "3b866d97-0b1f-48e0-8078-686d96f430b3"
-        given_validity_from: Optional[datetime.datetime] = datetime.datetime.now()
-        given_validity_to: Optional[datetime.datetime] = None
-        expected_result = True
-
-        # Create GraphQL arguments, starting with the required ones
-        var_values = {
-            "value": given_value,
-            "addressType": given_address_type,
-            "visibility": given_visibility,
-            "relation": given_relation,
-            "org": given_org,
-        }
-
-        if given_validity_from:
-            var_values["from"] = given_validity_from.date().isoformat()
-
-        if given_validity_to:
-            var_values["to"] = given_validity_to.date().isoformat()
-
-        with patch(
-            "mora.graphapi.versions.latest.address.handlers.generate_requests"
-        ) as mock_generate_requests, patch(
-            "mora.graphapi.versions.latest.address.handlers.submit_requests"
-        ) as mock_submit_requests:
-            mock_generate_requests.return_value = {"test": "request"}
-            mock_submit_requests.return_value = [str(uuid_lib.uuid4())]
-            # GraphQL
-            mutation_func = "address_create"
-            query = (
-                "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
-                "$relation: AddressRelationInput!, $from: DateTime, $to: DateTime, "
-                "$org: UUID) {"
-                f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
-                f"visibility: $visibility, relation: $relation, from: $from, to: $to, "
-                f"org: $org}})"
-                "}"
-            )
-
-            response = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
-
-            if expected_result:
-                mock_generate_requests.assert_called()
-                mock_submit_requests.assert_called_with(
-                    mock_generate_requests.return_value
-                )
-
-                new_addr_uuid = (
-                    response.data.get(mutation_func)
-                    if isinstance(response, ExecutionResult)
-                    else None
-                )
-                assert new_addr_uuid == mock_submit_requests.return_value[0]
-            else:
-                mock_generate_requests.assert_not_called()
-                mock_submit_requests.assert_not_called()
-
-
 class TestAddressTerminate:
     @given(
         given_uuid=st.uuids(),
@@ -248,7 +164,7 @@ class TestAddressTerminate:
             assert caught_exception is not None
 
 
-class TestAddressCreate2:
+class TestAddressCreate:
     @given(
         st.text(),
         st.uuids(),
