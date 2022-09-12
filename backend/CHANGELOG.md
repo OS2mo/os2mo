@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.1.1 - 2022-09-12
+-------------------
+
+[#52453] Bugfix: forward LoRa query parameters to MO container if using "internal LoRa"
+
 11.1.0 - 2022-09-12
 -------------------
 
