@@ -808,6 +808,10 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
     @unittest.expectedFailure
     @freezegun.freeze_time("2016-01-01")
     async def test_rename_org_unit_early(self):
+        """This test fails due to validity records being
+        fractioned in lora due to integration_data added
+        the results are not wrong, just fractioned (#25200)
+        """
         # Test that we can rename a unit to a date *earlier* than its
         # creation date. We are expanding the validity times on the
         # object, so we insert a separate copy as to not 'taint' the
