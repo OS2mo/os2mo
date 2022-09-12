@@ -339,10 +339,9 @@ class Employee(UUIDBase):
 class EmployeeCreate(BaseModel):
     """Model representing an employee creation."""
 
-    name: str = Field("", description="Full name of the employee.")
+    name: str = Field(description="Full name of the employee.")
 
-    cpr_no: str = Field("", description="Danish CPR number of the employee.")
-
+    cpr_no: str = Field(description="Danish CPR number of the employee.")
     org: Organisation = Field(
         Organisation(),
         description="The organization the new employee will be created under.",
