@@ -10,6 +10,7 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import Field
 
+from .graphql_utils import PrintableStr
 from mora import common
 from mora import exceptions
 from mora import mapping
@@ -17,13 +18,17 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
+from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
 
 
-# Various
-# -------
+# --------------------------------------------------------------------------------------
+# Models
+# --------------------------------------------------------------------------------------
+
+
 class Validity(OpenValidity):
     """Model representing an entities validity range."""
 
@@ -502,7 +507,36 @@ class FileRead(BaseModel):
 
 # Configuration
 # -------------
+
+
 class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+
+
+class ClassCreate(MOBase):
+    """A MO Class create object."""
+
+    """
+        The following fields ar inhereted from MOBase:
+            - uuid
+            - user_key
+    """
+
+    """Required types"""
+    type_: str = Field(
+        "class", alias="type", description="The object type"
+    )  # type is always "class"
+
+    name: PrintableStr = Field(description="Mo-class name.")
+
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+
+    """Optional types"""
+    scope: Optional[str] = Field(description="Scope of the class.")
+    published: Optional[str] = Field(description="Published state of the class object.")
+    parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
+    example: Optional[str] = Field(description="Example usage.")
+    owner: Optional[UUID] = Field(description="Owner of class")
+    facet_uuid: Optional[UUID] = Field(description="UUID of the related facet.")

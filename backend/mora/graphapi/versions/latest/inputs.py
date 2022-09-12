@@ -3,6 +3,7 @@
 import strawberry
 
 from .models import AddressTerminate
+from .models import ClassCreate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
@@ -152,3 +153,23 @@ class OrganizationUnitCreateInput:
 
 # Files
 # -----
+
+
+@strawberry.experimental.pydantic.input(
+    model=ClassCreate,
+    all_fields=True,
+)
+class ClassCreateInput:
+    """Input model for creating a mo-class."""
+
+    uuid: strawberry.auto
+    type_: strawberry.auto
+    name: strawberry.auto
+    org_uuid: strawberry.auto
+    scope: strawberry.auto
+    published: strawberry.auto
+    parent_uuid: strawberry.auto
+    user_key: strawberry.auto
+    owner: strawberry.auto
+    facet_uuid: strawberry.auto
+    example: strawberry.auto

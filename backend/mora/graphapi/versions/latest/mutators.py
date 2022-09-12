@@ -8,11 +8,13 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from .address import terminate_addr
+from .classes import upsert_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
 from .engagements import terminate_engagement
 from .inputs import AddressTerminateInput
+from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
@@ -28,6 +30,7 @@ from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
+from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import ITUserType
@@ -180,3 +183,5 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
+
+
