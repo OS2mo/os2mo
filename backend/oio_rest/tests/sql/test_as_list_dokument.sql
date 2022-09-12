@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_list_dokument()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 doc1_new_uuid uuid;
 	doc1_registrering dokumentRegistreringType;
 	doc1_virkEgenskaber1 Virkning;
@@ -32,7 +32,7 @@ doc1_new_uuid uuid;
 	doc1_docVariantEgenskaber1B DokumentVariantEgenskaberType;
 	doc1_docVariantEgenskaber1BVirkning Virkning;
 	doc1_docVariantEgenskaber2A DokumentVariantEgenskaberType;
-	doc1_docVariantEgenskaber2AVirkning Virkning;	
+	doc1_docVariantEgenskaber2AVirkning Virkning;
 	doc1_docDel1A DokumentDelType;
 	doc1_docDel1B DokumentDelType;
 	doc1_docDel2A DokumentDelType;
@@ -79,7 +79,7 @@ doc1_new_uuid uuid;
 	doc2_docVariantEgenskaber1B DokumentVariantEgenskaberType;
 	doc2_docVariantEgenskaber1BVirkning Virkning;
 	doc2_docVariantEgenskaber2A DokumentVariantEgenskaberType;
-	doc2_docVariantEgenskaber2AVirkning Virkning;	
+	doc2_docVariantEgenskaber2AVirkning Virkning;
 	doc2_docDel1A DokumentDelType;
 	doc2_docDel1B DokumentDelType;
 	doc2_docDel2A DokumentDelType;
@@ -213,30 +213,28 @@ doc1_virkFremdrift,
 
 doc1_dokumentEgenskab1 := ROW (
 'doc_brugervendtnoegle1',
-'doc_beskrivelse1', 
+'doc_beskrivelse1',
 '2015-10-31'::date,
-'doc_kassationskode1', 
+'doc_kassationskode1',
 4, --major int
 9, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel1','doc_Offentlighedundtaget_Hjemmel1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel1',
 'doc_dokumenttype1',
-'integrationsdata1',
    doc1_virkEgenskaber1
 ) :: dokumentEgenskaberAttrType
 ;
 
 doc1_dokumentEgenskab2 := ROW (
 'doc_brugervendtnoegle2',
-'doc_beskrivelse2', 
+'doc_beskrivelse2',
 '2014-09-20'::date,
-'doc_kassationskode2', 
+'doc_kassationskode2',
 5, --major int
 10, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2','doc_Offentlighedundtaget_Hjemmel2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2',
 'doc_dokumenttype2',
-'integrationsdata2',
    doc1_virkEgenskaber2
 ) :: dokumentEgenskaberAttrType
 ;
@@ -331,18 +329,18 @@ doc1_docDel2AEgenskaberVirkning :=	ROW (
 
 doc1_docVariantEgenskaber1A:=
 ROW(
-true, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+true, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 false, --produktion boolean,
  doc1_docVariantEgenskaber1AVirkning
 )::DokumentVariantEgenskaberType;
 
 doc1_docVariantEgenskaber1B:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc1_docVariantEgenskaber1BVirkning
 )::DokumentVariantEgenskaberType;
@@ -350,9 +348,9 @@ true, --produktion boolean,
 
 doc1_docVariantEgenskaber2A:=
 ROW(
-false, --arkivering boolean, 
-true, --delvisscannet boolean, 
-false, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+true, --delvisscannet boolean,
+false, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc1_docVariantEgenskaber2AVirkning
 )::DokumentVariantEgenskaberType;
@@ -373,7 +371,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_docDel2Brelation2Virkning,
   null,
-  'urn:cpr 8883394', 
+  'urn:cpr 8883394',
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -383,44 +381,44 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_docDel1Arelation1Virkning,
   'b24a2dd4-415f-4104-b7a7-84607488c091'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
 
 doc1_docDel1AEgenskaber:= ROW(
 1, --indeks int,
-'del_indhold1', 
-'del_lokation1', 
+'del_indhold1',
+'del_lokation1',
 'del_mimetype1',
- doc1_docDel1AEgenskaberVirkning 
+ doc1_docDel1AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel1A2Egenskaber:=ROW(
 2, --indeks int,
-'del_indhold4', 
-'del_lokation4', 
+'del_indhold4',
+'del_lokation4',
 'del_mimetype4',
- doc1_docDel1A2EgenskaberVirkning 
+ doc1_docDel1A2EgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel1BEgenskaber:= ROW(
 98, --indeks int,
-'del_indhold2', 
-'del_lokation2', 
+'del_indhold2',
+'del_lokation2',
 'del_mimetype2',
- doc1_docDel1BEgenskaberVirkning 
+ doc1_docDel1BEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel2AEgenskaber:= ROW(
 8, --indeks int,
-'del_indhold3', 
-'del_lokation3', 
+'del_indhold3',
+'del_lokation3',
 'del_mimetype3',
- doc1_docDel2AEgenskaberVirkning 
+ doc1_docDel2AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
@@ -582,30 +580,28 @@ doc2_virkFremdrift,
 
 doc2_dokumentEgenskab1 := ROW (
 'doc_brugervendtnoegle2_1',
-'doc_beskrivelse2_1', 
+'doc_beskrivelse2_1',
 '2014-01-10'::date,
-'doc_kassationskode2_1', 
+'doc_kassationskode2_1',
 11, --major int
 2, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2_1','doc_Offentlighedundtaget_Hjemmel2_1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2_1',
 'doc_dokumenttype2_1',
-'integrationsdata2_1',
    doc2_virkEgenskaber1
 ) :: dokumentEgenskaberAttrType
 ;
 
 doc2_dokumentEgenskab2 := ROW (
 'doc_brugervendtnoegle2_2',
-'doc_beskrivelse2_2', 
+'doc_beskrivelse2_2',
 '2013-08-28'::date,
-'doc_kassationskode2_2', 
+'doc_kassationskode2_2',
 12, --major int
 6, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2_2','doc_Offentlighedundtaget_Hjemmel2_2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2_2',
 'doc_dokumenttype2_2',
-'integrationsdata2_2',
    doc2_virkEgenskaber2
 ) :: dokumentEgenskaberAttrType
 ;
@@ -700,18 +696,18 @@ doc2_docDel2AEgenskaberVirkning :=	ROW (
 
 doc2_docVariantEgenskaber1A:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc2_docVariantEgenskaber1AVirkning
 )::DokumentVariantEgenskaberType;
 
 doc2_docVariantEgenskaber1B:=
 ROW(
-true, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+true, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc2_docVariantEgenskaber1BVirkning
 )::DokumentVariantEgenskaberType;
@@ -719,9 +715,9 @@ true, --produktion boolean,
 
 doc2_docVariantEgenskaber2A:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-false, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+false, --offentliggoerelse boolean,
 false, --produktion boolean,
  doc2_docVariantEgenskaber2AVirkning
 )::DokumentVariantEgenskaberType;
@@ -742,7 +738,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc2_docDel2Brelation2Virkning,
   null,
-  'urn:cpr 8883394', 
+  'urn:cpr 8883394',
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -752,44 +748,44 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc2_docDel2Brelation2Virkning,
   '524a2dd4-415f-4104-b7a7-84607488c091'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
 
 doc2_docDel1AEgenskaber:= ROW(
 1, --indeks int,
-'del_indhold2_1', 
-'del_lokation2_1', 
+'del_indhold2_1',
+'del_lokation2_1',
 'del_mimetype2_1',
- doc2_docDel1AEgenskaberVirkning 
+ doc2_docDel1AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel1A2Egenskaber:=ROW(
 2, --indeks int,
-'del_indhold2_4', 
-'del_lokation2_4', 
+'del_indhold2_4',
+'del_lokation2_4',
 'del_mimetype2_4',
- doc2_docDel1A2EgenskaberVirkning 
+ doc2_docDel1A2EgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel1BEgenskaber:= ROW(
 98, --indeks int,
-'del_indhold2_2', 
-'del_lokation2_2', 
+'del_indhold2_2',
+'del_lokation2_2',
 'del_mimetype2_2',
- doc2_docDel1BEgenskaberVirkning 
+ doc2_docDel1BEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel2AEgenskaber:= ROW(
 8, --indeks int,
-'del_indhold2_3', 
-'del_lokation2_3', 
+'del_indhold2_3',
+'del_lokation2_3',
 'del_mimetype2_3',
- doc2_docDel2AEgenskaberVirkning 
+ doc2_docDel2AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
@@ -860,16 +856,16 @@ doc2_new_uuid := as_create_or_import_dokument(doc2_registrering);
 actual_dokuments1:= as_list_dokument(array[doc1_new_uuid,doc2_new_uuid]::uuid[],null,null);
 
 
-select 
+select
 (a.registrering).timeperiod into doc1_override_timeperiod
 from dokument_registrering a
-where 
+where
 dokument_id=doc1_new_uuid;
 
-select 
+select
 (a.registrering).timeperiod into doc2_override_timeperiod
 from dokument_registrering a
-where 
+where
 dokument_id=doc2_new_uuid;
 
 
@@ -882,7 +878,7 @@ expected_dokuments1:= ARRAY[
 							doc1_override_timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(doc1_registrering.registrering).livscykluskode,
 							(doc1_registrering.registrering).brugerref,
-							(doc1_registrering.registrering).note 
+							(doc1_registrering.registrering).note
 							)::RegistreringBase
 						,doc1_registrering.tilsfremdrift
 						,doc1_registrering.attrEgenskaber
@@ -900,7 +896,7 @@ expected_dokuments1:= ARRAY[
 							doc2_override_timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(doc2_registrering.registrering).livscykluskode,
 							(doc2_registrering.registrering).brugerref,
-							(doc2_registrering.registrering).note 
+							(doc2_registrering.registrering).note
 							)::RegistreringBase
 						,doc2_registrering.tilsfremdrift
 						,doc2_registrering.attrEgenskaber
@@ -918,7 +914,7 @@ select array_agg(a.* order by a.id) from unnest(expected_dokuments1) as a into e
 
 RETURN NEXT is(
 	actual_dokuments1,
-	expected_dokuments1,	
+	expected_dokuments1,
 	'dokument list test 1');
 
 
@@ -939,7 +935,7 @@ expected_dokuments2:= ARRAY[
 							doc1_override_timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(doc1_registrering.registrering).livscykluskode,
 							(doc1_registrering.registrering).brugerref,
-							(doc1_registrering.registrering).note 
+							(doc1_registrering.registrering).note
 							)::RegistreringBase
 						,null--doc1_registrering.tilsfremdrift
 						,ARRAY[doc1_dokumentEgenskab2]::dokumentEgenskaberAttrType[]
@@ -969,7 +965,7 @@ expected_dokuments2:= ARRAY[
 							doc2_override_timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(doc2_registrering.registrering).livscykluskode,
 							(doc2_registrering.registrering).brugerref,
-							(doc2_registrering.registrering).note 
+							(doc2_registrering.registrering).note
 							)::RegistreringBase
 						,doc2_registrering.tilsfremdrift
 						,doc2_registrering.attrEgenskaber
@@ -1000,7 +996,7 @@ select array_agg(a.* order by a.id) from unnest(expected_dokuments2) as a into e
 
 RETURN NEXT is(
 	actual_dokuments2,
-	expected_dokuments2,	
+	expected_dokuments2,
 	'dokument list virkning filter test');
 
 
@@ -1012,7 +1008,7 @@ actual_dokuments3:=as_list_dokument(array[doc1_new_uuid,doc2_new_uuid]::uuid[], 
 
 RETURN NEXT ok(coalesce(array_length(actual_dokuments3,1),0)=0,'Test on filter on reg time with no reg.');
 
---Test filter on current reg 
+--Test filter on current reg
 
 
 actual_dokuments4:=as_list_dokument(array[doc1_new_uuid,doc2_new_uuid]::uuid[], tstzrange(clock_timestamp() - interval '1 hour',clock_timestamp()) ,'(-infinity, 2015-01-01)' :: TSTZRANGE);
@@ -1032,7 +1028,7 @@ IF expected_dokuments2[1].id = doc2_new_uuid THEN
 ELSE
 	expected_dokuments5:=array_append(expected_dokuments5,expected_dokuments2[2]);
 END IF;
- 
+
 
 --raise notice 'list dokument expected_dokuments5:%',to_json(expected_dokuments5);
 --raise notice 'list dokument actual_dokuments5:%',to_json(actual_dokuments5);
@@ -1040,8 +1036,8 @@ END IF;
 
 RETURN NEXT is(
 	actual_dokuments5,
-	expected_dokuments5,	
-	'Test list single uuid.');		
+	expected_dokuments5,
+	'Test list single uuid.');
 
 
 

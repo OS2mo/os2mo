@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_aktivitet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	registrering aktivitetRegistreringType;
@@ -234,7 +234,7 @@ aktivitetRelUdfoerer1 := ROW (
 		 'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
   repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 ;
@@ -328,8 +328,7 @@ aktivitetEgenskab := ROW (
  '2017-02-25 17:00'::timestamptz,  --'starttidspunkt_aktivitet_1' --text
 '2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
   INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
- 'aktivitet_1_formaal',
- 'integrationsdata_1'
+ 'aktivitet_1_formaal'
 ,virkEgenskaber
 ) :: aktivitetEgenskaberAttrType
 ;
@@ -341,8 +340,7 @@ aktivitetEgenskab2 := ROW (
  '2016-04-20 10:00'::timestamptz,  --'starttidspunkt_aktivitet_1' --text
 '2017-02-27 12:00'::timestamptz, -- sluttidspunkt,
   INTERVAL '0000-00 01 04:00:01.0', --tidsforbrug
- 'aktivitet_2_formaal',
- 'integrationsdata_2'
+ 'aktivitet_2_formaal'
 ,virkEgenskaber2
 ) :: aktivitetEgenskaberAttrType
 ;
@@ -399,7 +397,7 @@ ARRAY[	ROW (
 				,uuidAnsvarligklasse
 				,null
 				,'Klasse'
-				,NULL 
+				,NULL
 				,null --ROW (null,null,null,null)::AktivitetAktoerAttr  --aktoerAttr
 			) :: aktivitetRelationType
 ]::aktivitetRelationType[]
@@ -429,11 +427,10 @@ actual_search_res_1:=as_search_aktivitet(null,null,
  null,--'2017-02-27 12:00'::timestamptz, -- sluttidspunkt,
  null,-- INTERVAL '0000-00 01 04:00:01.0', --tidsforbrug
  null,--'aktivitet_2_formaal'
- null,--'integrationsdata_2'
  null--virkEgenskaber2
 ) :: aktivitetEgenskaberAttrType ]::aktivitetEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-			)::aktivitetRegistreringType	
+			)::aktivitetRegistreringType
 		,null
 );
 
@@ -457,11 +454,10 @@ actual_search_res_2:=as_search_aktivitet(null,null,
  null,--'2017-02-27 12:00'::timestamptz, -- sluttidspunkt,
  null,-- INTERVAL '0000-00 01 04:00:01.0', --tidsforbrug
  null,--'aktivitet_2_formaal'
- null,--'integrationsdata_2'
  null--virkEgenskaber2
 ) :: aktivitetEgenskaberAttrType ]::aktivitetEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-			)::aktivitetRegistreringType	
+			)::aktivitetRegistreringType
 		,null
 );
 
@@ -483,11 +479,10 @@ actual_search_res_3:=as_search_aktivitet(null,null,
  null,--'2017-02-27 12:00'::timestamptz, -- sluttidspunkt,
  INTERVAL '0000-00 01 04:00:01.0', --tidsforbrug
  null,--'aktivitet_3_formaal'
- null,--'integrationsdata_3'
  null--virkEgenskaber2
 ) :: aktivitetEgenskaberAttrType ]::aktivitetEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-			)::aktivitetRegistreringType	
+			)::aktivitetRegistreringType
 		,null
 );
 
@@ -500,7 +495,7 @@ actual_search_res_4:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,array[repraesentation_uuid]::uuid[]
@@ -516,7 +511,7 @@ actual_search_res_5:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -533,7 +528,7 @@ actual_search_res_6:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,array['aktivitet_2_brugervendtnoegle']::text[] --anyAttrValueArr
 		,null --anyuuidArr
@@ -566,12 +561,12 @@ actual_search_res_7:=as_search_aktivitet(
 		 null,--'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
     null,--repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 			]::AktivitetRelationType[]
 							)::aktivitetRegistreringType
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -604,12 +599,12 @@ actual_search_res_8:=as_search_aktivitet(
 		 'noedvendig'::AktivitetAktoerAttrObligatoriskKode, --'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
     null,--repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 			]::AktivitetRelationType[]
 							)::aktivitetRegistreringType
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -642,12 +637,12 @@ actual_search_res_9:=as_search_aktivitet(
 		 null, --'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		null,
     repraesentation_uuid,--repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 			]::AktivitetRelationType[]
 							)::aktivitetRegistreringType
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -680,12 +675,12 @@ actual_search_res_10:=as_search_aktivitet(
 		 null, --'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		null,
      uuidAnsvarligklasse,--repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 			]::AktivitetRelationType[]
 							)::aktivitetRegistreringType
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -717,12 +712,12 @@ actual_search_res_11:=as_search_aktivitet(
 		 null, --'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		null,
      null,--repraesentation_uuid,
-  repraesentation_urn 
+  repraesentation_urn
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 			]::AktivitetRelationType[]
 							)::aktivitetRegistreringType
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -738,7 +733,7 @@ actual_search_res_12:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -753,7 +748,6 @@ actual_search_res_12:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -772,7 +766,7 @@ actual_search_res_13:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -787,7 +781,6 @@ actual_search_res_13:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -808,7 +801,7 @@ actual_search_res_14:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -823,7 +816,6 @@ actual_search_res_14:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 						ROW (
 			'[2015-06-01, 2015-06-01]' :: TSTZRANGE,
 				null,
@@ -847,7 +839,7 @@ actual_search_res_15:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -862,7 +854,6 @@ actual_search_res_15:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 						ROW (
 			'[2015-06-10, 2015-06-10]' :: TSTZRANGE,
 				null,
@@ -886,7 +877,7 @@ actual_search_res_16:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -901,7 +892,6 @@ actual_search_res_16:=as_search_aktivitet(
 				'2017-02-27 09:00'::timestamptz,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -919,7 +909,7 @@ actual_search_res_17:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -934,7 +924,6 @@ actual_search_res_17:=as_search_aktivitet(
 				'2017-02-27 08:00'::timestamptz,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -952,7 +941,7 @@ actual_search_res_18:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -967,7 +956,6 @@ actual_search_res_18:=as_search_aktivitet(
 				'2017-02-27 13:00'::timestamptz,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -984,7 +972,7 @@ actual_search_res_19:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -999,7 +987,6 @@ actual_search_res_19:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				null,--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -1017,7 +1004,7 @@ actual_search_res_20:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1032,7 +1019,6 @@ actual_search_res_20:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-00 01 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -1049,7 +1035,7 @@ actual_search_res_21:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,'[2015-06-10 , 2015-06-10]' :: TSTZRANGE --virkningSoeg	
+		,'[2015-06-10 , 2015-06-10]' :: TSTZRANGE --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1064,7 +1050,6 @@ actual_search_res_21:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-00 02 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -1081,7 +1066,7 @@ actual_search_res_22:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,'[2015-06-10 , 2015-06-10]' :: TSTZRANGE --virkningSoeg	
+		,'[2015-06-10 , 2015-06-10]' :: TSTZRANGE --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1096,7 +1081,6 @@ actual_search_res_22:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-00 01 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
@@ -1112,7 +1096,7 @@ actual_search_res_23:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null	
+		,null
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1128,7 +1112,6 @@ actual_search_res_23:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-00 02 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]   --search_operator_less_then_attr_egenskaber
@@ -1145,7 +1128,7 @@ actual_search_res_24:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null	
+		,null
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1161,7 +1144,6 @@ actual_search_res_24:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-00 01 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]   --search_operator_less_then_attr_egenskaber
@@ -1178,7 +1160,7 @@ actual_search_res_25:=as_search_aktivitet(
 		null,--firstResult
 		null,--aktivitet_uuid
 		null
-		,null	
+		,null
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -1194,7 +1176,6 @@ actual_search_res_25:=as_search_aktivitet(
 				null,--'2017-02-27 08:00'::timestamptz, -- sluttidspunkt,
 				INTERVAL '0000-01 00 00:00:00.0',--INTERVAL '0000-00 03 02:30:00.0', --tidsforbrug
 				null,--'aktivitet_1_formaal'
-				null,--'integrationsdata_1'
 				null--,virkEgenskaber
 				) :: aktivitetEgenskaberAttrType
 		]::AktivitetEgenskaberAttrType[]   --search_operator_less_then_attr_egenskaber

@@ -4,9 +4,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_facet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid_A uuid;
 	registrering_A FacetRegistreringType;
 	actual_registrering_A registreringBase;
@@ -24,7 +24,7 @@ DECLARE
 	uuidRedaktoer1_A uuid :=uuid_generate_v4();
 	uuidRedaktoer2_A uuid :=uuid_generate_v4();
 	uuidregistrering_A uuid :=uuid_generate_v4();
-	
+
 
 	new_uuid_B uuid;
 	registrering_B FacetRegistreringType;
@@ -186,7 +186,6 @@ facetEgenskab_A := ROW (
    'facetophavsret_text1',
    'facetsupplement_text1',
    'retskilde_text1',
-   'integrationsdata_text1',
    virkEgenskaber_A
 ) :: FacetEgenskaberAttrType
 ;
@@ -315,7 +314,6 @@ facetEgenskab_B := ROW (
    'facetophavsret_text2',
    'facetsupplement_text2',
    'retskilde_text2',
-   'integrationsdata_text2',
    virkEgenskaber_B
 ) :: FacetEgenskaberAttrType
 ;
@@ -381,7 +379,7 @@ search_registrering_3 := ROW (
 			ROW(
 				  ROW(
 				  	null,null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -420,7 +418,7 @@ search_registrering_4 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -458,7 +456,7 @@ search_registrering_5 := ROW (
 				  ROW(
 				  	'[2015-06-30, 2015-07-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -496,7 +494,7 @@ search_registrering_6 := ROW (
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	(virkPubliceret_B).AktoerRef,
 				  	null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -613,7 +611,6 @@ facetEgenskab_C := ROW (
    'facetophavsret_text3',
    'facetsupplement_text3',
    'retskilde_text3',
-   'integrationsdata_text3',
    virkEgenskaber_C
 ) :: FacetEgenskaberAttrType
 ;
@@ -651,7 +648,7 @@ search_registrering_7 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -663,12 +660,11 @@ ARRAY[
    		NULL,
    		NULL,
    		'facetsupplement_text3',
-   		NULL,
         NULL,
    			ROW(
 				  	'[2015-01-01, 2015-02-01]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::FacetEgenskaberAttrType
 ]::FacetEgenskaberAttrType[],
 ARRAY[
@@ -717,7 +713,7 @@ search_registrering_8 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -764,7 +760,7 @@ search_registrering_9 := ROW (
 				  ROW(
 				  	'[2015-05-19, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::FacetPubliceretTils
 				):: FacetPubliceretTilsType
 	],--ARRAY[facetPubliceret_B]::FacetPubliceretTilsType[],
@@ -797,10 +793,9 @@ search_result9 :=as_search_facet(
 	   		,null --'facetophavsret_text3',
 	   		,null --'facetsupplement_text3',
 	   		,null
-            ,null
 	   		,null
-			) :: FacetEgenskaberAttrType		
-	 	]::FacetEgenskaberAttrType[] 
+			) :: FacetEgenskaberAttrType
+	 	]::FacetEgenskaberAttrType[]
 	 	,null --relationer
 	 	)::FacetRegistreringType
 	 ,ROW (
@@ -814,15 +809,14 @@ search_result9 :=as_search_facet(
 	  		,null --'facetopbygning_text3',
 	   		,null --'facetophavsret_text3',
 	   		,null --'facetsupplement_text3',
-            ,null
 	   		,null
 	   		,null
 			) :: FacetEgenskaberAttrType
 			]
-			::FacetEgenskaberAttrType[] 
+			::FacetEgenskaberAttrType[]
 	 	,null --relationer
 	 	)::FacetRegistreringType
-	 	
+
 
 	]::FacetRegistreringType[]
 );

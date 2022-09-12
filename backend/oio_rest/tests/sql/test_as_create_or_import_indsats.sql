@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_create_or_import_indsats()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering indsatsRegistreringType;
 	actual_registrering RegistreringBase;
@@ -25,7 +25,7 @@ DECLARE
 	indsatsRelIndsatssag2 indsatsRelationType;
 	indsatsRelIndsatsaktoer1 indsatsRelationType;
 	indsatsRelIndsatsaktoer2 indsatsRelationType;
-	
+
 	uuidIndsatsmodtager uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	uuidIndsatssag1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 
@@ -183,11 +183,10 @@ virkPubliceret,
 )::indsatsPubliceretTilsType;
 
 indsatsEgenskab := ROW (
-'brugervendtnoegle_indsats_1' --text, 
+'brugervendtnoegle_indsats_1' --text,
 ,'beskrivelse_indsats_1'-- text,
 , '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 , '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_1'-- text,
 ,virkEgenskaber
 ) :: indsatsEgenskaberAttrType
 ;

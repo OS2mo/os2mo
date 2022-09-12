@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_dokument()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 
 doc1_new_uuid uuid;
 	doc1_registrering dokumentRegistreringType;
@@ -33,7 +33,7 @@ doc1_new_uuid uuid;
 	doc1_docVariantEgenskaber1B DokumentVariantEgenskaberType;
 	doc1_docVariantEgenskaber1BVirkning Virkning;
 	doc1_docVariantEgenskaber2A DokumentVariantEgenskaberType;
-	doc1_docVariantEgenskaber2AVirkning Virkning;	
+	doc1_docVariantEgenskaber2AVirkning Virkning;
 	doc1_docDel1A DokumentDelType;
 	doc1_docDel1B DokumentDelType;
 	doc1_docDel2A DokumentDelType;
@@ -84,7 +84,7 @@ doc1_new_uuid uuid;
 	doc2_docVariantEgenskaber1B DokumentVariantEgenskaberType;
 	doc2_docVariantEgenskaber1BVirkning Virkning;
 	doc2_docVariantEgenskaber2A DokumentVariantEgenskaberType;
-	doc2_docVariantEgenskaber2AVirkning Virkning;	
+	doc2_docVariantEgenskaber2AVirkning Virkning;
 
 
 	doc2_docDel1A DokumentDelType;
@@ -110,7 +110,7 @@ doc1_new_uuid uuid;
 
 	read_dokument1 DokumentType;
 	expected_dokument1 DokumentType;
-BEGIN 
+BEGIN
 
 doc1_virkEgenskaber1 :=	ROW (
 	'[2015-05-12, infinity)' :: TSTZRANGE,
@@ -203,30 +203,28 @@ doc1_virkFremdrift,
 
 doc1_dokumentEgenskab1 := ROW (
 'doc_brugervendtnoegle1',
-'doc_beskrivelse1', 
+'doc_beskrivelse1',
 '2015-10-31'::date,
-'doc_kassationskode1', 
+'doc_kassationskode1',
 4, --major int
 9, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel1','doc_Offentlighedundtaget_Hjemmel1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel1',
 'doc_dokumenttype1',
-'integrationsdata1',
    doc1_virkEgenskaber1
 ) :: dokumentEgenskaberAttrType
 ;
 
 doc1_dokumentEgenskab2 := ROW (
 'doc_brugervendtnoegle2',
-'doc_beskrivelse2', 
+'doc_beskrivelse2',
 '2014-09-20'::date,
-'doc_kassationskode2', 
+'doc_kassationskode2',
 5, --major int
 10, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2','doc_Offentlighedundtaget_Hjemmel2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2',
 'doc_dokumenttype2',
-'integrationsdata2',
    doc1_virkEgenskaber2
 ) :: dokumentEgenskaberAttrType
 ;
@@ -336,18 +334,18 @@ doc1_extraRelVirkning2 :=	ROW (
 
 doc1_docVariantEgenskaber1A:=
 ROW(
-true, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+true, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 false, --produktion boolean,
  doc1_docVariantEgenskaber1AVirkning
 )::DokumentVariantEgenskaberType;
 
 doc1_docVariantEgenskaber1B:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc1_docVariantEgenskaber1BVirkning
 )::DokumentVariantEgenskaberType;
@@ -355,9 +353,9 @@ true, --produktion boolean,
 
 doc1_docVariantEgenskaber2A:=
 ROW(
-false, --arkivering boolean, 
-true, --delvisscannet boolean, 
-false, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+true, --delvisscannet boolean,
+false, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc1_docVariantEgenskaber2AVirkning
 )::DokumentVariantEgenskaberType;
@@ -378,7 +376,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_docDel2Brelation2Virkning,
   null,
-  'urn:cpr 8883394', 
+  'urn:cpr 8883394',
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -388,7 +386,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_docDel1Arelation1Virkning,
   'b24a2dd4-415f-4104-b7a7-84607488c091'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -397,7 +395,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_extraRelVirkning1,
   '009a2dd4-415f-4104-b7a7-84607488c027'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -407,7 +405,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc1_extraRelVirkning2,
   '889a2dd4-415f-4104-b7a7-84607488c019'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -415,37 +413,37 @@ ROW (
 
 doc1_docDel1AEgenskaber:= ROW(
 1, --indeks int,
-'del_indhold1', 
-'del_lokation1', 
+'del_indhold1',
+'del_lokation1',
 'del_mimetype1',
- doc1_docDel1AEgenskaberVirkning 
+ doc1_docDel1AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel1A2Egenskaber:=ROW(
 2, --indeks int,
-'del_indhold4', 
-'del_lokation4', 
+'del_indhold4',
+'del_lokation4',
 'del_mimetype4',
- doc1_docDel1A2EgenskaberVirkning 
+ doc1_docDel1A2EgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel1BEgenskaber:= ROW(
 98, --indeks int,
-'del_indhold2', 
-'del_lokation2', 
+'del_indhold2',
+'del_lokation2',
 'del_mimetype2',
- doc1_docDel1BEgenskaberVirkning 
+ doc1_docDel1BEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc1_docDel2AEgenskaber:= ROW(
 8, --indeks int,
-'del_indhold3', 
-'del_lokation3', 
+'del_indhold3',
+'del_lokation3',
 'del_mimetype3',
- doc1_docDel2AEgenskaberVirkning 
+ doc1_docDel2AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
@@ -614,30 +612,28 @@ doc2_virkFremdrift,
 
 doc2_dokumentEgenskab1 := ROW (
 'doc_brugervendtnoegle2_1',
-'doc_beskrivelse2_1', 
+'doc_beskrivelse2_1',
 '2014-01-10'::date,
-null, --'doc_kassationskode2_1', 
+null, --'doc_kassationskode2_1',
 null, --major int
 ''::text, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2_1','doc_Offentlighedundtaget_Hjemmel2_1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2_1',
 'doc_dokumenttype2_1',
-'integrationsdata2_1',
    doc2_virkEgenskaber1
 ) :: dokumentEgenskaberAttrType
 ;
 
 doc2_dokumentEgenskab2 := ROW (
 'doc_brugervendtnoegle2_2',
-'doc_beskrivelse2_2', 
+'doc_beskrivelse2_2',
 '2013-08-28'::date,
-'doc_kassationskode2_2', 
+'doc_kassationskode2_2',
 12, --major int
 6, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2_2','doc_Offentlighedundtaget_Hjemmel2_2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2_2',
 'doc_dokumenttype2_2',
-'integrationsdata2_2',
    doc2_virkEgenskaber2
 ) :: dokumentEgenskaberAttrType
 ;
@@ -732,18 +728,18 @@ doc2_docDel2AEgenskaberVirkning :=	ROW (
 
 doc2_docVariantEgenskaber1A:=
 ROW(
-false, --arkivering boolean, 
-NULL, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+NULL, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc2_docVariantEgenskaber1AVirkning
 )::DokumentVariantEgenskaberType;
 
 doc2_docVariantEgenskaber1B:=
 ROW(
-true, --arkivering boolean, 
-false, --delvisscannet boolean, 
-''::text, --offentliggoerelse boolean, 
+true, --arkivering boolean,
+false, --delvisscannet boolean,
+''::text, --offentliggoerelse boolean,
 true, --produktion boolean,
  doc2_docVariantEgenskaber1BVirkning
 )::DokumentVariantEgenskaberType;
@@ -751,9 +747,9 @@ true, --produktion boolean,
 
 doc2_docVariantEgenskaber2A:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-false, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+false, --offentliggoerelse boolean,
 false, --produktion boolean,
  doc2_docVariantEgenskaber2AVirkning
 )::DokumentVariantEgenskaberType;
@@ -774,7 +770,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc2_docDel2Brelation2Virkning,
   null,
-  'urn:cpr 8883394', 
+  'urn:cpr 8883394',
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -784,44 +780,44 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   doc2_docDel2Brelation2Virkning,
   '524a2dd4-415f-4104-b7a7-84607488c091'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
 
 doc2_docDel1AEgenskaber:= ROW(
 ''::text, --indeks int,
-null, 
-'del_lokation2_1', 
+null,
+'del_lokation2_1',
 'del_mimetype2_1',
- doc2_docDel1AEgenskaberVirkning 
+ doc2_docDel1AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel1A2Egenskaber:=ROW(
 2, --indeks int,
-'del_indhold2_4', 
-'del_lokation2_4', 
+'del_indhold2_4',
+'del_lokation2_4',
 'del_mimetype2_4',
- doc2_docDel1A2EgenskaberVirkning 
+ doc2_docDel1A2EgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel1BEgenskaber:= ROW(
 98, --indeks int,
-'del_indhold2_2', 
-'del_lokation2_2', 
+'del_indhold2_2',
+'del_lokation2_2',
 'del_mimetype2_2',
- doc2_docDel1BEgenskaberVirkning 
+ doc2_docDel1BEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 doc2_docDel2AEgenskaber:= ROW(
 8, --indeks int,
-'del_indhold2_3', 
-'del_lokation2_3', 
+'del_indhold2_3',
+'del_lokation2_3',
 'del_mimetype2_3',
- doc2_docDel2AEgenskaberVirkning 
+ doc2_docDel2AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
@@ -858,20 +854,20 @@ ROW(
 doc2_docVariant1 := ROW (
 	'doc_varianttekst2_1',
   	ARRAY[doc2_docVariantEgenskaber1A,doc2_docVariantEgenskaber1B],
-  	ARRAY[doc2_docDel1A,doc2_docDel1B, 
+  	ARRAY[doc2_docDel1A,doc2_docDel1B,
   	ROW(
   		'doc_deltekst1B',
   		ARRAY[ROW(
 			''::text, --indeks int,
-			''::text, 
-			''::text, 
+			''::text,
+			''::text,
 			''::text,
 			ROW (
 	'(-infinity, infinity)' :: TSTZRANGE,
           '550cc58a-3149-414a-9392-dcbcbbccdd90'::uuid,
           'Bruger',
           'NoteEx6000'
-          ) :: Virkning 
+          ) :: Virkning
 		)::DokumentDelEgenskaberType],
   		ARRAY[]::DokumentdelRelationType[]
   		)::DokumentDelType
@@ -897,7 +893,7 @@ updated_reg_id:=as_update_dokument(
   doc1_new_uuid,
   doc2_uuidRegistrering,
   'Test Note 80',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   ARRAY[doc2_dokumentEgenskab1,doc2_dokumentEgenskab2],
   ARRAY[doc2_dokumentFremdrift],
   ARRAY[doc2_dokumentRelAnsvarlig,doc2_dokumentRelBesvarelser1,doc2_dokumentRelBesvarelser2],
@@ -907,9 +903,9 @@ updated_reg_id:=as_update_dokument(
 	'doc_varianttekst1',
   	ARRAY[
 		ROW(
-		true, --arkivering boolean, 
-		null, --delvisscannet boolean, 
-		null, --offentliggoerelse boolean, 
+		true, --arkivering boolean,
+		null, --delvisscannet boolean,
+		null, --offentliggoerelse boolean,
 		false, --produktion boolean,
 		 	ROW (
 		'[2015-02-01, 2016-12-20]' :: TSTZRANGE,
@@ -918,11 +914,11 @@ updated_reg_id:=as_update_dokument(
           'NoteEx300'
           ) :: Virkning
 		)::DokumentVariantEgenskaberType
-,	
+,
 	ROW(
-	true, --arkivering boolean, 
-	false, --delvisscannet boolean, 
-	false, --offentliggoerelse boolean, 
+	true, --arkivering boolean,
+	false, --delvisscannet boolean,
+	false, --offentliggoerelse boolean,
 	true, --produktion boolean,
 	 ROW (
 		'[2014-02-27, 2015-02-01)' :: TSTZRANGE,
@@ -979,20 +975,19 @@ expected_dokument1:=ROW(
 					) :: Virkning,
 				'Underreview'
 				):: dokumentFremdriftTilsType
-				
+
 			]::DokumentFremdriftTilsType[],
 			ARRAY[
 			ROW (
 				'doc_brugervendtnoegle1',
-				'doc_beskrivelse1', 
+				'doc_beskrivelse1',
 				'2015-10-31'::date,
-				'doc_kassationskode1', 
+				'doc_kassationskode1',
 				4, --major int
 				9, --minor int
 				ROW('doc_Offentlighedundtaget_AlternativTitel1','doc_Offentlighedundtaget_Hjemmel1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 				'doc_titel1',
 				'doc_dokumenttype1',
-				'integrationsdata1',
 				ROW( '[2015-06-30, infinity)' :: TSTZRANGE,
 				          'd71cc58a-3149-414a-9392-dcbcbbccddf8'::uuid,
 				          'Bruger',
@@ -1001,15 +996,14 @@ expected_dokument1:=ROW(
 				)::DokumentEgenskaberAttrType,
 				ROW (
 				'doc_brugervendtnoegle2',
-				'doc_beskrivelse2', 
+				'doc_beskrivelse2',
 				'2014-09-20'::date,
-				'doc_kassationskode2', 
+				'doc_kassationskode2',
 				5, --major int
 				10, --minor int
 				ROW('doc_Offentlighedundtaget_AlternativTitel2','doc_Offentlighedundtaget_Hjemmel2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 				'doc_titel2',
 				'doc_dokumenttype2',
-				'integrationsdata2',
 				ROW(
 				   '[2014-05-12, 2014-06-20)' :: TSTZRANGE,
          			'e71cc58a-3149-414a-9392-dcbcbbccddf8'::uuid,
@@ -1019,15 +1013,14 @@ expected_dokument1:=ROW(
 				) :: DokumentEgenskaberAttrType,
 				ROW (
 					'doc_brugervendtnoegle2_1',
-					'doc_beskrivelse2_1', 
+					'doc_beskrivelse2_1',
 					'2014-01-10'::date,
-					'doc_kassationskode1', --'doc_kassationskode2_1', 
+					'doc_kassationskode1', --'doc_kassationskode2_1',
 					4, --major int
 					null, --minor int
 					ROW('doc_Offentlighedundtaget_AlternativTitel2_1','doc_Offentlighedundtaget_Hjemmel2_1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 					'doc_titel2_1',
 					'doc_dokumenttype2_1',
-					'integrationsdata2_1',
 					ROW (
 						'[2015-05-12, 2015-06-30)' :: TSTZRANGE,
 					          'c71cc58a-3149-414a-9392-dcbcbbccddfe'::uuid,
@@ -1037,15 +1030,14 @@ expected_dokument1:=ROW(
 				) :: DokumentEgenskaberAttrType
 				,ROW (
 					'doc_brugervendtnoegle2_1',
-					'doc_beskrivelse2_1', 
+					'doc_beskrivelse2_1',
 					'2014-01-10'::date,
-					'doc_kassationskode2', --'doc_kassationskode2_1', 
+					'doc_kassationskode2', --'doc_kassationskode2_1',
 					5, --major int
 					null, --minor int
 					ROW('doc_Offentlighedundtaget_AlternativTitel2_1','doc_Offentlighedundtaget_Hjemmel2_1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 					'doc_titel2_1',
 					'doc_dokumenttype2_1',
-					'integrationsdata2_1',
 					   ROW (
 							'[2014-06-20, 2015-05-12)' :: TSTZRANGE,
 						    'c71cc58a-3149-414a-9392-dcbcbbccddfe'::uuid,
@@ -1055,15 +1047,14 @@ expected_dokument1:=ROW(
 					) :: DokumentEgenskaberAttrType
 				,ROW (
 					'doc_brugervendtnoegle2_2',
-					'doc_beskrivelse2_2', 
+					'doc_beskrivelse2_2',
 					'2013-08-28'::date,
-					'doc_kassationskode2_2', 
+					'doc_kassationskode2_2',
 					12, --major int
 					6, --minor int
 					ROW('doc_Offentlighedundtaget_AlternativTitel2_2','doc_Offentlighedundtaget_Hjemmel2_2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 					'doc_titel2_2',
 					'doc_dokumenttype2_2',
-					'integrationsdata2_2',
 					   	ROW (
 							'[2013-11-30, 2014-02-20)' :: TSTZRANGE,
 						    'd71cc58a-3149-414a-9392-dcbcbbccddf7'::uuid,
@@ -1106,9 +1097,9 @@ expected_dokument1:=ROW(
 						'doc_varianttekst2_1',
 					  	ARRAY[
 					  		ROW(
-								false, --arkivering boolean, 
-								false, --delvisscannet boolean, 
-								true, --offentliggoerelse boolean, 
+								false, --arkivering boolean,
+								false, --delvisscannet boolean,
+								true, --offentliggoerelse boolean,
 								true, --produktion boolean,
 								 ROW (
 								'[2013-03-27, 2014-05-11)' :: TSTZRANGE,
@@ -1118,9 +1109,9 @@ expected_dokument1:=ROW(
 							          ) :: Virkning
 							)::DokumentVariantEgenskaberType
 					  		,ROW(
-								false, --arkivering boolean, 
-								false, --delvisscannet boolean, 
-								true, --offentliggoerelse boolean, 
+								false, --arkivering boolean,
+								false, --delvisscannet boolean,
+								true, --offentliggoerelse boolean,
 								true, --produktion boolean,
 								ROW(
 								 '[2015-01-01, 2015-03-01)' :: TSTZRANGE,
@@ -1131,9 +1122,9 @@ expected_dokument1:=ROW(
 
 							)
 							,ROW(
-							true, --arkivering boolean, 
-							false, --delvisscannet boolean, 
-							true, --offentliggoerelse boolean, 
+							true, --arkivering boolean,
+							false, --delvisscannet boolean,
+							true, --offentliggoerelse boolean,
 							false, --produktion boolean,
 							 ROW (
 								'[2013-02-27, 2013-03-27)' :: TSTZRANGE,
@@ -1143,9 +1134,9 @@ expected_dokument1:=ROW(
 							          ) :: Virkning
 							)::DokumentVariantEgenskaberType
 							,ROW(
-							true, --arkivering boolean, 
-							false, --delvisscannet boolean, 
-							true, --offentliggoerelse boolean, 
+							true, --arkivering boolean,
+							false, --delvisscannet boolean,
+							true, --offentliggoerelse boolean,
 							false, --produktion boolean,
 							 ROW (
 								'[2014-05-11, 2015-01-01)' :: TSTZRANGE,
@@ -1155,9 +1146,9 @@ expected_dokument1:=ROW(
 							          ) :: Virkning
 							 )::DokumentVariantEgenskaberType
 							,ROW(
-							true, --arkivering boolean, 
-							false, --delvisscannet boolean, 
-							null, --offentliggoerelse boolean, 
+							true, --arkivering boolean,
+							false, --delvisscannet boolean,
+							null, --offentliggoerelse boolean,
 							true, --produktion boolean,
 							 ROW (
 								'[2015-03-01, infinity)' :: TSTZRANGE,
@@ -1169,14 +1160,14 @@ expected_dokument1:=ROW(
 							]::DokumentVariantEgenskaberType[]
 					  	,ARRAY[
 
-					  	
+
 					  	ROW(
 					  		'doc_deltekst1A',
 					  		 ARRAY[
 					  		 ROW(
 									1, --indeks int,
-									'del_indhold1', 
-									'del_lokation1', 
+									'del_indhold1',
+									'del_lokation1',
 									'del_mimetype1',
 									 ROW (
 										'[2014-03-30, 2014-05-19)' :: TSTZRANGE,
@@ -1188,8 +1179,8 @@ expected_dokument1:=ROW(
 					  		 	,
 					  		 	ROW(
 									2, --indeks int,
-									'del_indhold2_4', 
-									'del_lokation2_4', 
+									'del_indhold2_4',
+									'del_lokation2_4',
 									'del_mimetype2_4',
 									 ROW (
 										'[2010-06-25, 2014-01-10)' :: TSTZRANGE,
@@ -1202,8 +1193,8 @@ expected_dokument1:=ROW(
 
 					  		 	ROW(
 									2, --indeks int,
-									'del_indhold4', 
-									'del_lokation4', 
+									'del_indhold4',
+									'del_lokation4',
 									'del_mimetype4',
  									ROW (
 									'[2010-01-20, 2010-06-25)' :: TSTZRANGE,
@@ -1215,45 +1206,45 @@ expected_dokument1:=ROW(
 					  			,
 					  			ROW(
 									2, --indeks int,
-									'del_indhold4', 
-									'del_lokation4', 
+									'del_indhold4',
+									'del_lokation4',
 									'del_mimetype4',
 									 ROW (
 										'[2014-01-10, 2014-03-20)' :: TSTZRANGE,
 								    	'271cc58a-3149-414a-9392-dcbcbbccddf8'::uuid,
 								        'Bruger',
 								        'NoteEx113'
-								          ) :: Virkning 
+								          ) :: Virkning
 									)::DokumentDelEgenskaberType
 					  			,ROW(
 									null, --indeks int,
-									'del_indhold1', 
-									'del_lokation2_1', 
+									'del_indhold1',
+									'del_lokation2_1',
 									'del_mimetype2_1',
 									 ROW (
 									'[2014-05-19, infinity)' :: TSTZRANGE,
 								          '671cc58a-3149-414a-9392-dcbcbbccddf8'::uuid,
 								          'Bruger',
 								          'NoteEx11'
-								          ) :: Virkning 
+								          ) :: Virkning
 									)::DokumentDelEgenskaberType
 					  		 	],
-					  		
+
   							 ARRAY[doc1_docDel1Arelation1]
 					  		)::DokumentDelType
 						,ROW(
 					  		'doc_deltekst1B',
 					  		ARRAY[ROW(
 								null, --indeks int,
-								''::text, 
-								''::text, 
+								''::text,
+								''::text,
 								''::text,
 								ROW (
 						'(-infinity, infinity)' :: TSTZRANGE,
 					          '550cc58a-3149-414a-9392-dcbcbbccdd90'::uuid,
 					          'Bruger',
 					          'NoteEx6000'
-					          ) :: Virkning 
+					          ) :: Virkning
 							)::DokumentDelEgenskaberType],
 					  		null --ARRAY[]::DokumentdelRelationType[]
 					  		)::DokumentDelType
@@ -1264,9 +1255,9 @@ expected_dokument1:=ROW(
 						'doc_varianttekst1',
 					  	ARRAY[
 							ROW(
-							true, --arkivering boolean, 
-							false, --delvisscannet boolean, 
-							false, --offentliggoerelse boolean, 
+							true, --arkivering boolean,
+							false, --delvisscannet boolean,
+							false, --offentliggoerelse boolean,
 							true, --produktion boolean,
 							 ROW (
 								'[2014-02-27, 2015-02-01)' :: TSTZRANGE,
@@ -1277,9 +1268,9 @@ expected_dokument1:=ROW(
 							)::DokumentVariantEgenskaberType
 							,
 							ROW(
-							true, --arkivering boolean, 
-							null, --delvisscannet boolean, 
-							null, --offentliggoerelse boolean, 
+							true, --arkivering boolean,
+							null, --delvisscannet boolean,
+							null, --offentliggoerelse boolean,
 							false, --produktion boolean,
 							 	ROW (
 							'[2015-02-01, 2016-12-20]' :: TSTZRANGE,

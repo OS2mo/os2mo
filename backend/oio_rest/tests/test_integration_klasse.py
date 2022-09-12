@@ -14,7 +14,6 @@ class TestCreateKlasse(TestCreateObject):
                     {
                         "brugervendtnoegle": "bvn",
                         "titel": "stor titel",
-                        "integrationsdata": "data fra andet system",
                         "virkning": self.standard_virkning1,
                     }
                 ]

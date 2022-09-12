@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_sag()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering sagRegistreringType;
 	registreringB sagRegistreringType;
@@ -254,19 +254,18 @@ virkPubliceret,
 
 
 sagEgenskab := ROW (
-'brugervendtnoegle_sag_1' --text, 
+'brugervendtnoegle_sag_1' --text,
  ,false --'afleveret_sag_1'-- boolean,
 ,'beskrivelse_sag_1'-- text,
 , 'hjemmel_sag_1'-- text,
 , 'kassationskode_sag_1'-- text,
-,ROW( 
+,ROW(
 	'alternativTitel_sag_1'
 	,'hjemmel_sag_1'
  )::offentlighedundtagettype
 , true --principiel boolean,
 ,'sagsnummer_1' -- text,
 , 'titel_sag_1'-- text,
-, 'integrationsdata'-- text,
 ,virkEgenskaber
 ) :: sagEgenskaberAttrType
 ;
@@ -297,7 +296,7 @@ sagRelSekundaerpart2 := ROW (
 	uuidSekundaerpart2,
 	null,
 	'Person'
-	,2 
+	,2
 	,null --relTypeSpec
 	,null --journalNotat
 	,null --journalDokumentAttr
@@ -307,7 +306,7 @@ sagRelSekundaerpart2 := ROW (
 
 update_reg_id:=as_update_sag(
   new_uuid1, '5f368584-4c3e-4ba4-837b-da2b1eee37c4'::uuid,'Test update 20'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[sagEgenskab]::SagEgenskaberAttrType[],
   array[sagFremdrift]::SagFremdriftTilsType[],
   array[sagRelSekundaerpart2]::SagRelationType[]
@@ -321,7 +320,7 @@ read_Sag1 := as_read_sag(new_uuid1,
 --raise notice 'read_Sag_update 1:%',to_json(read_Sag1);
 
 SELECT
-uuid into read_uuidSekundaerpart2 
+uuid into read_uuidSekundaerpart2
 FROM
 unnest(read_Sag1.registrering[1].relationer) a
 where
@@ -345,7 +344,7 @@ sagRelSekundaerpart3 := ROW (
 	null,
 	urnSekundaerpart3,
 	'Person'
-	,null 
+	,null
 	,null --relTypeSpec
 	,null --journalNotat
 	,null --journalDokumentAttr
@@ -354,7 +353,7 @@ sagRelSekundaerpart3 := ROW (
 
 update_reg_id:=as_update_sag(
   new_uuid1, '5f368584-4c3e-4ba4-837b-da2b1eee37c4'::uuid,'Test update 21'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   null,
   null,
   array[sagRelSekundaerpart3]::SagRelationType[]
@@ -383,12 +382,12 @@ RETURN NEXT is(read_rel_index_3,3,'Test update of sag relation based on index #2
 --raise notice 'read_Sag1 update:%',to_json(read_Sag1);
 
 /*******************************************/
---Test if providing empty arguments will trigger exception as expected 
+--Test if providing empty arguments will trigger exception as expected
 BEGIN
 
 update_reg_id_2:=as_update_sag(
   new_uuid1, '6f368584-4c3e-4ba4-837b-da2b1eee37c6'::uuid,'Test update 30'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   null,
   null,
   null,
@@ -396,7 +395,7 @@ update_reg_id_2:=as_update_sag(
 	);
 
 RETURN NEXT ok(false,'as_update_sag empty arguments: Should throw MO400 exception');
-EXCEPTION  
+EXCEPTION
 WHEN sqlstate 'MO400' THEN
 	RETURN NEXT ok(true,'as_update_sag empty arguments: Throws MO400 exception (as it should)');
 

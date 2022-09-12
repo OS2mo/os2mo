@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_list_klasse()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	registrering KlasseRegistreringType;
 	new_uuid2 uuid;
@@ -194,8 +194,7 @@ klasseEgenskabA := ROW (
    'titel_A',
    'retskilde_A',
    NULL,--'aendringsnotat_text1',
-   'integrationsdata_A',
-   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[], 
+   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[],
    virkEgenskaber
 ) :: KlasseEgenskaberAttrType
 ;
@@ -270,7 +269,6 @@ klasseEgenskabB := ROW (
    'titel_B',
    'retskilde_B',
    NULL, --aendringsnotat
-   'integrationsdata_B',
     ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
    virkEgenskaberB
 ) :: KlasseEgenskaberAttrType
@@ -325,7 +323,6 @@ klasseEgenskabC := ROW (
    'titel_C',
    'retskilde_C',
    'aendringsnotat_C',
-   'integrationsdata_C',
    ARRAY[]::KlasseSoegeordType[], --soegeord
    virkEgenskaberC
 ) :: KlasseEgenskaberAttrType
@@ -339,7 +336,6 @@ klasseEgenskabD := ROW (
    'titel_D',
    'retskilde_D',
    NULL, --aendringsnotat
-   'integrationsdata_D',
     NULL, --soegeord
    virkEgenskaberD
 ) :: KlasseEgenskaberAttrType
@@ -353,7 +349,6 @@ klasseEgenskabE := ROW (
    'titel_E',
    'retskilde_E',
    NULL, --aendringsnotat
-   'integrationsdata_E',
     ARRAY[klasseEgenskabE_Soegeord1,klasseEgenskabE_Soegeord2,klasseEgenskabE_Soegeord3,klasseEgenskabE_Soegeord4,klasseEgenskabE_Soegeord5]::KlasseSoegeordType[], --soegeord
    virkEgenskaberE
 ) :: KlasseEgenskaberAttrType
@@ -408,7 +403,7 @@ expected_Klasse1 :=
 								((read_Klasse1.registrering[1]).registrering).timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 								(registrering.registrering).livscykluskode,
 								(registrering.registrering).brugerref,
-								(registrering.registrering).note 
+								(registrering.registrering).note
 								)::RegistreringBase
 							,registrering.tilsPubliceret
 							,registrering.attrEgenskaber
@@ -433,7 +428,7 @@ expected_Klasse2 :=
 								((read_Klasse2.registrering[1]).registrering).timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 								(registrering2.registrering).livscykluskode,
 								(registrering2.registrering).brugerref,
-								(registrering2.registrering).note 
+								(registrering2.registrering).note
 								)::RegistreringBase
 							,array[klassePubliceretC]
 							,array[
@@ -446,9 +441,8 @@ expected_Klasse2 :=
 							klasseEgenskabC.titel,
 							klasseEgenskabC.retskilde,
 							klasseEgenskabC.aendringsnotat,
- 							klasseEgenskabC.integrationsdata, 
 							NULL, --notice: empty array for soegeord get read as null
- 							klasseEgenskabC.virkning 
+ 							klasseEgenskabC.virkning
 							)::KlasseEgenskaberAttrType
 							]::KlasseEgenskaberAttrType[]
 							,registrering2.relationer
@@ -470,7 +464,7 @@ actual_klasses_1:=as_list_klasse(array[new_uuid]::uuid[],null,null);
 
 RETURN NEXT is(
 	actual_klasses_1,
-	ARRAY[expected_Klasse1],	
+	ARRAY[expected_Klasse1],
 	'list klasse test 1');
 
 actual_klasses_2:=as_list_klasse(array[new_uuid2]::uuid[],null,null);
@@ -482,7 +476,7 @@ actual_klasses_2:=as_list_klasse(array[new_uuid2]::uuid[],null,null);
 
 RETURN NEXT is(
 	actual_klasses_2,
-	ARRAY[expected_Klasse2],	
+	ARRAY[expected_Klasse2],
 	'list klasse test 2');
 
 
@@ -498,7 +492,7 @@ select array_agg(a.* order by a.id) from unnest(ARRAY[expected_Klasse1,expected_
 
 RETURN NEXT is(
 	actual_klasses_3,
-	expected_klasses_3,	
+	expected_klasses_3,
 	'list klasse test 3');
 
 

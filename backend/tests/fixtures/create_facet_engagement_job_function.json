@@ -3,7 +3,6 @@
         "facetegenskaber": [
             {
                 "brugervendtnoegle": "engagement_job_function",
-                "integrationsdata": "",
                 "virkning": {
                     "from": "1900-01-01",
                     "to": "infinity"

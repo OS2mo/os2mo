@@ -13,7 +13,6 @@ class TestCreateFacet(TestCreateObject):
                 "facetegenskaber": [
                     {
                         "brugervendtnoegle": "bvn",
-                        "integrationsdata": "data fra andet system",
                         "virkning": self.standard_virkning1,
                     }
                 ]

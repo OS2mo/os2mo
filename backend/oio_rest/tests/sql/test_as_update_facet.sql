@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_facet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	registrering FacetRegistreringType;
 	actual_registrering RegistreringBase;
@@ -141,7 +141,7 @@ facetRelRedaktoer2 := ROW (
 		virkRedaktoer2,
 	null,--uuidRedaktoer2,
 	urnRedaktoer2,
-	'Aktør' 
+	'Aktør'
 ) :: FacetRelationType
 ;
 
@@ -166,7 +166,6 @@ facetEgenskabA := ROW (
    'facetplan_A',
    'facetsupplement_A',
    NULL,--'retskilde_text1',
-   'integrationsdata_A',
    virkEgenskaber
 ) :: FacetEgenskaberAttrType
 ;
@@ -179,7 +178,6 @@ facetEgenskabB := ROW (
    'facetplan_B',
    'facetsupplement_B',
    NULL, --restkilde
-   'integrationsdata_B',
    virkEgenskaberB
 ) :: FacetEgenskaberAttrType
 ;
@@ -237,7 +235,6 @@ facetEgenskabC := ROW (
    'facetplan_C',
    'facetsupplement_C',
    'retskilde_C',
-   'integrationsdata_C',
    virkEgenskaberC
 ) :: FacetEgenskaberAttrType
 ;
@@ -250,7 +247,6 @@ facetEgenskabD := ROW (
    NULL,-- 'facetplan_D',
    'facetsupplement_D',
    NULL, --restkilde
-   'integrationsdata_D',
    virkEgenskaberD
 ) :: FacetEgenskaberAttrType
 ;
@@ -275,7 +271,7 @@ virkPubliceretC,
 
 update_reg_id:=as_update_facet(
   new_uuid, uuid_generate_v4(),'Test update'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[facetEgenskabC,facetEgenskabD]::FacetEgenskaberAttrType[],
   array[facetPubliceretC]::FacetPubliceretTilsType[],
   array[facetRelAnsvarligB]::FacetRelationType[]
@@ -289,7 +285,7 @@ array_agg(
 					a.virkning,
 					a.rel_maal_uuid,
 					a.rel_maal_urn,
-					a.objekt_type 
+					a.objekt_type
 				):: FacetRelationType
 		) into actual_relationer
 FROM facet_relation a
@@ -353,14 +349,13 @@ RETURN NEXT set_eq( 'SELECT
    					a.plan,
    					a.supplement,
    					a.retskilde,
-					a.integrationsdata,
 					a.virkning
 				):: FacetEgenskaberAttrType
-		
+
 FROM  facet_attr_egenskaber a
 JOIN facet_registrering as b on a.facet_registrering_id=b.id
 WHERE b.id=' || update_reg_id::text
-,   
+,
 ARRAY[
 		ROW(
 				facetEgenskabD.brugervendtnoegle,
@@ -370,7 +365,6 @@ ARRAY[
    				NULL, --facetEgenskabD.plan,
    				facetEgenskabD.supplement,
    				facetEgenskabD.retskilde,
-   				facetEgenskabD.integrationsdata,
 					ROW(
 						TSTZRANGE('2013-06-30','2014-05-13','[)'),
 						(facetEgenskabD.virkning).AktoerRef,
@@ -387,7 +381,6 @@ ARRAY[
    				facetEgenskabB.plan, --NOTICE
    				facetEgenskabD.supplement,
    				NULL, --notice
-   				facetEgenskabD.integrationsdata,
    				ROW(
 						TSTZRANGE('2014-05-13','2014-06-01','[)'),
 						(facetEgenskabD.virkning).AktoerRef,
@@ -404,7 +397,6 @@ ARRAY[
    				facetEgenskabB.plan,
    				facetEgenskabB.supplement,
    				facetEgenskabB.retskilde,
-   				facetEgenskabB.integrationsdata,
 					ROW(
 						TSTZRANGE('2014-06-01','2015-01-01','[)'),
 						(facetEgenskabB.virkning).AktoerRef,
@@ -421,7 +413,6 @@ ARRAY[
    				facetEgenskabC.plan,
    				facetEgenskabC.supplement,
    				facetEgenskabC.retskilde,
-   				facetEgenskabC.integrationsdata,
 					ROW(
 						TSTZRANGE('2015-01-13','2015-05-12','[)'),
 						(facetEgenskabC.virkning).AktoerRef,
@@ -438,7 +429,6 @@ ARRAY[
    				facetEgenskabC.plan,
    				facetEgenskabC.supplement,
    				facetEgenskabC.retskilde,
-   				facetEgenskabC.integrationsdata,
 					ROW(
 						TSTZRANGE('2015-05-12','infinity','[)'),
 						(facetEgenskabC.virkning).AktoerRef,
@@ -456,7 +446,7 @@ BEGIN
 
 update_reg_id2:=as_update_facet(
   new_uuid, '592fcdea-0f88-4af1-b2b5-990ae4787ecd'::uuid,'Test update 2'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[facetEgenskabC,facetEgenskabD]::FacetEgenskaberAttrType[],
   array[]::FacetPubliceretTilsType[],
   array[facetRelAnsvarligB]::FacetRelationType[]
@@ -473,16 +463,15 @@ update_reg_id2:=as_update_facet(
 		   , 'facetplan_343434'
 		   ,null --'facetsupplement_B',
 		   ,NULL --restkilde
-		   ,NULL --'integrationsdata_B',
 		   ,null --virkning
 			) :: FacetEgenskaberAttrType
-	 	]::FacetEgenskaberAttrType[] 
+	 	]::FacetEgenskaberAttrType[]
 	 	,null --relationer
 	 	)::FacetRegistreringType]:: FacetRegistreringType[]
 	);
 
 RETURN NEXT ok(false,'as_update_facet test auth criteria#1: Should throw MO401 exception');
-EXCEPTION  
+EXCEPTION
 WHEN sqlstate 'MO401' THEN
 	RETURN NEXT ok(true,'as_update_facet test auth criteria#1: Throws MO401 exception (as it should)');
 END;
@@ -493,7 +482,7 @@ END;
 
 update_reg_id3:=as_update_facet(
   new_uuid, '592fcdea-0f88-4af1-b2b5-990ae4787ecd'::uuid,'Test update 3'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[facetEgenskabC,facetEgenskabD]::FacetEgenskaberAttrType[],
   array[]::FacetPubliceretTilsType[],
   array[facetRelAnsvarligB]::FacetRelationType[]
@@ -510,10 +499,9 @@ update_reg_id3:=as_update_facet(
 			   ,null --'facetplan_B',
 			   ,null --'facetsupplement_B',
 			   ,NULL --restkilde
-			   ,NULL --'integrationsdata_B',
 			   ,null --virkEgenskaberB
 			) :: FacetEgenskaberAttrType
-	 	]::FacetEgenskaberAttrType[] 
+	 	]::FacetEgenskaberAttrType[]
 	 	,null --relationer
 	 	)::FacetRegistreringType]:: FacetRegistreringType[]
 	);
