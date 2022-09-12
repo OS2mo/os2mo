@@ -111,7 +111,7 @@ class MoraTrigger(BaseModel):
 
     request_type: str = Field(
         description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-                    "Ref: mora.mapping.RequestType"
+        "Ref: mora.mapping.RequestType"
     )
 
     request: MoraTriggerRequest = Field(description="The Request for the trigger.")
@@ -124,7 +124,7 @@ class MoraTrigger(BaseModel):
 
     uuid: UUID = Field(
         description="UUID of the entity being handled in the trigger. "
-                    "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
+        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
     result: typing.Any = Field(description="Result of the trigger", default=None)
@@ -192,6 +192,38 @@ class OrganisationUnit(UUIDBase):
 
 class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
     """Model representing updating an organisation unit."""
+
+    name: Optional[str] = Field(description="Name of the updated organisation unit.")
+
+    org_unit_type_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units type."
+    )
+
+    org_unit_level_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units level."
+    )
+
+    org_unit_hierarchy_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units hierarchy."
+    )
+
+    parent_uuid: Optional[UUID] = Field(
+        description="UUID of the related parent of the organisation unit."
+    )
+
+    time_planning: Optional[UUID] = Field(
+        description="UUID of the related organisation units time planning."
+    )
+
+    location: Optional[UUID]
+
+    def get_legacy_dict(self) -> dict:
+        uuid_as_str = str(self.uuid)
+
+        validity_dict = {mapping.FROM: self.from_date.date().isoformat()}
+
+        if self.to_date:
+            validity_dict[mapping.TO] = self.to_date.date().isoformat()
 
     name: Optional[str] = Field(description="Name of the updated organisation unit.")
 
@@ -393,7 +425,7 @@ class EmployeeUpdate(UUIDBase):
     validity: Optional[Validity] = Field(
         None,
         description="Validity range for the employee, "
-                    "for when the employee is accessible",
+        "for when the employee is accessible",
     )
 
     # user_key

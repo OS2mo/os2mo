@@ -31,9 +31,8 @@ from .types import AddressTerminateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import GenericUUIDType
-from .types import OrganizationUnit
-from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
 from .types import OrganizationUnitType
+from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +80,7 @@ class Mutation:
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
     ) -> OrganizationUnitType:
-        return await update_org_unit(input.to_pydantic())
+        return await update_org_unit(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(description="Terminates an engagement by UUID")
     @strawberry.mutation(

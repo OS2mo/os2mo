@@ -21,7 +21,6 @@ from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
-from mora.service.detail_writing import handle_requests
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 from mora.triggers import Trigger
@@ -191,14 +190,9 @@ async def terminate_org_unit(
 async def update_org_unit(
     org_unit_update: OrganisationUnitUpdate,
 ) -> OrganizationUnitType:
-    # Convert pydantic model to request-dict, to match legacy implementation.
-    update_dict = org_unit_update.dict(by_alias=True)
-    req = {
-        mapping.TYPE: mapping.ORG_UNIT,
-        # mapping.UUID: org_unit_update.uuid,
-        mapping.DATA: update_dict,
-    }
+    request = await OrgUnitRequestHandler.construct(
+        org_unit_update.get_legacy_dict(), mapping.RequestType.EDIT
+    )
+    uuid = await request.submit()
 
-    # Invoke existing update-logic
-    result = await handle_requests(req, mapping.RequestType.EDIT)
-    return OrganizationUnitType(uuid=UUID(result))
+    return OrganizationUnitType(uuid=UUID(uuid))
