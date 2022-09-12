@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.1.0 - 2022-09-12
+-------------------
+
+[#50727] Remove the field `integrationsdata` from the database, APIs, models, etc.
+
 11.0.2 - 2022-09-09
 -------------------
 
