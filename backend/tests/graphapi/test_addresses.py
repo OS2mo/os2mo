@@ -246,7 +246,8 @@ class TestAddressCreate:
             assert new_addr_uuid == mock_submit_requests.return_value[0]
 
     @given(
-        st.text(),
+        st.emails(),
+
         st.uuids(),
         st.uuids(),
         st.sampled_from(["org_unit", "person", "engagement"]),
@@ -257,7 +258,7 @@ class TestAddressCreate:
         ),
     )
     @mock.patch.object(lora.Scope, "create", lambda *args: args[-1])
-    @mock.patch.object(lora.Scope, "get", mock.AsyncMock())
+    # @mock.patch.object(lora.Scope, "get", mock.AsyncMock())
     async def test_request_handler_logic(
         self,
         given_value,
@@ -268,10 +269,35 @@ class TestAddressCreate:
         given_org_uuid,
         given_validity_dts,
     ):
+        given_validity_from, given_validity_to = given_validity_dts
+
         with mock.patch(
+            "mora.lora.Scope.get"
+        ) as mock_get, mock.patch(
             "mora.service.org.get_configured_organisation"
-        ) as get_configured_organisation:
+        ) as get_configured_organisation, mock.patch(
+            "mora.service.address.facet.get_one_class"
+        ) as mock_get_one_class, mock.patch(
+            "mora.graphapi.versions.latest.models.AddressCreate._get_org_unit_validity"
+        ) as mock_get_org_unit_validity, mock.patch(
+            "mora.graphapi.versions.latest.models.AddressCreate._get_person_validity"
+        ) as mock_get_person_validity:
+            # Mocking config
+            mock_get.return_value = mock.AsyncMock()
+
             get_configured_organisation.return_value = {"uuid": given_org_uuid}
+            mock_get_one_class.return_value = {"scope": "EMAIL"}
+
+            if given_relation_type in ["org_unit", "person"]:
+                validity = {
+                    "from": given_validity_from.date().isoformat(),
+                    "to": given_validity_from.date().isoformat(),
+                }
+                mock_get_org_unit_validity.return_value = validity
+                mock_get_person_validity.return_value = validity
+            else:
+                mock_get_org_unit_validity.return_value = None
+                mock_get_person_validity.return_value = None
 
             # Convert the UUIDs to strings, so they can be used in the mutation-query
             given_address_type_uuid = str(given_address_type_uuid)
@@ -279,7 +305,7 @@ class TestAddressCreate:
             given_relation_uuid = str(given_relation_uuid)
             given_org_uuid = str(given_org_uuid) if given_org_uuid else given_org_uuid
 
-            given_validity_from, given_validity_to = given_validity_dts
+
             given_relation = {
                 "type": given_relation_type,
                 "uuid": given_relation_uuid,
