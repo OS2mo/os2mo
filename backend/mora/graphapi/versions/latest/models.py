@@ -327,7 +327,7 @@ class AddressVisibility(MOBase):
 
 class AddressRelation(UUIDBase):
     type: str = Field(
-        "", description="The type of the address relation, ex 'org_unit' or 'person'."
+        description="The type of the address relation, ex 'org_unit' or 'person'."
     )
 
     @validator("type")
