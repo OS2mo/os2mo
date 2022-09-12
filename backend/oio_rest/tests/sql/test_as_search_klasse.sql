@@ -4,9 +4,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_klasse()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid_A uuid;
 	registrering_A KlasseRegistreringType;
 	actual_registrering_A registreringBase;
@@ -48,7 +48,7 @@ DECLARE
 	uuidAnsvarlig_B uuid :=uuid_generate_v4();
 	uuidRedaktoer1_B uuid :=uuid_generate_v4();
 	uuidRedaktoer2_B uuid :=uuid_generate_v4();
-	
+
 	klasseEgenskabB_Soegeord1 KlasseSoegeordType;
 	klasseEgenskabB_Soegeord2 KlasseSoegeordType;
 	klasseEgenskabB_Soegeord3 KlasseSoegeordType;
@@ -360,8 +360,7 @@ klasseEgenskab_A := ROW (
    'titel_A',
    'retskilde_A',
    NULL,--'aendringsnotat_text1',
-   'integrationsdata_A',
-   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[], 
+   ARRAY[klasseEgenskabA_Soegeord1,klasseEgenskabA_Soegeord2]::KlasseSoegeordType[],
    virkEgenskaber_A
 ) :: KlasseEgenskaberAttrType
 ;
@@ -533,7 +532,6 @@ klasseEgenskab_B := ROW (
    'titel_B',
    'retskilde_B',
    NULL, --aendringsnotat
-   'integrationsdata_B',
     ARRAY[klasseEgenskabB_Soegeord1,klasseEgenskabB_Soegeord2,klasseEgenskabB_Soegeord3,klasseEgenskabB_Soegeord4]::KlasseSoegeordType[], --soegeord
    virkEgenskaber_B
 ) :: KlasseEgenskaberAttrType
@@ -652,7 +650,7 @@ search_registrering_3 := ROW (
 			ROW(
 				  ROW(
 				  	null,null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -691,7 +689,7 @@ search_registrering_3A := ROW (
 			ROW(
 				  ROW(
 				  	null,null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -730,7 +728,7 @@ search_registrering_4 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -767,7 +765,7 @@ search_registrering_5 := ROW (
 				  ROW(
 				  	'[2015-06-30, 2015-07-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -805,7 +803,7 @@ search_registrering_6 := ROW (
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	(virkPubliceret_B).AktoerRef,
 				  	null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -923,7 +921,6 @@ klasseEgenskab_C := ROW (
    'titel_C',
    'retskilde_C',
    'aendringsnotat_C', --aendringsnotat
-   'integrationsdata_C',
     NULL, --soegeord
    virkEgenskaber_C
 ) :: KlasseEgenskaberAttrType
@@ -962,7 +959,7 @@ search_registrering_7 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -975,12 +972,11 @@ ARRAY[
    		NULL, --titel
    		'retskilde_C',
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			ROW(
 				  	'[2015-01-01, 2015-02-01]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::KlasseEgenskaberAttrType
 ]::KlasseEgenskaberAttrType[],
 ARRAY[
@@ -1029,7 +1025,7 @@ search_registrering_8 := ROW (
 				  ROW(
 				  	'[2015-05-18, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1077,7 +1073,7 @@ search_registrering_9 := ROW (
 				  ROW(
 				  	'[2015-05-19, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1091,12 +1087,11 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		ARRAY[ROW(null,null,'faellessogeord2')::KlasseSoegeordType], --soegeord
    			ROW(
 				  	'[2015-05-13, 2015-05-14]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::KlasseEgenskaberAttrType
 
 
@@ -1133,7 +1128,7 @@ search_registrering_10 := ROW (
 				  ROW(
 				  	'[2015-05-19, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1147,12 +1142,11 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		ARRAY[ROW(null,null,'faellessogeord1')::KlasseSoegeordType], --soegeord
    			ROW(
 				  	'[2015-04-13, 2015-04-14]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::KlasseEgenskaberAttrType
 
 
@@ -1189,7 +1183,7 @@ search_registrering_11 := ROW (
 				  ROW(
 				  	'[2015-05-19, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1203,12 +1197,11 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		ARRAY[ROW(null,null,'faellessogeord2')::KlasseSoegeordType], --soegeord
    			ROW(
 				  	'[2015-05-13, 2015-05-14]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::KlasseEgenskaberAttrType
 
 
@@ -1231,7 +1224,7 @@ expected_result11:=ARRAY[]::uuid[];
 RETURN NEXT ok(coalesce(array_length(search_result11, 1), 0)=0 , 'search state publiceretStatus and soegeord combined 3');
 
 ---*******************
---search state publiceretStatus and common egenskab 
+--search state publiceretStatus and common egenskab
 
 
 
@@ -1247,7 +1240,7 @@ search_registrering_12 := ROW (
 				  ROW(
 				  	'[2015-05-19, 2015-05-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1261,12 +1254,11 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			ROW(
 				  	'[2015-05-13, 2015-05-20]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 		)::KlasseEgenskaberAttrType
 
 
@@ -1311,7 +1303,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -1357,7 +1348,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -1402,7 +1392,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			ROW(
 				  	'[2014-12-20, 2014-12-23]' :: TSTZRANGE,
@@ -1449,7 +1438,7 @@ search_registrering_16 := ROW (
 				  ROW(
 				  	'[2015-03-18, 2015-04-19]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1485,7 +1474,7 @@ search_registrering_17 := ROW (
 	,
 	ARRAY[
 			ROW(
-				  NULL--virkning 
+				  NULL--virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -1498,7 +1487,7 @@ search_result17 :=as_search_klasse(
 	null,--TOOD ??
 	null,
 	search_registrering_17 --registrering_A Klasseregistrering_AType
-	,'[2015-01-01, 2015-02-19]' :: TSTZRANGE --virkningSoeg 
+	,'[2015-01-01, 2015-02-19]' :: TSTZRANGE --virkningSoeg
 	);
 
 expected_result17=ARRAY[new_uuid_C]::uuid[];
@@ -1535,7 +1524,7 @@ search_result18 :=as_search_klasse(
 	null,--TOOD ??
 	null,
 	search_registrering_18 --registrering_A Klasseregistrering_AType
-	,'[2015-01-01, 2015-02-19]' :: TSTZRANGE --virkningSoeg 
+	,'[2015-01-01, 2015-02-19]' :: TSTZRANGE --virkningSoeg
 	);
 
 expected_result18=ARRAY[new_uuid_A,new_uuid_B,new_uuid_C]::uuid[];
@@ -1620,7 +1609,7 @@ search_registrering_20 := ROW (
 ARRAY[
 	ROW (
 	'redaktoerer'::KlasseRelationKode,
-		null,--virkning 
+		null,--virkning
 			null,
 			null,
 			null
@@ -1636,7 +1625,7 @@ search_result20 :=as_search_klasse(
 	null,--TOOD ??
 	null,
 	search_registrering_20 --registrering_A Klasseregistrering_AType
-	,'[2014-08-01, 2014-08-01]' :: TSTZRANGE --virkningSoeg 
+	,'[2014-08-01, 2014-08-01]' :: TSTZRANGE --virkningSoeg
 	);
 
 /*
@@ -1668,7 +1657,7 @@ search_registrering_21 := ROW (
 ARRAY[
 	ROW (
 	'overordnetklasse'::KlasseRelationKode,
-		null,--virkning 
+		null,--virkning
 			null,
 			null,
 			null
@@ -1684,7 +1673,7 @@ search_result21 :=as_search_klasse(
 	null,--TOOD ??
 	null,
 	search_registrering_21 --registrering_A Klasseregistrering_AType
-	,'[2014-08-01, 2014-08-01]' :: TSTZRANGE --virkningSoeg 
+	,'[2014-08-01, 2014-08-01]' :: TSTZRANGE --virkningSoeg
 	);
 
 /*
@@ -1701,7 +1690,7 @@ RETURN NEXT ok( coalesce(array_length(expected_result21,1),0)=coalesce(array_len
 
 
 --******************************
---Test multiple tilstande requirements 
+--Test multiple tilstande requirements
 
 
 search_registrering_22 := ROW (
@@ -1716,17 +1705,17 @@ search_registrering_22 := ROW (
 				  ROW(
 				  	'[2013-06-01, 2013-06-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'IkkePubliceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 			,ROW(
 				  ROW(
 				  	'[2015-02-19, 2016-01-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
-			
+
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
 null,--ARRAY[klasseEgenskab_B]::KlasseEgenskaberAttrType[],
 null--ARRAY[klasseRelAnsvarlig_B,klasseRelRedaktoer1_B,klasseRelRedaktoer2_B]
@@ -1759,7 +1748,7 @@ RETURN NEXT ok(expected_result22 @> search_result22 and search_result22 @>expect
 
 
 --******************************
---Test multiple attribute requirements 
+--Test multiple attribute requirements
 
 
 
@@ -1781,7 +1770,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -1794,7 +1782,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -1827,7 +1814,7 @@ raise notice 'Test global virksøg 5:C:%',to_json(registrering_C);
 RETURN NEXT ok(expected_result23 @> search_result23 and search_result23 @>expected_result23 and array_length(expected_result23,1)=array_length(search_result23,1), 'Test multiple attribute requirements');
 
 --******************************
---Test multiple relations requirements 
+--Test multiple relations requirements
 
 
 search_registrering_24 := ROW (
@@ -1845,7 +1832,7 @@ ARRAY[
 		ROW(
 				  	'[2015-05-10, 2015-07-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -1855,7 +1842,7 @@ ARRAY[
 		ROW(
 				  	'[2015-04-20, 2015-04-20]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -1907,7 +1894,6 @@ search_registrering_25 := ROW (
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -1967,7 +1953,6 @@ search_registrering_26 := ROW (
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -2029,7 +2014,6 @@ search_registrering_27 := ROW (
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    			null
 		)::KlasseEgenskaberAttrType
@@ -2412,7 +2396,7 @@ RETURN NEXT ok(expected_result39 @> search_result39 and search_result39 @>expect
 --we'll update system reg time of reg of klasse C to help facilitate tests
 update
 	klasse_registrering a
-SET 
+SET
 registrering=ROW (
 	TSTZRANGE('2014-01-01','2014-12-31','[]'),
 	'Opstaaet'::Livscykluskode,
@@ -2440,7 +2424,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    		NULL
 		)::KlasseEgenskaberAttrType
@@ -2484,7 +2467,6 @@ ROW(
    		NULL, --titel
    		NULL,
    		NULL, --aendringsnotat
-   		NULL, --integrationsdata
    		NULL, --soegeord
    		NULL
 		)::KlasseEgenskaberAttrType
@@ -2518,7 +2500,7 @@ search_registrering_42 := ROW (
 			ROW(
 				  ROW(
 				  	null,null,null,null
-				  	)::virkning 
+				  	)::virkning
 				  ,'Publiceret'::KlassePubliceretTils
 				):: KlassePubliceretTilsType
 	],--ARRAY[klassePubliceret_B]::KlassePubliceretTilsType[],
@@ -2556,7 +2538,7 @@ ARRAY[
 		ROW(
 				  	'[2015-05-10, 2015-07-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -2566,7 +2548,7 @@ ARRAY[
 		ROW(
 				  	'[2015-04-20, 2015-04-20]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -2603,7 +2585,7 @@ ARRAY[
 		ROW(
 				  	'[2015-05-10, 2015-07-30]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -2613,7 +2595,7 @@ ARRAY[
 		ROW(
 				  	'[2015-04-20, 2015-04-20]' :: TSTZRANGE,
 				  	null,null,null
-				  	)::virkning, 
+				  	)::virkning,
 			null,
 			null,
 			null
@@ -2667,7 +2649,7 @@ RETURN NEXT ok(expected_result45 @> search_result45 and search_result45 @>expect
 /*
 update
 	klasse_registrering a
-SET 
+SET
 registrering=ROW (
 	TSTZRANGE('2014-01-01','infinity','[)'),
 	'Opstaaet'::Livscykluskode,
@@ -2685,7 +2667,7 @@ a.klasse_id=new_uuid_C
 
 update_reg_id:=as_update_klasse(
   new_uuid_B, '8762a443-2f60-49c1-bd8e-ecfdef91d48a'::uuid,'Test update'::text,
-  'Slettet'::Livscykluskode,          
+  'Slettet'::Livscykluskode,
  registrering_B.attrEgenskaber,
   registrering_B.tilsPubliceret,
   registrering_B.relationer
@@ -2719,7 +2701,6 @@ search_registrering_200 := ROW (
    ,null--'titel_C',
    ,null --'retskilde_C'
    ,null--'aendringsnotat_C', --aendringsnotat
-   ,null--'integrationsdata_C',
     ,NULL --soegeord
    ,NULL
 ) :: KlasseEgenskaberAttrType

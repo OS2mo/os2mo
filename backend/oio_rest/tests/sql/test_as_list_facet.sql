@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_list_facet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	new_uuid2 uuid;
 	registrering FacetRegistreringType;
@@ -159,7 +159,6 @@ facetEgenskabA := ROW (
    'facetophavsret_A',
    'facetsupplement_A',
    NULL,--'retskilde_text1',
-   'facetintegrationsdata_A',
    virkEgenskaber
 ) :: FacetEgenskaberAttrType
 ;
@@ -172,7 +171,6 @@ facetEgenskabB := ROW (
    'facetophavsret_B',
    'facetsupplement_B',
    NULL, --restkilde
-   'facetintegrationsdata_B',
    virkEgenskaberB
 ) :: FacetEgenskaberAttrType
 ;
@@ -211,16 +209,16 @@ new_uuid2 := as_create_or_import_facet(registrering2);
 actual_facets1:=as_list_facet(array[new_uuid,new_uuid2]::uuid[],null,null);
 
 
-select 
+select
 (a.registrering).timeperiod into override_timeperiod1
 from facet_registrering a
-where 
+where
 facet_id=new_uuid;
 
-select 
+select
 (a.registrering).timeperiod into override_timeperiod2
 from facet_registrering a
-where 
+where
 facet_id=new_uuid2;
 
 
@@ -233,7 +231,7 @@ expected_facets1:= ARRAY[
 							override_timeperiod1, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(registrering.registrering).livscykluskode,
 							(registrering.registrering).brugerref,
-							(registrering.registrering).note 
+							(registrering.registrering).note
 							)::RegistreringBase
 						,registrering.tilsPubliceret
 						,registrering.attrEgenskaber
@@ -250,7 +248,7 @@ expected_facets1:= ARRAY[
 							override_timeperiod2, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(registrering2.registrering).livscykluskode,
 							(registrering2.registrering).brugerref,
-							(registrering2.registrering).note 
+							(registrering2.registrering).note
 							)::RegistreringBase
 						,registrering2.tilsPubliceret
 						,registrering2.attrEgenskaber
@@ -268,11 +266,11 @@ select array_agg(a.* order by a.id) from unnest(expected_facets1) as a into expe
 
 RETURN NEXT is(
 	actual_facets1,
-	expected_facets1,	
+	expected_facets1,
 	'list test 1');
 
 /**********************************************************/
-BEGIN 
+BEGIN
 
 
 actual_facets2=as_list_facet(array[new_uuid,new_uuid2]::uuid[],null,null,
@@ -289,16 +287,15 @@ ARRAY[
 	   null,
 	   null,
 	   NULL, --restkilde
-	   NULL, --'integrationsdata_B',
    	null --virkEgenskaberB
 ) :: FacetEgenskaberAttrType]::FacetEgenskaberAttrType[]
-	,null --relationer 
+	,null --relationer
 ) :: FacetRegistreringType
 ]::FacetRegistreringType[]
 );
 
 RETURN NEXT ok(false,'as_list_facet test #2: Should throw MO401 exception');
-EXCEPTION  
+EXCEPTION
 WHEN sqlstate 'MO401' THEN
 	RETURN NEXT ok(true,'as_list_facet test #2: Throws MO401 exception (as it should)');
 END;
@@ -321,10 +318,9 @@ ARRAY[
 	   null,
 	   null,
 	   NULL, --restkilde
-       NULL, --'integrationsdata_B',
    	null --virkEgenskaberB
 ) :: FacetEgenskaberAttrType]::FacetEgenskaberAttrType[]
-	,null --relationer 
+	,null --relationer
 ) :: FacetRegistreringType
 ]::FacetRegistreringType[]
 );
@@ -338,7 +334,7 @@ expected_facets3:= ARRAY[
 							override_timeperiod2, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 							(registrering2.registrering).livscykluskode,
 							(registrering2.registrering).brugerref,
-							(registrering2.registrering).note 
+							(registrering2.registrering).note
 							)::RegistreringBase
 						,registrering2.tilsPubliceret
 						,registrering2.attrEgenskaber
@@ -350,7 +346,7 @@ expected_facets3:= ARRAY[
 
 RETURN NEXT is(
 	actual_facets3,
-	expected_facets3,	
+	expected_facets3,
 	'facet list test #3');
 
 END;

@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_sag()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering1 sagRegistreringType;
 	new_uuid2 uuid;
@@ -269,8 +269,8 @@ sagRelAndresager2 := ROW (
 	null,
 	'Person'
 	,3 --NOTICE: Should be replace in by import function
-	,null 
-	,ROW(null,null,null)::JournalNotatType 
+	,null
+	,ROW(null,null,null)::JournalNotatType
 	,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 ) :: sagRelationType
 ;
@@ -371,19 +371,18 @@ virkPubliceret,
 
 
 sagEgenskab := ROW (
-'brugervendtnoegle_sag_1' --text, 
+'brugervendtnoegle_sag_1' --text,
  ,false --'afleveret_sag_1'-- boolean,
 ,'beskrivelse_sag_1'-- text,
 , 'hjemmel_sag_1'-- text,
 , 'kassationskode_sag_1'-- text,
-,ROW( 
+,ROW(
 	'alternativTitel_sag_1'
 	,'hjemmel_sag_1'
  )::offentlighedundtagettype
 , true --principiel boolean,
 ,'sagsnummer_1' -- text,
 , 'titel_sag_1'-- text,
-, 'integrationsdata_1'-- text,
 ,virkEgenskaber
 ) :: sagEgenskaberAttrType
 ;
@@ -449,7 +448,7 @@ actual_search_res_1:=as_search_sag(null,null,
 					,ROW('vedlagt_titel_1', null) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 
@@ -476,7 +475,7 @@ actual_search_res_2:=as_search_sag(null,null,
 					,ROW('vedlagt_titel_2', null) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 
@@ -505,7 +504,7 @@ actual_search_res_3:=as_search_sag(null,null,
 					,ROW(NULL, ROW(NULL,'Hjemmel_3')::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 
@@ -532,7 +531,7 @@ actual_search_res_4:=as_search_sag(null,null,
 					,ROW(NULL, ROW('AlternativTitel_1',null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 
@@ -560,7 +559,7 @@ actual_search_res_5:=as_search_sag(null,null,
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 
@@ -588,7 +587,7 @@ actual_search_res_6:=as_search_sag(null,null,
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) ::sagRelationType
 				] ::sagRelationType[]
-			)::SagRegistreringType	
+			)::SagRegistreringType
 		,null
 );
 

@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_create_or_import_dokument()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	registrering dokumentRegistreringType;
 	actual_registrering RegistreringBase;
@@ -40,7 +40,7 @@ DECLARE
 	docVariantEgenskaber1B DokumentVariantEgenskaberType;
 	docVariantEgenskaber1BVirkning Virkning;
 	docVariantEgenskaber2A DokumentVariantEgenskaberType;
-	docVariantEgenskaber2AVirkning Virkning;	
+	docVariantEgenskaber2AVirkning Virkning;
 	docDel1A DokumentDelType;
 	docDel1B DokumentDelType;
 	docDel2A DokumentDelType;
@@ -163,31 +163,29 @@ virkFremdrift,
 
 dokumentEgenskab1 := ROW (
 'doc_brugervendtnoegle1',
-'doc_beskrivelse1', 
+'doc_beskrivelse1',
 '2015-10-31'::date,
-'doc_kassationskode1', 
+'doc_kassationskode1',
 4, --major int
 9, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel1','doc_Offentlighedundtaget_Hjemmel1') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel1',
 'doc_dokumenttype1',
-'integrationsdata1',
-   virkEgenskaber1
+virkEgenskaber1
 ) :: dokumentEgenskaberAttrType
 ;
 
 dokumentEgenskab2 := ROW (
 'doc_brugervendtnoegle2',
-'doc_beskrivelse2', 
+'doc_beskrivelse2',
 '2014-09-20'::date,
-'doc_kassationskode2', 
+'doc_kassationskode2',
 5, --major int
 10, --minor int
 ROW('doc_Offentlighedundtaget_AlternativTitel2','doc_Offentlighedundtaget_Hjemmel2') ::OffentlighedundtagetType, --offentlighedundtagettype,
 'doc_titel2',
 'doc_dokumenttype2',
-'integrationsdata2',
-   virkEgenskaber2
+virkEgenskaber2
 ) :: dokumentEgenskaberAttrType
 ;
 
@@ -281,18 +279,18 @@ docDel2AEgenskaberVirkning :=	ROW (
 
 docVariantEgenskaber1A:=
 ROW(
-true, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+true, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 false, --produktion boolean,
  docVariantEgenskaber1AVirkning
 )::DokumentVariantEgenskaberType;
 
 docVariantEgenskaber1B:=
 ROW(
-false, --arkivering boolean, 
-false, --delvisscannet boolean, 
-true, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+false, --delvisscannet boolean,
+true, --offentliggoerelse boolean,
 true, --produktion boolean,
  docVariantEgenskaber1BVirkning
 )::DokumentVariantEgenskaberType;
@@ -300,9 +298,9 @@ true, --produktion boolean,
 
 docVariantEgenskaber2A:=
 ROW(
-false, --arkivering boolean, 
-true, --delvisscannet boolean, 
-false, --offentliggoerelse boolean, 
+false, --arkivering boolean,
+true, --delvisscannet boolean,
+false, --offentliggoerelse boolean,
 true, --produktion boolean,
  docVariantEgenskaber2AVirkning
 )::DokumentVariantEgenskaberType;
@@ -323,7 +321,7 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   docDel2Brelation2Virkning,
   null,
-  'urn:cpr 8883394', 
+  'urn:cpr 8883394',
   'Bruger'
 )::DokumentdelRelationType;
 
@@ -333,44 +331,44 @@ ROW (
   'underredigeringaf'::DokumentdelRelationKode,
   docDel2Brelation2Virkning,
   'b24a2dd4-415f-4104-b7a7-84607488c091'::uuid,
-  null, 
+  null,
   'Bruger'
 )::DokumentdelRelationType;
 
 
 docDel1AEgenskaber:= ROW(
 1, --indeks int,
-'del_indhold1', 
-'del_lokation1', 
+'del_indhold1',
+'del_lokation1',
 'del_mimetype1',
- docDel1AEgenskaberVirkning 
+ docDel1AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 docDel1A2Egenskaber:=ROW(
 2, --indeks int,
-'del_indhold4', 
-'del_lokation4', 
+'del_indhold4',
+'del_lokation4',
 'del_mimetype4',
- docDel1A2EgenskaberVirkning 
+ docDel1A2EgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 docDel1BEgenskaber:= ROW(
 98, --indeks int,
-'del_indhold2', 
-'del_lokation2', 
+'del_indhold2',
+'del_lokation2',
 'del_mimetype2',
- docDel1BEgenskaberVirkning 
+ docDel1BEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
 docDel2AEgenskaber:= ROW(
 8, --indeks int,
-'del_indhold3', 
-'del_lokation3', 
+'del_indhold3',
+'del_lokation3',
 'del_mimetype3',
- docDel2AEgenskaberVirkning 
+ docDel2AEgenskaberVirkning
 )::DokumentDelEgenskaberType
 ;
 
@@ -464,14 +462,14 @@ RETURN NEXT ok(lower(actual_registrering.timeperiod) > clock_timestamp() - 3 * i
 
 SELECT
 	 	(a.virkning).* into actual_fremdrift_virk
-FROM dokument_tils_fremdrift a 
+FROM dokument_tils_fremdrift a
 JOIN dokument_registrering as b on a.dokument_registrering_id=b.id
 WHERE b.dokument_id=new_uuid
 ;
 
 SELECT
 	 	a.fremdrift into actual_fremdrift_value
-FROM dokument_tils_fremdrift a 
+FROM dokument_tils_fremdrift a
 JOIN dokument_registrering as b on a.dokument_registrering_id=b.id
 WHERE b.dokument_id=new_uuid
 ;
@@ -492,7 +490,7 @@ array_agg(
 					a.virkning,
 					a.rel_maal_uuid,
 					a.rel_maal_urn,
-					a.objekt_type 
+					a.objekt_type
 				):: dokumentRelationType
 			order by a.id
 		) into actual_relationer
@@ -509,15 +507,14 @@ RETURN NEXT is(
 SELECT array_agg(
 	ROW(
 		a.brugervendtnoegle,
-		a.beskrivelse, 
+		a.beskrivelse,
 		a.brevdato,
-		a.kassationskode, 
-		a.major, 
-		a.minor, 
+		a.kassationskode,
+		a.major,
+		a.minor,
 		a.offentlighedundtaget,
 		a.titel,
 		a.dokumenttype,
-        a.integrationsdata,
  		a.virkning
  )::dokumentEgenskaberAttrType
 	order by a.major ASC
@@ -538,9 +535,9 @@ RETURN NEXT is(
 
 SELECT array_agg(
 	ROW(
-		a.arkivering, 
-		a.delvisscannet, 
-		a.offentliggoerelse, 
+		a.arkivering,
+		a.delvisscannet,
+		a.offentliggoerelse,
 		a.produktion,
  		a.virkning
 		)::DokumentVariantEgenskaberType
@@ -561,9 +558,9 @@ RETURN NEXT is(
 
 SELECT array_agg(
 	ROW(
-		a.arkivering, 
-		a.delvisscannet, 
-		a.offentliggoerelse, 
+		a.arkivering,
+		a.delvisscannet,
+		a.offentliggoerelse,
 		a.produktion,
  		a.virkning
 		)::DokumentVariantEgenskaberType
@@ -681,7 +678,7 @@ and d.deltekst='doc_deltekst2B'
 ;
 
 RETURN NEXT ok(
-	coalesce(array_length(actual_del_egenskaber_4,1),0)=0 
+	coalesce(array_length(actual_del_egenskaber_4,1),0)=0
 ,'dokument variant del egenskaber 4 ok');
 
 
@@ -734,7 +731,7 @@ and d.deltekst='doc_deltekst1B'
 ;
 
 RETURN NEXT ok(
-	coalesce(array_length(actual_del_relationer_2,1),0)=0 
+	coalesce(array_length(actual_del_relationer_2,1),0)=0
 ,'dokument variant del relationer 2 ok');
 
 
@@ -759,7 +756,7 @@ and d.deltekst='doc_deltekst2A'
 ;
 
 RETURN NEXT ok(
-	coalesce(array_length(actual_del_relationer_3,1),0)=0 
+	coalesce(array_length(actual_del_relationer_3,1),0)=0
 ,'dokument variant del relationer 3 ok');
 
 

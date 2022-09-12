@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_create_or_import_facet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	registrering FacetRegistreringType;
 	actual_registrering RegistreringBase;
@@ -122,7 +122,6 @@ facetEgenskab := ROW (
    'facetophavsret_text1',
    'facetsupplement_text1',
    'retskilde_text1',
-   'integrationsdata_text1',
    virkEgenskaber
 ) :: FacetEgenskaberAttrType
 ;
@@ -174,14 +173,14 @@ RETURN NEXT ok(lower(actual_registrering.timeperiod) > clock_timestamp() - 3 * i
 
 SELECT
 	 	(a.virkning).* into actual_publiceret_virk
-FROM facet_tils_publiceret a 
+FROM facet_tils_publiceret a
 JOIN facet_registrering as b on a.facet_registrering_id=b.id
 WHERE b.facet_id=new_uuid
 ;
 
 SELECT
 	 	a.publiceret into actual_publiceret_value
-FROM facet_tils_publiceret a 
+FROM facet_tils_publiceret a
 JOIN facet_registrering as b on a.facet_registrering_id=b.id
 WHERE b.facet_id=new_uuid
 ;
@@ -202,7 +201,7 @@ array_agg(
 					a.virkning,
 					a.rel_maal_uuid,
 					a.rel_maal_urn,
-					a.objekt_type 
+					a.objekt_type
 				):: FacetRelationType
 		) into actual_relationer
 FROM facet_relation a
@@ -260,7 +259,7 @@ uuid_returned_from_import2:=as_create_or_import_facet(registrering,uuid_to_impor
 
 
 RETURN NEXT ok(false,'as_create_or_import test auth criteria#1: Should throw MO401 exception');
-EXCEPTION  
+EXCEPTION
 WHEN sqlstate 'MO401' THEN
 	RETURN NEXT ok(true,'as_create_or_import test auth criteria#1: Throws MO401 exception (as it should)');
 END;

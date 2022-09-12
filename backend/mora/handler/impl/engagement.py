@@ -50,7 +50,6 @@ class EngagementReader(reading.OrgFunkReadingHandler):
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
 
         if is_graphql():
-            base_obj.pop("integration_data", None)
             return {
                 **base_obj,
                 "org_unit_uuid": org_unit,

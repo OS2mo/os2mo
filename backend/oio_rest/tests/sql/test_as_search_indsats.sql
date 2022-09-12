@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_indsats()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	registrering indsatsRegistreringType;
@@ -29,7 +29,7 @@ DECLARE
 	indsatsRelIndsatssag2 indsatsRelationType;
 	indsatsRelIndsatsaktoer1 indsatsRelationType;
 	indsatsRelIndsatsaktoer2 indsatsRelationType;
-	
+
 	uuidIndsatsmodtager uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	uuidIndsatssag1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 
@@ -257,11 +257,10 @@ virkPubliceret,
 )::indsatsPubliceretTilsType;
 
 indsatsEgenskab := ROW (
-'brugervendtnoegle_indsats_1' --text, 
+'brugervendtnoegle_indsats_1' --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 , '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_1'-- text,
 ,virkEgenskaber
 ) :: indsatsEgenskaberAttrType
 ;
@@ -294,11 +293,10 @@ RETURN NEXT ok(true,'No errors running as_create_or_import_indsats #1');
 
 
 indsatsEgenskab2 := ROW (
-'brugervendtnoegle_indsats_2' --text, 
+'brugervendtnoegle_indsats_2' --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , '2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , '2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,'integrationsdata_2'-- text,
 ,virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 ;
@@ -337,15 +335,14 @@ actual_search_res_1:=as_search_indsats(null,null,
 			null,
 			null,
 			ARRAY[ ROW (
-'brugervendtnoegle_indsats_2' --text, 
+'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType ]::IndsatsEgenskaberAttrType[],
 			null-- AktivitetRelationType[]
-			)::indsatsRegistreringType	
+			)::indsatsRegistreringType
 		,null
 		,null --maxResults
 		,null --anyAttrValueArr
@@ -368,15 +365,14 @@ actual_search_res_2:=as_search_indsats(null,null,
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-null --text, 
+null --text,
 ,'beskrivelse_indsats_faelles'-- text,
 , null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 			null-- indsatsRelationType[]
-			)::indsatsRegistreringType	
+			)::indsatsRegistreringType
 		,null
 );
 
@@ -384,7 +380,7 @@ RETURN NEXT ok(expected_search_res_2 @> actual_search_res_2 and actual_search_re
 
 
 /**************************************************/
- 
+
 expected_search_res_3:=array[new_uuid2]::uuid[];
 
 actual_search_res_3:=as_search_indsats(null,null,
@@ -393,15 +389,14 @@ actual_search_res_3:=as_search_indsats(null,null,
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 , '2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 			null-- indsatsRelationType[]
-			)::indsatsRegistreringType	
+			)::indsatsRegistreringType
 		,null
 );
 
@@ -416,7 +411,7 @@ actual_search_res_4:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,array[uuidIndsatssag1]::uuid[]
@@ -435,7 +430,7 @@ actual_search_res_5:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -451,7 +446,7 @@ actual_search_res_6:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null,--registreringObj
-		null --virkningSoeg	
+		null --virkningSoeg
 		,null --maxResults
 		,array['brugervendtnoegle_indsats_2']::text[] --anyAttrValueArr
 		,null --anyuuidArr
@@ -469,7 +464,7 @@ actual_search_res_7:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -477,11 +472,10 @@ actual_search_res_7:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-20 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -501,7 +495,7 @@ actual_search_res_8:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -509,11 +503,10 @@ actual_search_res_8:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2018-01-20 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -530,7 +523,7 @@ actual_search_res_9:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -538,11 +531,10 @@ actual_search_res_9:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -559,7 +551,7 @@ actual_search_res_10:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -567,11 +559,10 @@ actual_search_res_10:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null --'2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , '2017-04-20 18:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -588,7 +579,7 @@ actual_search_res_11:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -596,11 +587,10 @@ actual_search_res_11:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null --'2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , '2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -618,7 +608,7 @@ actual_search_res_12:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,null --virkningSoeg	
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -626,11 +616,10 @@ actual_search_res_12:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null --'2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , '2017-06-01 12:01'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -648,7 +637,7 @@ actual_search_res_13:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,'[2016-01-01 , 2016-01-01]' :: TSTZRANGE --virkningSoeg		
+		,'[2016-01-01 , 2016-01-01]' :: TSTZRANGE --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -656,11 +645,10 @@ actual_search_res_13:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null --'2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , '2017-01-20 08:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -677,7 +665,7 @@ actual_search_res_14:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
 		null
-		,'[2014-01-01 , 2014-01-01]' :: TSTZRANGE --virkningSoeg		
+		,'[2014-01-01 , 2014-01-01]' :: TSTZRANGE --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -685,11 +673,10 @@ actual_search_res_14:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --'brugervendtnoegle_indsats_2' --text, 
+null --'brugervendtnoegle_indsats_2' --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null --'2017-01-22 08:00'::timestamptz   -- starttidspunkt,
 , '2017-01-20 08:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -710,16 +697,15 @@ actual_search_res_15:=as_search_indsats(
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-			'brugervendtnoegle_indsats_2' --text, 
+			'brugervendtnoegle_indsats_2' --text,
 			,null--'beskrivelse_indsats_2'-- text,
 			, null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 			, null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-			,null--integrationsdata2
 			,null--virkEgenskaber2
 			) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 						null-- indsatsRelationType[]
-						)::indsatsRegistreringType	
-		,null --virkningSoeg	
+						)::indsatsRegistreringType
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -727,11 +713,10 @@ actual_search_res_15:=as_search_indsats(
 		,null --auth_criteria_arr indsatsRegistreringType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-20 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[]  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
@@ -755,16 +740,15 @@ actual_search_res_16:=as_search_indsats(
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-			'brugervendtnoegle_indsats_2' --text, 
+			'brugervendtnoegle_indsats_2' --text,
 			,null--'beskrivelse_indsats_2'-- text,
 			, null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 			, null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-			,null--integrationsdata2
 			,null--virkEgenskaber2
 			) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 						null-- indsatsRelationType[]
-						)::indsatsRegistreringType	
-		,null --virkningSoeg	
+						)::indsatsRegistreringType
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -773,11 +757,10 @@ actual_search_res_16:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-25 09:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -799,16 +782,15 @@ actual_search_res_17:=as_search_indsats(
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-			null --'brugervendtnoegle_indsats_2' --text, 
+			null --'brugervendtnoegle_indsats_2' --text,
 			,'beskrivelse_indsats_faelles'-- text,
 			, null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 			, null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-			,null--integrationsdata2
 			,null--virkEgenskaber2
 			) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 						null-- indsatsRelationType[]
-						)::indsatsRegistreringType	
-		,null --virkningSoeg	
+						)::indsatsRegistreringType
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -817,11 +799,10 @@ actual_search_res_17:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-25 09:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -845,16 +826,15 @@ actual_search_res_18:=as_search_indsats(
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-			null --'brugervendtnoegle_indsats_2' --text, 
+			null --'brugervendtnoegle_indsats_2' --text,
 			,'beskrivelse_indsats_faelles'-- text,
 			, null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 			, null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-			,null--integrationsdata2
 			,null--virkEgenskaber2
 			) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 						null-- indsatsRelationType[]
-						)::indsatsRegistreringType	
-		,null --virkningSoeg	
+						)::indsatsRegistreringType
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -863,11 +843,10 @@ actual_search_res_18:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-25 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -888,16 +867,15 @@ actual_search_res_19:=as_search_indsats(
 			null,-- indsatsStatusTilsType[],
 			null,-- indsatsPubliceretTilsType[],
 			ARRAY[  ROW (
-			'brugervendtnoegle_indsats_2' --text, 
+			'brugervendtnoegle_indsats_2' --text,
 			,null --'beskrivelse_indsats_faelles'-- text,
 			, null--'2017-01-25 09:00'::timestamptz  -- starttidspunkt,
 			, null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-			,null--integrationsdata2
 			,null--virkEgenskaber2
 			) :: indsatsEgenskaberAttrType ]::indsatsEgenskaberAttrType[],
 						null-- indsatsRelationType[]
-						)::indsatsRegistreringType	
-		,null --virkningSoeg	
+						)::indsatsRegistreringType
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -906,11 +884,10 @@ actual_search_res_19:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-25 08:00'::timestamptz   -- starttidspunkt,
 , null--'2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -926,8 +903,8 @@ expected_search_res_20:=array[new_uuid1]::uuid[];
 actual_search_res_20:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
-		null	
-		,null --virkningSoeg	
+		null
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -936,11 +913,10 @@ actual_search_res_20:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , '2017-01-25 09:00'::timestamptz   -- starttidspunkt,
 , '2017-04-01 18:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -956,8 +932,8 @@ expected_search_res_21:=array[new_uuid1,new_uuid2]::uuid[];
 actual_search_res_21:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
-		null	
-		,null --virkningSoeg	
+		null
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -966,11 +942,10 @@ actual_search_res_21:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null -- starttidspunkt
 , '2017-06-01 12:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null
@@ -985,8 +960,8 @@ expected_search_res_22:=array[new_uuid1]::uuid[];
 actual_search_res_22:=as_search_indsats(
 		null,--firstResult
 		null,--indsats_uuid
-		null	
-		,null --virkningSoeg	
+		null
+		,null --virkningSoeg
 		,null --maxResults
 		,null --anyAttrValueArr
 		,null --anyuuidArr
@@ -995,11 +970,10 @@ actual_search_res_22:=as_search_indsats(
 		,null  --search_operator_greater_then_attr_egenskaber indsatsEgenskaberAttrType[]=null,
 		,ARRAY[
 			 ROW (
-null --text, 
+null --text,
 ,null--'beskrivelse_indsats_2'-- text,
 , null -- starttidspunkt
 , '2017-06-01 11:00'::timestamptz -- sluttidspunkt,
-,null--integrationsdata2
 ,null--virkEgenskaber2
 ) :: indsatsEgenskaberAttrType
 		]::indsatsEgenskaberAttrType[] --search_operator_less_then_attr_egenskaber indsatsEgenskaberAttrType[]=null

@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_remove_nulls_in_array_klasse()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 
 relationerArr	KlasseRelationType[];
 relationerArr2	KlasseRelationType[];
@@ -162,7 +162,7 @@ relationerArr3:=array_append(relationerArr,
 		,null--  '3ee8142b-bafc-4aaf-89b6-4e90b9e08908'::uuid
 		,null
 		,null
-	) :: KlasseRelationType	
+	) :: KlasseRelationType
 );
 
 IF NOT coalesce(array_length(relationerArr3,1),0)=6 THEN
@@ -261,7 +261,7 @@ RETURN NEXT is(resultpubliceretArr2,publiceretArr,'Test if null values are remov
 publiceretArr3:=array_append(publiceretArr,
 	 ROW (
 		null
-		,null	
+		,null
 	) :: KlassePubliceretTilsType
 );
 
@@ -292,8 +292,7 @@ ROW(
 	'omfang_E',
    'titel_E',
    'retskilde_E',
-   'aendringsnotat', 
-   'integrationsdata_E', 
+   'aendringsnotat',
     ARRAY[ROW('soegeordidentifikator_klasseEgenskabE_Soegeord1','beskrivelse_klasseEgenskabE_Soegeord1','soegeordskategori_klasseEgenskabE_Soegeord1')::KlasseSoegeordType]
 	,ROW ('[2015-04-13, infinity)' :: TSTZRANGE,'30ba2a98-2c2e-4628-b030-e39e25c81669'::uuid,'Bruger','NoteEx30') :: Virkning
 ):: KlasseEgenskaberAttrType
@@ -308,8 +307,7 @@ ROW(
 	'omfang_A',
    'titel_A',
    'retskilde_A',
-   'aendringsnotat_A', 
-   'integrationsdata_A', 
+   'aendringsnotat_A',
     ARRAY[ROW('soegeordidentifikator_klasseEgenskabA_Soegeord1','beskrivelse_klasseEgenskabA_Soegeord1','soegeordskategori_klasseEgenskabA_Soegeord1')::KlasseSoegeordType]
 	,ROW ('[2015-04-12, infinity)' :: TSTZRANGE,'50ba2a98-2c2e-4628-b030-e39e25c81669'::uuid,'Bruger','NoteEx40') :: Virkning
 ):: KlasseEgenskaberAttrType
@@ -324,8 +322,7 @@ ROW(
 	'omfang_C',
    'titel_C',
    'retskilde_C',
-   'aendringsnotat_C', 
-   'integrationsdata_C', 
+   'aendringsnotat_C',
     ARRAY[]::KlasseSoegeordType[]
 	,ROW ('[2015-04-12, infinity)' :: TSTZRANGE,'50ba2a98-2c2e-4628-b030-e39e25c81669'::uuid,'Bruger','NoteEx40') :: Virkning
 ):: KlasseEgenskaberAttrType
@@ -339,8 +336,7 @@ ROW(
 	'omfang_D',
    'titel_D',
    'retskilde_D',
-   'aendringsnotat_D', 
-   'integrationsdata_D', 
+   'aendringsnotat_D',
     ARRAY[]::KlasseSoegeordType[]
 	,ROW ('[2015-04-12, infinity)' :: TSTZRANGE,'50ba2a98-2D2e-4628-b030-e39e25D81669'::uuid,'Bruger','NoteEx70') :: Virkning
 ):: KlasseEgenskaberAttrType
@@ -378,7 +374,6 @@ egenskaberArr3:=array_append(egenskaberArr,
    null,
    null,
    null,
-   null, 
     ARRAY[]::KlasseSoegeordType[]
 	,null
 	) :: KlasseEgenskaberAttrType
@@ -392,8 +387,7 @@ egenskaberArr3:=array_append(egenskaberArr3,
 	null,
    null,
    null,
-   null, 
-   null, 
+   null,
     null--ARRAY[]::KlasseSoegeordType[]
 	,null
 	) :: KlasseEgenskaberAttrType
@@ -496,7 +490,7 @@ soegeordArr3:=array_append(soegeordArr,
 	 ROW (
 		null
 		,null
-		,null	
+		,null
 	) :: KlasseSoegeordType
 );
 

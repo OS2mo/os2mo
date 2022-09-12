@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_search_tilstand()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	new_uuid3 uuid;
@@ -29,7 +29,7 @@ DECLARE
 	tilstandRelTilstandsvaerdi2 tilstandRelationType;
 	tilstandRelTilstandskvalitet1 tilstandRelationType;
 	tilstandRelTilstandskvalitet2 tilstandRelationType;
-	
+
 	uuidTilstandsobjekt uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	--uuidTilstandsvaerdi1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 
@@ -204,9 +204,8 @@ virkPubliceret,
 )::tilstandPubliceretTilsType;
 
 tilstandEgenskab := ROW (
-'brugervendtnoegle_tilstand_1' --text, 
+'brugervendtnoegle_tilstand_1' --text,
 ,'beskrivelse_tilstand_fælles'-- text,
-,'integrationsdata_1'
 ,virkEgenskaber
 ) :: tilstandEgenskaberAttrType
 ;
@@ -247,9 +246,8 @@ registrering2:=ROW (
 	ARRAY[tilstandPubliceret]::TilstandPubliceretTilsType[],
 ARRAY[
 ROW (
-'brugervendtnoegle_tilstand_2' --text, 
+'brugervendtnoegle_tilstand_2' --text,
 ,'beskrivelse_tilstand_fælles'-- text,
-,'integrationsdata_2'-- text,
 ,ROW( '[2016-01-01, infinity)' :: TSTZRANGE,
           uuid_generate_v4(),
           'Bruger',
@@ -276,9 +274,8 @@ registrering3:=ROW (
 	ARRAY[tilstandPubliceret]::TilstandPubliceretTilsType[],
 ARRAY[
 ROW (
-'brugervendtnoegle_tilstand_3' --text, 
+'brugervendtnoegle_tilstand_3' --text,
 ,'beskrivelse_tilstand_fælles'-- text,
-,'integrationsdata_3'-- text,
 ,ROW( '[2016-06-01, infinity)' :: TSTZRANGE,
           uuid_generate_v4(),
           'Bruger',
@@ -302,12 +299,11 @@ actual_search_res_1:=as_search_tilstand(null,null,
 			null,-- TilstandStatusTilsType[],
 			null,-- TilstandPubliceretTilsType[],
 			ARRAY[ ROW (
-				'brugervendtnoegle_tilstand_2' --text, 
-				,null
+				'brugervendtnoegle_tilstand_2' --text,
 				,null
 				,null) :: tilstandEgenskaberAttrType ]::tilstandEgenskaberAttrType[],
 			null-- TilstandRelationType[]
-			)::tilstandRegistreringType	
+			)::tilstandRegistreringType
 		,null
 );
 
@@ -323,12 +319,11 @@ actual_search_res_2:=as_search_tilstand(null,null,
 			null,-- TilstandStatusTilsType[],
 			null,-- TilstandPubliceretTilsType[],
 			ARRAY[ ROW (
-				null --text, 
+				null --text,
 				,'beskrivelse_tilstand_fælles'
-				,null --text, 
 				,null) :: tilstandEgenskaberAttrType ]::tilstandEgenskaberAttrType[],
 			null-- TilstandRelationType[]
-			)::tilstandRegistreringType	
+			)::tilstandRegistreringType
 		,null
 );
 
@@ -352,7 +347,7 @@ actual_search_res_3:=as_search_tilstand(null,null,
 				,null
 				,ROW(null,'82')::TilstandVaerdiRelationAttrType
 			) :: tilstandRelationType] ::TilstandRelationType[]
-			)::tilstandRegistreringType	
+			)::tilstandRegistreringType
 		,null
 );
 
@@ -377,7 +372,7 @@ actual_search_res_4:=as_search_tilstand(null,null,
 				,null
 				,ROW(false,'82')::TilstandVaerdiRelationAttrType
 			) :: tilstandRelationType] ::TilstandRelationType[]
-			)::tilstandRegistreringType	
+			)::tilstandRegistreringType
 		,null
 );
 

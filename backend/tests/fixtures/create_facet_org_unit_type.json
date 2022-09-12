@@ -3,7 +3,6 @@
         "facetegenskaber": [
             {
                 "brugervendtnoegle": "org_unit_type",
-                "integrationsdata": "",
                 "virkning": {
                     "from": "1900-01-01",
                     "to": "infinity"

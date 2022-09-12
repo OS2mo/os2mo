@@ -4,9 +4,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_read_facet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid uuid;
 	registrering FacetRegistreringType;
 	actual_registrering RegistreringBase;
@@ -117,7 +117,6 @@ facetEgenskab := ROW (
    'facetophavsret_text1',
    'facetsupplement_text1',
    'retskilde_text1',
-   'integrationsdata_text1',
    virkEgenskaber
 ) :: FacetEgenskaberAttrType
 ;
@@ -153,7 +152,7 @@ expected_facet1 :=
 								((read_facet1.registrering[1]).registrering).timeperiod, --this is cheating, but helps the comparison efforts below. (The timeperiod is set during creation/initialization )
 								(registrering.registrering).livscykluskode,
 								(registrering.registrering).brugerref,
-								(registrering.registrering).note 
+								(registrering.registrering).note
 								)::RegistreringBase
 							,registrering.tilsPubliceret
 							,registrering.attrEgenskaber
