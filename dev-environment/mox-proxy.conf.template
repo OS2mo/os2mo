@@ -10,13 +10,13 @@ server {
     resolver 127.0.0.11 valid=5s;  # 127.0.0.11 is the docker DNS server
 
     # Strip /lora so docs work
-    location ~ ^/lora/(?<path>.*) {
+    location ~* ^/lora/(.*) {
         set $mo mo;
-        proxy_pass http://$mo/lora/$path;
+        proxy_pass http://$mo/lora$request_uri;
     }
 
-    location ~ ^/(?<path>.*) {
+    location ~* ^/(.*) {
         set $mo mo;
-        proxy_pass http://$mo/lora/$path;
+        proxy_pass http://$mo/lora$request_uri;
     }
 }
