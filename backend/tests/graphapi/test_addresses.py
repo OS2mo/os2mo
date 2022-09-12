@@ -8,32 +8,27 @@ import datetime
 from uuid import UUID
 from unittest.mock import patch
 from uuid import UUID
+from typing import Optional
 
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
+from strawberry.types import ExecutionResult
 
-import mora.graphapi.dataloaders as dataloaders
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
-from mora.graphapi.address import terminate as address_terminate
-from mora.graphapi.inputs import AddressRelationInput
-from mora.graphapi.main import get_schema
-from mora.graphapi.models import AddressTerminate
-from mora.graphapi.models import Validity
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.address import terminate as address_terminate
 from mora.graphapi.versions.latest.models import AddressTerminate
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
 
-# from mora.graphapi.models import AddressType
-# from mora.graphapi.models import AddressVisibility
-# from mora.graphapi.models import Organisation
+# import mora.graphapi.versions.latest.dataloaders as dataloaders
 
 
 # --------------------------------------------------------------------------------------
@@ -132,49 +127,26 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
     # )
     async def test_mutator(self):
         # INPUT params - before using parameterized
+        given_value = "yeehaaa5@magenta-aps.dk"
         given_address_type = "61c22b75-01b0-4e83-954c-9cf0c8dc79fe"
         given_visibility = "940b39cd-828e-4b6d-a98c-007e512f694c"
 
+        # given_relation_type = "org_unit"
+        # given_relation_uuid = "2ce6baf5-9cd5-4278-8799-bb3d4328f527"
+
+        given_relation_type = "person"
+        given_relation_uuid = "7c9f4a69-1c57-4e24-8353-938eb1e8ba6b"
+        # A manually created employee
+
         given_relation = {
-            "type": "org_unit",
-            "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b4",
+            "type": given_relation_type,
+            "uuid": given_relation_uuid,
         }
-        # given_relation = AddressRelationInput(
-        #     type="org_unit",
-        #     uuid=UUID("3b866d97-0b1f-48e0-8078-686d96f430b4")
-        # )
 
         given_org = "3b866d97-0b1f-48e0-8078-686d96f430b3"
-
-        # OBS: Below UUIDs are made up
-        given_org_unit = "3b866d97-0b1f-48e0-8078-686d96f430b4"
-        given_person = "3b866d97-0b1f-48e0-8078-686d96f430b5"
-        given_engagement = "3b866d97-0b1f-48e0-8078-686d96f430b6"
-
-        given_validity = Validity(from_date=datetime.datetime.now())
-
-        given_value = "yeehaaa@magenta-aps.dk"
+        given_validity_from: Optional[datetime.datetime] = datetime.datetime.now()
+        given_validity_to: Optional[datetime.datetime] = None
         # expected_result = True
-
-        # GraphQL
-        mutation_func = "address_create"
-        query = (
-            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, $relation: AddressRelationInput, $from: DateTime, $to: DateTime) {"
-            f"{mutation_func}(input: {{value: $value, address_type: $addressType, visibility: $visibility, relation: $relation, from: $from, to: $to}})"
-            "{ uuid }"
-            "}"
-        )
-
-        # query = (
-        #     "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
-        #     "$org: UUID, $orgUnit: UUID, $person: UUID, $engagement: UUID, "
-        #     "$from: DateTime, $to: DateTime) {"
-        #     f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
-        #     "visibility: $visibility, org: $org, org_unit: $orgUnit, person: $person, "
-        #     "engagement: $engagement, from: $from, to: $to})"
-        #     "{ uuid }"
-        #     "}"
-        # )
 
         # Create GraphQL arguments, starting with the required ones
         var_values = {
@@ -182,27 +154,37 @@ class TestAddressCreate(tests.cases.AsyncLoRATestCase):
             "addressType": given_address_type,
             "visibility": given_visibility,
             "relation": given_relation,
+            "org": given_org,
         }
 
-        # if given_org:
-        #     var_values["org"] = given_org
-        #
-        # if given_org_unit:
-        #     var_values["orgUnit"] = given_org_unit
-        #
-        # if given_person:
-        #     var_values["person"] = given_person
-        #
-        # if given_engagement:
-        #     var_values["engagement"] = given_engagement
+        if given_validity_from:
+            var_values["from"] = given_validity_from.date().isoformat()
 
-        if given_validity.from_date:
-            var_values["from"] = given_validity.from_date.date().isoformat()
+        if given_validity_to:
+            var_values["to"] = given_validity_to.date().isoformat()
 
-        if given_validity.to_date:
-            var_values["to"] = given_validity.to_date.date().isoformat()
+        # GraphQL
+        mutation_func = "address_create"
+        query = (
+            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
+            "$relation: AddressRelationInput!, $from: DateTime, $to: DateTime, "
+            "$org: UUID) {"
+            f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
+            f"visibility: $visibility, relation: $relation, from: $from, to: $to, "
+            f"org: $org}})"
+            "}"
+        )
 
-        response = await get_schema().execute(query, variable_values=var_values)
+        response = await LatestGraphQLSchema.get().execute(
+            query, variable_values=var_values
+        )
+        uuid = (
+            response.data.get(mutation_func)
+            if isinstance(response, ExecutionResult)
+            else None
+        )
+
+        # Assert
         tap = "test"
 
 

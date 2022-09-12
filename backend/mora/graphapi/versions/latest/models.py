@@ -4,7 +4,6 @@ import datetime
 import logging
 from enum import Enum
 from typing import Any
-from typing import Literal
 from typing import Optional
 from uuid import UUID
 
@@ -349,34 +348,18 @@ class AddressRelation(UUIDBase):
 class AddressCreate(Validity):
     """Model representing an address creation."""
 
-    value: str = Field("", description="The actual address value.")
-
-    address_type: UUID = Field(
-        UUID("00000000-0000-0000-0000-000000000000"), description="Type of the address."
-    )
-
-    visibility: UUID = Field(
-        UUID("00000000-0000-0000-0000-000000000000"),
-        description="Visibility for the address.",
-    )
-
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
+    visibility: UUID = Field(description="Visibility for the address.")
     relation: AddressRelation = Field(
         description="Field representing the relation the address belongs to."
     )
 
+    # OBS: organization UUID is optional based on the logic at:
+    # backend/mora/service/address.py:52
     org: Optional[UUID] = Field(
         None, description="Organization the address belongs to."
     )
-
-    # org_unit: Optional[UUID] = Field(
-    #     None, description="OrganizationUnit the address belongs to."
-    # )
-    #
-    # person: Optional[UUID] = Field(None, description="Employee the address belongs to.")
-    #
-    # engagement: Optional[UUID] = Field(
-    #     None, description="Related engagement for the address."
-    # )
 
     async def get_legacy_request(self) -> dict:
         legacy_dict = {
@@ -396,27 +379,22 @@ class AddressCreate(Validity):
         # Set the relation of the address
         match self.relation.type:
             case mapping.ORG_UNIT:
-                org_unit_dict = {mapping.UUID: str(self.relation.uuid)}
-
-                org_unit_validity = await self._get_org_unit_validity(
-                    self.relation.uuid
-                )
-                if org_unit_validity:
-                    org_unit_dict[mapping.VALIDITY] = org_unit_validity
-
-                legacy_dict[mapping.ORG_UNIT] = org_unit_dict
-            case mapping.PERSON:
-                person_dict = {mapping.UUID: str(self.relation.uuid)}
-
-                person_validity = self._get_person_validity(self.relation.uuid)
-                if person_validity:
-                    person_dict[mapping.VALIDITY] = person_validity
-
-                legacy_dict[mapping.PERSON] = person_dict
-            case mapping.ENGAGEMENT:
-                legacy_dict[mapping.ENGAGEMENT] = {
-                    mapping.UUID: str(self.relation.uuid)
+                legacy_dict[mapping.ORG_UNIT] = {
+                    mapping.UUID: str(self.relation.uuid),
+                    mapping.VALIDITY: await self._get_org_unit_validity(
+                        self.relation.uuid
+                    ),
                 }
+            case mapping.PERSON:
+                legacy_dict[mapping.PERSON] = {
+                    mapping.UUID: str(self.relation.uuid),
+                    mapping.VALIDITY: await self._get_person_validity(
+                        self.relation.uuid
+                    ),
+                }
+            case mapping.ENGAGEMENT:
+                engagement_dict = {mapping.UUID: str(self.relation.uuid)}
+                legacy_dict[mapping.ENGAGEMENT] = engagement_dict
 
         # Set the organisation
         legacy_dict[mapping.ORG] = {mapping.UUID: str(self.org)}
@@ -428,44 +406,78 @@ class AddressCreate(Validity):
 
     @staticmethod
     async def _get_org_unit_validity(org_unit_uuid: UUID) -> Optional[dict]:
-        c = lora.Connector()
-        unit = await c.organisationenhed.get(uuid=org_unit_uuid)
+        validity_dict = AddressCreate._get_lora_validity(
+            await lora.Connector().organisationenhed.get(uuid=org_unit_uuid)
+        )
 
-        from_date: Optional[datetime.datetime] = None
-        to_date: Optional[datetime.datetime] = None
-        if isinstance(unit, dict):
-            if "fratidspunkt" in unit.keys():
-                from_date = datetime.datetime.fromisoformat(
-                    unit.get("fratidspunkt").get("tidsstempeldatotid")
-                )
-
-            if "tiltidspunkt" in unit.keys():
-                to_date_current_value = unit.get("tiltidspunkt").get(
-                    "tidsstempeldatotid"
-                )
-
-                if to_date_current_value == "infinity":
-                    to_date = POSITIVE_INFINITY
-                elif to_date_current_value == "-infinity":
-                    to_date = NEGATIVE_INFINITY
-                else:
-                    to_date = datetime.datetime.fromisoformat(to_date_current_value)
-
-        if not from_date and not to_date:
+        if not validity_dict:
             return None
 
+        validity_from = validity_dict.get(mapping.FROM, None)
+        validity_to = validity_dict.get(mapping.TO, None)
+
         return {
-            mapping.FROM: from_date,
-            mapping.TO: to_date,
+            mapping.FROM: validity_from.date().isoformat() if validity_from else None,
+            mapping.TO: validity_to.date().isoformat() if validity_to else None,
         }
 
     @staticmethod
     async def _get_person_validity(person_uuid: UUID) -> Optional[dict]:
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        original = await c.bruger.get(uuid=person_uuid)
+        validity_dict = AddressCreate._get_lora_validity(
+            await lora.Connector(
+                virkningfra="-infinity", virkningtil="infinity"
+            ).bruger.get(uuid=person_uuid)
+        )
+
+        if not validity_dict:
+            return None
+
+        validity_from = validity_dict.get(mapping.FROM, None)
+        validity_to = validity_dict.get(mapping.TO, None)
+
+        if not validity_dict:
+            return None
+
+        return {
+            mapping.FROM: validity_from.date().isoformat() if validity_from else None,
+            mapping.TO: validity_to.date().isoformat() if validity_to else None,
+        }
+
+    @staticmethod
+    def _get_lora_validity(lora_object: Optional[dict]) -> Optional[dict]:
+        if not isinstance(lora_object, dict):
+            return None
 
         from_date: Optional[datetime.datetime] = None
         to_date: Optional[datetime.datetime] = None
+
+        if "fratidspunkt" in lora_object.keys():
+            from_date_current_value = lora_object.get("fratidspunkt", {}).get(
+                "tidsstempeldatotid"
+            )
+
+            if from_date_current_value == "infinity":
+                from_date = POSITIVE_INFINITY
+            elif from_date_current_value == "-infinity":
+                from_date = NEGATIVE_INFINITY
+            else:
+                from_date = datetime.datetime.fromisoformat(from_date_current_value)
+
+        if "tiltidspunkt" in lora_object.keys():
+            to_date_current_value = lora_object.get("tiltidspunkt", {}).get(
+                "tidsstempeldatotid"
+            )
+
+            if to_date_current_value == "infinity":
+                to_date = POSITIVE_INFINITY
+            elif to_date_current_value == "-infinity":
+                to_date = NEGATIVE_INFINITY
+            else:
+                to_date = datetime.datetime.fromisoformat(to_date_current_value)
+
+        if not from_date and not to_date:
+            return None
+
         return {
             mapping.FROM: from_date,
             mapping.TO: to_date,
