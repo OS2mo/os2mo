@@ -70,7 +70,10 @@ class Mutation:
 
     @strawberry.mutation(description="Creates an employee for a specific organisation.")
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
-        return await employee_create(input.to_pydantic())
+        # Temporarily muting mypy error message, since we do not desire to add default
+        # values to required fields, and mypy as of now does not understand how to deal
+        # with this.
+        return await employee_create(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(description="Terminates an employee by UUID")
     async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
