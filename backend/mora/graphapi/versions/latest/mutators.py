@@ -13,15 +13,18 @@ from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
 from .engagements import terminate_engagement
+from .facets import create_facet
 from .inputs import AddressTerminateInput
 from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
 from .inputs import EngagementTerminateInput
+from .inputs import FacetCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
+from .it_user import terminate as terminate_ituser
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
@@ -34,8 +37,8 @@ from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import ITUserType
+from .types import FacetType
 from .types import OrganizationUnit
-from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
 
 logger = logging.getLogger(__name__)
 
@@ -190,3 +193,14 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
+
+    @strawberry.mutation(
+        description="Trigger refresh for an organisation unit",
+        permission_classes=[admin_permission_class],
+    )
+
+    @strawberry.mutation(description="Create new facet")
+    async def facet_create(self, input: FacetCreateInput) -> FacetType:
+
+        return await create_facet(input.to_pydantic())  # type: ignore
+        

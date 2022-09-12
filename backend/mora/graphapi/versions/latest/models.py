@@ -217,7 +217,7 @@ class AddressTerminate(ValidityTerminate, Triggerless):
             role_type=mapping.ADDRESS,
             event_type=mapping.EventType.ON_BEFORE,
             uuid=self.uuid,
-        )
+        )  # type: ignore
 
     def get_lora_payload(self) -> dict:
         return {
@@ -390,6 +390,21 @@ class EngagementTerminate(ValidityTerminate, Triggerless):
 
 # Facets
 # ------
+class FacetCreate(UUIDBase):
+    """Model representing a facet creation/update."""
+
+    """Inherets uuid from UUIDBase"""
+
+    user_key: PrintableStr = Field(description="Facet name.")
+    type_: str = Field(
+        "facet", alias="type", description="The object type"
+    )  # type is always "facet"
+
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+    parent_uuid: UUID | None = Field(description="UUID of the parent facet.")
+    published: PrintableStr | None = Field(
+        description="Published state of the facet object."
+    )
 
 # ITSystems
 # ---------
@@ -431,7 +446,7 @@ class ITUserTerminate(ValidityTerminate, Triggerless):
                 uuid=self.uuid,
                 validity=Validity(from_date=self.from_date, to_date=self.to_date),
             ),
-        )
+        )  # type: ignore
 
 
 # KLEs
@@ -548,3 +563,4 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
+    pass
