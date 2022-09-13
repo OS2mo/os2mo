@@ -242,12 +242,6 @@ class FacetProperties(RABase):
         alias="virkning", description="Effective time of the property."
     )
 
-    @root_validator(pre=True)
-    def remove_integration_data(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        values.pop("integration_data", None)
-        values.pop("integrationsdata", None)
-        return values
-
 
 class FacetAttributes(RABase):
     """
