@@ -184,4 +184,12 @@ class Mutation:
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
 
+    @strawberry.mutation(
+        description="Terminates an employee by UUID",
+        permission_classes=[admin_permission_class],
+    )
 
+    @strawberry.mutation(description="Create new mo-class under facet")
+    async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
+
+        return await upsert_class(input.to_pydantic())  # type: ignore

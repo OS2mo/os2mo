@@ -162,14 +162,4 @@ class OrganizationUnitCreateInput:
 class ClassCreateInput:
     """Input model for creating a mo-class."""
 
-    uuid: strawberry.auto
-    type_: strawberry.auto
-    name: strawberry.auto
-    org_uuid: strawberry.auto
-    scope: strawberry.auto
-    published: strawberry.auto
-    parent_uuid: strawberry.auto
-    user_key: strawberry.auto
-    owner: strawberry.auto
-    facet_uuid: strawberry.auto
-    example: strawberry.auto
+    pass

@@ -36,6 +36,7 @@ async def upsert_class(input: ClassCreate) -> ClassCreateType:
     )
 
     c = get_connector(virkningfra="-infinity", virkningtil="infinity")
+
     uuid = await c.klasse.create(jsonified, input_dict["uuid"])
 
     return ClassCreateType(uuid=str(uuid))
