@@ -7,6 +7,7 @@ from .models import Employee as EmployeeModel
 from .models import EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
+from ramodels.mo._shared import UUIDBase
 
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
 CPRType = strawberry.scalar(
@@ -51,4 +52,14 @@ class AddressTerminateType:
     all_fields=True,
 )
 class EmployeeType:
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=UUIDBase,
+    all_fields=True,
+)
+class GenericUUIDType:
+    """Generic UUID model for return types."""
+
     pass
