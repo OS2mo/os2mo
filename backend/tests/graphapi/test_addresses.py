@@ -130,36 +130,37 @@ class TestAddresssQuery:
 @patch.object(lora.Scope, "update", async_lora_return)
 @patch.object(lora.Scope, "get", async_lora_return)
 async def test_terminate(given_uuid, triggerless, given_validity_dts):
-    from_date, to_date = given_validity_dts
+    with mock.patch("mora.graphapi.versions.latest.address.Trigger.run"):
+        from_date, to_date = given_validity_dts
 
-    # The terminate logic have a check that verifies we don't use times other than:
-    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
-    # expect an exception.
-    expect_exception = False
-    if to_date.time() != datetime.time.min:
-        expect_exception = True
+        # The terminate logic have a check that verifies we don't use times other than:
+        # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
+        # expect an exception.
+        expect_exception = False
+        if to_date.time() != datetime.time.min:
+            expect_exception = True
 
-    # Configure the addr-terminate we want to perform
-    at = AddressTerminate(
-        uuid=given_uuid,
-        triggerless=triggerless,
-        from_date=from_date,
-        to_date=to_date,
-    )
+        # Configure the addr-terminate we want to perform
+        at = AddressTerminate(
+            uuid=given_uuid,
+            triggerless=triggerless,
+            from_date=from_date,
+            to_date=to_date,
+        )
 
-    terminate_result_uuid = None
-    caught_exception = None
-    try:
-        tr = await address_terminate(address_terminate=at)
-        terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
-    except Exception as e:
-        caught_exception = e
+        terminate_result_uuid = None
+        caught_exception = None
+        try:
+            tr = await address_terminate(address_terminate=at)
+            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+        except Exception as e:
+            caught_exception = e
 
-    # Assert
-    if not expect_exception:
-        assert terminate_result_uuid == at.uuid
-    else:
-        assert caught_exception is not None
+        # Assert
+        if not expect_exception:
+            assert terminate_result_uuid == at.uuid
+        else:
+            assert caught_exception is not None
 
 
 @given(
