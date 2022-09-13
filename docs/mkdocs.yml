@@ -29,6 +29,8 @@ nav:
       - drift-support/cookbook.md
       - drift-support/manual.md
       - drift-support/settings.md
+      - drift-support/mocloud.md
+      - drift-support/keycloak.md
   - API Dokumentation:
       - api-dokumentation/amqp.md
       - api-dokumentation/triggers.md
