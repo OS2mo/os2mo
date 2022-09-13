@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.2.1 - 2022-09-13
+-------------------
+
+[#50727] Remove integrationsdata from all the models using RABase.
+
 11.2.0 - 2022-09-13
 -------------------
 
