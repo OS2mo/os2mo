@@ -10,12 +10,11 @@ import tests.cases
 from . import util
 from mora import lora
 from mora.config import Settings
-from tests.util import sample_structures_cls_fixture
 
 pytestmark = pytest.mark.asyncio
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     async def test_edit_employee_overwrite(self):
@@ -521,7 +520,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

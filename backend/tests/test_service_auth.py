@@ -25,7 +25,6 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from tests import util
-from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
@@ -289,7 +288,7 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
 
 # TODO: Find a way to test that endpoints works when auth is disabled
 @unittest.skip("Not working...(?)")
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestAuthDisabled(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()

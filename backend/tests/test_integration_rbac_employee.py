@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from copy import deepcopy
 
+import pytest
 from parameterized import parameterized
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
@@ -18,7 +19,6 @@ from mora.mapping import UUID
 from tests.test_integration_rbac import mock_auth
 from tests.util import jsonfile_to_dict
 from tests.util import override_config
-from tests.util import sample_structures_cls_fixture
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -54,7 +54,7 @@ class TestCommon(tests.cases.LoRATestCase):
         self.app.dependency_overrides[auth] = mock_auth()
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateEmployee(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
@@ -99,7 +99,7 @@ class TestCreateEmployee(tests.cases.LoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateEmployeeDetailViaEmployee(TestCommon):
 
     # The "create details" endpoint is used for creating creating addresses,
@@ -180,7 +180,7 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     """
     When creating employee details in the frontend some details actually
@@ -419,7 +419,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestEditEmployeeDetail(TestCommon):
     def setUp(self) -> None:
         super().setUp()
@@ -595,7 +595,7 @@ class TestEditEmployeeDetail(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestMoveEmployment(tests.cases.LoRATestCase):
     def setUp(self) -> None:
         super().setUp()
@@ -645,7 +645,7 @@ class TestMoveEmployment(tests.cases.LoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestTerminateDetail(TestCommon):
     def setUp(self) -> None:
         super().setUp()
@@ -737,7 +737,7 @@ class TestTerminateDetail(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestTerminateEmployee(TestCommon):
     def setUp(self) -> None:
         super().setUp()
@@ -775,7 +775,7 @@ class TestTerminateEmployee(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestEmployeeLeave(TestCommon):
     def setUp(self) -> None:
         super().setUp()

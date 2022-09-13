@@ -1,14 +1,14 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import pytest
 
 import tests.cases
 from mora import lora
-from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncWriting(tests.cases.AsyncLoRATestCase):
     async def test_create_employee_itsystem(self):
@@ -550,7 +550,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Reading(tests.cases.LoRATestCase):
     def test_reading_organisation(self):

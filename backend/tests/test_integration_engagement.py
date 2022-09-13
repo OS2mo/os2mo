@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
 import notsouid
+import pytest
 
 import tests.cases
 from mora import lora
-from tests.util import sample_structures_cls_fixture
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -1048,7 +1048,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected, actual_engagement)
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
