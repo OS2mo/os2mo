@@ -8,6 +8,7 @@
 # --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
+from typing import Dict
 
 from dateutil.parser import isoparse
 from pydantic import BaseModel
@@ -58,7 +59,7 @@ class RABase(BaseModel):
         extra = Extra.forbid
 
     @root_validator(pre=True)
-    def remove_integration_data(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def remove_integration_data(cls, values: Dict[str, Any]) -> Dict[str, Any]:
         values.pop("integration_data", None)
         values.pop("integrationsdata", None)
         return values
