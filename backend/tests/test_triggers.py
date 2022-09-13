@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import freezegun
+import pytest
 
 import tests.cases
 from mora.exceptions import HTTPException
@@ -8,7 +9,6 @@ from mora.mapping import EventType
 from mora.mapping import RequestType
 from mora.service.handlers import RequestHandler
 from mora.triggers import Trigger
-from tests.util import sample_structures_cls_fixture
 
 
 class MockHandler(RequestHandler):
@@ -195,7 +195,7 @@ class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
         self.assertTrue(self.trigger_called)
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2016-01-01")
 class TriggerlessTests(tests.cases.LoRATestCase):
     """Trigger functionality (and there by also amqp as that is triggered)

@@ -18,7 +18,8 @@ from oio_rest.custom_exceptions import NotFoundException
 
 
 def get_mocked_cursor(mock):
-    _ = mock.return_value.__enter__.return_value.cursor
+    """Replace the context manager for a cursor object with magic mock"""
+    _ = mock.return_value.cursor
     cursor = _.return_value.__enter__.return_value = MagicMock()
     return cursor
 

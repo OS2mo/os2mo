@@ -3,6 +3,7 @@
 from copy import deepcopy
 from datetime import datetime
 
+import pytest
 from parameterized import parameterized
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
@@ -16,7 +17,6 @@ from mora.config import Settings
 from mora.mapping import ADMIN
 from mora.mapping import OWNER
 from tests import util
-from tests.util import sample_structures_cls_fixture
 
 # Users
 ANDERS_AND = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
@@ -67,7 +67,7 @@ def mock_auth(role: str = None, user_uuid: str = None):
     return fake_auth
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCommon(tests.cases.LoRATestCase):
     def setUp(self):
         super().setUp()
@@ -208,7 +208,7 @@ class TestCommon(tests.cases.LoRATestCase):
         self.app.dependency_overrides[auth] = mock_auth()
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateOrgUnit(TestCommon):
     @parameterized.expand(
         [
@@ -273,7 +273,7 @@ class TestCreateOrgUnit(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestRenameOrgUnit(TestCommon):
     @parameterized.expand(
         [
@@ -303,7 +303,7 @@ class TestRenameOrgUnit(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestTerminateOrgUnit(TestCommon):
     def setUp(self):
         super().setUp()
@@ -343,7 +343,7 @@ class TestTerminateOrgUnit(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateDetail(TestCommon):
     def setUp(self):
         super().setUp()
@@ -438,7 +438,7 @@ class TestCreateDetail(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestEditDetail(TestCommon):
     def setUp(self):
         super().setUp()
@@ -515,7 +515,7 @@ class TestEditDetail(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestIndirectOwnership(TestCommon):
     """
     Test that an org unit can be modified by a user who owns the parent
@@ -538,7 +538,7 @@ class TestIndirectOwnership(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestMoveOrgUnit(TestCommon):
     def setUp(self):
         super().setUp()
@@ -619,7 +619,7 @@ class TestMoveOrgUnit(TestCommon):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestTerminateOrgUnitDetail(TestCommon):
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_address_as_owner_of_unit(self):

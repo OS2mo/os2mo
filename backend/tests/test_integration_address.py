@@ -9,7 +9,6 @@ import tests.cases
 from mora import lora
 from mora.util import get_effect_from
 from tests import util
-from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
@@ -36,7 +35,7 @@ address_type_facet = {
 }
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncWriting(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -936,7 +935,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         self.assertEqual(actual, expected)
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Writing(tests.cases.LoRATestCase):
     maxDiff = None
@@ -1224,7 +1223,7 @@ class AsyncReadingMinimal(tests.cases.AsyncLoRATestCase):
             )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncReading(tests.cases.AsyncLoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=False)
@@ -1361,7 +1360,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class Reading(tests.cases.LoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)

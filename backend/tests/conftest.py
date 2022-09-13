@@ -16,6 +16,7 @@ from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
+import psycopg2
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi.testclient import TestClient
@@ -33,6 +34,8 @@ from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
 from mora.service.org import ConfiguredOrganisation
+from oio_rest.db import get_connection
+from oio_rest.db.testing import ensure_testing_database_exists
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
@@ -169,6 +172,44 @@ def testing_db():
     _mox_testing_api("db-setup")
     yield
     _mox_testing_api("db-teardown")
+
+
+# Due to the current tight coupling between our unit and integration test,
+# The load_fixture_data can not be set as a session
+# scoped fixture with autouse true. Session fixture can not be
+# used as an input to default/function scoped fixture.
+are_fixtures_loaded = False
+
+
+async def load_fixture_data():
+    """Loads full sample structure
+    Also naively looks if some of the sample structures are loaded
+    to avoid loading all sample data more than once.
+    """
+    global are_fixtures_loaded
+    if not are_fixtures_loaded:
+        ensure_testing_database_exists()
+        conn = get_connection()
+        await load_sample_structures(minimal=False)
+        conn.commit()  # commit the initial sample structures
+        are_fixtures_loaded = True
+
+
+@pytest.fixture(scope="function")
+async def load_fixture_data_with_reset():
+
+    await load_fixture_data()
+
+    conn = get_connection()
+    try:
+        conn.set_session(autocommit=False)
+    except psycopg2.ProgrammingError:
+        conn.rollback()  # If a transaction is already in progress roll it back
+        conn.set_session(autocommit=False)
+
+    yield
+
+    conn.rollback()
 
 
 @pytest.fixture

@@ -21,7 +21,7 @@ def get_alembic_cfg() -> Config:
 
 
 def _test_query(sql_query: str) -> bool:
-    with get_connection() as connection, connection.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql_query)
         except UndefinedTable:
@@ -91,7 +91,7 @@ def truncate_all_tables():
         end
         $func$;
     """
-    with get_connection() as connection, connection.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         return cursor.execute(truncate_all, (schema_name,))
 
 

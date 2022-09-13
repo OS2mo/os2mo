@@ -4,6 +4,7 @@ import collections
 import copy
 import datetime
 import enum
+import os
 import pathlib
 import typing
 
@@ -117,6 +118,11 @@ def get_connection(dbname=None):
             application_name="mox init connection",
             sslmode=settings.db_sslmode,
         )
+
+        commit = True
+        if os.environ.get("TESTING", "") == "True":
+            commit = False
+        _connection.autocommit = commit
 
     return _connection
 
@@ -390,7 +396,7 @@ def object_exists(class_name, uuid):
     )
     """
 
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql, (uuid,))
         except psycopg2.Error as e:
@@ -418,7 +424,7 @@ actual_state.dokument_variant v on v.id = d.variant_id join
 actual_state.dokument_registrering r on r.id = v.dokument_registrering_id
 where de.indhold = %s"""
 
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql, (content_url,))
         except psycopg2.Error as e:
@@ -470,7 +476,7 @@ def create_or_import_object(class_name, note, registration, uuid=None):
     )
 
     # Call Postgres! Return OK or not accordingly
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -520,7 +526,7 @@ def delete_object(class_name, registration, note, uuid):
     )
 
     # Call Postgres! Return OK or not accordingly
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -559,7 +565,7 @@ def passivate_object(class_name, note, registration, uuid):
     )
 
     # Call PostgreSQL
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -601,7 +607,7 @@ def update_object(
     )
 
     # Call PostgreSQL
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
             cursor.fetchone()
@@ -661,7 +667,7 @@ def list_objects(
     if registreret_fra is not None or registreret_til is not None:
         registration_period = DateTimeTZRange(registreret_fra, registreret_til)
 
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(
                 sql,
@@ -983,7 +989,7 @@ def search_objects(
         # TODO: Get this into the SQL function signature!
         restrictions=sql_restrictions,
     )
-    with get_connection() as conn, conn.cursor() as cursor:
+    with get_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:

@@ -632,11 +632,6 @@ def _sample_structures_cls_fixture(cls, minimal: bool):
             await super().asyncTearDown()
             _mox_testing_api("db-reset")
 
-        @classmethod
-        def tearDownClass(cls):
-            super(FireableOffense, cls).tearDownClass()
-            _mox_testing_api("db-teardown")
-
     class FireableOffenseSync(cls):
         def setUp(self):
             _mox_testing_api("db-setup")
@@ -646,11 +641,6 @@ def _sample_structures_cls_fixture(cls, minimal: bool):
         def tearDown(self):
             super().tearDown()
             _mox_testing_api("db-reset")
-
-        @classmethod
-        def tearDownClass(cls):
-            super(FireableOffenseSync, cls).tearDownClass()
-            _mox_testing_api("db-teardown")
 
     if issubclass(cls, AsyncLoRATestCase):
         return FireableOffense

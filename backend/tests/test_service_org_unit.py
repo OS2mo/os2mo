@@ -28,7 +28,6 @@ from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from tests import util
-from tests.util import sample_structures_cls_fixture
 from tests.util import sample_structures_minimal_cls_fixture
 
 
@@ -363,7 +362,7 @@ def test_valid_name(arguments, value, expected_raise):
             assert value == _get_count_related()
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestGetUnitAncestorTree(tests.cases.AsyncLoRATestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()

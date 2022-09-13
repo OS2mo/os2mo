@@ -9,7 +9,6 @@ from mora import exceptions
 from mora import mapping
 from mora import util as mora_util
 from mora.service.validation import validator
-from tests.util import sample_structures_cls_fixture
 from tests.util import set_settings_contextmanager
 
 
@@ -23,7 +22,7 @@ def patch_context(monkeypatch):
     yield
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
@@ -46,7 +45,7 @@ class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
         )
 
 
-@sample_structures_cls_fixture
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestHelper(tests.cases.LoRATestCase):
     maxDiff = None
     ORG = "456362c4-0ee4-4e5e-a72c-751239745e62"
