@@ -8,10 +8,12 @@
 # --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
+from typing import Dict
 
 from dateutil.parser import isoparse
 from pydantic import BaseModel
 from pydantic import Extra
+from pydantic import root_validator
 
 from ramodels.exceptions import ISOParseError
 
@@ -55,6 +57,12 @@ class RABase(BaseModel):
         frozen = True
         allow_population_by_field_name = True
         extra = Extra.forbid
+
+    @root_validator(pre=True)
+    def remove_integration_data(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        values.pop("integration_data", None)
+        values.pop("integrationsdata", None)
+        return values
 
 
 # --------------------------------------------------------------------------------------
