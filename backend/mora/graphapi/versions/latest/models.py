@@ -109,10 +109,18 @@ class Validity(OpenValidity):
 
         return self.to_date + ONE_DAY
 
+
 class ValidityFromRequired(Validity):
     from_date: datetime.datetime = Field(
-        alias="from", description="Start date of the validity"
+        alias="from", description="Start date of the validity."
     )
+
+
+class ValidityToRequired(Validity):
+    to_date: datetime.datetime = Field(
+        alias="to", description="End date of the validity, if applicable."
+    )
+
 
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
