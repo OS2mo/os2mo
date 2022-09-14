@@ -9,12 +9,14 @@ from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import uuid4
 
+import mock
 from hypothesis import given
 from hypothesis import strategies as st
 from mock import patch
 from mock.mock import AsyncMock
 from parameterized import parameterized
 from pytest import MonkeyPatch
+from strawberry.types import ExecutionResult
 
 import tests.cases
 from .strategies import graph_data_strat
@@ -636,13 +638,56 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
                 mock_employee_update.assert_not_called()
 
 
-async def test_update():
+@given(
+    st.uuids(),
+    st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+    st.tuples(
+        # name, given_name, sur_name
+        st.text() | st.none(),
+        st.text() | st.none(),
+        st.text() | st.none(),
+    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
+    st.tuples(
+        # nickname, nickname_givenname, nickname_surname,
+        st.text() | st.none(),
+        st.text() | st.none(),
+        st.text() | st.none(),
+    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
+    st.text() | st.none(),  # given_seniority
+    st.text() | st.none(),  # cpr_no
+)
+async def test_update(
+    given_uuid,
+    given_validity_dts,
+    given_name_tuple,
+    given_nickname_tuple,
+    given_seniority,
+    given_cpr_no,
+):
+    # Unpack tuples
+    given_validity_from, given_validity_to = given_validity_dts
+    given_name, given_givenname, given_surname = given_name_tuple
+    (
+        given_nickname,
+        given_nickname_givenname,
+        given_nickname_surname,
+    ) = given_nickname_tuple
+
+    # Create variable values for GraphQL
     var_values = {
-        "value": given_value,
-        "addressType": given_address_type_uuid,
-        "visibility": given_visibility_uuid,
-        "relation": given_relation,
-        "org": given_org_uuid,
+        "uuid": str(given_uuid),
+        "from": given_validity_from.date().isoformat() if given_validity_from else None,
+        "to": given_validity_to.date().isoformat() if given_validity_to else None,
+        "name": given_name,
+        "givenName": given_givenname,
+        "surName": given_surname,
+        "nickname": given_nickname,
+        "nicknameGivenName": given_nickname_givenname,
+        "nicknameSurName": given_nickname_surname,
+        "seniority": given_seniority,
+        "cpr_no": given_cpr_no,
     }
 
     if given_validity_from:
@@ -652,12 +697,31 @@ async def test_update():
         var_values["to"] = given_validity_to.date().isoformat()
 
     # GraphQL
-    mutation_func = "address_create"
+    mutation_func = "employee_update"
     query = (
-        "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, $relation: AddressRelationInput!, $from: DateTime, $to: DateTime, $org: UUID) {"
-        f"{mutation_func}(input: {{value: $value, address_type: $addressType, visibility: $visibility, relation: $relation, from: $from, to: $to, org: $org}})"
-        "{ uuid }"
+        "mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $name: String, "
+        "$givenName: String, $surName: String, $nickname: String, "
+        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+        "$cprNo: String) {"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "nickname_given_name: $nicknameGivenName, "
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
         "}"
     )
 
-    _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
+    with mock.patch("mora.lora.Scope.update") as mock_lora_update:
+        mock_lora_update.return_value = var_values["uuid"]
+
+        response = await LatestGraphQLSchema.get().execute(
+            query, variable_values=var_values
+        )
+        updated_employee_uuid = (
+            response.data.get(mutation_func)
+            if isinstance(response, ExecutionResult)
+            else None
+        )
+
+        # Asserts
+        mock_lora_update.assert_called()
+        assert updated_employee_uuid == var_values["uuid"]
