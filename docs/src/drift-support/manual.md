@@ -117,6 +117,53 @@ Under Organisationsdelen kan man søge på:
 - Organisationsenhedsnavn (ex Egtved skole)
 - Enhedsnummer (BrugerVendt Nøgle, ex EgtSko)
 
+#### Søgefunktionen+
+
+**Hvad kan man søge på?**
+
+Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt at søge på:
+
+**Medarbejderes:**
+- UUID
+- Medarbejdernavn
+- Kaldenavn
+- CPR-nummer (uden bindestreg)
+
+**Medarbejderes adresseregistreringer (undtagen DAR-adresser). Eksempelvis:**
+- Telefonnummer
+- Email
+
+**Medarbejderes  it-konto-registreringer. Eksempelvis:**
+
+- az ident
+
+**Organisationsenheders:**
+- UUID
+- Enhedsnavn
+- Enhedsnummer - BVN (brugervendt nøgle)
+
+**Organisationenheders adresse-registreringer (undtagen DAR-adresser). Eksempelvis:**
+- LOS ID
+- OrgID
+- Adresse
+- Telefonnummer
+- Email
+
+**Organisationenheders it-konto-registreringer**
+
+**Hvad kommer frem i søgeresultat?**
+
+**Medarbejder**
+- Navn
+- Udvalgte adresse--registreringer (fx telefonnummer, email)
+- Udvalgte it-konto-oplysninger (fx “AZ ident”)
+
+**Organisation**
+- Navn
+- Organisatorisk sti
+- Udvalgte adresse-registreringer (fx LOS-ID, mag-kort)
+- Udvalgte it-konto-oplysninger
+
 #### Rapporter
 
 ![image](../graphics/momanual/Rapporter.png)
