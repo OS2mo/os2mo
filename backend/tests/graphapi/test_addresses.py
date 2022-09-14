@@ -33,8 +33,12 @@ from tests.conftest import GQLResponse
 
 
 # --------------------------------------------------------------------------------------
-# Mocks
+# Fixtures & mocking helpers
 # --------------------------------------------------------------------------------------
+def create_fixture(type: str):
+    return
+
+
 def async_lora_return(*args):
     """Returns last positional argument using asyncio.Future.
 
@@ -255,9 +259,7 @@ async def test_create_mutator(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
 )
-# @mock.patch.object(lora.Scope, "create", lambda *args: args[-1])
-# @mock.patch.object(lora.Scope, "get", mock.AsyncMock())
-async def test_create_request_handler_logic_emails(
+async def _test_create_request_handler_logic_emails(
     given_value,
     given_address_type_uuid,
     given_visibility_uuid,
@@ -266,15 +268,6 @@ async def test_create_request_handler_logic_emails(
     given_org_uuid,
     given_validity_dts,
 ):
-    # OVERRIDES
-    given_validity_dts = (None, None)
-    given_org_uuid = uuid_lib.UUID("e3e70682-c209-4cac-629f-6fbed82c07cd")
-    given_relation_uuid = uuid_lib.UUID("f728b4fa-4248-5e3a-0a5d-2f346baa9455")
-    given_relation_type = "engagement"
-    given_visibility_uuid = uuid_lib.UUID("eb1167b3-67a9-c378-7c65-c1e582e2e662")
-    given_address_type_uuid = uuid_lib.UUID("f7c1bd87-4da5-e709-d471-3d60c8a70639")
-    given_value = "0@A.ac"
-
     # if nessaery, modify hypothesis data
     given_validity_from, given_validity_to = given_validity_dts
     given_scope = "EMAIL"
@@ -312,6 +305,7 @@ async def test_create_request_handler_logic_emails(
         "mora.service.address.util.get_validities"
     ) as mock_get_validities:
         mock_lora_get.return_value = mock.AsyncMock()
+
         if given_validity_from or given_validity_to:
             mock_get_lora_validity.return_value = {
                 "from": given_validity_from.replace(tzinfo=util.DEFAULT_TIMEZONE)
@@ -342,6 +336,231 @@ async def test_create_request_handler_logic_emails(
 
         mock_ensure_list.return_value = [
             {"objekttype": given_scope, "urn": f"urn:{mock_addr_return_object_urn}"}
+        ]
+
+        mock_get_validities.return_value = given_validity_dts
+
+        # Create GraphQL arguments, starting with the required ones
+        var_values = {
+            "value": given_value,
+            "addressType": given_address_type_uuid,
+            "visibility": given_visibility_uuid,
+            "relation": given_relation,
+            "org": given_org_uuid,
+        }
+
+        if given_validity_from:
+            var_values["from"] = given_validity_from.date().isoformat()
+
+        if given_validity_to:
+            var_values["to"] = given_validity_to.date().isoformat()
+
+        # GraphQL
+        mutation_func = "address_create"
+        query = (
+            "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, "
+            "$relation: AddressRelationInput!, $from: DateTime, $to: DateTime, "
+            "$org: UUID) {"
+            f"{mutation_func}(input: {{value: $value, address_type: $addressType, "
+            f"visibility: $visibility, relation: $relation, from: $from, to: $to, "
+            f"org: $org}})"
+            "}"
+        )
+
+        _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
+
+        # Asserts
+        if given_relation_type in ["org_unit", "person"]:
+            # These mocks are only invoked when trying to generate dict for the
+            # specified relation types, in relation to fetching the
+            # validity for the relation.
+            mock_lora_get.assert_called()
+            mock_get_lora_validity.assert_called()
+
+        mock_get_configured_organisation.assert_called()
+        mock_get_one_class.assert_called()
+
+        # mock_create_organisationsfunktion_payload.assert_called()
+        mock_create_organisationsfunktion_payload.assert_called_with(
+            funktionsnavn=mapping.ADDRESS_KEY,
+            valid_from=given_validity_from,
+            valid_to=given_validity_to,
+            brugervendtnoegle=given_value,
+            funktionstype=given_address_type_uuid,
+            adresser=mock_ensure_list.return_value,
+            tilknyttedebrugere=[given_relation_uuid]
+            if given_relation_type == "person"
+            else [],
+            tilknyttedeorganisationer=[given_org_uuid],
+            tilknyttedeenheder=[given_relation_uuid]
+            if given_relation_type == "org_unit"
+            else [],
+            tilknyttedefunktioner=[
+                {
+                    mapping.UUID: given_relation_uuid,
+                    mapping.OBJECTTYPE: mapping.MoOrgFunk.ENGAGEMENT.value,
+                }
+            ]
+            if given_relation_type == "engagement"
+            else [],
+            opgaver=[{"objekttype": "synlighed", "uuid": given_visibility_uuid}],
+        )
+
+        mock_submit_requests.assert_called()
+
+
+@given(
+    st.emails(),
+    st.uuids(),
+    st.uuids(),
+    st.sampled_from(["org_unit", "person", "engagement"]),
+    st.uuids(),
+    st.uuids(),
+    st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+)
+async def test_create_request_handler_logic_emails(
+    given_value,
+    given_address_type_uuid,
+    given_visibility_uuid,
+    given_relation_type,
+    given_relation_uuid,
+    given_org_uuid,
+    given_validity_dts,
+):
+    await create_request_handler_logic(
+        given_value,
+        "EMAIL",
+        given_address_type_uuid,
+        given_visibility_uuid,
+        given_relation_type,
+        given_relation_uuid,
+        given_org_uuid,
+        given_validity_dts,
+    )
+
+# EAN AddressHandler
+# DAR AddressHandler
+# Email AddressHandler
+# Multifield AddressHandler
+# Phone AddressHandler
+# PNumber AddressHandler
+# Text AddressHandler
+# WWW AddressHandler
+
+@given(
+    st.emails(),
+    st.uuids(),
+    st.uuids(),
+    st.sampled_from(["org_unit", "person", "engagement"]),
+    st.uuids(),
+    st.uuids(),
+    st.tuples(st.datetimes() | st.none(), st.datetimes() | st.none()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+)
+async def test_create_request_handler_logic_emails(
+    given_value,
+    given_address_type_uuid,
+    given_visibility_uuid,
+    given_relation_type,
+    given_relation_uuid,
+    given_org_uuid,
+    given_validity_dts,
+):
+    await create_request_handler_logic(
+        given_value,
+        "EMAIL",
+        given_address_type_uuid,
+        given_visibility_uuid,
+        given_relation_type,
+        given_relation_uuid,
+        given_org_uuid,
+        given_validity_dts,
+    )
+
+
+async def create_request_handler_logic(
+    given_value,
+    given_value_type,
+    given_address_type_uuid,
+    given_visibility_uuid,
+    given_relation_type,
+    given_relation_uuid,
+    given_org_uuid,
+    given_validity_dts,
+):
+    # if nessaery, modify hypothesis data
+    given_validity_from, given_validity_to = given_validity_dts
+
+    # Convert the UUIDs to strings, so they can be used in the mutation-query
+    given_address_type_uuid = str(given_address_type_uuid)
+    given_visibility_uuid = str(given_visibility_uuid)
+    given_org_uuid = str(given_org_uuid) if given_org_uuid else given_org_uuid
+
+    # Create address relation object
+    given_relation_uuid = str(given_relation_uuid)
+    given_relation = {
+        "type": given_relation_type,
+        "uuid": given_relation_uuid,
+    }
+
+    # Mock elements not required to generate a LORA payload
+    with mock.patch("mora.lora.Scope.get") as mock_lora_get, mock.patch(
+        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
+    ) as mock_get_lora_validity, mock.patch(
+        "mora.service.org.get_configured_organisation"
+    ) as mock_get_configured_organisation, mock.patch(
+        "mora.service.address.facet.get_one_class"
+    ) as mock_get_one_class, mock.patch(
+        "mora.service.address.validator.is_date_range_in_org_unit_range"
+    ) as _, mock.patch(
+        "mora.service.address.validator.is_date_range_in_employee_range"
+    ) as _, mock.patch(
+        "mora.service.address.common.create_organisationsfunktion_payload"
+    ) as mock_create_organisationsfunktion_payload, mock.patch(
+        "mora.graphapi.versions.latest.address.handlers.submit_requests"
+    ) as mock_submit_requests, mock.patch(
+        "mora.service.address.ensure_list"
+    ) as mock_ensure_list, mock.patch(
+        "mora.service.address.util.get_validities"
+    ) as mock_get_validities:
+        mock_lora_get.return_value = mock.AsyncMock()
+
+        if given_validity_from or given_validity_to:
+            mock_get_lora_validity.return_value = {
+                "from": given_validity_from.replace(tzinfo=util.DEFAULT_TIMEZONE)
+                if given_validity_from
+                else None,
+                "to": given_validity_to.replace(tzinfo=util.DEFAULT_TIMEZONE)
+                if given_validity_to
+                else None,
+            }
+        else:
+            mock_get_lora_validity.return_value = None
+
+        # FYI: These two mocks to handle
+        # "mora.service.address_handler.base.get_handler_for_scope" and
+        # "mora.service.address_handler.base.AddressHandler.from_request"
+        mock_get_configured_organisation.return_value = {"uuid": given_org_uuid}
+        mock_get_one_class.return_value = {"scope": given_value_type}
+
+        mock_create_organisationsfunktion_payload.return_value = {
+            "fake": "lora-payload"
+        }
+        mock_submit_requests.return_value = [str(uuid_lib.uuid4())]
+
+        mock_addr_return_object_type = given_value_type
+        mock_addr_return_object_urn = _get_object_urn(
+            mock_addr_return_object_type, given_value
+        )
+
+        mock_ensure_list.return_value = [
+            {
+                "objekttype": given_value_type,
+                "urn": f"urn:{mock_addr_return_object_urn}",
+            }
         ]
 
         mock_get_validities.return_value = given_validity_dts

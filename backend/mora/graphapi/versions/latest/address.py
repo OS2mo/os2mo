@@ -17,8 +17,10 @@ from mora.triggers import Trigger
 
 async def create(address_create: AddressCreate) -> UUID:
     legacy_request = await address_create.get_legacy_request()
+
     requests = await handlers.generate_requests([legacy_request], RequestType.CREATE)
     uuids = await handlers.submit_requests(requests)
+
     return UUID(uuids[0])
 
 
