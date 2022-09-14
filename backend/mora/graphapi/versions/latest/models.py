@@ -43,10 +43,6 @@ class Validity(OpenValidity):
     """Model representing an entities validity range.
 
     Where both from and to dates can be optional.
-    We can use "from ramodels.mo import Validity as ValidityFromRequired" to
-    get a version of validity where from_date is required.
-    NOTE: If we start doing required from- or to-dates this directly in this module,
-    mypy/strawberry will complain if the model is used for GraphQL.
     """
 
     class Config:
