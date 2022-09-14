@@ -442,17 +442,17 @@ class EmployeeUpdate(UUIDBase, Validity):
 
     nickname: Optional[str] = Field(
         None,
-        description="New last-name value of the employee nickname.",
+        description="New nickname value of the employee nickname.",
     )
 
     nickname_given_name: Optional[str] = Field(
         None,
-        description="New last-name value of the employee nickname.",
+        description="New nickname given-name value of the employee nickname.",
     )
 
     nickname_sur_name: Optional[str] = Field(
         None,
-        description="New last-name value of the employee nickname.",
+        description="New nickname sur-name value of the employee nickname.",
     )
 
     seniority: Optional[str] = Field(
@@ -460,23 +460,28 @@ class EmployeeUpdate(UUIDBase, Validity):
     )
 
     cpr_no: Optional[str] = Field(
-        None, description="New seniority value of the employee."
+        None, description="New danish CPR No. of the employee."
     )
 
     @root_validator
     def validate_name_with_given_name_and_sur_name(cls, values: dict) -> dict:
+        """Validate name's and nickname's.
+
+        If "name" is set, "given_name" and "sur_name" are not allowed to be set.
+        same goes for nickname.
+        """
         if values.get("name") and (values.get("given_name") or values.get("sur_name")):
             raise ValueError(
-                'EmployeeUpdate.name is only allowed to be set, if "given_name" & '
-                '"sur_name" are None.'
+                "EmployeeUpdate.name is only allowed to be set, if "
+                '"given_name" & "sur_name" are None.'
             )
 
         if values.get("nickname") and (
             values.get("nickname_given_name") or values.get("nickname_sur_name")
         ):
             raise ValueError(
-                'EmployeeUpdate.nickname is only allowed to be set, if "nickname_given_name" & '
-                '"nickname_sur_name" are None.'
+                "EmployeeUpdate.nickname is only allowed to be set, if "
+                '"nickname_given_name" & "nickname_sur_name" are None.'
             )
 
         return values
