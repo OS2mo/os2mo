@@ -92,6 +92,10 @@ class Validity(OpenValidity):
 
         return self.to_date + ONE_DAY
 
+class ValidityFromRequired(Validity):
+    from_date: datetime.datetime = Field(
+        alias="from", description="Start date of the validity"
+    )
 
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
@@ -425,7 +429,7 @@ class EmployeeTerminate(ValidityTerminate, Triggerless):
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
-class EmployeeUpdate(UUIDBase, Validity):
+class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
     )
