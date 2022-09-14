@@ -592,7 +592,7 @@ async def test_update(
         "}"
     )
 
-    with mock.patch("mora.lora.Scope.update") as mock_lora_update:
+    with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
         mock_lora_update.return_value = var_values["uuid"]
 
         response = await LatestGraphQLSchema.get().execute(
