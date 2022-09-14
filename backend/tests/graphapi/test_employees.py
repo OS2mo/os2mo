@@ -534,7 +534,7 @@ async def test_update(
     # GraphQL
     mutation_func = "employee_update"
     query = (
-        "mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $name: String, "
+        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
         "$givenName: String, $surName: String, $nickname: String, "
         "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
         "$cprNo: String) {"
