@@ -19,6 +19,7 @@ from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
+from ramodels.mo import Validity as ValidityFromRequired
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -108,12 +109,6 @@ class Validity(OpenValidity):
             )
 
         return self.to_date + ONE_DAY
-
-
-class ValidityFromRequired(Validity):
-    from_date: datetime.datetime = Field(
-        alias="from", description="Start date of the validity."
-    )
 
 
 class ValidityToRequired(Validity):
