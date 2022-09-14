@@ -12,6 +12,9 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
+from hypothesis import strategies as st
+from mock import patch
+from mock.mock import AsyncMock
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
@@ -312,7 +315,7 @@ params_test_pydantic_dataclass += [
 
 class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
     @parameterized.expand(params_test_mutator)
-    async def test_mutator(
+    async def _test_mutator(
         self,
         given_uuid,
         given_name,
@@ -362,7 +365,7 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
                 mock_handle_requests.assert_not_called()
 
     @parameterized.expand(params_test_pydantic_dataclass)
-    async def test_pydantic_dataclass(
+    async def _test_pydantic_dataclass(
         self,
         given_uuid,
         given_name,
@@ -512,3 +515,30 @@ async def test_create_employee_integration_test(
     assert obj["surname"] == test_data.surname
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert obj["cpr_no"] == test_data.cpr_number
+
+
+async def test_update():
+    var_values = {
+        "value": given_value,
+        "addressType": given_address_type_uuid,
+        "visibility": given_visibility_uuid,
+        "relation": given_relation,
+        "org": given_org_uuid,
+    }
+
+    if given_validity_from:
+        var_values["from"] = given_validity_from.date().isoformat()
+
+    if given_validity_to:
+        var_values["to"] = given_validity_to.date().isoformat()
+
+    # GraphQL
+    mutation_func = "address_create"
+    query = (
+        "mutation($value: String!, $addressType: UUID!, $visibility: UUID!, $relation: AddressRelationInput!, $from: DateTime, $to: DateTime, $org: UUID) {"
+        f"{mutation_func}(input: {{value: $value, address_type: $addressType, visibility: $visibility, relation: $relation, from: $from, to: $to, org: $org}})"
+        "{ uuid }"
+        "}"
+    )
+
+    _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
