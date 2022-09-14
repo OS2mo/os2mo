@@ -10,6 +10,7 @@ from uuid import UUID
 import strawberry
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import root_validator
 
 from mora import common
 from mora import exceptions
@@ -354,49 +355,84 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
     pass
 
 
-class EmployeeUpdate(UUIDBase):
-    # name
+class EmployeeUpdate(UUIDBase, Validity):
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
     )
 
-    # nickname_givenname
-    nickname_firstname: Optional[str] = Field(
+    given_name: Optional[str] = Field(
         None,
-        alias="nickname_givenname",
         description="New first-name value of the employee nickname.",
     )
 
-    # nickname_surname
-    nickname_lastname: Optional[str] = Field(
+    sur_name: Optional[str] = Field(
         None,
-        alias="nickname_surname",
         description="New last-name value of the employee nickname.",
     )
 
-    # seniority
-    seniority: Optional[str] = Field(
-        None, description="New seniority value of the employee."
+    nickname: Optional[str] = Field(
+        None,
+        description="New last-name value of the employee nickname.",
     )
 
-    # cpr_no
+    nickname_given_name: Optional[str] = Field(
+        None,
+        description="New last-name value of the employee nickname.",
+    )
+
+    nickname_sur_name: Optional[str] = Field(
+        None,
+        description="New last-name value of the employee nickname.",
+    )
+
+    seniority: Optional[str] = Field(
+        "", description="New seniority value of the employee."
+    )
+
     cpr_no: Optional[str] = Field(
         None, description="New seniority value of the employee."
     )
 
-    # org
-    org: Optional[Organisation] = Field(
-        None, description="Organization the employee belongs to."
-    )
+    @root_validator
+    def validate_name_with_given_name_and_sur_name(cls, values: dict) -> dict:
+        if values.get("name") and (values.get("given_name") or values.get("sur_name")):
+            raise ValueError(
+                'EmployeeUpdate.name is only allowed to be set, if "given_name" & '
+                '"sur_name" are None.'
+            )
 
-    # validity
-    validity: Optional[Validity] = Field(
-        None,
-        description="Validity range for the employee, "
-        "for when the employee is accessible",
-    )
+        if values.get("nickname") and (
+            values.get("nickname_given_name") or values.get("nickname_sur_name")
+        ):
+            raise ValueError(
+                'EmployeeUpdate.nickname is only allowed to be set, if "nickname_given_name" & '
+                '"nickname_sur_name" are None.'
+            )
 
-    # user_key
+        return values
+
+    def get_legacy_dict(self) -> dict:
+        validity_dict = {}
+        if self.from_date:
+            validity_dict[mapping.FROM] = self.from_date.date().isoformat()
+
+        if self.to_date:
+            validity_dict[mapping.FROM] = self.to_date.date().isoformat()
+
+        return {
+            mapping.TYPE: mapping.EMPLOYEE,
+            mapping.UUID: str(self.uuid),
+            mapping.DATA: {
+                mapping.UUID: str(self.uuid),
+                mapping.VALIDITY: validity_dict,
+                mapping.GIVENNAME: self.given_name,
+                mapping.SURNAME: self.sur_name,
+                mapping.NAME: self.name,
+                mapping.NICKNAME: self.nickname,
+                mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
+                mapping.NICKNAME_SURNAME: self.nickname_sur_name,
+            },
+        }
 
 
 class ITUserTerminate(UUIDBase, ValidityTerminate, Triggerless):

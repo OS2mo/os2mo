@@ -94,15 +94,8 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     return EmployeeType(uuid=UUID(result))
 
 
-async def update(employee_update: EmployeeUpdate) -> EmployeeType:
-    # Convert pydantic model to request-dict, to match legacy implementation.
-    update_dict = employee_update.dict(by_alias=True)
-    req = {
-        mapping.TYPE: mapping.EMPLOYEE,
-        mapping.UUID: employee_update.uuid,
-        mapping.DATA: update_dict,
-    }
-
-    # Invoke existing update-logic
-    result = await handle_requests(req, mapping.RequestType.EDIT)
-    return EmployeeType(uuid=UUID(result))
+async def update(employee_update: EmployeeUpdate) -> UUID:
+    result = await handle_requests(
+        employee_update.get_legacy_dict(), mapping.RequestType.EDIT
+    )
+    return UUID(result)
