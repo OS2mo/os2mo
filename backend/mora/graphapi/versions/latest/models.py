@@ -40,7 +40,14 @@ class NonEmptyString(ConstrainedStr):
 
 
 class Validity(OpenValidity):
-    """Model representing an entities validity range."""
+    """Model representing an entities validity range.
+
+    Where both from and to dates can be optional.
+    We can use "from ramodels.mo import Validity as ValidityFromRequired" to
+    get a version of validity where from_date is required.
+    NOTE: If we start doing required from- or to-dates this directly in this module,
+    mypy/strawberry will complain if the model is used for GraphQL.
+    """
 
     class Config:
         allow_population_by_field_name = True
@@ -92,12 +99,6 @@ class Validity(OpenValidity):
             )
 
         return self.to_date + ONE_DAY
-
-
-class ValidityToRequired(Validity):
-    to_date: datetime.datetime = Field(
-        alias="to", description="End date of the validity, if applicable."
-    )
 
 
 class ValidityTerminate(Validity):
