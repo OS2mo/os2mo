@@ -718,7 +718,7 @@ async def test_update(
         )
         updated_employee_uuid = (
             response.data.get(mutation_func)
-            if isinstance(response, ExecutionResult)
+            if isinstance(response, ExecutionResult) and isinstance(response.data, dict)
             else None
         )
 
