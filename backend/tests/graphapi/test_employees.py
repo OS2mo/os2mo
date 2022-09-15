@@ -511,45 +511,61 @@ async def test_update(
         given_nickname_surname,
     ) = given_nickname_tuple
 
+    # with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
+    #     mock_lora_update.return_value = given_uuid_str
+
+    # Create variable values for GraphQL (init with required fields)
+    var_values = {
+        "uuid": given_uuid_str,
+        "from": given_validity_from.date().isoformat(),
+        # "to": given_validity_to.date().isoformat() if given_validity_to else None,
+        # "name": given_name,
+        # "givenName": given_givenname,
+        # "surName": given_surname,
+        # "nickname": given_nickname,
+        # "nicknameGivenName": given_nickname_givenname,
+        # "nicknameSurName": given_nickname_surname,
+        # "seniority": given_seniority,
+        # "cpr_no": given_cpr_no,
+    }
+
+    if given_validity_to:
+        var_values["to"] = given_validity_to.date().isoformat()
+
+    if given_name:
+        var_values["name"] = given_name
+    if given_givenname:
+        var_values["givenName"] = given_givenname
+    if given_surname:
+        var_values["surName"] = given_surname
+
+    if given_nickname:
+        var_values["nickname"] = given_nickname
+    if given_nickname_givenname:
+        var_values["nicknameGivenName"] = given_nickname_givenname
+    if given_nickname_surname:
+        var_values["nicknameSurName"] = given_nickname_surname
+
+    if given_seniority:
+        var_values["seniority"] = given_seniority
+    if given_cpr_no:
+        var_values["cpr_no"] = given_cpr_no
+
+    # GraphQL
+    mutation_func = "employee_update"
+    query = (
+        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
+        "$givenName: String, $surName: String, $nickname: String, "
+        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+        "$cprNo: String) {"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "nickname_given_name: $nicknameGivenName, "
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
+        "}"
+    )
     with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
         mock_lora_update.return_value = given_uuid_str
-
-        # Create variable values for GraphQL
-        var_values = {
-            "uuid": given_uuid_str,
-            "from": given_validity_from.date().isoformat()
-            if given_validity_from
-            else None,
-            "to": given_validity_to.date().isoformat() if given_validity_to else None,
-            "name": given_name,
-            "givenName": given_givenname,
-            "surName": given_surname,
-            "nickname": given_nickname,
-            "nicknameGivenName": given_nickname_givenname,
-            "nicknameSurName": given_nickname_surname,
-            "seniority": given_seniority,
-            "cpr_no": given_cpr_no,
-        }
-
-        if given_validity_from:
-            var_values["from"] = given_validity_from.date().isoformat()
-
-        if given_validity_to:
-            var_values["to"] = given_validity_to.date().isoformat()
-
-        # GraphQL
-        mutation_func = "employee_update"
-        query = (
-            "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
-            "$givenName: String, $surName: String, $nickname: String, "
-            "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
-            "$cprNo: String) {"
-            f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-            "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
-            "nickname_given_name: $nicknameGivenName, "
-            "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
-            "}"
-        )
 
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
