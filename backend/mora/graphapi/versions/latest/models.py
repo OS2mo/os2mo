@@ -428,19 +428,41 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         if self.to_date:
             validity_dict[mapping.FROM] = self.to_date.date().isoformat()
 
+        data_dict = {
+            mapping.UUID: str(self.uuid),
+            mapping.VALIDITY: validity_dict,
+            # mapping.GIVENNAME: self.given_name,
+            # mapping.SURNAME: self.sur_name,
+            # mapping.NAME: self.name,
+            # mapping.NICKNAME: self.nickname,
+            # mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
+            # mapping.NICKNAME_SURNAME: self.nickname_sur_name,
+        }
+
+        if self.name:
+            data_dict[mapping.NAME] = self.name
+        if self.given_name:
+            data_dict[mapping.GIVENNAME] = self.given_name
+        if self.sur_name:
+            data_dict[mapping.SURNAME] = self.sur_name
+
+        if self.nickname:
+            data_dict[mapping.NICKNAME] = self.nickname
+        if self.nickname_given_name:
+            data_dict[mapping.NICKNAME_GIVENNAME] = self.nickname_given_name
+        if self.nickname_sur_name:
+            data_dict[mapping.NICKNAME_SURNAME] = self.nickname_sur_name
+
+        if self.seniority:
+            data_dict[mapping.SENIORITY] = self.seniority
+
+        if self.cpr_no:
+            data_dict[mapping.CPR_NO] = self.cpr_no
+
         return {
             mapping.TYPE: mapping.EMPLOYEE,
             mapping.UUID: str(self.uuid),
-            mapping.DATA: {
-                mapping.UUID: str(self.uuid),
-                mapping.VALIDITY: validity_dict,
-                mapping.GIVENNAME: self.given_name,
-                mapping.SURNAME: self.sur_name,
-                mapping.NAME: self.name,
-                mapping.NICKNAME: self.nickname,
-                mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
-                mapping.NICKNAME_SURNAME: self.nickname_sur_name,
-            },
+            mapping.DATA: data_dict,
         }
 
 
