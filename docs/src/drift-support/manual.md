@@ -259,7 +259,7 @@ Fanebladet ’IT’ giver et overblik over, hvilke it-systemer organisationsenhe
 
 ![image](../graphics/momanual/IT-tilknytninger_Faneblad.png)
 
-Udover lønmæssig indplacering (ansættelse / engagement) er en person indplaceret i forhold til sit arbejdssted. Dette er ofte, men ikke altid, identisk med den lønmæssige indplacering. I praksis er det ikke personen, men deres it-bruger, der er indplaceret. Enkelte personer har mere end én it-bruger, som er placeret og har rettigheder forskellige steder. Derfor er det ikke muligt at benytte eksempelvis ”Tilknytning” (se ovenfor), da det ikke er forbundet til it-brugeren.
+Udover lønmæssig indplacering (ansættelse / engagement) er en person indplaceret i forhold til sit arbejdssted. Dette er ofte, men ikke altid, identisk med den lønmæssige indplacering. I praksis er det ikke personen, men deres it-bruger, der er indplaceret. Enkelte personer har mere end én it-bruger, som er placeret og har rettigheder forskellige steder. Derfor er det ikke muligt at benytte eksempelvis "Tilknytning" eller "Engagement" (se ovenfor), da ingen af dem er forbundet til it-brugeren.
 Derfor er det nødvendigt at kunne markere den primære it-bruger, så de aftagersystemer, der kun tillader én bruger pr. person, kan få udvalgt den rette bruger. Derudover er der i nogle tilfælde behov for at tilknytte en brugervendt stillingsbetegnelse til IT-brugeren, som ikke er identisk med den stillingsbetegnelse, der er hentet fra lønsystemet og placeret under engagementer.
 
 Oprettelsen af en it-tilknytning ser således sådan ud:
@@ -275,19 +275,19 @@ Følgende valideringer er gældende:
 ***It-konti*** (i et bestemt system)
 
 - En it-konto må kun være tilknyttet én person (et CPR-nummer).
-- Der må kun være én primær konto til samme it-system.
+- En given person må maksimalt have én primær it-konto pr. it-system
 
-Fx kan én person have it-konti Y11 og Y22 til ét it-system og Y22 til et andet. Dvs. tre it-konti som hver især kan tilknyttes organisation en eller flere gange.
+Fx kan én person have it-konti Y11 og Y22 til ét it-system og Y33 til et andet. Dvs. tre it-konti som hver især kan tilknyttes organisation en eller flere gange.
 
 ***It-konti-tilknytning***
 
-- Der må maksimalt være én tilknytning til en organisationsenhed for samme it-konto.
+- En person må maksimalt have én it-tilknytning til en given it-konto pr. organisationsenhed.
 
 Fx: Y11 fra samme it-system må kun være tilknyttet samme organisationsenhed én gang.
 
 Fx: Y11 og Y22 fra samme it-system kan være tilknyttet samme organisationsenhed.
 
-- Der må kun være én primær tilknytning af gangen for samme it-konto
+- En person må maksimalt have én primær it-tilknytning for en given it-konto.
 
 Fx: Y11 kan ikke være tilknyttet to forskellige organisationsenheder som primær på samme tid.
 
