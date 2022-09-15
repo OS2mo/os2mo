@@ -390,7 +390,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     )
 
     seniority: Optional[str] = Field(
-        "", description="New seniority value of the employee."
+        None, description="New seniority value of the employee."
     )
 
     cpr_no: Optional[str] = Field(
