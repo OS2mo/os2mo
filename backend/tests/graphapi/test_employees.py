@@ -601,7 +601,10 @@ async def test_update(
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
+
         print(response)
+        print(response.errors)
+
         updated_employee_uuid = (
             response.data.get(mutation_func)
             if isinstance(response, ExecutionResult) and isinstance(response.data, dict)
@@ -611,6 +614,3 @@ async def test_update(
         # Asserts
         mock_lora_update.assert_called()
         assert updated_employee_uuid == given_uuid_str
-
-
-0
