@@ -556,7 +556,9 @@ async def test_update(
         )
 
         print(response)
-        print(response.errors)
+        if response.errors and len(response.errors) > 0:
+            for err in response.errors:
+                print(err)
 
         updated_employee_uuid = (
             response.data.get(mutation_func)
