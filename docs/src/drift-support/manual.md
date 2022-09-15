@@ -124,12 +124,14 @@ Under Organisationsdelen kan man søge på:
 Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt at søge på:
 
 **Medarbejderes:**
+
 - UUID
 - Medarbejdernavn
 - Kaldenavn
 - CPR-nummer (uden bindestreg)
 
 **Medarbejderes adresseregistreringer (undtagen DAR-adresser). Eksempelvis:**
+
 - Telefonnummer
 - Email
 
@@ -138,11 +140,13 @@ Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt 
 - az ident
 
 **Organisationsenheders:**
+
 - UUID
 - Enhedsnavn
 - Enhedsnummer - BVN (brugervendt nøgle)
 
 **Organisationenheders adresse-registreringer (undtagen DAR-adresser). Eksempelvis:**
+
 - LOS ID
 - OrgID
 - Adresse
@@ -154,11 +158,13 @@ Det er også muligt at få tilpasset sin søgning. I så fald bliver det muligt 
 **Hvad kommer frem i søgeresultat?**
 
 **Medarbejder**
+
 - Navn
 - Udvalgte adresse--registreringer (fx telefonnummer, email)
 - Udvalgte it-konto-oplysninger (fx “AZ ident”)
 
 **Organisation**
+
 - Navn
 - Organisatorisk sti
 - Udvalgte adresse-registreringer (fx LOS-ID, mag-kort)
