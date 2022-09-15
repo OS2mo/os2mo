@@ -549,6 +549,7 @@ async def test_update(
     given_cpr_no,
 ):
     # Unpack tuples
+    given_uuid_str = str(given_uuid)
     given_validity_from, given_validity_to = given_validity_dts
     given_name, given_givenname, given_surname = given_name_tuple
     (
@@ -557,47 +558,50 @@ async def test_update(
         given_nickname_surname,
     ) = given_nickname_tuple
 
-    # Create variable values for GraphQL
-    var_values = {
-        "uuid": str(given_uuid),
-        "from": given_validity_from.date().isoformat() if given_validity_from else None,
-        "to": given_validity_to.date().isoformat() if given_validity_to else None,
-        "name": given_name,
-        "givenName": given_givenname,
-        "surName": given_surname,
-        "nickname": given_nickname,
-        "nicknameGivenName": given_nickname_givenname,
-        "nicknameSurName": given_nickname_surname,
-        "seniority": given_seniority,
-        "cpr_no": given_cpr_no,
-    }
-
-    if given_validity_from:
-        var_values["from"] = given_validity_from.date().isoformat()
-
-    if given_validity_to:
-        var_values["to"] = given_validity_to.date().isoformat()
-
-    # GraphQL
-    mutation_func = "employee_update"
-    query = (
-        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
-        "$givenName: String, $surName: String, $nickname: String, "
-        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
-        "$cprNo: String) {"
-        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
-        "nickname_given_name: $nicknameGivenName, "
-        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
-        "}"
-    )
-
     with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
-        mock_lora_update.return_value = var_values["uuid"]
+        mock_lora_update.return_value = given_uuid_str
+
+        # Create variable values for GraphQL
+        var_values = {
+            "uuid": given_uuid_str,
+            "from": given_validity_from.date().isoformat()
+            if given_validity_from
+            else None,
+            "to": given_validity_to.date().isoformat() if given_validity_to else None,
+            "name": given_name,
+            "givenName": given_givenname,
+            "surName": given_surname,
+            "nickname": given_nickname,
+            "nicknameGivenName": given_nickname_givenname,
+            "nicknameSurName": given_nickname_surname,
+            "seniority": given_seniority,
+            "cpr_no": given_cpr_no,
+        }
+
+        if given_validity_from:
+            var_values["from"] = given_validity_from.date().isoformat()
+
+        if given_validity_to:
+            var_values["to"] = given_validity_to.date().isoformat()
+
+        # GraphQL
+        mutation_func = "employee_update"
+        query = (
+            "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
+            "$givenName: String, $surName: String, $nickname: String, "
+            "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+            "$cprNo: String) {"
+            f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+            "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+            "nickname_given_name: $nicknameGivenName, "
+            "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
+            "}"
+        )
 
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
+        print(response)
         updated_employee_uuid = (
             response.data.get(mutation_func)
             if isinstance(response, ExecutionResult) and isinstance(response.data, dict)
@@ -606,4 +610,7 @@ async def test_update(
 
         # Asserts
         mock_lora_update.assert_called()
-        assert updated_employee_uuid == var_values["uuid"]
+        assert updated_employee_uuid == given_uuid_str
+
+
+0
