@@ -555,6 +555,7 @@ async def test_update(
             query, variable_values=var_values
         )
 
+        print(var_values)
         print(response)
         if response.errors and len(response.errors) > 0:
             for err in response.errors:
