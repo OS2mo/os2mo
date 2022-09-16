@@ -106,7 +106,7 @@ Opgaven består i intsallation, konfiguration og eventuel tilpasning af integrat
 
 Integrationen med OPUS foregår via XML-dump fra KMD som hver nat placeres på KFS LAN. XML-dumpet skal rekvireres fra KMD.
 
-Samtidigt hermed skal [denne integration Active Directory opsættes](https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#id5)
+Samtidigt hermed skal [denne integration Active Directory opsættes](../data-import-export/integrations/ad.md)
 
 ### Integration med SD-Løn
 
@@ -136,7 +136,7 @@ Opgaven udføres i tre trin:
 - Lille AD-skriv - Skriver OS2mo's UUID'er til et ExtensionAttribute-felt i AD'et til sikring af konsistent bruger-UUID på tværs af systemer.
 - Store AD-Skriv - Sørger for at OS2mo's organisation og brugere overføres til Active Directory så OS2mo også bliver autoritativ for Active Directory og brugeroprettelse sker automatisk.
 
-[Se udførlig beskrivelse af AD-integrationen.](https://os2mo-data-import-and-export.readthedocs.io/en/latest/main.html#integration-til-active-directory)
+[Se udførlig beskrivelse af AD-integrationen.](../data-import-export/integrations/ad.md)
 
 ## Integration med OS2rollekatalog
 
