@@ -16,7 +16,7 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora import util
-from mora.graphapi.utils import CprNr
+from mora.graphapi.utils import CprNo
 from mora.graphapi.utils import SafeString
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
@@ -394,7 +394,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         None, description="New seniority value of the employee."
     )
 
-    cpr_no: Optional[CprNr] = Field(
+    cpr_no: Optional[CprNo] = Field(
         None, description="New danish CPR No. of the employee."
     )
 
