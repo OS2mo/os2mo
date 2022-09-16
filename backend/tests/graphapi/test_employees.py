@@ -478,24 +478,26 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
 
 @given(
     st.uuids(),
+    # from & to
     st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
+    # name, given_name, sur_name
     st.tuples(
-        # name, given_name, sur_name
         st.text() | st.none(),
         st.text() | st.none(),
         st.text() | st.none(),
     ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
+    # nickname, nickname_givenname, nickname_surname,
     st.tuples(
-        # nickname, nickname_givenname, nickname_surname,
         st.text() | st.none(),
         st.text() | st.none(),
         st.text() | st.none(),
     ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
-    st.text() | st.none(),  # given_seniority
-    # st.text() | st.none(),  # cpr_no
-    st.from_regex(r"^\d{10}$") | st.none(),  # cpr_no
+    # given_seniority
+    st.text() | st.none(),
+    # cpr_no
+    st.from_regex(r"^\d{10}$") | st.none(),
 )
 async def test_update(
     given_uuid,
@@ -529,41 +531,21 @@ async def test_update(
         var_values["to"] = given_validity_to.date().isoformat()
         pydantic_values["to"] = given_validity_to.date().isoformat()
 
-    if given_name:
-        var_values["name"] = given_name
-        pydantic_values["name"] = given_name
-
-    if given_givenname:
-        var_values["givenName"] = given_givenname
-        pydantic_values["given_name"] = given_givenname
-
-    if given_surname:
-        var_values["surName"] = given_surname
-        pydantic_values["sur_name"] = given_surname
-
-    if given_nickname:
-        var_values["nickname"] = given_nickname
-        pydantic_values["nickname"] = given_nickname
-
-    if given_nickname_givenname:
-        var_values["nicknameGivenName"] = given_nickname_givenname
-        pydantic_values["nickname_given_name"] = given_nickname_givenname
-
-    if given_nickname_surname:
-        var_values["nicknameSurName"] = given_nickname_surname
-        pydantic_values["nickname_sur_name"] = given_nickname_surname
-
-    if given_seniority:
-        var_values["seniority"] = given_seniority
-        pydantic_values["seniority"] = given_seniority
-
-    if given_cpr_no:
-        var_values["cpr_no"] = given_cpr_no
-        pydantic_values["cpr_no"] = given_cpr_no
+    _set_gql_var("name", given_name, var_values, pydantic_values)
+    _set_gql_var("given_name", given_givenname, var_values, pydantic_values)
+    _set_gql_var("sur_name", given_surname, var_values, pydantic_values)
+    _set_gql_var("nickname", given_nickname, var_values, pydantic_values)
+    _set_gql_var(
+        "nickname_given_name", given_nickname_givenname, var_values, pydantic_values
+    )
+    _set_gql_var(
+        "nickname_sur_name", given_nickname_surname, var_values, pydantic_values
+    )
+    _set_gql_var("seniority", given_seniority, var_values, pydantic_values)
+    _set_gql_var("cpr_no", given_cpr_no, var_values, pydantic_values)
 
     # Create pydantic model manually, to determine how the test should be asserted.
     # If we are not able to create it, the response from GraphQL should fail equally
-    # var_values["name"] = '¾õn\x14' # DEV stuff, remove when ready
     expected_exception = None
     try:
         _ = EmployeeUpdate(**pydantic_values)
@@ -609,3 +591,16 @@ async def test_update(
                 else None
             )
             assert updated_employee_uuid == given_uuid_str
+
+
+def _set_gql_var(field_name, value, gql_values, pydantic_values):
+    """Helper method to assign variables to dicts used by GraphQL and pydantic."""
+
+    if not value:
+        return
+
+    components = field_name.split("_")
+    value_camel_case = components[0] + "".join(x.title() for x in components[1:])
+
+    gql_values[value_camel_case] = value
+    pydantic_values[field_name] = value

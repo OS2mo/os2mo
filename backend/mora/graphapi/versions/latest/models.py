@@ -363,9 +363,7 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(UUIDBase, ValidityFromRequired):
-    name: Optional[SafeString] = Field(
-        None, description="New value for the name of the employee"
-    )
+    name: Optional[SafeString] = Field(None, description="something")
 
     given_name: Optional[SafeString] = Field(
         None,
