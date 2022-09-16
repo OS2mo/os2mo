@@ -2,7 +2,7 @@
 title: Powershell script til AD-Skriv
 ---
 
-Nedensor beskrives opsætning og funktionalitet.
+Nedenfor beskrives opsætning og funktionalitet.
 
 ## Opsætning
 
