@@ -165,7 +165,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
-        return await employee_update(input.to_pydantic())
+        return await employee_update(input.to_pydantic()) # type: ignore
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
