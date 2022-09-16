@@ -6,9 +6,8 @@ Dette er den fuldstændige dokumentation til OS2mo |
 MedarbejderOrganisation. Dokumentation af andre relaterede systemer kan
 findes her:
 
--   [LoRa (databasen)](https://mox.readthedocs.io/en/master/)
--   [Import- og
-    exportværktøjer](https://os2mo-data-import-and-export.readthedocs.io/en/latest/)
+-   [LoRa (databasen)](./lora/index.md)
+-   [Import- og exportværktøjer](./data-import-export/intro.md)
 
 OS2mo er en webapplikation til håndtering af medarbejdere og
 organisationshierarkier. Systemet sætter brugerne i stand til at navigere i eksempelvis organisationshierarkiet, indhente relevante
