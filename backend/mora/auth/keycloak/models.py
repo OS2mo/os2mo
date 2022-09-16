@@ -23,9 +23,9 @@ class KeycloakToken(BaseToken):
         if (
             config.get_settings().keycloak_rbac_enabled
             and values.get("azp") == config.get_settings().keycloak_mo_client
-            and values.get("uuid") is None
+            and ("owner" in values["realm_access"].roles and values.get("uuid") is None)
         ):
-            raise ValueError("The uuid user attribute is missing in the token")
+            raise ValueError("The uuid user attribute is required for owners.")
         return values
 
     @validator("uuid", pre=True)

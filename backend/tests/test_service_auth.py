@@ -6,6 +6,7 @@ from uuid import UUID
 import pytest
 from more_itertools import one
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
+from os2mo_fastapi_utils.auth.models import RealmAccess
 from os2mo_fastapi_utils.auth.test_helper import (
     ensure_endpoints_depend_on_oidc_auth_function,
 )
@@ -231,11 +232,11 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
 @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
 def test_uuid_required_if_client_is_mo():
     with pytest.raises(ValidationError) as err:
-        KeycloakToken(azp="mo-frontend")
+        KeycloakToken(azp="mo-frontend", realm_access=RealmAccess(roles={"owner"}))
     # Testing for one error only.
     error = one(err.value.errors())
 
-    assert error["msg"] == "The uuid user attribute is missing in the token"
+    assert error["msg"] == "The uuid user attribute is required for owners."
     assert error["type"] == "value_error"
     assert len(err.value.errors()) == 1
 
@@ -258,7 +259,11 @@ def test_uuid_parsed_correctly_base64():
 @util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
 def test_uuid_parse_fails_on_garbage():
     with pytest.raises(ValidationError) as err:
-        KeycloakToken(azp="mo-frontend", uuid="garbageasdasd")
+        KeycloakToken(
+            azp="mo-frontend",
+            realm_access=RealmAccess(roles={"owner"}),
+            uuid="garbageasdasd",
+        )
     errors = err.value.errors()[0]
 
     assert errors["msg"] == "value is not a valid uuid"
