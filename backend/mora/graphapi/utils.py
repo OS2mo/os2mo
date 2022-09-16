@@ -15,5 +15,5 @@ class SafeString(ConstrainedStr):
     regex = re.compile(r"^[\w\s]*$")
 
 
-class CprNr(ConstrainedStr):
+class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
