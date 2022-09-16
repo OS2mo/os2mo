@@ -566,9 +566,6 @@ async def test_update(
         given_nickname_surname,
     ) = given_nickname_tuple
 
-    # with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
-    #     mock_lora_update.return_value = given_uuid_str
-
     # Create variable values for GraphQL (init with required fields)
     var_values = {
         "uuid": given_uuid_str,
