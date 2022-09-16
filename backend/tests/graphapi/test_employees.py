@@ -10,6 +10,7 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 import mock
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
@@ -17,6 +18,7 @@ from hypothesis import strategies as st
 from mock import patch
 from mock.mock import AsyncMock
 from parameterized import parameterized
+from pydantic import ValidationError
 from pytest import MonkeyPatch
 from strawberry.types import ExecutionResult
 
@@ -27,6 +29,9 @@ from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.models import EmployeeUpdate
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
+from mora.service.util import handle_gql_error
 from mora.graphapi.versions.latest.models import EmployeeCreate
 from mora.graphapi.versions.latest.types import EmployeeType
 from mora.util import NEGATIVE_INFINITY
@@ -538,7 +543,8 @@ async def test_update():
         st.text() | st.none(),
     ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
     st.text() | st.none(),  # given_seniority
-    st.text() | st.none(),  # cpr_no
+    # st.text() | st.none(),  # cpr_no
+    st.from_regex(r"^\d{10}$") | st.none(),  # cpr_no
 )
 async def test_update(
     given_uuid,
@@ -565,38 +571,53 @@ async def test_update(
     var_values = {
         "uuid": given_uuid_str,
         "from": given_validity_from.date().isoformat(),
-        # "to": given_validity_to.date().isoformat() if given_validity_to else None,
-        # "name": given_name,
-        # "givenName": given_givenname,
-        # "surName": given_surname,
-        # "nickname": given_nickname,
-        # "nicknameGivenName": given_nickname_givenname,
-        # "nicknameSurName": given_nickname_surname,
-        # "seniority": given_seniority,
-        # "cpr_no": given_cpr_no,
     }
+    pydantic_values = {**var_values}
 
     if given_validity_to:
         var_values["to"] = given_validity_to.date().isoformat()
+        pydantic_values["to"] = given_validity_to.date().isoformat()
 
     if given_name:
         var_values["name"] = given_name
+        pydantic_values["name"] = given_name
+
     if given_givenname:
         var_values["givenName"] = given_givenname
+        pydantic_values["given_name"] = given_givenname
+
     if given_surname:
         var_values["surName"] = given_surname
+        pydantic_values["sur_name"] = given_surname
 
     if given_nickname:
         var_values["nickname"] = given_nickname
+        pydantic_values["nickname"] = given_nickname
+
     if given_nickname_givenname:
         var_values["nicknameGivenName"] = given_nickname_givenname
+        pydantic_values["nickname_given_name"] = given_nickname_givenname
+
     if given_nickname_surname:
         var_values["nicknameSurName"] = given_nickname_surname
+        pydantic_values["nickname_sur_name"] = given_nickname_surname
 
     if given_seniority:
         var_values["seniority"] = given_seniority
+        pydantic_values["seniority"] = given_seniority
+
     if given_cpr_no:
         var_values["cpr_no"] = given_cpr_no
+        pydantic_values["cpr_no"] = given_cpr_no
+
+    # Create pydantic model manually, to determine how the test should be asserted.
+    # If we are not able to create it, the response from GraphQL should fail equally
+    # var_values["name"] = '¾õn\x14' # DEV stuff, remove when ready
+    expected_exception = None
+    try:
+        _ = EmployeeUpdate(**pydantic_values)
+    except Exception as e:
+        expected_exception = e
 
     # GraphQL
     mutation_func = "employee_update"
@@ -611,25 +632,29 @@ async def test_update(
         "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
         "}"
     )
-    with mock.patch("mora.service.employee.lora.Scope.update") as mock_lora_update:
-        mock_lora_update.return_value = given_uuid_str
 
+    with mock.patch(
+        "mora.graphapi.versions.latest.mutators.employee_update"
+    ) as mock_employee_update:
+        mock_employee_update.return_value = given_uuid_str
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
 
-        print(var_values)
-        print(response)
-        if response.errors and len(response.errors) > 0:
-            for err in response.errors:
-                print(err)
+        if expected_exception:
+            response_exception = None
+            if isinstance(response.errors, list) and response.errors[0]:
+                response_exception = response.errors[0].original_error
 
-        updated_employee_uuid = (
-            response.data.get(mutation_func)
-            if isinstance(response, ExecutionResult) and isinstance(response.data, dict)
-            else None
-        )
+            with pytest.raises(ValidationError) as e_info:
+                raise response_exception
 
-        # Asserts
-        mock_lora_update.assert_called()
-        assert updated_employee_uuid == given_uuid_str
+            assert e_info.type is ValidationError
+        else:
+            updated_employee_uuid = (
+                response.data.get(mutation_func)
+                if isinstance(response, ExecutionResult)
+                and isinstance(response.data, dict)
+                else None
+            )
+            assert updated_employee_uuid == given_uuid_str

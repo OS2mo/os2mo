@@ -15,6 +15,9 @@ from pydantic import root_validator
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora import util
+from mora.graphapi.utils import CprNr
+from mora.graphapi.utils import SafeString
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -22,6 +25,7 @@ from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
 from ramodels.mo import Validity as ValidityFromRequired
 from ramodels.mo._shared import UUIDBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -463,7 +467,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         None, description="New seniority value of the employee."
     )
 
-    cpr_no: Optional[str] = Field(
+    cpr_no: Optional[CprNr] = Field(
         None, description="New danish CPR No. of the employee."
     )
 
