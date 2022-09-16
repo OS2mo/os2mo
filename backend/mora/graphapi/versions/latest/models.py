@@ -505,12 +505,6 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         data_dict = {
             mapping.UUID: str(self.uuid),
             mapping.VALIDITY: validity_dict,
-            # mapping.GIVENNAME: self.given_name,
-            # mapping.SURNAME: self.sur_name,
-            # mapping.NAME: self.name,
-            # mapping.NICKNAME: self.nickname,
-            # mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
-            # mapping.NICKNAME_SURNAME: self.nickname_sur_name,
         }
 
         if self.name:
