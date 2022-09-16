@@ -16,11 +16,14 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora import util
+from mora.graphapi.utils import CprNr
+from mora.graphapi.utils import SafeString
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as ValidityFromRequired
 from ramodels.mo._shared import UUIDBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -360,40 +363,40 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(UUIDBase, ValidityFromRequired):
-    name: Optional[str] = Field(
+    name: Optional[SafeString] = Field(
         None, description="New value for the name of the employee"
     )
 
-    given_name: Optional[str] = Field(
+    given_name: Optional[SafeString] = Field(
         None,
         description="New first-name value of the employee nickname.",
     )
 
-    sur_name: Optional[str] = Field(
+    sur_name: Optional[SafeString] = Field(
         None,
         description="New last-name value of the employee nickname.",
     )
 
-    nickname: Optional[str] = Field(
+    nickname: Optional[SafeString] = Field(
         None,
         description="New nickname value of the employee nickname.",
     )
 
-    nickname_given_name: Optional[str] = Field(
+    nickname_given_name: Optional[SafeString] = Field(
         None,
         description="New nickname given-name value of the employee nickname.",
     )
 
-    nickname_sur_name: Optional[str] = Field(
+    nickname_sur_name: Optional[SafeString] = Field(
         None,
         description="New nickname sur-name value of the employee nickname.",
     )
 
-    seniority: Optional[str] = Field(
+    seniority: Optional[SafeString] = Field(
         None, description="New seniority value of the employee."
     )
 
-    cpr_no: Optional[str] = Field(
+    cpr_no: Optional[CprNr] = Field(
         None, description="New danish CPR No. of the employee."
     )
 

@@ -4,6 +4,7 @@ import strawberry
 
 from .models import Address as AddressModel
 from .models import Employee as EmployeeModel
+from .models import EmployeeUpdate
 from .models import EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
@@ -62,4 +63,12 @@ class EmployeeType:
 class GenericUUIDType:
     """Generic UUID model for return types."""
 
+    pass
+
+
+@strawberry.experimental.pydantic.type(
+    model=EmployeeUpdate,
+    all_fields=True,
+)
+class EmployeeUpdateType:
     pass
