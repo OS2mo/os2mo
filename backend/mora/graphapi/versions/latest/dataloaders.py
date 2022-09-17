@@ -99,7 +99,11 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     results = await search_role_type(mo_type, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
-    return list(starmap(Response, uuid_map.items()))
+    return list(
+        starmap(
+            lambda uuid, objects: Response(uuid=uuid, objects=objects), uuid_map.items()
+        )
+    )
 
 
 async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
@@ -116,7 +120,11 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     results = await get_role_type_by_uuid(mo_type, uuids)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results, uuids)
-    return list(starmap(Response, uuid_map.items()))
+    return list(
+        starmap(
+            lambda uuid, objects: Response(uuid=uuid, objects=objects), uuid_map.items()
+        )
+    )
 
 
 # get all models
