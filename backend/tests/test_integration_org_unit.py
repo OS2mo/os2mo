@@ -4,7 +4,6 @@ import unittest
 from itertools import cycle
 
 import freezegun
-import notsouid
 import pytest
 from parameterized import parameterized
 
@@ -2398,7 +2397,6 @@ class Tests(tests.cases.LoRATestCase):
             ("Institut for Vrøvl", "2018-10-01", "2018-12-31"),
         )
 
-    @notsouid.freeze_uuid("ec93e37e-774e-40b4-953c-05ca41b80372")
     def test_create_missing_parent(self):
         payload = {
             "name": "Fake Corp",

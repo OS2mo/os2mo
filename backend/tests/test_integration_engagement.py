@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
+from uuid import UUID
+
 import freezegun
-import notsouid
 import pytest
 
 import tests.cases
@@ -186,7 +188,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         ]
 
         mock_uuid = "b6c268d2-4671-4609-8441-6029077d8efc"
-        with notsouid.freeze_uuid(mock_uuid):
+        with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
             (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
@@ -310,7 +312,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             }
         ]
 
-        with notsouid.freeze_uuid(mock_uuid):
+        with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
             (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
@@ -434,7 +436,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             }
         ]
 
-        with notsouid.freeze_uuid(mock_uuid):
+        with patch("uuid.uuid4", new=lambda: UUID(mock_uuid)):
             (engagementid,) = await self.assertRequest(
                 "/service/details/create",
                 json=payload,
