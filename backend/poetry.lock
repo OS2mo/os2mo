@@ -106,7 +106,7 @@ trio = ["trio (>=0.16)"]
 name = "asgi-lifespan"
 version = "1.0.1"
 description = "Programmatic startup/shutdown of ASGI apps."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.6"
 
@@ -303,7 +303,7 @@ idna = ">=2.0.0"
 name = "exceptiongroup"
 version = "1.0.0rc9"
 description = "Backport of PEP 654 (exception groups)"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -467,7 +467,7 @@ http2 = ["h2 (>=3,<5)"]
 name = "hypothesis"
 version = "6.54.5"
 description = "A library for property-based testing"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -584,7 +584,7 @@ resolved_reference = "924faf067db69270795e35ff3c973a2a46e7d240"
 name = "lxml"
 version = "4.9.1"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*"
 
@@ -911,30 +911,6 @@ python-versions = "*"
 dev = ["jinja2"]
 
 [[package]]
-name = "pexpect"
-version = "4.8.0"
-description = "Pexpect allows easy control of interactive console applications."
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-ptyprocess = ">=0.5"
-
-[[package]]
-name = "pika"
-version = "1.3.0"
-description = "Pika Python AMQP Client Library"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.extras]
-gevent = ["gevent"]
-tornado = ["tornado"]
-twisted = ["twisted"]
-
-[[package]]
 name = "platformdirs"
 version = "2.5.2"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
@@ -1019,14 +995,6 @@ description = "psycopg2 - Python-PostgreSQL Database Adapter"
 category = "main"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
-
-[[package]]
-name = "ptyprocess"
-version = "0.7.0"
-description = "Run a subprocess in a pseudo terminal"
-category = "main"
-optional = false
-python-versions = "*"
 
 [[package]]
 name = "py"
@@ -1344,7 +1312,7 @@ python-versions = ">=3.7"
 name = "sortedcontainers"
 version = "2.4.0"
 description = "Sorted Containers -- Sorted List, Sorted Dict, Sorted Set"
-category = "main"
+category = "dev"
 optional = false
 python-versions = "*"
 
@@ -1514,7 +1482,7 @@ twisted = ["twisted"]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
 
@@ -1658,7 +1626,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "19a4219e08fa24d9f4d73aadaf9f305b52f5f5592830d438abca72143659c349"
+content-hash = "a8fd7ec798410ec11e802b785ac8829e50c6a6ea24bbc7ae1409a996c37ef83b"
 
 [metadata.files]
 aio-pika = [
@@ -2074,11 +2042,6 @@ parameterized = [
     {file = "parameterized-0.8.1-py2.py3-none-any.whl", hash = "sha256:9cbb0b69a03e8695d68b3399a8a5825200976536fe1cb79db60ed6a4c8c9efe9"},
     {file = "parameterized-0.8.1.tar.gz", hash = "sha256:41bbff37d6186430f77f900d777e5bb6a24928a1c46fb1de692f8b52b8833b5c"},
 ]
-pexpect = [
-    {file = "pexpect-4.8.0-py2.py3-none-any.whl", hash = "sha256:0b48a55dcb3c05f3329815901ea4fc1537514d6ba867a152b581d69ae3710937"},
-    {file = "pexpect-4.8.0.tar.gz", hash = "sha256:fc65a43959d153d0114afe13997d439c22823a27cefceb5ff35c2178c6784c0c"},
-]
-pika = []
 platformdirs = [
     {file = "platformdirs-2.5.2-py3-none-any.whl", hash = "sha256:027d8e83a2d7de06bbac4e5ef7e023c02b863d7ea5d079477e722bb41ab25788"},
     {file = "platformdirs-2.5.2.tar.gz", hash = "sha256:58c8abb07dcb441e6ee4b11d8df0ac856038f944ab98b7be6b27b2a3c7feef19"},
@@ -2155,10 +2118,6 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.8.6-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:7312e931b90fe14f925729cde58022f5d034241918a5c4f9797cac62f6b3a9dd"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-win32.whl", hash = "sha256:6422f2ff0919fd720195f64ffd8f924c1395d30f9a495f31e2392c2efafb5056"},
     {file = "psycopg2_binary-2.8.6-cp39-cp39-win_amd64.whl", hash = "sha256:15978a1fbd225583dd8cdaf37e67ccc278b5abecb4caf6b2d6b8e2b948e953f6"},
-]
-ptyprocess = [
-    {file = "ptyprocess-0.7.0-py2.py3-none-any.whl", hash = "sha256:4b41f3967fce3af57cc7e94b888626c18bf37a083e3651ca8feeb66d492fef35"},
-    {file = "ptyprocess-0.7.0.tar.gz", hash = "sha256:5c5d0a3b48ceee0b48485e0c26037c0acd7d29765ca3fbb5cb3831d347423220"},
 ]
 py = [
     {file = "py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378"},

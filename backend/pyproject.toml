@@ -15,15 +15,12 @@ keywords = ["os2mo"]
 [tool.poetry.dependencies]
 python = "^3.10"
 alembic = "^1.6.5"
-requests = "^2.25.1"
-lxml = "^4.6.3"
 python-dateutil = "^2.8.1"
 validators = "^0.18.2"
 # Version 2.9.x always starts a transaction when you connect to a database using a context manager.
 # See: https://stackoverflow.com/a/68112827
 gunicorn = "^20.1.0"
 PyJWT = {extras = ["crypto"], version = "^2.1.0"}
-toml = "^0.10.2"
 more-itertools = "^8.8.0"
 SQLAlchemy = "^1.4.17"
 SQLAlchemy-Utils = "^0.37.6"
@@ -44,14 +41,10 @@ prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometh
 pydantic = {extras = ["email"], version = "^1.7.3"}
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
-asgi-lifespan = "^1.0.1"
 ramqp = "^3.0.0"
 uvicorn = "^0.18.2"
 strawberry-graphql = {extras = ["fastapi"], version = "^0.125.1"}
-pexpect = "^4.8.0"
-pika = "^1.2.1"
 jsonschema = "^4.5.1"
-hypothesis = "^6.54.4"
 psycopg2-binary = "~2.8"
 
 [tool.poetry.dev-dependencies]
@@ -71,6 +64,7 @@ respx = "0.17.1"
 "tap.py" = "^3.1"
 pytest-parallel = "^0.1.1"
 mock = "^4.0.3"
+asgi-lifespan = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
