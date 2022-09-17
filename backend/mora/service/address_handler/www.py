@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import validators
+from pydantic import AnyHttpUrl
+from pydantic import parse_obj_as
+from pydantic import ValidationError
 
 from . import base
 from ... import exceptions
@@ -15,7 +17,9 @@ class WWWAddressHandler(base.AddressHandler):
     @forceable
     async def validate_value(value):
         """Ensure value is correct URL"""
-        if not validators.url(value):
+        try:
+            parse_obj_as(AnyHttpUrl, value)
+        except ValidationError:
             exceptions.ErrorCodes.V_INVALID_ADDRESS_WWW(
                 value=value,
             )
