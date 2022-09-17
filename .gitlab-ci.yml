@@ -22,7 +22,7 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
   PYPROJECT_PREFIX: backend
-  PYTEST_COV_FAIL_UNDER: 81
+  PYTEST_COV_FAIL_UNDER: 80
   PYTEST_COV_MODULE: "mora"
 
   # We use kaniko v0.13.0 as newer versions contain fatal bugs
@@ -375,16 +375,129 @@ Build Keycloak DB:
 Unit-test:
   extends:
     - .pytest
-    - .services:use-mo
   variables:
     HYPOTHESIS_PROFILE: "ci"
     QUERY_EXPORT_DIR: "/tmp"
 
     PYTEST_EXTRA_FLAGS: '-m "not serial" -k "not graphapi"'
+    PYTHONASYNCIODEBUG: "1"
+    ENVIRONMENT: "testing"
+    DUMMY_MODE: "true"
+
+    AMQP_ENABLE: "false"
+    GRAPHQL_AUTH: "false"
+
+    MAX_WORKERS: "1"
+    TESTING_API: "true"
+    LORA_AUTH: "false"
+    DB_HOST: mox-db
+    DB_NAME: mox
+    DB_USER: mox
+    DB_PASSWORD: mox
+
+    LORA_URL: "http://localhost/lora/"
+    ENABLE_INTERNAL_LORA: "true"
   rules:
     - <<: *if-merge-request
 
 
+#GraphAPI-test:
+#  extends:
+#    - .backend-test-base
+#  script:
+#    - pytest
+#      backend/tests/graphapi
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=backend/mora/graphapi
+#      --cov-report html:$CI_PROJECT_DIR/coverage-html
+#      --cov-report term
+#      --cov-fail-under=35
+#  artifacts:
+#    when: always
+#    paths:
+#      - $CI_PROJECT_DIR/coverage-html
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#GraphAPI-Integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  parallel: 4
+#  script:
+#    - pytest
+#      backend/tests/integration/
+#      -k "graphapi"
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=mora
+#      --group $CI_NODE_INDEX
+#      --splits $CI_NODE_TOTAL
+#      --splitting-algorithm least_duration
+#      --durations-path backend/tests/.test_durations
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#Integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  parallel: 4 
+#  script:
+#    - pytest backend/tests
+#      -m "serial and not equivalence"
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=no
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=mora
+#      --group $CI_NODE_INDEX
+#      --splits $CI_NODE_TOTAL
+#      --splitting-algorithm least_duration
+#      --durations-path backend/tests/.test_durations
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#LoRa-integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  script:
+#    - pytest backend/oio_rest/tests
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=oio_rest
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
 #GraphAPI-test:
 #  extends:
 #    - .backend-test-base
