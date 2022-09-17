@@ -22,7 +22,7 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
   PYPROJECT_PREFIX: backend
-  PYTEST_COV_FAIL_UNDER: 80
+  PYTEST_COV_FAIL_UNDER: 81
   PYTEST_COV_MODULE: "mora"
 
   # We use kaniko v0.13.0 as newer versions contain fatal bugs
