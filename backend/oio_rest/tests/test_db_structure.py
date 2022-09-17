@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from unittest import TestCase
-
-from mock import patch
+from unittest.mock import patch
 
 from oio_rest.db import db_structure
 

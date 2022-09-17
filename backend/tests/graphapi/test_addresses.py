@@ -5,8 +5,8 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import datetime
+from unittest import mock
 
-import mock
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st

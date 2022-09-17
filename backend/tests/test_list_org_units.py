@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import uuid4
 
 import hypothesis.strategies as st
 from hypothesis import given
-from mock import AsyncMock
 
 from backend.mora.service.orgunit import list_orgunits
 

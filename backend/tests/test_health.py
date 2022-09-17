@@ -1,12 +1,13 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
 import pytest
 import respx
 from aiohttp import ClientError
 from httpx import Request
 from httpx import Response
-from mock import AsyncMock
-from mock import patch
 from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 

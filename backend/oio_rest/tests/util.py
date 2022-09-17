@@ -8,8 +8,8 @@ import types
 import typing
 import unittest
 import uuid
+from unittest import mock
 
-import mock
 from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app

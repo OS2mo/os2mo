@@ -5,8 +5,8 @@ from pathlib import Path
 from pathlib import PosixPath
 from typing import Any
 from typing import Optional
+from unittest import mock
 
-import mock
 import pytest
 from fastapi import Request
 from fastapi.testclient import TestClient

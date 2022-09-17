@@ -519,7 +519,7 @@ class CopyingMock(MagicMock):
 
     Workaround for mutable mock arguments and to avoid the following:
 
-    >>> from mock import MagicMock
+    >>> from unittest.mock import MagicMock
     >>> b = MagicMock()
     >>> a = {}
     >>> b(a)
