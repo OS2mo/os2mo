@@ -21,6 +21,7 @@ nav:
             - guides/environment/install-source.md
         - Tests: guides/tests.md
         - Conventions: guides/conventions.md
+        - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
         - ADFS:
           - guides/adfs-setup.md
           - guides/adfs-rbac-setup.md
@@ -40,7 +41,7 @@ nav:
         - graphql/reads.md
   - LoRa:
     - Introduction: lora/index.md
-    - User Documentation: 
+    - User Documentation:
       - lora/user/overview.md
       - lora/user/praesentation.md
       - lora/user/installation.md
@@ -48,16 +49,16 @@ nav:
       - Objects:
         - lora/user/objects.md
         - Integrationdata: lora/user/objects/integrationdata.md
-      - REST API: 
+      - REST API:
         - lora/user/api.md
         - lora/user/api/self-documentation.md
         - lora/user/api/tutorial.md
         - Operations:
-          - Read: lora/user/api/read.md 
+          - Read: lora/user/api/read.md
           - List: lora/user/api/list.md
           - Search: lora/user/api/search.md
           - Create: lora/user/api/create.md
-          - Update: 
+          - Update:
             - lora/user/api/update.md
             - lora/user/api/update/merging.md
             - lora/user/api/update/deleting.md
