@@ -21,6 +21,9 @@ variables:
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
   PYPROJECT_ROOT: "./backend"
+  PYPROJECT_PREFIX: backend
+  PYTEST_COV_FAIL_UNDER: 80
+  PYTEST_COV_MODULE: "mora"
 
   # We use kaniko v0.13.0 as newer versions contain fatal bugs
   KANIKO_VERSION: v1.3.0-debug
@@ -33,14 +36,15 @@ variables:
 include:
   - local: "ra-data-models/.gitlab-ci.yml"
   - project: "labs/salt-automation"
-    ref: "master"
     file: "/gitlab-ci-templates/common/autopub.v1.yml"
   - project: "labs/salt-automation"
-    ref: "master"
     file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
   - project: "labs/salt-automation"
-    ref: "master"
     file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
+  - project: "labs/salt-automation"
+    ref: "feature/52316_pytest_parallel"
+    file: "/gitlab-ci-templates/python/pytest-meta.v1.yml"
+
 
 
 # Conditions
@@ -370,146 +374,126 @@ Build Keycloak DB:
 
 Unit-test:
   extends:
-    - .backend-test-base
-  script:
-    - pytest backend/tests
-      -p no:cacheprovider
-      -m "not serial"
-      -k "not graphapi"
-      --color=yes
-      --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
-      --workers auto
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
+    - .pytest
+    - .services:use-mo
+  variables:
+    HYPOTHESIS_PROFILE: "ci"
+    QUERY_EXPORT_DIR: "/tmp"
 
-GraphAPI-test:
-  extends:
-    - .backend-test-base
-  script:
-    - pytest
-      backend/tests/graphapi
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=backend/mora/graphapi
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=35
-  artifacts:
-    when: always
-    paths:
-      - $CI_PROJECT_DIR/coverage-html
-      - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
+    PYTEST_EXTRA_FLAGS: '-m "not serial" -k "not graphapi"'
+  rules:
+    - <<: *if-merge-request
 
-GraphAPI-Integration-test:
-  extends:
-    - .backend-test-base
-    - .services:start-all
-  needs:
-    - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
-  parallel: 4
-  script:
-    - pytest
-      backend/tests/integration/
-      -k "graphapi"
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
-      --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
-      --splitting-algorithm least_duration
-      --durations-path backend/tests/.test_durations
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
-Integration-test:
-  extends:
-    - .backend-test-base
-    - .services:start-all
-  needs:
-    - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
-  parallel: 4 
-  script:
-    - pytest backend/tests
-      -m "serial and not equivalence"
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=no
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=mora
-      --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
-      --splitting-algorithm least_duration
-      --durations-path backend/tests/.test_durations
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
+#GraphAPI-test:
+#  extends:
+#    - .backend-test-base
+#  script:
+#    - pytest
+#      backend/tests/graphapi
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=backend/mora/graphapi
+#      --cov-report html:$CI_PROJECT_DIR/coverage-html
+#      --cov-report term
+#      --cov-fail-under=35
+#  artifacts:
+#    when: always
+#    paths:
+#      - $CI_PROJECT_DIR/coverage-html
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#GraphAPI-Integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  parallel: 4
+#  script:
+#    - pytest
+#      backend/tests/integration/
+#      -k "graphapi"
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=mora
+#      --group $CI_NODE_INDEX
+#      --splits $CI_NODE_TOTAL
+#      --splitting-algorithm least_duration
+#      --durations-path backend/tests/.test_durations
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#Integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  parallel: 4 
+#  script:
+#    - pytest backend/tests
+#      -m "serial and not equivalence"
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=no
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=mora
+#      --group $CI_NODE_INDEX
+#      --splits $CI_NODE_TOTAL
+#      --splitting-algorithm least_duration
+#      --durations-path backend/tests/.test_durations
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
+#
+#LoRa-integration-test:
+#  extends:
+#    - .backend-test-base
+#    - .services:start-all
+#  needs:
+#    - !reference [".backend-test-base", needs]
+#    - !reference [".services:start-all", needs]
+#  script:
+#    - pytest backend/oio_rest/tests
+#      -p no:cacheprovider
+#      --color=yes
+#      --show-capture=stdout
+#      --junitxml $CI_PROJECT_DIR/junit.xml
+#      --cov=oio_rest
+#  artifacts:
+#    when: always
+#    paths:
+#      - $COVERAGE_FILE
+#    reports:
+#      junit: $CI_PROJECT_DIR/junit.xml
 
-LoRa-integration-test:
-  extends:
-    - .backend-test-base
-    - .services:start-all
-  needs:
-    - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
-  script:
-    - pytest backend/oio_rest/tests
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
-      --cov=oio_rest
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
-
-Coverage:
-  stage: coverage
-  image: python:3.10-slim
+Export coverage:
+  extends: .export_coverage
   needs:
     - Unit-test
-    - GraphAPI-test
-    - Integration-test
-  before_script:
-    - pip install coverage
-    - coverage combine
-  script:
-    - coverage report --fail-under=80 --skip-empty
-  after_script:
-    - coverage html -d $CI_PROJECT_DIR/coverage-html --skip-empty
-    - coverage xml -o $CI_PROJECT_DIR/coverage.xml --skip-empty
-  coverage: '/TOTAL.*\s+(\d+%)$/'
-  artifacts:
-    when: always
-    paths:
-      - coverage-html
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: $CI_PROJECT_DIR/coverage.xml
+  rules:
+    - <<: *if-merge-request
+
+Check coverage:
+  extends: .check_coverage
+  needs:
+    - Unit-test
   rules:
     - <<: *if-merge-request
 
