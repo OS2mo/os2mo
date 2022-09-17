@@ -5,7 +5,7 @@
 # --------------------------------------------------------------------------------------
 import asyncio
 import datetime
-from unittest import mock
+from unittest.mock import patch
 
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
@@ -113,14 +113,14 @@ class TestAddresssQuery:
 
 class TestAddressTerminate:
     @given(
-        st.uuids(),
-        st.booleans(),
-        st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
+        given_uuid=st.uuids(),
+        triggerless=st.booleans(),
+        given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
             lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
         ),
     )
-    @mock.patch.object(lora.Scope, "update", async_lora_return)
-    @mock.patch.object(lora.Scope, "get", async_lora_return)
+    @patch.object(lora.Scope, "update", async_lora_return)
+    @patch.object(lora.Scope, "get", async_lora_return)
     async def test_terminate(self, given_uuid, triggerless, given_validity_dts):
         from_date, to_date = given_validity_dts
 
