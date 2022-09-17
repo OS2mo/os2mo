@@ -4,11 +4,11 @@ import collections
 import datetime
 import unittest
 from unittest import TestCase
+from unittest.mock import call
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
-from mock import call
-from mock import MagicMock
-from mock import patch
 
 from oio_rest import db
 from oio_rest.app import create_app

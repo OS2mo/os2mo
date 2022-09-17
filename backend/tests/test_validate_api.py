@@ -1,8 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
 import pytest
-from mock import AsyncMock
-from mock import patch
 
 from mora import util as mora_util
 

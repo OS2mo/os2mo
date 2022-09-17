@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import unittest
-
-from mock import MagicMock
-from mock import patch
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from oio_rest import utils
 

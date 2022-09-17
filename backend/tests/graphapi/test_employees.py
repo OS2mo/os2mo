@@ -5,11 +5,11 @@
 # --------------------------------------------------------------------------------------
 import datetime
 from itertools import product
+from unittest.mock import AsyncMock
+from unittest.mock import patch
 from uuid import uuid4
 
 from hypothesis import given
-from mock import patch
-from mock.mock import AsyncMock
 from parameterized import parameterized
 from pytest import MonkeyPatch
 

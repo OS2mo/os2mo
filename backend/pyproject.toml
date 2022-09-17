@@ -62,7 +62,6 @@ pre-commit = "^2.18.1"
 respx = "0.17.1"
 "tap.py" = "^3.1"
 pytest-parallel = "^0.1.1"
-mock = "^4.0.3"
 asgi-lifespan = "^1.0.1"
 
 [build-system]

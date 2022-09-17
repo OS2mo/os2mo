@@ -3,14 +3,14 @@
 import json
 from asyncio import Future
 from contextlib import nullcontext as does_not_raise
+from unittest.mock import call
+from unittest.mock import patch
 from uuid import UUID
 
 import freezegun
 import pytest
 import respx
 from httpx import Response
-from mock import call
-from mock import patch
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 

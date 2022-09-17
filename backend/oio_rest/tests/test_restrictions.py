@@ -5,7 +5,7 @@
 # refactored.
 # from unittest import TestCase
 #
-# from mock import patch, MagicMock
+# from unittest.mock import patch, MagicMock
 #
 # from oio_rest import restrictions
 #

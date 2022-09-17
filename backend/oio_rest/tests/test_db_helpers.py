@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest import skip
 from unittest import TestCase
+from unittest.mock import call
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
-from mock import call
-from mock import MagicMock
-from mock import patch
 from werkzeug.datastructures import ImmutableMultiDict
 
 from oio_rest.custom_exceptions import BadRequestException
