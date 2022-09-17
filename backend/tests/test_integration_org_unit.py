@@ -5,7 +5,6 @@ from itertools import cycle
 
 import freezegun
 import pytest
-from parameterized import parameterized
 
 import tests.cases
 from . import util
@@ -2912,7 +2911,8 @@ class Tests(tests.cases.LoRATestCase):
             json=req,
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "inactive_validity,expected_validity",
         [
             # Test new payload, which includes both "from" and "to" dates
             (
@@ -2932,7 +2932,7 @@ class Tests(tests.cases.LoRATestCase):
                 # Jan 1, 2016 to Oct 21, 2016 (the day of its termination.)
                 {"from": "2016-01-01", "to": "2016-10-21"},
             ),
-        ]
+        ],
     )
     @set_get_configuration("mora.service.orgunit.get_configuration")
     def test_terminate_org_unit(self, inactive_validity, expected_validity):
@@ -3060,13 +3060,14 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "validity",
         [
             # Test new payload, which includes both "from" and "to" dates
             ({"from": "2017-01-01", "to": "2018-01-01"},),
             # Test old payload, which only has a "to" date
             ({"to": "2016-10-21"},),
-        ]
+        ],
     )
     def test_terminate_org_unit_invalid_uuid(self, validity):
         unitid = "00000000-0000-0000-0000-000000000000"
@@ -3083,7 +3084,8 @@ class Tests(tests.cases.LoRATestCase):
             status_code=404,
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "org_unit_uuid,validity,expected_error_response",
         [
             # Test new payload, which includes both "from" and "to" dates
             (
@@ -3142,7 +3144,7 @@ class Tests(tests.cases.LoRATestCase):
                     child_count=1,
                 ),
             ),
-        ]
+        ],
     )
     def test_terminate_org_unit_active_children_and_roles(
         self, org_unit_uuid, validity, expected_error_response
@@ -3183,7 +3185,8 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "org_unit_uuid,validity,expected_error_response,message",
         [
             (
                 # org unit uuid
@@ -3236,7 +3239,7 @@ class Tests(tests.cases.LoRATestCase):
                 # message
                 "No terminating on creation date!",
             ),
-        ]
+        ],
     )
     def test_terminate_org_unit_date_outside_org_unit_range(
         self,

@@ -7,7 +7,6 @@ from uuid import uuid4
 
 import freezegun
 import pytest
-from parameterized import parameterized
 
 import tests.cases
 from mora import lora
@@ -101,7 +100,8 @@ def _mo_return_it_user_doc():
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "mo_data,mo_expected,lora_expected",
         [
             # 1. Test usage of "substitute" property on associations
             (
@@ -145,7 +145,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     }
                 },
             ),
-        ]
+        ],
     )
     async def test_create_association(self, mo_data, mo_expected, lora_expected):
         def url(employee_uuid: str, **kwargs):

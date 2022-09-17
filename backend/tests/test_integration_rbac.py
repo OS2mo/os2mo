@@ -4,7 +4,6 @@ from copy import deepcopy
 from datetime import datetime
 
 import pytest
-from parameterized import parameterized
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_400_BAD_REQUEST
@@ -210,12 +209,13 @@ class TestCommon(tests.cases.LoRATestCase):
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateOrgUnit(TestCommon):
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     @pytest.mark.slow
@@ -248,12 +248,13 @@ class TestCreateOrgUnit(TestCommon):
             status_code=HTTP_201_CREATED,
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     @pytest.mark.slow
@@ -278,13 +279,14 @@ class TestCreateOrgUnit(TestCommon):
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestRenameOrgUnit(TestCommon):
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     @pytest.mark.slow
@@ -319,13 +321,14 @@ class TestTerminateOrgUnit(TestCommon):
             "validity": {"to": datetime.today().strftime("%Y-%m-%d")}
         }
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_org_unit(self, role: str, userid: str, status_code: int):
@@ -385,13 +388,14 @@ class TestCreateDetail(TestCommon):
             }
         ]
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_201_CREATED),
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_detail(self, role: str, userid: str, status_code: int):
@@ -491,13 +495,14 @@ class TestEditDetail(TestCommon):
             "org_unit": {"uuid": HUM_UNIT},
         }
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_detail(self, role: str, userid: str, status_code: int):
@@ -526,11 +531,12 @@ class TestIndirectOwnership(TestCommon):
     unit but not the unit subject to modification itself.
     """
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-        ]
+        ],
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_rename_subunit(self, role: str, userid: str, status_code: int):

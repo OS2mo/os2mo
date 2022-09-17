@@ -4,7 +4,6 @@ from collections.abc import Callable
 from operator import itemgetter
 
 import pytest
-from parameterized import parameterized
 
 from mora.exceptions import ErrorCodes
 from mora.exceptions import HTTPException
@@ -79,13 +78,14 @@ class TestGroupValidation:
         assert instance_copy.validation_items == [self._updated_object]
         assert instance is not instance_copy
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "validation_items,expected_exception",
         [
             # 1. No duplicates - no exception raised
             ([{"foo": "bar"}], None),
             # 2. Duplicates - exception raised
             ([{"foo": "bar"}, {"foo": "bar"}], HTTPException),
-        ]
+        ],
     )
     def test_validate_unique_constraint(
         self, validation_items: list[dict], expected_exception: Exception
@@ -99,13 +99,14 @@ class TestGroupValidation:
 
         self._assert_conditional_exception(_act, expected_exception)
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "validation_items,expected_exception",
         [
             # 1. Only one "foo" of value "bar" - no exception raised
             ([{"foo": "bar"}, {"foo": "baz"}], None),
             # 2. More than one "foo" of value "bar" - exception raised
             ([{"foo": "bar"}, {"foo": "baz"}], None),
-        ]
+        ],
     )
     def test_validate_at_most_one(
         self, validation_items: list[dict], expected_exception: Exception

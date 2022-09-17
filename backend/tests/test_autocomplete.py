@@ -3,7 +3,6 @@
 import pytest
 import respx
 from httpx import Response
-from parameterized import parameterized
 
 from .cases import AsyncLoRATestCase
 from mora.lora import AutocompleteScope
@@ -12,14 +11,15 @@ from mora.lora import Connector
 
 @pytest.mark.usefixtures("mock_asgi_transport")
 class TestAutocompleteScope(AsyncLoRATestCase):
-    @parameterized.expand(
+    @respx.mock
+    @pytest.mark.slow
+    @pytest.mark.parametrize(
+        "path,expected_result",
         [
             ("bruger", []),
             ("organisationsenhed", []),
-        ]
+        ],
     )
-    @respx.mock
-    @pytest.mark.slow
     async def test_autocomplete(self, path: str, expected_result: list):
         respx.get(f"http://localhost/lora/autocomplete/{path}?phrase=phrase").mock(
             return_value=Response(200, json={"results": []})

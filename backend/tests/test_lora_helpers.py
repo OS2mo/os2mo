@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from parameterized import parameterized
+import pytest
 
 from mora.lora import group_params
 from mora.lora import ParameterValuesExtractor
@@ -60,7 +60,8 @@ class TestLoraParameterValuesExtractor:
         actual = ParameterValuesExtractor.traverse(d.items())
         assert list(actual) == expected
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "path,expected",
         [
             (["a", "b", "c"], "c"),
             (["a", 2, "c"], "c"),
@@ -68,7 +69,7 @@ class TestLoraParameterValuesExtractor:
             (["relationer", "b", "uuid"], "b"),
             (["relationer", "b", "id"], "b"),
             (["a", "relationer", "b", 3, "id"], "b"),
-        ]
+        ],
     )
     def test_get_key_for_path(self, path, expected):
         assert ParameterValuesExtractor.get_key_for_path(path) == expected

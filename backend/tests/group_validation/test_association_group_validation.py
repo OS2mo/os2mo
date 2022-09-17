@@ -4,7 +4,6 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
-from parameterized import parameterized
 
 from mora import mapping
 from mora.exceptions import HTTPException
@@ -17,7 +16,8 @@ from mora.service.association import ITAssociationUniqueGroupValidation
 class TestITAssociationGroupValidationBase:
     _association_uuid = str(uuid4())
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "mo_object,expected_result",
         [
             # A number of insufficient payloads, which cause the method to return an
             # empty list.
@@ -48,7 +48,7 @@ class TestITAssociationGroupValidationBase:
                     },
                 ],
             ),
-        ]
+        ],
     )
     @pytest.mark.asyncio
     async def test_get_validation_item_from_mo_object(

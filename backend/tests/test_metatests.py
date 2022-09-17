@@ -4,7 +4,6 @@ from uuid import UUID
 
 import freezegun
 import pytest
-from parameterized import parameterized
 
 import tests.cases
 from mora import lora
@@ -43,11 +42,12 @@ async def test_db_resets_rollbacks():
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "cpr",
         [
             ("0101501234"),
             ("0101501234"),
-        ]
+        ],
     )
     @pytest.mark.slow
     async def test_no_changes_persisted(self, cpr: str):

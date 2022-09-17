@@ -4,7 +4,6 @@ from unittest import mock
 from uuid import uuid4
 
 import pytest
-from parameterized import parameterized
 
 from mora import mapping
 from mora.service.facet import get_mo_object_primary_value
@@ -17,7 +16,8 @@ class TestPrimaryClassHelpers:
     reside in `mora.service.facet`.
     """
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "mo_class,expected_result",
         [
             # 1. MO class is primary
             ({mapping.USER_KEY: mapping.PRIMARY}, True),
@@ -25,18 +25,19 @@ class TestPrimaryClassHelpers:
             ({mapping.USER_KEY: "non-primary"}, False),
             # 3. MO class is empty
             ({}, False),
-        ]
+        ],
     )
     def test_is_class_primary(self, mo_class: dict, expected_result: bool):
         assert is_class_primary(mo_class) == expected_result
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "primary_class_user_key,expected_result",
         [
             # MO class is primary
             (mapping.PRIMARY, True),
             # MO class is not primary
             ("not-primary", False),
-        ]
+        ],
     )
     @pytest.mark.asyncio
     async def test_is_class_uuid_primary(
@@ -46,7 +47,8 @@ class TestPrimaryClassHelpers:
             actual_result = await is_class_uuid_primary("primary-class-uuid")
             assert actual_result == expected_result
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "mo_object,expected_result",
         [
             # 1. MO object contains a `primary` dict with a `user_key` "primary"
             ({mapping.PRIMARY: {mapping.USER_KEY: mapping.PRIMARY}}, True),
@@ -60,7 +62,7 @@ class TestPrimaryClassHelpers:
             ({mapping.PRIMARY: {}}, False),
             # 6. MO object contains a `primary` object which is None
             ({mapping.PRIMARY: None}, False),
-        ]
+        ],
     )
     @pytest.mark.asyncio
     async def test_get_mo_object_primary_value(

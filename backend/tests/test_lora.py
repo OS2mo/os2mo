@@ -6,7 +6,6 @@ import freezegun
 import pytest
 import respx
 from httpx import Response
-from parameterized import parameterized
 
 import tests.cases
 from mora import exceptions
@@ -220,14 +219,15 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
         ]
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "status_in,status_out,error_key",
         [
             (400, 400, "E_INVALID_INPUT"),
             (401, 401, "E_UNAUTHORIZED"),
             (403, 403, "E_FORBIDDEN"),
             (426, 500, "E_UNKNOWN"),
             (500, 500, "E_UNKNOWN"),
-        ]
+        ],
     )
     @respx.mock
     async def test_errors_json(self, status_in, status_out, error_key):
@@ -258,14 +258,15 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "description": "go away",
         }
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "status_in,status_out,error_key",
         [
             (400, 400, "E_INVALID_INPUT"),
             (401, 401, "E_UNAUTHORIZED"),
             (403, 403, "E_FORBIDDEN"),
             (426, 500, "E_UNKNOWN"),
             (500, 500, "E_UNKNOWN"),
-        ]
+        ],
     )
     @respx.mock
     @pytest.mark.slow

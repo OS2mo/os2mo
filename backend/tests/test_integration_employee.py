@@ -4,7 +4,6 @@ from uuid import UUID
 
 import freezegun
 import pytest
-from parameterized import parameterized
 
 import tests.cases
 from . import util
@@ -231,13 +230,14 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             key=(lambda x: ("" if (x is None) else x)),
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "cpr_validate_birthdate,cpr,valid_from",
         [
             # flag, CPR, expected "valid_from"
             (True, "0101501234", "1950-01-01 00:00:00+01"),
             (False, "0101501234", "1950-01-01 00:00:00+01"),
             (False, "0171501234", "-infinity"),
-        ]
+        ],
     )
     async def test_create_employee(
         self, cpr_validate_birthdate: bool, cpr: str, valid_from: str

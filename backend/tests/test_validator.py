@@ -6,7 +6,6 @@ import freezegun
 import pytest
 import respx
 from httpx import Response
-from parameterized import parameterized
 
 import tests.cases
 from mora import lora
@@ -23,7 +22,8 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
             )
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "expect,validities",
         [
             # just valid
             (True, [("-infinity", "infinity", "Aktiv")]),
@@ -78,7 +78,7 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
             (False, [("01-01-2500", "infinity", "Aktiv")]),
             # ends too soon!
             (False, [("01-01-1930", "01-01-2500", "Aktiv")]),
-        ]
+        ],
     )
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     @respx.mock

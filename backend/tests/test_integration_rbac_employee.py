@@ -3,7 +3,6 @@
 from copy import deepcopy
 
 import pytest
-from parameterized import parameterized
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_400_BAD_REQUEST
@@ -72,12 +71,13 @@ class TestCreateEmployee(tests.cases.LoRATestCase):
             "details": [],
         }
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_employee(self, role: str, userid: str, status_code: int):
@@ -128,13 +128,14 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
             }
         ]
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_201_CREATED),
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_creating_detail_address(self, role: str, userid: str, status_code: int):
@@ -221,8 +222,9 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
 
         self.create_employment_payload = create_employment_payload
 
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
+        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_employment(self, role: str, userid: str, status_code: int):
@@ -292,8 +294,9 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             status_code=HTTP_201_CREATED,
         )
 
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
+        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_role(self, role: str, userid: str, status_code: int):
@@ -323,8 +326,9 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             URL_CREATE_DETAIL, json=self.payload, status_code=status_code
         )
 
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
+        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_association(self, role: str, userid: str, status_code: int):
@@ -353,8 +357,9 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             URL_CREATE_DETAIL, json=self.payload, status_code=status_code
         )
 
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
+        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_create_manager(self, role: str, userid: str, status_code: int):
@@ -471,13 +476,14 @@ class TestEditEmployeeDetail(TestCommon):
         # Set the user back to a normal user, i.e. Bruce Lee
         self.app.dependency_overrides[auth] = mock_auth()
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_address(self, role: str, userid: str, status_code: int):
@@ -498,13 +504,14 @@ class TestEditEmployeeDetail(TestCommon):
             URL_EDIT_DETAIL, json=self.payload_edit_address, status_code=status_code
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_employment(self, role: str, userid: str, status_code: int):
@@ -525,11 +532,12 @@ class TestEditEmployeeDetail(TestCommon):
             URL_EDIT_DETAIL, json=self.payload_edit_employment, status_code=status_code
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_role(self, role: str, userid: str, status_code: int):
@@ -548,11 +556,12 @@ class TestEditEmployeeDetail(TestCommon):
             URL_EDIT_DETAIL, json=self.payload_edit_role, status_code=status_code
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_association(self, role: str, userid: str, status_code: int):
@@ -571,11 +580,12 @@ class TestEditEmployeeDetail(TestCommon):
             URL_EDIT_DETAIL, json=self.payload_edit_association, status_code=status_code
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_edit_manager(self, role: str, userid: str, status_code: int):
@@ -608,11 +618,12 @@ class TestMoveEmployment(tests.cases.LoRATestCase):
             "tests/fixtures/rbac/move_multiple_employments.json"
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_move_employment(self, role: str, userid: str, status_code: int):
@@ -678,13 +689,14 @@ class TestTerminateDetail(TestCommon):
         # Set the user back to a normal user, i.e. Bruce Lee
         self.app.dependency_overrides[auth] = mock_auth()
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_address(self, role: str, userid: str, status_code: int):
@@ -707,13 +719,14 @@ class TestTerminateDetail(TestCommon):
             status_code=status_code,
         )
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @pytest.mark.slow_setup
     @pytest.mark.slow
@@ -747,13 +760,14 @@ class TestTerminateEmployee(TestCommon):
         self.url_terminate_employee = f"/service/e/{LIS_JENSEN}/terminate"
         self.payload_terminate_employee = {"validity": {"to": "2021-08-17"}}
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_200_OK),
             (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+        ],
     )
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_employee(self, role: str, userid: str, status_code: int):
@@ -799,13 +813,14 @@ class TestEmployeeLeave(TestCommon):
         # Set the user back to a normal user, i.e. Bruce Lee
         self.app.dependency_overrides[auth] = mock_auth()
 
-    @parameterized.expand(
+    @pytest.mark.parametrize(
+        "role,userid,status_code",
         [
             (None, None, HTTP_403_FORBIDDEN),
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
             (OWNER, ANDERS_AND, HTTP_201_CREATED),
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
-        ]
+        ],
     )
     @pytest.mark.slow
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
