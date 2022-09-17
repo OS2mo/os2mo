@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import unittest
 from unittest.mock import patch
+from uuid import UUID
 
 import freezegun
-import notsouid
 import pytest
 
 import tests.cases
@@ -15,12 +15,11 @@ mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("uuid.uuid4", new=lambda: mock_uuid)
+@patch("uuid.uuid4", new=lambda: UUID("1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"))
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class AsyncTests(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)
     async def test_create_manager(self):
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

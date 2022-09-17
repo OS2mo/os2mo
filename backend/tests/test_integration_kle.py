@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
+from uuid import UUID
+
 import freezegun
-import notsouid
 import pytest
 
 import tests.cases
@@ -24,7 +26,7 @@ kle_nummer_facet = {
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None
 
-    @notsouid.freeze_uuid("11111111-1111-1111-1111-111111111111", auto_increment=True)
+    @patch("uuid.uuid4", new=lambda: UUID("11111111-1111-1111-1111-111111111111"))
     def test_create_kle(self):
         org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 

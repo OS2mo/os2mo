@@ -656,17 +656,6 @@ optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*"
 
 [[package]]
-name = "notsouid"
-version = "0.0.3"
-description = "not so unique ids"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-mock = ">=2.0.0"
-
-[[package]]
 name = "opentelemetry-api"
 version = "1.12.0"
 description = "OpenTelemetry Python API"
@@ -1669,7 +1658,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "5bf499a6dff09661697680e773214137e8d856d9a73e296f9ec2426d8bf20fc0"
+content-hash = "19a4219e08fa24d9f4d73aadaf9f305b52f5f5592830d438abca72143659c349"
 
 [metadata.files]
 aio-pika = [
@@ -2050,10 +2039,6 @@ multidict = [
     {file = "multidict-6.0.2.tar.gz", hash = "sha256:5ff3bd75f38e4c43f1f470f2df7a4d430b821c4ce22be384e1459cb57d6bb013"},
 ]
 nodeenv = []
-notsouid = [
-    {file = "notsouid-0.0.3-py2.py3-none-any.whl", hash = "sha256:f3f3d9aa21de3a8f44896c29152f247b000a4c6b961133404c3ab3bae9b62b05"},
-    {file = "notsouid-0.0.3.tar.gz", hash = "sha256:28235383c110f739cf179cf948c0abf41f8a9c840940e7b6552c3dbaf85ac246"},
-]
 opentelemetry-api = []
 opentelemetry-exporter-jaeger = []
 opentelemetry-exporter-jaeger-proto-grpc = []
