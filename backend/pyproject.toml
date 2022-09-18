@@ -61,7 +61,6 @@ pytest-split = "^0.8.0"
 pre-commit = "^2.20.0"
 respx = "0.17.1"
 "tap.py" = "^3.1"
-pytest-parallel = "^0.1.1"
 asgi-lifespan = "^1.0.1"
 
 [build-system]
@@ -73,7 +72,6 @@ git-username = "MagentaBot"
 git-email = "info@magenta.dk"
 
 [tool.pytest.ini_options]
-addopts = "--cov=. --cov-config=/app/backend/.coveragerc --cov-report=html"
 markers = ["serial"]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"
