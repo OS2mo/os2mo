@@ -390,7 +390,6 @@ Unit-test:
       -k "not graphapi"
       --color=yes
       --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
   cache:
     paths:
@@ -400,8 +399,6 @@ Unit-test:
     when: always
     paths:
       - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
 GraphAPI-test:
   extends:
@@ -412,7 +409,6 @@ GraphAPI-test:
       -p no:cacheprovider
       --color=yes
       --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=backend/mora/graphapi
       --cov-report html:$CI_PROJECT_DIR/coverage-html
       --cov-report term
@@ -422,8 +418,6 @@ GraphAPI-test:
     paths:
       - $CI_PROJECT_DIR/coverage-html
       - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
 GraphAPI-Integration-test:
   extends:
@@ -440,7 +434,6 @@ GraphAPI-Integration-test:
       -p no:cacheprovider
       --color=yes
       --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
@@ -448,8 +441,6 @@ GraphAPI-Integration-test:
     when: always
     paths:
       - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
 Integration-test:
   extends:
@@ -465,7 +456,6 @@ Integration-test:
       -p no:cacheprovider
       --color=yes
       --show-capture=no
-      --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
@@ -473,8 +463,6 @@ Integration-test:
     when: always
     paths:
       - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
 LoRa-integration-test:
   extends:
@@ -488,14 +476,11 @@ LoRa-integration-test:
       -p no:cacheprovider
       --color=yes
       --show-capture=stdout
-      --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=oio_rest
   artifacts:
     when: always
     paths:
       - $COVERAGE_FILE
-    reports:
-      junit: $CI_PROJECT_DIR/junit.xml
 
 Coverage:
   stage: coverage
