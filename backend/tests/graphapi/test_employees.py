@@ -4,19 +4,25 @@
 # Imports
 # --------------------------------------------------------------------------------------
 import datetime
+import functools
 from itertools import product
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import uuid4
 
+import decorator
 import mock
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from mock import patch
 from mock.mock import AsyncMock
-from oio_rest.db.testing import ensure_testing_database_exists, setup_testing_database, \
-    reset_testing_database, stop_testing
+from oio_rest.db.testing import (
+    ensure_testing_database_exists,
+    setup_testing_database,
+    reset_testing_database,
+    stop_testing,
+)
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
@@ -594,32 +600,37 @@ async def test_update(
             assert updated_employee_uuid == given_uuid_str
 
 
+# Integration test
+def minimal_database_structure(func):
+    async def wrapper(func, *args, **kwargs):
+        # BEFORE test method
+        ensure_testing_database_exists()
+        setup_testing_database()
+        await load_sample_structures(minimal=True)
+
+        # RUN test method
+        result = await func(*args, **kwargs)
+
+        # AFTER test method
+        reset_testing_database()
+        stop_testing()
+
+        return result
+
+    return decorator.decorator(wrapper, func)
+
+
+@minimal_database_structure
 async def test_update_integration():
-    """Verifies update employee GraphQL mutators works with LoRa.
-
-    Loads the following users throug sample structure:
-        "andersand": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-        "fedtmule": "6ee24785-ee9a-4502-81c2-7697009c9053",
-        "lis_jensen": "7626ad64-327d-481f-8b32-36c78eb12f8c",
-        "erik_smidt_hansen": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-    """
-    # # Configure DB sample structure
-    # ensure_testing_database_exists()
-    # setup_testing_database()
-    # await load_sample_structures(minimal=True)
-
-    # The actual test
+    """Verifies update employee GraphQL mutators works with LoRa."""
     given_uuid_str = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    original = await c.organisationenhed.get(uuid=given_uuid_str)
-    tap="test"
-
-
-    # # TEARDOWN of testing db
-    # reset_testing_database()
-    # stop_testing()
+    # original = await c.organisationenhed.get(uuid=given_uuid_str)
+    original = await c.bruger.get(uuid=given_uuid_str)
+    tap = "test"
 
     assert 1 == True
+
 
 def _set_gql_var(field_name, value, gql_values, pydantic_values):
     """Helper method to assign variables to dicts used by GraphQL and pydantic."""
