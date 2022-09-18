@@ -16,14 +16,16 @@ nav:
         - arkitektur-design/facets.md
         - arkitektur-design/system.md
     - User and developer guides:
-        - Getting started:
-            - guides/environment/docker.md
-            - guides/environment/install-source.md
-        - Tests: guides/tests.md
-        - Conventions: guides/conventions.md
         - ADFS:
           - guides/adfs-setup.md
           - guides/adfs-rbac-setup.md
+        - Conventions: guides/conventions.md
+        - Getting started:
+            - guides/environment/docker.md
+            - guides/environment/install-source.md
+        - MED-organisationen: guides/MED-organisationen.md
+        - Powershell-script il AD-Skriv: guides/powershellscriptAD.md
+        - Tests: guides/tests.md
     - Drift og support:
         - drift-support/auth.md
         - drift-support/cookbook.md
@@ -40,7 +42,7 @@ nav:
         - graphql/reads.md
   - LoRa:
     - Introduction: lora/index.md
-    - User Documentation: 
+    - User Documentation:
       - lora/user/overview.md
       - lora/user/praesentation.md
       - lora/user/installation.md
@@ -48,16 +50,16 @@ nav:
       - Objects:
         - lora/user/objects.md
         - Integrationdata: lora/user/objects/integrationdata.md
-      - REST API: 
+      - REST API:
         - lora/user/api.md
         - lora/user/api/self-documentation.md
         - lora/user/api/tutorial.md
         - Operations:
-          - Read: lora/user/api/read.md 
+          - Read: lora/user/api/read.md
           - List: lora/user/api/list.md
           - Search: lora/user/api/search.md
           - Create: lora/user/api/create.md
-          - Update: 
+          - Update:
             - lora/user/api/update.md
             - lora/user/api/update/merging.md
             - lora/user/api/update/deleting.md
