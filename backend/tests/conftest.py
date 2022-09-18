@@ -55,14 +55,28 @@ h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 asyncio_mode = "strict"
 
 
+@pytest.fixture(scope="session")
+def monkeysession(request):
+    mpatch = MonkeyPatch()
+    yield mpatch
+    mpatch.undo()
+
+
 @pytest.fixture(autouse=True, scope="session")
-def seed_lora_client():
-    os.environ["PYTEST_RUNNING"] = "True"
+def set_test_vars(monkeysession: MonkeyPatch):
+    monkeysession.setenv("PYTHONASYNCIODEBUG", "1")
+    monkeysession.setenv("PYTEST_RUNNING", "true")
+    monkeysession.setenv("ENVIRONMENT", "testing")
+    monkeysession.setenv("TESTING_API", "true")
+    monkeysession.setenv("LORA_AUTH", "false")
+    monkeysession.setenv("LORA_URL", "http://localhost/lora/")
+    monkeysession.setenv("ENABLE_INTERNAL_LORA", "true")
+    yield
+
+
+@pytest.fixture(autouse=True, scope="session")
+def seed_lora_client(set_test_vars):
     lora.client = asyncio.run(lora.create_lora_client(create_app()))
-
-
-def pytest_runtest_setup(item):
-    os.environ["PYTEST_RUNNING"] = "True"
 
 
 def pytest_configure(config):
