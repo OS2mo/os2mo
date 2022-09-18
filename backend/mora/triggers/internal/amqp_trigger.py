@@ -6,11 +6,11 @@ from itertools import product
 from typing import Dict
 from uuid import UUID
 
-from ramqp.moqp import MOAMQPSystem
-from ramqp.moqp import ObjectType
-from ramqp.moqp import PayloadType
-from ramqp.moqp import RequestType
-from ramqp.moqp import ServiceType
+from ramqp.mo import MOAMQPSystem
+from ramqp.mo.models import ObjectType
+from ramqp.mo.models import PayloadType
+from ramqp.mo.models import RequestType
+from ramqp.mo.models import ServiceType
 from structlog import get_logger
 
 from mora import config
