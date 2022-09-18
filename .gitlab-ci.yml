@@ -114,10 +114,7 @@ default:
     - name: $KEYCLOAK_IMAGE_SHA
       alias: keycloak
 
-.services:use-mo:
-  needs:
-    - Build OS2MO
-  image: $BACKEND_IMAGE_SHA
+.mo-variables:
   variables:
     PYTHONASYNCIODEBUG: "1"
     ENVIRONMENT: "testing"
@@ -143,6 +140,12 @@ default:
     LORA_URL: "http://localhost/lora/"
     ENABLE_INTERNAL_LORA: "true"
 
+.services:use-mo:
+  needs:
+    - Build OS2MO
+  image: $BACKEND_IMAGE_SHA
+  extends:
+    - .mo-variables
 
 # Sync
 #######
@@ -365,14 +368,23 @@ Build Keycloak DB:
     - .services:use-mo
   variables:
     HYPOTHESIS_PROFILE: "ci"
-    QUERY_EXPORT_DIR: "/tmp"
-
 
 Unit-test:
+  image: python:3
+  needs: []
   extends:
-    - .backend-test-base
+    - .test-base
+    - .mo-variables
+  variables:
+    HYPOTHESIS_PROFILE: "ci"
+
+    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   script:
-    - pytest backend/tests
+    - pip install poetry
+    - poetry config virtualenvs.in-project true
+    - cd backend
+    - poetry install
+    - poetry run pytest tests
       -p no:cacheprovider
       -m "not serial"
       -k "not graphapi"
@@ -380,7 +392,10 @@ Unit-test:
       --show-capture=stdout
       --junitxml $CI_PROJECT_DIR/junit.xml
       --cov=mora
-      --workers auto
+  cache:
+    paths:
+      - ${PIP_CACHE_DIR}
+      - ${CI_PROJECT_DIR}/backend/.venv
   artifacts:
     when: always
     paths:
@@ -429,8 +444,6 @@ GraphAPI-Integration-test:
       --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
-      --splitting-algorithm least_duration
-      --durations-path backend/tests/.test_durations
   artifacts:
     when: always
     paths:
@@ -445,7 +458,7 @@ Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 4 
+  parallel: 4
   script:
     - pytest backend/tests
       -m "serial and not equivalence"
@@ -456,8 +469,6 @@ Integration-test:
       --cov=mora
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
-      --splitting-algorithm least_duration
-      --durations-path backend/tests/.test_durations
   artifacts:
     when: always
     paths:
