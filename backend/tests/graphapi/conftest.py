@@ -23,7 +23,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
-from tests.cases import fake_auth
+from tests.conftest import fake_auth
 
 
 # --------------------------------------------------------------------------------------
@@ -57,9 +57,15 @@ def patch_loader():
 # --------------------------------------------------------------------------------------
 
 
+async def admin_auth():
+    auth = await fake_auth()
+    auth.update({"realm_access": {"roles": "admin"}})
+    return auth
+
+
 def test_app():
     app = create_app(settings_overrides={"graphql_enable": True})
-    app.dependency_overrides[auth] = fake_auth
+    app.dependency_overrides[auth] = admin_auth
     return app
 
 

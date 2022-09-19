@@ -93,7 +93,11 @@ class Settings(BaseSettings):
 
     # Enable auth-endpoints and auth
     os2mo_auth: bool = True
+    # When graphql_rbac is disabled, it is in fact still enabled for graphql mutators.
+    # This is due to a hotfix for a security security vulnerability in the orgviewer.
+    # This hotfix will be removed again later, once the security issues has been fixed.
     graphql_rbac: bool = False
+
     log_level: LogLevel = LogLevel.INFO
 
     @root_validator
