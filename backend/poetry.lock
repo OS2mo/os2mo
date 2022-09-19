@@ -481,16 +481,16 @@ zoneinfo = ["backports.zoneinfo (>=0.2.1)", "tzdata (>=2022.2)"]
 
 [[package]]
 name = "hypothesis-graphql"
-version = "0.5.1"
-description = "Hypothesis strategies for GraphQL schemas and queries"
+version = "0.9.1"
+description = "Hypothesis strategies for GraphQL queries"
 category = "dev"
 optional = false
 python-versions = ">=3.6,<4.0"
 
 [package.dependencies]
-attrs = ">20.3.0"
-graphql-core = ">=3.1.0,<4.0.0"
-hypothesis = ">5.8.0"
+attrs = ">20.3.0,<=21.4.0"
+graphql-core = ">=3.1.0,<3.3.0"
+hypothesis = ">=5.8.0,<7.0"
 
 [[package]]
 name = "identify"
@@ -1556,7 +1556,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "93d6dcac6817ee9886f8331fd7a006b27a4aaaf751d644eb82baf2a46ffdd200"
+content-hash = "74f5ae6d89955a83ed930fe5e8c9995661143a23c2a8571b7183f7404864a9f7"
 
 [metadata.files]
 aio-pika = []
@@ -1794,10 +1794,7 @@ httpx = [
     {file = "httpx-0.19.0.tar.gz", hash = "sha256:92ecd2c00c688b529eda11cedb15161eaf02dee9116712f621c70d9a40b2cdd0"},
 ]
 hypothesis = []
-hypothesis-graphql = [
-    {file = "hypothesis-graphql-0.5.1.tar.gz", hash = "sha256:ba878305dae2f6df99d2fb390f49028695976a28114e4860c1a7d8e37f417222"},
-    {file = "hypothesis_graphql-0.5.1-py3-none-any.whl", hash = "sha256:2b17b893f026ca9ae991c157e469e44ed858b5ba2494cd920279ed0181bdf599"},
-]
+hypothesis-graphql = []
 identify = []
 idna = [
     {file = "idna-3.3-py3-none-any.whl", hash = "sha256:84d9dd047ffa80596e0f246e2eab0b391788b0503584e8945f2368256d2735ff"},
