@@ -43,6 +43,7 @@ SENIORITY = "seniority"
 CHILDREN = "children"
 DATA = "data"
 TYPE = "type"
+INFINITY = "infinity"
 
 # Address
 ADDRESS_KEY = "Adresse"

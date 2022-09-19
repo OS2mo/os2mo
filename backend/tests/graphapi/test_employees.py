@@ -22,6 +22,8 @@ from strawberry.types import ExecutionResult
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora import exceptions
+from mora import lora
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -37,6 +39,8 @@ from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
 # Helpers
+# from ..util import sample_structures_minimal_decorator, foo
+
 now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
 )
@@ -523,6 +527,11 @@ async def test_create_employee_integration_test(
 
 
 async def test_update():
+# --------------------------------------------------------------------------------------
+# Update tests
+# --------------------------------------------------------------------------------------
+
+
 @given(
     st.uuids(),
     # from & to
@@ -638,6 +647,102 @@ async def test_update_mutator(
             assert updated_employee_uuid == given_uuid_str
 
 
+# $to
+# $name
+# $givenName
+# $surName
+# $nickname
+# $nicknameGivenName
+# $nicknameSurName
+# $seniority
+# $cprNo
+@pytest.mark.parametrize(
+    "given_uuid,given_from,given_mutator_args",
+    [
+        (
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            datetime.datetime.now(),
+            {"name": "YeeHaaa man"},
+        ),
+        (
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            datetime.datetime.now(),
+            {"givenName": "Test Given Name"},
+        ),
+        (
+            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            datetime.datetime.now(),
+            {"surName": "Duke"},
+        ),
+        (
+            "6ee24785-ee9a-4502-81c2-7697009c9053",
+            datetime.datetime.now(),
+            {"nickname": "Fancy Nickname"},
+        ),
+        (
+            "6ee24785-ee9a-4502-81c2-7697009c9053",
+            datetime.datetime.now(),
+            {"nicknameGivenName": "Fancy Nickname Given Name"},
+        ),
+        (
+            "6ee24785-ee9a-4502-81c2-7697009c9053",
+            datetime.datetime.now(),
+            {"nicknameSurName": "Lord Nick"},
+        ),
+        # ("7626ad64-327d-481f-8b32-36c78eb12f8c", datetime.datetime.now(), {"seniority": "blah?"}),
+        # ("236e0a78-11a0-4ed9-8545-6286bb8611c7", datetime.datetime.now(), {"cprNo": "0000000000"})
+    ],
+)
+@pytest.mark.usefixtures("sample_structures_minimal_test1234")
+async def test_update_integration(given_uuid, given_from, given_mutator_args):
+    # Configure mutator variables
+    var_values = {
+        "uuid": given_uuid,
+        "from": given_from.date().isoformat(),
+        **given_mutator_args,
+    }
+
+    for key, value in given_mutator_args.items():
+        if value is None:
+            continue
+
+        var_values[key] = value
+
+    # Run the query
+    mutation_func = "employee_update"
+    query = (
+        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
+        "$givenName: String, $surName: String, $nickname: String, "
+        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+        "$cprNo: String) {"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "nickname_given_name: $nicknameGivenName, "
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
+        "{ uuid }"
+        "}"
+    )
+
+    _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
+
+    # Fetch employee from LoRa
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    lora_employee = await c.bruger.get(uuid=given_uuid)
+
+    # Assert all the update values have been assigned
+    for key, value in given_mutator_args.items():
+        if value is None:
+            continue
+
+        newest_update_value = _get_lora_mutator_arg(key, given_from, lora_employee)
+        assert newest_update_value == value
+
+
+# --------------------------------------------------------------------------------------
+# Helper methods
+# --------------------------------------------------------------------------------------
+
+
 def _set_gql_var(field_name, value, gql_values, pydantic_values):
     """Helper method to assign variables to dicts used by GraphQL and pydantic."""
 
@@ -649,3 +754,61 @@ def _set_gql_var(field_name, value, gql_values, pydantic_values):
 
     gql_values[value_camel_case] = value
     pydantic_values[field_name] = value
+
+
+def _get_lora_mutator_arg(
+    mutator_key: str, given_from: datetime.datetime, lora_employee: dict
+):
+    employee_expansions = lora_employee.get("attributter", {}).get(
+        "brugerudvidelser", []
+    )
+
+    # Dirty way to find active expansion, should compare datetimes against "given_from".
+    active_expansion = None
+    for expansion in employee_expansions:
+        expansion_to = expansion.get("virkning", {}).get("to", None)
+        if expansion_to != mapping.INFINITY:
+            continue
+
+        active_expansion = expansion
+        break
+
+    # # I have not been able to get below code to work yet due to timestamps
+    # for expansion in employee_expansions:
+    #     # Skip all with FROM in the future
+    #     expansion_from = expansion.get('virkning', {}).get('from')
+    #     expansion_from_dt = dateutil.parser.parse(expansion_from)
+    #     if expansion_from_dt > given_from:
+    #         continue
+    #
+    #     # SKIP all with TO not set "INFINITY" AND the datetime in the past or equal
+    #     # to the given_from_dt date.
+    #     expansion_to = expansion.get('virkning', {}).get('to', None)
+    #     if expansion_to != mapping.INFINITY:
+    #         # expansion_to_dt = datetime.datetime.fromisoformat(expansion_to)
+    #         expansion_to_dt = dateutil.parser.parse(expansion_to)
+    #         if expansion_to_dt <= given_from:
+    #             continue
+    #
+    #     active_expansion = expansion
+    #     break
+
+    if mutator_key == "name":
+        return f"{active_expansion['fornavn']} {active_expansion['efternavn']}"
+
+    if mutator_key == "givenName":
+        return active_expansion["fornavn"]
+
+    if mutator_key == "surName":
+        return active_expansion["efternavn"]
+
+    if mutator_key == "nickname":
+        return f"{active_expansion['kaldenavn_fornavn']} {active_expansion['kaldenavn_efternavn']}"
+
+    if mutator_key == "nicknameGivenName":
+        return active_expansion["kaldenavn_fornavn"]
+
+    if mutator_key == "nicknameSurName":
+        return active_expansion["kaldenavn_efternavn"]
+
+    return None
