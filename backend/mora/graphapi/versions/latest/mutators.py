@@ -61,6 +61,7 @@ from .types import AddressType
 from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
+from .types import EmployeeUpdateType
 from .types import EngagementTerminateType
 from .types import EngagementType
 from .types import FacetType
@@ -164,7 +165,7 @@ class Mutation:
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
+    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeUpdateType:
         return await employee_update(input.to_pydantic()) # type: ignore
 
     @strawberry.mutation(
