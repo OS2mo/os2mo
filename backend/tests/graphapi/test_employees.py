@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-from itertools import product
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -15,8 +14,6 @@ from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
 from hypothesis import strategies as st
-from mock import patch
-from mock.mock import AsyncMock
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
@@ -30,6 +27,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import EmployeeUpdate
+from mora.graphapi.versions.latest.types import EmployeeUpdateResponseType
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from mora.service.util import handle_gql_error
 from mora.graphapi.versions.latest.models import EmployeeCreate
@@ -37,6 +35,10 @@ from mora.graphapi.versions.latest.types import EmployeeType
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
+
+# import mock
+# from mock import patch
+# from mock.mock import AsyncMock
 
 # Helpers
 now_beginning = datetime.datetime.now().replace(
@@ -548,7 +550,7 @@ async def test_update():
     # cpr_no
     st.from_regex(r"^\d{10}$") | st.none(),
 )
-async def test_update(
+async def test_update_mutator(
     given_uuid,
     given_validity_dts,
     given_name_tuple,
@@ -608,14 +610,15 @@ async def test_update(
         f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
         "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
         "nickname_given_name: $nicknameGivenName, "
-        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
+        "{ uuid }"
         "}"
     )
 
-    with mock.patch(
+    with patch(
         "mora.graphapi.versions.latest.mutators.employee_update"
     ) as mock_employee_update:
-        mock_employee_update.return_value = given_uuid_str
+        mock_employee_update.return_value = EmployeeUpdateResponseType(uuid=given_uuid)
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
@@ -631,7 +634,7 @@ async def test_update(
             assert e_info.type is ValidationError
         else:
             updated_employee_uuid = (
-                response.data.get(mutation_func)
+                response.data.get(mutation_func)["uuid"]
                 if isinstance(response, ExecutionResult)
                 and isinstance(response.data, dict)
                 else None

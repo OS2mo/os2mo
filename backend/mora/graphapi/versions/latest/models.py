@@ -17,7 +17,7 @@ from mora import exceptions
 from mora import mapping
 from mora import util
 from mora.graphapi.utils import CprNo
-from mora.graphapi.utils import SafeString
+from mora.graphapi.versions.latest.grapql_utils import PrintableStrAllowEmpty
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
