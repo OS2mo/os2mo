@@ -17,7 +17,7 @@ from mora import exceptions
 from mora import mapping
 from mora import util
 from mora.graphapi.utils import CprNo
-from mora.graphapi.utils import SafeString
+from mora.graphapi.utils import PrintableStr
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -363,34 +363,34 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(UUIDBase, ValidityFromRequired):
-    name: Optional[SafeString] = Field(None, description="something")
+    name: Optional[PrintableStr] = Field(None, description="something")
 
-    given_name: Optional[SafeString] = Field(
+    given_name: Optional[PrintableStr] = Field(
         None,
         description="New first-name value of the employee nickname.",
     )
 
-    sur_name: Optional[SafeString] = Field(
+    sur_name: Optional[PrintableStr] = Field(
         None,
         description="New last-name value of the employee nickname.",
     )
 
-    nickname: Optional[SafeString] = Field(
+    nickname: Optional[PrintableStr] = Field(
         None,
         description="New nickname value of the employee nickname.",
     )
 
-    nickname_given_name: Optional[SafeString] = Field(
+    nickname_given_name: Optional[PrintableStr] = Field(
         None,
         description="New nickname given-name value of the employee nickname.",
     )
 
-    nickname_sur_name: Optional[SafeString] = Field(
+    nickname_sur_name: Optional[PrintableStr] = Field(
         None,
         description="New nickname sur-name value of the employee nickname.",
     )
 
-    seniority: Optional[SafeString] = Field(
+    seniority: Optional[PrintableStr] = Field(
         None, description="New seniority value of the employee."
     )
 

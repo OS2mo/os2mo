@@ -43,7 +43,7 @@ from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
 # Helpers
-from ..util import sample_structures_minimal_cls_fixture, load_sample_structures
+from ..util import load_sample_structures
 
 now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
@@ -488,6 +488,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
 
 @given(
     st.uuids(),
+
     # from & to
     st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
@@ -619,17 +620,76 @@ def minimal_database_structure(func):
 
     return decorator.decorator(wrapper, func)
 
-
+@parameterized(
+    [
+        ("53181ed2-f1de-4c4a-a8fd-ab358c2c454a", {"given_name": "Test Given Name"}),
+        ("6ee24785-ee9a-4502-81c2-7697009c9053", {"nickname": "Fancy Nickname"}),
+        ("7626ad64-327d-481f-8b32-36c78eb12f8c", {"seniority": "blah?"}),
+        ("236e0a78-11a0-4ed9-8545-6286bb8611c7", {"cpr_no": "0000000000"})
+    ]
+)
 @minimal_database_structure
-async def test_update_integration():
+async def test_update_integration(
+    given_uuid,
+    update_attrs,
+):
     """Verifies update employee GraphQL mutators works with LoRa."""
-    given_uuid_str = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    # original = await c.organisationenhed.get(uuid=given_uuid_str)
-    original = await c.bruger.get(uuid=given_uuid_str)
-    tap = "test"
+    # Unpack tuples
+    given_uuid_str = str(given_uuid)
+    var_values = {
+        "uuid": given_uuid_str,
+        # "from": given_validity_from.date().isoformat(),
+        **update_attrs
+    }
+    # pydantic_values = {**var_values}
 
-    assert 1 == True
+    # # Create pydantic model manually, to determine how the test should be asserted.
+    # # If we are not able to create it, the response from GraphQL should fail equally
+    # expected_exception = None
+    # try:
+    #     _ = EmployeeUpdate(**pydantic_values)
+    # except Exception as e:
+    #     expected_exception = e
+
+    # GraphQL
+    mutation_func = "employee_update"
+    query = (
+        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
+        "$givenName: String, $surName: String, $nickname: String, "
+        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+        "$cprNo: String) {"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "nickname_given_name: $nicknameGivenName, "
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo})"
+        "}"
+    )
+
+
+    response = await LatestGraphQLSchema.get().execute(
+        query, variable_values=var_values
+    )
+
+
+
+    # new query
+
+
+
+
+    #
+    # if not expected_exception:
+    #     tap="test"
+    # else:
+    #     pass
+
+    # given_uuid_str = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    # c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    # # original = await c.organisationenhed.get(uuid=given_uuid_str)
+    # original = await c.bruger.get(uuid=given_uuid_str)
+    # tap = "test"
+    #
+    # assert 1 == True
 
 
 def _set_gql_var(field_name, value, gql_values, pydantic_values):

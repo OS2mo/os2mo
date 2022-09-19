@@ -3,17 +3,21 @@
 import re
 
 from pydantic import ConstrainedStr
+import string
 
 
-class SafeString(ConstrainedStr):
-    """Custom string type, which will fail if using invalid on invalid characters."""
+class PrintableStr(ConstrainedStr):
+    """Custom printable string type.
 
-    # Strings which only allow:
-    # Words:            '\w' = [a-zA-Z0-9_]
-    # Whitespace chars: '\s' = [ \t\n\r\f\v]
-    # ref: https://docs.python.org/3/library/re.html
-    regex = re.compile(r"^[\w\s]*$")
+    Define custom type for string to make it
+    strict "printable chars" only and min length of 1
+    Used in Pydantic models.
+    """
+
+    regex = re.compile(r"^[{0}\n]+$".format(string.printable))
 
 
 class CprNo(ConstrainedStr):
     regex = re.compile(r"^\d{10}$")
+
+
