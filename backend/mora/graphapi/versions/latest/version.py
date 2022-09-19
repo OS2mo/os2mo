@@ -32,10 +32,13 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
 
     The latest version is never explicitly versioned or exposed directly. Clients should
     always refer and pin themselves to a specific version, which is available as the
-    latest `vX` version package, inheriting from this class without modifications.
+    latest `vN` version package, inheriting from this class without modifications.
     When a new breaking change must be introduced to the GraphQL schema, the change is
-    made in `latest` and the `vX` package is changed to be an adapter which maintains
-    backwards-compatibility. A new `vX+1` package is created to expose latest.
+    made in `latest` and the `vN` package is changed to be an adapter which maintains
+    backwards-compatibility. A new `vN+1` package is created to expose latest.
+
+    As an example, see the merge request for the first breaking change:
+    https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1184
     """
 
     schema = LatestGraphQLSchema
