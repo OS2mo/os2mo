@@ -151,13 +151,3 @@ async def test_update(given_uuid, given_validity_dts):
             response_uuid = response.data.get(mutation_func, {}).get(mapping.UUID)
 
         assert response_uuid == str(given_uuid)
-
-
-def thor_er_rigtig_sej():
-    return "you know it"
-
-def sexy_method():
-    return "i know it"
-
-def hammer_time():
-    return "now?"
