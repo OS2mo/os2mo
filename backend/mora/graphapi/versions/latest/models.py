@@ -534,6 +534,9 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         }
 
 
+class EmployeeUpdateResponse(UUIDBase):
+    pass
+
 # Engagements
 # -----------
 class EngagementTrigger(OrgFuncTrigger):

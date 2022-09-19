@@ -61,7 +61,7 @@ from .types import AddressType
 from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
-from .types import EmployeeUpdateType
+from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
 from .types import FacetType
@@ -161,12 +161,11 @@ class Mutation:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await employee_create(input.to_pydantic())  # type: ignore
 
-    @strawberry.mutation(
-        description="Terminates an employee by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeUpdateType:
-        return await employee_update(input.to_pydantic()) # type: ignore
+    @strawberry.mutation(description="Terminates an employee by UUID")
+    async def employee_update(
+        self, input: EmployeeUpdateInput
+    ) -> EmployeeUpdateResponseType:
+        return await employee_update(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",

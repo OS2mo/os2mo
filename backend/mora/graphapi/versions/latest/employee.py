@@ -6,7 +6,7 @@ from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 from .types import EmployeeType
-from .types import EmployeeUpdateType
+from .types import EmployeeUpdateResponseType
 from mora import common
 from mora import lora
 from mora import mapping
@@ -93,9 +93,9 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     return EmployeeType(uuid=UUID(result))
 
 
-async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateType:
-    _ = await handle_requests(
+async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
+    result = await handle_requests(
         employee_update.get_legacy_dict(), mapping.RequestType.EDIT
     )
 
-    return EmployeeUpdateType.from_pydantic(employee_update)
+    return EmployeeUpdateResponseType(uuid=UUID(result))
