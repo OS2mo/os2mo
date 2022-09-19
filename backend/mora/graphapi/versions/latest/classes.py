@@ -6,37 +6,23 @@
 # --------------------------------------------------------------------------------------
 # Imports
 # --------------------------------------------------------------------------------------
-from fastapi.encoders import jsonable_encoder
+from uuid import UUID
 
 from .types import ClassCreateType
-from mora.common import get_connector
+from mora import mapping
 from mora.graphapi.versions.latest.models import ClassCreate
-from ramodels.lora import Klasse
+from mora.service.facet import ClassRequestHandler
 
 # --------------------------------------------------------------------------------------
-# Supporting functions for Graphapi mo-classes
+# Mo-class create function for graphQL
 # --------------------------------------------------------------------------------------
 
 
-async def upsert_class(input: ClassCreate) -> ClassCreateType:
+async def create_class(input: ClassCreate) -> ClassCreateType:
 
-    input_dict = input.dict(by_alias=True)
+    req_dict = {"facet": str(input.facet_uuid), "class_model": input}
 
-    lora_class = Klasse.from_simplified_fields(
-        facet_uuid=input_dict["facet_uuid"],
-        user_key=input_dict["user_key"],
-        organisation_uuid=input_dict["org_uuid"],
-        title=input_dict["name"],
-        uuid=input_dict["uuid"],
-        scope=input_dict["scope"],
-    )
+    handler = await ClassRequestHandler.construct(req_dict, mapping.RequestType.CREATE)
+    uuid = await handler.submit()
 
-    jsonified = jsonable_encoder(
-        obj=lora_class, by_alias=True, exclude={"uuid"}, exclude_none=True
-    )
-
-    c = get_connector(virkningfra="-infinity", virkningtil="infinity")
-
-    uuid = await c.klasse.create(jsonified, input_dict["uuid"])
-
-    return ClassCreateType(uuid=str(uuid))
+    return ClassCreateType(uuid=UUID(uuid))

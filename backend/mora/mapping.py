@@ -79,6 +79,9 @@ EXTENSION_ATTRIBUTE_MAPPING = [
     ("extension_10", "udvidelse_10"),
 ]
 
+# Facet
+FACETS = "facets"
+
 # Association
 ASSOCIATION = "association"
 ASSOCIATION_KEY = "Tilknytning"

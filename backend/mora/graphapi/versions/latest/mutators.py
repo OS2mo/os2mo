@@ -8,7 +8,7 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from .address import terminate_addr
-from .classes import upsert_class
+from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
@@ -64,6 +64,13 @@ class Mutation:
 
     # Classes
     # -------
+    @strawberry.mutation(
+        description="Create new mo-class under facet",
+        permission_classes=[admin_permission_class],
+    )
+    async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
+
+        return await create_class(input.to_pydantic())  # type: ignore
 
     # Employees
     # ---------
@@ -183,13 +190,3 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
-
-    @strawberry.mutation(
-        description="Terminates an employee by UUID",
-        permission_classes=[admin_permission_class],
-    )
-
-    @strawberry.mutation(description="Create new mo-class under facet")
-    async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
-
-        return await upsert_class(input.to_pydantic())  # type: ignore

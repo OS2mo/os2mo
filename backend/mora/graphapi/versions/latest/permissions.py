@@ -44,7 +44,11 @@ def gen_role_permission(
             # No token, no access
             if token is None:
                 return False
-            roles = token.realm_access.roles
+            if isinstance(token, dict):
+                roles = token["realm_access"]["roles"]
+            else:
+                roles = token.realm_access.roles
+
             allow_access = role_name in roles
             rbac_counter.labels(role=role_name, allowed=allow_access).inc()
             return allow_access

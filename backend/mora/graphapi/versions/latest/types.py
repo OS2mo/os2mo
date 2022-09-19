@@ -38,6 +38,7 @@ class ClassCreateType:
 
     pass
 
+
 # Associations
 # ------------
 

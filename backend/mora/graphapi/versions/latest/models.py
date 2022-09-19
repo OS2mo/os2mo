@@ -10,7 +10,6 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import Field
 
-from .graphql_utils import PrintableStr
 from mora import common
 from mora import exceptions
 from mora import mapping
@@ -228,6 +227,24 @@ class AddressTerminate(ValidityTerminate, Triggerless):
 
 # Classes
 # -------
+class ClassCreate(MOBase):
+    """A MO Class create object."""
+
+    type_: str = Field(
+        "class", alias="type", description="The object type"
+    )  # type is always "class"
+
+    name: str = Field(description="Mo-class name.")
+    user_key: str = Field(description="Extra info or uuid")
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+    facet_uuid: UUID = Field(description="UUID of the related facet.")
+
+    scope: str | None = Field(description="Scope of the class.")
+    published: str | None = Field(description="Published state of the class object.")
+    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
+    example: str | None = Field(description="Example usage.")
+    owner: UUID | None = Field(description="Owner of class")
+
 
 # Employees
 # ---------
@@ -513,31 +530,3 @@ class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 
     key: str = Field(description="Settings key.")
-
-
-class ClassCreate(MOBase):
-    """A MO Class create object."""
-
-    """
-        The following fields ar inhereted from MOBase:
-            - uuid
-            - user_key
-    """
-    """Required types"""
-    type_: str = Field(
-        "class", alias="type", description="The object type"
-    )  # type is always "class"
-
-    name: PrintableStr = Field(description="Mo-class name.")
-    user_key: PrintableStr = Field(description="Extra info or uuid")
-    org_uuid: UUID = Field(description="UUID of the related organisation.")
-    facet_uuid: UUID = Field(description="UUID of the related facet.")
-
-    """Optional types"""
-    scope: Optional[PrintableStr] = Field(description="Scope of the class.")
-    published: Optional[PrintableStr] = Field(
-        description="Published state of the class object."
-    )
-    parent_uuid: Optional[UUID] = Field(description="UUID of the parent class.")
-    example: Optional[PrintableStr] = Field(description="Example usage.")
-    owner: Optional[UUID] = Field(description="Owner of class")
