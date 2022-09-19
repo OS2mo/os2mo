@@ -36,10 +36,6 @@ from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
-# import mock
-# from mock import patch
-# from mock.mock import AsyncMock
-
 # Helpers
 now_beginning = datetime.datetime.now().replace(
     hour=0, minute=0, second=0, microsecond=0
