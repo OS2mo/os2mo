@@ -689,8 +689,16 @@ async def test_update_mutator(
             datetime.datetime.now(),
             {"nicknameSurName": "Lord Nick"},
         ),
-        # ("7626ad64-327d-481f-8b32-36c78eb12f8c", datetime.datetime.now(), {"seniority": "blah?"}),
-        # ("236e0a78-11a0-4ed9-8545-6286bb8611c7", datetime.datetime.now(), {"cprNo": "0000000000"})
+        (
+            "7626ad64-327d-481f-8b32-36c78eb12f8c",
+            datetime.datetime.now(),
+            {"seniority": "blah?"},
+        ),
+        (
+            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+            datetime.datetime.now(),
+            {"cprNo": "0000000000"},
+        ),
     ],
 )
 @pytest.mark.usefixtures("sample_structures_minimal_test1234")
@@ -759,11 +767,10 @@ def _set_gql_var(field_name, value, gql_values, pydantic_values):
 def _get_lora_mutator_arg(
     mutator_key: str, given_from: datetime.datetime, lora_employee: dict
 ):
+    # Find expansion by finding the one where to==infinity
     employee_expansions = lora_employee.get("attributter", {}).get(
         "brugerudvidelser", []
     )
-
-    # Dirty way to find active expansion, should compare datetimes against "given_from".
     active_expansion = None
     for expansion in employee_expansions:
         expansion_to = expansion.get("virkning", {}).get("to", None)
@@ -773,26 +780,20 @@ def _get_lora_mutator_arg(
         active_expansion = expansion
         break
 
-    # # I have not been able to get below code to work yet due to timestamps
-    # for expansion in employee_expansions:
-    #     # Skip all with FROM in the future
-    #     expansion_from = expansion.get('virkning', {}).get('from')
-    #     expansion_from_dt = dateutil.parser.parse(expansion_from)
-    #     if expansion_from_dt > given_from:
-    #         continue
-    #
-    #     # SKIP all with TO not set "INFINITY" AND the datetime in the past or equal
-    #     # to the given_from_dt date.
-    #     expansion_to = expansion.get('virkning', {}).get('to', None)
-    #     if expansion_to != mapping.INFINITY:
-    #         # expansion_to_dt = datetime.datetime.fromisoformat(expansion_to)
-    #         expansion_to_dt = dateutil.parser.parse(expansion_to)
-    #         if expansion_to_dt <= given_from:
-    #             continue
-    #
-    #     active_expansion = expansion
-    #     break
+    # Find associated people (for CPR no) by finding the one where to==infinity
+    employee_associated_people = lora_employee.get("relationer", {}).get(
+        "tilknyttedepersoner", []
+    )
+    employee_associated_people_active = None
+    for asso_ppl in employee_associated_people:
+        to_date = asso_ppl.get("virkning", {}).get("to", None)
+        if not to_date or to_date != mapping.INFINITY:
+            continue
 
+        employee_associated_people_active = asso_ppl
+        break
+
+    # Handle mutator key
     if mutator_key == "name":
         return f"{active_expansion['fornavn']} {active_expansion['efternavn']}"
 
@@ -810,5 +811,12 @@ def _get_lora_mutator_arg(
 
     if mutator_key == "nicknameSurName":
         return active_expansion["kaldenavn_efternavn"]
+
+    if mutator_key == "seniority":
+        return active_expansion["seniority"]
+
+    if mutator_key == "cprNo":
+        cpr_no = employee_associated_people_active.get("urn", "").split(":")[-1]
+        return cpr_no if len(cpr_no) > 0 else None
 
     return None
