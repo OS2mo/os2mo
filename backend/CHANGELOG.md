@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.5.0 - 2022-09-20
+-------------------
+
+[#51898] Created a new test to verify DetailTermination.validity.to is allowed to be None.
+
 11.4.1 - 2022-09-20
 -------------------
 
