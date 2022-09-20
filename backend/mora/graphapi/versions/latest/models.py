@@ -179,13 +179,13 @@ class OrgFuncTrigger(MoraTrigger):
 # Root Organisation
 # -----------------
 class Organisation(UUIDBase):
-    """Model representing an Organization."""
+    """Model representing an organisation."""
 
     pass
 
 
 class OrganisationUnit(UUIDBase):
-    """Model representing an Organization-Unit."""
+    """Model representing an organisation unit."""
 
     pass
 
@@ -247,7 +247,9 @@ class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
         description="UUID of the related organisation units time planning."
     )
 
-    location: Optional[UUID]
+    location: Optional[UUID] = Field(
+        description="UUID of the related organisation units location."
+    )
 
     def get_legacy_dict(self) -> dict:
         uuid_as_str = str(self.uuid)
@@ -294,7 +296,7 @@ class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
 
 
 class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
-    """Model representing an organization-unit termination."""
+    """Model representing an organization unit termination."""
 
     def get_lora_payload(self) -> dict:
         return {
@@ -418,7 +420,7 @@ class EmployeeUpdate(UUIDBase):
 
     # org
     org: Optional[Organisation] = Field(
-        None, description="Organization the employee belongs to."
+        None, description="Organisation the employee belongs to."
     )
 
     # validity

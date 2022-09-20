@@ -31,8 +31,8 @@ class ValidityInput:
     model=Organisation,
     all_fields=True,
 )
-class OrganizationInput:
-    """input model for terminating organizations units."""
+class OrganisationInput:
+    """input model for terminating organisation units."""
 
     pass
 
@@ -59,6 +59,16 @@ class OrganisationUnitUpdateInput:
 
 # Addresses
 # ---------
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitTerminate,
+    all_fields=True,
+)
+class OrganizationUnitTerminateInput:
+    """input model for terminating organisations units."""
+
+    pass
+
+
 @strawberry.experimental.pydantic.input(
     model=AddressTerminate,
     all_fields=True,

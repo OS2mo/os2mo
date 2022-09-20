@@ -23,8 +23,8 @@ CPRType = strawberry.scalar(
     model=UUIDBase,
     all_fields=True,
 )
-class OrganizationUnitType:
-    """GraphQL type for/of an organization unit."""
+class OrganisationUnitType:
+    """GraphQL type for/of an organisation unit."""
 
     pass
 
