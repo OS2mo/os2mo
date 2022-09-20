@@ -9,6 +9,8 @@ from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
 
+# Various
+# -------
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
 CPRType = strawberry.scalar(
     CPR,
@@ -18,25 +20,15 @@ CPRType = strawberry.scalar(
 
 
 @strawberry.experimental.pydantic.type(
-    model=OrganisationUnitModel,
+    model=UUIDBase,
     all_fields=True,
 )
-class OrganizationUnit:
-    """GraphQL type for/of a organization unit."""
-
-    pass
+class GenericUUIDType:
+    """Generic UUID model for return types."""
 
 
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementTerminateType:
-    """GraphQL type for an engagement."""
-
-    pass
-
-
+# Addresses
+# ---------
 @strawberry.experimental.pydantic.type(
     model=AddressModel,
     all_fields=True,
@@ -44,9 +36,15 @@ class EngagementTerminateType:
 class AddressTerminateType:
     """GraphQL type for/of an address (detail)."""
 
-    pass
 
+# Associations
+# ------------
 
+# Classes
+# -------
+
+# Employees
+# ---------
 @strawberry.experimental.pydantic.type(
     model=EmployeeModel,
     all_fields=True,
@@ -55,11 +53,52 @@ class EmployeeType:
     pass
 
 
+# Engagements
+# -----------
 @strawberry.experimental.pydantic.type(
-    model=UUIDBase,
+    model=EngagementModel,
     all_fields=True,
 )
-class GenericUUIDType:
-    """Generic UUID model for return types."""
+class EngagementTerminateType:
+    """GraphQL type for an engagement."""
 
-    pass
+
+# EngagementsAssociations
+# -----------------------
+
+# Facets
+# ------
+
+# ITSystems
+# ---------
+
+# ITUsers
+# -------
+
+# KLEs
+# ----
+
+# Leave
+# -----
+
+# Managers
+# --------
+
+# Root Organisation
+# -----------------
+
+# Organisational Units
+# --------------------
+@strawberry.experimental.pydantic.type(
+    model=OrganisationUnitModel,
+    all_fields=True,
+)
+class OrganizationUnit:
+    """GraphQL type for/of a organization unit."""
+
+
+# Related Units
+# -------------
+
+# Roles
+# -----
