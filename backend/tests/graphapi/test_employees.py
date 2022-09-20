@@ -657,24 +657,25 @@ async def test_update_mutator(
 @pytest.mark.parametrize(
     "given_expected_err_str,given_mutator_args",
     [
-        # Invalid name
-        (
-            EmployeeUpdate._ERR_INVALID_NAME,
-            {
-                "name": "TestMan Duke",
-                "givenName": "TestMan",
-                "surName": "Duke",
-            },
-        ),
-        # Invalid nickname
-        (
-            EmployeeUpdate._ERR_INVALID_NICKNAME,
-            {
-                "nickname": "Test Lord",
-                "nicknameGivenName": "Test",
-                "nicknameSurName": "Lord",
-            },
-        ),
+        # (
+        #     EmployeeUpdate._ERR_INVALID_NAME,
+        #     {
+        #         "name": "TestMan Duke",
+        #         "givenName": "TestMan",
+        #         "surName": "Duke",
+        #     },
+        # ),
+        # (
+        #     EmployeeUpdate._ERR_INVALID_NICKNAME,
+        #     {
+        #         "nickname": "Test Lord",
+        #         "nicknameGivenName": "Test",
+        #         "nicknameSurName": "Lord",
+        #     },
+        # ),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": ""}),
+        # (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "00112233445"}),
+        # (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001122334"}),
     ],
 )
 async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
@@ -842,7 +843,6 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 
 
 def _get_employee_update_mutation_query(mutation_func: str):
-    # mutation_func = "employee_update"
     return (
         "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
         "$givenName: String, $surName: String, $nickname: String, "

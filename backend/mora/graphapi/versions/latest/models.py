@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import logging
+import re
+import typing
 from enum import Enum
 from typing import Any
 from uuid import UUID
@@ -445,6 +447,9 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         "EmployeeUpdate.nickname is only allowed to be set, if "
         '"nickname_given_name" & "nickname_sur_name" are None.'
     )
+    _ERR_INVALID_CPR = (
+        "EmployeeUpdate.cpr_no must be a digits-string with the format: 0000000000"
+    )
 
     # Fields
     name: Optional[str] = Field(None, description="something")
@@ -484,11 +489,9 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
 
     @root_validator
     def validate_name_with_given_name_and_sur_name(cls, values: dict) -> dict:
-        """Validate name's and nickname's.
+        """Validate the model after set of fields."""
 
-        If "name" is set, "given_name" and "sur_name" are not allowed to be set.
-        same goes for nickname.
-        """
+        # Validate name-vars and nickname-vars
         if values.get("name") and (values.get("given_name") or values.get("sur_name")):
             raise ValueError(cls._ERR_INVALID_NAME)
 
