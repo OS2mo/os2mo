@@ -345,3 +345,18 @@ def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
 
 
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
+
+
+@pytest.fixture
+async def sample_structures_minimal_method_fixture() -> AsyncGenerator[None, None]:
+    # BEFORE test method
+    ensure_testing_database_exists()
+    setup_testing_database()
+    await load_sample_structures(minimal=True)
+
+    # RUN test method
+    yield
+
+    # AFTER test method
+    reset_testing_database()
+    stop_testing()

@@ -563,6 +563,13 @@ async def test_update_mutator(
     given_seniority,
     given_cpr_no,
 ):
+    """Test which verifies pydantic values can be sent through the mutator.
+
+    This is done by trying to generate a EmployeeUpdate pydantic class, if this
+    succeeds, we also expect the mutator to succeed.. otherwise we expect validation
+    errors.
+    """
+
     # Unpack tuples
     given_uuid_str = str(given_uuid)
     given_validity_from, given_validity_to = given_validity_dts
@@ -647,15 +654,75 @@ async def test_update_mutator(
             assert updated_employee_uuid == given_uuid_str
 
 
-# $to
-# $name
-# $givenName
-# $surName
-# $nickname
-# $nicknameGivenName
-# $nicknameSurName
-# $seniority
-# $cprNo
+@pytest.mark.parametrize(
+    "given_expected_err_str,given_mutator_args",
+    [
+        # Invalid name
+        (
+            EmployeeUpdate._ERR_INVALID_NAME,
+            {
+                "name": "TestMan Duke",
+                "givenName": "TestMan",
+                "surName": "Duke",
+            },
+        ),
+        # Invalid nickname
+        (
+            EmployeeUpdate._ERR_INVALID_NICKNAME,
+            {
+                "nickname": "Test Lord",
+                "nicknameGivenName": "Test",
+                "nicknameSurName": "Lord",
+            },
+        ),
+    ],
+)
+async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
+    """Test which verifies that certain mutator inputs, cause a validation error."""
+
+    # Configure mutator variables
+    given_from = datetime.datetime.now()
+    var_values = {
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "from": given_from.date().isoformat(),
+        **given_mutator_args,
+    }
+
+    for key, value in given_mutator_args.items():
+        if value is None:
+            continue
+
+        var_values[key] = value
+
+    # Mock & Run
+    with patch(
+        "mora.graphapi.versions.latest.mutators.employee_update"
+    ) as mock_employee_update:
+        # Run the query
+        mutation_func = "employee_update"
+        query = _get_employee_update_mutation_query(mutation_func)
+        response = await LatestGraphQLSchema.get().execute(
+            query, variable_values=var_values
+        )
+
+        response_exception_type = None
+        response_exception_msg_str = None
+        if isinstance(response.errors, list) and response.errors[0]:
+            response_exception = response.errors[0].original_error
+
+        if response_exception:
+            with pytest.raises(ValidationError) as e_info:
+                raise response_exception
+
+            response_exception_type = e_info.type
+            response_exception_msg_str = str(e_info.value.args[0][0].exc)
+
+        # Assert
+        mock_employee_update.assert_not_called()
+        assert response_exception_type is ValidationError
+        assert response_exception_msg_str == given_expected_err_str
+
+
 @pytest.mark.parametrize(
     "given_uuid,given_from,given_mutator_args",
     [
@@ -723,7 +790,7 @@ async def test_update_mutator(
         ),
     ],
 )
-@pytest.mark.usefixtures("sample_structures_minimal_test1234")
+@pytest.mark.usefixtures("sample_structures_minimal_method_fixture")
 async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Configure mutator variables
     var_values = {
@@ -771,6 +838,22 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 # --------------------------------------------------------------------------------------
 # Helper methods
 # --------------------------------------------------------------------------------------
+
+
+def _get_employee_update_mutation_query(mutation_func: str):
+    # mutation_func = "employee_update"
+    return (
+        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
+        "$givenName: String, $surName: String, $nickname: String, "
+        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
+        "$cprNo: String) {"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
+        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "nickname_given_name: $nicknameGivenName, "
+        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
+        "{ uuid }"
+        "}"
+    )
 
 
 def _set_gql_var(field_name, value, gql_values, pydantic_values):

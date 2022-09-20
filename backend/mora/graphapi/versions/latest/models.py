@@ -17,7 +17,6 @@ from mora import exceptions
 from mora import mapping
 from mora import util
 from mora.graphapi.versions.latest.grapql_utils import CprNo
-from mora.graphapi.versions.latest.grapql_utils import PrintableStrAllowEmpty
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -437,6 +436,18 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
     )
+    # Error messages returned by the @root_validator
+    _ERR_INVALID_NAME = (
+        "EmployeeUpdate.name is only allowed to be set, if "
+        '"given_name" & "sur_name" are None.'
+    )
+    _ERR_INVALID_NICKNAME = (
+        "EmployeeUpdate.nickname is only allowed to be set, if "
+        '"nickname_given_name" & "nickname_sur_name" are None.'
+    )
+
+    # Fields
+    name: Optional[str] = Field(None, description="something")
 
     given_name: Optional[str] = Field(
         None,
@@ -479,18 +490,12 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         same goes for nickname.
         """
         if values.get("name") and (values.get("given_name") or values.get("sur_name")):
-            raise ValueError(
-                "EmployeeUpdate.name is only allowed to be set, if "
-                '"given_name" & "sur_name" are None.'
-            )
+            raise ValueError(cls._ERR_INVALID_NAME)
 
         if values.get("nickname") and (
             values.get("nickname_given_name") or values.get("nickname_sur_name")
         ):
-            raise ValueError(
-                "EmployeeUpdate.nickname is only allowed to be set, if "
-                '"nickname_given_name" & "nickname_sur_name" are None.'
-            )
+            raise ValueError(cls._ERR_INVALID_NICKNAME)
 
         return values
 
