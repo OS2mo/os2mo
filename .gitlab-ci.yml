@@ -173,23 +173,16 @@ Don't Interrupt:
 .lint-base:
   stage: lint
   needs: []
-  image: python:3.10
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
 
 Pre-commit:
   extends: .lint-base
+  image: python:3.10
   before_script:
     - pip install pre-commit
     - pre-commit install
-    # Fetch terraform
-    - TERRAFORM_VERSION="1.1.6"
-    - TERRAFORM_DOWNLOAD_URL=https://releases.hashicorp.com/terraform
-    - TERRAFORM_URL=${TERRAFORM_DOWNLOAD_URL}/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-    - curl -o terraform_linux_amd64.zip -sL ${TERRAFORM_URL}
-    - unzip terraform_linux_amd64.zip -d /usr/bin/
-    - chmod +x /usr/bin/terraform
   script:
     - pre-commit run --all-files
   variables:
