@@ -67,9 +67,8 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
-        # Temporarily muting mypy error message, since we do not desire to add default
-        # values to required fields, and mypy as of now does not understand how to deal
-        # with this.
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await employee_create(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
