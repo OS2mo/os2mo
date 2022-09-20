@@ -21,11 +21,11 @@ Der er tre muligheder for læsning af opusfiler.
 -   Windows share: Filerne kan læses fra et windows share med SMB
     protokollen. Denne anvendes hvis `integrations.opus.smb_host` er udfyldt
     i settings.json.
-    
+
     > Bemærk den skal udfyldes som `IP/sti`. Kræver desuden
     en bruger med rettighed til at læse filerne og credentials sættes i
     settings.json som `integrations.opus.smb_user` og
-    `integrations.opus.smb_password`. 
+    `integrations.opus.smb_password`.
 
 -   Google cloud storage: Filerne kan
     læses direkte fra google cloud storage. Dette kræver en service konto
@@ -69,9 +69,9 @@ OPUS brugernavn på dette IT-system.
 
 ## AD-Integration
 
-OPUS Importen understøtter at anvende komponenten 
-[Integration til Active Directory]() til at berige objekterne fra OPUS 
-med information fra Active Directory. I øjebliket er det muligt at 
+OPUS Importen understøtter at anvende komponenten
+[Integration til Active Directory]() til at berige objekterne fra OPUS
+med information fra Active Directory. I øjebliket er det muligt at
 importere felterne `ObjectGuid` og `SamAccountName`.
 
 Hvis AD integrationen er aktiv, vil importeren oprette IT-systemet
@@ -142,7 +142,7 @@ er:
 
 -   `crontab.SAML_TOKEN`: saml token til forbindelse til OS2MO
 
--   
+-
 
     `integrations.opus.skip_employees`: **Optionelt.**
     > Kan sættes til *true* for kun at læse

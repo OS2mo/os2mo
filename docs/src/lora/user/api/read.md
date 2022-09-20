@@ -4,14 +4,14 @@ title: Read operation
 
 # Read operation
 
-``` http 
+``` http
 GET /(service)/(object)/(uuid)
 ```
 The Read operation obtains an entire object as JSON.
-    
+
 Default is to return the object as it is currently seen but can
 optionally be constrained by `virking*`
-[valid time](../objects.md#valid-time) and/or `registrering*` 
+[valid time](../objects.md#valid-time) and/or `registrering*`
 [transaction time](../objects.md#transaction-time) to give an older view.
 
 **Example request** for `GET /organisation/organisation/(uuid)`:
@@ -21,7 +21,7 @@ optionally be constrained by `virking*`
     Host: example.com
     ```
 
-    
+
 **Example response** for :<http:get>:\`!GET
 /organisation/organisation/(uuid)\`:
 

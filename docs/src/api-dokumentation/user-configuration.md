@@ -12,7 +12,7 @@ the configuration of the application on startup see
 It is possible to perform simple configuration of the MO frontend using
 the configuration module.
 
-## Configuration database 
+## Configuration database
 
 To use the configuration module, MO needs a database to store the
 configuration. The connection parameters must be set in the MO

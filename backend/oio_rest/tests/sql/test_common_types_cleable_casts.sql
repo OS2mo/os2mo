@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_common_types_cleable_casts()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 clearable_int1 ClearableInt;
 clearable_int2 ClearableInt;
 clearable_int3 ClearableInt;
@@ -119,7 +119,7 @@ clearable_int5:=(''::text)::ClearableInt;
 RETURN NEXT ok(clearable_int5.value IS NULL AND clearable_int5.cleared=true,'text->ClearableInt #1');
 RETURN NEXT ok( (null::text)::ClearableInt IS NULL, 'text->ClearableInt #2');
 
-BEGIN 
+BEGIN
 clearable_int5:=('test'::text)::ClearableInt;
 	RETURN NEXT ok(false,'text->ClearableInt #3 DOES NOT throw exception as it should');
 EXCEPTION  WHEN data_exception THEN
@@ -132,7 +132,7 @@ clearable_date5:=(''::text)::ClearableDate;
 RETURN NEXT ok(clearable_date5.value IS NULL AND clearable_date5.cleared=true,'text->ClearableDate #1');
 RETURN NEXT ok( (null::text)::ClearableDate IS NULL, 'text->ClearableDate #2');
 
-BEGIN 
+BEGIN
 clearable_date5:=('test'::text)::ClearableDate;
 	RETURN NEXT ok(false,'text->ClearableDate #3 DOES NOT throw exception as it should');
 EXCEPTION  WHEN data_exception THEN
@@ -145,7 +145,7 @@ clearable_boolean5:=(''::text)::ClearableBoolean;
 RETURN NEXT ok(clearable_boolean5.value IS NULL AND clearable_boolean5.cleared=true,'text->ClearableBoolean #1');
 RETURN NEXT ok( (null::text)::ClearableBoolean IS NULL, 'text->ClearableBoolean #2');
 
-BEGIN 
+BEGIN
 clearable_boolean5:=('test'::text)::ClearableBoolean;
 	RETURN NEXT ok(false,'text->ClearableBoolean #3 DOES NOT throw exception as it should');
 EXCEPTION  WHEN data_exception THEN
@@ -158,7 +158,7 @@ clearable_Timestamptz5:=(''::text)::ClearableTimestamptz;
 RETURN NEXT ok(clearable_Timestamptz5.value IS NULL AND clearable_Timestamptz5.cleared=true,'text->ClearableTimestamptz #1');
 RETURN NEXT ok( (null::text)::ClearableTimestamptz IS NULL, 'text->ClearableTimestamptz #2');
 
-BEGIN 
+BEGIN
 clearable_Timestamptz5:=('test'::text)::ClearableTimestamptz;
 	RETURN NEXT ok(false,'text->ClearableTimestamptz #3 DOES NOT throw exception as it should');
 EXCEPTION  WHEN data_exception THEN
@@ -171,7 +171,7 @@ clearable_Interval5:=(''::text)::ClearableInterval;
 RETURN NEXT ok(clearable_Interval5.value IS NULL AND clearable_Interval5.cleared=true,'text->ClearableInterval #1');
 RETURN NEXT ok( (null::text)::ClearableInterval IS NULL, 'text->ClearableInterval #2');
 
-BEGIN 
+BEGIN
 clearable_Interval5:=('test'::text)::ClearableInterval;
 	RETURN NEXT ok(false,'text->ClearableInterval #3 DOES NOT throw exception as it should');
 EXCEPTION  WHEN data_exception THEN

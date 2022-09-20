@@ -29,19 +29,19 @@ This project uses [REUSE](https://reuse.software) for licensing. All licenses ca
 ## Development
 ### Prerequisites
 
-- [Poetry](https://github.com/python-poetry/poetry) 
+- [Poetry](https://github.com/python-poetry/poetry)
 - [Pre-commit](https://github.com/pre-commit/pre-commit)
 
 
 ### Getting Started
 
-1. Clone the repository:  
+1. Clone the repository:
 `git clone git@git.magenta.dk:rammearkitektur/ra-data-models.git`
 
-2. Install all dependencies:   
+2. Install all dependencies:
 `poetry install`
 
-3. Set up pre-commit:  
+3. Set up pre-commit:
 `pre-commit install`
 
 
@@ -49,9 +49,9 @@ This project uses [REUSE](https://reuse.software) for licensing. All licenses ca
 
 You use `poetry` and `pytest` to run the tests:
 
-`poetry run pytest`  
+`poetry run pytest`
 
-  
+
 You can also run specific files
 
 `poetry run pytest tests/<test_folder>/<test_file.py>`
@@ -60,13 +60,13 @@ and even use filtering with `-k`
 
 `poetry run pytest -k "Manager"`
 
-  
+
 You can use the flags `-vx` where `v` prints the test & `x` makes the test stop if any tests fails (Verbose, X-fail)
 
-### Pre-commit usage 
+### Pre-commit usage
 Pre-commit must either be used via your virtual environment or globally.
-If you want to pre-commit globally, the following extra dependencies are needed:  
-`pip install mypy pydantic`  
+If you want to pre-commit globally, the following extra dependencies are needed:
+`pip install mypy pydantic`
 
 
 ### Models

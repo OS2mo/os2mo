@@ -20,7 +20,7 @@ installation required.
 ## Requirements
 
 The modules depend on mora_helper wich can be installed from the Helpers
-directory from the root of this repo: 
+directory from the root of this repo:
 
 ``` bash
 sudo pip3 install -e os2mo_helpers

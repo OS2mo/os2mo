@@ -10,8 +10,8 @@ as you see fit. Two methods are described below. Use the docker image or
 a Python package in a virtual environment.
 
 !!! Tip
-    TL;DR: To get a running development environment with postgres and mox, run: 
-    ``` {.bash} 
+    TL;DR: To get a running development environment with postgres and mox, run:
+    ``` {.bash}
     git clone https://github.com/magenta-aps/mox.git
     cd mox
     docker-compose up -d --build mox
@@ -115,7 +115,7 @@ in container.
 If successful you should see the container initializing database and
 finally
 
-``` 
+```
 [2019-04-10 08:22:06 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
 ```
 

@@ -194,12 +194,12 @@ to parametre:
         enhedstype eller et enhedsniveau.
 
 -   Der udrages et antal tilfældige brugere fra AD (mindst 10), og
-    disse tjekkes for tilstædeværelsen af de tre AD felter beskrevet i: 
+    disse tjekkes for tilstædeværelsen af de tre AD felter beskrevet i:
     1.   `integrations.ad.write.uuid_field`,
     2.   `integrations.ad.write.level2orgunit_field`
     3.   `integrations.ad.write.org_unit_field`
-    
-        Hvis hvert felt findes hos mindst én bruger, godkendes den lokale 
+
+        Hvis hvert felt findes hos mindst én bruger, godkendes den lokale
         AD opsætning.
 
 -   Længden af cpr-numrene hos de tilfældige brugere testes for om de
@@ -262,7 +262,7 @@ Hvis man i dette tilfælde sætter
 opfattes som primær hvis 'Medarbejder' også findes i
 `integrations.ad.discriminator.values`.
 
-Opfattes mere end en konto som primær tages den første, man støder på. I 
+Opfattes mere end en konto som primær tages den første, man støder på. I
 så fald fungerer `integrations.ad.discriminator.values` som en
 prioriteret liste.
 
@@ -336,9 +336,9 @@ tilføje variable til settings.json.
 For at læse fra en csv fil sættes stien til filen i
 *integrations.ad_writer.user_names.disallowed.csv_path*
 
-For at læse fra en database sættes følgende settings: 
+For at læse fra en database sættes følgende settings:
 
--   "integrations.ad_writer.user_names.disallowed.sql_connection_string" - https://docs.sqlalchemy.org/en/14/core/engines.html 
+-   "integrations.ad_writer.user_names.disallowed.sql_connection_string" - https://docs.sqlalchemy.org/en/14/core/engines.html
 -   "integrations.ad_writer.user_names.disallowed.sql_table_name"
 -   "integrations.ad_writer.user_names.disallowed.sql_column_name"
 
@@ -414,7 +414,7 @@ findes i AD, udlæses alle parametre angivet i
 feltmapningen, synkroniseres til MO.
 
 Integrationen vil som udgangspunkt ikke synkronisere fra et eventuelt
-skole AD, med mindre nøglen *integrations.ad.skip_school_ad_to_mo* 
+skole AD, med mindre nøglen *integrations.ad.skip_school_ad_to_mo*
 sættes til *false*.
 
 Da AD ikke understøtter gyldighedstider, antages alle informationer
@@ -496,13 +496,13 @@ brugeren i stedet blive filtreret fra. Resultaterne for evaluering af
 filtrene sammenholdes altså med en 'AND' operation.
 
 >   **Eksempel 1:**
-    
+
 >   I det forrige Eksempel 2 så vi på en situation hvor et AD felt
     benyttes til at afgøre om hvorvidt brugere skulle termineres eller
     synkroniseres.
 
 >   Lad os antage at vi stadig har konfigurationen herfra i vores
-    settings.json fil, men nu ønsker slet ikke at synkronisere 
+    settings.json fil, men nu ønsker slet ikke at synkronisere
     *"På orlov"* brugerne overhovedet.
 
 >   For at opnå dette kan vi lave følgende konfiguration:
@@ -599,11 +599,11 @@ i enheden begynder. Hvis der køres en synkronisering til et AD inden
 denne dato, vil felterne være tomme, da engagementet ikke er begyndt
 endnu.
 
-Udover ovenstående felter er `sync_timestamp` til rådighed. Hvis denne 
-sættes i feltmapningen vil ad_writer udfylde feltet med tidsstemplet for 
-hvornår en bruger sidst blev synkroniseret fra MO.  
+Udover ovenstående felter er `sync_timestamp` til rådighed. Hvis denne
+sættes i feltmapningen vil ad_writer udfylde feltet med tidsstemplet for
+hvornår en bruger sidst blev synkroniseret fra MO.
 
-Synkroniseringen til AD foretages i henhold til en lokal feltmapning, som eksempelvis kan se ud som dette:  
+Synkroniseringen til AD foretages i henhold til en lokal feltmapning, som eksempelvis kan se ud som dette:
 
 ``` json
 "integrations.ad_writer.mo_to_ad_fields": {
@@ -614,18 +614,18 @@ Synkroniseringen til AD foretages i henhold til en lokal feltmapning, som eksemp
     "unit_public_email": "extensionAttribute3",
     "title": "Title",
     "unit": "extensionAttribute2"
-}  
+}
 ```
-Formatet for `mo_to_ad_fields` er: MO-felt -> AD-felt. Altså mappes *unit_public_email* 
-fra MO til *extensionAttribute3* i AD i ovenstående eksempel.  
+Formatet for `mo_to_ad_fields` er: MO-felt -> AD-felt. Altså mappes *unit_public_email*
+fra MO til *extensionAttribute3* i AD i ovenstående eksempel.
 
-Som et alternativ til den ovennævnte direkte 1-til-1 feltmapning (*mo_to_ad_fields*) er 
-der også mulighed for en mere fleksibel felt-mapning vha. såkaldte *Jinja*-skabeloner. 
-Dette giver yderligere muligheder for at tilpasse formatteringen af de enkelte værdier, 
-der skrives i AD. Se eventuelt [her](https://jinja.palletsprojects.com/en/2.11.x/templates/) 
-(linket er på engelsk.). 
+Som et alternativ til den ovennævnte direkte 1-til-1 feltmapning (*mo_to_ad_fields*) er
+der også mulighed for en mere fleksibel felt-mapning vha. såkaldte *Jinja*-skabeloner.
+Dette giver yderligere muligheder for at tilpasse formatteringen af de enkelte værdier,
+der skrives i AD. Se eventuelt [her](https://jinja.palletsprojects.com/en/2.11.x/templates/)
+(linket er på engelsk.).
 
-Standard-opsætningen af AD-integrationen indeholder flg. Jinja-templates:  
+Standard-opsætningen af AD-integrationen indeholder flg. Jinja-templates:
 
 ``` json
 "integrations.ad_writer.template_to_ad_fields": {
@@ -638,14 +638,14 @@ Standard-opsætningen af AD-integrationen indeholder flg. Jinja-templates:
 }
 ```
 
-De felter, der er tilgængelige i `mo_values` , er beskrevet her: [MO-værdier](#mo-vrdier). 
-Desuden kan felter + faktiske værdier (for en given bruger) ses ved at køre følgende kommando:  
+De felter, der er tilgængelige i `mo_values` , er beskrevet her: [MO-værdier](#mo-vrdier).
+Desuden kan felter + faktiske værdier (for en given bruger) ses ved at køre følgende kommando:
 
 ``` bash
 python -m integrations.ad_integration.ad_writer --mo-values MO_BRUGER_UUID_HER --ignore-occupied-names
 ```
 
-Med denne standard-opsætning oprettes der brugere i AD på denne form:  
+Med denne standard-opsætning oprettes der brugere i AD på denne form:
 
 <figcaption>Eksempel</figcaption>
 
@@ -657,69 +657,69 @@ Med denne standard-opsætning oprettes der brugere i AD på denne form:
 | Surname           | "Efternavn"                               |
 | EmployeeNumber    | "A1234"                                   |
 
-Standard-opsætningen kan udvides eller erstattes. Eksempelvis kan opsætningen udvides til også 
-at udfylde postnummer, afdeling, gadenavn og en *extension attribute* således:  
+Standard-opsætningen kan udvides eller erstattes. Eksempelvis kan opsætningen udvides til også
+at udfylde postnummer, afdeling, gadenavn og en *extension attribute* således:
 
 ``` json
-"integrations.ad_writer.template_to_ad_fields": {     
-    "# standard-felter": "",     
-    "Name": "{{ mo_values['name'][0] }} {{ mo_values['name'][1] }} - {{ user_sam }}",     
-    "Displayname": "{{ mo_values['name'][0] }} {{ mo_values['name'][1] }}",     
-    "GivenName": "{{ mo_values['name'][0] }}",     
-    "SurName": "{{ mo_values['name'][1] }}",     
-    "EmployeeNumber": "{{ mo_values['employment_number'] }}", 
+"integrations.ad_writer.template_to_ad_fields": {
+    "# standard-felter": "",
+    "Name": "{{ mo_values['name'][0] }} {{ mo_values['name'][1] }} - {{ user_sam }}",
+    "Displayname": "{{ mo_values['name'][0] }} {{ mo_values['name'][1] }}",
+    "GivenName": "{{ mo_values['name'][0] }}",
+    "SurName": "{{ mo_values['name'][1] }}",
+    "EmployeeNumber": "{{ mo_values['employment_number'] }}",
 
-    "# yderligere felter": "",     
-    "postalCode": "{{ mo_values['unit_postal_code'] }}",     
-    "department": "{{ mo_values['unit_user_key'] }}",     
-    "streetName": "{{ mo_values['unit_streetname'].split(' ')[0] }}",     
-    "extensionAttribute3": "{{ mo_values['unit_public_email']|default('all@afdeling.dk') }}",     
-    "extensionAttribute4": "{{ sync_timestamp }}"   
-}  
-```
-
-Det er værd at bemærke, at begge konfigurationsmuligheder (*mo_to_ad_fields* og 
-*template_to_ad_fields*) benytter Jinja-skabeloner som grundlag for deres virkemåde. 
-Det er altså ækvivalent at skrive henholdsvis:  
-
-``` json
-"integrations.ad_writer.mo_to_ad_fields": {     
-    "unit_postal_code": "postalCode",   
+    "# yderligere felter": "",
+    "postalCode": "{{ mo_values['unit_postal_code'] }}",
+    "department": "{{ mo_values['unit_user_key'] }}",
+    "streetName": "{{ mo_values['unit_streetname'].split(' ')[0] }}",
+    "extensionAttribute3": "{{ mo_values['unit_public_email']|default('all@afdeling.dk') }}",
+    "extensionAttribute4": "{{ sync_timestamp }}"
 }
 ```
 
-og:  
+Det er værd at bemærke, at begge konfigurationsmuligheder (*mo_to_ad_fields* og
+*template_to_ad_fields*) benytter Jinja-skabeloner som grundlag for deres virkemåde.
+Det er altså ækvivalent at skrive henholdsvis:
 
-``` json    
+``` json
+"integrations.ad_writer.mo_to_ad_fields": {
+    "unit_postal_code": "postalCode",
+}
+```
+
+og:
+
+``` json
 "integrations.ad_writer.template_to_ad_fields": {     "
-    postalCode": "{{ mo_values['unit_postal_code'] }}",   
-}  
+    postalCode": "{{ mo_values['unit_postal_code'] }}",
+}
 ```
 
-Da førstnævnte konfiguration konverteres til sidstnævnte internt i programmet.  
+Da førstnævnte konfiguration konverteres til sidstnævnte internt i programmet.
 
-Når man skriver Jinja-templates i *template_to_ad_fields* er data om MO-brugeren 
-tilgængelige i objektet `mo_values`(som vist i eksemplerne ovenfor). Samtidig er 
-data om AD-brugeren (før skrivning) ligeledes tilgængelige i objektet `ad_values`. 
-Når koden *opretter* en ny AD-bruger, er `ad_values` tilgængeligt for Jinja-templates, 
-men er et tomt objekt. Dette kan fx anvendes til kun at synkronisere data fra MO til 
-AD, såfremt der ikke allerede står noget i det pågældende AD-felt:  
+Når man skriver Jinja-templates i *template_to_ad_fields* er data om MO-brugeren
+tilgængelige i objektet `mo_values`(som vist i eksemplerne ovenfor). Samtidig er
+data om AD-brugeren (før skrivning) ligeledes tilgængelige i objektet `ad_values`.
+Når koden *opretter* en ny AD-bruger, er `ad_values` tilgængeligt for Jinja-templates,
+men er et tomt objekt. Dette kan fx anvendes til kun at synkronisere data fra MO til
+AD, såfremt der ikke allerede står noget i det pågældende AD-felt:
 
-``` json    
-"integrations.ad_writer.template_to_ad_fields": {     
-    "titel": "{{ ad_values.get('titel') or mo_values['title'] }}",   
-}  
+``` json
+"integrations.ad_writer.template_to_ad_fields": {
+    "titel": "{{ ad_values.get('titel') or mo_values['title'] }}",
+}
 ```
 
-I ovenstående eksempel vil værdien i AD-feltet *titel* kun blive udfyldt med MO's 
-tilsvarende *title* hvis AD-brugeren ikke allerede har en titel. Og det har 
-AD-brugeren ikke, såfremt programmet netop er i færd med at oprette selvsamme 
+I ovenstående eksempel vil værdien i AD-feltet *titel* kun blive udfyldt med MO's
+tilsvarende *title* hvis AD-brugeren ikke allerede har en titel. Og det har
+AD-brugeren ikke, såfremt programmet netop er i færd med at oprette selvsamme
 AD-bruger.
 
 ## Afvikling af PowerShell templates
 
-Det er muligt at angive PowerShell kode hvor visse værdier angives med abstrakte 
-refrencer til MO, som så på runtime vil bive udfyldt med de tilhørende værdier for 
+Det er muligt at angive PowerShell kode hvor visse værdier angives med abstrakte
+refrencer til MO, som så på runtime vil bive udfyldt med de tilhørende værdier for
 det person det drejer sig om. For øjeblikket understøttes disse variable:
 
 -   `%OS2MO_AD_BRUGERNAVN%`
@@ -729,39 +729,39 @@ det person det drejer sig om. For øjeblikket understøttes disse variable:
 -   `%OS2MO_LEDER_EMAIL%`
 -   `%OS2MO_LEDER_NAVN%`
 -   `%OS2MO_BRUGER_ENHED%`
--   `%OS2MO_BRUGER_ENHED_UUID%` 
+-   `%OS2MO_BRUGER_ENHED_UUID%`
 
-Hvis et script indeholder andre nøgler på formen *%OS2MO_ ... %* vil der returneres en 
-fejlmeddelelse (exception hvis det afvikles som en integration), med mindre disse 
-variable er udkommenteret.  
+Hvis et script indeholder andre nøgler på formen *%OS2MO_ ... %* vil der returneres en
+fejlmeddelelse (exception hvis det afvikles som en integration), med mindre disse
+variable er udkommenteret.
 
-Integrationen forventer at scripts befinder sig i mappen *scripts* i en undermappe til 
-integrationen selv, og alle scripts skal have en *ps_template* som filendelse. Den 
-tekniske platform for afvikling af scripts er den samme som for den øvrige AD 
-integration; scriptet sendes til remote management serveren, som afvikler scriptet. 
-Bemærk at scripts i denne kategori ikke nødvendigvis behøver have direkte kontakt med 
-AD, men vil kunne anvends til alle formål hvor der er behov for at afvikle PowerShell 
-med værdier fra MO.   
+Integrationen forventer at scripts befinder sig i mappen *scripts* i en undermappe til
+integrationen selv, og alle scripts skal have en *ps_template* som filendelse. Den
+tekniske platform for afvikling af scripts er den samme som for den øvrige AD
+integration; scriptet sendes til remote management serveren, som afvikler scriptet.
+Bemærk at scripts i denne kategori ikke nødvendigvis behøver have direkte kontakt med
+AD, men vil kunne anvends til alle formål hvor der er behov for at afvikle PowerShell
+med værdier fra MO.
 
 ## Opsætning for lokal brug af integrationen
 
-Flere af værktøjerne i AD integrationen er udstyret med et kommandolinjeinterface, 
-som kan anvendes til lokale tests. For at anvende dette er skal tre ting være på 
-plads i det lokale miljø:   
+Flere af værktøjerne i AD integrationen er udstyret med et kommandolinjeinterface,
+som kan anvendes til lokale tests. For at anvende dette er skal tre ting være på
+plads i det lokale miljø:
 
-1.  En lokal bruger med passende opsætning af kerberos til at kunne tilgå remote 
-    management serveren.  
-2.  Den nødvendige konfiguration skal angives i `settings.json`.  
+1.  En lokal bruger med passende opsætning af kerberos til at kunne tilgå remote
+    management serveren.
+2.  Den nødvendige konfiguration skal angives i `settings.json`.
 3.  Et lokalt pythonmiljø med passende afhængigheder.
 
-Angående punkt 1 skal dette opsættes af den lokale IT organisation, hvis man har 
-fulgt denne dokumentation så langt som til dette punkt, er der en god sandsynlighed 
-for at man befinder sig i et miljø, hvor dette allerede er på plads.  
+Angående punkt 1 skal dette opsættes af den lokale IT organisation, hvis man har
+fulgt denne dokumentation så langt som til dette punkt, er der en god sandsynlighed
+for at man befinder sig i et miljø, hvor dette allerede er på plads.
 
-Punkt 2 gøres ved at oprette filen`settings.json`under mappen `settings` Et eksempel 
-på sådan en fil kunne se sådan ud:  
+Punkt 2 gøres ved at oprette filen`settings.json`under mappen `settings` Et eksempel
+på sådan en fil kunne se sådan ud:
 
-``` json     
+``` json
 {
     "mox.base": "http://localhost:8080",
     "mora.base": "http://localhost:5000",
@@ -832,12 +832,12 @@ på sådan en fil kunne se sådan ud:
 }
 ```
 
-Hvor betydniningen af de enkelte felter er angivet højere oppe i dokumentationen. 
-Felter som omhandler skolemdomænet er foreløbig sat via miljøvariable og er ikke 
+Hvor betydniningen af de enkelte felter er angivet højere oppe i dokumentationen.
+Felter som omhandler skolemdomænet er foreløbig sat via miljøvariable og er ikke
 inkluderet her, da ingen af skriveintegrationerne på dette tidspunkt undestøtter dette.
 
-Det skal nu oprettes et lokalt afviklingsmiljø. Dette gøres ved at klone git 
-projektet i en lokal mappe og oprette et lokal python miljø:  
+Det skal nu oprettes et lokalt afviklingsmiljø. Dette gøres ved at klone git
+projektet i en lokal mappe og oprette et lokal python miljø:
 
 ``` bash
 git clone https://github.com/OS2mo/os2mo-data-import-and-export
@@ -856,96 +856,96 @@ cd integrations/ad_integration
 python test_connectivity.py
 ```
 
-Hvis dette returnerer med ordet 'success' er integrationen klar til brug.   
+Hvis dette returnerer med ordet 'success' er integrationen klar til brug.
 
 
-## Anvendelse af kommondolinjeværktøjer 
+## Anvendelse af kommondolinjeværktøjer
 
-Følgende funktionaliteter har deres eget kommandolinjeværktøj som gør det muligt at 
-anvende dem uden at rette direkte i Python koden:   
+Følgende funktionaliteter har deres eget kommandolinjeværktøj som gør det muligt at
+anvende dem uden at rette direkte i Python koden:
 
 -   `ad_writer.py`
 -   `ad_life_cycle.py`
 -   `execute_ad_script.py`
--   `user_names.py` 
+-   `user_names.py`
 
-For user names kræves der dog en del forudsætninger som gør at kommandolinjeværktøjet 
-ikke i praksis har brugbar funktionalitet endnu.  
+For user names kræves der dog en del forudsætninger som gør at kommandolinjeværktøjet
+ikke i praksis har brugbar funktionalitet endnu.
 
 ### ad_writer.py
 
-Dette værktøj har følgende muligheder:  
+Dette værktøj har følgende muligheder:
 
 ```
-usage: ad_writer.py [-h]                     
-    [--create-user-with-manager MO_uuid |         
-    --create-user MO_uuid |         
-    --sync-user MO_uuid | 
-    --delete-user User_SAM |         
-    --read-ad-information User_SAM |         
-    --add-manager-to-user Manager_SAM User_SAM]  
+usage: ad_writer.py [-h]
+    [--create-user-with-manager MO_uuid |
+    --create-user MO_uuid |
+    --sync-user MO_uuid |
+    --delete-user User_SAM |
+    --read-ad-information User_SAM |
+    --add-manager-to-user Manager_SAM User_SAM]
 ```
 
-**De forskellige muligheder gennemgås her en ad gangen:** 
+**De forskellige muligheder gennemgås her en ad gangen:**
 
--   --create-user-with-manager MO uuid     
-    Eksempel: 
+-   --create-user-with-manager MO uuid
+    Eksempel:
     ``` bash
-    python ad_writer-py --create-user-with-manager 4931ddb6-5084-45d6-9fb2-52ff33998005     
+    python ad_writer-py --create-user-with-manager 4931ddb6-5084-45d6-9fb2-52ff33998005
     ```
-    Denne kommando vil oprette en ny AD bruger ved hjælp af de informationer der er 
-    findes om brugeren i MO. De relevante felter i AD vil blive udfyld i henhold til 
-    den lokale feltmapning, og der vil blive oprettet et link til AD kontoen for 
-    lederen af medarbejderens primære ansættelse. Hvis det ikke er muligt at finde 
-    en leder, vil integrationen standse med en *ManagerNotUniqueFromCprException*.   
-    
--   --create-user MO_uuid
-    Eksempel: 
-    ``` bash 
-    python ad_writer-py --create-user 4931ddb6-5084-45d6-9fb2-52ff33998005     
-    ```
-    Som ovenfor men i dette tilfælde oprettes der ikke et link til lederens AD konto.   
+    Denne kommando vil oprette en ny AD bruger ved hjælp af de informationer der er
+    findes om brugeren i MO. De relevante felter i AD vil blive udfyld i henhold til
+    den lokale feltmapning, og der vil blive oprettet et link til AD kontoen for
+    lederen af medarbejderens primære ansættelse. Hvis det ikke er muligt at finde
+    en leder, vil integrationen standse med en *ManagerNotUniqueFromCprException*.
 
--   --sync-user MO_uuid 
-    Eksempel: 
-    ``` bash 
+-   --create-user MO_uuid
+    Eksempel:
+    ``` bash
+    python ad_writer-py --create-user 4931ddb6-5084-45d6-9fb2-52ff33998005
+    ```
+    Som ovenfor men i dette tilfælde oprettes der ikke et link til lederens AD konto.
+
+-   --sync-user MO_uuid
+    Eksempel:
+    ``` bash
     python ad_writer-py --sync-user 4931ddb6-5084-45d6-9fb2-52ff33998005
     ```
-    Synkroniser oplysninger fra MO til en allerede eksisterende AD konto.   
+    Synkroniser oplysninger fra MO til en allerede eksisterende AD konto.
 
--   --delete-user User_SAM     
-    Eksempel: 
-    ``` bash 
+-   --delete-user User_SAM
+    Eksempel:
+    ``` bash
     python ad_writer-py --delete-user MGORE
-    ```     
-    Slet den pågældende AD bruger. Denne funktion anvendes hovedsageligt til tests, 
-    da et driftmiljø typisk vil have en mere kompliceret procedure for sletning af 
-    brugere.   
+    ```
+    Slet den pågældende AD bruger. Denne funktion anvendes hovedsageligt til tests,
+    da et driftmiljø typisk vil have en mere kompliceret procedure for sletning af
+    brugere.
 
--   --read-ad-information User_SAM     
-    Eksempel: 
-    ``` bash 
+-   --read-ad-information User_SAM
+    Eksempel:
+    ``` bash
     python ad_writer-py --read-ad-information MGORE
     ```
-    Returnerer de AD oplysninger fra AD som integrationen i øjeblikket er konfigureret 
-    til at læse. Det er altså en delmængde af disse oplysninger som vil blive 
-    skrevet til MO af synkroniseringsværktøjet. Funktionen er primært nyttig til 
-    udvikling og fejlfinding.   
+    Returnerer de AD oplysninger fra AD som integrationen i øjeblikket er konfigureret
+    til at læse. Det er altså en delmængde af disse oplysninger som vil blive
+    skrevet til MO af synkroniseringsværktøjet. Funktionen er primært nyttig til
+    udvikling og fejlfinding.
 
--   --add-manager-to-user Manager_SAM User_SAM 
-    Eksempel: 
+-   --add-manager-to-user Manager_SAM User_SAM
+    Eksempel:
     ``` bash
     python ad_writer-py --add-manager-to-user DMILL MGORE
     ```
-    Udfylder brugerens `manager` felt med et link til AD kontoen der hører til 
+    Udfylder brugerens `manager` felt med et link til AD kontoen der hører til
     ManagerSAM.
 
 ### ad_fix_enddate.py
 
-Hvis ad_writer skal skrive `end_date` kan dette job være nødvendigt at sætte op også 
-fordi ad_writer ikke læser engagementer i MO i fortiden. Dette job tjekker alle 
-engagementer i AD som har slutdatoen 9999-12-31 i AD og tjekker deres slutdato i MO. 
-Hvis engagementet allerede  er afsluttet i MO opdateres det i AD.  
+Hvis ad_writer skal skrive `end_date` kan dette job være nødvendigt at sætte op også
+fordi ad_writer ikke læser engagementer i MO i fortiden. Dette job tjekker alle
+engagementer i AD som har slutdatoen 9999-12-31 i AD og tjekker deres slutdato i MO.
+Hvis engagementet allerede  er afsluttet i MO opdateres det i AD.
 
 For at sætte det som en del af job-runneren sættes:
 
@@ -955,68 +955,68 @@ For at sætte det som en del af job-runneren sættes:
 
 ### ad_life_cycle.py
 
-Dette værktøj kan afhængig af de valgte parametre oprette eller deaktivere 
-AD-konti på brugere som henholdsvis findes i MO men ikke i AD, eller findes 
+Dette værktøj kan afhængig af de valgte parametre oprette eller deaktivere
+AD-konti på brugere som henholdsvis findes i MO men ikke i AD, eller findes
 i AD, men ikke har aktive engagementer i MO.
 
 ``` bash
 ad_life_cycle.py [-h/--help]
-    [--create-ad-accounts] [--disable-ad-accounts]                            
+    [--create-ad-accounts] [--disable-ad-accounts]
     [--dry-run] [--use-cached-mo]
 ```
 
-Betydningen af disse parametre angives herunder, det er muligt at afvilke begge 
-synkroniseringer i samme kørsel ved at angive begge parametre.   
+Betydningen af disse parametre angives herunder, det er muligt at afvilke begge
+synkroniseringer i samme kørsel ved at angive begge parametre.
 
 -   `--create-ad-accounts`
 
-    Opret AD brugere til MO brugere som ikke i forvejen findes i AD efter de 
-    regler som er angivet i settings-nøglerne:     
-    
+    Opret AD brugere til MO brugere som ikke i forvejen findes i AD efter de
+    regler som er angivet i settings-nøglerne:
+
     -   `integrations.ad.write.create_user_trees`
     -   `integrations.ad.lifecycle.create_filters`
-    
-    Se mere om disse herunder.   
+
+    Se mere om disse herunder.
 
 -   `--disable-ad-accounts`
 
-    Sæt status til Disabled for AD konti hvor den tilhøende MO bruge ikke længere 
-    har et aktivt engagement og som opfylder reglerne angivet i settings-nøglen:     
+    Sæt status til Disabled for AD konti hvor den tilhøende MO bruge ikke længere
+    har et aktivt engagement og som opfylder reglerne angivet i settings-nøglen:
 
     -   `integrations.ad.lifecycle.disable_filters`
-    
-    Se mere om denne herunder.   
+
+    Se mere om denne herunder.
 
 -   `--dry-run`
-    
-    Programmet vil ikke forsøge at opdatere sit billede af MO, en vil anvende 
-    den aktuelt cache'de værdi. Dette kan være nyttigt til udvikling, eller 
-    hvis flere integrationer køres umidelbart efter hinanden.   
+
+    Programmet vil ikke forsøge at opdatere sit billede af MO, en vil anvende
+    den aktuelt cache'de værdi. Dette kan være nyttigt til udvikling, eller
+    hvis flere integrationer køres umidelbart efter hinanden.
 
 -   `--use-cached-mo`
-    
-    Programmet vil ikke genopfriske LoraCache, men blot benytte den aktuelle 
-    LoraCache der findes på disken.  
 
-Derudover kan programmet konfigureres med nøgler i`settings.json`specifikt:   
+    Programmet vil ikke genopfriske LoraCache, men blot benytte den aktuelle
+    LoraCache der findes på disken.
+
+Derudover kan programmet konfigureres med nøgler i`settings.json`specifikt:
 
 -   `integrations.ad.write.create_user_trees`
 
-    Her angives en liste over et eller flere UUID'er på organisationsenheder i 
-    MO. Hvis en medarbejder optræder i en af disse enheder (samt deres 
-    underenheder, underenhedernes underenheder, osv.) vil`ad_life_cycle`oprette 
-    en AD-konto for medarbejderen (såfremt de ikke allerede har en.)     
+    Her angives en liste over et eller flere UUID'er på organisationsenheder i
+    MO. Hvis en medarbejder optræder i en af disse enheder (samt deres
+    underenheder, underenhedernes underenheder, osv.) vil`ad_life_cycle`oprette
+    en AD-konto for medarbejderen (såfremt de ikke allerede har en.)
 
-    Hvis man eksempelvis har et organisationstræ i MO, der ser således ud:     
+    Hvis man eksempelvis har et organisationstræ i MO, der ser således ud:
 
-    ``` 
+    ```
     Enhed A (uuid: aaaa)
       - Enhed A1 (uuid: aaaa1111)
     Enhed B (uuid:bbbb)
       - Enhed B1 (uuid: bbbb1111)
     ```
-    
-    og man ønsker, at`ad_life_cycle`kun må oprette AD-konti for MO-brugere i 
+
+    og man ønsker, at`ad_life_cycle`kun må oprette AD-konti for MO-brugere i
     enhederne A, A1, og B1, kan man angive:
 
     ``` json
@@ -1027,76 +1027,76 @@ Derudover kan programmet konfigureres med nøgler i`settings.json`specifikt:
     }
     ```
 
-    Der vil ikke blive oprettet AD-konti for MO-brugere i enhed B med denne 
-    opsætning. 
+    Der vil ikke blive oprettet AD-konti for MO-brugere i enhed B med denne
+    opsætning.
 
 -   `integrations.ad.lifecycle.create_filters`
-    
-    Se dokumentation herunder for`integrations.ad.lifecycle.disable_filters`. 
-    Denne nøgle gør det samme, blot som filter for oprettelse istedet for 
-    som filter for deaktivering.   
 
--   `integrations.ad.lifecycle.disable_filters` 
+    Se dokumentation herunder for`integrations.ad.lifecycle.disable_filters`.
+    Denne nøgle gør det samme, blot som filter for oprettelse istedet for
+    som filter for deaktivering.
 
-    Liste af jinja templates der evalueres på MO brugere, deres engagementer og 
-    deres tilhørende AD konti. Disse templates kan returnere en sand værdi for 
-    at beholde brugeren eller en falsk værdi for at sortere brugeren fra. 
+-   `integrations.ad.lifecycle.disable_filters`
 
-    Værdierne der vurderes som sande er "yes", "true", "1" og "1.0". 
+    Liste af jinja templates der evalueres på MO brugere, deres engagementer og
+    deres tilhørende AD konti. Disse templates kan returnere en sand værdi for
+    at beholde brugeren eller en falsk værdi for at sortere brugeren fra.
+
+    Værdierne der vurderes som sande er "yes", "true", "1" og "1.0".
     De findes i `string_to_bool` metoden i `exporters/utils/jinja_filter.py`.
 
-    Eksempel 1:     
-    Vi ønsker kun at deaktivere brugere, hvis AD konto har et givent prefix (`X`) 
-    i deres SAM Account Name. For at opnå dette kan vi lave følgende konfiguration:     
+    Eksempel 1:
+    Vi ønsker kun at deaktivere brugere, hvis AD konto har et givent prefix (`X`)
+    i deres SAM Account Name. For at opnå dette kan vi lave følgende konfiguration:
 
     ``` json
-    {            
-        "integrations.ad.lifecycle.disable_filters": [                
-            "{{ ad_object['SamAccountName'].startswith('X') }}"            
-        ]        
-    }     
+    {
+        "integrations.ad.lifecycle.disable_filters": [
+            "{{ ad_object['SamAccountName'].startswith('X') }}"
+        ]
+    }
     ```
 
-    Hermed vil disable-ad-accounts kun deaktivere brugere med X som prefix.     
-    
-    Eksempel 2:     
-    
-    Vi ønsker ikke at oprette brugere i AD, såfremt de har en given 
-    stillingsbetegnelse (*Bruger*) på deres primære engagement i MO. 
-    For at opnå dette kan vi lave følgende konfiguration:     
+    Hermed vil disable-ad-accounts kun deaktivere brugere med X som prefix.
 
-    ``` json         
-    {            
-        "integrations.ad.lifecycle.create_filters": [                
+    Eksempel 2:
+
+    Vi ønsker ikke at oprette brugere i AD, såfremt de har en given
+    stillingsbetegnelse (*Bruger*) på deres primære engagement i MO.
+    For at opnå dette kan vi lave følgende konfiguration:
+
+    ``` json
+    {
+        "integrations.ad.lifecycle.create_filters": [
             "{{ employee.get('primary_engagement', {})
                         .get('job_function', {})
                         .get('title', '') != 'Bruger' }}"            ]        }
-    ```     
+    ```
 
-    Hermed vil create-ad-accounts oprette AD konti for alle brugere, undtagen 
-    dem som har den givne stillingsbetegnelse.   
+    Hermed vil create-ad-accounts oprette AD konti for alle brugere, undtagen
+    dem som har den givne stillingsbetegnelse.
 
-Det er værd at bemærke at brugerne som laves med ad_life_cycle som udgangspunkt 
-*ikke* oprettes med relaterede data, de vil altså fremstå f.eks. uden adresser. 
-Deres relaterede data kan tilførsel vha. `mo_to_ad_sync`programmet`.  
+Det er værd at bemærke at brugerne som laves med ad_life_cycle som udgangspunkt
+*ikke* oprettes med relaterede data, de vil altså fremstå f.eks. uden adresser.
+Deres relaterede data kan tilførsel vha. `mo_to_ad_sync`programmet`.
 
-Settings kan overskrives hvis der skal gælde andre regler under oprettelsen af nye 
-brugere end der ellers gør under synkroniseringen.  Dette gøres ved at sætte felterne 
-ind i `ad_lifecycle_injected_settings`. De skal skrives som en dictionary med formen 
-"sti.til.setting": "værdi". Bemærk at stien her ikke svarer til stien i 
+Settings kan overskrives hvis der skal gælde andre regler under oprettelsen af nye
+brugere end der ellers gør under synkroniseringen.  Dette gøres ved at sætte felterne
+ind i `ad_lifecycle_injected_settings`. De skal skrives som en dictionary med formen
+"sti.til.setting": "værdi". Bemærk at stien her ikke svarer til stien i
 settings.json, men i den dictionary som AD læser ud af settings. Fx.
 
-``` json      
-{       
-    "ad_lifecycle_injected_settings": {           
-        "primary_write.mo_to_ad_fields.Title": "title"           
-    }         
-}  
+``` json
+{
+    "ad_lifecycle_injected_settings": {
+        "primary_write.mo_to_ad_fields.Title": "title"
+    }
+}
 ```
 
-Dette vil tilføje "title" til settings svarende til: 
+Dette vil tilføje "title" til settings svarende til:
 
-`settings["primary_write"]["mo_to_ad_fields"]["Title"] = "title".` 
+`settings["primary_write"]["mo_to_ad_fields"]["Title"] = "title".`
 
 Man kan se resultatet af at tilføre de ekstra settings ved at køre:
 
@@ -1106,7 +1106,7 @@ python -m integrations.ad_integration.read_ad_conf_settings --inject
 
 #### execute_ad_script.py
 
-Dette værktøj har følgende muligheder:  
+Dette værktøj har følgende muligheder:
 
 ```
 usage: execute_ad_script.py [-h]
@@ -1116,58 +1116,58 @@ usage: execute_ad_script.py [-h]
 
 **De forskellige muligheder gennemgås her en ad gangen:**
 
--   `--validate-script Script_name`     
+-   `--validate-script Script_name`
 
-    Eksempel: 
+    Eksempel:
 
     ``` bash
     python ad_writer-py --validate-script send_email
-    ``` 
-    
-    Denne kommando vil lede efter en skabelon i `scripts/send_email.ps_template` og 
-    validere at skabelonen kun indeholder gyldige nøgleværdier. Hvis dette er 
-    tilfældet returneres sætningen "Script is valid" og ellers returneres en 
-    fejlbesked som beskriver hvilke ugyldige nøgler der er fundet i skabelonen.   
+    ```
+
+    Denne kommando vil lede efter en skabelon i `scripts/send_email.ps_template` og
+    validere at skabelonen kun indeholder gyldige nøgleværdier. Hvis dette er
+    tilfældet returneres sætningen "Script is valid" og ellers returneres en
+    fejlbesked som beskriver hvilke ugyldige nøgler der er fundet i skabelonen.
 
 -   `--execute-script Script name user_uuid`
 
-    Eksempel: 
-    
+    Eksempel:
+
     ``` bash
     python execute_ad_script.py --execute-script send_email 4931ddb6-5084-45d6-9fb2-52ff33998005
     ```
-    
-    Denne kommando vil finde en skabelon i`scripts/send_email.ps_template`og først 
-    validere og derefter afvikle de med værdier taget fra brugen med uuid som angivet.   
+
+    Denne kommando vil finde en skabelon i`scripts/send_email.ps_template`og først
+    validere og derefter afvikle de med værdier taget fra brugen med uuid som angivet.
 
 ## Import af AD OU til MO
 
-Som en ekstra funktionalitet, er det muligt at anvende AD integrationens 
-læsefaciliteter til at indlæse en bestemt OU fra AD'et til MO. Dette vil 
-eksempelvis kunne anvendes hvis AD'et er autoritativ for eksterne konsulenter i 
-kommunen og man ønsker, at disse personer skal fremgå af MOs frontend på trods af at 
-de ikke importeres fra lønsystemet. Integrationen vil oprette ansættelsestypen 
-'Ekstern' og vil oprette alle brugere fra et på forhånd angivet OU som ansatte i MO. 
-Det er en forudsætning, at disse brugere ikke har andre ansættelser i MO i forvejen. 
-Hvis brugere fjernes fra OU'et vil de blive fjernet fra MO ved næste kørsel af 
-integrationen.  
+Som en ekstra funktionalitet, er det muligt at anvende AD integrationens
+læsefaciliteter til at indlæse en bestemt OU fra AD'et til MO. Dette vil
+eksempelvis kunne anvendes hvis AD'et er autoritativ for eksterne konsulenter i
+kommunen og man ønsker, at disse personer skal fremgå af MOs frontend på trods af at
+de ikke importeres fra lønsystemet. Integrationen vil oprette ansættelsestypen
+'Ekstern' og vil oprette alle brugere fra et på forhånd angivet OU som ansatte i MO.
+Det er en forudsætning, at disse brugere ikke har andre ansættelser i MO i forvejen.
+Hvis brugere fjernes fra OU'et vil de blive fjernet fra MO ved næste kørsel af
+integrationen.
 
-I den nuværende udgave af integrationen, genkendes OU'et med eksterne 
-brugere på, at dets navn indeholder ordene 'Ekstern Konsulenter', dette vil på sigt 
-blive erstattet med konfiguration.  
+I den nuværende udgave af integrationen, genkendes OU'et med eksterne
+brugere på, at dets navn indeholder ordene 'Ekstern Konsulenter', dette vil på sigt
+blive erstattet med konfiguration.
 
-For at programmet kan afvikles, er det nødvendigt at sætte konfigurationsværdien 
-`integrations.ad.import_ou.mo_unit_uuid` som angiver UUID'en på den enhed brugerne 
-fra AD skal synkroniseres til. Hvis enheden ikke eksisterer i forvejen vil den blive 
-oprettet ved første kørsel, så for en kommune som starter op med brug af denne 
-integration, kan der blot angives et tilfældigt UUID. 
+For at programmet kan afvikles, er det nødvendigt at sætte konfigurationsværdien
+`integrations.ad.import_ou.mo_unit_uuid` som angiver UUID'en på den enhed brugerne
+fra AD skal synkroniseres til. Hvis enheden ikke eksisterer i forvejen vil den blive
+oprettet ved første kørsel, så for en kommune som starter op med brug af denne
+integration, kan der blot angives et tilfældigt UUID.
 
-Programmet hedder `import_ad_group_into_mo.py` og kan anvendes med et antal 
+Programmet hedder `import_ad_group_into_mo.py` og kan anvendes med et antal
 kommandolinjeparametre:
 
 -   `--create-or-update`: Opretter og opdaterer bruger fra AD til MO.
 
 -   `--cleanup-removed-users`: Fjerne MO brugere som ikke længere er
     konsulenter i AD.
-    
+
 -   `--full-sync`: Kører begge de to ovenstående operationer.

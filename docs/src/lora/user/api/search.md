@@ -4,7 +4,7 @@ title: Search operation
 
 # Search operation
 
-``` http 
+``` http
 GET /(service)/(object)
 ```
 
@@ -23,7 +23,7 @@ instead of a list of UUIDs.
 Default is to return the object(s) as currently seen but can
 optionally be constrained by `virking*`
 [valid time](../objects.md#valid-time) and/or
-`registrering*` [transaction time](../objects.md#transaction-time) to give an older 
+`registrering*` [transaction time](../objects.md#transaction-time) to give an older
 view.
 
 **Search example request** for :<http:get>:\`!GET
@@ -52,29 +52,29 @@ Server: Werkzeug/0.14.1 Python/3.5.2
 
 **Query Parameters:**
 
-- **uuid** (*uuid*) - The UUID of the object to receive. Allowed once in 
-[Search operation](./search.md). 
+- **uuid** (*uuid*) - The UUID of the object to receive. Allowed once in
+[Search operation](./search.md).
 
-- **bvn** (*string brugerventnoegle* /) - Match text in the `brugervendtnoegle`-field. 
+- **bvn** (*string brugerventnoegle* /) - Match text in the `brugervendtnoegle`-field.
 
 - **vilkaarligattr** (*string*) - Match text values of any `attributter`-field.
 
-- **vilkaarligrel** (*uuid*) - Match values of any `relationer`. 
+- **vilkaarligrel** (*uuid*) - Match values of any `relationer`.
 
-- **livscykluskode** (*enum*) - Matches the `livscykluskode`-field. Can be one of 
+- **livscykluskode** (*enum*) - Matches the `livscykluskode`-field. Can be one of
 `Opstaaet`, `Importeret`, `Passiveret`, `Slettet` or `Rettet`.
 
-- **brugerref** (*uuid*) - Match the `brugerref`-field. The (system) user who changed 
+- **brugerref** (*uuid*) - Match the `brugerref`-field. The (system) user who changed
 the object.
 
-- **notestekst** (*string*) - Match the `notetekst`-field in `virkning`. (Not to be 
+- **notestekst** (*string*) - Match the `notetekst`-field in `virkning`. (Not to be
 confused with the `note`-field.)
 
-- **foersteresultat** (*int*) - The first result in a 
+- **foersteresultat** (*int*) - The first result in a
 [Paged search](#paged-search). Sorts the result by `brugervendtnoegle`.
 
 - **maximalantalresultater** (*int*) - The maximal number of results in a
-[Paged search](#paged-search). Sorts the result by 
+[Paged search](#paged-search). Sorts the result by
 `brugervendtnoegle`.
 
 - **list** (*bool*) - Fetch and return objects instead of just their uuids.
@@ -111,8 +111,8 @@ Contrary to typical SQL `LIKE` syntax, the character `_` (underscore)
 matches only the underscore character (and not "any character").
 
 !!! attention
-    The URI should always be percent-encoded as defined in 
-    [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986.html#section-2). Not 
+    The URI should always be percent-encoded as defined in
+    [RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986.html#section-2). Not
     doing so can lead to unexpected results when you use the `%` wildcard.
 
     The percent-encoding of `%` is `%25`. E.g. a search query for a `bvn`
@@ -124,7 +124,7 @@ matches only the underscore character (and not "any character").
 
 In addition to the above general query parameters, each object also
 has specialized parameters based on its field. The endpoints
-`GET /(service)/(object)/fields` lists the fields which can be used for parameters 
+`GET /(service)/(object)/fields` lists the fields which can be used for parameters
 for a [Search operation](./search.md).
 
 **Response Headers:**

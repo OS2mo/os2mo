@@ -165,7 +165,7 @@ BEGIN
         GROUP BY rel_type
     ) AS a;
 
- 
+
     ---Create temporary sequences
     {% if oio_type != "tilstand" %}
     {{oio_type}}_uuid_underscores:=replace({{oio_type}}_uuid::text, '-', '_');
@@ -664,14 +664,14 @@ END IF;
 /******************************************************************/
 --Handling document variants and document parts
 
---check if the update explicitly clears all the doc variants (and parts) by explicitly giving an empty array, if so - no variant will be included in the new reg. 
+--check if the update explicitly clears all the doc variants (and parts) by explicitly giving an empty array, if so - no variant will be included in the new reg.
 IF varianter IS NOT NULL AND coalesce(array_length(varianter,1),0)=0 THEN
   --raise notice 'Skipping insertion of doc variants (and parts), as an empty array was given explicitly';
 ELSE
 
 --Check if any variants was given in the new update - otherwise we'll skip ahead to transfering the old variants
 IF varianter IS NOT NULL AND coalesce(array_length(varianter,1),0)>0 THEN
-  
+
 FOREACH dokument_variant_obj IN ARRAY varianter
 LOOP
 
@@ -680,12 +680,12 @@ dokument_variant_new_id:=_ensure_document_variant_exists_and_get(new_dokument_re
 --handle variant egenskaber
 IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)=0 THEN
 dokument_variant_egenskaber_expl_deleted:=array_append(dokument_variant_egenskaber_expl_deleted, dokument_variant_obj.varianttekst);
-ELSE 
+ELSE
 
 
 IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)>0 THEN
 
-  --Input validation: 
+  --Input validation:
   --Verify that there is no overlap in virkning in the array given
 
   IF EXISTS (
@@ -704,33 +704,33 @@ IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokumen
 FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   LOOP
 
-   IF (dokument_variant_egenskab_obj).arkivering is null OR 
-   (dokument_variant_egenskab_obj).delvisscannet is null OR 
-   (dokument_variant_egenskab_obj).offentliggoerelse is null OR 
-   (dokument_variant_egenskab_obj).produktion is null 
+   IF (dokument_variant_egenskab_obj).arkivering is null OR
+   (dokument_variant_egenskab_obj).delvisscannet is null OR
+   (dokument_variant_egenskab_obj).offentliggoerelse is null OR
+   (dokument_variant_egenskab_obj).produktion is null
   THEN
 
 
   INSERT INTO dokument_variant_egenskaber(
     variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
       )
   SELECT
-    dokument_variant_new_id, 
-        CASE WHEN (dokument_variant_egenskab_obj.arkivering).cleared THEN NULL 
+    dokument_variant_new_id,
+        CASE WHEN (dokument_variant_egenskab_obj.arkivering).cleared THEN NULL
         ELSE coalesce((dokument_variant_egenskab_obj.arkivering).value,a.arkivering)
-        END, 
-          CASE WHEN (dokument_variant_egenskab_obj.delvisscannet).cleared THEN NULL 
+        END,
+          CASE WHEN (dokument_variant_egenskab_obj.delvisscannet).cleared THEN NULL
           ELSE coalesce((dokument_variant_egenskab_obj.delvisscannet).value,a.delvisscannet)
           END,
-            CASE WHEN (dokument_variant_egenskab_obj.offentliggoerelse).cleared THEN NULL 
+            CASE WHEN (dokument_variant_egenskab_obj.offentliggoerelse).cleared THEN NULL
             ELSE coalesce((dokument_variant_egenskab_obj.offentliggoerelse).value,a.offentliggoerelse)
             END,
-              CASE WHEN (dokument_variant_egenskab_obj.produktion).cleared THEN NULL 
+              CASE WHEN (dokument_variant_egenskab_obj.produktion).cleared THEN NULL
               ELSE coalesce((dokument_variant_egenskab_obj.produktion).value,a.produktion)
               END,
                 ROW (
@@ -742,7 +742,7 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   FROM dokument_variant_egenskaber a
   JOIN dokument_variant b on a.variant_id=b.id
   WHERE
-    b.dokument_registrering_id=prev_dokument_registrering.id 
+    b.dokument_registrering_id=prev_dokument_registrering.id
     and b.varianttekst=dokument_variant_obj.varianttekst
     and (a.virkning).TimePeriod && (dokument_variant_egenskab_obj.virkning).TimePeriod
   ;
@@ -754,17 +754,17 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   dokument_variant_egenskaber
   (
     variant_id,
-      arkivering, 
-        delvisscannet, 
-          offentliggoerelse, 
+      arkivering,
+        delvisscannet,
+          offentliggoerelse,
             produktion,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_variant_new_id,
-      dokument_variant_egenskab_obj.arkivering, 
-        dokument_variant_egenskab_obj.delvisscannet, 
-          dokument_variant_egenskab_obj.offentliggoerelse, 
+      dokument_variant_egenskab_obj.arkivering,
+        dokument_variant_egenskab_obj.delvisscannet,
+          dokument_variant_egenskab_obj.offentliggoerelse,
             dokument_variant_egenskab_obj.produktion,
               ROW (
                    b.tz_range_leftover,
@@ -774,32 +774,32 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
               )::Virkning
   FROM
   (
-  --build an array of the timeperiod of the virkning of the dokument variant egenskaber of the new registrering to pass to _subtract_tstzrange_arr 
+  --build an array of the timeperiod of the virkning of the dokument variant egenskaber of the new registrering to pass to _subtract_tstzrange_arr
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_variant_egenskaber b
-      WHERE 
+      WHERE
        b.variant_id=dokument_variant_new_id
   ) as a
   JOIN unnest(_subtract_tstzrange_arr((dokument_variant_egenskab_obj.virkning).TimePeriod,a.tzranges_of_new_reg)) as b(tz_range_leftover) on true
   ;
-  ELSE 
+  ELSE
 
-   --insert attrEgenskaberObj raw (if there were no null-valued fields) 
+   --insert attrEgenskaberObj raw (if there were no null-valued fields)
 
    INSERT INTO
     dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
     )
     VALUES (
       dokument_variant_new_id,
-        dokument_variant_egenskab_obj.arkivering, 
-          dokument_variant_egenskab_obj.delvisscannet, 
-            dokument_variant_egenskab_obj.offentliggoerelse, 
+        dokument_variant_egenskab_obj.arkivering,
+          dokument_variant_egenskab_obj.delvisscannet,
+            dokument_variant_egenskab_obj.offentliggoerelse,
               dokument_variant_egenskab_obj.produktion,
                 dokument_variant_egenskab_obj.virkning
     );
@@ -833,9 +833,9 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
     dokument_variant_del_egenskaber_deleted:=array_append(dokument_variant_del_egenskaber_deleted,ROW(dokument_variant_obj.varianttekst, dokument_del_obj.deltekst)::_DokumentVariantDelKey);
     ELSE
 
-    IF dokument_del_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_del_obj.egenskaber,1),0)>0 THEN  
+    IF dokument_del_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_del_obj.egenskaber,1),0)>0 THEN
 
-    --Input validation: 
+    --Input validation:
     --Verify that there is no overlap in virkning in the array given
     IF EXISTS (
       SELECT
@@ -854,10 +854,10 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
   LOOP
 
   --To avoid needless fragmentation we'll check for presence of null values in the fields - and if none are present, we'll skip the merging operations
-  IF (dokument_del_egenskaber_obj).indeks is null OR 
-   (dokument_del_egenskaber_obj).indhold is null OR 
-   (dokument_del_egenskaber_obj).lokation is null OR 
-   (dokument_del_egenskaber_obj).mimetype is null 
+  IF (dokument_del_egenskaber_obj).indeks is null OR
+   (dokument_del_egenskaber_obj).indhold is null OR
+   (dokument_del_egenskaber_obj).lokation is null OR
+   (dokument_del_egenskaber_obj).mimetype is null
   THEN
 
   INSERT INTO
@@ -870,13 +870,13 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
-    dokument_del_new_id, 
-      CASE WHEN (dokument_del_egenskaber_obj.indeks).cleared THEN NULL 
+  SELECT
+    dokument_del_new_id,
+      CASE WHEN (dokument_del_egenskaber_obj.indeks).cleared THEN NULL
       ELSE coalesce((dokument_del_egenskaber_obj.indeks).value,a.indeks)
-      END, 
-        coalesce(dokument_del_egenskaber_obj.indhold,a.indhold), 
-          coalesce(dokument_del_egenskaber_obj.lokation,a.lokation), 
+      END,
+        coalesce(dokument_del_egenskaber_obj.indhold,a.indhold),
+          coalesce(dokument_del_egenskaber_obj.lokation,a.lokation),
             coalesce(dokument_del_egenskaber_obj.mimetype,a.mimetype),
               ROW (
                 (a.virkning).TimePeriod * (dokument_del_egenskaber_obj.virkning).TimePeriod,
@@ -888,7 +888,7 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   WHERE
-    c.dokument_registrering_id=prev_dokument_registrering.id 
+    c.dokument_registrering_id=prev_dokument_registrering.id
     and c.varianttekst=dokument_variant_obj.varianttekst
     and b.deltekst=dokument_del_obj.deltekst
     and (a.virkning).TimePeriod && (dokument_del_egenskaber_obj.virkning).TimePeriod
@@ -906,11 +906,11 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_del_new_id,
-      dokument_del_egenskaber_obj.indeks, 
-        dokument_del_egenskaber_obj.indhold, 
-          dokument_del_egenskaber_obj.lokation, 
+      dokument_del_egenskaber_obj.indeks,
+        dokument_del_egenskaber_obj.indhold,
+          dokument_del_egenskaber_obj.lokation,
             dokument_del_egenskaber_obj.mimetype,
               ROW (
                    b.tz_range_leftover,
@@ -920,12 +920,12 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
               )::Virkning
   FROM
   (
-  --build an array of the timeperiod of the virkning of the relevant dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr 
+  --build an array of the timeperiod of the virkning of the relevant dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_del_egenskaber b
       JOIN dokument_del c on b.del_id=c.id
       JOIN dokument_variant d on c.variant_id=d.id
-      WHERE 
+      WHERE
       d.dokument_registrering_id=new_dokument_registrering.id
       and d.varianttekst=dokument_variant_obj.varianttekst
       and c.deltekst=dokument_del_obj.deltekst
@@ -945,11 +945,11 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_del_new_id,
-      dokument_del_egenskaber_obj.indeks, 
-        dokument_del_egenskaber_obj.indhold, 
-          dokument_del_egenskaber_obj.lokation, 
+      dokument_del_egenskaber_obj.indeks,
+        dokument_del_egenskaber_obj.indhold,
+          dokument_del_egenskaber_obj.lokation,
             dokument_del_egenskaber_obj.mimetype,
               dokument_del_egenskaber_obj.virkning
   ;
@@ -963,16 +963,16 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
 
      IF dokument_del_obj.relationer IS NOT NULL AND coalesce(array_length(dokument_del_obj.relationer,1),0)=0 THEN
      dokument_variant_del_relationer_deleted:=array_append(dokument_variant_del_relationer_deleted,ROW(dokument_variant_obj.varianttekst, dokument_del_obj.deltekst)::_DokumentVariantDelKey);
-    
+
     ELSE
 
 
     INSERT INTO dokument_del_relation(
-        del_id, 
-          virkning, 
-            rel_maal_uuid, 
-              rel_maal_urn, 
-                rel_type, 
+        del_id,
+          virkning,
+            rel_maal_uuid,
+              rel_maal_urn,
+                rel_type,
                   objekt_type
         )
     SELECT
@@ -1019,7 +1019,7 @@ and a.varianttekst not in (select varianttekst from unnest(dokument_variant_egen
 IF dokument_variants_prev_reg_arr IS NOT NULL AND coalesce(array_length(dokument_variants_prev_reg_arr,1),0)>0 THEN
 
 FOREACH dokument_variant_egenskaber_prev_reg_varianttekst IN ARRAY dokument_variants_prev_reg_arr
-LOOP 
+LOOP
 
 
 dokument_variant_id:=_ensure_document_variant_exists_and_get(new_dokument_registrering.id,dokument_variant_egenskaber_prev_reg_varianttekst);
@@ -1027,18 +1027,18 @@ dokument_variant_id:=_ensure_document_variant_exists_and_get(new_dokument_regist
 INSERT INTO
     dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
-                virkning 
+                virkning
     )
 SELECT
       dokument_variant_id,
         a.arkivering,
           a.delvisscannet,
             a.offentliggoerelse,
-              a.produktion,               
+              a.produktion,
                 ROW(
                   c.tz_range_leftover,
               (a.virkning).AktoerRef,
@@ -1047,18 +1047,18 @@ SELECT
                 ) :: virkning
 FROM
 (
- --build an array of the timeperiod of the virkning of the dokument_variant_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the dokumentvariant_attr_egenskaber of the previous registrering 
+ --build an array of the timeperiod of the virkning of the dokument_variant_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the dokumentvariant_attr_egenskaber of the previous registrering
     SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
     FROM dokument_variant_egenskaber b
-    WHERE 
+    WHERE
     b.variant_id=dokument_variant_id
 
 ) d
-  JOIN dokument_variant_egenskaber a ON true  
+  JOIN dokument_variant_egenskaber a ON true
   JOIN dokument_variant e ON a.variant_id = e.id
   JOIN unnest(_subtract_tstzrange_arr((a.virkning).TimePeriod,tzranges_of_new_reg)) as c(tz_range_leftover) on true
-  WHERE e.dokument_registrering_id=prev_dokument_registrering.id    
-  and e.varianttekst=dokument_variant_egenskaber_prev_reg_varianttekst 
+  WHERE e.dokument_registrering_id=prev_dokument_registrering.id
+  and e.varianttekst=dokument_variant_egenskaber_prev_reg_varianttekst
 ;
 
 END LOOP; --loop dokument_variant_egenskaber_prev_reg_varianttekst
@@ -1083,7 +1083,7 @@ END IF;-- not null dokument_variants_prev_reg_arr
   group by a.varianttekst,b.deltekst
  ) as a
 ;
- 
+
 
 if dokument_variant_del_prev_reg_arr IS NOT NULL and coalesce(array_length(dokument_variant_del_prev_reg_arr,1),0)>0 THEN
 
@@ -1114,21 +1114,21 @@ if dokument_variant_del_prev_reg_arr IS NOT NULL and coalesce(array_length(dokum
                 ) :: virkning
   FROM
   (
-   --build an array of the timeperiod of the virkning of the dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the relevant dokument_del_egenskaber of the previous registrering 
+   --build an array of the timeperiod of the virkning of the dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the relevant dokument_del_egenskaber of the previous registrering
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_del_egenskaber b
       JOIN dokument_del c on b.del_id=c.id
       JOIN dokument_variant d on c.variant_id=d.id
-      WHERE 
+      WHERE
             d.dokument_registrering_id=new_dokument_registrering.id
             AND d.varianttekst=dokument_variant_del_prev_reg.varianttekst
             AND c.deltekst=dokument_variant_del_prev_reg.deltekst
   ) d
-    JOIN dokument_del_egenskaber a ON true  
+    JOIN dokument_del_egenskaber a ON true
     JOIN dokument_del b on a.del_id=b.id
     JOIN dokument_variant e on b.variant_id=e.id
     JOIN unnest(_subtract_tstzrange_arr((a.virkning).TimePeriod,tzranges_of_new_reg)) as c(tz_range_leftover) on true
-    WHERE e.dokument_registrering_id=prev_dokument_registrering.id    
+    WHERE e.dokument_registrering_id=prev_dokument_registrering.id
     AND e.varianttekst=dokument_variant_del_prev_reg.varianttekst
     AND b.deltekst=dokument_variant_del_prev_reg.deltekst
   ;
@@ -1154,16 +1154,16 @@ FROM
 (
   SELECT
   c.varianttekst,b.deltekst
-  FROM dokument_del_relation a 
+  FROM dokument_del_relation a
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   LEFT JOIN unnest(dokument_variant_del_relationer_deleted) d(varianttekst,deltekst) on d.varianttekst=c.varianttekst and d.deltekst=b.deltekst
   WHERE c.dokument_registrering_id=prev_dokument_registrering.id
-  AND (d.varianttekst IS NULL AND d.deltekst IS NULL) 
+  AND (d.varianttekst IS NULL AND d.deltekst IS NULL)
   EXCEPT
   SELECT
   c.varianttekst,b.deltekst
-  FROM dokument_del_relation a 
+  FROM dokument_del_relation a
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   WHERE c.dokument_registrering_id=new_dokument_registrering.id
@@ -1173,7 +1173,7 @@ FROM
 
 
 
--- Make sure that part + variants are in place 
+-- Make sure that part + variants are in place
 IF dokument_variant_del_prev_reg_rel_transfer IS NOT NULL AND coalesce(array_length(dokument_variant_del_prev_reg_rel_transfer,1),0)>0 THEN
   FOREACH dokument_variant_del_prev_reg IN array dokument_variant_del_prev_reg_rel_transfer
   LOOP
@@ -1181,11 +1181,11 @@ IF dokument_variant_del_prev_reg_rel_transfer IS NOT NULL AND coalesce(array_len
 
 --transfer relations of prev reg.
 INSERT INTO dokument_del_relation(
-    del_id, 
-      virkning, 
-        rel_maal_uuid, 
-          rel_maal_urn, 
-            rel_type, 
+    del_id,
+      virkning,
+        rel_maal_uuid,
+          rel_maal_urn,
+            rel_type,
               objekt_type
     )
 SELECT
@@ -1195,7 +1195,7 @@ SELECT
           a.rel_maal_urn,
             a.rel_type,
               a.objekt_type
-FROM dokument_del_relation a 
+FROM dokument_del_relation a
 JOIN dokument_del b on a.del_id=b.id
 JOIN dokument_variant c on b.variant_id=c.id
 WHERE c.dokument_registrering_id=prev_dokument_registrering.id
@@ -1223,7 +1223,7 @@ END IF; --else block for skip on empty array for variants.
     IF NOT (lower((read_new_{{oio_type}}.registrering[1].registrering).TimePeriod) = lower((new_{{oio_type}}_registrering.registrering).TimePeriod) and lower((read_prev_{{oio_type}}.registrering[1].registrering).TimePeriod)=lower((prev_{{oio_type}}_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating {{oio_type}} with id [%]: The ordering of as_list_{{oio_type}} should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', {{oio_type}}_uuid, to_json(new_{{oio_type}}_registrering), to_json(read_new_{{oio_type}}.registrering[1].registrering), to_json(prev_{{oio_type}}_registrering), to_json(prev_new_{{oio_type}}.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_{{oio_type}}_reg := ROW(

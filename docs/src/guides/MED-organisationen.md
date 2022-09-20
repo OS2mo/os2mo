@@ -158,10 +158,3 @@ Det er muligt at genere af MED-data i fx en csv-fil som kan hentes inde fra MOs 
 Lig den administrative organisation kan MED-organisationen udstilles i et organisationsdiagram på intranettet / internettet:
 
 ![image](../graphics/MEDOrgdiagram.png)
-
-
-
-
-
-
-

@@ -19,20 +19,20 @@ UUID.
     [SearchOperation](./search.md) depending on
     parameters. With the parameters `uuid`, `virking*` and `registeret*`,
     it is a [ListOperation](./list.md). Given any other
-    parameters the operation is a [SearchOperation](./search.md) and will only return a list of 
+    parameters the operation is a [SearchOperation](./search.md) and will only return a list of
     UUIDs of the found objects.
-    
+
 
 The default is to return the object(s) as currently seen, but this can
 optionally be constrained by `virking*`
-[valid time](../objects.md#valid-time) and/or `registrering*` 
+[valid time](../objects.md#valid-time) and/or `registrering*`
 [transaction time](../objects.md#transaction-time) to give a past or future view.
 
 There is no built-in limit to how many objects can be listed in this
 way, but both the HTTP-server and gunicorn may apply limits to the
-length of URIs. 
+length of URIs.
 [7230#section-3.1.1](https://datatracker.ietf.org/doc/html/rfc7230.html#section-3.1.1)
-recommends that all HTTP senders and recipients support, at a minimum, request-line 
+recommends that all HTTP senders and recipients support, at a minimum, request-line
 lengths of 8000 octets, but some may not.
 
 **List example request** for `GET /organisation/organisationenhed`:
@@ -153,7 +153,7 @@ Server: Werkzeug/0.14.1 Python/3.5.2
 
 **Query Parameters:**
 
-- **uuid** (uuid) - The UUID of the object to receive. Allowed multiple times in 
+- **uuid** (uuid) - The UUID of the object to receive. Allowed multiple times in
 [List operation](./list.md).
 
 - **registreretFra** (datetime) - [Transaction time](../objects.md#transaction-time)
@@ -169,8 +169,8 @@ Server: Werkzeug/0.14.1 Python/3.5.2
 
 - **virkningstid** (datetime) - Valid time 'snapshot' timestamp.
 
-- **konsolider** (bool) - Return consolidated 'virkning' periods - periods are the 
-smallest amount of 'virkning' objects. 
+- **konsolider** (bool) - Return consolidated 'virkning' periods - periods are the
+smallest amount of 'virkning' objects.
 
 All the `registeret*` and `virkning*` take a datetime. Input is
 accepted in almost any reasonable format, including ISO 8601,

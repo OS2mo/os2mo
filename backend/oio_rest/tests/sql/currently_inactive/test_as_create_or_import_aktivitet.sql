@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_create_or_import_aktivitet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	registrering aktivitetRegistreringType;
@@ -173,7 +173,7 @@ aktivitetRelUdfoerer1 := ROW (
 		 'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
   repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 ;
@@ -344,7 +344,7 @@ expected_aktivitet1:=ROW(
 						'valgfri'::AktivitetAktoerAttrObligatoriskKode,
 						'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
 				repraesentation_uuid,
-				null 
+				null
 					)::AktivitetAktoerAttr
 				) :: aktivitetRelationType
 				,
@@ -439,7 +439,7 @@ ARRAY[	ROW (
 				,uuidAnsvarligklasse
 				,null
 				,'Klasse'
-				,NULL 
+				,NULL
 				,null --ROW (null,null,null,null)::AktivitetAktoerAttr  --aktoerAttr
 			) :: aktivitetRelationType
 ]::aktivitetRelationType[]
@@ -470,7 +470,7 @@ expected_aktivitet2:=ROW(
 				,uuidAnsvarligklasse
 				,null
 				,'Klasse'
-				,NULL 
+				,NULL
 				,ROW (null,null,null,null)::AktivitetAktoerAttr  --aktoerAttr
 			) :: aktivitetRelationType
 				]::AktivitetRelationType[]

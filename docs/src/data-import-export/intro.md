@@ -14,7 +14,7 @@ Start en OS2mo stak vha. *docker-compose*, [se detaljer her](../guides/environme
 
 Når dette er sket, kan DIPEX udviklingsmiljøet startes med:
 
-``` bash 
+``` bash
 docker-compose up -d --build
 ```
 
@@ -24,7 +24,7 @@ Når kommandoen er kørt færdig, kan man hoppe ind i containeren med:
 docker-compose exec dipex /bin/bash
 ```
 
-Dette giver en terminal i containeren, hvorfra diverse programmer kan køres. 
+Dette giver en terminal i containeren, hvorfra diverse programmer kan køres.
 
 Et fælles entrypoint til programmerne findes ved at køre:
 
@@ -32,7 +32,7 @@ Et fælles entrypoint til programmerne findes ved at køre:
 python3 metacli.py
 ```
 
-Forbindelsen imod OS2mo, kan testes med programmet *check_connectivity*: 
+Forbindelsen imod OS2mo, kan testes med programmet *check_connectivity*:
 
 ``` bash
 python3 metacli.py check_connectivity --mora-base http://mo

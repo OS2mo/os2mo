@@ -73,4 +73,3 @@ As such they are not automatically installed as part of the stack.
 !!! note
     Once the dependencies have been resolved, it should be relatively easy
     to adjust the installation strategy.
-

@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: MPL-2.0
 
 
---Subtract the second tstzrange from the first tstzrange given. 
+--Subtract the second tstzrange from the first tstzrange given.
 CREATE OR REPLACE FUNCTION _subtract_tstzrange (rangeA tstzrange, rangeB tstzrange)
     RETURNS tstzrange[] AS $$
 DECLARE
@@ -57,4 +57,3 @@ BEGIN
     RETURN result;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
-

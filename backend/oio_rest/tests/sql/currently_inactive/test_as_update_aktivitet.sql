@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_aktivitet()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering aktivitetRegistreringType;
 	actual_registrering RegistreringBase;
@@ -183,7 +183,7 @@ aktivitetRelUdfoerer1 := ROW (
 		 'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
   repraesentation_uuid,
-  null 
+  null
 	)::AktivitetAktoerAttr
 ) :: aktivitetRelationType
 ;
@@ -332,7 +332,7 @@ aktivitetRelUdfoerer2B := ROW (
 	,uuidUdfoerer2
 	,null
 	,'Person'
-	,2 
+	,2
 	,ROW (
 		 'valgfri'::AktivitetAktoerAttrObligatoriskKode,
   		'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
@@ -424,7 +424,7 @@ null, --'2017-02-27 12:00'::timestamptz, -- sluttidspunkt,
 
 update_reg_id_1:=as_update_aktivitet(
   new_uuid1, '5f368584-4c3e-4ba4-837b-da2b1eee37c4'::uuid,'Test update 20'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   array[aktivitetEgenskab2B]::aktivitetEgenskaberAttrType[],
    array[aktivitetStatus1B]::aktivitetStatusTilsType[],
  null,
@@ -457,7 +457,7 @@ expected_aktivitet1:=ROW(
 			) :: Virkning,
 				'Aktiv'::AktivitetStatusTils
 				):: aktivitetStatusTilsType
-			,	
+			,
 			ROW (
 							ROW (
 				'(2017-07-30, infinity)' :: TSTZRANGE,
@@ -517,7 +517,7 @@ expected_aktivitet1:=ROW(
 				repraesentation_urn2
 					)::AktivitetAktoerAttr
 				) :: aktivitetRelationType
-			,	
+			,
 			ROW (
 					'udfoerer'::aktivitetRelationKode
 					,virkUdfoerer1
@@ -529,7 +529,7 @@ expected_aktivitet1:=ROW(
 						'valgfri'::AktivitetAktoerAttrObligatoriskKode,
 						'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
 				repraesentation_uuid,
-				null 
+				null
 					)::AktivitetAktoerAttr
 				) :: aktivitetRelationType
 				,
@@ -539,7 +539,7 @@ expected_aktivitet1:=ROW(
 					,uuidUdfoerer2
 					,null
 					,'Person'
-					,2 
+					,2
 					,ROW (
 						'valgfri'::AktivitetAktoerAttrObligatoriskKode,
 						'foreloebigt'::AktivitetAktoerAttrAccepteretKode,
@@ -608,12 +608,12 @@ RETURN NEXT IS(
 
 /******************************************************/
 
---Test if providing empty arguments will trigger exception as expected 
+--Test if providing empty arguments will trigger exception as expected
 BEGIN
 
 update_reg_id_2:=as_update_aktivitet(
   new_uuid1, '5f368584-4c3e-4ba4-837b-da2b1eee37c4'::uuid,'Test update 20'::text,
-  'Rettet'::Livscykluskode,          
+  'Rettet'::Livscykluskode,
   null,
   null,
   null,
@@ -621,7 +621,7 @@ update_reg_id_2:=as_update_aktivitet(
 	);
 
 RETURN NEXT ok(false,'as_update_aktivitet empty arguments: Should throw MO400 exception');
-EXCEPTION  
+EXCEPTION
 WHEN sqlstate 'MO400' THEN
 	RETURN NEXT ok(true,'as_update_aktivitet empty arguments: Throws MO400 exception (as it should)');
 

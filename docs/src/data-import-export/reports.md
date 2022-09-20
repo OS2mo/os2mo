@@ -4,7 +4,7 @@ title: Shared Reports
 
 Shared reports introduces a collection of reports that can be used by
 customers regardless of their individual setup. They utilise standard
-MO-data and return 
+MO-data and return
 [pandas DataFrames](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html),
 which can then be exported to a variety of file formats and served in
 `/forespoergsler`.

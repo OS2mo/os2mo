@@ -99,7 +99,7 @@ os2mo.add_organisation_unit(
 Optional data or "details" can be associated with an organisation
 unit.
 
-!!! note 
+!!! note
 
     At least 2 "Klasse" objects must be created, an object for the primary
     phone number and an object for the primary mailing address (residence).

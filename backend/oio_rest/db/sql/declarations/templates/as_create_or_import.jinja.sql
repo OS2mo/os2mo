@@ -148,7 +148,7 @@ IF {{oio_type}}_registrering.attr{{attribut|title}} IS NOT NULL and coalesce(arr
       {% endfor %}{{oio_type}}_attr_{{attribut}}_obj.virkning,
       {{oio_type}}_registrering_id
     ;
-  
+
     {% if oio_type == "klasse" %}
  /************/
  --Insert Soegeord
@@ -156,7 +156,7 @@ IF {{oio_type}}_registrering.attr{{attribut|title}} IS NOT NULL and coalesce(arr
     FOREACH klasse_attr_egenskaber_soegeord_obj IN ARRAY klasse_attr_egenskaber_obj.soegeord
       LOOP
 
-      IF (klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator<>'') 
+      IF (klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator<>'')
       OR (klasse_attr_egenskaber_soegeord_obj.beskrivelse IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.beskrivelse<>'' )
       OR (klasse_attr_egenskaber_soegeord_obj.soegeordskategori IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordskategori<>'') THEN
 
@@ -173,7 +173,7 @@ IF {{oio_type}}_registrering.attr{{attribut|title}} IS NOT NULL and coalesce(arr
         klasse_attr_egenskaber_id
       ;
       END IF;
- 
+
      END LOOP;
     END IF;
     {% endif %}
@@ -260,11 +260,11 @@ END IF;
       a.objektType{% if oio_type in ("aktivitet", "indsats", "tilstand") %},
       CASE WHEN a.relType = any ({{oio_type}}_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('{{oio_type}}_' || a.relType::text || {{oio_type}}_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END{% endif %}{% if oio_type == "aktivitet" %},
-      CASE 
-        WHEN a.relType =('udfoerer'::AktivitetRelationKode)  OR a.relType=('deltager'::AktivitetRelationKode) OR a.relType=('ansvarlig'::AktivitetRelationKode) 
+      CASE
+        WHEN a.relType =('udfoerer'::AktivitetRelationKode)  OR a.relType=('deltager'::AktivitetRelationKode) OR a.relType=('ansvarlig'::AktivitetRelationKode)
         AND NOT (a.aktoerAttr IS NULL)
         AND (
           (a.aktoerAttr).obligatorisk IS NOT NULL
@@ -276,7 +276,7 @@ END IF;
               OR
               ((a.aktoerAttr).repraesentation_urn IS NOT NULL AND (a.aktoerAttr).repraesentation_urn<>'')
             )
-          ) 
+          )
         THEN a.aktoerAttr
         ELSE
         NULL
@@ -284,17 +284,17 @@ END IF;
       {% elif oio_type == "sag" %},
       CASE WHEN a.relType = any (sag_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('sag_' || a.relType::text || sag_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END,
-      CASE 
+      CASE
         WHEN a.relType='journalpost' THEN a.relTypeSpec  --rel_type_spec
         ELSE
         NULL
       END,
-    CASE 
-        WHEN  
-          (NOT (a.journalNotat IS NULL)) 
+    CASE
+        WHEN
+          (NOT (a.journalNotat IS NULL))
           AND
           (
             (a.journalNotat).titel IS NOT NULL
@@ -307,7 +307,7 @@ END IF;
          ELSE
          NULL
     END
-    ,CASE 
+    ,CASE
       WHEN (
               (NOT a.journalDokumentAttr IS NULL)
               AND
@@ -332,7 +332,7 @@ END IF;
       CASE
         WHEN a.relType='tilstandsvaerdi' AND
           (NOT (a.tilstandsVaerdiAttr IS NULL))
-          AND 
+          AND
           (
             (a.tilstandsVaerdiAttr).forventet IS NOT NULL
             OR
@@ -363,7 +363,7 @@ END IF;
 --Insert document variants (and parts)
 
 IF dokument_registrering.varianter IS NOT NULL AND coalesce(array_length(dokument_registrering.varianter,1),0)>0 THEN
-  
+
 
 FOREACH dokument_variant_obj IN ARRAY dokument_registrering.varianter
 LOOP
@@ -380,7 +380,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
       dokument_variant_new_id,
         dokument_variant_obj.varianttekst,
           dokument_registrering_id
-  ); 
+  );
 
 
   IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)>0 THEN
@@ -390,14 +390,14 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
 
      INSERT INTO dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
       )
       SELECT
-      dokument_variant_new_id,  
+      dokument_variant_new_id,
         dokument_variant_egenskab_obj.arkivering,
           dokument_variant_egenskab_obj.delvisscannet,
             dokument_variant_egenskab_obj.offentliggoerelse,
@@ -437,22 +437,22 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
     INSERT INTO
     dokument_del_egenskaber (
       del_id,
-        indeks, 
-          indhold, 
-            lokation, 
-              mimetype, 
+        indeks,
+          indhold,
+            lokation,
+              mimetype,
                 virkning
     )
     VALUES
     (
-      dokument_del_new_id, 
+      dokument_del_new_id,
         dokument_del_egenskaber_obj.indeks,
           dokument_del_egenskaber_obj.indhold,
             dokument_del_egenskaber_obj.lokation,
               dokument_del_egenskaber_obj.mimetype,
                 dokument_del_egenskaber_obj.virkning
     )
-    ;                
+    ;
 
     END LOOP;--del_egenskaber
     END IF; --del_egenskaber
@@ -465,7 +465,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
       INSERT INTO dokument_del_relation (
         del_id,
           virkning,
-            rel_maal_uuid, 
+            rel_maal_uuid,
               rel_maal_urn,
                 rel_type,
                   objekt_type
@@ -486,7 +486,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
     END IF; --dokument_del_obj.relationer
 
     END LOOP; --variant_dele
-  END IF; 
+  END IF;
 
  END LOOP; --varianter
 
@@ -497,9 +497,9 @@ END IF; --varianter
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_{{oio_type}}(array[{{oio_type}}_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_{{oio_type}}(array[{{oio_type}}_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[{{oio_type}}_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import {{oio_type}} with uuid [%]. Object does not met stipulated criteria:%',{{oio_type}}_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import {{oio_type}} with uuid [%]. Object does not met stipulated criteria:%',{{oio_type}}_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -511,4 +511,3 @@ RETURN {{oio_type}}_uuid;
 END;
 $$ LANGUAGE plpgsql VOLATILE;
 {% endblock %}
-

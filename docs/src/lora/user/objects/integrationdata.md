@@ -15,7 +15,7 @@ The intention is that `integrationsdata` always contains a JSON-valid
 piece of text. Applications that use the field should parse it as JSON
 and send valid JSON in return.
 
-!!! warning 
+!!! warning
     When you want to add or update a field in `integrationsdata`, please
     make sure to send all the existing fields along, so they are not
     accidentally removed. This is easy to mess up, so take care.
@@ -24,7 +24,7 @@ and send valid JSON in return.
 A small <code>organisation</code> with <code>integrationsdata</code>.
 </figcaption>
 
-``` json 
+``` json
 {
   "attributter": {
     "organisationegenskaber": [{

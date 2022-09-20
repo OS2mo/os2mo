@@ -24,10 +24,10 @@ dennes konfiguration.
 
 # Programkomponenter
 
-Programmet er opdelt i tre komponenter, hhv. 
+Programmet er opdelt i tre komponenter, hhv.
 
-- Oprettelse af Actual State SQL database (via exporters/sql_export). 
-- Opslag i Actual State SQLite, og oprettelse processeret JSON. 
+- Oprettelse af Actual State SQL database (via exporters/sql_export).
+- Opslag i Actual State SQLite, og oprettelse processeret JSON.
 - Afsendelse af genereret JSON til telefon bogen.
 
 # Indhold af udtrækket

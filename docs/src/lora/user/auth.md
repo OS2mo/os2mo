@@ -18,7 +18,7 @@ documentation](https://os2mo.readthedocs.io/en/master/operation/auth.html).
 Please note that you will have to get a token from Keycloak by using
 [client
 credentials](https://os2mo.readthedocs.io/en/master/operation/auth.html#by-client-credentials).
-In the development environment, Keycloak is configured with the realm *lora* 
+In the development environment, Keycloak is configured with the realm *lora*
 and the Keycloak client *mo* with the
 client secret *158a2075-aa8a-421c-94a4-2df35377014a*
 

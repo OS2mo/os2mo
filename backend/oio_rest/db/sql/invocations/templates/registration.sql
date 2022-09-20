@@ -2,10 +2,10 @@
     -- SPDX-License-Identifier: MPL-2.0
 
     ROW (
-        ROW ( 
+        ROW (
             {{ time_period|adapt }},
             {{ life_cycle_code|adapt }} :: Livscykluskode,
-            {{ user_ref|adapt }}, 
+            {{ user_ref|adapt }},
             {{ note|adapt }}
             ) :: RegistreringBase,
         -- states

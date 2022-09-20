@@ -54,7 +54,7 @@ for all `virkning`-periods, you should do this:
 Please notice, that this is different than omitting the list completely,
 in which case, the specific attributes will not be updated at all. Eg.
 if you omit the `facetegenskaber`-key in the `attributter`-object in the
-JSON body supplied to the [Update operation](../update.md), all the 
+JSON body supplied to the [Update operation](../update.md), all the
 `facetegenskaber` of the previous registration will
 be carried over untouched. :
 
@@ -115,7 +115,7 @@ be carried over untouched. :
 "tilstande": {
     },
 ...
-``` 
+```
 
 ## Example of deleting relations
 
@@ -144,7 +144,7 @@ specific part of the JSON body would look like this:
         ]
 }
 ...
-``` 
+```
 
 When updating relations with unlimited cardinality (0..n), you have to
 supply the full list - that is, all the relations of the particular
@@ -165,7 +165,7 @@ the object. Eg.:
 ...
     "relationer": {}
 ...
-``` 
+```
 
 Notice, that this is different than omitting the `relationer`-key
 entirely, which will carry over all the relations of the registration

@@ -25,13 +25,13 @@ soegeordskategori text
 {%-for attribut , attribut_fields in attributter.items() %}
 CREATE TYPE {{oio_type|title}}{{attribut|title}}AttrType AS (
 {%- for field in attribut_fields %}
-{%- if attributter_metadata[attribut][field]['type'] is defined %} 
+{%- if attributter_metadata[attribut][field]['type'] is defined %}
 {%- if attributter_metadata[attribut][field]['type'] =='int' or attributter_metadata[attribut][field]['type'] =='date' or attributter_metadata[attribut][field]['type']=='boolean' or attributter_metadata[attribut][field]['type']=='timestamptz' %}
 {{field}} Clearable{{attributter_metadata[attribut][field]['type']|title}},
 {% elif attributter_metadata[attribut][field]['type'] == 'interval(0)' %}
 {{field}} ClearableInterval,
 {%- else %}
-{{field}} {{attributter_metadata[attribut][field]['type']}}, 
+{{field}} {{attributter_metadata[attribut][field]['type']}},
 {%-endif %}
 {%- else %}
 {{field}} text,
@@ -63,11 +63,11 @@ CREATE TYPE AktivitetAktoerAttr AS (
   obligatorisk AktivitetAktoerAttrObligatoriskKode,
   accepteret AktivitetAktoerAttrAccepteretKode,
   repraesentation_uuid uuid,
-  repraesentation_urn text 
+  repraesentation_urn text
 );
 {% elif oio_type == 'sag' %}
 CREATE TYPE SagRelationJournalPostSpecifikKode AS ENUM ('journalnotat','vedlagtdokument','tilakteretdokument');
- 
+
 CREATE TYPE JournalNotatType AS (
 titel text,
 notat text,
@@ -121,7 +121,7 @@ CREATE TYPE DokumentdelRelationType AS (
   virkning Virkning,
   uuid uuid,
   urn text,
-  objektType text 
+  objektType text
 )
 ;
 
@@ -130,7 +130,7 @@ CREATE TYPE DokumentDelType AS
   deltekst text,
   egenskaber DokumentDelEgenskaberType[],
   relationer DokumentdelRelationType[]
-);  
+);
 
 
 
@@ -139,9 +139,9 @@ CREATE TYPE DokumentDelType AS
 /**************************************************/
 
 CREATE TYPE DokumentVariantEgenskaberType AS (
-arkivering ClearableBoolean, 
-delvisscannet ClearableBoolean, 
-offentliggoerelse ClearableBoolean, 
+arkivering ClearableBoolean,
+delvisscannet ClearableBoolean,
+offentliggoerelse ClearableBoolean,
 produktion ClearableBoolean,
  virkning Virkning
 );
@@ -152,7 +152,7 @@ CREATE TYPE DokumentVariantType AS
   varianttekst text,
   egenskaber DokumentVariantEgenskaberType[],
   dele DokumentDelType[]
-);  
+);
 
 /**************************************************/
 {% endif %}
@@ -172,7 +172,7 @@ CREATE TYPE {{oio_type|title}}Type AS
 (
   id uuid,
   registrering {{oio_type|title}}RegistreringType[]
-);  
+);
 
 {% if oio_type == 'aktivitet' %}
  CREATE Type _AktivitetRelationMaxIndex AS

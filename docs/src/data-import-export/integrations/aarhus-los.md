@@ -33,8 +33,8 @@ default values found in the settings file:
 
 The importer can be run with the following command:
 
-``` bash 
-python integrations/aarhus/los_import.py 
+``` bash
+python integrations/aarhus/los_import.py
 ```
 
 The command currently takes no parameters.
