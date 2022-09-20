@@ -30,19 +30,6 @@ variables:
   # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
-include:
-  - local: "ra-data-models/.gitlab-ci.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/autopub.v1.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
-
-
 # Conditions
 #############
 # Global Conditions
@@ -69,6 +56,18 @@ include:
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
+include:
+  - local: "ra-data-models/.gitlab-ci.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/autopub.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
+  - project: 'labs/salt-automation'
+    file: "/gitlab-ci-templates/common/pre-commit.v1.yml"
+    rules:
+      - <<: *if-merge-request
 
 # Workflow
 ###########
@@ -176,22 +175,6 @@ Don't Interrupt:
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
-
-Pre-commit:
-  extends: .lint-base
-  image: python:3.10
-  before_script:
-    - pip install pre-commit
-    - pre-commit install
-  script:
-    - pre-commit run --all-files
-  variables:
-    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
-    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
-  cache:
-    paths:
-      - ${PIP_CACHE_DIR}
-      - ${PRE_COMMIT_HOME}
 
 Lint Dockerfiles:
   extends: .lint-base
