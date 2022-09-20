@@ -59,7 +59,7 @@ class Query:
     )
 
     # Associations
-    # ---------
+    # ------------
     associations: list[Response[Association]] = strawberry.field(
         resolver=Resolver("association_getter", "association_loader").resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
@@ -169,7 +169,7 @@ class Query:
     )
 
     # Related Units
-    # ---------
+    # -------------
     related_units: list[Response[RelatedUnit]] = strawberry.field(
         resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
         description="Get a list of related organisation units, optionally by uuid(s)",
@@ -177,7 +177,7 @@ class Query:
     )
 
     # Roles
-    # ---------
+    # -----
     roles: list[Response[Role]] = strawberry.field(
         resolver=Resolver("role_getter", "role_loader").resolve,
         description="Get a list of all roles, optionally by uuid(s)",
