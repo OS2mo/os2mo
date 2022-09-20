@@ -386,7 +386,7 @@ Unit-test:
     - poetry install
     - poetry run pytest tests
       -p no:cacheprovider
-      -m "not serial"
+      -m "not integration_test"
       --color=yes
       --show-capture=stdout
       --cov=mora
@@ -409,7 +409,7 @@ Integration-test:
   parallel: 8
   script:
     - pytest backend/tests
-      -m "serial"
+      -m "integration_test"
       -p no:cacheprovider
       --color=yes
       --show-capture=no
