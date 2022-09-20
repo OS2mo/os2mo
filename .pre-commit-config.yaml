@@ -54,3 +54,8 @@ repos:
       - id: pydocstyle
         files: backend/mora/graphapi/
         args: [ "--convention=google", "--add-ignore=D1" ]
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v1.0.0
+    hooks:
+      - id: reuse

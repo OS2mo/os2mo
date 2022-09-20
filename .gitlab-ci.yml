@@ -213,15 +213,6 @@ Lint Dockerfiles:
     # Run hadolint on every Dockerfile
     - fd Dockerfile --exec hadolint
 
-REUSE compliance:
-  # TODO: Do this as part of pre-commit instead
-  extends: .lint-base
-  image:
-    name: fsfe/reuse:latest
-    entrypoint: [""]
-  script:
-    - reuse lint
-
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
   extends: .lint-base
