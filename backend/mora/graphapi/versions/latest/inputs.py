@@ -13,6 +13,8 @@ from .models import OrganisationUnitTerminate
 from .models import Validity
 
 
+# Various
+# -------
 @strawberry.experimental.pydantic.input(
     model=Validity,
     all_fields=True,
@@ -21,16 +23,8 @@ class ValidityInput:
     pass
 
 
-@strawberry.experimental.pydantic.input(
-    model=AddressTerminate,
-    all_fields=True,
-)
-class AddressTerminateInput:
-    """input model for terminating addresses."""
-
-    pass
-
-
+# Root Organisation
+# -----------------
 @strawberry.experimental.pydantic.input(
     model=Organisation,
     all_fields=True,
@@ -38,37 +32,31 @@ class AddressTerminateInput:
 class OrganizationInput:
     """input model for terminating organizations units."""
 
-    pass
 
-
+# Addresses
+# ---------
 @strawberry.experimental.pydantic.input(
-    model=OrganisationUnitTerminate,
+    model=AddressTerminate,
     all_fields=True,
 )
-class OrganizationUnitTerminateInput:
-    """input model for terminating organizations units."""
-
-    pass
+class AddressTerminateInput:
+    """input model for terminating addresses."""
 
 
-@strawberry.experimental.pydantic.input(
-    model=EngagementTerminate,
-    all_fields=True,
-)
-class EngagementTerminateInput:
-    """input model for terminating Engagements."""
+# Associations
+# ------------
 
-    pass
+# Classes
+# -------
 
-
+# Employees
+# ---------
 @strawberry.experimental.pydantic.input(
     model=EmployeeCreate,
     all_fields=True,
 )
 class EmployeeCreateInput:
     """Input model for creating an employee."""
-
-    pass
 
 
 @strawberry.experimental.pydantic.input(
@@ -86,9 +74,28 @@ class EmployeeTerminateInput:
 class EmployeeUpdateInput:
     """Input model for updating an employee."""
 
-    pass
+
+# Engagements
+# -----------
+@strawberry.experimental.pydantic.input(
+    model=EngagementTerminate,
+    all_fields=True,
+)
+class EngagementTerminateInput:
+    """input model for terminating Engagements."""
 
 
+# EngagementsAssociations
+# -----------------------
+
+# Facets
+# ------
+
+# ITSystems
+# ---------
+
+# ITUsers
+# -------
 @strawberry.experimental.pydantic.input(
     model=ITUserTerminate,
     all_fields=True,
@@ -96,4 +103,34 @@ class EmployeeUpdateInput:
 class ITUserTerminateInput:
     """input model for terminating IT-user."""
 
-    pass
+
+# KLEs
+# ----
+
+# Leave
+# -----
+
+# Managers
+# --------
+
+# Organisational Units
+# --------------------
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitTerminate,
+    all_fields=True,
+)
+class OrganizationUnitTerminateInput:
+    """input model for terminating organizations units."""
+
+
+# Related Units
+# -------------
+
+# Roles
+# -----
+
+# Health
+# ------
+
+# Files
+# -----

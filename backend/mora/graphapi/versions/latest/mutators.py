@@ -43,20 +43,92 @@ admin_permission_class = gen_role_permission("admin", force_permission_check=Tru
 
 @strawberry.type
 class Mutation:
+    # Addresses
+    # ---------
     @strawberry.mutation(
-        description="Upload a file",
+        description="Terminates an address by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def upload_file(
-        self, info: Info, file_store: FileStore, file: Upload, force: bool = False
-    ) -> str:
-        filestorage = info.context["filestorage"]
+    async def address_terminate(
+        self, at: AddressTerminateInput
+    ) -> AddressTerminateType:
+        return await terminate_addr(at.to_pydantic())
 
-        file_name = file.filename
-        file_bytes = await file.read()
-        filestorage.save_file(file_store, file_name, file_bytes, force)
-        return "OK"
+    # Associations
+    # ------------
 
+    # Classes
+    # -------
+
+    # Employees
+    # ---------
+    @strawberry.mutation(
+        description="Creates an employee for a specific organisation.",
+        permission_classes=[admin_permission_class],
+    )
+    async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
+        # Temporarily muting mypy error message, since we do not desire to add default
+        # values to required fields, and mypy as of now does not understand how to deal
+        # with this.
+        return await employee_create(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Terminates an employee by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
+        return await employee_update(input.to_pydantic())
+
+    @strawberry.mutation(
+        description="Terminates an employee by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
+        return await terminate_employee(input.to_pydantic())
+
+    # Engagements
+    # -----------
+    @strawberry.mutation(
+        description="Terminates an engagement by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def engagement_terminate(
+        self, unit: EngagementTerminateInput
+    ) -> EngagementTerminateType:
+        return await terminate_engagement(unit.to_pydantic())
+
+    # EngagementsAssociations
+    # -----------------------
+
+    # Facets
+    # ------
+
+    # ITSystems
+    # ---------
+
+    # ITUsers
+    # -------
+    @strawberry.mutation(
+        description="Terminates IT-user by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> GenericUUIDType:
+        return await terminate_ituser(input.to_pydantic())
+
+    # KLEs
+    # ----
+
+    # Leave
+    # -----
+
+    # Managers
+    # --------
+
+    # Root Organisation
+    # -----------------
+
+    # Organisational Units
+    # --------------------
     @strawberry.mutation(
         description="Trigger refresh for an organisation unit",
         permission_classes=[admin_permission_class],
@@ -75,51 +147,24 @@ class Mutation:
     ) -> OrganizationUnit:
         return await terminate_org_unit(unit.to_pydantic())
 
-    @strawberry.mutation(
-        description="Terminates an engagement by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def engagement_terminate(
-        self, unit: EngagementTerminateInput
-    ) -> EngagementTerminateType:
-        return await terminate_engagement(unit.to_pydantic())
+    # Related Units
+    # -------------
 
-    @strawberry.mutation(
-        description="Terminates an address by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def address_terminate(
-        self, at: AddressTerminateInput
-    ) -> AddressTerminateType:
-        return await terminate_addr(at.to_pydantic())
+    # Roles
+    # -----
 
+    # Files
+    # -----
     @strawberry.mutation(
-        description="Creates an employee for a specific organisation.",
+        description="Upload a file",
         permission_classes=[admin_permission_class],
     )
-    async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
-        # Temporarily muting mypy error message, since we do not desire to add default
-        # values to required fields, and mypy as of now does not understand how to deal
-        # with this.
-        return await employee_create(input.to_pydantic())  # type: ignore
+    async def upload_file(
+        self, info: Info, file_store: FileStore, file: Upload, force: bool = False
+    ) -> str:
+        filestorage = info.context["filestorage"]
 
-    @strawberry.mutation(
-        description="Terminates an employee by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
-        return await terminate_employee(input.to_pydantic())
-
-    @strawberry.mutation(
-        description="Terminates an employee by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
-        return await employee_update(input.to_pydantic())
-
-    @strawberry.mutation(
-        description="Terminates IT-user by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> GenericUUIDType:
-        return await terminate_ituser(input.to_pydantic())
+        file_name = file.filename
+        file_bytes = await file.read()
+        filestorage.save_file(file_store, file_name, file_bytes, force)
+        return "OK"

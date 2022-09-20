@@ -23,37 +23,8 @@ from ramodels.mo._shared import UUIDBase
 logger = logging.getLogger(__name__)
 
 
-@strawberry.enum
-class FileStore(Enum):
-    EXPORTS = 1
-    INSIGHTS = 2
-
-
-class HealthRead(BaseModel):
-    """Payload model for health."""
-
-    identifier: str = Field(description="Short, unique key.")
-
-
-class FileRead(BaseModel):
-    """Payload model for file download."""
-
-    file_store: FileStore = Field(description="The file store the file is stored in.")
-    file_name: str = Field(description="Name of the export file.")
-
-
-class OrganisationUnitRefreshRead(BaseModel):
-    """Payload model for organisation unit refresh mutation."""
-
-    message: str = Field(description="Refresh message containing trigger responses.")
-
-
-class ConfigurationRead(BaseModel):
-    """Payload model for configuration."""
-
-    key: str = Field(description="Settings key.")
-
-
+# Various
+# -------
 class Validity(OpenValidity):
     """Model representing an entities validity range."""
 
@@ -187,6 +158,10 @@ class Triggerless(BaseModel):
     )
 
 
+class GenericUUIDModel(UUIDBase):
+    """Generic UUID model for return types."""
+
+
 class OrgFuncTrigger(MoraTrigger):
     """General model for Mora-Organization-Function triggers."""
 
@@ -199,104 +174,20 @@ class OrgFuncTrigger(MoraTrigger):
     )
 
 
-class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organization-units."""
-
-    pass
-
-
-class EngagementTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for engagements.
-
-    Has the folling fields:
-        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-
-        request: MoraTriggerRequest  description="The Request for the trigger."
-
-        role_type: str  description="Role type for the trigger, ex 'org_unit'."
-
-        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
-
-        uuid: UUID
-
-        org_unit_uuid: UUID
-
-        employee_id: Optional[UUID]
-    """
-
-    pass
-
-
+# Root Organisation
+# -----------------
 class Organisation(UUIDBase):
     """Model representing an Organization."""
 
-    pass
 
-
-class OrganisationUnit(UUIDBase):
-    """Model representing a Organization-Unit."""
-
-    pass
-
-
-class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
-    """Model representing a organization-unit termination."""
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationenhedgyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afslut enhed",
-        }
-
-
-class EngagementModel(UUIDBase):
-    """Model representing an Engagement."""
-
-    pass
-
-
-class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
-    """Model representing an engagement termination(or rather end-date update)."""
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afsluttet",
-        }
-
-    def get_engagement_trigger(self) -> EngagementTrigger:
-        return EngagementTrigger(
-            role_type=mapping.ENGAGEMENT,
-            event_type=mapping.EventType.ON_BEFORE,
-            uuid=self.uuid,
-            org_unit_uuid=self.uuid,
-            request_type=mapping.RequestType.TERMINATE,
-            request=MoraTriggerRequest(
-                type=mapping.ENGAGEMENT,
-                uuid=self.uuid,
-                validity=Validity(from_date=self.from_date, to_date=self.to_date),
-            ),
-        )
-
-
+# Addresses
+# ---------
 class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
-
-    pass
 
 
 class Address(UUIDBase):
     """Address (detail) model."""
-
-    pass
 
 
 class AddressTerminate(Address, ValidityTerminate, Triggerless):
@@ -330,10 +221,16 @@ class AddressTerminate(Address, ValidityTerminate, Triggerless):
         }
 
 
+# Associations
+# ------------
+
+# Classes
+# -------
+
+# Employees
+# ---------
 class Employee(UUIDBase):
     """OS2Mo employee model."""
-
-    pass
 
 
 class EmployeeCreate(BaseModel):
@@ -350,8 +247,6 @@ class EmployeeCreate(BaseModel):
 
 class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
     """Model representing an employee termination."""
-
-    pass
 
 
 class EmployeeUpdate(UUIDBase):
@@ -399,6 +294,71 @@ class EmployeeUpdate(UUIDBase):
     # user_key
 
 
+# Engagements
+# -----------
+class EngagementTrigger(OrgFuncTrigger):
+    """Model representing a mora-trigger, specific for engagements.
+
+    Has the folling fields:
+        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
+
+        request: MoraTriggerRequest  description="The Request for the trigger."
+
+        role_type: str  description="Role type for the trigger, ex 'org_unit'."
+
+        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
+
+        uuid: UUID
+
+        org_unit_uuid: UUID
+
+        employee_id: Optional[UUID]
+    """
+
+
+class EngagementModel(UUIDBase):
+    """Model representing an Engagement."""
+
+
+class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
+    """Model representing an engagement termination(or rather end-date update)."""
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_engagement_trigger(self) -> EngagementTrigger:
+        return EngagementTrigger(
+            role_type=mapping.ENGAGEMENT,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ENGAGEMENT,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
+
+
+# EngagementsAssociations
+# -----------------------
+
+# Facets
+# ------
+
+# ITSystems
+# ---------
+
+# ITUsers
+# -------
 class ITUserTerminate(UUIDBase, ValidityTerminate, Triggerless):
     """Model representing termination of it-user."""
 
@@ -429,7 +389,77 @@ class ITUserTerminate(UUIDBase, ValidityTerminate, Triggerless):
         )
 
 
-class GenericUUIDModel(UUIDBase):
-    """Generic UUID model for return types."""
+# KLEs
+# ----
 
-    pass
+# Leave
+# -----
+
+# Managers
+# --------
+
+# Organisational Units
+# --------------------
+class OrganisationUnitRefreshRead(BaseModel):
+    """Payload model for organisation unit refresh mutation."""
+
+    message: str = Field(description="Refresh message containing trigger responses.")
+
+
+class OrgUnitTrigger(OrgFuncTrigger):
+    """Model representing a mora-trigger, specific for organization-units."""
+
+
+class OrganisationUnit(UUIDBase):
+    """Model representing a Organization-Unit."""
+
+
+class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
+    """Model representing a organization-unit termination."""
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afslut enhed",
+        }
+
+
+# Related Units
+# -------------
+
+# Roles
+# -----
+
+# Health
+# ------
+class HealthRead(BaseModel):
+    """Payload model for health."""
+
+    identifier: str = Field(description="Short, unique key.")
+
+
+# Files
+# -----
+@strawberry.enum
+class FileStore(Enum):
+    EXPORTS = 1
+    INSIGHTS = 2
+
+
+class FileRead(BaseModel):
+    """Payload model for file download."""
+
+    file_store: FileStore = Field(description="The file store the file is stored in.")
+    file_name: str = Field(description="Name of the export file.")
+
+
+# Configuration
+# -------------
+class ConfigurationRead(BaseModel):
+    """Payload model for configuration."""
+
+    key: str = Field(description="Settings key.")
