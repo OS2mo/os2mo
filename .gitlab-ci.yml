@@ -22,8 +22,6 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
 
-  # We use kaniko v0.13.0 as newer versions contain fatal bugs
-  KANIKO_VERSION: v1.3.0-debug
   BACKEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
@@ -60,6 +58,8 @@ include:
   - local: "ra-data-models/.gitlab-ci.yml"
   - project: "labs/salt-automation"
     file: "/gitlab-ci-templates/common/autopub.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/docker-build-meta.v1.yml"
   - project: "labs/salt-automation"
     file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
   - project: "labs/salt-automation"
@@ -141,7 +141,7 @@ default:
 
 .services:use-mo:
   needs:
-    - Build OS2MO
+    - Build OS2mo
   image: $BACKEND_IMAGE_SHA
   extends:
     - .mo-variables
@@ -202,70 +202,47 @@ Lint shell scripts:
 
 # Build
 ########
-.build-base:
-  stage: build
-  needs: []
-  image:
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
-    entrypoint: [""]
-
 .build:release-image:
-  extends:
-    - .build-base
   rules:
     - <<: *if-schedule
       when: never
     - when: on_success
 
 .build:test-image:
-  extends:
-    - .build-base
   rules:
     - <<: *if-merge-request
 
-Build OS2MO:
-  extends: .build:release-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead. Migration requires support for COMMIT_SHA and
-  # COMMIT_TAG, see https://git.magenta.dk/rammearkitektur/os2mo-triggers/os2mo-amqp-trigger-calculate-primary/-/blob/master/Dockerfile
-  # for alternatives to --build-arg.
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/api.Dockerfile
-      --destination=${BACKEND_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+Build OS2mo:
+  extends:
+    - .build:release-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${BACKEND_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/api.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build frontend:
-  extends: .build:release-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
-      --destination=${FRONTEND_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  extends:
+    - .build:release-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${FRONTEND_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build test frontend:
-  extends: .build:test-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
-      --destination=${FRONTEND_TEST_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
-      --target frontend
+  extends:
+    - .build:test-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${FRONTEND_TEST_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+    TARGET: frontend
 
 Build Keycloak-realm:
+  stage: build
+  needs: []
   extends: .build:test-image
   image:
     # TODO: Use new realm builder
@@ -293,28 +270,22 @@ Build Keycloak-realm:
     expire_in: 1 day
 
 Build Keycloak:
-  extends: .build:test-image
+  extends:
+    - .build:test-image
+    - .build-docker
   needs:
     - Build Keycloak-realm
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak.Dockerfile
-      --destination=${KEYCLOAK_IMAGE_SHA}
+  variables:
+    CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
 
 Build Keycloak DB:
-  extends: .build:test-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
-      --destination=${KEYCLOAK_DB_IMAGE_SHA}
+  extends:
+    - .build:test-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${KEYCLOAK_DB_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak-db.Dockerfile
 
 # Tests
 ########
@@ -433,7 +404,7 @@ Coverage:
     - <<: *if-merge-request
 
 # Frontend Tests
-#################
+################
 Vue-unit-test:
   extends:
     - .test-base
@@ -464,7 +435,7 @@ Vue-unit-test:
 Deploy Review:
   stage: review
   needs:
-    - Build OS2MO
+    - Build OS2mo
   image: debian:bookworm
   variables:
     GIT_STRATEGY: none  # We do not need the source code
