@@ -1,10 +1,10 @@
 # GraphAPI Test Suite
 
-This test suite aims to cover our GraphAPI implementation in `mora/graphpi` by using a mix of unit and integration tests. 
+This test suite aims to cover our GraphAPI implementation in `mora/graphpi` by using a mix of unit and integration tests.
 
 ## Mocks
 
-During unit tests, it is important to mock away interfaces that are not specific to the tested functionality. This ensures that we do not test external interfaces and/or the same interfaces repeatedly, and that tests are relatively fast. 
+During unit tests, it is important to mock away interfaces that are not specific to the tested functionality. This ensures that we do not test external interfaces and/or the same interfaces repeatedly, and that tests are relatively fast.
 
 For example, if a data loader is unit tested, its data source should be mocked, and the loader should be called directly instead of implicitly through the schema/API. Then, we can test the data loader functionality and mock its returns when testing other functionality that relies on the data loader.
 

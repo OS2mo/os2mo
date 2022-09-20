@@ -3,10 +3,10 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_json_object_delete_keys()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
-sagRelType1 SagRelationType;	
+DECLARE
+sagRelType1 SagRelationType;
 resultJson json;
 actualCount1 int;
 actualCount2 int;

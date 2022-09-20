@@ -22,7 +22,7 @@ API" is used to setup, reset and tear down the testing database.
 
 ## Writing new tests
 
-The `oio_rest/test/util.py` contains classes suitable for writing tests. 
+The `oio_rest/test/util.py` contains classes suitable for writing tests.
 See the docstrings there for determining the proper testclass for your test.
 
 The general naming convention for files containing tests is: if it does

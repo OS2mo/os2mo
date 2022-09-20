@@ -24,7 +24,7 @@ angiver den lokale anvendelse af SD Løn. De påkrævede felter er:
 -   `integrations.SD_Lon.monthly_hourly_divide`: Skilleværdi for
     måneds/timelønnede.
 -   `integrations.SD_Lon.job_function`: Feltet kan have en af to
-    vædier: *EmploymentName* eller *JobPositionIdentifier*, 
+    vædier: *EmploymentName* eller *JobPositionIdentifier*,
     se yderligere nedenfor.
 
 Desuden kan disse ikke-påkrævede felter angives:
@@ -364,7 +364,7 @@ importer.import_all()
 ```
 
 Hvor der i dette tilfælde ikke angives ledere eller en AD integration.
-Disse to punkter diskuteres under punkterne [Ledere i SD Løn](#ledere) og 
+Disse to punkter diskuteres under punkterne [Ledere i SD Løn](#ledere) og
 [AD Integration til SD Import](#ad-integration-til-sd-import).
 
 Parametren *sub_tree* kan angives med en uuid og det vil så
@@ -430,7 +430,7 @@ angive lederinformation:
 
     Det er muligt at angive et antal værdier for
     *JobPositionIdentifier* som anses for at være ledere.
-    Disse er i øjeblikket hårdkodet til værdierne 1030, 1040 og 1050. 
+    Disse er i øjeblikket hårdkodet til værdierne 1030, 1040 og 1050.
     Hvis intet andet angives vil disse medarbejdere anses for
     at være ledere i de afdelinger de er ansat i.
 
@@ -457,10 +457,10 @@ lederansvar pr leder.
 
 #### AD Integration til SD import
 
-SD Importen understøtter at anvende komponenten 
-[Integration til Active Directory]() til at berige objekterne fra SD Løn 
-med information fra Active Directory. I de fleste tilfælde drejer dette 
-sig som minimum om felterne `ObjectGuid` og `SamAccountName` men det er 
+SD Importen understøtter at anvende komponenten
+[Integration til Active Directory]() til at berige objekterne fra SD Løn
+med information fra Active Directory. I de fleste tilfælde drejer dette
+sig som minimum om felterne `ObjectGuid` og `SamAccountName` men det er
 også muligt at hente eksempelvis telefonnumre eller stillingsbetegnelser.
 
 Feltet `ObjectGuid` vil i MO blive anvendt til UUID for det tilhørende

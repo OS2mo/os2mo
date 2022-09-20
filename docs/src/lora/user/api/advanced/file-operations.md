@@ -6,10 +6,10 @@ title: File operations
 
 ## File upload
 
-When performing an [Import operation](../import.md), [Create operation](../create.md) 
-or [Update operation](../update.md) on a `Dokument`, it is possible (if desired) to 
-simultaneously upload files. These requests should be made using 
-`multipart/form-data`-encoding. The encoding is the same that is used for HTML upload 
+When performing an [Import operation](../import.md), [Create operation](../create.md)
+or [Update operation](../update.md) on a `Dokument`, it is possible (if desired) to
+simultaneously upload files. These requests should be made using
+`multipart/form-data`-encoding. The encoding is the same that is used for HTML upload
 forms.
 
 The JSON input for the request should be specified in a `form`-field
@@ -32,9 +32,9 @@ value of the `indhold`-attribute. In that case, the URI will be stored,
 however no file will be downloaded and stored to the server. It is then
 expected that the consumer of the API knows how to access the URI.
 
-## File download 
+## File download
 
-When performing a [Read operation](../read.md) or [List operation](../list.md) on a 
+When performing a [Read operation](../read.md) or [List operation](../list.md) on a
 `Dokument`, the `DokumentDel`-subobjects returned will include an `indhold` attribute.
 This attribute has a value that is the "content URI" of that file on
 the OIO REST API server. An example:

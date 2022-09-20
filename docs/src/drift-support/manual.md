@@ -417,8 +417,3 @@ Hvis man er interesseret i at arbejde med fiktive, men valide cpr-numre, skal ma
 Når en enhed eller en medarbejder er oprettet, kan de fremsøges, og de informationer, der er tilknyttet til dem, vil fremgå af brugergrænsefladen.
 
 Nogle steder vil det være muligt at redigere og afslutte enkelte registreringer. Hvor det ikke er muligt, er det pr. design. Fx er det ikke muligt at redigere eller afslutte en nedarvet leder.
-
-
-
-
-

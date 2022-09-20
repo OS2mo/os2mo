@@ -2,7 +2,7 @@
 -- SPDX-License-Identifier: MPL-2.0
 
 
---Subtract all of the tstzranges in the array from the first tstzrange given. 
+--Subtract all of the tstzranges in the array from the first tstzrange given.
 CREATE OR REPLACE FUNCTION _subtract_tstzrange_arr (rangeA tstzrange, rangeArr tstzrange[])
     RETURNS tstzrange[] AS $$
 DECLARE
@@ -24,4 +24,3 @@ BEGIN
     RETURN result;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
-

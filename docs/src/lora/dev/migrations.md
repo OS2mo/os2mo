@@ -10,14 +10,14 @@ this:
 
 ``` bash
 $ docker-compose exec mox alembic <command>
-``` 
+```
 
 E.g., to update the database schema to the latest available migration,
 run:
 
 ``` bash
 $ docker-compose exec mox alembic upgrade head
-``` 
+```
 
 It is also possible to run Alembic outside of Docker. This is especially
 useful when using Alembic commands which generate new files, as the
@@ -26,9 +26,9 @@ means that generating new migrations (which creates a file) can be done
 using Poetry instead:
 
 ``` bash
-DB_HOST=localhost DB_PORT=6543 DB_USER=postgres DB_PASSWORD=... 
+DB_HOST=localhost DB_PORT=6543 DB_USER=postgres DB_PASSWORD=...
 DB_NAME=mox poetry run alembic revision
-``` 
+```
 
 (This presumes that the Postgres container has its port mapped to host
 port 6543.)

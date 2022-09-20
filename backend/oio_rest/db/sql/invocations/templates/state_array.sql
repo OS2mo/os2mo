@@ -23,4 +23,3 @@ NULL
         {% endfor -%}
         ] :: {{ class_name}}{{ state_name }}TilsType[]
 {% endif -%}
-

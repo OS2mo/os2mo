@@ -49,7 +49,7 @@ CREATE TABLE {{oio_type}}_registrering (
    CONSTRAINT {{oio_type}}_registrering_{{oio_type}}_fkey FOREIGN KEY ({{oio_type}}_id)
        REFERENCES {{oio_type}} (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT {{oio_type}}_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT {{oio_type}}_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text({{oio_type}}_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -133,10 +133,10 @@ ALTER TABLE {{oio_type}}_attr_{{attribut}}
   OWNER TO mox;
 
 
-{% for field in attribut_fields %} 
+{% for field in attribut_fields %}
     {% if attributter_metadata[attribut][field]['type'] is defined %}
         {% if attributter_metadata[attribut][field]['type'] != "text[]" %}
-            {% if attributter_metadata[attribut][field]['type'] == "offentlighedundtagettype" %} 
+            {% if attributter_metadata[attribut][field]['type'] == "offentlighedundtagettype" %}
                 CREATE INDEX {{oio_type}}_attr_{{attribut}}_pat_AlternativTitel_{{field}}
                     ON {{oio_type}}_attr_{{attribut}}
                     USING gin
@@ -156,15 +156,15 @@ ALTER TABLE {{oio_type}}_attr_{{attribut}}
                     ON {{oio_type}}_attr_{{attribut}}
                     USING btree
                     ((({{field}}).Hjemmel));
-            {% else %} 
+            {% else %}
                 CREATE INDEX {{oio_type}}_attr_{{attribut}}_idx_{{field}}
                     ON {{oio_type}}_attr_{{attribut}}
                     USING btree
                     ({{field}});
 
             {% endif %}
-        {% endif %} 
-    {% else %} 
+        {% endif %}
+    {% else %}
         CREATE INDEX {{oio_type}}_attr_{{attribut}}_pat_{{field}}
             ON {{oio_type}}_attr_{{attribut}}
             USING gin
@@ -174,7 +174,7 @@ ALTER TABLE {{oio_type}}_attr_{{attribut}}
             ON {{oio_type}}_attr_{{attribut}}
             USING btree
             ({{field}});
-    {%- endif %} 
+    {%- endif %}
 {% endfor %}
 
 
@@ -278,7 +278,7 @@ ALTER TABLE {{oio_type}}_tils_{{tilstand}}_id_seq
 CREATE TABLE {{oio_type}}_tils_{{tilstand}} (
     id bigint NOT NULL DEFAULT nextval('{{oio_type}}_tils_{{tilstand}}_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    {{tilstand}} {{oio_type|title}}{{tilstand|title}}Tils NOT NULL, 
+    {{tilstand}} {{oio_type|title}}{{tilstand|title}}Tils NOT NULL,
     {{oio_type}}_registrering_id bigint not null,
     CONSTRAINT {{oio_type}}_tils_{{tilstand}}_pkey PRIMARY KEY (id),
     CONSTRAINT {{oio_type}}_tils_{{tilstand}}_forkey_{{oio_type}}registrering FOREIGN KEY ({{oio_type}}_registrering_id) REFERENCES {{oio_type}}_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -296,7 +296,7 @@ CREATE INDEX {{oio_type}}_tils_{{tilstand}}_idx_{{tilstand}}
     ON {{oio_type}}_tils_{{tilstand}}
     USING btree
     ({{tilstand}});
-  
+
 CREATE INDEX {{oio_type}}_tils_{{tilstand}}_idx_virkning_aktoerref
     ON {{oio_type}}_tils_{{tilstand}}
     USING btree
@@ -499,12 +499,12 @@ ALTER TABLE dokument_variant_egenskaber_id_seq
 
 
 CREATE TABLE dokument_variant_egenskaber(
-    id bigint NOT NULL DEFAULT nextval('dokument_variant_egenskaber_id_seq'::regclass), 
-    variant_id bigint not null, 
-    arkivering boolean null, 
-    delvisscannet boolean null, 
-    offentliggoerelse boolean null, 
-    produktion boolean null, 
+    id bigint NOT NULL DEFAULT nextval('dokument_variant_egenskaber_id_seq'::regclass),
+    variant_id bigint not null,
+    arkivering boolean null,
+    delvisscannet boolean null,
+    offentliggoerelse boolean null,
+    produktion boolean null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
     CONSTRAINT dokument_variant_egenskaber_pkey PRIMARY KEY (id),
     CONSTRAINT dokument_variant_egenskaber_forkey_dokumentvariant FOREIGN KEY (variant_id) REFERENCES dokument_variant (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -516,26 +516,26 @@ WITH (
 ALTER TABLE dokument_variant_egenskaber
     OWNER TO mox;
 
- 
+
 CREATE INDEX dokument_variant_egenskaber_idx_arkivering
     ON dokument_variant_egenskaber
     USING btree
-    (arkivering); 
+    (arkivering);
 
 CREATE INDEX dokument_variant_egenskaber_idx_delvisscannet
     ON dokument_variant_egenskaber
     USING btree
-    (delvisscannet); 
- 
+    (delvisscannet);
+
 CREATE INDEX dokument_variant_egenskaber_idx_offentliggoerelse
     ON dokument_variant_egenskaber
     USING btree
-    (offentliggoerelse); 
- 
+    (offentliggoerelse);
+
 CREATE INDEX dokument_variant_egenskaber_idx_produktion
     ON dokument_variant_egenskaber
     USING btree
-    (produktion); 
+    (produktion);
 
 CREATE INDEX dokument_variant_egenskaber_idx_virkning_aktoerref
     ON dokument_variant_egenskaber
@@ -599,12 +599,12 @@ ALTER TABLE dokument_del_egenskaber_id_seq
 
 
 CREATE TABLE dokument_del_egenskaber(
-    id bigint NOT NULL DEFAULT nextval('dokument_del_egenskaber_id_seq'::regclass), 
+    id bigint NOT NULL DEFAULT nextval('dokument_del_egenskaber_id_seq'::regclass),
     del_id bigint NOT NULL,
-    indeks int null, 
-    indhold text null, 
-    lokation text null, 
-    mimetype text null, 
+    indeks int null,
+    indhold text null,
+    lokation text null,
+    mimetype text null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
     CONSTRAINT dokument_del_egenskaber_pkey PRIMARY KEY (id),
     CONSTRAINT dokument_del_egenskaber_forkey_dokument_del FOREIGN KEY (del_id) REFERENCES dokument_del (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -620,8 +620,8 @@ ALTER TABLE dokument_del_egenskaber
 CREATE INDEX dokument_del_egenskaber_idx_indeks
     ON dokument_del_egenskaber
     USING btree
-    (indeks); 
- 
+    (indeks);
+
 CREATE INDEX dokument_del_egenskaber_pat_indhold
     ON dokument_del_egenskaber
     USING gin
@@ -630,8 +630,8 @@ CREATE INDEX dokument_del_egenskaber_pat_indhold
 CREATE INDEX dokument_del_egenskaber_idx_indhold
     ON dokument_del_egenskaber
     USING btree
-    (indhold); 
- 
+    (indhold);
+
 CREATE INDEX dokument_del_egenskaber_pat_lokation
     ON dokument_del_egenskaber
     USING gin
@@ -640,8 +640,8 @@ CREATE INDEX dokument_del_egenskaber_pat_lokation
 CREATE INDEX dokument_del_egenskaber_idx_lokation
     ON dokument_del_egenskaber
     USING btree
-    (lokation); 
- 
+    (lokation);
+
 CREATE INDEX dokument_del_egenskaber_pat_mimetype
     ON dokument_del_egenskaber
     USING gin
@@ -650,7 +650,7 @@ CREATE INDEX dokument_del_egenskaber_pat_mimetype
 CREATE INDEX dokument_del_egenskaber_idx_mimetype
     ON dokument_del_egenskaber
     USING btree
-    (mimetype); 
+    (mimetype);
 
 CREATE INDEX dokument_del_egenskaber_idx_virkning_aktoerref
     ON dokument_del_egenskaber
@@ -687,7 +687,7 @@ CREATE TABLE dokument_del_relation (
     id bigint NOT NULL DEFAULT nextval('dokument_del_relation_id_seq'::regclass),
     del_id bigint not null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    rel_maal_uuid uuid NULL, 
+    rel_maal_uuid uuid NULL,
     rel_maal_urn text null,
     rel_type DokumentdelRelationKode not null,
     objekt_type text null,

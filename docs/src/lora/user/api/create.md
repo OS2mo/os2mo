@@ -7,16 +7,16 @@ title: Create operation
 `POST /(service/(object)`
 
 The Create operation creates a new object from the JSON payload.
-[POST](https://tools.ietf.org/html/rfc7231#section-4.3.3) the JSON representation of 
-its attributes, states and relations to the URL of the class. The Create operation 
+[POST](https://tools.ietf.org/html/rfc7231#section-4.3.3) the JSON representation of
+its attributes, states and relations to the URL of the class. The Create operation
 returns a newly generated UUID for the created object.
 
 The data can be supplied directly in the request if
-[Content-Type](https://tools.ietf.org/html/rfc7231#section-3.1.1.5) 
+[Content-Type](https://tools.ietf.org/html/rfc7231#section-3.1.1.5)
 `application/json` is set.
 
 Alternatively the the data can be supplied as form-data in the
-`json`-field with [Content-Type](https://tools.ietf.org/html/rfc7231#section-3.1.1.5) 
+`json`-field with [Content-Type](https://tools.ietf.org/html/rfc7231#section-3.1.1.5)
 `multipart/form-data`. This allows seperate file form-data.
 
 **Example request** for `POST /organisation/organisationenhed`:

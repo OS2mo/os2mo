@@ -4,13 +4,13 @@
 {% block body %}
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_{{oio_type|title}}RegistreringType_to_json({{oio_type|title}}RegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_{{oio_type|title}}RegistreringType_to_json({{oio_type|title}}RegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -18,19 +18,19 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
-        SELECT 
+        SELECT
         {%-for attribut , attribut_fields in attributter.items() %}
-        CASE 
-        WHEN coalesce(array_length($1.attr{{attribut|title}},1),0)>0 THEN to_json($1.attr{{attribut|title}}) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attr{{attribut|title}},1),0)>0 THEN to_json($1.attr{{attribut|title}})
+        ELSE
         NULL
         END {{oio_type}}{{attribut}}
         {% if not loop.last %},{% endif %}
@@ -38,17 +38,17 @@ FROM
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
+        SELECT
         {% for tilstand, tilstand_values in tilstande.items() %}
-        CASE 
-        WHEN coalesce(array_length($1.tils{{tilstand|title}},1),0)>0 THEN to_json($1.tils{{tilstand|title}}) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.tils{{tilstand|title}},1),0)>0 THEN to_json($1.tils{{tilstand|title}})
+        ELSE
         NULL
         END {{oio_type}}{{tilstand}}
         {% if not loop.last %},{% endif %}
@@ -56,7 +56,7 @@ FROM
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -82,7 +82,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -107,7 +107,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -125,13 +125,13 @@ create cast ({{oio_type|title}}RegistreringType as json) with function actual_st
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_{{oio_type}}Type_to_json({{oio_type|title}}Type) 
+CREATE OR REPLACE FUNCTION actual_state._cast_{{oio_type}}Type_to_json({{oio_type|title}}Type)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg {{oio_type|title}}RegistreringType;
@@ -160,7 +160,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists ({{oio_type|title}}Type as json);
-create cast ({{oio_type|title}}Type as json) with function actual_state._cast_{{oio_type}}Type_to_json({{oio_type|title}}Type); 
+create cast ({{oio_type|title}}Type as json) with function actual_state._cast_{{oio_type}}Type_to_json({{oio_type|title}}Type);
 
 
 

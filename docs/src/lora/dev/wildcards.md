@@ -14,12 +14,12 @@ sign) to match zero or more characters. To match a litteral underscore
 or percentage sign you must escape it with a single backslash as `\_` or
 `\%`
 
-In `/oio_rest/oio_rest/utils/build_registration.py` all incomming underscores `_` are 
-replaced by an escaped underscore `\_`. This means it is not possible for the REST API 
+In `/oio_rest/oio_rest/utils/build_registration.py` all incomming underscores `_` are
+replaced by an escaped underscore `\_`. This means it is not possible for the REST API
 user to send an underscore wildcard operator to SQL. This may change in the future.
 
 FastAPI et. al. take care of decoding
-[RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986.html#section-2) 
+[RFC 3986](https://datatracker.ietf.org/doc/html/rfc3986.html#section-2)
 percentage-encoded URIs. This means a percentage sign followed by two
 case insensitive hexidecimal signs (`0-F`) is decoded into the
 corresponding ASCII symbol. E.g. a `%45` in an URI is decoded to `E` in

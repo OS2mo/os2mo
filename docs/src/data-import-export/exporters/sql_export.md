@@ -93,7 +93,7 @@ eksport af historiske værdier, er felterne tomme:
 
 -   `enheder.organisatorisk_sti`: Angiver den organisatoriske sti for
     en enhed beregnet ved at gå baglæns gennem enhedstræet og tilføje
-    et \\-tegn mellem hver enhed. Eksempel: *Basildon Kommune\\Kunst & 
+    et \\-tegn mellem hver enhed. Eksempel: *Basildon Kommune\\Kunst &
     Kultur\\Musiktilbud\\Øvelokaler*.
 -   `enheder.fungerende_leder`: I MO er en leder modeleret som en
     organisationfunktion som sammenkæder en person med en enhed. Der

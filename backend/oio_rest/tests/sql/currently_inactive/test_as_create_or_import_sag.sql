@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_create_or_import_sag()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	registrering sagRegistreringType;
@@ -256,8 +256,8 @@ sagRelAndresager2 := ROW (
 	null,
 	'Person'
 	,3 --NOTICE: Should be replace in by import function
-	,null 
-	,ROW(null,null,null)::JournalNotatType 
+	,null
+	,ROW(null,null,null)::JournalNotatType
 	,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 ) :: sagRelationType
 ;
@@ -358,12 +358,12 @@ virkPubliceret,
 
 
 sagEgenskab := ROW (
-'brugervendtnoegle_sag_1' --text, 
+'brugervendtnoegle_sag_1' --text,
  ,false --'afleveret_sag_1'-- boolean,
 ,'beskrivelse_sag_1'-- text,
 , 'hjemmel_sag_1'-- text,
 , 'kassationskode_sag_1'-- text,
-,ROW( 
+,ROW(
 	'alternativTitel_sag_1'
 	,'hjemmel_sag_1'
  )::offentlighedundtagettype
@@ -427,21 +427,21 @@ expected_sag1:=ROW(
 						uuidSekundaerpart1,
 						null,
 						'Person'
-						,1 
+						,1
 						,null --relTypeSpec
-						,ROW(null,null,null)::JournalNotatType 
+						,ROW(null,null,null)::JournalNotatType
 						,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType
 					) :: sagRelationType
-				, 
+				,
 				ROW (
 					'sekundaerpart'::sagRelationKode,
 						virkSekundaerpart2,
 					null,
 					urnSekundaerpart2,
 					'Person'
-					,2 
+					,2
 					,null --relTypeSpec
-					,ROW(null,null,null)::JournalNotatType 
+					,ROW(null,null,null)::JournalNotatType
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) :: sagRelationType
 				,
@@ -451,9 +451,9 @@ expected_sag1:=ROW(
 					uuidAndresager1,
 					null,
 					'Person'
-					,1 
+					,1
 					,null --relTypeSpec
-					,ROW(null,null,null)::JournalNotatType 
+					,ROW(null,null,null)::JournalNotatType
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) :: sagRelationType
 				, ROW (
@@ -462,9 +462,9 @@ expected_sag1:=ROW(
 					uuidAndresager2,
 					null,
 					'Person'
-					,2 
+					,2
 					,null --relTypeSpec
-					,ROW(null,null,null)::JournalNotatType 
+					,ROW(null,null,null)::JournalNotatType
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
 				) :: sagRelationType
 				,
@@ -474,7 +474,7 @@ expected_sag1:=ROW(
 					uuidJournalNotat1,
 					null,
 					'Person'
-					,1 
+					,1
 					,'journalnotat'::SagRelationJournalPostSpecifikKode
 					, ROW('journal_txt1','journal_notat1','journal_format1')::JournalNotatType --journalNotat
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType --journalDokumentAttr
@@ -486,7 +486,7 @@ expected_sag1:=ROW(
 					uuidJournalNotat2,
 					null,
 					'Person'
-					,2  --NOTICE: 
+					,2  --NOTICE:
 					,'journalnotat'::SagRelationJournalPostSpecifikKode
 					, ROW(NULL,NULL,'journal_format2')::JournalNotatType --journalNotat
 					,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType  --journalDokumentAttr
@@ -604,7 +604,7 @@ expected_sag2:=ROW(
 			,ARRAY[sagFremdrift]::sagFremdriftTilsType[]
 			,ARRAY[sagEgenskab]::sagEgenskaberAttrType[]
 			,ARRAY[
-			
+
 				ROW (
 						'ansvarlig'::sagRelationKode
 						,virkPrimaerklasse
@@ -616,7 +616,7 @@ expected_sag2:=ROW(
 						,ROW(null,null,null)::JournalNotatType --journalNotat
 						,ROW(null, ROW(null,null)::OffentlighedundtagetType) ::JournalPostDokumentAttrType  --journalDokumentAttr
 					) :: sagRelationType
-					
+
 				]::SagRelationType[]
 			)::SagRegistreringType
 			]::SagRegistreringType[]

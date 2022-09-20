@@ -53,7 +53,7 @@ field while all other keys will be left untouched.
 
 To read back he value:
 
-``` 
+```
 read_value ia.write_integration_data(resource, uuid)
 ```
 
@@ -75,7 +75,7 @@ store more complex structures like Python pickle objects.
 
 It is possible to find objects based on their integration data value,
 provided that the vaulue does not contain characters that are considred
-special by the underlying search engnine in 
+special by the underlying search engnine in
 [LoRa](https://github.com/magenta-aps/mox/blob/95adfd192a729d6a82b08b2188dbda77522b881b/doc/dev/wildcards.rst),
 ie avoid characters such as `%`, `&`, `''` and `_` if the object
 should be found in a search.

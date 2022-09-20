@@ -587,7 +587,7 @@ $function$;
 -- SPDX-License-Identifier: MPL-2.0
 
 
---Subtract the second tstzrange from the first tstzrange given. 
+--Subtract the second tstzrange from the first tstzrange given.
 CREATE OR REPLACE FUNCTION _subtract_tstzrange (rangeA tstzrange, rangeB tstzrange)
     RETURNS tstzrange[] AS $$
 DECLARE
@@ -648,7 +648,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 -- SPDX-License-Identifier: MPL-2.0
 
 
---Subtract all of the tstzranges in the array from the first tstzrange given. 
+--Subtract all of the tstzranges in the array from the first tstzrange given.
 CREATE OR REPLACE FUNCTION _subtract_tstzrange_arr (rangeA tstzrange, rangeArr tstzrange[])
     RETURNS tstzrange[] AS $$
 DECLARE
@@ -727,7 +727,7 @@ CREATE TYPE AktivitetAktoerAttr AS (
   obligatorisk AktivitetAktoerAttrObligatoriskKode,
   accepteret AktivitetAktoerAttrAccepteretKode,
   repraesentation_uuid uuid,
-  repraesentation_urn text 
+  repraesentation_urn text
 );
 
 
@@ -757,7 +757,7 @@ CREATE TYPE AktivitetType AS
 (
   id uuid,
   registrering AktivitetRegistreringType[]
-);  
+);
 
 
  CREATE Type _AktivitetRelationMaxIndex AS
@@ -824,7 +824,7 @@ CREATE TABLE aktivitet_registrering (
    CONSTRAINT aktivitet_registrering_aktivitet_fkey FOREIGN KEY (aktivitet_id)
        REFERENCES aktivitet (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT aktivitet_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT aktivitet_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(aktivitet_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -907,8 +907,8 @@ ALTER TABLE aktivitet_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX aktivitet_attr_egenskaber_pat_brugervendtnoegle
             ON aktivitet_attr_egenskaber
             USING gin
@@ -917,9 +917,9 @@ ALTER TABLE aktivitet_attr_egenskaber
         CREATE INDEX aktivitet_attr_egenskaber_idx_brugervendtnoegle
             ON aktivitet_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX aktivitet_attr_egenskaber_pat_aktivitetnavn
             ON aktivitet_attr_egenskaber
             USING gin
@@ -928,9 +928,9 @@ ALTER TABLE aktivitet_attr_egenskaber
         CREATE INDEX aktivitet_attr_egenskaber_idx_aktivitetnavn
             ON aktivitet_attr_egenskaber
             USING btree
-            (aktivitetnavn); 
- 
-     
+            (aktivitetnavn);
+
+
         CREATE INDEX aktivitet_attr_egenskaber_pat_beskrivelse
             ON aktivitet_attr_egenskaber
             USING gin
@@ -939,45 +939,45 @@ ALTER TABLE aktivitet_attr_egenskaber
         CREATE INDEX aktivitet_attr_egenskaber_idx_beskrivelse
             ON aktivitet_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-    
-        
-             
+            (beskrivelse);
+
+
+
+
                 CREATE INDEX aktivitet_attr_egenskaber_idx_starttidspunkt
                     ON aktivitet_attr_egenskaber
                     USING btree
                     (starttidspunkt);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX aktivitet_attr_egenskaber_idx_sluttidspunkt
                     ON aktivitet_attr_egenskaber
                     USING btree
                     (sluttidspunkt);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX aktivitet_attr_egenskaber_idx_tidsforbrug
                     ON aktivitet_attr_egenskaber
                     USING btree
                     (tidsforbrug);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX aktivitet_attr_egenskaber_pat_formaal
             ON aktivitet_attr_egenskaber
             USING gin
@@ -986,9 +986,9 @@ ALTER TABLE aktivitet_attr_egenskaber
         CREATE INDEX aktivitet_attr_egenskaber_idx_formaal
             ON aktivitet_attr_egenskaber
             USING btree
-            (formaal); 
- 
-     
+            (formaal);
+
+
         CREATE INDEX aktivitet_attr_egenskaber_pat_integrationsdata
             ON aktivitet_attr_egenskaber
             USING gin
@@ -997,7 +997,7 @@ ALTER TABLE aktivitet_attr_egenskaber
         CREATE INDEX aktivitet_attr_egenskaber_idx_integrationsdata
             ON aktivitet_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -1044,7 +1044,7 @@ ALTER TABLE aktivitet_tils_status_id_seq
 CREATE TABLE aktivitet_tils_status (
     id bigint NOT NULL DEFAULT nextval('aktivitet_tils_status_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    status AktivitetStatusTils NOT NULL, 
+    status AktivitetStatusTils NOT NULL,
     aktivitet_registrering_id bigint not null,
     CONSTRAINT aktivitet_tils_status_pkey PRIMARY KEY (id),
     CONSTRAINT aktivitet_tils_status_forkey_aktivitetregistrering FOREIGN KEY (aktivitet_registrering_id) REFERENCES aktivitet_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -1062,7 +1062,7 @@ CREATE INDEX aktivitet_tils_status_idx_status
     ON aktivitet_tils_status
     USING btree
     (status);
-  
+
 CREATE INDEX aktivitet_tils_status_idx_virkning_aktoerref
     ON aktivitet_tils_status
     USING btree
@@ -1097,7 +1097,7 @@ ALTER TABLE aktivitet_tils_publiceret_id_seq
 CREATE TABLE aktivitet_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('aktivitet_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret AktivitetPubliceretTils NOT NULL, 
+    publiceret AktivitetPubliceretTils NOT NULL,
     aktivitet_registrering_id bigint not null,
     CONSTRAINT aktivitet_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT aktivitet_tils_publiceret_forkey_aktivitetregistrering FOREIGN KEY (aktivitet_registrering_id) REFERENCES aktivitet_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -1115,7 +1115,7 @@ CREATE INDEX aktivitet_tils_publiceret_idx_publiceret
     ON aktivitet_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX aktivitet_tils_publiceret_idx_virkning_aktoerref
     ON aktivitet_tils_publiceret
     USING btree
@@ -1160,10 +1160,10 @@ CREATE TABLE aktivitet_relation (
     rel_type AktivitetRelationKode not null,
     objekt_type text null,
 
-    
+
     rel_index int null,
     aktoer_attr AktivitetAktoerAttr null,
-    
+
 
     CONSTRAINT aktivitet_relation_forkey_aktivitetregistrering FOREIGN KEY (aktivitet_registrering_id) REFERENCES aktivitet_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT aktivitet_relation_pkey PRIMARY KEY (id),
@@ -1270,20 +1270,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetStatusTilsTy
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.status IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.status IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -1298,20 +1298,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetPubliceretTi
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -1319,15 +1319,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetPubliceretTi
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetEgenskaberAttrType[])
   RETURNS AktivitetEgenskaberAttrType[] AS
   $$
-  DECLARE result AktivitetEgenskaberAttrType[]; 
-   DECLARE element AktivitetEgenskaberAttrType; 
+  DECLARE result AktivitetEgenskaberAttrType[];
+   DECLARE element AktivitetEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.aktivitetnavn IS NULL AND element.beskrivelse IS NULL AND element.starttidspunkt IS NULL AND element.sluttidspunkt IS NULL AND element.tidsforbrug IS NULL AND element.formaal IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.aktivitetnavn IS NULL AND element.beskrivelse IS NULL AND element.starttidspunkt IS NULL AND element.sluttidspunkt IS NULL AND element.tidsforbrug IS NULL AND element.formaal IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -1335,13 +1335,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetEgenskaberAt
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -1352,14 +1352,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr AktivitetRelationType
 RETURNS AktivitetRelationType[] AS
 $$
  DECLARE result AktivitetRelationType[];
- DECLARE element AktivitetRelationType;  
+ DECLARE element AktivitetRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.indeks IS NULL AND (element.aktoerAttr IS NULL OR ((element.aktoerAttr).obligatorisk IS NULL AND (element.aktoerAttr).accepteret IS NULL AND (element.aktoerAttr).repraesentation_uuid IS NULL AND (element.aktoerAttr).repraesentation_urn IS NULL    )) AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.indeks IS NULL AND (element.aktoerAttr IS NULL OR ((element.aktoerAttr).obligatorisk IS NULL AND (element.aktoerAttr).accepteret IS NULL AND (element.aktoerAttr).repraesentation_uuid IS NULL AND (element.aktoerAttr).repraesentation_urn IS NULL    )) AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -1367,13 +1367,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -1393,8 +1393,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_aktivitet_registrering(
     aktivitet_registrering
 ) RETURNS aktivitet_registrering AS $BODY$
   SELECT * FROM aktivitet_registrering as a WHERE
-    aktivitet_id = $1.aktivitet_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    aktivitet_id = $1.aktivitet_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -1483,19 +1483,19 @@ CREATE OR REPLACE FUNCTION as_update_aktivitet(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber AktivitetEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber AktivitetEgenskaberAttrType[],
+
+
+
     tilsStatus AktivitetStatusTilsType[],
-    
+
     tilsPubliceret AktivitetPubliceretTilsType[],
-    
+
 
     relationer AktivitetRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      AktivitetRegistreringType[] = null
@@ -1509,22 +1509,22 @@ DECLARE
     prev_aktivitet_registrering aktivitet_registrering;
     aktivitet_relation_navn     AktivitetRelationKode;
 
-    
-    attrEgenskaberObj AktivitetEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj AktivitetEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     rel_type_max_index_prev_rev int;
     rel_type_max_index_arr _aktivitetRelationMaxIndex[];
     aktivitet_rel_type_cardinality_unlimited aktivitetRelationKode[]:=ARRAY['udfoererklasse'::AktivitetRelationKode,'deltagerklasse'::AktivitetRelationKode,'objektklasse'::AktivitetRelationKode,'resultatklasse'::AktivitetRelationKode,'grundlagklasse'::AktivitetRelationKode,'facilitetklasse'::AktivitetRelationKode,'adresse'::AktivitetRelationKode,'geoobjekt'::AktivitetRelationKode,'position'::AktivitetRelationKode,'facilitet'::AktivitetRelationKode,'lokale'::AktivitetRelationKode,'aktivitetdokument'::AktivitetRelationKode,'aktivitetgrundlag'::AktivitetRelationKode,'aktivitetresultat'::AktivitetRelationKode,'udfoerer'::AktivitetRelationKode,'deltager'::AktivitetRelationKode]::aktivitetRelationKode[];
     aktivitet_uuid_underscores text;
     aktivitet_rel_seq_name text;
     aktivitet_rel_type_cardinality_unlimited_present_in_argument aktivitetRelationKode[];
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from aktivitet a join aktivitet_registrering b ON b.aktivitet_id=a.id WHERE a.id=aktivitet_uuid) THEN
@@ -1567,32 +1567,32 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
     -- Build array with the max index values of the different types of
     -- relations of the previous registration
-    
+
     SELECT array_agg(rel_type_max_index)::_aktivitetRelationMaxIndex[] into rel_type_max_index_arr
-    
+
     FROM
     (
         SELECT
-        
+
         (ROW(rel_type,coalesce(max(rel_index),0))::_aktivitetRelationMaxIndex) rel_type_max_index
-        
+
             FROM aktivitet_relation a
            WHERE a.aktivitet_registrering_id=prev_aktivitet_registrering.id
              AND a.rel_type = ANY (aktivitet_rel_type_cardinality_unlimited)
         GROUP BY rel_type
     ) AS a;
 
- 
+
     ---Create temporary sequences
-    
+
     aktivitet_uuid_underscores:=replace(aktivitet_uuid::text, '-', '_');
-    
+
 
     SELECT array_agg(DISTINCT a.RelType) INTO aktivitet_rel_type_cardinality_unlimited_present_in_argument FROM unnest(relationer) a WHERE a.RelType = ANY (aktivitet_rel_type_cardinality_unlimited);
-    
+
 
     IF coalesce(array_length(aktivitet_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
         FOREACH aktivitet_relation_navn IN ARRAY (aktivitet_rel_type_cardinality_unlimited_present_in_argument) LOOP
@@ -1617,7 +1617,7 @@ BEGIN
 
         END LOOP;
     END IF;
-    
+
 
     INSERT INTO aktivitet_relation (aktivitet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, aktoer_attr )
     SELECT
@@ -1652,35 +1652,35 @@ BEGIN
                 a.aktoerAttr
             ELSE
                 NULL
-            END 
+            END
         FROM
-            unnest(relationer) AS a 
+            unnest(relationer) AS a
         LEFT JOIN aktivitet_relation b ON a.relType = ANY (aktivitet_rel_type_cardinality_unlimited) AND b.aktivitet_registrering_id = prev_aktivitet_registrering.id AND a.relType = b.rel_type AND a.indeks = b.rel_index ;
 
-    
+
     -- Drop temporary sequences
     IF coalesce(array_length(aktivitet_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
-        
+
         FOREACH aktivitet_relation_navn IN ARRAY (aktivitet_rel_type_cardinality_unlimited_present_in_argument)
-        
+
         LOOP
           aktivitet_rel_seq_name := 'aktivitet_' || aktivitet_relation_navn::text || aktivitet_uuid_underscores;
           EXECUTE 'DROP SEQUENCE ' || aktivitet_rel_seq_name || ';';
         END LOOP;
     END IF;
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
+
     -- Please notice, that for 0..1 relations for aktivitet, we're ignoring index
     -- here, and handling it the same way, that is done for other object types (like
     -- Facet, Klasse etc). That is, you only make changes for the
     -- virkningsperiod that you explicitly specify (unless you delete all relations)
-    
-    
+
+
     FOREACH aktivitet_relation_navn IN ARRAY ARRAY['aktivitetstype'::AktivitetRelationKode ,  'emne'::AktivitetRelationKode ,  'foelsomhedklasse'::AktivitetRelationKode ,  'ansvarligklasse'::AktivitetRelationKode ,  'rekvirentklasse'::AktivitetRelationKode ,  'ansvarlig'::AktivitetRelationKode ,  'tilhoerer'::AktivitetRelationKode  ]::AktivitetRelationKode[]  LOOP
         INSERT INTO aktivitet_relation (aktivitet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, aktoer_attr )
         SELECT
@@ -1694,7 +1694,7 @@ BEGIN
             a.rel_type,
             a.objekt_type ,
                 NULL, -- a.rel_index, rel_index is not to be used for 0..1 relations
-                a.aktoer_attr 
+                a.aktoer_attr
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -1714,7 +1714,7 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
                     INSERT INTO aktivitet_relation (aktivitet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, aktoer_attr )
                     SELECT
                         new_aktivitet_registrering.id,  a.virkning, a.rel_maal_uuid, a.rel_maal_urn, a.rel_type, a.objekt_type, a.rel_index, a.aktoer_attr
@@ -1727,12 +1727,12 @@ BEGIN
                         -- update-function
                         ;
 
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsStatus IS NOT NULL AND coalesce(array_length(tilsStatus, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Status] as it is explicit set to empty array';
     ELSE
@@ -1769,7 +1769,7 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.aktivitet_registrering_id = prev_aktivitet_registrering.id;
     END IF;
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -1806,11 +1806,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.aktivitet_registrering_id = prev_aktivitet_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- aktivitet_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -1825,7 +1825,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.aktivitetnavn,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt,a.tidsforbrug,a.formaal,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update aktivitet with uuid [%], as the aktivitet have overlapping virknings in the given egenskaber array :%', aktivitet_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -1835,57 +1835,57 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).aktivitetnavn IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).starttidspunkt IS NULL  OR  (attrEgenskaberObj).sluttidspunkt IS NULL  OR  (attrEgenskaberObj).tidsforbrug IS NULL  OR  (attrEgenskaberObj).formaal IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO aktivitet_attr_egenskaber ( brugervendtnoegle,aktivitetnavn,beskrivelse,starttidspunkt,sluttidspunkt,tidsforbrug,formaal,integrationsdata, virkning, aktivitet_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.aktivitetnavn, a.aktivitetnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.starttidspunkt).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.starttidspunkt).value, a.starttidspunkt)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             CASE WHEN ((attrEgenskaberObj.sluttidspunkt).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.sluttidspunkt).value, a.sluttidspunkt)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             CASE WHEN ((attrEgenskaberObj.tidsforbrug).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.tidsforbrug).value, a.tidsforbrug)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.formaal, a.formaal),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -1900,26 +1900,26 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO aktivitet_attr_egenskaber ( brugervendtnoegle,aktivitetnavn,beskrivelse,starttidspunkt,sluttidspunkt,tidsforbrug,formaal,integrationsdata, virkning, aktivitet_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.aktivitetnavn,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.starttidspunkt,
-                    
+
                      attrEgenskaberObj.sluttidspunkt,
-                    
+
                      attrEgenskaberObj.tidsforbrug,
-                    
+
                      attrEgenskaberObj.formaal,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -1937,7 +1937,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO aktivitet_attr_egenskaber ( brugervendtnoegle,aktivitetnavn,beskrivelse,starttidspunkt,sluttidspunkt,tidsforbrug,formaal,integrationsdata, virkning, aktivitet_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.aktivitetnavn,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.starttidspunkt,  attrEgenskaberObj.sluttidspunkt,  attrEgenskaberObj.tidsforbrug,  attrEgenskaberObj.formaal,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_aktivitet_registrering.id );
@@ -1958,24 +1958,24 @@ BEGIN
 
     INSERT INTO aktivitet_attr_egenskaber ( brugervendtnoegle,aktivitetnavn,beskrivelse,starttidspunkt,sluttidspunkt,tidsforbrug,formaal,integrationsdata, virkning, aktivitet_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.aktivitetnavn,
-        
+
             a.beskrivelse,
-        
+
             a.starttidspunkt,
-        
+
             a.sluttidspunkt,
-        
+
             a.tidsforbrug,
-        
+
             a.formaal,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -2017,25 +2017,25 @@ END IF;
     IF NOT (lower((read_new_aktivitet.registrering[1].registrering).TimePeriod) = lower((new_aktivitet_registrering.registrering).TimePeriod) and lower((read_prev_aktivitet.registrering[1].registrering).TimePeriod)=lower((prev_aktivitet_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating aktivitet with id [%]: The ordering of as_list_aktivitet should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', aktivitet_uuid, to_json(new_aktivitet_registrering), to_json(read_new_aktivitet.registrering[1].registrering), to_json(prev_aktivitet_registrering), to_json(prev_new_aktivitet.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_aktivitet_reg := ROW(
         ROW (null, (read_new_aktivitet.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_aktivitet.registrering[1]).tilsStatus ,
         (read_new_aktivitet.registrering[1]).tilsPubliceret ,
-        
+
         (read_new_aktivitet.registrering[1]).attrEgenskaber ,
         (read_new_aktivitet.registrering[1]).relationer
     )::aktivitetRegistreringType;
 
     read_prev_aktivitet_reg := ROW(
         ROW(null, (read_prev_aktivitet.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_aktivitet.registrering[1]).tilsStatus ,
         (read_prev_aktivitet.registrering[1]).tilsPubliceret ,
-        
+
         (read_prev_aktivitet.registrering[1]).attrEgenskaber ,
         (read_prev_aktivitet.registrering[1]).relationer
     )::aktivitetRegistreringType;
@@ -2068,29 +2068,29 @@ CREATE OR REPLACE FUNCTION as_create_or_import_aktivitet (
     AktivitetRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE aktivitet_registrering_id bigint;
 
-    
-    aktivitet_attr_egenskaber_obj aktivitetEgenskaberAttrType;
-    
 
-    
+    aktivitet_attr_egenskaber_obj aktivitetEgenskaberAttrType;
+
+
+
     aktivitet_tils_status_obj aktivitetStatusTilsType;
-    
+
     aktivitet_tils_publiceret_obj aktivitetPubliceretTilsType;
-    
+
 
     aktivitet_relationer AktivitetRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     aktivitet_relation_kode aktivitetRelationKode;
     aktivitet_uuid_underscores text;
     aktivitet_rel_seq_name text;
     aktivitet_rel_type_cardinality_unlimited aktivitetRelationKode[]:=ARRAY['udfoererklasse'::AktivitetRelationKode,'deltagerklasse'::AktivitetRelationKode,'objektklasse'::AktivitetRelationKode,'resultatklasse'::AktivitetRelationKode,'grundlagklasse'::AktivitetRelationKode,'facilitetklasse'::AktivitetRelationKode,'adresse'::AktivitetRelationKode,'geoobjekt'::AktivitetRelationKode,'position'::AktivitetRelationKode,'facilitet'::AktivitetRelationKode,'lokale'::AktivitetRelationKode,'aktivitetdokument'::AktivitetRelationKode,'aktivitetgrundlag'::AktivitetRelationKode,'aktivitetresultat'::AktivitetRelationKode,'udfoerer'::AktivitetRelationKode,'deltager'::AktivitetRelationKode]::aktivitetRelationKode[];
     aktivitet_rel_type_cardinality_unlimited_present_in_argument aktivitetRelationKode[];
-    
+
 
     does_exist boolean;
     new_aktivitet_registrering aktivitet_registrering;
@@ -2158,9 +2158,9 @@ IF aktivitet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(a
   FOREACH aktivitet_attr_egenskaber_obj IN ARRAY aktivitet_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO aktivitet_attr_egenskaber (
-      
+
       brugervendtnoegle,
       aktivitetnavn,
       beskrivelse,
@@ -2173,7 +2173,7 @@ IF aktivitet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(a
       aktivitet_registrering_id
     )
     SELECT
-     
+
      aktivitet_attr_egenskaber_obj.brugervendtnoegle,
       aktivitet_attr_egenskaber_obj.aktivitetnavn,
       aktivitet_attr_egenskaber_obj.beskrivelse,
@@ -2185,8 +2185,8 @@ IF aktivitet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(a
       aktivitet_attr_egenskaber_obj.virkning,
       aktivitet_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -2286,11 +2286,11 @@ END IF;
       a.objektType,
       CASE WHEN a.relType = any (aktivitet_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('aktivitet_' || a.relType::text || aktivitet_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END,
-      CASE 
-        WHEN a.relType =('udfoerer'::AktivitetRelationKode)  OR a.relType=('deltager'::AktivitetRelationKode) OR a.relType=('ansvarlig'::AktivitetRelationKode) 
+      CASE
+        WHEN a.relType =('udfoerer'::AktivitetRelationKode)  OR a.relType=('deltager'::AktivitetRelationKode) OR a.relType=('ansvarlig'::AktivitetRelationKode)
         AND NOT (a.aktoerAttr IS NULL)
         AND (
           (a.aktoerAttr).obligatorisk IS NOT NULL
@@ -2302,12 +2302,12 @@ END IF;
               OR
               ((a.aktoerAttr).repraesentation_urn IS NOT NULL AND (a.aktoerAttr).repraesentation_urn<>'')
             )
-          ) 
+          )
         THEN a.aktoerAttr
         ELSE
         NULL
       END
-      
+
     FROM unnest(aktivitet_registrering.relationer) a
   ;
 
@@ -2328,9 +2328,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_aktivitet(array[aktivitet_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_aktivitet(array[aktivitet_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[aktivitet_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import aktivitet with uuid [%]. Object does not met stipulated criteria:%',aktivitet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import aktivitet with uuid [%]. Object does not met stipulated criteria:%',aktivitet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -2363,13 +2363,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_aktivitet(aktivitet_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_aktivitet(aktivitet_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(aktivitet_uuids,1),0) AND auth_filtered_uuids @>aktivitet_uuids) THEN
-  RAISE EXCEPTION 'Unable to list aktivitet with uuids [%]. All objects do not fullfill the stipulated criteria:%',aktivitet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list aktivitet with uuids [%]. All objects do not fullfill the stipulated criteria:%',aktivitet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.aktivitetObj) into result
 FROM
 (
@@ -2384,8 +2384,8 @@ ROW(
 			a.AktivitetAttrEgenskaberArr,
 			a.AktivitetRelationArr
 		)::AktivitetRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: AktivitetType  aktivitetObj
 FROM
 (
@@ -2411,9 +2411,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.aktoer_attr,b.virkning
-        
+
 	)) AktivitetRelationArr
 	FROM
 	(
@@ -2426,7 +2426,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.status
@@ -2434,7 +2434,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.status,b.virkning
-				)) AktivitetTilsStatusArr		
+				)) AktivitetTilsStatusArr
 			FROM
 			(
 			SELECT
@@ -2445,7 +2445,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -2453,7 +2453,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) AktivitetTilsPubliceretArr		
+				)) AktivitetTilsPubliceretArr
 			FROM
 			(
 					SELECT
@@ -2462,11 +2462,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.aktivitetnavn,
 					 		b.beskrivelse,
@@ -2476,42 +2476,42 @@ FROM
 					 		b.formaal,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::AktivitetEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.aktivitetnavn,b.beskrivelse,b.starttidspunkt,b.sluttidspunkt,b.tidsforbrug,b.formaal,b.integrationsdata,b.virkning
-                        
+
 					)) AktivitetAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id aktivitet_id,
 					b.id aktivitet_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		aktivitet a
 					JOIN 		aktivitet_registrering b 	ON b.aktivitet_id=a.id
 					WHERE a.id = ANY (aktivitet_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN aktivitet_attr_egenskaber as b ON b.aktivitet_registrering_id=a.aktivitet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.aktivitet_id,
 					a.aktivitet_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN aktivitet_tils_publiceret as b ON b.aktivitet_registrering_id=a.aktivitet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN aktivitet_tils_publiceret as b ON b.aktivitet_registrering_id=a.aktivitet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.aktivitet_id,
 			a.aktivitet_registrering_id,
 			a.registrering,
-			a.AktivitetAttrEgenskaberArr	
+			a.AktivitetAttrEgenskaberArr
 			) as a
-			LEFT JOIN aktivitet_tils_status as b ON b.aktivitet_registrering_id=a.aktivitet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN aktivitet_tils_status as b ON b.aktivitet_registrering_id=a.aktivitet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.aktivitet_id,
 			a.aktivitet_registrering_id,
 			a.registrering,
@@ -2529,7 +2529,7 @@ FROM
 ) as a
 
 WHERE a.aktivitet_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.aktivitet_id
 order by a.aktivitet_id
 ) as x
@@ -2592,7 +2592,7 @@ CREATE OR REPLACE FUNCTION as_search_aktivitet(
     ,
     search_operator_greater_than_or_equal_attr_egenskaber AktivitetEgenskaberAttrType[]=null,
     search_operator_less_than_or_equal_attr_egenskaber    AktivitetEgenskaberAttrType[]=null
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -2601,7 +2601,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj AktivitetEgenskaberAttrType;
 
-    
+
     tilsStatusTypeObj AktivitetStatusTilsType;
     tilsPubliceretTypeObj AktivitetPubliceretTilsType;
 
@@ -2610,11 +2610,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -2637,20 +2637,20 @@ IF aktivitet_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -2671,16 +2671,16 @@ IF aktivitet_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -2693,7 +2693,7 @@ IF aktivitet_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -2718,7 +2718,7 @@ END IF;
 --RAISE NOTICE 'aktivitet_candidates step 2:%',aktivitet_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -2727,20 +2727,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(aktivitet_candidates,1),0)>0 OR NOT aktivitet_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             aktivitet_candidates:=array(
             SELECT DISTINCT
             b.aktivitet_id
             FROM  aktivitet_attr_egenskaber a
             JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -2762,7 +2762,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -2826,24 +2826,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -2864,16 +2864,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -2886,7 +2886,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -2919,10 +2919,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.aktivitet_id
-            
+
             FROM  aktivitet_attr_egenskaber a
             JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -2933,7 +2933,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                                     a.tidsforbrug::text ilike anyAttrValue OR
                         a.formaal ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -2942,24 +2942,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -2980,16 +2980,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3002,7 +3002,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3086,20 +3086,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -3120,16 +3120,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3142,7 +3142,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3221,20 +3221,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -3255,16 +3255,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3277,7 +3277,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3380,15 +3380,15 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
+
                 AND
                 (
                         relationTypeObj.indeks IS NULL
                         OR
                         relationTypeObj.indeks = a.rel_index
                 )
-                
-                
+
+
                 AND
                 (
                         relationTypeObj.aktoerAttr IS NULL
@@ -3397,7 +3397,7 @@ ELSE
                                 (
                                         (relationTypeObj.aktoerAttr).obligatorisk IS NULL
                                         OR
-                                        (relationTypeObj.aktoerAttr).obligatorisk = (a.aktoer_attr).obligatorisk                                        
+                                        (relationTypeObj.aktoerAttr).obligatorisk = (a.aktoer_attr).obligatorisk
                                 )
                                 AND
                                 (
@@ -3419,25 +3419,25 @@ ELSE
                                 )
                         )
                 )
-                
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -3458,16 +3458,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3480,7 +3480,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3507,42 +3507,42 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         aktivitet_candidates:=array(
             SELECT DISTINCT
             b.aktivitet_id
-            
+
             FROM  aktivitet_relation a
             JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
             WHERE
-            
+
             (
                     anyuuid = a.rel_maal_uuid
-            OR  
+            OR
                     ((NOT (a.aktoer_attr IS NULL)) AND anyuuid = (a.aktoer_attr).repraesentation_uuid )
             )
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -3563,16 +3563,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3585,7 +3585,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3612,42 +3612,42 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         aktivitet_candidates:=array(
             SELECT DISTINCT
             b.aktivitet_id
-            
+
             FROM  aktivitet_relation a
             JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
             WHERE
-            
+
             (
             anyurn = a.rel_maal_urn
-                    OR 
+                    OR
                    ((NOT (a.aktoer_attr IS NULL)) AND anyurn = (a.aktoer_attr).repraesentation_urn)
             )
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -3668,16 +3668,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -3690,7 +3690,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -3711,7 +3711,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
  --/**********************************************************//
@@ -3723,13 +3723,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                LOOP
                        aktivitet_candidates:=array(
                        SELECT DISTINCT
-                       b.aktivitet_id 
+                       b.aktivitet_id
                        FROM  aktivitet_attr_egenskaber a
                        JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -3769,65 +3769,65 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.aktivitetnavn IS NULL
-                                       OR 
-                                       a.aktivitetnavn >= attrEgenskaberTypeObj.aktivitetnavn 
+                                       OR
+                                       a.aktivitetnavn >= attrEgenskaberTypeObj.aktivitetnavn
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.tidsforbrug IS NULL
-                                       OR 
-                                       a.tidsforbrug >= attrEgenskaberTypeObj.tidsforbrug 
+                                       OR
+                                       a.tidsforbrug >= attrEgenskaberTypeObj.tidsforbrug
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.formaal IS NULL
-                                       OR 
-                                       a.formaal >= attrEgenskaberTypeObj.formaal 
+                                       OR
+                                       a.formaal >= attrEgenskaberTypeObj.formaal
                                )
-                               
+
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -3848,16 +3848,16 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -3870,7 +3870,7 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -3882,13 +3882,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                ((NOT aktivitet_candidates_is_initialized) OR b.aktivitet_id = ANY (aktivitet_candidates) )
 
                        );
-                       
+
 
                        aktivitet_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG 'aktivitet_candidates_is_initialized step 3:%',aktivitet_candidates_is_initialized;
@@ -3903,13 +3903,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                LOOP
                        aktivitet_candidates:=array(
                        SELECT DISTINCT
-                       b.aktivitet_id 
+                       b.aktivitet_id
                        FROM  aktivitet_attr_egenskaber a
                        JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -3931,7 +3931,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                                        )
                                                        AND
                                                        (
-                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                                                        )
                                                )
                                        )
@@ -3949,65 +3949,65 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.aktivitetnavn IS NULL
-                                       OR 
-                                       a.aktivitetnavn <= attrEgenskaberTypeObj.aktivitetnavn 
+                                       OR
+                                       a.aktivitetnavn <= attrEgenskaberTypeObj.aktivitetnavn
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.tidsforbrug IS NULL
-                                       OR 
-                                       a.tidsforbrug <= attrEgenskaberTypeObj.tidsforbrug 
+                                       OR
+                                       a.tidsforbrug <= attrEgenskaberTypeObj.tidsforbrug
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.formaal IS NULL
-                                       OR 
-                                       a.formaal <= attrEgenskaberTypeObj.formaal 
+                                       OR
+                                       a.formaal <= attrEgenskaberTypeObj.formaal
                                )
-                               
+
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -4028,16 +4028,16 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -4050,7 +4050,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -4062,13 +4062,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                ((NOT aktivitet_candidates_is_initialized) OR b.aktivitet_id = ANY (aktivitet_candidates) )
 
                        );
-                       
+
 
                        aktivitet_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG 'aktivitet_candidates_is_initialized step 3:%',aktivitet_candidates_is_initialized;
@@ -4094,20 +4094,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -4128,16 +4128,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -4150,7 +4150,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -4185,7 +4185,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_aktivitet(aktivitet_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_aktivitet(aktivitet_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_aktivitet(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -4194,7 +4194,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -4208,13 +4208,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_AktivitetRegistreringType_to_json(AktivitetRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_AktivitetRegistreringType_to_json(AktivitetRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -4222,51 +4222,51 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END aktivitetegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsStatus,1),0)>0 THEN to_json($1.tilsStatus) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsStatus,1),0)>0 THEN to_json($1.tilsStatus)
+        ELSE
         NULL
         END aktivitetstatus
         ,
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END aktivitetpubliceret
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -4280,7 +4280,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -4305,7 +4305,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -4323,13 +4323,13 @@ create cast (AktivitetRegistreringType as json) with function actual_state._cast
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_aktivitetType_to_json(AktivitetType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_aktivitetType_to_json(AktivitetType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg AktivitetRegistreringType;
@@ -4358,7 +4358,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (AktivitetType as json);
-create cast (AktivitetType as json) with function actual_state._cast_aktivitetType_to_json(AktivitetType); 
+create cast (AktivitetType as json) with function actual_state._cast_aktivitetType_to_json(AktivitetType);
 
 
 
@@ -4417,14 +4417,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_aktivitet(
 	aktivitet_uuids uuid[],
 	registreringObjArr AktivitetRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	aktivitet_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	aktivitet_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj AktivitetEgenskaberAttrType;
-	
+
   	tilsStatusTypeObj AktivitetStatusTilsType;
   	tilsPubliceretTypeObj AktivitetPubliceretTilsType;
 	relationTypeObj AktivitetRelationType;
@@ -4439,8 +4439,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF aktivitet_uuids IS NULL OR coalesce(array_length(aktivitet_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -4459,7 +4459,7 @@ aktivitet_candidates:= aktivitet_uuids;
 --RAISE DEBUG 'aktivitet_candidates step 1:%',aktivitet_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -4471,61 +4471,61 @@ ELSE
 		LOOP
 			aktivitet_candidates:=array(
 			SELECT DISTINCT
-			b.aktivitet_id 
-			FROM  aktivitet_attr_egenskaber a 
-			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.aktivitet_id
+			FROM  aktivitet_attr_egenskaber a
+			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.aktivitetnavn IS NULL
-					OR 
-					a.aktivitetnavn = attrEgenskaberTypeObj.aktivitetnavn 
+					OR
+					a.aktivitetnavn = attrEgenskaberTypeObj.aktivitetnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.starttidspunkt IS NULL
-					OR 
-					a.starttidspunkt = attrEgenskaberTypeObj.starttidspunkt 
+					OR
+					a.starttidspunkt = attrEgenskaberTypeObj.starttidspunkt
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.sluttidspunkt IS NULL
-					OR 
-					a.sluttidspunkt = attrEgenskaberTypeObj.sluttidspunkt 
+					OR
+					a.sluttidspunkt = attrEgenskaberTypeObj.sluttidspunkt
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.tidsforbrug IS NULL
-					OR 
-					a.tidsforbrug = attrEgenskaberTypeObj.tidsforbrug 
+					OR
+					a.tidsforbrug = attrEgenskaberTypeObj.tidsforbrug
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.formaal IS NULL
-					OR 
-					a.formaal = attrEgenskaberTypeObj.formaal 
+					OR
+					a.formaal = attrEgenskaberTypeObj.formaal
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.aktivitet_id = ANY (aktivitet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -4541,15 +4541,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsStatus IS NULL THEN
 	--RAISE DEBUG 'as_search_aktivitet: skipping filtration on tilsStatus';
 ELSE
-	IF coalesce(array_length(aktivitet_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(aktivitet_candidates,1),0)>0 THEN
 
 		FOREACH tilsStatusTypeObj IN ARRAY registreringObj.tilsStatus
 		LOOP
 			aktivitet_candidates:=array(
 			SELECT DISTINCT
-			b.aktivitet_id 
+			b.aktivitet_id
 			FROM  aktivitet_tils_status a
-			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsStatusTypeObj.status IS NULL
@@ -4559,7 +4559,7 @@ ELSE
 				AND b.aktivitet_id = ANY (aktivitet_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -4569,15 +4569,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_aktivitet: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(aktivitet_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(aktivitet_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			aktivitet_candidates:=array(
 			SELECT DISTINCT
-			b.aktivitet_id 
+			b.aktivitet_id
 			FROM  aktivitet_tils_publiceret a
-			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -4587,7 +4587,7 @@ ELSE
 				AND b.aktivitet_id = ANY (aktivitet_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -4613,11 +4613,11 @@ ELSE
 		LOOP
 			aktivitet_candidates:=array(
 			SELECT DISTINCT
-			b.aktivitet_id 
+			b.aktivitet_id
 			FROM  aktivitet_relation a
 			JOIN aktivitet_registrering b on a.aktivitet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -4626,7 +4626,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -4641,7 +4641,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.aktivitet_id = ANY (aktivitet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -4653,7 +4653,7 @@ END IF;
 
 aktivitet_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (aktivitet_passed_auth_filter) a(id)
 UNION
@@ -4663,7 +4663,7 @@ FROM
 unnest (aktivitet_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(aktivitet_passed_auth_filter,1),0)=coalesce(array_length(aktivitet_uuids,1),0) AND aktivitet_passed_auth_filter @>aktivitet_uuids THEN
 	RETURN aktivitet_passed_auth_filter;
 END IF;
@@ -4676,7 +4676,7 @@ RETURN aktivitet_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -4750,7 +4750,7 @@ CREATE TYPE BrugerType AS
 (
   id uuid,
   registrering BrugerRegistreringType[]
-);  
+);
 
 
 
@@ -4807,7 +4807,7 @@ CREATE TABLE bruger_registrering (
    CONSTRAINT bruger_registrering_bruger_fkey FOREIGN KEY (bruger_id)
        REFERENCES bruger (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT bruger_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT bruger_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(bruger_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -4886,8 +4886,8 @@ ALTER TABLE bruger_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX bruger_attr_egenskaber_pat_brugervendtnoegle
             ON bruger_attr_egenskaber
             USING gin
@@ -4896,9 +4896,9 @@ ALTER TABLE bruger_attr_egenskaber
         CREATE INDEX bruger_attr_egenskaber_idx_brugervendtnoegle
             ON bruger_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX bruger_attr_egenskaber_pat_brugernavn
             ON bruger_attr_egenskaber
             USING gin
@@ -4907,9 +4907,9 @@ ALTER TABLE bruger_attr_egenskaber
         CREATE INDEX bruger_attr_egenskaber_idx_brugernavn
             ON bruger_attr_egenskaber
             USING btree
-            (brugernavn); 
- 
-     
+            (brugernavn);
+
+
         CREATE INDEX bruger_attr_egenskaber_pat_brugertype
             ON bruger_attr_egenskaber
             USING gin
@@ -4918,9 +4918,9 @@ ALTER TABLE bruger_attr_egenskaber
         CREATE INDEX bruger_attr_egenskaber_idx_brugertype
             ON bruger_attr_egenskaber
             USING btree
-            (brugertype); 
- 
-     
+            (brugertype);
+
+
         CREATE INDEX bruger_attr_egenskaber_pat_integrationsdata
             ON bruger_attr_egenskaber
             USING gin
@@ -4929,7 +4929,7 @@ ALTER TABLE bruger_attr_egenskaber
         CREATE INDEX bruger_attr_egenskaber_idx_integrationsdata
             ON bruger_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -4987,8 +4987,8 @@ ALTER TABLE bruger_attr_udvidelser
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX bruger_attr_udvidelser_pat_fornavn
             ON bruger_attr_udvidelser
             USING gin
@@ -4997,9 +4997,9 @@ ALTER TABLE bruger_attr_udvidelser
         CREATE INDEX bruger_attr_udvidelser_idx_fornavn
             ON bruger_attr_udvidelser
             USING btree
-            (fornavn); 
- 
-     
+            (fornavn);
+
+
         CREATE INDEX bruger_attr_udvidelser_pat_efternavn
             ON bruger_attr_udvidelser
             USING gin
@@ -5008,9 +5008,9 @@ ALTER TABLE bruger_attr_udvidelser
         CREATE INDEX bruger_attr_udvidelser_idx_efternavn
             ON bruger_attr_udvidelser
             USING btree
-            (efternavn); 
- 
-     
+            (efternavn);
+
+
         CREATE INDEX bruger_attr_udvidelser_pat_kaldenavn_fornavn
             ON bruger_attr_udvidelser
             USING gin
@@ -5019,9 +5019,9 @@ ALTER TABLE bruger_attr_udvidelser
         CREATE INDEX bruger_attr_udvidelser_idx_kaldenavn_fornavn
             ON bruger_attr_udvidelser
             USING btree
-            (kaldenavn_fornavn); 
- 
-     
+            (kaldenavn_fornavn);
+
+
         CREATE INDEX bruger_attr_udvidelser_pat_kaldenavn_efternavn
             ON bruger_attr_udvidelser
             USING gin
@@ -5030,9 +5030,9 @@ ALTER TABLE bruger_attr_udvidelser
         CREATE INDEX bruger_attr_udvidelser_idx_kaldenavn_efternavn
             ON bruger_attr_udvidelser
             USING btree
-            (kaldenavn_efternavn); 
- 
-     
+            (kaldenavn_efternavn);
+
+
         CREATE INDEX bruger_attr_udvidelser_pat_seniority
             ON bruger_attr_udvidelser
             USING gin
@@ -5041,7 +5041,7 @@ ALTER TABLE bruger_attr_udvidelser
         CREATE INDEX bruger_attr_udvidelser_idx_seniority
             ON bruger_attr_udvidelser
             USING btree
-            (seniority); 
+            (seniority);
 
 
 
@@ -5088,7 +5088,7 @@ ALTER TABLE bruger_tils_gyldighed_id_seq
 CREATE TABLE bruger_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('bruger_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed BrugerGyldighedTils NOT NULL, 
+    gyldighed BrugerGyldighedTils NOT NULL,
     bruger_registrering_id bigint not null,
     CONSTRAINT bruger_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT bruger_tils_gyldighed_forkey_brugerregistrering FOREIGN KEY (bruger_registrering_id) REFERENCES bruger_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -5106,7 +5106,7 @@ CREATE INDEX bruger_tils_gyldighed_idx_gyldighed
     ON bruger_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX bruger_tils_gyldighed_idx_virkning_aktoerref
     ON bruger_tils_gyldighed
     USING btree
@@ -5151,7 +5151,7 @@ CREATE TABLE bruger_relation (
     rel_type BrugerRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT bruger_relation_forkey_brugerregistrering FOREIGN KEY (bruger_registrering_id) REFERENCES bruger_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT bruger_relation_pkey PRIMARY KEY (id),
@@ -5241,20 +5241,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerGyldighedTilsTy
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -5262,15 +5262,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerGyldighedTilsTy
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerEgenskaberAttrType[])
   RETURNS BrugerEgenskaberAttrType[] AS
   $$
-  DECLARE result BrugerEgenskaberAttrType[]; 
-   DECLARE element BrugerEgenskaberAttrType; 
+  DECLARE result BrugerEgenskaberAttrType[];
+   DECLARE element BrugerEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.brugernavn IS NULL AND element.brugertype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.brugernavn IS NULL AND element.brugertype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -5278,13 +5278,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerEgenskaberAttrT
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -5293,15 +5293,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerEgenskaberAttrT
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerUdvidelserAttrType[])
   RETURNS BrugerUdvidelserAttrType[] AS
   $$
-  DECLARE result BrugerUdvidelserAttrType[]; 
-   DECLARE element BrugerUdvidelserAttrType; 
+  DECLARE result BrugerUdvidelserAttrType[];
+   DECLARE element BrugerUdvidelserAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.fornavn IS NULL AND element.efternavn IS NULL AND element.kaldenavn_fornavn IS NULL AND element.kaldenavn_efternavn IS NULL AND element.seniority IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.fornavn IS NULL AND element.efternavn IS NULL AND element.kaldenavn_fornavn IS NULL AND element.kaldenavn_efternavn IS NULL AND element.seniority IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -5309,13 +5309,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerUdvidelserAttrT
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -5326,14 +5326,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr BrugerRelationType[])
 RETURNS BrugerRelationType[] AS
 $$
  DECLARE result BrugerRelationType[];
- DECLARE element BrugerRelationType;  
+ DECLARE element BrugerRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -5341,13 +5341,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -5367,8 +5367,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_bruger_registrering(
     bruger_registrering
 ) RETURNS bruger_registrering AS $BODY$
   SELECT * FROM bruger_registrering as a WHERE
-    bruger_id = $1.bruger_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    bruger_id = $1.bruger_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -5457,19 +5457,19 @@ CREATE OR REPLACE FUNCTION as_update_bruger(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber BrugerEgenskaberAttrType[],
-    
-    attrUdvidelser BrugerUdvidelserAttrType[],
-    
 
-    
+    attrEgenskaber BrugerEgenskaberAttrType[],
+
+    attrUdvidelser BrugerUdvidelserAttrType[],
+
+
+
     tilsGyldighed BrugerGyldighedTilsType[],
-    
+
 
     relationer BrugerRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      BrugerRegistreringType[] = null
@@ -5483,17 +5483,17 @@ DECLARE
     prev_bruger_registrering bruger_registrering;
     bruger_relation_navn     BrugerRelationKode;
 
-    
-    attrEgenskaberObj BrugerEgenskaberAttrType;
-    
-    attrUdvidelserObj BrugerUdvidelserAttrType;
-    
 
-    
+    attrEgenskaberObj BrugerEgenskaberAttrType;
+
+    attrUdvidelserObj BrugerUdvidelserAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from bruger a join bruger_registrering b ON b.bruger_id=a.id WHERE a.id=bruger_uuid) THEN
@@ -5536,7 +5536,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO bruger_relation (bruger_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -5545,18 +5545,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH bruger_relation_navn IN ARRAY ARRAY['tilhoerer'::BrugerRelationKode  ]::BrugerRelationKode[]  LOOP
         INSERT INTO bruger_relation (bruger_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -5568,7 +5568,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -5588,13 +5588,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH bruger_relation_navn IN ARRAY ARRAY['adresser'::BrugerRelationKode, 'brugertyper'::BrugerRelationKode, 'opgaver'::BrugerRelationKode, 'tilknyttedeenheder'::BrugerRelationKode, 'tilknyttedefunktioner'::BrugerRelationKode, 'tilknyttedeinteressefaellesskaber'::BrugerRelationKode, 'tilknyttedeorganisationer'::BrugerRelationKode, 'tilknyttedepersoner'::BrugerRelationKode, 'tilknyttedeitsystemer'::BrugerRelationKode]::BrugerRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM bruger_relation
                      WHERE bruger_registrering_id = new_bruger_registrering.id AND rel_type = bruger_relation_navn) THEN
-                    
+
                     INSERT INTO bruger_relation (bruger_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_bruger_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -5602,15 +5602,15 @@ BEGIN
         WHERE
             bruger_registrering_id = prev_bruger_registrering.id AND rel_type = bruger_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -5647,11 +5647,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.bruger_registrering_id = prev_bruger_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- bruger_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -5666,7 +5666,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.brugernavn,a.brugertype,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update bruger with uuid [%], as the bruger have overlapping virknings in the given egenskaber array :%', bruger_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -5676,26 +5676,26 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).brugernavn IS NULL  OR  (attrEgenskaberObj).brugertype IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO bruger_attr_egenskaber ( brugervendtnoegle,brugernavn,brugertype,integrationsdata, virkning, bruger_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugernavn, a.brugernavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugertype, a.brugertype),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -5710,18 +5710,18 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO bruger_attr_egenskaber ( brugervendtnoegle,brugernavn,brugertype,integrationsdata, virkning, bruger_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.brugernavn,
-                    
+
                      attrEgenskaberObj.brugertype,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -5739,7 +5739,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO bruger_attr_egenskaber ( brugervendtnoegle,brugernavn,brugertype,integrationsdata, virkning, bruger_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.brugernavn,  attrEgenskaberObj.brugertype,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_bruger_registrering.id );
@@ -5760,16 +5760,16 @@ BEGIN
 
     INSERT INTO bruger_attr_egenskaber ( brugervendtnoegle,brugernavn,brugertype,integrationsdata, virkning, bruger_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.brugernavn,
-        
+
             a.brugertype,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -5807,7 +5807,7 @@ END IF;
                 GROUP BY
                     a.fornavn,a.efternavn,a.kaldenavn_fornavn,a.kaldenavn_efternavn,a.seniority,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update bruger with uuid [%], as the bruger have overlapping virknings in the given udvidelser array :%', bruger_uuid, to_json(attrUdvidelser) USING ERRCODE = 'MO400';
     END IF;
@@ -5817,30 +5817,30 @@ END IF;
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrUdvidelserObj).fornavn IS NULL  OR  (attrUdvidelserObj).efternavn IS NULL  OR  (attrUdvidelserObj).kaldenavn_fornavn IS NULL  OR  (attrUdvidelserObj).kaldenavn_efternavn IS NULL  OR  (attrUdvidelserObj).seniority IS NULL  THEN
-            
+
             INSERT INTO bruger_attr_udvidelser ( fornavn,efternavn,kaldenavn_fornavn,kaldenavn_efternavn,seniority, virkning, bruger_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.fornavn, a.fornavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.efternavn, a.efternavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.kaldenavn_fornavn, a.kaldenavn_fornavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.kaldenavn_efternavn, a.kaldenavn_efternavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.seniority, a.seniority),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrUdvidelserObj.virkning).TimePeriod,
                             (attrUdvidelserObj.virkning).AktoerRef,
                             (attrUdvidelserObj.virkning).AktoerTypeKode,
@@ -5855,20 +5855,20 @@ END IF;
         -- For any periods within the virkning of the attrUdvidelserObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO bruger_attr_udvidelser ( fornavn,efternavn,kaldenavn_fornavn,kaldenavn_efternavn,seniority, virkning, bruger_registrering_id)
                 SELECT
-                    
+
                      attrUdvidelserObj.fornavn,
-                    
+
                      attrUdvidelserObj.efternavn,
-                    
+
                      attrUdvidelserObj.kaldenavn_fornavn,
-                    
+
                      attrUdvidelserObj.kaldenavn_efternavn,
-                    
+
                      attrUdvidelserObj.seniority,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrUdvidelserObj.virkning).AktoerRef,
                         (attrUdvidelserObj.virkning).AktoerTypeKode,
@@ -5886,7 +5886,7 @@ END IF;
 
         ELSE
             -- Insert attrUdvidelserObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO bruger_attr_udvidelser ( fornavn,efternavn,kaldenavn_fornavn,kaldenavn_efternavn,seniority, virkning, bruger_registrering_id)
                 VALUES (  attrUdvidelserObj.fornavn,  attrUdvidelserObj.efternavn,  attrUdvidelserObj.kaldenavn_fornavn,  attrUdvidelserObj.kaldenavn_efternavn,  attrUdvidelserObj.seniority, attrUdvidelserObj.virkning, new_bruger_registrering.id );
@@ -5907,18 +5907,18 @@ END IF;
 
     INSERT INTO bruger_attr_udvidelser ( fornavn,efternavn,kaldenavn_fornavn,kaldenavn_efternavn,seniority, virkning, bruger_registrering_id)
     SELECT
-        
-        
+
+
             a.fornavn,
-        
+
             a.efternavn,
-        
+
             a.kaldenavn_fornavn,
-        
+
             a.kaldenavn_efternavn,
-        
+
             a.seniority,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -5960,14 +5960,14 @@ END IF;
     IF NOT (lower((read_new_bruger.registrering[1].registrering).TimePeriod) = lower((new_bruger_registrering.registrering).TimePeriod) and lower((read_prev_bruger.registrering[1].registrering).TimePeriod)=lower((prev_bruger_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating bruger with id [%]: The ordering of as_list_bruger should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', bruger_uuid, to_json(new_bruger_registrering), to_json(read_new_bruger.registrering[1].registrering), to_json(prev_bruger_registrering), to_json(prev_new_bruger.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_bruger_reg := ROW(
         ROW (null, (read_new_bruger.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_bruger.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_bruger.registrering[1]).attrEgenskaber ,
         (read_new_bruger.registrering[1]).attrUdvidelser ,
         (read_new_bruger.registrering[1]).relationer
@@ -5975,9 +5975,9 @@ END IF;
 
     read_prev_bruger_reg := ROW(
         ROW(null, (read_prev_bruger.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_bruger.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_bruger.registrering[1]).attrEgenskaber ,
         (read_prev_bruger.registrering[1]).attrUdvidelser ,
         (read_prev_bruger.registrering[1]).relationer
@@ -6011,23 +6011,23 @@ CREATE OR REPLACE FUNCTION as_create_or_import_bruger (
     BrugerRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE bruger_registrering_id bigint;
 
-    
-    bruger_attr_egenskaber_obj brugerEgenskaberAttrType;
-    
-    bruger_attr_udvidelser_obj brugerUdvidelserAttrType;
-    
 
-    
+    bruger_attr_egenskaber_obj brugerEgenskaberAttrType;
+
+    bruger_attr_udvidelser_obj brugerUdvidelserAttrType;
+
+
+
     bruger_tils_gyldighed_obj brugerGyldighedTilsType;
-    
+
 
     bruger_relationer BrugerRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_bruger_registrering bruger_registrering;
@@ -6095,9 +6095,9 @@ IF bruger_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(brug
   FOREACH bruger_attr_egenskaber_obj IN ARRAY bruger_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO bruger_attr_egenskaber (
-      
+
       brugervendtnoegle,
       brugernavn,
       brugertype,
@@ -6106,7 +6106,7 @@ IF bruger_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(brug
       bruger_registrering_id
     )
     SELECT
-     
+
      bruger_attr_egenskaber_obj.brugervendtnoegle,
       bruger_attr_egenskaber_obj.brugernavn,
       bruger_attr_egenskaber_obj.brugertype,
@@ -6114,8 +6114,8 @@ IF bruger_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(brug
       bruger_attr_egenskaber_obj.virkning,
       bruger_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -6124,9 +6124,9 @@ IF bruger_registrering.attrUdvidelser IS NOT NULL and coalesce(array_length(brug
   FOREACH bruger_attr_udvidelser_obj IN ARRAY bruger_registrering.attrUdvidelser
   LOOP
 
-  
+
     INSERT INTO bruger_attr_udvidelser (
-      
+
       fornavn,
       efternavn,
       kaldenavn_fornavn,
@@ -6136,7 +6136,7 @@ IF bruger_registrering.attrUdvidelser IS NOT NULL and coalesce(array_length(brug
       bruger_registrering_id
     )
     SELECT
-     
+
      bruger_attr_udvidelser_obj.fornavn,
       bruger_attr_udvidelser_obj.efternavn,
       bruger_attr_udvidelser_obj.kaldenavn_fornavn,
@@ -6145,8 +6145,8 @@ IF bruger_registrering.attrUdvidelser IS NOT NULL and coalesce(array_length(brug
       bruger_attr_udvidelser_obj.virkning,
       bruger_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -6205,9 +6205,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(array[bruger_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_bruger(array[bruger_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[bruger_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import bruger with uuid [%]. Object does not met stipulated criteria:%',bruger_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import bruger with uuid [%]. Object does not met stipulated criteria:%',bruger_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -6240,13 +6240,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(bruger_uuids,1),0) AND auth_filtered_uuids @>bruger_uuids) THEN
-  RAISE EXCEPTION 'Unable to list bruger with uuids [%]. All objects do not fullfill the stipulated criteria:%',bruger_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list bruger with uuids [%]. All objects do not fullfill the stipulated criteria:%',bruger_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.brugerObj) into result
 FROM
 (
@@ -6261,8 +6261,8 @@ ROW(
 			a.BrugerAttrUdvidelserArr,
 			a.BrugerRelationArr
 		)::BrugerRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: BrugerType  brugerObj
 FROM
 (
@@ -6286,9 +6286,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) BrugerRelationArr
 	FROM
 	(
@@ -6301,7 +6301,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -6309,7 +6309,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) BrugerTilsGyldighedArr		
+				)) BrugerTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -6319,26 +6319,26 @@ FROM
 					a.BrugerAttrUdvidelserArr,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.brugernavn,
 					 		b.brugertype,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::BrugerEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.brugernavn,b.brugertype,b.integrationsdata,b.virkning
-                        
+
 					)) BrugerAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
@@ -6347,54 +6347,54 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.fornavn,
 					 		b.efternavn,
 					 		b.kaldenavn_fornavn,
 					 		b.kaldenavn_efternavn,
 					 		b.seniority,
 					   		b.virkning
-                            
+
 							)::BrugerUdvidelserAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.fornavn,b.efternavn,b.kaldenavn_fornavn,b.kaldenavn_efternavn,b.seniority,b.virkning
-                        
+
 					)) BrugerAttrUdvidelserArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id bruger_id,
 					b.id bruger_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		bruger a
 					JOIN 		bruger_registrering b 	ON b.bruger_id=a.id
 					WHERE a.id = ANY (bruger_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN bruger_attr_udvidelser as b ON b.bruger_registrering_id=a.bruger_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.bruger_id,
 					a.bruger_registrering_id,
 					a.registrering
 					) as a
 					LEFT JOIN bruger_attr_egenskaber as b ON b.bruger_registrering_id=a.bruger_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.bruger_id,
 					a.bruger_registrering_id,
 					a.registrering,
-					a.BrugerAttrUdvidelserArr	
+					a.BrugerAttrUdvidelserArr
 			) as a
-			LEFT JOIN bruger_tils_gyldighed as b ON b.bruger_registrering_id=a.bruger_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN bruger_tils_gyldighed as b ON b.bruger_registrering_id=a.bruger_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.bruger_id,
 			a.bruger_registrering_id,
 			a.registrering,
@@ -6412,7 +6412,7 @@ FROM
 ) as a
 
 WHERE a.bruger_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.bruger_id
 order by a.bruger_id
 ) as x
@@ -6472,7 +6472,7 @@ CREATE OR REPLACE FUNCTION as_search_bruger(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr BrugerRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -6482,7 +6482,7 @@ DECLARE
     attrEgenskaberTypeObj BrugerEgenskaberAttrType;
     attrUdvidelserTypeObj BrugerUdvidelserAttrType;
 
-    
+
     tilsGyldighedTypeObj BrugerGyldighedTilsType;
 
     relationTypeObj BrugerRelationType;
@@ -6490,11 +6490,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -6517,20 +6517,20 @@ IF bruger_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -6551,16 +6551,16 @@ IF bruger_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -6573,7 +6573,7 @@ IF bruger_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -6598,7 +6598,7 @@ END IF;
 --RAISE NOTICE 'bruger_candidates step 2:%',bruger_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -6607,20 +6607,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(bruger_candidates,1),0)>0 OR NOT bruger_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             bruger_candidates:=array(
             SELECT DISTINCT
             b.bruger_id
             FROM  bruger_attr_egenskaber a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -6642,7 +6642,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -6682,24 +6682,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -6720,16 +6720,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -6742,7 +6742,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -6760,7 +6760,7 @@ ELSE
 
         END LOOP;
     END IF;
-END IF; 
+END IF;
 --/**********************************************************//
 --Filtration on attribute: Udvidelser
 --/**********************************************************//
@@ -6769,20 +6769,20 @@ IF registreringObj IS NULL OR (registreringObj).attrUdvidelser IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(bruger_candidates,1),0)>0 OR NOT bruger_candidates_is_initialized) THEN
-        
+
         FOREACH attrUdvidelserTypeObj IN ARRAY registreringObj.attrUdvidelser
-        
+
         LOOP
             bruger_candidates:=array(
             SELECT DISTINCT
             b.bruger_id
             FROM  bruger_attr_udvidelser a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrUdvidelserTypeObj.virkning IS NULL 
+                        attrUdvidelserTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -6804,7 +6804,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrUdvidelserTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrUdvidelserTypeObj.virkning).NoteTekst  
+                                    (attrUdvidelserTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrUdvidelserTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -6850,24 +6850,24 @@ ELSE
                     a.seniority ILIKE attrUdvidelserTypeObj.seniority --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -6888,16 +6888,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -6910,7 +6910,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -6943,17 +6943,17 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.bruger_id
-            
+
             FROM  bruger_attr_egenskaber a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.brugernavn ILIKE anyAttrValue OR
                         a.brugertype ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -6962,24 +6962,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7000,16 +7000,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7022,7 +7022,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7037,10 +7037,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.bruger_id
-            
+
             FROM  bruger_attr_udvidelser a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
-            
+
             WHERE
             (
                         a.fornavn ILIKE anyAttrValue OR
@@ -7048,7 +7048,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.kaldenavn_fornavn ILIKE anyAttrValue OR
                         a.kaldenavn_efternavn ILIKE anyAttrValue OR
                         a.seniority ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -7057,24 +7057,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7095,16 +7095,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7117,7 +7117,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7201,20 +7201,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7235,16 +7235,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7257,7 +7257,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7360,26 +7360,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7400,16 +7400,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7422,7 +7422,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7449,38 +7449,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         bruger_candidates:=array(
             SELECT DISTINCT
             b.bruger_id
-            
+
             FROM  bruger_relation a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7501,16 +7501,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7523,7 +7523,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7550,38 +7550,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         bruger_candidates:=array(
             SELECT DISTINCT
             b.bruger_id
-            
+
             FROM  bruger_relation a
             JOIN bruger_registrering b on a.bruger_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7602,16 +7602,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7624,7 +7624,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7645,7 +7645,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -7666,20 +7666,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -7700,16 +7700,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -7722,7 +7722,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -7757,7 +7757,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_bruger(bruger_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_bruger(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -7766,7 +7766,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -7780,13 +7780,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_BrugerRegistreringType_to_json(BrugerRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_BrugerRegistreringType_to_json(BrugerRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -7794,51 +7794,51 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END brugeregenskaber
         ,
-        
-        CASE 
-        WHEN coalesce(array_length($1.attrUdvidelser,1),0)>0 THEN to_json($1.attrUdvidelser) 
-        ELSE 
+
+        CASE
+        WHEN coalesce(array_length($1.attrUdvidelser,1),0)>0 THEN to_json($1.attrUdvidelser)
+        ELSE
         NULL
         END brugerudvidelser
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END brugergyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -7852,7 +7852,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -7877,7 +7877,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -7895,13 +7895,13 @@ create cast (BrugerRegistreringType as json) with function actual_state._cast_Br
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_brugerType_to_json(BrugerType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_brugerType_to_json(BrugerType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg BrugerRegistreringType;
@@ -7930,7 +7930,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (BrugerType as json);
-create cast (BrugerType as json) with function actual_state._cast_brugerType_to_json(BrugerType); 
+create cast (BrugerType as json) with function actual_state._cast_brugerType_to_json(BrugerType);
 
 
 
@@ -7989,15 +7989,15 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_bruger(
 	bruger_uuids uuid[],
 	registreringObjArr BrugerRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	bruger_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	bruger_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
-	attrEgenskaberTypeObj BrugerEgenskaberAttrType; 
+	--to_be_applyed_filter_uuids uuid[];
+	attrEgenskaberTypeObj BrugerEgenskaberAttrType;
 	attrUdvidelserTypeObj BrugerUdvidelserAttrType;
-	
+
   	tilsGyldighedTypeObj BrugerGyldighedTilsType;
 	relationTypeObj BrugerRelationType;
 	registreringObj BrugerRegistreringType;
@@ -8011,8 +8011,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF bruger_uuids IS NULL OR coalesce(array_length(bruger_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -8031,7 +8031,7 @@ bruger_candidates:= bruger_uuids;
 --RAISE DEBUG 'bruger_candidates step 1:%',bruger_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -8043,40 +8043,40 @@ ELSE
 		LOOP
 			bruger_candidates:=array(
 			SELECT DISTINCT
-			b.bruger_id 
-			FROM  bruger_attr_egenskaber a 
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.bruger_id
+			FROM  bruger_attr_egenskaber a
+			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.brugernavn IS NULL
-					OR 
-					a.brugernavn = attrEgenskaberTypeObj.brugernavn 
+					OR
+					a.brugernavn = attrEgenskaberTypeObj.brugernavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.brugertype IS NULL
-					OR 
-					a.brugertype = attrEgenskaberTypeObj.brugertype 
+					OR
+					a.brugertype = attrEgenskaberTypeObj.brugertype
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
-END IF; 
+END IF;
 --/**********************************************************//
 --Filtration on attribute: Udvidelser
 --/**********************************************************//
@@ -8088,43 +8088,43 @@ ELSE
 		LOOP
 			bruger_candidates:=array(
 			SELECT DISTINCT
-			b.bruger_id 
-			FROM  bruger_attr_udvidelser a 
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.bruger_id
+			FROM  bruger_attr_udvidelser a
+			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrUdvidelserTypeObj.fornavn IS NULL
-					OR 
-					a.fornavn = attrUdvidelserTypeObj.fornavn 
+					OR
+					a.fornavn = attrUdvidelserTypeObj.fornavn
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.efternavn IS NULL
-					OR 
-					a.efternavn = attrUdvidelserTypeObj.efternavn 
+					OR
+					a.efternavn = attrUdvidelserTypeObj.efternavn
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.kaldenavn_fornavn IS NULL
-					OR 
-					a.kaldenavn_fornavn = attrUdvidelserTypeObj.kaldenavn_fornavn 
+					OR
+					a.kaldenavn_fornavn = attrUdvidelserTypeObj.kaldenavn_fornavn
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.kaldenavn_efternavn IS NULL
-					OR 
-					a.kaldenavn_efternavn = attrUdvidelserTypeObj.kaldenavn_efternavn 
+					OR
+					a.kaldenavn_efternavn = attrUdvidelserTypeObj.kaldenavn_efternavn
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.seniority IS NULL
-					OR 
-					a.seniority = attrUdvidelserTypeObj.seniority 
+					OR
+					a.seniority = attrUdvidelserTypeObj.seniority
 				)
 				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -8140,15 +8140,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_bruger: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(bruger_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			bruger_candidates:=array(
 			SELECT DISTINCT
-			b.bruger_id 
+			b.bruger_id
 			FROM  bruger_tils_gyldighed a
-			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -8158,7 +8158,7 @@ ELSE
 				AND b.bruger_id = ANY (bruger_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -8184,11 +8184,11 @@ ELSE
 		LOOP
 			bruger_candidates:=array(
 			SELECT DISTINCT
-			b.bruger_id 
+			b.bruger_id
 			FROM  bruger_relation a
 			JOIN bruger_registrering b on a.bruger_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -8197,7 +8197,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -8212,7 +8212,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.bruger_id = ANY (bruger_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -8224,7 +8224,7 @@ END IF;
 
 bruger_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (bruger_passed_auth_filter) a(id)
 UNION
@@ -8234,7 +8234,7 @@ FROM
 unnest (bruger_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(bruger_passed_auth_filter,1),0)=coalesce(array_length(bruger_uuids,1),0) AND bruger_passed_auth_filter @>bruger_uuids THEN
 	RETURN bruger_passed_auth_filter;
 END IF;
@@ -8247,7 +8247,7 @@ RETURN bruger_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -8327,7 +8327,7 @@ CREATE TYPE DokumentdelRelationType AS (
   virkning Virkning,
   uuid uuid,
   urn text,
-  objektType text 
+  objektType text
 )
 ;
 
@@ -8336,7 +8336,7 @@ CREATE TYPE DokumentDelType AS
   deltekst text,
   egenskaber DokumentDelEgenskaberType[],
   relationer DokumentdelRelationType[]
-);  
+);
 
 
 
@@ -8345,9 +8345,9 @@ CREATE TYPE DokumentDelType AS
 /**************************************************/
 
 CREATE TYPE DokumentVariantEgenskaberType AS (
-arkivering ClearableBoolean, 
-delvisscannet ClearableBoolean, 
-offentliggoerelse ClearableBoolean, 
+arkivering ClearableBoolean,
+delvisscannet ClearableBoolean,
+offentliggoerelse ClearableBoolean,
 produktion ClearableBoolean,
  virkning Virkning
 );
@@ -8358,7 +8358,7 @@ CREATE TYPE DokumentVariantType AS
   varianttekst text,
   egenskaber DokumentVariantEgenskaberType[],
   dele DokumentDelType[]
-);  
+);
 
 /**************************************************/
 
@@ -8376,7 +8376,7 @@ CREATE TYPE DokumentType AS
 (
   id uuid,
   registrering DokumentRegistreringType[]
-);  
+);
 
 
 CREATE TYPE _DokumentVariantDelKey AS
@@ -8439,7 +8439,7 @@ CREATE TABLE dokument_registrering (
    CONSTRAINT dokument_registrering_dokument_fkey FOREIGN KEY (dokument_id)
        REFERENCES dokument (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT dokument_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT dokument_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(dokument_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -8524,8 +8524,8 @@ ALTER TABLE dokument_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_brugervendtnoegle
             ON dokument_attr_egenskaber
             USING gin
@@ -8534,9 +8534,9 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_brugervendtnoegle
             ON dokument_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_beskrivelse
             ON dokument_attr_egenskaber
             USING gin
@@ -8545,21 +8545,21 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_beskrivelse
             ON dokument_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-    
-        
-             
+            (beskrivelse);
+
+
+
+
                 CREATE INDEX dokument_attr_egenskaber_idx_brevdato
                     ON dokument_attr_egenskaber
                     USING btree
                     (brevdato);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_kassationskode
             ON dokument_attr_egenskaber
             USING gin
@@ -8568,35 +8568,35 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_kassationskode
             ON dokument_attr_egenskaber
             USING btree
-            (kassationskode); 
- 
-    
-        
-             
+            (kassationskode);
+
+
+
+
                 CREATE INDEX dokument_attr_egenskaber_idx_major
                     ON dokument_attr_egenskaber
                     USING btree
                     (major);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX dokument_attr_egenskaber_idx_minor
                     ON dokument_attr_egenskaber
                     USING btree
                     (minor);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX dokument_attr_egenskaber_pat_AlternativTitel_offentlighedundtaget
                     ON dokument_attr_egenskaber
                     USING gin
@@ -8616,11 +8616,11 @@ ALTER TABLE dokument_attr_egenskaber
                     ON dokument_attr_egenskaber
                     USING btree
                     (((offentlighedundtaget).Hjemmel));
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_titel
             ON dokument_attr_egenskaber
             USING gin
@@ -8629,9 +8629,9 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_titel
             ON dokument_attr_egenskaber
             USING btree
-            (titel); 
- 
-     
+            (titel);
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_dokumenttype
             ON dokument_attr_egenskaber
             USING gin
@@ -8640,9 +8640,9 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_dokumenttype
             ON dokument_attr_egenskaber
             USING btree
-            (dokumenttype); 
- 
-     
+            (dokumenttype);
+
+
         CREATE INDEX dokument_attr_egenskaber_pat_integrationsdata
             ON dokument_attr_egenskaber
             USING gin
@@ -8651,7 +8651,7 @@ ALTER TABLE dokument_attr_egenskaber
         CREATE INDEX dokument_attr_egenskaber_idx_integrationsdata
             ON dokument_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -8698,7 +8698,7 @@ ALTER TABLE dokument_tils_fremdrift_id_seq
 CREATE TABLE dokument_tils_fremdrift (
     id bigint NOT NULL DEFAULT nextval('dokument_tils_fremdrift_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    fremdrift DokumentFremdriftTils NOT NULL, 
+    fremdrift DokumentFremdriftTils NOT NULL,
     dokument_registrering_id bigint not null,
     CONSTRAINT dokument_tils_fremdrift_pkey PRIMARY KEY (id),
     CONSTRAINT dokument_tils_fremdrift_forkey_dokumentregistrering FOREIGN KEY (dokument_registrering_id) REFERENCES dokument_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -8716,7 +8716,7 @@ CREATE INDEX dokument_tils_fremdrift_idx_fremdrift
     ON dokument_tils_fremdrift
     USING btree
     (fremdrift);
-  
+
 CREATE INDEX dokument_tils_fremdrift_idx_virkning_aktoerref
     ON dokument_tils_fremdrift
     USING btree
@@ -8761,7 +8761,7 @@ CREATE TABLE dokument_relation (
     rel_type DokumentRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT dokument_relation_forkey_dokumentregistrering FOREIGN KEY (dokument_registrering_id) REFERENCES dokument_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT dokument_relation_pkey PRIMARY KEY (id),
@@ -8870,12 +8870,12 @@ ALTER TABLE dokument_variant_egenskaber_id_seq
 
 
 CREATE TABLE dokument_variant_egenskaber(
-    id bigint NOT NULL DEFAULT nextval('dokument_variant_egenskaber_id_seq'::regclass), 
-    variant_id bigint not null, 
-    arkivering boolean null, 
-    delvisscannet boolean null, 
-    offentliggoerelse boolean null, 
-    produktion boolean null, 
+    id bigint NOT NULL DEFAULT nextval('dokument_variant_egenskaber_id_seq'::regclass),
+    variant_id bigint not null,
+    arkivering boolean null,
+    delvisscannet boolean null,
+    offentliggoerelse boolean null,
+    produktion boolean null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
     CONSTRAINT dokument_variant_egenskaber_pkey PRIMARY KEY (id),
     CONSTRAINT dokument_variant_egenskaber_forkey_dokumentvariant FOREIGN KEY (variant_id) REFERENCES dokument_variant (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -8887,26 +8887,26 @@ WITH (
 ALTER TABLE dokument_variant_egenskaber
     OWNER TO {{ mox_user }};
 
- 
+
 CREATE INDEX dokument_variant_egenskaber_idx_arkivering
     ON dokument_variant_egenskaber
     USING btree
-    (arkivering); 
+    (arkivering);
 
 CREATE INDEX dokument_variant_egenskaber_idx_delvisscannet
     ON dokument_variant_egenskaber
     USING btree
-    (delvisscannet); 
- 
+    (delvisscannet);
+
 CREATE INDEX dokument_variant_egenskaber_idx_offentliggoerelse
     ON dokument_variant_egenskaber
     USING btree
-    (offentliggoerelse); 
- 
+    (offentliggoerelse);
+
 CREATE INDEX dokument_variant_egenskaber_idx_produktion
     ON dokument_variant_egenskaber
     USING btree
-    (produktion); 
+    (produktion);
 
 CREATE INDEX dokument_variant_egenskaber_idx_virkning_aktoerref
     ON dokument_variant_egenskaber
@@ -8970,12 +8970,12 @@ ALTER TABLE dokument_del_egenskaber_id_seq
 
 
 CREATE TABLE dokument_del_egenskaber(
-    id bigint NOT NULL DEFAULT nextval('dokument_del_egenskaber_id_seq'::regclass), 
+    id bigint NOT NULL DEFAULT nextval('dokument_del_egenskaber_id_seq'::regclass),
     del_id bigint NOT NULL,
-    indeks int null, 
-    indhold text null, 
-    lokation text null, 
-    mimetype text null, 
+    indeks int null,
+    indhold text null,
+    lokation text null,
+    mimetype text null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
     CONSTRAINT dokument_del_egenskaber_pkey PRIMARY KEY (id),
     CONSTRAINT dokument_del_egenskaber_forkey_dokument_del FOREIGN KEY (del_id) REFERENCES dokument_del (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -8991,8 +8991,8 @@ ALTER TABLE dokument_del_egenskaber
 CREATE INDEX dokument_del_egenskaber_idx_indeks
     ON dokument_del_egenskaber
     USING btree
-    (indeks); 
- 
+    (indeks);
+
 CREATE INDEX dokument_del_egenskaber_pat_indhold
     ON dokument_del_egenskaber
     USING gin
@@ -9001,8 +9001,8 @@ CREATE INDEX dokument_del_egenskaber_pat_indhold
 CREATE INDEX dokument_del_egenskaber_idx_indhold
     ON dokument_del_egenskaber
     USING btree
-    (indhold); 
- 
+    (indhold);
+
 CREATE INDEX dokument_del_egenskaber_pat_lokation
     ON dokument_del_egenskaber
     USING gin
@@ -9011,8 +9011,8 @@ CREATE INDEX dokument_del_egenskaber_pat_lokation
 CREATE INDEX dokument_del_egenskaber_idx_lokation
     ON dokument_del_egenskaber
     USING btree
-    (lokation); 
- 
+    (lokation);
+
 CREATE INDEX dokument_del_egenskaber_pat_mimetype
     ON dokument_del_egenskaber
     USING gin
@@ -9021,7 +9021,7 @@ CREATE INDEX dokument_del_egenskaber_pat_mimetype
 CREATE INDEX dokument_del_egenskaber_idx_mimetype
     ON dokument_del_egenskaber
     USING btree
-    (mimetype); 
+    (mimetype);
 
 CREATE INDEX dokument_del_egenskaber_idx_virkning_aktoerref
     ON dokument_del_egenskaber
@@ -9058,7 +9058,7 @@ CREATE TABLE dokument_del_relation (
     id bigint NOT NULL DEFAULT nextval('dokument_del_relation_id_seq'::regclass),
     del_id bigint not null,
     virkning Virkning not null CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    rel_maal_uuid uuid NULL, 
+    rel_maal_uuid uuid NULL,
     rel_maal_urn text null,
     rel_type DokumentdelRelationKode not null,
     objekt_type text null,
@@ -9143,20 +9143,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentFremdriftTils
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9164,15 +9164,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentFremdriftTils
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentEgenskaberAttrType[])
   RETURNS DokumentEgenskaberAttrType[] AS
   $$
-  DECLARE result DokumentEgenskaberAttrType[]; 
-   DECLARE element DokumentEgenskaberAttrType; 
+  DECLARE result DokumentEgenskaberAttrType[];
+   DECLARE element DokumentEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.brevdato IS NULL AND element.kassationskode IS NULL AND element.major IS NULL AND element.minor IS NULL AND element.offentlighedundtaget IS NULL AND element.titel IS NULL AND element.dokumenttype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.brevdato IS NULL AND element.kassationskode IS NULL AND element.major IS NULL AND element.minor IS NULL AND element.offentlighedundtaget IS NULL AND element.titel IS NULL AND element.dokumenttype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -9180,13 +9180,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentEgenskaberAtt
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9197,14 +9197,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentRelationType[
 RETURNS DokumentRelationType[] AS
 $$
  DECLARE result DokumentRelationType[];
- DECLARE element DokumentRelationType;  
+ DECLARE element DokumentRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -9212,13 +9212,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9231,27 +9231,27 @@ $$
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentVariantEgenskaberType[])
   RETURNS DokumentVariantEgenskaberType[] AS
   $$
-  DECLARE result DokumentVariantEgenskaberType[]; 
-   DECLARE element DokumentVariantEgenskaberType; 
+  DECLARE result DokumentVariantEgenskaberType[];
+   DECLARE element DokumentVariantEgenskaberType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.arkivering IS NULL AND element.delvisscannet IS NULL AND element.offentliggoerelse IS NULL AND element.produktion IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.arkivering IS NULL AND element.delvisscannet IS NULL AND element.offentliggoerelse IS NULL AND element.produktion IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
     --  RAISE DEBUG 'Skipping element';
       ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9259,27 +9259,27 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentVariantEgensk
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentDelEgenskaberType[])
   RETURNS DokumentDelEgenskaberType[] AS
   $$
-  DECLARE result DokumentDelEgenskaberType[]; 
-   DECLARE element DokumentDelEgenskaberType; 
+  DECLARE result DokumentDelEgenskaberType[];
+   DECLARE element DokumentDelEgenskaberType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.indeks IS NULL AND element.indhold IS NULL AND element.lokation IS NULL AND element.mimetype IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.indeks IS NULL AND element.indhold IS NULL AND element.lokation IS NULL AND element.mimetype IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
     --  RAISE DEBUG 'Skipping element';
       ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9289,26 +9289,26 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentdelRelationTy
 RETURNS DokumentdelRelationType[] AS
 $$
  DECLARE result DokumentdelRelationType[];
- DECLARE element DokumentdelRelationType;  
+ DECLARE element DokumentdelRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
       --RAISE DEBUG 'Skipping element';
       ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9316,26 +9316,26 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentDelType[])
 RETURNS DokumentDelType[] AS
 $$
  DECLARE result DokumentDelType[];
- DECLARE element DokumentDelType;  
+ DECLARE element DokumentDelType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR ( element.deltekst IS NULL AND (element.egenskaber IS NULL OR coalesce(array_length(element.egenskaber,1),0)=0) AND (element.relationer IS NULL OR coalesce(array_length(element.relationer,1),0)=0)  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.deltekst IS NULL AND (element.egenskaber IS NULL OR coalesce(array_length(element.egenskaber,1),0)=0) AND (element.relationer IS NULL OR coalesce(array_length(element.relationer,1),0)=0)  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
       --RAISE DEBUG 'Skipping element';
       ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9343,26 +9343,26 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr DokumentVariantType[]
 RETURNS DokumentVariantType[] AS
 $$
  DECLARE result DokumentVariantType[];
- DECLARE element DokumentVariantType;  
+ DECLARE element DokumentVariantType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR ( element.varianttekst IS NULL AND (element.egenskaber IS NULL OR coalesce(array_length(element.egenskaber,1),0)=0) AND (element.dele IS NULL OR coalesce(array_length(element.dele,1),0)=0)  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.varianttekst IS NULL AND (element.egenskaber IS NULL OR coalesce(array_length(element.egenskaber,1),0)=0) AND (element.dele IS NULL OR coalesce(array_length(element.dele,1),0)=0)  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
       --RAISE DEBUG 'Skipping element';
       ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -9380,8 +9380,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_dokument_registrering(
     dokument_registrering
 ) RETURNS dokument_registrering AS $BODY$
   SELECT * FROM dokument_registrering as a WHERE
-    dokument_id = $1.dokument_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    dokument_id = $1.dokument_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -9470,19 +9470,19 @@ CREATE OR REPLACE FUNCTION as_update_dokument(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber DokumentEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber DokumentEgenskaberAttrType[],
+
+
+
     tilsFremdrift DokumentFremdriftTilsType[],
-    
+
 
     relationer DokumentRelationType[],
 
-    
+
     varianter DokumentVariantType[],
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      DokumentRegistreringType[] = null
@@ -9496,15 +9496,15 @@ DECLARE
     prev_dokument_registrering dokument_registrering;
     dokument_relation_navn     DokumentRelationKode;
 
-    
-    attrEgenskaberObj DokumentEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj DokumentEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     dokument_variant_obj DokumentVariantType;
     dokument_variant_egenskab_obj DokumentVariantEgenskaberType;
     dokument_del_obj DokumentDelType;
@@ -9523,7 +9523,7 @@ DECLARE
     dokument_variant_del_prev_reg _DokumentVariantDelKey;
     dokument_del_id bigint;
     dokument_variant_del_prev_reg_rel_transfer _DokumentVariantDelKey[];
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from dokument a join dokument_registrering b ON b.dokument_id=a.id WHERE a.id=dokument_uuid) THEN
@@ -9566,7 +9566,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO dokument_relation (dokument_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -9575,18 +9575,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH dokument_relation_navn IN ARRAY ARRAY['nyrevision'::DokumentRelationKode ,  'primaerklasse'::DokumentRelationKode ,  'ejer'::DokumentRelationKode ,  'ansvarlig'::DokumentRelationKode ,  'primaerbehandler'::DokumentRelationKode ,  'fordelttil'::DokumentRelationKode  ]::DokumentRelationKode[]  LOOP
         INSERT INTO dokument_relation (dokument_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -9598,7 +9598,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -9618,13 +9618,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH dokument_relation_navn IN ARRAY ARRAY['arkiver'::DokumentRelationKode, 'besvarelser'::DokumentRelationKode, 'udgangspunkter'::DokumentRelationKode, 'kommentarer'::DokumentRelationKode, 'bilag'::DokumentRelationKode, 'andredokumenter'::DokumentRelationKode, 'andreklasser'::DokumentRelationKode, 'andrebehandlere'::DokumentRelationKode, 'parter'::DokumentRelationKode, 'kopiparter'::DokumentRelationKode, 'tilknyttedesager'::DokumentRelationKode]::DokumentRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM dokument_relation
                      WHERE dokument_registrering_id = new_dokument_registrering.id AND rel_type = dokument_relation_navn) THEN
-                    
+
                     INSERT INTO dokument_relation (dokument_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_dokument_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -9632,15 +9632,15 @@ BEGIN
         WHERE
             dokument_registrering_id = prev_dokument_registrering.id AND rel_type = dokument_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsFremdrift IS NOT NULL AND coalesce(array_length(tilsFremdrift, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Fremdrift] as it is explicit set to empty array';
     ELSE
@@ -9677,11 +9677,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.dokument_registrering_id = prev_dokument_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- dokument_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -9696,7 +9696,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.beskrivelse,a.brevdato,a.kassationskode,a.major,a.minor,a.offentlighedundtaget,a.titel,a.dokumenttype,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update dokument with uuid [%], as the dokument have overlapping virknings in the given egenskaber array :%', dokument_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -9706,65 +9706,65 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).brevdato IS NULL  OR  (attrEgenskaberObj).kassationskode IS NULL  OR  (attrEgenskaberObj).major IS NULL  OR  (attrEgenskaberObj).minor IS NULL  OR  (attrEgenskaberObj).offentlighedundtaget IS NULL  OR  (attrEgenskaberObj).titel IS NULL  OR  (attrEgenskaberObj).dokumenttype IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO dokument_attr_egenskaber ( brugervendtnoegle,beskrivelse,brevdato,kassationskode,major,minor,offentlighedundtaget,titel,dokumenttype,integrationsdata, virkning, dokument_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.brevdato).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.brevdato).value, a.brevdato)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.kassationskode, a.kassationskode),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.major).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.major).value, a.major)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             CASE WHEN ((attrEgenskaberObj.minor).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.minor).value, a.minor)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.offentlighedundtaget, a.offentlighedundtaget),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.titel, a.titel),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.dokumenttype, a.dokumenttype),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -9779,30 +9779,30 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO dokument_attr_egenskaber ( brugervendtnoegle,beskrivelse,brevdato,kassationskode,major,minor,offentlighedundtaget,titel,dokumenttype,integrationsdata, virkning, dokument_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.brevdato,
-                    
+
                      attrEgenskaberObj.kassationskode,
-                    
+
                      attrEgenskaberObj.major,
-                    
+
                      attrEgenskaberObj.minor,
-                    
+
                      attrEgenskaberObj.offentlighedundtaget,
-                    
+
                      attrEgenskaberObj.titel,
-                    
+
                      attrEgenskaberObj.dokumenttype,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -9820,7 +9820,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO dokument_attr_egenskaber ( brugervendtnoegle,beskrivelse,brevdato,kassationskode,major,minor,offentlighedundtaget,titel,dokumenttype,integrationsdata, virkning, dokument_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.brevdato,  attrEgenskaberObj.kassationskode,  attrEgenskaberObj.major,  attrEgenskaberObj.minor,  attrEgenskaberObj.offentlighedundtaget,  attrEgenskaberObj.titel,  attrEgenskaberObj.dokumenttype,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_dokument_registrering.id );
@@ -9841,28 +9841,28 @@ BEGIN
 
     INSERT INTO dokument_attr_egenskaber ( brugervendtnoegle,beskrivelse,brevdato,kassationskode,major,minor,offentlighedundtaget,titel,dokumenttype,integrationsdata, virkning, dokument_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.brevdato,
-        
+
             a.kassationskode,
-        
+
             a.major,
-        
+
             a.minor,
-        
+
             a.offentlighedundtaget,
-        
+
             a.titel,
-        
+
             a.dokumenttype,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -9892,14 +9892,14 @@ END IF;
 /******************************************************************/
 --Handling document variants and document parts
 
---check if the update explicitly clears all the doc variants (and parts) by explicitly giving an empty array, if so - no variant will be included in the new reg. 
+--check if the update explicitly clears all the doc variants (and parts) by explicitly giving an empty array, if so - no variant will be included in the new reg.
 IF varianter IS NOT NULL AND coalesce(array_length(varianter,1),0)=0 THEN
   --raise notice 'Skipping insertion of doc variants (and parts), as an empty array was given explicitly';
 ELSE
 
 --Check if any variants was given in the new update - otherwise we'll skip ahead to transfering the old variants
 IF varianter IS NOT NULL AND coalesce(array_length(varianter,1),0)>0 THEN
-  
+
 FOREACH dokument_variant_obj IN ARRAY varianter
 LOOP
 
@@ -9908,12 +9908,12 @@ dokument_variant_new_id:=_ensure_document_variant_exists_and_get(new_dokument_re
 --handle variant egenskaber
 IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)=0 THEN
 dokument_variant_egenskaber_expl_deleted:=array_append(dokument_variant_egenskaber_expl_deleted, dokument_variant_obj.varianttekst);
-ELSE 
+ELSE
 
 
 IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)>0 THEN
 
-  --Input validation: 
+  --Input validation:
   --Verify that there is no overlap in virkning in the array given
 
   IF EXISTS (
@@ -9932,33 +9932,33 @@ IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokumen
 FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   LOOP
 
-   IF (dokument_variant_egenskab_obj).arkivering is null OR 
-   (dokument_variant_egenskab_obj).delvisscannet is null OR 
-   (dokument_variant_egenskab_obj).offentliggoerelse is null OR 
-   (dokument_variant_egenskab_obj).produktion is null 
+   IF (dokument_variant_egenskab_obj).arkivering is null OR
+   (dokument_variant_egenskab_obj).delvisscannet is null OR
+   (dokument_variant_egenskab_obj).offentliggoerelse is null OR
+   (dokument_variant_egenskab_obj).produktion is null
   THEN
 
 
   INSERT INTO dokument_variant_egenskaber(
     variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
       )
   SELECT
-    dokument_variant_new_id, 
-        CASE WHEN (dokument_variant_egenskab_obj.arkivering).cleared THEN NULL 
+    dokument_variant_new_id,
+        CASE WHEN (dokument_variant_egenskab_obj.arkivering).cleared THEN NULL
         ELSE coalesce((dokument_variant_egenskab_obj.arkivering).value,a.arkivering)
-        END, 
-          CASE WHEN (dokument_variant_egenskab_obj.delvisscannet).cleared THEN NULL 
+        END,
+          CASE WHEN (dokument_variant_egenskab_obj.delvisscannet).cleared THEN NULL
           ELSE coalesce((dokument_variant_egenskab_obj.delvisscannet).value,a.delvisscannet)
           END,
-            CASE WHEN (dokument_variant_egenskab_obj.offentliggoerelse).cleared THEN NULL 
+            CASE WHEN (dokument_variant_egenskab_obj.offentliggoerelse).cleared THEN NULL
             ELSE coalesce((dokument_variant_egenskab_obj.offentliggoerelse).value,a.offentliggoerelse)
             END,
-              CASE WHEN (dokument_variant_egenskab_obj.produktion).cleared THEN NULL 
+              CASE WHEN (dokument_variant_egenskab_obj.produktion).cleared THEN NULL
               ELSE coalesce((dokument_variant_egenskab_obj.produktion).value,a.produktion)
               END,
                 ROW (
@@ -9970,7 +9970,7 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   FROM dokument_variant_egenskaber a
   JOIN dokument_variant b on a.variant_id=b.id
   WHERE
-    b.dokument_registrering_id=prev_dokument_registrering.id 
+    b.dokument_registrering_id=prev_dokument_registrering.id
     and b.varianttekst=dokument_variant_obj.varianttekst
     and (a.virkning).TimePeriod && (dokument_variant_egenskab_obj.virkning).TimePeriod
   ;
@@ -9982,17 +9982,17 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
   dokument_variant_egenskaber
   (
     variant_id,
-      arkivering, 
-        delvisscannet, 
-          offentliggoerelse, 
+      arkivering,
+        delvisscannet,
+          offentliggoerelse,
             produktion,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_variant_new_id,
-      dokument_variant_egenskab_obj.arkivering, 
-        dokument_variant_egenskab_obj.delvisscannet, 
-          dokument_variant_egenskab_obj.offentliggoerelse, 
+      dokument_variant_egenskab_obj.arkivering,
+        dokument_variant_egenskab_obj.delvisscannet,
+          dokument_variant_egenskab_obj.offentliggoerelse,
             dokument_variant_egenskab_obj.produktion,
               ROW (
                    b.tz_range_leftover,
@@ -10002,32 +10002,32 @@ FOREACH dokument_variant_egenskab_obj IN ARRAY dokument_variant_obj.egenskaber
               )::Virkning
   FROM
   (
-  --build an array of the timeperiod of the virkning of the dokument variant egenskaber of the new registrering to pass to _subtract_tstzrange_arr 
+  --build an array of the timeperiod of the virkning of the dokument variant egenskaber of the new registrering to pass to _subtract_tstzrange_arr
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_variant_egenskaber b
-      WHERE 
+      WHERE
        b.variant_id=dokument_variant_new_id
   ) as a
   JOIN unnest(_subtract_tstzrange_arr((dokument_variant_egenskab_obj.virkning).TimePeriod,a.tzranges_of_new_reg)) as b(tz_range_leftover) on true
   ;
-  ELSE 
+  ELSE
 
-   --insert attrEgenskaberObj raw (if there were no null-valued fields) 
+   --insert attrEgenskaberObj raw (if there were no null-valued fields)
 
    INSERT INTO
     dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
     )
     VALUES (
       dokument_variant_new_id,
-        dokument_variant_egenskab_obj.arkivering, 
-          dokument_variant_egenskab_obj.delvisscannet, 
-            dokument_variant_egenskab_obj.offentliggoerelse, 
+        dokument_variant_egenskab_obj.arkivering,
+          dokument_variant_egenskab_obj.delvisscannet,
+            dokument_variant_egenskab_obj.offentliggoerelse,
               dokument_variant_egenskab_obj.produktion,
                 dokument_variant_egenskab_obj.virkning
     );
@@ -10061,9 +10061,9 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
     dokument_variant_del_egenskaber_deleted:=array_append(dokument_variant_del_egenskaber_deleted,ROW(dokument_variant_obj.varianttekst, dokument_del_obj.deltekst)::_DokumentVariantDelKey);
     ELSE
 
-    IF dokument_del_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_del_obj.egenskaber,1),0)>0 THEN  
+    IF dokument_del_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_del_obj.egenskaber,1),0)>0 THEN
 
-    --Input validation: 
+    --Input validation:
     --Verify that there is no overlap in virkning in the array given
     IF EXISTS (
       SELECT
@@ -10082,10 +10082,10 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
   LOOP
 
   --To avoid needless fragmentation we'll check for presence of null values in the fields - and if none are present, we'll skip the merging operations
-  IF (dokument_del_egenskaber_obj).indeks is null OR 
-   (dokument_del_egenskaber_obj).indhold is null OR 
-   (dokument_del_egenskaber_obj).lokation is null OR 
-   (dokument_del_egenskaber_obj).mimetype is null 
+  IF (dokument_del_egenskaber_obj).indeks is null OR
+   (dokument_del_egenskaber_obj).indhold is null OR
+   (dokument_del_egenskaber_obj).lokation is null OR
+   (dokument_del_egenskaber_obj).mimetype is null
   THEN
 
   INSERT INTO
@@ -10098,13 +10098,13 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
-    dokument_del_new_id, 
-      CASE WHEN (dokument_del_egenskaber_obj.indeks).cleared THEN NULL 
+  SELECT
+    dokument_del_new_id,
+      CASE WHEN (dokument_del_egenskaber_obj.indeks).cleared THEN NULL
       ELSE coalesce((dokument_del_egenskaber_obj.indeks).value,a.indeks)
-      END, 
-        coalesce(dokument_del_egenskaber_obj.indhold,a.indhold), 
-          coalesce(dokument_del_egenskaber_obj.lokation,a.lokation), 
+      END,
+        coalesce(dokument_del_egenskaber_obj.indhold,a.indhold),
+          coalesce(dokument_del_egenskaber_obj.lokation,a.lokation),
             coalesce(dokument_del_egenskaber_obj.mimetype,a.mimetype),
               ROW (
                 (a.virkning).TimePeriod * (dokument_del_egenskaber_obj.virkning).TimePeriod,
@@ -10116,7 +10116,7 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   WHERE
-    c.dokument_registrering_id=prev_dokument_registrering.id 
+    c.dokument_registrering_id=prev_dokument_registrering.id
     and c.varianttekst=dokument_variant_obj.varianttekst
     and b.deltekst=dokument_del_obj.deltekst
     and (a.virkning).TimePeriod && (dokument_del_egenskaber_obj.virkning).TimePeriod
@@ -10134,11 +10134,11 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_del_new_id,
-      dokument_del_egenskaber_obj.indeks, 
-        dokument_del_egenskaber_obj.indhold, 
-          dokument_del_egenskaber_obj.lokation, 
+      dokument_del_egenskaber_obj.indeks,
+        dokument_del_egenskaber_obj.indhold,
+          dokument_del_egenskaber_obj.lokation,
             dokument_del_egenskaber_obj.mimetype,
               ROW (
                    b.tz_range_leftover,
@@ -10148,12 +10148,12 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
               )::Virkning
   FROM
   (
-  --build an array of the timeperiod of the virkning of the relevant dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr 
+  --build an array of the timeperiod of the virkning of the relevant dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_del_egenskaber b
       JOIN dokument_del c on b.del_id=c.id
       JOIN dokument_variant d on c.variant_id=d.id
-      WHERE 
+      WHERE
       d.dokument_registrering_id=new_dokument_registrering.id
       and d.varianttekst=dokument_variant_obj.varianttekst
       and c.deltekst=dokument_del_obj.deltekst
@@ -10173,11 +10173,11 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
             mimetype,
               virkning
   )
-  SELECT 
+  SELECT
     dokument_del_new_id,
-      dokument_del_egenskaber_obj.indeks, 
-        dokument_del_egenskaber_obj.indhold, 
-          dokument_del_egenskaber_obj.lokation, 
+      dokument_del_egenskaber_obj.indeks,
+        dokument_del_egenskaber_obj.indhold,
+          dokument_del_egenskaber_obj.lokation,
             dokument_del_egenskaber_obj.mimetype,
               dokument_del_egenskaber_obj.virkning
   ;
@@ -10191,16 +10191,16 @@ FOREACH dokument_del_obj IN ARRAY dokument_variant_obj.dele
 
      IF dokument_del_obj.relationer IS NOT NULL AND coalesce(array_length(dokument_del_obj.relationer,1),0)=0 THEN
      dokument_variant_del_relationer_deleted:=array_append(dokument_variant_del_relationer_deleted,ROW(dokument_variant_obj.varianttekst, dokument_del_obj.deltekst)::_DokumentVariantDelKey);
-    
+
     ELSE
 
 
     INSERT INTO dokument_del_relation(
-        del_id, 
-          virkning, 
-            rel_maal_uuid, 
-              rel_maal_urn, 
-                rel_type, 
+        del_id,
+          virkning,
+            rel_maal_uuid,
+              rel_maal_urn,
+                rel_type,
                   objekt_type
         )
     SELECT
@@ -10247,7 +10247,7 @@ and a.varianttekst not in (select varianttekst from unnest(dokument_variant_egen
 IF dokument_variants_prev_reg_arr IS NOT NULL AND coalesce(array_length(dokument_variants_prev_reg_arr,1),0)>0 THEN
 
 FOREACH dokument_variant_egenskaber_prev_reg_varianttekst IN ARRAY dokument_variants_prev_reg_arr
-LOOP 
+LOOP
 
 
 dokument_variant_id:=_ensure_document_variant_exists_and_get(new_dokument_registrering.id,dokument_variant_egenskaber_prev_reg_varianttekst);
@@ -10255,18 +10255,18 @@ dokument_variant_id:=_ensure_document_variant_exists_and_get(new_dokument_regist
 INSERT INTO
     dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
-                virkning 
+                virkning
     )
 SELECT
       dokument_variant_id,
         a.arkivering,
           a.delvisscannet,
             a.offentliggoerelse,
-              a.produktion,               
+              a.produktion,
                 ROW(
                   c.tz_range_leftover,
               (a.virkning).AktoerRef,
@@ -10275,18 +10275,18 @@ SELECT
                 ) :: virkning
 FROM
 (
- --build an array of the timeperiod of the virkning of the dokument_variant_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the dokumentvariant_attr_egenskaber of the previous registrering 
+ --build an array of the timeperiod of the virkning of the dokument_variant_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the dokumentvariant_attr_egenskaber of the previous registrering
     SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
     FROM dokument_variant_egenskaber b
-    WHERE 
+    WHERE
     b.variant_id=dokument_variant_id
 
 ) d
-  JOIN dokument_variant_egenskaber a ON true  
+  JOIN dokument_variant_egenskaber a ON true
   JOIN dokument_variant e ON a.variant_id = e.id
   JOIN unnest(_subtract_tstzrange_arr((a.virkning).TimePeriod,tzranges_of_new_reg)) as c(tz_range_leftover) on true
-  WHERE e.dokument_registrering_id=prev_dokument_registrering.id    
-  and e.varianttekst=dokument_variant_egenskaber_prev_reg_varianttekst 
+  WHERE e.dokument_registrering_id=prev_dokument_registrering.id
+  and e.varianttekst=dokument_variant_egenskaber_prev_reg_varianttekst
 ;
 
 END LOOP; --loop dokument_variant_egenskaber_prev_reg_varianttekst
@@ -10311,7 +10311,7 @@ END IF;-- not null dokument_variants_prev_reg_arr
   group by a.varianttekst,b.deltekst
  ) as a
 ;
- 
+
 
 if dokument_variant_del_prev_reg_arr IS NOT NULL and coalesce(array_length(dokument_variant_del_prev_reg_arr,1),0)>0 THEN
 
@@ -10342,21 +10342,21 @@ if dokument_variant_del_prev_reg_arr IS NOT NULL and coalesce(array_length(dokum
                 ) :: virkning
   FROM
   (
-   --build an array of the timeperiod of the virkning of the dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the relevant dokument_del_egenskaber of the previous registrering 
+   --build an array of the timeperiod of the virkning of the dokument_del_egenskaber of the new registrering to pass to _subtract_tstzrange_arr on the relevant dokument_del_egenskaber of the previous registrering
       SELECT coalesce(array_agg((b.virkning).TimePeriod),array[]::TSTZRANGE[]) tzranges_of_new_reg
       FROM dokument_del_egenskaber b
       JOIN dokument_del c on b.del_id=c.id
       JOIN dokument_variant d on c.variant_id=d.id
-      WHERE 
+      WHERE
             d.dokument_registrering_id=new_dokument_registrering.id
             AND d.varianttekst=dokument_variant_del_prev_reg.varianttekst
             AND c.deltekst=dokument_variant_del_prev_reg.deltekst
   ) d
-    JOIN dokument_del_egenskaber a ON true  
+    JOIN dokument_del_egenskaber a ON true
     JOIN dokument_del b on a.del_id=b.id
     JOIN dokument_variant e on b.variant_id=e.id
     JOIN unnest(_subtract_tstzrange_arr((a.virkning).TimePeriod,tzranges_of_new_reg)) as c(tz_range_leftover) on true
-    WHERE e.dokument_registrering_id=prev_dokument_registrering.id    
+    WHERE e.dokument_registrering_id=prev_dokument_registrering.id
     AND e.varianttekst=dokument_variant_del_prev_reg.varianttekst
     AND b.deltekst=dokument_variant_del_prev_reg.deltekst
   ;
@@ -10382,16 +10382,16 @@ FROM
 (
   SELECT
   c.varianttekst,b.deltekst
-  FROM dokument_del_relation a 
+  FROM dokument_del_relation a
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   LEFT JOIN unnest(dokument_variant_del_relationer_deleted) d(varianttekst,deltekst) on d.varianttekst=c.varianttekst and d.deltekst=b.deltekst
   WHERE c.dokument_registrering_id=prev_dokument_registrering.id
-  AND (d.varianttekst IS NULL AND d.deltekst IS NULL) 
+  AND (d.varianttekst IS NULL AND d.deltekst IS NULL)
   EXCEPT
   SELECT
   c.varianttekst,b.deltekst
-  FROM dokument_del_relation a 
+  FROM dokument_del_relation a
   JOIN dokument_del b on a.del_id=b.id
   JOIN dokument_variant c on b.variant_id=c.id
   WHERE c.dokument_registrering_id=new_dokument_registrering.id
@@ -10401,7 +10401,7 @@ FROM
 
 
 
--- Make sure that part + variants are in place 
+-- Make sure that part + variants are in place
 IF dokument_variant_del_prev_reg_rel_transfer IS NOT NULL AND coalesce(array_length(dokument_variant_del_prev_reg_rel_transfer,1),0)>0 THEN
   FOREACH dokument_variant_del_prev_reg IN array dokument_variant_del_prev_reg_rel_transfer
   LOOP
@@ -10409,11 +10409,11 @@ IF dokument_variant_del_prev_reg_rel_transfer IS NOT NULL AND coalesce(array_len
 
 --transfer relations of prev reg.
 INSERT INTO dokument_del_relation(
-    del_id, 
-      virkning, 
-        rel_maal_uuid, 
-          rel_maal_urn, 
-            rel_type, 
+    del_id,
+      virkning,
+        rel_maal_uuid,
+          rel_maal_urn,
+            rel_type,
               objekt_type
     )
 SELECT
@@ -10423,7 +10423,7 @@ SELECT
           a.rel_maal_urn,
             a.rel_type,
               a.objekt_type
-FROM dokument_del_relation a 
+FROM dokument_del_relation a
 JOIN dokument_del b on a.del_id=b.id
 JOIN dokument_variant c on b.variant_id=c.id
 WHERE c.dokument_registrering_id=prev_dokument_registrering.id
@@ -10451,14 +10451,14 @@ END IF; --else block for skip on empty array for variants.
     IF NOT (lower((read_new_dokument.registrering[1].registrering).TimePeriod) = lower((new_dokument_registrering.registrering).TimePeriod) and lower((read_prev_dokument.registrering[1].registrering).TimePeriod)=lower((prev_dokument_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating dokument with id [%]: The ordering of as_list_dokument should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', dokument_uuid, to_json(new_dokument_registrering), to_json(read_new_dokument.registrering[1].registrering), to_json(prev_dokument_registrering), to_json(prev_new_dokument.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_dokument_reg := ROW(
         ROW (null, (read_new_dokument.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_dokument.registrering[1]).tilsFremdrift ,
-        
+
         (read_new_dokument.registrering[1]).attrEgenskaber ,
         (read_new_dokument.registrering[1]).relationer,
         (read_new_dokument.registrering[1]).varianter
@@ -10466,9 +10466,9 @@ END IF; --else block for skip on empty array for variants.
 
     read_prev_dokument_reg := ROW(
         ROW(null, (read_prev_dokument.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_dokument.registrering[1]).tilsFremdrift ,
-        
+
         (read_prev_dokument.registrering[1]).attrEgenskaber ,
         (read_prev_dokument.registrering[1]).relationer,
         (read_prev_dokument.registrering[1]).varianter
@@ -10502,17 +10502,17 @@ CREATE OR REPLACE FUNCTION as_create_or_import_dokument (
     DokumentRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE dokument_registrering_id bigint;
 
-    
-    dokument_attr_egenskaber_obj dokumentEgenskaberAttrType;
-    
 
-    
+    dokument_attr_egenskaber_obj dokumentEgenskaberAttrType;
+
+
+
     dokument_tils_fremdrift_obj dokumentFremdriftTilsType;
-    
+
 
     dokument_relationer DokumentRelationType;
 
-    
+
     dokument_variant_obj DokumentVariantType;
     dokument_variant_egenskab_obj DokumentVariantEgenskaberType;
     dokument_del_obj DokumentDelType;
@@ -10520,11 +10520,11 @@ $$ DECLARE dokument_registrering_id bigint;
     dokument_del_relation_obj DokumentDelRelationType;
     dokument_variant_new_id bigint;
     dokument_del_new_id bigint;
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_dokument_registrering dokument_registrering;
@@ -10592,9 +10592,9 @@ IF dokument_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(do
   FOREACH dokument_attr_egenskaber_obj IN ARRAY dokument_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO dokument_attr_egenskaber (
-      
+
       brugervendtnoegle,
       beskrivelse,
       brevdato,
@@ -10609,7 +10609,7 @@ IF dokument_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(do
       dokument_registrering_id
     )
     SELECT
-     
+
      dokument_attr_egenskaber_obj.brugervendtnoegle,
       dokument_attr_egenskaber_obj.beskrivelse,
       dokument_attr_egenskaber_obj.brevdato,
@@ -10623,8 +10623,8 @@ IF dokument_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(do
       dokument_attr_egenskaber_obj.virkning,
       dokument_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -10684,7 +10684,7 @@ END IF;
 --Insert document variants (and parts)
 
 IF dokument_registrering.varianter IS NOT NULL AND coalesce(array_length(dokument_registrering.varianter,1),0)>0 THEN
-  
+
 
 FOREACH dokument_variant_obj IN ARRAY dokument_registrering.varianter
 LOOP
@@ -10701,7 +10701,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
       dokument_variant_new_id,
         dokument_variant_obj.varianttekst,
           dokument_registrering_id
-  ); 
+  );
 
 
   IF dokument_variant_obj.egenskaber IS NOT NULL AND coalesce(array_length(dokument_variant_obj.egenskaber,1),0)>0 THEN
@@ -10711,14 +10711,14 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
 
      INSERT INTO dokument_variant_egenskaber (
       variant_id,
-        arkivering, 
-          delvisscannet, 
-            offentliggoerelse, 
+        arkivering,
+          delvisscannet,
+            offentliggoerelse,
               produktion,
                 virkning
       )
       SELECT
-      dokument_variant_new_id,  
+      dokument_variant_new_id,
         dokument_variant_egenskab_obj.arkivering,
           dokument_variant_egenskab_obj.delvisscannet,
             dokument_variant_egenskab_obj.offentliggoerelse,
@@ -10758,22 +10758,22 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
     INSERT INTO
     dokument_del_egenskaber (
       del_id,
-        indeks, 
-          indhold, 
-            lokation, 
-              mimetype, 
+        indeks,
+          indhold,
+            lokation,
+              mimetype,
                 virkning
     )
     VALUES
     (
-      dokument_del_new_id, 
+      dokument_del_new_id,
         dokument_del_egenskaber_obj.indeks,
           dokument_del_egenskaber_obj.indhold,
             dokument_del_egenskaber_obj.lokation,
               dokument_del_egenskaber_obj.mimetype,
                 dokument_del_egenskaber_obj.virkning
     )
-    ;                
+    ;
 
     END LOOP;--del_egenskaber
     END IF; --del_egenskaber
@@ -10786,7 +10786,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
       INSERT INTO dokument_del_relation (
         del_id,
           virkning,
-            rel_maal_uuid, 
+            rel_maal_uuid,
               rel_maal_urn,
                 rel_type,
                   objekt_type
@@ -10807,7 +10807,7 @@ dokument_variant_new_id:=nextval('dokument_variant_id_seq'::regclass);
     END IF; --dokument_del_obj.relationer
 
     END LOOP; --variant_dele
-  END IF; 
+  END IF;
 
  END LOOP; --varianter
 
@@ -10818,9 +10818,9 @@ END IF; --varianter
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_dokument(array[dokument_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_dokument(array[dokument_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[dokument_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import dokument with uuid [%]. Object does not met stipulated criteria:%',dokument_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import dokument with uuid [%]. Object does not met stipulated criteria:%',dokument_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -10853,13 +10853,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_dokument(dokument_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_dokument(dokument_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(dokument_uuids,1),0) AND auth_filtered_uuids @>dokument_uuids) THEN
-  RAISE EXCEPTION 'Unable to list dokument with uuids [%]. All objects do not fullfill the stipulated criteria:%',dokument_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list dokument with uuids [%]. All objects do not fullfill the stipulated criteria:%',dokument_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.dokumentObj) into result
 FROM
 (
@@ -10874,8 +10874,8 @@ ROW(
 			a.DokumentRelationArr,
             b.varianter
 		)::DokumentRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: DokumentType  dokumentObj
 FROM
 (
@@ -10898,9 +10898,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) DokumentRelationArr
 	FROM
 	(
@@ -10912,7 +10912,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.fremdrift
@@ -10920,7 +10920,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.fremdrift,b.virkning
-				)) DokumentTilsFremdriftArr		
+				)) DokumentTilsFremdriftArr
 			FROM
 			(
 					SELECT
@@ -10929,11 +10929,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.beskrivelse,
 					 		b.brevdato,
@@ -10945,35 +10945,35 @@ FROM
 					 		b.dokumenttype,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::DokumentEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.beskrivelse,b.brevdato,b.kassationskode,b.major,b.minor,b.offentlighedundtaget,b.titel,b.dokumenttype,b.integrationsdata,b.virkning
-                        
+
 					)) DokumentAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id dokument_id,
 					b.id dokument_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		dokument a
 					JOIN 		dokument_registrering b 	ON b.dokument_id=a.id
 					WHERE a.id = ANY (dokument_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN dokument_attr_egenskaber as b ON b.dokument_registrering_id=a.dokument_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.dokument_id,
 					a.dokument_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN dokument_tils_fremdrift as b ON b.dokument_registrering_id=a.dokument_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN dokument_tils_fremdrift as b ON b.dokument_registrering_id=a.dokument_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.dokument_id,
 			a.dokument_registrering_id,
 			a.registrering,
@@ -10991,7 +10991,7 @@ FROM
 LEFT JOIN _as_list_dokument_varianter(dokument_uuids,registrering_tstzrange,virkning_tstzrange) b on a.dokument_registrering_id=b.dokument_registrering_id
 
 WHERE a.dokument_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.dokument_id
 order by a.dokument_id
 ) as x
@@ -11051,7 +11051,7 @@ CREATE OR REPLACE FUNCTION as_search_dokument(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr DokumentRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -11060,7 +11060,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj DokumentEgenskaberAttrType;
 
-    
+
     tilsFremdriftTypeObj DokumentFremdriftTilsType;
 
     relationTypeObj DokumentRelationType;
@@ -11068,7 +11068,7 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
     variantTypeObj DokumentVariantType;
     variantEgenskaberTypeObj DokumentVariantEgenskaberType;
     delTypeObj DokumentDelType;
@@ -11076,11 +11076,11 @@ DECLARE
     delRelationTypeObj DokumentdelRelationType;
     variant_candidates_ids bigint[];
     variant_candidates_is_initialized boolean;
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -11103,20 +11103,20 @@ IF dokument_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11137,16 +11137,16 @@ IF dokument_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11159,7 +11159,7 @@ IF dokument_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11184,7 +11184,7 @@ END IF;
 --RAISE NOTICE 'dokument_candidates step 2:%',dokument_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -11193,20 +11193,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(dokument_candidates,1),0)>0 OR NOT dokument_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             dokument_candidates:=array(
             SELECT DISTINCT
             b.dokument_id
             FROM  dokument_attr_egenskaber a
             JOIN dokument_registrering b on a.dokument_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -11228,7 +11228,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -11316,24 +11316,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11354,16 +11354,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11376,7 +11376,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11409,10 +11409,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.dokument_id
-            
-            FROM dokument_registrering b 
+
+            FROM dokument_registrering b
             LEFT JOIN dokument_attr_egenskaber a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or virkningSoeg && (a.virkning).TimePeriod )
-            LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id 
+            LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
             LEFT JOIN dokument_del f on f.variant_id=c.id
             LEFT JOIN dokument_del_egenskaber d on d.del_id = f.id and (virkningSoeg IS NULL or virkningSoeg && (d.virkning).TimePeriod )
             LEFT JOIN dokument_variant_egenskaber e on e.variant_id = c.id and (virkningSoeg IS NULL or virkningSoeg && (e.virkning).TimePeriod )
@@ -11447,24 +11447,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 )
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11485,16 +11485,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11507,7 +11507,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11591,20 +11591,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11625,16 +11625,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11647,7 +11647,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11750,26 +11750,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11790,16 +11790,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11812,7 +11812,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11839,33 +11839,33 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         dokument_candidates:=array(
             SELECT DISTINCT
             b.dokument_id
-            
-            FROM dokument_registrering b  
+
+            FROM dokument_registrering b
             LEFT JOIN dokument_relation a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or (virkningSoeg && (a.virkning).TimePeriod) )
             LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
-            LEFT JOIN dokument_del d on d.variant_id=c.id 
+            LEFT JOIN dokument_del d on d.variant_id=c.id
             LEFT JOIN dokument_del_relation e on d.id=e.del_id and (virkningSoeg IS NULL or (virkningSoeg && (e.virkning).TimePeriod) )
             WHERE
             (anyuuid = a.rel_maal_uuid OR anyuuid = e.rel_maal_uuid)
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11886,16 +11886,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -11908,7 +11908,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -11935,33 +11935,33 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         dokument_candidates:=array(
             SELECT DISTINCT
             b.dokument_id
-            
-            FROM dokument_registrering b  
+
+            FROM dokument_registrering b
             LEFT JOIN dokument_relation a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or virkningSoeg && (a.virkning).TimePeriod )
             LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
             LEFT JOIN dokument_del d on d.variant_id=c.id
             LEFT JOIN dokument_del_relation e on d.id=e.del_id and (virkningSoeg IS NULL or virkningSoeg && (e.virkning).TimePeriod)
             WHERE
             (anyurn = a.rel_maal_urn OR anyurn = e.rel_maal_urn)
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -11982,16 +11982,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -12004,7 +12004,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -12042,7 +12042,7 @@ ELSE
 		variant_candidates_ids=array[]::bigint[];
 		variant_candidates_is_initialized:=false;
 
-		IF (coalesce(array_length(dokument_candidates,1),0)>0 OR NOT dokument_candidates_is_initialized) THEN 
+		IF (coalesce(array_length(dokument_candidates,1),0)>0 OR NOT dokument_candidates_is_initialized) THEN
 
 		--HACK: As variant_name logically can be said to be part of variant egenskaber (regarding virkning), we'll force a filter on variant egenskaber if needed
 		IF coalesce(array_length(variantTypeObj.egenskaber,1),0)=0 AND variantTypeObj.varianttekst IS NOT NULL THEN
@@ -12050,7 +12050,7 @@ ELSE
 		END IF;
 
 		IF coalesce(array_length(variantTypeObj.egenskaber,1),0)>0 THEN
-		
+
 		FOREACH variantEgenskaberTypeObj in ARRAY variantTypeObj.egenskaber
 		LOOP
 
@@ -12067,7 +12067,7 @@ ELSE
 					(NOT (variantEgenskaberTypeObj.produktion IS NULL))
 				)
 			 THEN --test if there is any data availiable for variant to filter on
-			
+
 
 			--part for searching on variant + egenskaber
 			variant_candidates_ids:=array(
@@ -12094,8 +12094,8 @@ ELSE
 			(
 				(
 				variantEgenskaberTypeObj.virkning IS NULL
-				OR 
-				(variantEgenskaberTypeObj.virkning).TimePeriod && (c.virkning).TimePeriod 
+				OR
+				(variantEgenskaberTypeObj.virkning).TimePeriod && (c.virkning).TimePeriod
 				)
 			)
 			AND
@@ -12118,7 +12118,7 @@ ELSE
 				)
 			AND
 			(
-				
+
 				(
 					variantEgenskaberTypeObj.arkivering IS NULL
 					OR
@@ -12132,36 +12132,36 @@ ELSE
 				)
 				AND
 				(
-					variantEgenskaberTypeObj.offentliggoerelse IS NULL 
+					variantEgenskaberTypeObj.offentliggoerelse IS NULL
 					OR
 					variantEgenskaberTypeObj.offentliggoerelse = c.offentliggoerelse
 				)
 				AND
 				(
-					variantEgenskaberTypeObj.produktion IS NULL  
+					variantEgenskaberTypeObj.produktion IS NULL
 					OR
 					variantEgenskaberTypeObj.produktion = c.produktion
 				)
-				
+
 			)
 			AND
 			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -12182,16 +12182,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -12204,7 +12204,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -12225,14 +12225,14 @@ ELSE
 			END IF; --variant filter criterium exists
 			END LOOP; --variant egenskaber
 
-			
-			END IF;--variantTypeObj.egenskaber exists  
+
+			END IF;--variantTypeObj.egenskaber exists
 
 			/**************    Dokument Dele        ******************/
 
 			IF coalesce(array_length(variantTypeObj.dele,1),0)>0 THEN
-			
-			FOREACH delTypeObj IN ARRAY variantTypeObj.dele 
+
+			FOREACH delTypeObj IN ARRAY variantTypeObj.dele
 			LOOP
 
 			--HACK: As del_name logically can be said to be part of del egenskaber (regarding virkning), we'll force a filter on del egenskaber if needed
@@ -12243,17 +12243,17 @@ ELSE
 
 			/**************    Dokument Del Egenskaber    ******************/
 
-			IF coalesce(array_length(delTypeObj.egenskaber,1),0)>0 THEN 
-			
+			IF coalesce(array_length(delTypeObj.egenskaber,1),0)>0 THEN
+
 			FOREACH delEgenskaberTypeObj IN ARRAY delTypeObj.egenskaber
 			LOOP
-			
-			IF delTypeObj.deltekst IS NOT NULL  	
+
+			IF delTypeObj.deltekst IS NOT NULL
 			OR (NOT delEgenskaberTypeObj.indeks IS NULL)
 			OR delEgenskaberTypeObj.indhold IS NOT NULL
 			OR delEgenskaberTypeObj.lokation IS NOT NULL
 			OR delEgenskaberTypeObj.mimetype IS NOT NULL
-			THEN 
+			THEN
 
 			IF (coalesce(array_length(variant_candidates_ids,1),0)>0 OR not variant_candidates_is_initialized) THEN
 
@@ -12264,7 +12264,7 @@ ELSE
 			JOIN dokument_registrering b on a.dokument_registrering_id=b.id
 			JOIN dokument_del c on c.variant_id=a.id
 			JOIN dokument_del_egenskaber d on d.del_id=c.id --we require the presence egenskaber (del name is logically part of it)
-		
+
 			WHERE
 			(
 				delTypeObj.deltekst IS NULL
@@ -12280,8 +12280,8 @@ ELSE
 			AND
 			(
 				delEgenskaberTypeObj.virkning IS NULL --NOTICE only looking at first del egenskaber object throughout
-				OR 
-				(delEgenskaberTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod 
+				OR
+				(delEgenskaberTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod
 			)
 			AND
 			(
@@ -12305,25 +12305,25 @@ ELSE
 			(
 				(
 					(
-						delEgenskaberTypeObj.indeks IS NULL  
+						delEgenskaberTypeObj.indeks IS NULL
 						OR
 						delEgenskaberTypeObj.indeks = d.indeks
 					)
 					AND
 					(
-						delEgenskaberTypeObj.indhold IS NULL  
+						delEgenskaberTypeObj.indhold IS NULL
 						OR
-						d.indhold ilike delEgenskaberTypeObj.indhold  
+						d.indhold ilike delEgenskaberTypeObj.indhold
 					)
 					AND
 					(
-						delEgenskaberTypeObj.lokation IS NULL 
+						delEgenskaberTypeObj.lokation IS NULL
 						OR
-						d.lokation ilike delEgenskaberTypeObj.lokation 
+						d.lokation ilike delEgenskaberTypeObj.lokation
 					)
 					AND
 					(
-						delEgenskaberTypeObj.mimetype IS NULL 
+						delEgenskaberTypeObj.mimetype IS NULL
 						OR
 						d.mimetype ilike delEgenskaberTypeObj.mimetype
 					)
@@ -12333,20 +12333,20 @@ ELSE
 			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -12367,16 +12367,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -12389,7 +12389,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -12411,8 +12411,8 @@ ELSE
 
 			/**************    Dokument Del Relationer    ******************/
 
-			IF coalesce(array_length(delTypeObj.relationer,1),0)>0 THEN 
-			
+			IF coalesce(array_length(delTypeObj.relationer,1),0)>0 THEN
+
 			FOREACH delRelationTypeObj IN ARRAY delTypeObj.relationer
 			LOOP
 
@@ -12439,9 +12439,9 @@ ELSE
 			)
 			AND
 			(
-				delRelationTypeObj.virkning IS NULL 
-				OR 
-				(delRelationTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod 
+				delRelationTypeObj.virkning IS NULL
+				OR
+				(delRelationTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod
 			)
 			AND
 			(
@@ -12462,7 +12462,7 @@ ELSE
 					)
 			)
 			AND
-			(	
+			(
 				delRelationTypeObj.relType IS NULL
 				OR
 				delRelationTypeObj.relType = d.rel_type
@@ -12471,7 +12471,7 @@ ELSE
 			(
 				delRelationTypeObj.uuid IS NULL
 				OR
-				delRelationTypeObj.uuid = d.rel_maal_uuid	
+				delRelationTypeObj.uuid = d.rel_maal_uuid
 			)
 			AND
 			(
@@ -12489,20 +12489,20 @@ ELSE
 			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -12523,16 +12523,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -12545,7 +12545,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -12558,7 +12558,7 @@ ELSE
 
 			AND ((NOT variant_candidates_is_initialized) OR a.id = ANY (variant_candidates_ids) )
 			);
-			
+
 			variant_candidates_is_initialized:=true;
 
 			END IF; --any variant candidates left
@@ -12570,13 +12570,13 @@ ELSE
 			END IF;--dele exists
 
 
-			
+
 			IF variant_candidates_is_initialized THEN
 			--We'll then translate the collected variant ids into document ids (please notice that the resulting uuids are already a subset of dokument_candidates)
 
 			dokument_candidates:=array(
 			SELECT DISTINCT
-			b.dokument_id 
+			b.dokument_id
 			FROM dokument_variant a
 			JOIN dokument_registrering b on a.dokument_registrering_id=b.id
 			WHERE
@@ -12586,14 +12586,14 @@ ELSE
 			);
 
 			dokument_candidates_is_initialized:=true;
-			
+
 			END IF; --variant_candidates_is_initialized
 
 			END IF; --no doc candidates - skipping ahead;
 			END LOOP; --FOREACH variantTypeObj
-		
+
 		END IF; --varianter exists
-	END IF; --array registreringObj.varianter exists 
+	END IF; --array registreringObj.varianter exists
 
 
 
@@ -12614,20 +12614,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -12648,16 +12648,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -12670,7 +12670,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -12705,7 +12705,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_dokument(dokument_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_dokument(dokument_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_dokument(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -12714,7 +12714,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -12728,13 +12728,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_DokumentRegistreringType_to_json(DokumentRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_DokumentRegistreringType_to_json(DokumentRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -12742,44 +12742,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END dokumentegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift)
+        ELSE
         NULL
         END dokumentfremdrift
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -12793,7 +12793,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -12818,7 +12818,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -12836,13 +12836,13 @@ create cast (DokumentRegistreringType as json) with function actual_state._cast_
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_dokumentType_to_json(DokumentType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_dokumentType_to_json(DokumentType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg DokumentRegistreringType;
@@ -12871,7 +12871,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (DokumentType as json);
-create cast (DokumentType as json) with function actual_state._cast_dokumentType_to_json(DokumentType); 
+create cast (DokumentType as json) with function actual_state._cast_dokumentType_to_json(DokumentType);
 
 
 
@@ -12930,14 +12930,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_dokument(
 	dokument_uuids uuid[],
 	registreringObjArr DokumentRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	dokument_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	dokument_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj DokumentEgenskaberAttrType;
-	
+
   	tilsFremdriftTypeObj DokumentFremdriftTilsType;
 	relationTypeObj DokumentRelationType;
 	registreringObj DokumentRegistreringType;
@@ -12951,8 +12951,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF dokument_uuids IS NULL OR coalesce(array_length(dokument_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -12971,7 +12971,7 @@ dokument_candidates:= dokument_uuids;
 --RAISE DEBUG 'dokument_candidates step 1:%',dokument_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -12983,44 +12983,44 @@ ELSE
 		LOOP
 			dokument_candidates:=array(
 			SELECT DISTINCT
-			b.dokument_id 
-			FROM  dokument_attr_egenskaber a 
-			JOIN dokument_registrering b on a.dokument_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.dokument_id
+			FROM  dokument_attr_egenskaber a
+			JOIN dokument_registrering b on a.dokument_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.brevdato IS NULL
-					OR 
-					a.brevdato = attrEgenskaberTypeObj.brevdato 
+					OR
+					a.brevdato = attrEgenskaberTypeObj.brevdato
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.kassationskode IS NULL
-					OR 
-					a.kassationskode = attrEgenskaberTypeObj.kassationskode 
+					OR
+					a.kassationskode = attrEgenskaberTypeObj.kassationskode
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.major IS NULL
-					OR 
-					a.major = attrEgenskaberTypeObj.major 
+					OR
+					a.major = attrEgenskaberTypeObj.major
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.minor IS NULL
-					OR 
-					a.minor = attrEgenskaberTypeObj.minor 
+					OR
+					a.minor = attrEgenskaberTypeObj.minor
 				)
 				AND
 				(
@@ -13030,7 +13030,7 @@ ELSE
 							(
 								(attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel IS NULL
 								OR
-								(a.offentlighedundtaget).AlternativTitel = (attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel 
+								(a.offentlighedundtaget).AlternativTitel = (attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel
 							)
 							AND
 							(
@@ -13038,30 +13038,30 @@ ELSE
 								OR
 								(a.offentlighedundtaget).Hjemmel = (attrEgenskaberTypeObj.offentlighedundtaget).Hjemmel
 							)
-						) 
+						)
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.titel IS NULL
-					OR 
-					a.titel = attrEgenskaberTypeObj.titel 
+					OR
+					a.titel = attrEgenskaberTypeObj.titel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.dokumenttype IS NULL
-					OR 
-					a.dokumenttype = attrEgenskaberTypeObj.dokumenttype 
+					OR
+					a.dokumenttype = attrEgenskaberTypeObj.dokumenttype
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.dokument_id = ANY (dokument_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -13077,15 +13077,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsFremdrift IS NULL THEN
 	--RAISE DEBUG 'as_search_dokument: skipping filtration on tilsFremdrift';
 ELSE
-	IF coalesce(array_length(dokument_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(dokument_candidates,1),0)>0 THEN
 
 		FOREACH tilsFremdriftTypeObj IN ARRAY registreringObj.tilsFremdrift
 		LOOP
 			dokument_candidates:=array(
 			SELECT DISTINCT
-			b.dokument_id 
+			b.dokument_id
 			FROM  dokument_tils_fremdrift a
-			JOIN dokument_registrering b on a.dokument_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN dokument_registrering b on a.dokument_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsFremdriftTypeObj.fremdrift IS NULL
@@ -13095,7 +13095,7 @@ ELSE
 				AND b.dokument_id = ANY (dokument_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -13121,11 +13121,11 @@ ELSE
 		LOOP
 			dokument_candidates:=array(
 			SELECT DISTINCT
-			b.dokument_id 
+			b.dokument_id
 			FROM  dokument_relation a
 			JOIN dokument_registrering b on a.dokument_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -13134,7 +13134,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -13149,7 +13149,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.dokument_id = ANY (dokument_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -13161,7 +13161,7 @@ END IF;
 
 dokument_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (dokument_passed_auth_filter) a(id)
 UNION
@@ -13171,7 +13171,7 @@ FROM
 unnest (dokument_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(dokument_passed_auth_filter,1),0)=coalesce(array_length(dokument_uuids,1),0) AND dokument_passed_auth_filter @>dokument_uuids THEN
 	RETURN dokument_passed_auth_filter;
 END IF;
@@ -13184,7 +13184,7 @@ RETURN dokument_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -13251,7 +13251,7 @@ CREATE TYPE FacetType AS
 (
   id uuid,
   registrering FacetRegistreringType[]
-);  
+);
 
 
 
@@ -13308,7 +13308,7 @@ CREATE TABLE facet_registrering (
    CONSTRAINT facet_registrering_facet_fkey FOREIGN KEY (facet_id)
        REFERENCES facet (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT facet_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT facet_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(facet_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -13391,8 +13391,8 @@ ALTER TABLE facet_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX facet_attr_egenskaber_pat_brugervendtnoegle
             ON facet_attr_egenskaber
             USING gin
@@ -13401,9 +13401,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_brugervendtnoegle
             ON facet_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_beskrivelse
             ON facet_attr_egenskaber
             USING gin
@@ -13412,9 +13412,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_beskrivelse
             ON facet_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-     
+            (beskrivelse);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_opbygning
             ON facet_attr_egenskaber
             USING gin
@@ -13423,9 +13423,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_opbygning
             ON facet_attr_egenskaber
             USING btree
-            (opbygning); 
- 
-     
+            (opbygning);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_ophavsret
             ON facet_attr_egenskaber
             USING gin
@@ -13434,9 +13434,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_ophavsret
             ON facet_attr_egenskaber
             USING btree
-            (ophavsret); 
- 
-     
+            (ophavsret);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_plan
             ON facet_attr_egenskaber
             USING gin
@@ -13445,9 +13445,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_plan
             ON facet_attr_egenskaber
             USING btree
-            (plan); 
- 
-     
+            (plan);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_supplement
             ON facet_attr_egenskaber
             USING gin
@@ -13456,9 +13456,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_supplement
             ON facet_attr_egenskaber
             USING btree
-            (supplement); 
- 
-     
+            (supplement);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_retskilde
             ON facet_attr_egenskaber
             USING gin
@@ -13467,9 +13467,9 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_retskilde
             ON facet_attr_egenskaber
             USING btree
-            (retskilde); 
- 
-     
+            (retskilde);
+
+
         CREATE INDEX facet_attr_egenskaber_pat_integrationsdata
             ON facet_attr_egenskaber
             USING gin
@@ -13478,7 +13478,7 @@ ALTER TABLE facet_attr_egenskaber
         CREATE INDEX facet_attr_egenskaber_idx_integrationsdata
             ON facet_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -13525,7 +13525,7 @@ ALTER TABLE facet_tils_publiceret_id_seq
 CREATE TABLE facet_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('facet_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret FacetPubliceretTils NOT NULL, 
+    publiceret FacetPubliceretTils NOT NULL,
     facet_registrering_id bigint not null,
     CONSTRAINT facet_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT facet_tils_publiceret_forkey_facetregistrering FOREIGN KEY (facet_registrering_id) REFERENCES facet_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -13543,7 +13543,7 @@ CREATE INDEX facet_tils_publiceret_idx_publiceret
     ON facet_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX facet_tils_publiceret_idx_virkning_aktoerref
     ON facet_tils_publiceret
     USING btree
@@ -13588,7 +13588,7 @@ CREATE TABLE facet_relation (
     rel_type FacetRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT facet_relation_forkey_facetregistrering FOREIGN KEY (facet_registrering_id) REFERENCES facet_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT facet_relation_pkey PRIMARY KEY (id),
@@ -13678,20 +13678,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr FacetPubliceretTilsTy
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -13699,15 +13699,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr FacetPubliceretTilsTy
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr FacetEgenskaberAttrType[])
   RETURNS FacetEgenskaberAttrType[] AS
   $$
-  DECLARE result FacetEgenskaberAttrType[]; 
-   DECLARE element FacetEgenskaberAttrType; 
+  DECLARE result FacetEgenskaberAttrType[];
+   DECLARE element FacetEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.opbygning IS NULL AND element.ophavsret IS NULL AND element.plan IS NULL AND element.supplement IS NULL AND element.retskilde IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.opbygning IS NULL AND element.ophavsret IS NULL AND element.plan IS NULL AND element.supplement IS NULL AND element.retskilde IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -13715,13 +13715,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr FacetEgenskaberAttrTy
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -13732,14 +13732,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr FacetRelationType[])
 RETURNS FacetRelationType[] AS
 $$
  DECLARE result FacetRelationType[];
- DECLARE element FacetRelationType;  
+ DECLARE element FacetRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -13747,13 +13747,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -13773,8 +13773,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_facet_registrering(
     facet_registrering
 ) RETURNS facet_registrering AS $BODY$
   SELECT * FROM facet_registrering as a WHERE
-    facet_id = $1.facet_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    facet_id = $1.facet_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -13863,17 +13863,17 @@ CREATE OR REPLACE FUNCTION as_update_facet(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber FacetEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber FacetEgenskaberAttrType[],
+
+
+
     tilsPubliceret FacetPubliceretTilsType[],
-    
+
 
     relationer FacetRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      FacetRegistreringType[] = null
@@ -13887,15 +13887,15 @@ DECLARE
     prev_facet_registrering facet_registrering;
     facet_relation_navn     FacetRelationKode;
 
-    
-    attrEgenskaberObj FacetEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj FacetEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from facet a join facet_registrering b ON b.facet_id=a.id WHERE a.id=facet_uuid) THEN
@@ -13938,7 +13938,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO facet_relation (facet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -13947,18 +13947,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH facet_relation_navn IN ARRAY ARRAY['ansvarlig'::FacetRelationKode ,  'ejer'::FacetRelationKode ,  'facettilhoerer'::FacetRelationKode  ]::FacetRelationKode[]  LOOP
         INSERT INTO facet_relation (facet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -13970,7 +13970,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -13990,13 +13990,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH facet_relation_navn IN ARRAY ARRAY['redaktoerer'::FacetRelationKode]::FacetRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM facet_relation
                      WHERE facet_registrering_id = new_facet_registrering.id AND rel_type = facet_relation_navn) THEN
-                    
+
                     INSERT INTO facet_relation (facet_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_facet_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -14004,15 +14004,15 @@ BEGIN
         WHERE
             facet_registrering_id = prev_facet_registrering.id AND rel_type = facet_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -14049,11 +14049,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.facet_registrering_id = prev_facet_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- facet_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -14068,7 +14068,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.beskrivelse,a.opbygning,a.ophavsret,a.plan,a.supplement,a.retskilde,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update facet with uuid [%], as the facet have overlapping virknings in the given egenskaber array :%', facet_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -14078,42 +14078,42 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).opbygning IS NULL  OR  (attrEgenskaberObj).ophavsret IS NULL  OR  (attrEgenskaberObj).plan IS NULL  OR  (attrEgenskaberObj).supplement IS NULL  OR  (attrEgenskaberObj).retskilde IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO facet_attr_egenskaber ( brugervendtnoegle,beskrivelse,opbygning,ophavsret,plan,supplement,retskilde,integrationsdata, virkning, facet_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.opbygning, a.opbygning),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.ophavsret, a.ophavsret),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.plan, a.plan),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.supplement, a.supplement),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.retskilde, a.retskilde),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -14128,26 +14128,26 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO facet_attr_egenskaber ( brugervendtnoegle,beskrivelse,opbygning,ophavsret,plan,supplement,retskilde,integrationsdata, virkning, facet_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.opbygning,
-                    
+
                      attrEgenskaberObj.ophavsret,
-                    
+
                      attrEgenskaberObj.plan,
-                    
+
                      attrEgenskaberObj.supplement,
-                    
+
                      attrEgenskaberObj.retskilde,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -14165,7 +14165,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO facet_attr_egenskaber ( brugervendtnoegle,beskrivelse,opbygning,ophavsret,plan,supplement,retskilde,integrationsdata, virkning, facet_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.opbygning,  attrEgenskaberObj.ophavsret,  attrEgenskaberObj.plan,  attrEgenskaberObj.supplement,  attrEgenskaberObj.retskilde,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_facet_registrering.id );
@@ -14186,24 +14186,24 @@ BEGIN
 
     INSERT INTO facet_attr_egenskaber ( brugervendtnoegle,beskrivelse,opbygning,ophavsret,plan,supplement,retskilde,integrationsdata, virkning, facet_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.opbygning,
-        
+
             a.ophavsret,
-        
+
             a.plan,
-        
+
             a.supplement,
-        
+
             a.retskilde,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -14245,23 +14245,23 @@ END IF;
     IF NOT (lower((read_new_facet.registrering[1].registrering).TimePeriod) = lower((new_facet_registrering.registrering).TimePeriod) and lower((read_prev_facet.registrering[1].registrering).TimePeriod)=lower((prev_facet_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating facet with id [%]: The ordering of as_list_facet should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', facet_uuid, to_json(new_facet_registrering), to_json(read_new_facet.registrering[1].registrering), to_json(prev_facet_registrering), to_json(prev_new_facet.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_facet_reg := ROW(
         ROW (null, (read_new_facet.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_facet.registrering[1]).tilsPubliceret ,
-        
+
         (read_new_facet.registrering[1]).attrEgenskaber ,
         (read_new_facet.registrering[1]).relationer
     )::facetRegistreringType;
 
     read_prev_facet_reg := ROW(
         ROW(null, (read_prev_facet.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_facet.registrering[1]).tilsPubliceret ,
-        
+
         (read_prev_facet.registrering[1]).attrEgenskaber ,
         (read_prev_facet.registrering[1]).relationer
     )::facetRegistreringType;
@@ -14294,21 +14294,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_facet (
     FacetRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE facet_registrering_id bigint;
 
-    
-    facet_attr_egenskaber_obj facetEgenskaberAttrType;
-    
 
-    
+    facet_attr_egenskaber_obj facetEgenskaberAttrType;
+
+
+
     facet_tils_publiceret_obj facetPubliceretTilsType;
-    
+
 
     facet_relationer FacetRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_facet_registrering facet_registrering;
@@ -14376,9 +14376,9 @@ IF facet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(facet
   FOREACH facet_attr_egenskaber_obj IN ARRAY facet_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO facet_attr_egenskaber (
-      
+
       brugervendtnoegle,
       beskrivelse,
       opbygning,
@@ -14391,7 +14391,7 @@ IF facet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(facet
       facet_registrering_id
     )
     SELECT
-     
+
      facet_attr_egenskaber_obj.brugervendtnoegle,
       facet_attr_egenskaber_obj.beskrivelse,
       facet_attr_egenskaber_obj.opbygning,
@@ -14403,8 +14403,8 @@ IF facet_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(facet
       facet_attr_egenskaber_obj.virkning,
       facet_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -14463,9 +14463,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(array[facet_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_facet(array[facet_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[facet_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import facet with uuid [%]. Object does not met stipulated criteria:%',facet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import facet with uuid [%]. Object does not met stipulated criteria:%',facet_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -14498,13 +14498,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_facet(facet_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(facet_uuids,1),0) AND auth_filtered_uuids @>facet_uuids) THEN
-  RAISE EXCEPTION 'Unable to list facet with uuids [%]. All objects do not fullfill the stipulated criteria:%',facet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list facet with uuids [%]. All objects do not fullfill the stipulated criteria:%',facet_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.facetObj) into result
 FROM
 (
@@ -14518,8 +14518,8 @@ ROW(
 			a.FacetAttrEgenskaberArr,
 			a.FacetRelationArr
 		)::FacetRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: FacetType  facetObj
 FROM
 (
@@ -14542,9 +14542,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) FacetRelationArr
 	FROM
 	(
@@ -14556,7 +14556,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -14564,7 +14564,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) FacetTilsPubliceretArr		
+				)) FacetTilsPubliceretArr
 			FROM
 			(
 					SELECT
@@ -14573,11 +14573,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.beskrivelse,
 					 		b.opbygning,
@@ -14587,35 +14587,35 @@ FROM
 					 		b.retskilde,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::FacetEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.beskrivelse,b.opbygning,b.ophavsret,b.plan,b.supplement,b.retskilde,b.integrationsdata,b.virkning
-                        
+
 					)) FacetAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id facet_id,
 					b.id facet_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		facet a
 					JOIN 		facet_registrering b 	ON b.facet_id=a.id
 					WHERE a.id = ANY (facet_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN facet_attr_egenskaber as b ON b.facet_registrering_id=a.facet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.facet_id,
 					a.facet_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN facet_tils_publiceret as b ON b.facet_registrering_id=a.facet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN facet_tils_publiceret as b ON b.facet_registrering_id=a.facet_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.facet_id,
 			a.facet_registrering_id,
 			a.registrering,
@@ -14631,7 +14631,7 @@ FROM
 ) as a
 
 WHERE a.facet_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.facet_id
 order by a.facet_id
 ) as x
@@ -14691,7 +14691,7 @@ CREATE OR REPLACE FUNCTION as_search_facet(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr FacetRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -14700,7 +14700,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj FacetEgenskaberAttrType;
 
-    
+
     tilsPubliceretTypeObj FacetPubliceretTilsType;
 
     relationTypeObj FacetRelationType;
@@ -14708,11 +14708,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -14735,20 +14735,20 @@ IF facet_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -14769,16 +14769,16 @@ IF facet_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -14791,7 +14791,7 @@ IF facet_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -14816,7 +14816,7 @@ END IF;
 --RAISE NOTICE 'facet_candidates step 2:%',facet_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -14825,20 +14825,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(facet_candidates,1),0)>0 OR NOT facet_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             facet_candidates:=array(
             SELECT DISTINCT
             b.facet_id
             FROM  facet_attr_egenskaber a
             JOIN facet_registrering b on a.facet_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -14860,7 +14860,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -14924,24 +14924,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -14962,16 +14962,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -14984,7 +14984,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15017,10 +15017,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.facet_id
-            
+
             FROM  facet_attr_egenskaber a
             JOIN facet_registrering b on a.facet_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -15031,7 +15031,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.supplement ILIKE anyAttrValue OR
                         a.retskilde ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -15040,24 +15040,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15078,16 +15078,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15100,7 +15100,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15184,20 +15184,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15218,16 +15218,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15240,7 +15240,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15343,26 +15343,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15383,16 +15383,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15405,7 +15405,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15432,38 +15432,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         facet_candidates:=array(
             SELECT DISTINCT
             b.facet_id
-            
+
             FROM  facet_relation a
             JOIN facet_registrering b on a.facet_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15484,16 +15484,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15506,7 +15506,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15533,38 +15533,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         facet_candidates:=array(
             SELECT DISTINCT
             b.facet_id
-            
+
             FROM  facet_relation a
             JOIN facet_registrering b on a.facet_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15585,16 +15585,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15607,7 +15607,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15628,7 +15628,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -15649,20 +15649,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -15683,16 +15683,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -15705,7 +15705,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -15740,7 +15740,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_facet(facet_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_facet(facet_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_facet(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -15749,7 +15749,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -15763,13 +15763,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_FacetRegistreringType_to_json(FacetRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_FacetRegistreringType_to_json(FacetRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -15777,44 +15777,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END facetegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END facetpubliceret
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -15828,7 +15828,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -15853,7 +15853,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -15871,13 +15871,13 @@ create cast (FacetRegistreringType as json) with function actual_state._cast_Fac
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_facetType_to_json(FacetType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_facetType_to_json(FacetType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg FacetRegistreringType;
@@ -15906,7 +15906,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (FacetType as json);
-create cast (FacetType as json) with function actual_state._cast_facetType_to_json(FacetType); 
+create cast (FacetType as json) with function actual_state._cast_facetType_to_json(FacetType);
 
 
 
@@ -15965,14 +15965,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_facet(
 	facet_uuids uuid[],
 	registreringObjArr FacetRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	facet_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	facet_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj FacetEgenskaberAttrType;
-	
+
   	tilsPubliceretTypeObj FacetPubliceretTilsType;
 	relationTypeObj FacetRelationType;
 	registreringObj FacetRegistreringType;
@@ -15986,8 +15986,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF facet_uuids IS NULL OR coalesce(array_length(facet_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -16006,7 +16006,7 @@ facet_candidates:= facet_uuids;
 --RAISE DEBUG 'facet_candidates step 1:%',facet_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -16018,61 +16018,61 @@ ELSE
 		LOOP
 			facet_candidates:=array(
 			SELECT DISTINCT
-			b.facet_id 
-			FROM  facet_attr_egenskaber a 
-			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.facet_id
+			FROM  facet_attr_egenskaber a
+			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.opbygning IS NULL
-					OR 
-					a.opbygning = attrEgenskaberTypeObj.opbygning 
+					OR
+					a.opbygning = attrEgenskaberTypeObj.opbygning
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.ophavsret IS NULL
-					OR 
-					a.ophavsret = attrEgenskaberTypeObj.ophavsret 
+					OR
+					a.ophavsret = attrEgenskaberTypeObj.ophavsret
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.plan IS NULL
-					OR 
-					a.plan = attrEgenskaberTypeObj.plan 
+					OR
+					a.plan = attrEgenskaberTypeObj.plan
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.supplement IS NULL
-					OR 
-					a.supplement = attrEgenskaberTypeObj.supplement 
+					OR
+					a.supplement = attrEgenskaberTypeObj.supplement
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.retskilde IS NULL
-					OR 
-					a.retskilde = attrEgenskaberTypeObj.retskilde 
+					OR
+					a.retskilde = attrEgenskaberTypeObj.retskilde
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.facet_id = ANY (facet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -16088,15 +16088,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_facet: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(facet_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(facet_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			facet_candidates:=array(
 			SELECT DISTINCT
-			b.facet_id 
+			b.facet_id
 			FROM  facet_tils_publiceret a
-			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -16106,7 +16106,7 @@ ELSE
 				AND b.facet_id = ANY (facet_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -16132,11 +16132,11 @@ ELSE
 		LOOP
 			facet_candidates:=array(
 			SELECT DISTINCT
-			b.facet_id 
+			b.facet_id
 			FROM  facet_relation a
 			JOIN facet_registrering b on a.facet_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -16145,7 +16145,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -16160,7 +16160,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.facet_id = ANY (facet_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -16172,7 +16172,7 @@ END IF;
 
 facet_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (facet_passed_auth_filter) a(id)
 UNION
@@ -16182,7 +16182,7 @@ FROM
 unnest (facet_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(facet_passed_auth_filter,1),0)=coalesce(array_length(facet_uuids,1),0) AND facet_passed_auth_filter @>facet_uuids THEN
 	RETURN facet_passed_auth_filter;
 END IF;
@@ -16195,7 +16195,7 @@ RETURN facet_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -16270,7 +16270,7 @@ CREATE TYPE IndsatsType AS
 (
   id uuid,
   registrering IndsatsRegistreringType[]
-);  
+);
 
 
  CREATE Type _IndsatsRelationMaxIndex AS
@@ -16333,7 +16333,7 @@ CREATE TABLE indsats_registrering (
    CONSTRAINT indsats_registrering_indsats_fkey FOREIGN KEY (indsats_id)
        REFERENCES indsats (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT indsats_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT indsats_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(indsats_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -16413,8 +16413,8 @@ ALTER TABLE indsats_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX indsats_attr_egenskaber_pat_brugervendtnoegle
             ON indsats_attr_egenskaber
             USING gin
@@ -16423,9 +16423,9 @@ ALTER TABLE indsats_attr_egenskaber
         CREATE INDEX indsats_attr_egenskaber_idx_brugervendtnoegle
             ON indsats_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX indsats_attr_egenskaber_pat_beskrivelse
             ON indsats_attr_egenskaber
             USING gin
@@ -16434,33 +16434,33 @@ ALTER TABLE indsats_attr_egenskaber
         CREATE INDEX indsats_attr_egenskaber_idx_beskrivelse
             ON indsats_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-    
-        
-             
+            (beskrivelse);
+
+
+
+
                 CREATE INDEX indsats_attr_egenskaber_idx_starttidspunkt
                     ON indsats_attr_egenskaber
                     USING btree
                     (starttidspunkt);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX indsats_attr_egenskaber_idx_sluttidspunkt
                     ON indsats_attr_egenskaber
                     USING btree
                     (sluttidspunkt);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX indsats_attr_egenskaber_pat_integrationsdata
             ON indsats_attr_egenskaber
             USING gin
@@ -16469,7 +16469,7 @@ ALTER TABLE indsats_attr_egenskaber
         CREATE INDEX indsats_attr_egenskaber_idx_integrationsdata
             ON indsats_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -16516,7 +16516,7 @@ ALTER TABLE indsats_tils_publiceret_id_seq
 CREATE TABLE indsats_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('indsats_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret IndsatsPubliceretTils NOT NULL, 
+    publiceret IndsatsPubliceretTils NOT NULL,
     indsats_registrering_id bigint not null,
     CONSTRAINT indsats_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT indsats_tils_publiceret_forkey_indsatsregistrering FOREIGN KEY (indsats_registrering_id) REFERENCES indsats_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -16534,7 +16534,7 @@ CREATE INDEX indsats_tils_publiceret_idx_publiceret
     ON indsats_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX indsats_tils_publiceret_idx_virkning_aktoerref
     ON indsats_tils_publiceret
     USING btree
@@ -16569,7 +16569,7 @@ ALTER TABLE indsats_tils_fremdrift_id_seq
 CREATE TABLE indsats_tils_fremdrift (
     id bigint NOT NULL DEFAULT nextval('indsats_tils_fremdrift_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    fremdrift IndsatsFremdriftTils NOT NULL, 
+    fremdrift IndsatsFremdriftTils NOT NULL,
     indsats_registrering_id bigint not null,
     CONSTRAINT indsats_tils_fremdrift_pkey PRIMARY KEY (id),
     CONSTRAINT indsats_tils_fremdrift_forkey_indsatsregistrering FOREIGN KEY (indsats_registrering_id) REFERENCES indsats_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -16587,7 +16587,7 @@ CREATE INDEX indsats_tils_fremdrift_idx_fremdrift
     ON indsats_tils_fremdrift
     USING btree
     (fremdrift);
-  
+
 CREATE INDEX indsats_tils_fremdrift_idx_virkning_aktoerref
     ON indsats_tils_fremdrift
     USING btree
@@ -16632,9 +16632,9 @@ CREATE TABLE indsats_relation (
     rel_type IndsatsRelationKode not null,
     objekt_type text null,
 
-    
+
     rel_index int null,
-    
+
 
     CONSTRAINT indsats_relation_forkey_indsatsregistrering FOREIGN KEY (indsats_registrering_id) REFERENCES indsats_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT indsats_relation_pkey PRIMARY KEY (id),
@@ -16729,20 +16729,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsPubliceretTils
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -16757,20 +16757,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsFremdriftTilsT
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -16778,15 +16778,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsFremdriftTilsT
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsEgenskaberAttrType[])
   RETURNS IndsatsEgenskaberAttrType[] AS
   $$
-  DECLARE result IndsatsEgenskaberAttrType[]; 
-   DECLARE element IndsatsEgenskaberAttrType; 
+  DECLARE result IndsatsEgenskaberAttrType[];
+   DECLARE element IndsatsEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.starttidspunkt IS NULL AND element.sluttidspunkt IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.starttidspunkt IS NULL AND element.sluttidspunkt IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -16794,13 +16794,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsEgenskaberAttr
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -16811,7 +16811,7 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr IndsatsRelationType[]
 RETURNS IndsatsRelationType[] AS
 $$
  DECLARE result IndsatsRelationType[];
- DECLARE element IndsatsRelationType;  
+ DECLARE element IndsatsRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
@@ -16826,13 +16826,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -16852,8 +16852,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_indsats_registrering(
     indsats_registrering
 ) RETURNS indsats_registrering AS $BODY$
   SELECT * FROM indsats_registrering as a WHERE
-    indsats_id = $1.indsats_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    indsats_id = $1.indsats_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -16942,19 +16942,19 @@ CREATE OR REPLACE FUNCTION as_update_indsats(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber IndsatsEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber IndsatsEgenskaberAttrType[],
+
+
+
     tilsPubliceret IndsatsPubliceretTilsType[],
-    
+
     tilsFremdrift IndsatsFremdriftTilsType[],
-    
+
 
     relationer IndsatsRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      IndsatsRegistreringType[] = null
@@ -16968,22 +16968,22 @@ DECLARE
     prev_indsats_registrering indsats_registrering;
     indsats_relation_navn     IndsatsRelationKode;
 
-    
-    attrEgenskaberObj IndsatsEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj IndsatsEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     rel_type_max_index_prev_rev int;
     rel_type_max_index_arr _indsatsRelationMaxIndex[];
     indsats_rel_type_cardinality_unlimited indsatsRelationKode[]:=ARRAY['indsatskvalitet'::IndsatsRelationKode,'indsatsaktoer'::IndsatsRelationKode,'samtykke'::IndsatsRelationKode,'indsatssag'::IndsatsRelationKode,'indsatsdokument'::IndsatsRelationKode];
     indsats_uuid_underscores text;
     indsats_rel_seq_name text;
     indsats_rel_type_cardinality_unlimited_present_in_argument IndsatsRelationKode[];
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from indsats a join indsats_registrering b ON b.indsats_id=a.id WHERE a.id=indsats_uuid) THEN
@@ -17026,32 +17026,32 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
     -- Build array with the max index values of the different types of
     -- relations of the previous registration
-    
+
     SELECT array_agg(rel_type_max_index)::_indsatsRelationMaxIndex[] into rel_type_max_index_arr
-    
+
     FROM
     (
         SELECT
-        
+
         (ROW(rel_type,coalesce(max(rel_index),0))::_indsatsRelationMaxIndex) rel_type_max_index
-        
+
             FROM indsats_relation a
            WHERE a.indsats_registrering_id=prev_indsats_registrering.id
              AND a.rel_type = ANY (indsats_rel_type_cardinality_unlimited)
         GROUP BY rel_type
     ) AS a;
 
- 
+
     ---Create temporary sequences
-    
+
     indsats_uuid_underscores:=replace(indsats_uuid::text, '-', '_');
-    
+
 
     SELECT array_agg(DISTINCT a.RelType) INTO indsats_rel_type_cardinality_unlimited_present_in_argument FROM unnest(relationer) a WHERE a.RelType = ANY (indsats_rel_type_cardinality_unlimited);
-    
+
 
     IF coalesce(array_length(indsats_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
         FOREACH indsats_relation_navn IN ARRAY (indsats_rel_type_cardinality_unlimited_present_in_argument) LOOP
@@ -17076,7 +17076,7 @@ BEGIN
 
         END LOOP;
     END IF;
-    
+
 
     INSERT INTO indsats_relation (indsats_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index )
     SELECT
@@ -17098,35 +17098,35 @@ BEGIN
                 END
             ELSE
                 NULL
-            END 
+            END
         FROM
-            unnest(relationer) AS a 
+            unnest(relationer) AS a
         LEFT JOIN indsats_relation b ON a.relType = ANY (indsats_rel_type_cardinality_unlimited) AND b.indsats_registrering_id = prev_indsats_registrering.id AND a.relType = b.rel_type AND a.indeks = b.rel_index ;
 
-    
+
     -- Drop temporary sequences
     IF coalesce(array_length(indsats_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
-        
+
         FOREACH indsats_relation_navn IN ARRAY (indsats_rel_type_cardinality_unlimited_present_in_argument)
-        
+
         LOOP
           indsats_rel_seq_name := 'indsats_' || indsats_relation_navn::text || indsats_uuid_underscores;
           EXECUTE 'DROP SEQUENCE ' || indsats_rel_seq_name || ';';
         END LOOP;
     END IF;
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
+
     -- Please notice, that for 0..1 relations for aktivitet, we're ignoring index
     -- here, and handling it the same way, that is done for other object types (like
     -- Facet, Klasse etc). That is, you only make changes for the
     -- virkningsperiod that you explicitly specify (unless you delete all relations)
-    
-    
+
+
     FOREACH indsats_relation_navn IN ARRAY ARRAY['indsatstype'::IndsatsRelationKode, 'indsatsmodtager'::IndsatsRelationKode]::IndsatsRelationKode[]
      LOOP
         INSERT INTO indsats_relation (indsats_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index )
@@ -17141,7 +17141,7 @@ BEGIN
             a.rel_type,
             a.objekt_type ,
                 NULL -- a.rel_index, rel_index is not to be used for 0..1 relations
-                
+
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -17161,7 +17161,7 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
                     INSERT INTO indsats_relation (indsats_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index )
                     SELECT
                         new_indsats_registrering.id,  a.virkning, a.rel_maal_uuid, a.rel_maal_urn, a.rel_type, a.objekt_type, a.rel_index
@@ -17174,12 +17174,12 @@ BEGIN
                     -- update-function
                     ;
 
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -17216,7 +17216,7 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.indsats_registrering_id = prev_indsats_registrering.id;
     END IF;
-    
+
     IF tilsFremdrift IS NOT NULL AND coalesce(array_length(tilsFremdrift, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Fremdrift] as it is explicit set to empty array';
     ELSE
@@ -17253,11 +17253,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.indsats_registrering_id = prev_indsats_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- indsats_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -17272,7 +17272,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.beskrivelse,a.starttidspunkt,a.sluttidspunkt,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update indsats with uuid [%], as the indsats have overlapping virknings in the given egenskaber array :%', indsats_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -17282,40 +17282,40 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).starttidspunkt IS NULL  OR  (attrEgenskaberObj).sluttidspunkt IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO indsats_attr_egenskaber ( brugervendtnoegle,beskrivelse,starttidspunkt,sluttidspunkt,integrationsdata, virkning, indsats_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.starttidspunkt).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.starttidspunkt).value, a.starttidspunkt)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             CASE WHEN ((attrEgenskaberObj.sluttidspunkt).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.sluttidspunkt).value, a.sluttidspunkt)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -17330,20 +17330,20 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO indsats_attr_egenskaber ( brugervendtnoegle,beskrivelse,starttidspunkt,sluttidspunkt,integrationsdata, virkning, indsats_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.starttidspunkt,
-                    
+
                      attrEgenskaberObj.sluttidspunkt,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -17361,7 +17361,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO indsats_attr_egenskaber ( brugervendtnoegle,beskrivelse,starttidspunkt,sluttidspunkt,integrationsdata, virkning, indsats_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.starttidspunkt,  attrEgenskaberObj.sluttidspunkt,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_indsats_registrering.id );
@@ -17382,18 +17382,18 @@ BEGIN
 
     INSERT INTO indsats_attr_egenskaber ( brugervendtnoegle,beskrivelse,starttidspunkt,sluttidspunkt,integrationsdata, virkning, indsats_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.starttidspunkt,
-        
+
             a.sluttidspunkt,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -17435,25 +17435,25 @@ END IF;
     IF NOT (lower((read_new_indsats.registrering[1].registrering).TimePeriod) = lower((new_indsats_registrering.registrering).TimePeriod) and lower((read_prev_indsats.registrering[1].registrering).TimePeriod)=lower((prev_indsats_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating indsats with id [%]: The ordering of as_list_indsats should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', indsats_uuid, to_json(new_indsats_registrering), to_json(read_new_indsats.registrering[1].registrering), to_json(prev_indsats_registrering), to_json(prev_new_indsats.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_indsats_reg := ROW(
         ROW (null, (read_new_indsats.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_indsats.registrering[1]).tilsPubliceret ,
         (read_new_indsats.registrering[1]).tilsFremdrift ,
-        
+
         (read_new_indsats.registrering[1]).attrEgenskaber ,
         (read_new_indsats.registrering[1]).relationer
     )::indsatsRegistreringType;
 
     read_prev_indsats_reg := ROW(
         ROW(null, (read_prev_indsats.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_indsats.registrering[1]).tilsPubliceret ,
         (read_prev_indsats.registrering[1]).tilsFremdrift ,
-        
+
         (read_prev_indsats.registrering[1]).attrEgenskaber ,
         (read_prev_indsats.registrering[1]).relationer
     )::indsatsRegistreringType;
@@ -17486,29 +17486,29 @@ CREATE OR REPLACE FUNCTION as_create_or_import_indsats (
     IndsatsRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE indsats_registrering_id bigint;
 
-    
-    indsats_attr_egenskaber_obj indsatsEgenskaberAttrType;
-    
 
-    
+    indsats_attr_egenskaber_obj indsatsEgenskaberAttrType;
+
+
+
     indsats_tils_publiceret_obj indsatsPubliceretTilsType;
-    
+
     indsats_tils_fremdrift_obj indsatsFremdriftTilsType;
-    
+
 
     indsats_relationer IndsatsRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     indsats_relation_kode indsatsRelationKode;
     indsats_uuid_underscores text;
     indsats_rel_seq_name text;
     indsats_rel_type_cardinality_unlimited indsatsRelationKode[]:=ARRAY['indsatskvalitet'::IndsatsRelationKode,'indsatsaktoer'::IndsatsRelationKode,'samtykke'::IndsatsRelationKode,'indsatssag'::IndsatsRelationKode,'indsatsdokument'::IndsatsRelationKode]::indsatsRelationKode[];
     indsats_rel_type_cardinality_unlimited_present_in_argument indsatsRelationKode[];
-    
+
 
     does_exist boolean;
     new_indsats_registrering indsats_registrering;
@@ -17576,9 +17576,9 @@ IF indsats_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(ind
   FOREACH indsats_attr_egenskaber_obj IN ARRAY indsats_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO indsats_attr_egenskaber (
-      
+
       brugervendtnoegle,
       beskrivelse,
       starttidspunkt,
@@ -17588,7 +17588,7 @@ IF indsats_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(ind
       indsats_registrering_id
     )
     SELECT
-     
+
      indsats_attr_egenskaber_obj.brugervendtnoegle,
       indsats_attr_egenskaber_obj.beskrivelse,
       indsats_attr_egenskaber_obj.starttidspunkt,
@@ -17597,8 +17597,8 @@ IF indsats_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(ind
       indsats_attr_egenskaber_obj.virkning,
       indsats_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -17697,7 +17697,7 @@ END IF;
       a.objektType,
       CASE WHEN a.relType = any (indsats_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('indsats_' || a.relType::text || indsats_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END
     FROM unnest(indsats_registrering.relationer) a
@@ -17720,9 +17720,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_indsats(array[indsats_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_indsats(array[indsats_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[indsats_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import indsats with uuid [%]. Object does not met stipulated criteria:%',indsats_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import indsats with uuid [%]. Object does not met stipulated criteria:%',indsats_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -17755,13 +17755,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_indsats(indsats_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_indsats(indsats_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(indsats_uuids,1),0) AND auth_filtered_uuids @>indsats_uuids) THEN
-  RAISE EXCEPTION 'Unable to list indsats with uuids [%]. All objects do not fullfill the stipulated criteria:%',indsats_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list indsats with uuids [%]. All objects do not fullfill the stipulated criteria:%',indsats_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.indsatsObj) into result
 FROM
 (
@@ -17776,8 +17776,8 @@ ROW(
 			a.IndsatsAttrEgenskaberArr,
 			a.IndsatsRelationArr
 		)::IndsatsRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: IndsatsType  indsatsObj
 FROM
 (
@@ -17802,9 +17802,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.virkning
-        
+
 	)) IndsatsRelationArr
 	FROM
 	(
@@ -17817,7 +17817,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -17825,7 +17825,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) IndsatsTilsPubliceretArr		
+				)) IndsatsTilsPubliceretArr
 			FROM
 			(
 			SELECT
@@ -17836,7 +17836,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.fremdrift
@@ -17844,7 +17844,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.fremdrift,b.virkning
-				)) IndsatsTilsFremdriftArr		
+				)) IndsatsTilsFremdriftArr
 			FROM
 			(
 					SELECT
@@ -17853,53 +17853,53 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.beskrivelse,
 					 		b.starttidspunkt,
 					 		b.sluttidspunkt,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::IndsatsEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.beskrivelse,b.starttidspunkt,b.sluttidspunkt,b.integrationsdata,b.virkning
-                        
+
 					)) IndsatsAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id indsats_id,
 					b.id indsats_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		indsats a
 					JOIN 		indsats_registrering b 	ON b.indsats_id=a.id
 					WHERE a.id = ANY (indsats_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN indsats_attr_egenskaber as b ON b.indsats_registrering_id=a.indsats_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.indsats_id,
 					a.indsats_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN indsats_tils_fremdrift as b ON b.indsats_registrering_id=a.indsats_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN indsats_tils_fremdrift as b ON b.indsats_registrering_id=a.indsats_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.indsats_id,
 			a.indsats_registrering_id,
 			a.registrering,
-			a.IndsatsAttrEgenskaberArr	
+			a.IndsatsAttrEgenskaberArr
 			) as a
-			LEFT JOIN indsats_tils_publiceret as b ON b.indsats_registrering_id=a.indsats_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN indsats_tils_publiceret as b ON b.indsats_registrering_id=a.indsats_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.indsats_id,
 			a.indsats_registrering_id,
 			a.registrering,
@@ -17917,7 +17917,7 @@ FROM
 ) as a
 
 WHERE a.indsats_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.indsats_id
 order by a.indsats_id
 ) as x
@@ -17980,7 +17980,7 @@ CREATE OR REPLACE FUNCTION as_search_indsats(
     ,
     search_operator_greater_than_or_equal_attr_egenskaber IndsatsEgenskaberAttrType[]=null,
     search_operator_less_than_or_equal_attr_egenskaber    IndsatsEgenskaberAttrType[]=null
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -17989,7 +17989,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj IndsatsEgenskaberAttrType;
 
-    
+
     tilsPubliceretTypeObj IndsatsPubliceretTilsType;
     tilsFremdriftTypeObj IndsatsFremdriftTilsType;
 
@@ -17998,11 +17998,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -18025,20 +18025,20 @@ IF indsats_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18059,16 +18059,16 @@ IF indsats_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18081,7 +18081,7 @@ IF indsats_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18106,7 +18106,7 @@ END IF;
 --RAISE NOTICE 'indsats_candidates step 2:%',indsats_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -18115,20 +18115,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(indsats_candidates,1),0)>0 OR NOT indsats_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             indsats_candidates:=array(
             SELECT DISTINCT
             b.indsats_id
             FROM  indsats_attr_egenskaber a
             JOIN indsats_registrering b on a.indsats_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -18150,7 +18150,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -18196,24 +18196,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18234,16 +18234,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18256,7 +18256,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18289,10 +18289,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.indsats_id
-            
+
             FROM  indsats_attr_egenskaber a
             JOIN indsats_registrering b on a.indsats_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -18300,7 +18300,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                                     a.starttidspunkt::text ilike anyAttrValue OR
                                     a.sluttidspunkt::text ilike anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -18309,24 +18309,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18347,16 +18347,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18369,7 +18369,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18453,20 +18453,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18487,16 +18487,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18509,7 +18509,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18588,20 +18588,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18622,16 +18622,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18644,7 +18644,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18747,33 +18747,33 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
+
                 AND
                 (
                         relationTypeObj.indeks IS NULL
                         OR
                         relationTypeObj.indeks = a.rel_index
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18794,16 +18794,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18816,7 +18816,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18843,38 +18843,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         indsats_candidates:=array(
             SELECT DISTINCT
             b.indsats_id
-            
+
             FROM  indsats_relation a
             JOIN indsats_registrering b on a.indsats_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18895,16 +18895,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -18917,7 +18917,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -18944,38 +18944,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         indsats_candidates:=array(
             SELECT DISTINCT
             b.indsats_id
-            
+
             FROM  indsats_relation a
             JOIN indsats_registrering b on a.indsats_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -18996,16 +18996,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -19018,7 +19018,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -19039,7 +19039,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
  --/**********************************************************//
@@ -19051,13 +19051,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                LOOP
                        indsats_candidates:=array(
                        SELECT DISTINCT
-                       b.indsats_id 
+                       b.indsats_id
                        FROM  indsats_attr_egenskaber a
                        JOIN indsats_registrering b on a.indsats_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -19097,45 +19097,45 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt
                                )
-                               
+
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -19156,16 +19156,16 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -19178,7 +19178,7 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -19190,13 +19190,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                ((NOT indsats_candidates_is_initialized) OR b.indsats_id = ANY (indsats_candidates) )
 
                        );
-                       
+
 
                        indsats_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG 'indsats_candidates_is_initialized step 3:%',indsats_candidates_is_initialized;
@@ -19211,13 +19211,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                LOOP
                        indsats_candidates:=array(
                        SELECT DISTINCT
-                       b.indsats_id 
+                       b.indsats_id
                        FROM  indsats_attr_egenskaber a
                        JOIN indsats_registrering b on a.indsats_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -19239,7 +19239,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                                        )
                                                        AND
                                                        (
-                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                                                        )
                                                )
                                        )
@@ -19257,45 +19257,45 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle
                                )
-                               
+
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt
                                )
-                               
+
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -19316,16 +19316,16 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -19338,7 +19338,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -19350,13 +19350,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                ((NOT indsats_candidates_is_initialized) OR b.indsats_id = ANY (indsats_candidates) )
 
                        );
-                       
+
 
                        indsats_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG 'indsats_candidates_is_initialized step 3:%',indsats_candidates_is_initialized;
@@ -19382,20 +19382,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -19416,16 +19416,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -19438,7 +19438,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -19473,7 +19473,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_indsats(indsats_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_indsats(indsats_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_indsats(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -19482,7 +19482,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -19496,13 +19496,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_IndsatsRegistreringType_to_json(IndsatsRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_IndsatsRegistreringType_to_json(IndsatsRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -19510,51 +19510,51 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END indsatsegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END indsatspubliceret
         ,
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift) 
-        ELSE 
+
+        CASE
+        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift)
+        ELSE
         NULL
         END indsatsfremdrift
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -19568,7 +19568,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -19593,7 +19593,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -19611,13 +19611,13 @@ create cast (IndsatsRegistreringType as json) with function actual_state._cast_I
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_indsatsType_to_json(IndsatsType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_indsatsType_to_json(IndsatsType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg IndsatsRegistreringType;
@@ -19646,7 +19646,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (IndsatsType as json);
-create cast (IndsatsType as json) with function actual_state._cast_indsatsType_to_json(IndsatsType); 
+create cast (IndsatsType as json) with function actual_state._cast_indsatsType_to_json(IndsatsType);
 
 
 
@@ -19705,14 +19705,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_indsats(
 	indsats_uuids uuid[],
 	registreringObjArr IndsatsRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	indsats_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	indsats_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj IndsatsEgenskaberAttrType;
-	
+
   	tilsPubliceretTypeObj IndsatsPubliceretTilsType;
   	tilsFremdriftTypeObj IndsatsFremdriftTilsType;
 	relationTypeObj IndsatsRelationType;
@@ -19727,8 +19727,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF indsats_uuids IS NULL OR coalesce(array_length(indsats_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -19747,7 +19747,7 @@ indsats_candidates:= indsats_uuids;
 --RAISE DEBUG 'indsats_candidates step 1:%',indsats_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -19759,43 +19759,43 @@ ELSE
 		LOOP
 			indsats_candidates:=array(
 			SELECT DISTINCT
-			b.indsats_id 
-			FROM  indsats_attr_egenskaber a 
-			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.indsats_id
+			FROM  indsats_attr_egenskaber a
+			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.starttidspunkt IS NULL
-					OR 
-					a.starttidspunkt = attrEgenskaberTypeObj.starttidspunkt 
+					OR
+					a.starttidspunkt = attrEgenskaberTypeObj.starttidspunkt
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.sluttidspunkt IS NULL
-					OR 
-					a.sluttidspunkt = attrEgenskaberTypeObj.sluttidspunkt 
+					OR
+					a.sluttidspunkt = attrEgenskaberTypeObj.sluttidspunkt
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.indsats_id = ANY (indsats_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -19811,15 +19811,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_indsats: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(indsats_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(indsats_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			indsats_candidates:=array(
 			SELECT DISTINCT
-			b.indsats_id 
+			b.indsats_id
 			FROM  indsats_tils_publiceret a
-			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -19829,7 +19829,7 @@ ELSE
 				AND b.indsats_id = ANY (indsats_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -19839,15 +19839,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsFremdrift IS NULL THEN
 	--RAISE DEBUG 'as_search_indsats: skipping filtration on tilsFremdrift';
 ELSE
-	IF coalesce(array_length(indsats_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(indsats_candidates,1),0)>0 THEN
 
 		FOREACH tilsFremdriftTypeObj IN ARRAY registreringObj.tilsFremdrift
 		LOOP
 			indsats_candidates:=array(
 			SELECT DISTINCT
-			b.indsats_id 
+			b.indsats_id
 			FROM  indsats_tils_fremdrift a
-			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsFremdriftTypeObj.fremdrift IS NULL
@@ -19857,7 +19857,7 @@ ELSE
 				AND b.indsats_id = ANY (indsats_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -19883,11 +19883,11 @@ ELSE
 		LOOP
 			indsats_candidates:=array(
 			SELECT DISTINCT
-			b.indsats_id 
+			b.indsats_id
 			FROM  indsats_relation a
 			JOIN indsats_registrering b on a.indsats_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -19896,7 +19896,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -19911,7 +19911,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.indsats_id = ANY (indsats_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -19923,7 +19923,7 @@ END IF;
 
 indsats_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (indsats_passed_auth_filter) a(id)
 UNION
@@ -19933,7 +19933,7 @@ FROM
 unnest (indsats_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(indsats_passed_auth_filter,1),0)=coalesce(array_length(indsats_uuids,1),0) AND indsats_passed_auth_filter @>indsats_uuids THEN
 	RETURN indsats_passed_auth_filter;
 END IF;
@@ -19946,7 +19946,7 @@ RETURN indsats_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -20009,7 +20009,7 @@ CREATE TYPE InteressefaellesskabType AS
 (
   id uuid,
   registrering InteressefaellesskabRegistreringType[]
-);  
+);
 
 
 
@@ -20066,7 +20066,7 @@ CREATE TABLE interessefaellesskab_registrering (
    CONSTRAINT interessefaellesskab_registrering_interessefaellesskab_fkey FOREIGN KEY (interessefaellesskab_id)
        REFERENCES interessefaellesskab (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT interessefaellesskab_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT interessefaellesskab_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(interessefaellesskab_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -20145,8 +20145,8 @@ ALTER TABLE interessefaellesskab_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX interessefaellesskab_attr_egenskaber_pat_brugervendtnoegle
             ON interessefaellesskab_attr_egenskaber
             USING gin
@@ -20155,9 +20155,9 @@ ALTER TABLE interessefaellesskab_attr_egenskaber
         CREATE INDEX interessefaellesskab_attr_egenskaber_idx_brugervendtnoegle
             ON interessefaellesskab_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX interessefaellesskab_attr_egenskaber_pat_interessefaellesskabsnavn
             ON interessefaellesskab_attr_egenskaber
             USING gin
@@ -20166,9 +20166,9 @@ ALTER TABLE interessefaellesskab_attr_egenskaber
         CREATE INDEX interessefaellesskab_attr_egenskaber_idx_interessefaellesskabsnavn
             ON interessefaellesskab_attr_egenskaber
             USING btree
-            (interessefaellesskabsnavn); 
- 
-     
+            (interessefaellesskabsnavn);
+
+
         CREATE INDEX interessefaellesskab_attr_egenskaber_pat_interessefaellesskabstype
             ON interessefaellesskab_attr_egenskaber
             USING gin
@@ -20177,9 +20177,9 @@ ALTER TABLE interessefaellesskab_attr_egenskaber
         CREATE INDEX interessefaellesskab_attr_egenskaber_idx_interessefaellesskabstype
             ON interessefaellesskab_attr_egenskaber
             USING btree
-            (interessefaellesskabstype); 
- 
-     
+            (interessefaellesskabstype);
+
+
         CREATE INDEX interessefaellesskab_attr_egenskaber_pat_integrationsdata
             ON interessefaellesskab_attr_egenskaber
             USING gin
@@ -20188,7 +20188,7 @@ ALTER TABLE interessefaellesskab_attr_egenskaber
         CREATE INDEX interessefaellesskab_attr_egenskaber_idx_integrationsdata
             ON interessefaellesskab_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -20235,7 +20235,7 @@ ALTER TABLE interessefaellesskab_tils_gyldighed_id_seq
 CREATE TABLE interessefaellesskab_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('interessefaellesskab_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed InteressefaellesskabGyldighedTils NOT NULL, 
+    gyldighed InteressefaellesskabGyldighedTils NOT NULL,
     interessefaellesskab_registrering_id bigint not null,
     CONSTRAINT interessefaellesskab_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT interessefaellesskab_tils_gyldighed_forkey_interessefaellesskabregistrering FOREIGN KEY (interessefaellesskab_registrering_id) REFERENCES interessefaellesskab_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -20253,7 +20253,7 @@ CREATE INDEX interessefaellesskab_tils_gyldighed_idx_gyldighed
     ON interessefaellesskab_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX interessefaellesskab_tils_gyldighed_idx_virkning_aktoerref
     ON interessefaellesskab_tils_gyldighed
     USING btree
@@ -20298,7 +20298,7 @@ CREATE TABLE interessefaellesskab_relation (
     rel_type InteressefaellesskabRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT interessefaellesskab_relation_forkey_interessefaellesskabregistrering FOREIGN KEY (interessefaellesskab_registrering_id) REFERENCES interessefaellesskab_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT interessefaellesskab_relation_pkey PRIMARY KEY (id),
@@ -20388,20 +20388,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr InteressefaellesskabG
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -20409,15 +20409,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr InteressefaellesskabG
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr InteressefaellesskabEgenskaberAttrType[])
   RETURNS InteressefaellesskabEgenskaberAttrType[] AS
   $$
-  DECLARE result InteressefaellesskabEgenskaberAttrType[]; 
-   DECLARE element InteressefaellesskabEgenskaberAttrType; 
+  DECLARE result InteressefaellesskabEgenskaberAttrType[];
+   DECLARE element InteressefaellesskabEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.interessefaellesskabsnavn IS NULL AND element.interessefaellesskabstype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.interessefaellesskabsnavn IS NULL AND element.interessefaellesskabstype IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -20425,13 +20425,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr InteressefaellesskabE
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -20442,14 +20442,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr InteressefaellesskabR
 RETURNS InteressefaellesskabRelationType[] AS
 $$
  DECLARE result InteressefaellesskabRelationType[];
- DECLARE element InteressefaellesskabRelationType;  
+ DECLARE element InteressefaellesskabRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -20457,13 +20457,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -20483,8 +20483,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_interessefaellesskab_registrering(
     interessefaellesskab_registrering
 ) RETURNS interessefaellesskab_registrering AS $BODY$
   SELECT * FROM interessefaellesskab_registrering as a WHERE
-    interessefaellesskab_id = $1.interessefaellesskab_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    interessefaellesskab_id = $1.interessefaellesskab_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -20573,17 +20573,17 @@ CREATE OR REPLACE FUNCTION as_update_interessefaellesskab(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber InteressefaellesskabEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber InteressefaellesskabEgenskaberAttrType[],
+
+
+
     tilsGyldighed InteressefaellesskabGyldighedTilsType[],
-    
+
 
     relationer InteressefaellesskabRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      InteressefaellesskabRegistreringType[] = null
@@ -20597,15 +20597,15 @@ DECLARE
     prev_interessefaellesskab_registrering interessefaellesskab_registrering;
     interessefaellesskab_relation_navn     InteressefaellesskabRelationKode;
 
-    
-    attrEgenskaberObj InteressefaellesskabEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj InteressefaellesskabEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from interessefaellesskab a join interessefaellesskab_registrering b ON b.interessefaellesskab_id=a.id WHERE a.id=interessefaellesskab_uuid) THEN
@@ -20648,7 +20648,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO interessefaellesskab_relation (interessefaellesskab_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -20657,18 +20657,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH interessefaellesskab_relation_navn IN ARRAY ARRAY['branche'::InteressefaellesskabRelationKode ,  'interessefaellesskabstype'::InteressefaellesskabRelationKode ,  'overordnet'::InteressefaellesskabRelationKode ,  'tilhoerer'::InteressefaellesskabRelationKode  ]::InteressefaellesskabRelationKode[]  LOOP
         INSERT INTO interessefaellesskab_relation (interessefaellesskab_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -20680,7 +20680,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -20700,13 +20700,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH interessefaellesskab_relation_navn IN ARRAY ARRAY['adresser'::InteressefaellesskabRelationKode, 'opgaver'::InteressefaellesskabRelationKode, 'tilknyttedebrugere'::InteressefaellesskabRelationKode, 'tilknyttedeenheder'::InteressefaellesskabRelationKode, 'tilknyttedefunktioner'::InteressefaellesskabRelationKode, 'tilknyttedeinteressefaellesskaber'::InteressefaellesskabRelationKode, 'tilknyttedeorganisationer'::InteressefaellesskabRelationKode, 'tilknyttedepersoner'::InteressefaellesskabRelationKode, 'tilknyttedeitsystemer'::InteressefaellesskabRelationKode]::InteressefaellesskabRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM interessefaellesskab_relation
                      WHERE interessefaellesskab_registrering_id = new_interessefaellesskab_registrering.id AND rel_type = interessefaellesskab_relation_navn) THEN
-                    
+
                     INSERT INTO interessefaellesskab_relation (interessefaellesskab_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_interessefaellesskab_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -20714,15 +20714,15 @@ BEGIN
         WHERE
             interessefaellesskab_registrering_id = prev_interessefaellesskab_registrering.id AND rel_type = interessefaellesskab_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -20759,11 +20759,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.interessefaellesskab_registrering_id = prev_interessefaellesskab_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- interessefaellesskab_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -20778,7 +20778,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.interessefaellesskabsnavn,a.interessefaellesskabstype,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update interessefaellesskab with uuid [%], as the interessefaellesskab have overlapping virknings in the given egenskaber array :%', interessefaellesskab_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -20788,26 +20788,26 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).interessefaellesskabsnavn IS NULL  OR  (attrEgenskaberObj).interessefaellesskabstype IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO interessefaellesskab_attr_egenskaber ( brugervendtnoegle,interessefaellesskabsnavn,interessefaellesskabstype,integrationsdata, virkning, interessefaellesskab_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.interessefaellesskabsnavn, a.interessefaellesskabsnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.interessefaellesskabstype, a.interessefaellesskabstype),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -20822,18 +20822,18 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO interessefaellesskab_attr_egenskaber ( brugervendtnoegle,interessefaellesskabsnavn,interessefaellesskabstype,integrationsdata, virkning, interessefaellesskab_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.interessefaellesskabsnavn,
-                    
+
                      attrEgenskaberObj.interessefaellesskabstype,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -20851,7 +20851,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO interessefaellesskab_attr_egenskaber ( brugervendtnoegle,interessefaellesskabsnavn,interessefaellesskabstype,integrationsdata, virkning, interessefaellesskab_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.interessefaellesskabsnavn,  attrEgenskaberObj.interessefaellesskabstype,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_interessefaellesskab_registrering.id );
@@ -20872,16 +20872,16 @@ BEGIN
 
     INSERT INTO interessefaellesskab_attr_egenskaber ( brugervendtnoegle,interessefaellesskabsnavn,interessefaellesskabstype,integrationsdata, virkning, interessefaellesskab_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.interessefaellesskabsnavn,
-        
+
             a.interessefaellesskabstype,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -20923,23 +20923,23 @@ END IF;
     IF NOT (lower((read_new_interessefaellesskab.registrering[1].registrering).TimePeriod) = lower((new_interessefaellesskab_registrering.registrering).TimePeriod) and lower((read_prev_interessefaellesskab.registrering[1].registrering).TimePeriod)=lower((prev_interessefaellesskab_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating interessefaellesskab with id [%]: The ordering of as_list_interessefaellesskab should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', interessefaellesskab_uuid, to_json(new_interessefaellesskab_registrering), to_json(read_new_interessefaellesskab.registrering[1].registrering), to_json(prev_interessefaellesskab_registrering), to_json(prev_new_interessefaellesskab.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_interessefaellesskab_reg := ROW(
         ROW (null, (read_new_interessefaellesskab.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_interessefaellesskab.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_interessefaellesskab.registrering[1]).attrEgenskaber ,
         (read_new_interessefaellesskab.registrering[1]).relationer
     )::interessefaellesskabRegistreringType;
 
     read_prev_interessefaellesskab_reg := ROW(
         ROW(null, (read_prev_interessefaellesskab.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_interessefaellesskab.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_interessefaellesskab.registrering[1]).attrEgenskaber ,
         (read_prev_interessefaellesskab.registrering[1]).relationer
     )::interessefaellesskabRegistreringType;
@@ -20972,21 +20972,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_interessefaellesskab (
     InteressefaellesskabRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE interessefaellesskab_registrering_id bigint;
 
-    
-    interessefaellesskab_attr_egenskaber_obj interessefaellesskabEgenskaberAttrType;
-    
 
-    
+    interessefaellesskab_attr_egenskaber_obj interessefaellesskabEgenskaberAttrType;
+
+
+
     interessefaellesskab_tils_gyldighed_obj interessefaellesskabGyldighedTilsType;
-    
+
 
     interessefaellesskab_relationer InteressefaellesskabRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_interessefaellesskab_registrering interessefaellesskab_registrering;
@@ -21054,9 +21054,9 @@ IF interessefaellesskab_registrering.attrEgenskaber IS NOT NULL and coalesce(arr
   FOREACH interessefaellesskab_attr_egenskaber_obj IN ARRAY interessefaellesskab_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO interessefaellesskab_attr_egenskaber (
-      
+
       brugervendtnoegle,
       interessefaellesskabsnavn,
       interessefaellesskabstype,
@@ -21065,7 +21065,7 @@ IF interessefaellesskab_registrering.attrEgenskaber IS NOT NULL and coalesce(arr
       interessefaellesskab_registrering_id
     )
     SELECT
-     
+
      interessefaellesskab_attr_egenskaber_obj.brugervendtnoegle,
       interessefaellesskab_attr_egenskaber_obj.interessefaellesskabsnavn,
       interessefaellesskab_attr_egenskaber_obj.interessefaellesskabstype,
@@ -21073,8 +21073,8 @@ IF interessefaellesskab_registrering.attrEgenskaber IS NOT NULL and coalesce(arr
       interessefaellesskab_attr_egenskaber_obj.virkning,
       interessefaellesskab_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -21133,9 +21133,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(array[interessefaellesskab_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(array[interessefaellesskab_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[interessefaellesskab_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import interessefaellesskab with uuid [%]. Object does not met stipulated criteria:%',interessefaellesskab_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import interessefaellesskab with uuid [%]. Object does not met stipulated criteria:%',interessefaellesskab_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -21168,13 +21168,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(interessefaellesskab_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(interessefaellesskab_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(interessefaellesskab_uuids,1),0) AND auth_filtered_uuids @>interessefaellesskab_uuids) THEN
-  RAISE EXCEPTION 'Unable to list interessefaellesskab with uuids [%]. All objects do not fullfill the stipulated criteria:%',interessefaellesskab_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list interessefaellesskab with uuids [%]. All objects do not fullfill the stipulated criteria:%',interessefaellesskab_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.interessefaellesskabObj) into result
 FROM
 (
@@ -21188,8 +21188,8 @@ ROW(
 			a.InteressefaellesskabAttrEgenskaberArr,
 			a.InteressefaellesskabRelationArr
 		)::InteressefaellesskabRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: InteressefaellesskabType  interessefaellesskabObj
 FROM
 (
@@ -21212,9 +21212,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) InteressefaellesskabRelationArr
 	FROM
 	(
@@ -21226,7 +21226,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -21234,7 +21234,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) InteressefaellesskabTilsGyldighedArr		
+				)) InteressefaellesskabTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -21243,45 +21243,45 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.interessefaellesskabsnavn,
 					 		b.interessefaellesskabstype,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::InteressefaellesskabEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.interessefaellesskabsnavn,b.interessefaellesskabstype,b.integrationsdata,b.virkning
-                        
+
 					)) InteressefaellesskabAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id interessefaellesskab_id,
 					b.id interessefaellesskab_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		interessefaellesskab a
 					JOIN 		interessefaellesskab_registrering b 	ON b.interessefaellesskab_id=a.id
 					WHERE a.id = ANY (interessefaellesskab_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN interessefaellesskab_attr_egenskaber as b ON b.interessefaellesskab_registrering_id=a.interessefaellesskab_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.interessefaellesskab_id,
 					a.interessefaellesskab_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN interessefaellesskab_tils_gyldighed as b ON b.interessefaellesskab_registrering_id=a.interessefaellesskab_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN interessefaellesskab_tils_gyldighed as b ON b.interessefaellesskab_registrering_id=a.interessefaellesskab_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.interessefaellesskab_id,
 			a.interessefaellesskab_registrering_id,
 			a.registrering,
@@ -21297,7 +21297,7 @@ FROM
 ) as a
 
 WHERE a.interessefaellesskab_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.interessefaellesskab_id
 order by a.interessefaellesskab_id
 ) as x
@@ -21357,7 +21357,7 @@ CREATE OR REPLACE FUNCTION as_search_interessefaellesskab(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr InteressefaellesskabRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -21366,7 +21366,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj InteressefaellesskabEgenskaberAttrType;
 
-    
+
     tilsGyldighedTypeObj InteressefaellesskabGyldighedTilsType;
 
     relationTypeObj InteressefaellesskabRelationType;
@@ -21374,11 +21374,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -21401,20 +21401,20 @@ IF interessefaellesskab_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -21435,16 +21435,16 @@ IF interessefaellesskab_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -21457,7 +21457,7 @@ IF interessefaellesskab_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -21482,7 +21482,7 @@ END IF;
 --RAISE NOTICE 'interessefaellesskab_candidates step 2:%',interessefaellesskab_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -21491,20 +21491,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(interessefaellesskab_candidates,1),0)>0 OR NOT interessefaellesskab_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             interessefaellesskab_candidates:=array(
             SELECT DISTINCT
             b.interessefaellesskab_id
             FROM  interessefaellesskab_attr_egenskaber a
             JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -21526,7 +21526,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -21566,24 +21566,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -21604,16 +21604,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -21626,7 +21626,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -21659,17 +21659,17 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.interessefaellesskab_id
-            
+
             FROM  interessefaellesskab_attr_egenskaber a
             JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.interessefaellesskabsnavn ILIKE anyAttrValue OR
                         a.interessefaellesskabstype ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -21678,24 +21678,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -21716,16 +21716,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -21738,7 +21738,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -21822,20 +21822,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -21856,16 +21856,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -21878,7 +21878,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -21981,26 +21981,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -22021,16 +22021,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -22043,7 +22043,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -22070,38 +22070,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         interessefaellesskab_candidates:=array(
             SELECT DISTINCT
             b.interessefaellesskab_id
-            
+
             FROM  interessefaellesskab_relation a
             JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -22122,16 +22122,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -22144,7 +22144,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -22171,38 +22171,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         interessefaellesskab_candidates:=array(
             SELECT DISTINCT
             b.interessefaellesskab_id
-            
+
             FROM  interessefaellesskab_relation a
             JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -22223,16 +22223,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -22245,7 +22245,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -22266,7 +22266,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -22287,20 +22287,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -22321,16 +22321,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -22343,7 +22343,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -22378,7 +22378,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(interessefaellesskab_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_interessefaellesskab(interessefaellesskab_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_interessefaellesskab(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -22387,7 +22387,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -22401,13 +22401,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_InteressefaellesskabRegistreringType_to_json(InteressefaellesskabRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_InteressefaellesskabRegistreringType_to_json(InteressefaellesskabRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -22415,44 +22415,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END interessefaellesskabegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END interessefaellesskabgyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -22466,7 +22466,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -22491,7 +22491,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -22509,13 +22509,13 @@ create cast (InteressefaellesskabRegistreringType as json) with function actual_
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_interessefaellesskabType_to_json(InteressefaellesskabType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_interessefaellesskabType_to_json(InteressefaellesskabType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg InteressefaellesskabRegistreringType;
@@ -22544,7 +22544,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (InteressefaellesskabType as json);
-create cast (InteressefaellesskabType as json) with function actual_state._cast_interessefaellesskabType_to_json(InteressefaellesskabType); 
+create cast (InteressefaellesskabType as json) with function actual_state._cast_interessefaellesskabType_to_json(InteressefaellesskabType);
 
 
 
@@ -22603,14 +22603,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_interessefaellesskab(
 	interessefaellesskab_uuids uuid[],
 	registreringObjArr InteressefaellesskabRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	interessefaellesskab_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	interessefaellesskab_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj InteressefaellesskabEgenskaberAttrType;
-	
+
   	tilsGyldighedTypeObj InteressefaellesskabGyldighedTilsType;
 	relationTypeObj InteressefaellesskabRelationType;
 	registreringObj InteressefaellesskabRegistreringType;
@@ -22624,8 +22624,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF interessefaellesskab_uuids IS NULL OR coalesce(array_length(interessefaellesskab_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -22644,7 +22644,7 @@ interessefaellesskab_candidates:= interessefaellesskab_uuids;
 --RAISE DEBUG 'interessefaellesskab_candidates step 1:%',interessefaellesskab_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -22656,37 +22656,37 @@ ELSE
 		LOOP
 			interessefaellesskab_candidates:=array(
 			SELECT DISTINCT
-			b.interessefaellesskab_id 
-			FROM  interessefaellesskab_attr_egenskaber a 
-			JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.interessefaellesskab_id
+			FROM  interessefaellesskab_attr_egenskaber a
+			JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.interessefaellesskabsnavn IS NULL
-					OR 
-					a.interessefaellesskabsnavn = attrEgenskaberTypeObj.interessefaellesskabsnavn 
+					OR
+					a.interessefaellesskabsnavn = attrEgenskaberTypeObj.interessefaellesskabsnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.interessefaellesskabstype IS NULL
-					OR 
-					a.interessefaellesskabstype = attrEgenskaberTypeObj.interessefaellesskabstype 
+					OR
+					a.interessefaellesskabstype = attrEgenskaberTypeObj.interessefaellesskabstype
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.interessefaellesskab_id = ANY (interessefaellesskab_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -22702,15 +22702,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_interessefaellesskab: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(interessefaellesskab_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(interessefaellesskab_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			interessefaellesskab_candidates:=array(
 			SELECT DISTINCT
-			b.interessefaellesskab_id 
+			b.interessefaellesskab_id
 			FROM  interessefaellesskab_tils_gyldighed a
-			JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -22720,7 +22720,7 @@ ELSE
 				AND b.interessefaellesskab_id = ANY (interessefaellesskab_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -22746,11 +22746,11 @@ ELSE
 		LOOP
 			interessefaellesskab_candidates:=array(
 			SELECT DISTINCT
-			b.interessefaellesskab_id 
+			b.interessefaellesskab_id
 			FROM  interessefaellesskab_relation a
 			JOIN interessefaellesskab_registrering b on a.interessefaellesskab_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -22759,7 +22759,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -22774,7 +22774,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.interessefaellesskab_id = ANY (interessefaellesskab_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -22786,7 +22786,7 @@ END IF;
 
 interessefaellesskab_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (interessefaellesskab_passed_auth_filter) a(id)
 UNION
@@ -22796,7 +22796,7 @@ FROM
 unnest (interessefaellesskab_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(interessefaellesskab_passed_auth_filter,1),0)=coalesce(array_length(interessefaellesskab_uuids,1),0) AND interessefaellesskab_passed_auth_filter @>interessefaellesskab_uuids THEN
 	RETURN interessefaellesskab_passed_auth_filter;
 END IF;
@@ -22809,7 +22809,7 @@ RETURN interessefaellesskab_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -22873,7 +22873,7 @@ CREATE TYPE ItsystemType AS
 (
   id uuid,
   registrering ItsystemRegistreringType[]
-);  
+);
 
 
 
@@ -22930,7 +22930,7 @@ CREATE TABLE itsystem_registrering (
    CONSTRAINT itsystem_registrering_itsystem_fkey FOREIGN KEY (itsystem_id)
        REFERENCES itsystem (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT itsystem_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT itsystem_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(itsystem_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -23010,8 +23010,8 @@ ALTER TABLE itsystem_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX itsystem_attr_egenskaber_pat_brugervendtnoegle
             ON itsystem_attr_egenskaber
             USING gin
@@ -23020,9 +23020,9 @@ ALTER TABLE itsystem_attr_egenskaber
         CREATE INDEX itsystem_attr_egenskaber_idx_brugervendtnoegle
             ON itsystem_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX itsystem_attr_egenskaber_pat_itsystemnavn
             ON itsystem_attr_egenskaber
             USING gin
@@ -23031,9 +23031,9 @@ ALTER TABLE itsystem_attr_egenskaber
         CREATE INDEX itsystem_attr_egenskaber_idx_itsystemnavn
             ON itsystem_attr_egenskaber
             USING btree
-            (itsystemnavn); 
- 
-     
+            (itsystemnavn);
+
+
         CREATE INDEX itsystem_attr_egenskaber_pat_itsystemtype
             ON itsystem_attr_egenskaber
             USING gin
@@ -23042,13 +23042,13 @@ ALTER TABLE itsystem_attr_egenskaber
         CREATE INDEX itsystem_attr_egenskaber_idx_itsystemtype
             ON itsystem_attr_egenskaber
             USING btree
-            (itsystemtype); 
- 
-    
-         
-     
- 
-     
+            (itsystemtype);
+
+
+
+
+
+
         CREATE INDEX itsystem_attr_egenskaber_pat_integrationsdata
             ON itsystem_attr_egenskaber
             USING gin
@@ -23057,7 +23057,7 @@ ALTER TABLE itsystem_attr_egenskaber
         CREATE INDEX itsystem_attr_egenskaber_idx_integrationsdata
             ON itsystem_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -23104,7 +23104,7 @@ ALTER TABLE itsystem_tils_gyldighed_id_seq
 CREATE TABLE itsystem_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('itsystem_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed ItsystemGyldighedTils NOT NULL, 
+    gyldighed ItsystemGyldighedTils NOT NULL,
     itsystem_registrering_id bigint not null,
     CONSTRAINT itsystem_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT itsystem_tils_gyldighed_forkey_itsystemregistrering FOREIGN KEY (itsystem_registrering_id) REFERENCES itsystem_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -23122,7 +23122,7 @@ CREATE INDEX itsystem_tils_gyldighed_idx_gyldighed
     ON itsystem_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX itsystem_tils_gyldighed_idx_virkning_aktoerref
     ON itsystem_tils_gyldighed
     USING btree
@@ -23167,7 +23167,7 @@ CREATE TABLE itsystem_relation (
     rel_type ItsystemRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT itsystem_relation_forkey_itsystemregistrering FOREIGN KEY (itsystem_registrering_id) REFERENCES itsystem_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT itsystem_relation_pkey PRIMARY KEY (id),
@@ -23257,20 +23257,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr ItsystemGyldighedTils
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -23278,15 +23278,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr ItsystemGyldighedTils
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr ItsystemEgenskaberAttrType[])
   RETURNS ItsystemEgenskaberAttrType[] AS
   $$
-  DECLARE result ItsystemEgenskaberAttrType[]; 
-   DECLARE element ItsystemEgenskaberAttrType; 
+  DECLARE result ItsystemEgenskaberAttrType[];
+   DECLARE element ItsystemEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.itsystemnavn IS NULL AND element.itsystemtype IS NULL AND element.konfigurationreference IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.itsystemnavn IS NULL AND element.itsystemtype IS NULL AND element.konfigurationreference IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -23294,13 +23294,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr ItsystemEgenskaberAtt
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -23311,14 +23311,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr ItsystemRelationType[
 RETURNS ItsystemRelationType[] AS
 $$
  DECLARE result ItsystemRelationType[];
- DECLARE element ItsystemRelationType;  
+ DECLARE element ItsystemRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -23326,13 +23326,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -23352,8 +23352,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_itsystem_registrering(
     itsystem_registrering
 ) RETURNS itsystem_registrering AS $BODY$
   SELECT * FROM itsystem_registrering as a WHERE
-    itsystem_id = $1.itsystem_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    itsystem_id = $1.itsystem_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -23442,17 +23442,17 @@ CREATE OR REPLACE FUNCTION as_update_itsystem(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber ItsystemEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber ItsystemEgenskaberAttrType[],
+
+
+
     tilsGyldighed ItsystemGyldighedTilsType[],
-    
+
 
     relationer ItsystemRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      ItsystemRegistreringType[] = null
@@ -23466,15 +23466,15 @@ DECLARE
     prev_itsystem_registrering itsystem_registrering;
     itsystem_relation_navn     ItsystemRelationKode;
 
-    
-    attrEgenskaberObj ItsystemEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj ItsystemEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from itsystem a join itsystem_registrering b ON b.itsystem_id=a.id WHERE a.id=itsystem_uuid) THEN
@@ -23517,7 +23517,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO itsystem_relation (itsystem_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -23526,18 +23526,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH itsystem_relation_navn IN ARRAY ARRAY['tilhoerer'::ItsystemRelationKode  ]::ItsystemRelationKode[]  LOOP
         INSERT INTO itsystem_relation (itsystem_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -23549,7 +23549,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -23569,13 +23569,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH itsystem_relation_navn IN ARRAY ARRAY['tilknyttedeorganisationer'::ItsystemRelationKode, 'tilknyttedeenheder'::ItsystemRelationKode, 'tilknyttedefunktioner'::ItsystemRelationKode, 'tilknyttedebrugere'::ItsystemRelationKode, 'tilknyttedeinteressefaellesskaber'::ItsystemRelationKode, 'tilknyttedeitsystemer'::ItsystemRelationKode, 'tilknyttedepersoner'::ItsystemRelationKode, 'systemtyper'::ItsystemRelationKode, 'opgaver'::ItsystemRelationKode, 'adresser'::ItsystemRelationKode]::ItsystemRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM itsystem_relation
                      WHERE itsystem_registrering_id = new_itsystem_registrering.id AND rel_type = itsystem_relation_navn) THEN
-                    
+
                     INSERT INTO itsystem_relation (itsystem_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_itsystem_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -23583,15 +23583,15 @@ BEGIN
         WHERE
             itsystem_registrering_id = prev_itsystem_registrering.id AND rel_type = itsystem_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -23628,11 +23628,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.itsystem_registrering_id = prev_itsystem_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- itsystem_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -23647,7 +23647,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.itsystemnavn,a.itsystemtype,a.konfigurationreference,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update itsystem with uuid [%], as the itsystem have overlapping virknings in the given egenskaber array :%', itsystem_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -23657,30 +23657,30 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).itsystemnavn IS NULL  OR  (attrEgenskaberObj).itsystemtype IS NULL  OR  (attrEgenskaberObj).konfigurationreference IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO itsystem_attr_egenskaber ( brugervendtnoegle,itsystemnavn,itsystemtype,konfigurationreference,integrationsdata, virkning, itsystem_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.itsystemnavn, a.itsystemnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.itsystemtype, a.itsystemtype),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.konfigurationreference, a.konfigurationreference),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -23695,20 +23695,20 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO itsystem_attr_egenskaber ( brugervendtnoegle,itsystemnavn,itsystemtype,konfigurationreference,integrationsdata, virkning, itsystem_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.itsystemnavn,
-                    
+
                      attrEgenskaberObj.itsystemtype,
-                    
+
                      attrEgenskaberObj.konfigurationreference,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -23726,7 +23726,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO itsystem_attr_egenskaber ( brugervendtnoegle,itsystemnavn,itsystemtype,konfigurationreference,integrationsdata, virkning, itsystem_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.itsystemnavn,  attrEgenskaberObj.itsystemtype,  attrEgenskaberObj.konfigurationreference,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_itsystem_registrering.id );
@@ -23747,18 +23747,18 @@ BEGIN
 
     INSERT INTO itsystem_attr_egenskaber ( brugervendtnoegle,itsystemnavn,itsystemtype,konfigurationreference,integrationsdata, virkning, itsystem_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.itsystemnavn,
-        
+
             a.itsystemtype,
-        
+
             a.konfigurationreference,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -23800,23 +23800,23 @@ END IF;
     IF NOT (lower((read_new_itsystem.registrering[1].registrering).TimePeriod) = lower((new_itsystem_registrering.registrering).TimePeriod) and lower((read_prev_itsystem.registrering[1].registrering).TimePeriod)=lower((prev_itsystem_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating itsystem with id [%]: The ordering of as_list_itsystem should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', itsystem_uuid, to_json(new_itsystem_registrering), to_json(read_new_itsystem.registrering[1].registrering), to_json(prev_itsystem_registrering), to_json(prev_new_itsystem.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_itsystem_reg := ROW(
         ROW (null, (read_new_itsystem.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_itsystem.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_itsystem.registrering[1]).attrEgenskaber ,
         (read_new_itsystem.registrering[1]).relationer
     )::itsystemRegistreringType;
 
     read_prev_itsystem_reg := ROW(
         ROW(null, (read_prev_itsystem.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_itsystem.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_itsystem.registrering[1]).attrEgenskaber ,
         (read_prev_itsystem.registrering[1]).relationer
     )::itsystemRegistreringType;
@@ -23849,21 +23849,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_itsystem (
     ItsystemRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE itsystem_registrering_id bigint;
 
-    
-    itsystem_attr_egenskaber_obj itsystemEgenskaberAttrType;
-    
 
-    
+    itsystem_attr_egenskaber_obj itsystemEgenskaberAttrType;
+
+
+
     itsystem_tils_gyldighed_obj itsystemGyldighedTilsType;
-    
+
 
     itsystem_relationer ItsystemRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_itsystem_registrering itsystem_registrering;
@@ -23931,9 +23931,9 @@ IF itsystem_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(it
   FOREACH itsystem_attr_egenskaber_obj IN ARRAY itsystem_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO itsystem_attr_egenskaber (
-      
+
       brugervendtnoegle,
       itsystemnavn,
       itsystemtype,
@@ -23943,7 +23943,7 @@ IF itsystem_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(it
       itsystem_registrering_id
     )
     SELECT
-     
+
      itsystem_attr_egenskaber_obj.brugervendtnoegle,
       itsystem_attr_egenskaber_obj.itsystemnavn,
       itsystem_attr_egenskaber_obj.itsystemtype,
@@ -23952,8 +23952,8 @@ IF itsystem_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(it
       itsystem_attr_egenskaber_obj.virkning,
       itsystem_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -24012,9 +24012,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_itsystem(array[itsystem_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[itsystem_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import itsystem with uuid [%]. Object does not met stipulated criteria:%',itsystem_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import itsystem with uuid [%]. Object does not met stipulated criteria:%',itsystem_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -24047,13 +24047,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(itsystem_uuids,1),0) AND auth_filtered_uuids @>itsystem_uuids) THEN
-  RAISE EXCEPTION 'Unable to list itsystem with uuids [%]. All objects do not fullfill the stipulated criteria:%',itsystem_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list itsystem with uuids [%]. All objects do not fullfill the stipulated criteria:%',itsystem_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.itsystemObj) into result
 FROM
 (
@@ -24067,8 +24067,8 @@ ROW(
 			a.ItsystemAttrEgenskaberArr,
 			a.ItsystemRelationArr
 		)::ItsystemRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: ItsystemType  itsystemObj
 FROM
 (
@@ -24091,9 +24091,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) ItsystemRelationArr
 	FROM
 	(
@@ -24105,7 +24105,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -24113,7 +24113,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) ItsystemTilsGyldighedArr		
+				)) ItsystemTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -24122,46 +24122,46 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.itsystemnavn,
 					 		b.itsystemtype,
 					 		b.konfigurationreference,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::ItsystemEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.itsystemnavn,b.itsystemtype,b.konfigurationreference,b.integrationsdata,b.virkning
-                        
+
 					)) ItsystemAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id itsystem_id,
 					b.id itsystem_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		itsystem a
 					JOIN 		itsystem_registrering b 	ON b.itsystem_id=a.id
 					WHERE a.id = ANY (itsystem_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN itsystem_attr_egenskaber as b ON b.itsystem_registrering_id=a.itsystem_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.itsystem_id,
 					a.itsystem_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN itsystem_tils_gyldighed as b ON b.itsystem_registrering_id=a.itsystem_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN itsystem_tils_gyldighed as b ON b.itsystem_registrering_id=a.itsystem_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.itsystem_id,
 			a.itsystem_registrering_id,
 			a.registrering,
@@ -24177,7 +24177,7 @@ FROM
 ) as a
 
 WHERE a.itsystem_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.itsystem_id
 order by a.itsystem_id
 ) as x
@@ -24237,7 +24237,7 @@ CREATE OR REPLACE FUNCTION as_search_itsystem(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr ItsystemRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -24246,7 +24246,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj ItsystemEgenskaberAttrType;
 
-    
+
     tilsGyldighedTypeObj ItsystemGyldighedTilsType;
 
     relationTypeObj ItsystemRelationType;
@@ -24254,11 +24254,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -24281,20 +24281,20 @@ IF itsystem_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -24315,16 +24315,16 @@ IF itsystem_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -24337,7 +24337,7 @@ IF itsystem_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -24362,7 +24362,7 @@ END IF;
 --RAISE NOTICE 'itsystem_candidates step 2:%',itsystem_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -24371,20 +24371,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(itsystem_candidates,1),0)>0 OR NOT itsystem_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             itsystem_candidates:=array(
             SELECT DISTINCT
             b.itsystem_id
             FROM  itsystem_attr_egenskaber a
             JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -24406,7 +24406,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -24452,24 +24452,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -24490,16 +24490,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -24512,7 +24512,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -24545,10 +24545,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.itsystem_id
-            
+
             FROM  itsystem_attr_egenskaber a
             JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -24556,7 +24556,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.itsystemtype ILIKE anyAttrValue OR
                               _as_search_ilike_array(anyAttrValue,a.konfigurationreference) OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -24565,24 +24565,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -24603,16 +24603,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -24625,7 +24625,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -24709,20 +24709,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -24743,16 +24743,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -24765,7 +24765,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -24868,26 +24868,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -24908,16 +24908,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -24930,7 +24930,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -24957,38 +24957,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         itsystem_candidates:=array(
             SELECT DISTINCT
             b.itsystem_id
-            
+
             FROM  itsystem_relation a
             JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -25009,16 +25009,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -25031,7 +25031,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -25058,38 +25058,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         itsystem_candidates:=array(
             SELECT DISTINCT
             b.itsystem_id
-            
+
             FROM  itsystem_relation a
             JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -25110,16 +25110,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -25132,7 +25132,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -25153,7 +25153,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -25174,20 +25174,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -25208,16 +25208,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -25230,7 +25230,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -25265,7 +25265,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_itsystem(itsystem_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_itsystem(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -25274,7 +25274,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -25288,13 +25288,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_ItsystemRegistreringType_to_json(ItsystemRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_ItsystemRegistreringType_to_json(ItsystemRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -25302,44 +25302,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END itsystemegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END itsystemgyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -25353,7 +25353,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -25378,7 +25378,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -25396,13 +25396,13 @@ create cast (ItsystemRegistreringType as json) with function actual_state._cast_
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_itsystemType_to_json(ItsystemType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_itsystemType_to_json(ItsystemType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg ItsystemRegistreringType;
@@ -25431,7 +25431,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (ItsystemType as json);
-create cast (ItsystemType as json) with function actual_state._cast_itsystemType_to_json(ItsystemType); 
+create cast (ItsystemType as json) with function actual_state._cast_itsystemType_to_json(ItsystemType);
 
 
 
@@ -25490,14 +25490,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_itsystem(
 	itsystem_uuids uuid[],
 	registreringObjArr ItsystemRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	itsystem_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	itsystem_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj ItsystemEgenskaberAttrType;
-	
+
   	tilsGyldighedTypeObj ItsystemGyldighedTilsType;
 	relationTypeObj ItsystemRelationType;
 	registreringObj ItsystemRegistreringType;
@@ -25511,8 +25511,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF itsystem_uuids IS NULL OR coalesce(array_length(itsystem_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -25531,7 +25531,7 @@ itsystem_candidates:= itsystem_uuids;
 --RAISE DEBUG 'itsystem_candidates step 1:%',itsystem_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -25543,43 +25543,43 @@ ELSE
 		LOOP
 			itsystem_candidates:=array(
 			SELECT DISTINCT
-			b.itsystem_id 
-			FROM  itsystem_attr_egenskaber a 
-			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.itsystem_id
+			FROM  itsystem_attr_egenskaber a
+			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.itsystemnavn IS NULL
-					OR 
-					a.itsystemnavn = attrEgenskaberTypeObj.itsystemnavn 
+					OR
+					a.itsystemnavn = attrEgenskaberTypeObj.itsystemnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.itsystemtype IS NULL
-					OR 
-					a.itsystemtype = attrEgenskaberTypeObj.itsystemtype 
+					OR
+					a.itsystemtype = attrEgenskaberTypeObj.itsystemtype
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.konfigurationreference IS NULL
 					OR
-						((coalesce(array_length(attrEgenskaberTypeObj.konfigurationreference,1),0)=0 AND coalesce(array_length(a.konfigurationreference,1),0)=0 ) OR (attrEgenskaberTypeObj.konfigurationreference @> a.konfigurationreference AND a.konfigurationreference @>attrEgenskaberTypeObj.konfigurationreference  )) 
+						((coalesce(array_length(attrEgenskaberTypeObj.konfigurationreference,1),0)=0 AND coalesce(array_length(a.konfigurationreference,1),0)=0 ) OR (attrEgenskaberTypeObj.konfigurationreference @> a.konfigurationreference AND a.konfigurationreference @>attrEgenskaberTypeObj.konfigurationreference  ))
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.itsystem_id = ANY (itsystem_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -25595,15 +25595,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_itsystem: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(itsystem_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(itsystem_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			itsystem_candidates:=array(
 			SELECT DISTINCT
-			b.itsystem_id 
+			b.itsystem_id
 			FROM  itsystem_tils_gyldighed a
-			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -25613,7 +25613,7 @@ ELSE
 				AND b.itsystem_id = ANY (itsystem_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -25639,11 +25639,11 @@ ELSE
 		LOOP
 			itsystem_candidates:=array(
 			SELECT DISTINCT
-			b.itsystem_id 
+			b.itsystem_id
 			FROM  itsystem_relation a
 			JOIN itsystem_registrering b on a.itsystem_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -25652,7 +25652,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -25667,7 +25667,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.itsystem_id = ANY (itsystem_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -25679,7 +25679,7 @@ END IF;
 
 itsystem_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (itsystem_passed_auth_filter) a(id)
 UNION
@@ -25689,7 +25689,7 @@ FROM
 unnest (itsystem_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(itsystem_passed_auth_filter,1),0)=coalesce(array_length(itsystem_uuids,1),0) AND itsystem_passed_auth_filter @>itsystem_uuids THEN
 	RETURN itsystem_passed_auth_filter;
 END IF;
@@ -25702,7 +25702,7 @@ RETURN itsystem_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -25778,7 +25778,7 @@ CREATE TYPE KlasseType AS
 (
   id uuid,
   registrering KlasseRegistreringType[]
-);  
+);
 
 
 
@@ -25835,7 +25835,7 @@ CREATE TABLE klasse_registrering (
    CONSTRAINT klasse_registrering_klasse_fkey FOREIGN KEY (klasse_id)
        REFERENCES klasse (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT klasse_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT klasse_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(klasse_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -25918,8 +25918,8 @@ ALTER TABLE klasse_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_brugervendtnoegle
             ON klasse_attr_egenskaber
             USING gin
@@ -25928,9 +25928,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_brugervendtnoegle
             ON klasse_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_beskrivelse
             ON klasse_attr_egenskaber
             USING gin
@@ -25939,9 +25939,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_beskrivelse
             ON klasse_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-     
+            (beskrivelse);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_eksempel
             ON klasse_attr_egenskaber
             USING gin
@@ -25950,9 +25950,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_eksempel
             ON klasse_attr_egenskaber
             USING btree
-            (eksempel); 
- 
-     
+            (eksempel);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_omfang
             ON klasse_attr_egenskaber
             USING gin
@@ -25961,9 +25961,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_omfang
             ON klasse_attr_egenskaber
             USING btree
-            (omfang); 
- 
-     
+            (omfang);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_titel
             ON klasse_attr_egenskaber
             USING gin
@@ -25972,9 +25972,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_titel
             ON klasse_attr_egenskaber
             USING btree
-            (titel); 
- 
-     
+            (titel);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_retskilde
             ON klasse_attr_egenskaber
             USING gin
@@ -25983,9 +25983,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_retskilde
             ON klasse_attr_egenskaber
             USING btree
-            (retskilde); 
- 
-     
+            (retskilde);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_aendringsnotat
             ON klasse_attr_egenskaber
             USING gin
@@ -25994,9 +25994,9 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_aendringsnotat
             ON klasse_attr_egenskaber
             USING btree
-            (aendringsnotat); 
- 
-     
+            (aendringsnotat);
+
+
         CREATE INDEX klasse_attr_egenskaber_pat_integrationsdata
             ON klasse_attr_egenskaber
             USING gin
@@ -26005,7 +26005,7 @@ ALTER TABLE klasse_attr_egenskaber
         CREATE INDEX klasse_attr_egenskaber_idx_integrationsdata
             ON klasse_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -26109,7 +26109,7 @@ ALTER TABLE klasse_tils_publiceret_id_seq
 CREATE TABLE klasse_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('klasse_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret KlassePubliceretTils NOT NULL, 
+    publiceret KlassePubliceretTils NOT NULL,
     klasse_registrering_id bigint not null,
     CONSTRAINT klasse_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT klasse_tils_publiceret_forkey_klasseregistrering FOREIGN KEY (klasse_registrering_id) REFERENCES klasse_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -26127,7 +26127,7 @@ CREATE INDEX klasse_tils_publiceret_idx_publiceret
     ON klasse_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX klasse_tils_publiceret_idx_virkning_aktoerref
     ON klasse_tils_publiceret
     USING btree
@@ -26172,7 +26172,7 @@ CREATE TABLE klasse_relation (
     rel_type KlasseRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT klasse_relation_forkey_klasseregistrering FOREIGN KEY (klasse_registrering_id) REFERENCES klasse_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT klasse_relation_pkey PRIMARY KEY (id),
@@ -26262,20 +26262,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassePubliceretTilsT
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -26283,8 +26283,8 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassePubliceretTilsT
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlasseEgenskaberAttrType[])
   RETURNS KlasseEgenskaberAttrType[] AS
   $$
-  DECLARE result KlasseEgenskaberAttrType[]; 
-   DECLARE element KlasseEgenskaberAttrType; 
+  DECLARE result KlasseEgenskaberAttrType[];
+   DECLARE element KlasseEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
@@ -26299,13 +26299,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlasseEgenskaberAttrT
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -26316,14 +26316,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlasseRelationType[])
 RETURNS KlasseRelationType[] AS
 $$
  DECLARE result KlasseRelationType[];
- DECLARE element KlasseRelationType;  
+ DECLARE element KlasseRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -26331,13 +26331,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -26360,7 +26360,7 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlasseSoegeordType[])
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   IF array_length(result,1)=0 THEN
@@ -26370,7 +26370,7 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlasseSoegeordType[])
   END IF;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -26388,8 +26388,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_klasse_registrering(
     klasse_registrering
 ) RETURNS klasse_registrering AS $BODY$
   SELECT * FROM klasse_registrering as a WHERE
-    klasse_id = $1.klasse_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    klasse_id = $1.klasse_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -26478,17 +26478,17 @@ CREATE OR REPLACE FUNCTION as_update_klasse(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber KlasseEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber KlasseEgenskaberAttrType[],
+
+
+
     tilsPubliceret KlassePubliceretTilsType[],
-    
+
 
     relationer KlasseRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      KlasseRegistreringType[] = null
@@ -26502,18 +26502,18 @@ DECLARE
     prev_klasse_registrering klasse_registrering;
     klasse_relation_navn     KlasseRelationKode;
 
-    
-    attrEgenskaberObj KlasseEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj KlasseEgenskaberAttrType;
+
+
+
     new_id_klasse_attr_egenskaber bigint;
     klasseSoegeordObj KlasseSoegeordType;
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from klasse a join klasse_registrering b ON b.klasse_id=a.id WHERE a.id=klasse_uuid) THEN
@@ -26556,7 +26556,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO klasse_relation (klasse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -26565,18 +26565,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH klasse_relation_navn IN ARRAY ARRAY['ejer'::KlasseRelationKode ,  'ansvarlig'::KlasseRelationKode ,  'overordnetklasse'::KlasseRelationKode ,  'facet'::KlasseRelationKode  ]::KlasseRelationKode[]  LOOP
         INSERT INTO klasse_relation (klasse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -26588,7 +26588,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -26608,13 +26608,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH klasse_relation_navn IN ARRAY ARRAY['redaktoerer'::KlasseRelationKode, 'sideordnede'::KlasseRelationKode, 'mapninger'::KlasseRelationKode, 'tilfoejelser'::KlasseRelationKode, 'erstatter'::KlasseRelationKode, 'lovligekombinationer'::KlasseRelationKode]::KlasseRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM klasse_relation
                      WHERE klasse_registrering_id = new_klasse_registrering.id AND rel_type = klasse_relation_navn) THEN
-                    
+
                     INSERT INTO klasse_relation (klasse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_klasse_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -26622,15 +26622,15 @@ BEGIN
         WHERE
             klasse_registrering_id = prev_klasse_registrering.id AND rel_type = klasse_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -26667,11 +26667,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.klasse_registrering_id = prev_klasse_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- klasse_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -26688,7 +26688,7 @@ BEGIN
                     a.virkning
                     ,
                         a.soegeord
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update klasse with uuid [%], as the klasse have overlapping virknings in the given egenskaber array :%', klasse_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -26701,39 +26701,39 @@ BEGIN
              WITH inserted_merged_attr_egenskaber AS (
             INSERT INTO klasse_attr_egenskaber ( id,  brugervendtnoegle,beskrivelse,eksempel,omfang,titel,retskilde,aendringsnotat,integrationsdata, virkning, klasse_registrering_id)
                 SELECT
-                    
-                         nextval('klasse_attr_egenskaber_id_seq'), 
-                        
+
+                         nextval('klasse_attr_egenskaber_id_seq'),
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.eksempel, a.eksempel),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.omfang, a.omfang),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.titel, a.titel),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.retskilde, a.retskilde),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.aendringsnotat, a.aendringsnotat),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -26743,7 +26743,7 @@ BEGIN
                     WHERE
                         a.klasse_registrering_id = prev_klasse_registrering.id
                         AND (a.virkning).TimePeriod && (attrEgenskaberObj.virkning).TimePeriod
-                        
+
                         RETURNING
                             id new_id,
                             (virkning).TimePeriod merged_timeperiod
@@ -26768,28 +26768,28 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
         WITH inserted_attr_egenskaber AS (
-        
+
             INSERT INTO klasse_attr_egenskaber ( id,  brugervendtnoegle,beskrivelse,eksempel,omfang,titel,retskilde,aendringsnotat,integrationsdata, virkning, klasse_registrering_id)
                 SELECT
-                    
+
                      nextval('klasse_attr_egenskaber_id_seq'), attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.eksempel,
-                    
+
                      attrEgenskaberObj.omfang,
-                    
+
                      attrEgenskaberObj.titel,
-                    
+
                      attrEgenskaberObj.retskilde,
-                    
+
                      attrEgenskaberObj.aendringsnotat,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -26803,7 +26803,7 @@ BEGIN
                             coalesce(array_agg((b.virkning).TimePeriod), ARRAY[]::TSTZRANGE[]) tzranges_of_new_reg
                         FROM klasse_attr_egenskaber b
                     WHERE b.klasse_registrering_id = new_klasse_registrering.id) AS a
-                    JOIN unnest(_subtract_tstzrange_arr ((attrEgenskaberObj.virkning).TimePeriod, a.tzranges_of_new_reg)) AS b (tz_range_leftover) ON TRUE 
+                    JOIN unnest(_subtract_tstzrange_arr ((attrEgenskaberObj.virkning).TimePeriod, a.tzranges_of_new_reg)) AS b (tz_range_leftover) ON TRUE
                     RETURNING id
         ) INSERT INTO klasse_attr_egenskaber_soegeord(soegeordidentifikator, beskrivelse, soegeordskategori, klasse_attr_egenskaber_id)
         SELECT
@@ -26819,9 +26819,9 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
             new_id_klasse_attr_egenskaber := nextval('klasse_attr_egenskaber_id_seq');
-            
+
 
             INSERT INTO klasse_attr_egenskaber ( id,  brugervendtnoegle,beskrivelse,eksempel,omfang,titel,retskilde,aendringsnotat,integrationsdata, virkning, klasse_registrering_id)
                 VALUES ( new_id_klasse_attr_egenskaber,   attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.eksempel,  attrEgenskaberObj.omfang,  attrEgenskaberObj.titel,  attrEgenskaberObj.retskilde,  attrEgenskaberObj.aendringsnotat,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_klasse_registrering.id );
@@ -26836,7 +26836,7 @@ BEGIN
                 unnest(attrEgenskaberObj.soegeord) AS a (soegeordidentifikator, beskrivelse, soegeordskategori);
         END IF;
 
-        
+
         END IF;
 
         END LOOP;
@@ -26856,24 +26856,24 @@ WITH copied_attr_egenskaber AS (
 
     INSERT INTO klasse_attr_egenskaber ( id,  brugervendtnoegle,beskrivelse,eksempel,omfang,titel,retskilde,aendringsnotat,integrationsdata, virkning, klasse_registrering_id)
     SELECT
-         nextval('klasse_attr_egenskaber_id_seq'), 
-        
+         nextval('klasse_attr_egenskaber_id_seq'),
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.eksempel,
-        
+
             a.omfang,
-        
+
             a.titel,
-        
+
             a.retskilde,
-        
+
             a.aendringsnotat,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -26893,7 +26893,7 @@ WITH copied_attr_egenskaber AS (
             JOIN klasse_attr_egenskaber a ON TRUE
             JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE
-            a.klasse_registrering_id = prev_klasse_registrering.id 
+            a.klasse_registrering_id = prev_klasse_registrering.id
             RETURNING id new_id, (virkning).TimePeriod
     ) INSERT INTO klasse_attr_egenskaber_soegeord (soegeordidentifikator, beskrivelse, soegeordskategori, klasse_attr_egenskaber_id)
     SELECT
@@ -26925,23 +26925,23 @@ END IF;
     IF NOT (lower((read_new_klasse.registrering[1].registrering).TimePeriod) = lower((new_klasse_registrering.registrering).TimePeriod) and lower((read_prev_klasse.registrering[1].registrering).TimePeriod)=lower((prev_klasse_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating klasse with id [%]: The ordering of as_list_klasse should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', klasse_uuid, to_json(new_klasse_registrering), to_json(read_new_klasse.registrering[1].registrering), to_json(prev_klasse_registrering), to_json(prev_new_klasse.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_klasse_reg := ROW(
         ROW (null, (read_new_klasse.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_klasse.registrering[1]).tilsPubliceret ,
-        
+
         (read_new_klasse.registrering[1]).attrEgenskaber ,
         (read_new_klasse.registrering[1]).relationer
     )::klasseRegistreringType;
 
     read_prev_klasse_reg := ROW(
         ROW(null, (read_prev_klasse.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_klasse.registrering[1]).tilsPubliceret ,
-        
+
         (read_prev_klasse.registrering[1]).attrEgenskaber ,
         (read_prev_klasse.registrering[1]).relationer
     )::klasseRegistreringType;
@@ -26974,24 +26974,24 @@ CREATE OR REPLACE FUNCTION as_create_or_import_klasse (
     KlasseRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE klasse_registrering_id bigint;
 
-    
-    klasse_attr_egenskaber_obj klasseEgenskaberAttrType;
-    
 
-    
+    klasse_attr_egenskaber_obj klasseEgenskaberAttrType;
+
+
+
     klasse_tils_publiceret_obj klassePubliceretTilsType;
-    
+
 
     klasse_relationer KlasseRelationType;
 
-    
+
     klasse_attr_egenskaber_id bigint;
     klasse_attr_egenskaber_soegeord_obj KlasseSoegeordType;
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_klasse_registrering klasse_registrering;
@@ -27059,9 +27059,9 @@ IF klasse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(klas
   FOREACH klasse_attr_egenskaber_obj IN ARRAY klasse_registrering.attrEgenskaber
   LOOP
 
-  
+
   klasse_attr_egenskaber_id:=nextval('klasse_attr_egenskaber_id_seq');
-  
+
     INSERT INTO klasse_attr_egenskaber (
       id,
       brugervendtnoegle,
@@ -27088,15 +27088,15 @@ IF klasse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(klas
       klasse_attr_egenskaber_obj.virkning,
       klasse_registrering_id
     ;
-  
-    
+
+
  /************/
  --Insert Soegeord
   IF klasse_attr_egenskaber_obj.soegeord IS NOT NULL AND coalesce(array_length(klasse_attr_egenskaber_obj.soegeord,1),0)>1 THEN
     FOREACH klasse_attr_egenskaber_soegeord_obj IN ARRAY klasse_attr_egenskaber_obj.soegeord
       LOOP
 
-      IF (klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator<>'') 
+      IF (klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordidentifikator<>'')
       OR (klasse_attr_egenskaber_soegeord_obj.beskrivelse IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.beskrivelse<>'' )
       OR (klasse_attr_egenskaber_soegeord_obj.soegeordskategori IS NOT NULL AND klasse_attr_egenskaber_soegeord_obj.soegeordskategori<>'') THEN
 
@@ -27113,10 +27113,10 @@ IF klasse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(klas
         klasse_attr_egenskaber_id
       ;
       END IF;
- 
+
      END LOOP;
     END IF;
-    
+
   END LOOP;
 END IF;
 
@@ -27175,9 +27175,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(array[klasse_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klasse(array[klasse_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klasse_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klasse with uuid [%]. Object does not met stipulated criteria:%',klasse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import klasse with uuid [%]. Object does not met stipulated criteria:%',klasse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -27210,13 +27210,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klasse_uuids,1),0) AND auth_filtered_uuids @>klasse_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klasse with uuids [%]. All objects do not fullfill the stipulated criteria:%',klasse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list klasse with uuids [%]. All objects do not fullfill the stipulated criteria:%',klasse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.klasseObj) into result
 FROM
 (
@@ -27230,8 +27230,8 @@ ROW(
 			a.KlasseAttrEgenskaberArr,
 			a.KlasseRelationArr
 		)::KlasseRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: KlasseType  klasseObj
 FROM
 (
@@ -27254,9 +27254,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) KlasseRelationArr
 	FROM
 	(
@@ -27268,7 +27268,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -27276,7 +27276,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) KlasseTilsPubliceretArr		
+				)) KlasseTilsPubliceretArr
 			FROM
 			(
 					SELECT
@@ -27285,11 +27285,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN a.attr_id is not null THEN
-                        
+
 						ROW(
-                            
+
                                                        a.brugervendtnoegle,
                                                        a.beskrivelse,
                                                        a.eksempel,
@@ -27299,18 +27299,18 @@ FROM
                                                        a.aendringsnotat,
                                                        a.integrationsdata,
                                                        a.KlasseAttrEgenskaberSoegeordTypeArr,
-                                                       a.virkning 
-                            
+                                                       a.virkning
+
 							)::KlasseEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
                         order by a.brugervendtnoegle,a.beskrivelse,a.eksempel,a.omfang,a.titel,a.retskilde,a.aendringsnotat,a.virkning,a.KlasseAttrEgenskaberSoegeordTypeArr
-                        
+
 					)) KlasseAttrEgenskaberArr
-                    
-                               FROM            
+
+                               FROM
                                (
                                                SELECT
                                                a.klasse_id,
@@ -27325,35 +27325,35 @@ FROM
                                                b.retskilde,
                                                b.aendringsnotat,
                                                b.integrationsdata,
-                                               b.virkning,     
+                                               b.virkning,
                                                _remove_nulls_in_array(array_agg(
-                                                       CASE 
+                                                       CASE
                                                        WHEN c.id is not null THEN
                                                        ROW(
                                                                c.soegeordidentifikator,
                                                                c.beskrivelse,
-                                                               c.soegeordskategori 
+                                                               c.soegeordskategori
                                                        )::KlasseSoegeordType
                                                ELSE
                                                NULL
                                                END
                                                order by c.soegeordidentifikator,c.beskrivelse,c.soegeordskategori
                                        )) KlasseAttrEgenskaberSoegeordTypeArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id klasse_id,
 					b.id klasse_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		klasse a
 					JOIN 		klasse_registrering b 	ON b.klasse_id=a.id
 					WHERE a.id = ANY (klasse_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN klasse_attr_egenskaber as b ON b.klasse_registrering_id=a.klasse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
+
                                                LEFT JOIN klasse_attr_egenskaber_soegeord as c ON c.klasse_attr_egenskaber_id=b.id
-                                               GROUP BY 
+                                               GROUP BY
                                                a.klasse_id,
                                                a.klasse_registrering_id,
                                                a.registrering,
@@ -27368,14 +27368,14 @@ FROM
                                                b.integrationsdata,
                                                b.virkning
                                ) as a
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.klasse_id,
 					a.klasse_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN klasse_tils_publiceret as b ON b.klasse_registrering_id=a.klasse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN klasse_tils_publiceret as b ON b.klasse_registrering_id=a.klasse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.klasse_id,
 			a.klasse_registrering_id,
 			a.registrering,
@@ -27391,7 +27391,7 @@ FROM
 ) as a
 
 WHERE a.klasse_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.klasse_id
 order by a.klasse_id
 ) as x
@@ -27451,7 +27451,7 @@ CREATE OR REPLACE FUNCTION as_search_klasse(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr KlasseRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -27460,7 +27460,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj KlasseEgenskaberAttrType;
 
-    
+
     tilsPubliceretTypeObj KlassePubliceretTilsType;
 
     relationTypeObj KlasseRelationType;
@@ -27468,14 +27468,14 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     manipulatedAttrEgenskaberArr KlasseEgenskaberAttrType[]:='{}';
     soegeordObj KlasseSoegeordType;
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -27498,20 +27498,20 @@ IF klasse_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -27532,16 +27532,16 @@ IF klasse_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -27554,7 +27554,7 @@ IF klasse_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -27579,7 +27579,7 @@ END IF;
 --RAISE NOTICE 'klasse_candidates step 2:%',klasse_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -27616,22 +27616,22 @@ LOOP
 END LOOP;
 
     IF (coalesce(array_length(klasse_candidates,1),0)>0 OR NOT klasse_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY manipulatedAttrEgenskaberArr
-        
+
         LOOP
             klasse_candidates:=array(
             SELECT DISTINCT
             b.klasse_id
             FROM  klasse_attr_egenskaber a
             JOIN klasse_registrering b on a.klasse_registrering_id=b.id
-            
+
             LEFT JOIN klasse_attr_egenskaber_soegeord c on a.id=c.klasse_attr_egenskaber_id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -27653,7 +27653,7 @@ END LOOP;
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -27717,7 +27717,7 @@ END LOOP;
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                 (
                         (attrEgenskaberTypeObj.soegeord IS NULL OR array_length(attrEgenskaberTypeObj.soegeord,1)=0)
                         OR
@@ -27725,41 +27725,41 @@ END LOOP;
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator IS NULL
                                         OR
-                                        c.soegeordidentifikator ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator  
+                                        c.soegeordidentifikator ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator
                                 )
                                 AND
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).beskrivelse IS NULL
                                         OR
-                                        c.beskrivelse ILIKE (attrEgenskaberTypeObj.soegeord[1]).beskrivelse  
-                                )               
+                                        c.beskrivelse ILIKE (attrEgenskaberTypeObj.soegeord[1]).beskrivelse
+                                )
                                 AND
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori IS NULL
                                         OR
-                                        c.soegeordskategori ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori  
+                                        c.soegeordskategori ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori
                                 )
                         )
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -27780,16 +27780,16 @@ END LOOP;
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -27802,7 +27802,7 @@ END LOOP;
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -27835,12 +27835,12 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.klasse_id
-            
+
             FROM  klasse_attr_egenskaber a
             JOIN klasse_registrering b on a.klasse_registrering_id=b.id
-            
+
             LEFT JOIN klasse_attr_egenskaber_soegeord c on a.id=c.klasse_attr_egenskaber_id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -27851,14 +27851,14 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.retskilde ILIKE anyAttrValue OR
                         a.aendringsnotat ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
                 OR
                 c.soegeordidentifikator ILIKE anyAttrValue
                 OR
                 c.beskrivelse ILIKE anyAttrValue
                 OR
                 c.soegeordskategori ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -27867,24 +27867,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -27905,16 +27905,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -27927,7 +27927,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28011,20 +28011,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -28045,16 +28045,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -28067,7 +28067,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28170,26 +28170,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -28210,16 +28210,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -28232,7 +28232,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28259,38 +28259,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         klasse_candidates:=array(
             SELECT DISTINCT
             b.klasse_id
-            
+
             FROM  klasse_relation a
             JOIN klasse_registrering b on a.klasse_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -28311,16 +28311,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -28333,7 +28333,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28360,38 +28360,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         klasse_candidates:=array(
             SELECT DISTINCT
             b.klasse_id
-            
+
             FROM  klasse_relation a
             JOIN klasse_registrering b on a.klasse_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -28412,16 +28412,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -28434,7 +28434,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28455,7 +28455,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -28476,20 +28476,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -28510,16 +28510,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -28532,7 +28532,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -28567,7 +28567,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klasse(klasse_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_klasse(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -28576,7 +28576,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -28590,13 +28590,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_KlasseRegistreringType_to_json(KlasseRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_KlasseRegistreringType_to_json(KlasseRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -28604,44 +28604,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END klasseegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END klassepubliceret
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -28655,7 +28655,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -28680,7 +28680,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -28698,13 +28698,13 @@ create cast (KlasseRegistreringType as json) with function actual_state._cast_Kl
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_klasseType_to_json(KlasseType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_klasseType_to_json(KlasseType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg KlasseRegistreringType;
@@ -28733,7 +28733,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (KlasseType as json);
-create cast (KlasseType as json) with function actual_state._cast_klasseType_to_json(KlasseType); 
+create cast (KlasseType as json) with function actual_state._cast_klasseType_to_json(KlasseType);
 
 
 
@@ -28792,14 +28792,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_klasse(
 	klasse_uuids uuid[],
 	registreringObjArr KlasseRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	klasse_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	klasse_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj KlasseEgenskaberAttrType;
-	
+
   	tilsPubliceretTypeObj KlassePubliceretTilsType;
 	relationTypeObj KlasseRelationType;
 	registreringObj KlasseRegistreringType;
@@ -28813,8 +28813,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF klasse_uuids IS NULL OR coalesce(array_length(klasse_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -28833,7 +28833,7 @@ klasse_candidates:= klasse_uuids;
 --RAISE DEBUG 'klasse_candidates step 1:%',klasse_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -28845,61 +28845,61 @@ ELSE
 		LOOP
 			klasse_candidates:=array(
 			SELECT DISTINCT
-			b.klasse_id 
-			FROM  klasse_attr_egenskaber a 
-			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.klasse_id
+			FROM  klasse_attr_egenskaber a
+			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.eksempel IS NULL
-					OR 
-					a.eksempel = attrEgenskaberTypeObj.eksempel 
+					OR
+					a.eksempel = attrEgenskaberTypeObj.eksempel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.omfang IS NULL
-					OR 
-					a.omfang = attrEgenskaberTypeObj.omfang 
+					OR
+					a.omfang = attrEgenskaberTypeObj.omfang
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.titel IS NULL
-					OR 
-					a.titel = attrEgenskaberTypeObj.titel 
+					OR
+					a.titel = attrEgenskaberTypeObj.titel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.retskilde IS NULL
-					OR 
-					a.retskilde = attrEgenskaberTypeObj.retskilde 
+					OR
+					a.retskilde = attrEgenskaberTypeObj.retskilde
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.aendringsnotat IS NULL
-					OR 
-					a.aendringsnotat = attrEgenskaberTypeObj.aendringsnotat 
+					OR
+					a.aendringsnotat = attrEgenskaberTypeObj.aendringsnotat
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.klasse_id = ANY (klasse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -28915,15 +28915,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_klasse: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(klasse_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(klasse_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			klasse_candidates:=array(
 			SELECT DISTINCT
-			b.klasse_id 
+			b.klasse_id
 			FROM  klasse_tils_publiceret a
-			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -28933,7 +28933,7 @@ ELSE
 				AND b.klasse_id = ANY (klasse_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -28959,11 +28959,11 @@ ELSE
 		LOOP
 			klasse_candidates:=array(
 			SELECT DISTINCT
-			b.klasse_id 
+			b.klasse_id
 			FROM  klasse_relation a
 			JOIN klasse_registrering b on a.klasse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -28972,7 +28972,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -28987,7 +28987,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.klasse_id = ANY (klasse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -28999,7 +28999,7 @@ END IF;
 
 klasse_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (klasse_passed_auth_filter) a(id)
 UNION
@@ -29009,7 +29009,7 @@ FROM
 unnest (klasse_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(klasse_passed_auth_filter,1),0)=coalesce(array_length(klasse_uuids,1),0) AND klasse_passed_auth_filter @>klasse_uuids THEN
 	RETURN klasse_passed_auth_filter;
 END IF;
@@ -29022,7 +29022,7 @@ RETURN klasse_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -29086,7 +29086,7 @@ CREATE TYPE KlassifikationType AS
 (
   id uuid,
   registrering KlassifikationRegistreringType[]
-);  
+);
 
 
 
@@ -29143,7 +29143,7 @@ CREATE TABLE klassifikation_registrering (
    CONSTRAINT klassifikation_registrering_klassifikation_fkey FOREIGN KEY (klassifikation_id)
        REFERENCES klassifikation (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT klassifikation_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT klassifikation_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(klassifikation_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -29223,8 +29223,8 @@ ALTER TABLE klassifikation_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX klassifikation_attr_egenskaber_pat_brugervendtnoegle
             ON klassifikation_attr_egenskaber
             USING gin
@@ -29233,9 +29233,9 @@ ALTER TABLE klassifikation_attr_egenskaber
         CREATE INDEX klassifikation_attr_egenskaber_idx_brugervendtnoegle
             ON klassifikation_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX klassifikation_attr_egenskaber_pat_beskrivelse
             ON klassifikation_attr_egenskaber
             USING gin
@@ -29244,9 +29244,9 @@ ALTER TABLE klassifikation_attr_egenskaber
         CREATE INDEX klassifikation_attr_egenskaber_idx_beskrivelse
             ON klassifikation_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-     
+            (beskrivelse);
+
+
         CREATE INDEX klassifikation_attr_egenskaber_pat_kaldenavn
             ON klassifikation_attr_egenskaber
             USING gin
@@ -29255,9 +29255,9 @@ ALTER TABLE klassifikation_attr_egenskaber
         CREATE INDEX klassifikation_attr_egenskaber_idx_kaldenavn
             ON klassifikation_attr_egenskaber
             USING btree
-            (kaldenavn); 
- 
-     
+            (kaldenavn);
+
+
         CREATE INDEX klassifikation_attr_egenskaber_pat_ophavsret
             ON klassifikation_attr_egenskaber
             USING gin
@@ -29266,9 +29266,9 @@ ALTER TABLE klassifikation_attr_egenskaber
         CREATE INDEX klassifikation_attr_egenskaber_idx_ophavsret
             ON klassifikation_attr_egenskaber
             USING btree
-            (ophavsret); 
- 
-     
+            (ophavsret);
+
+
         CREATE INDEX klassifikation_attr_egenskaber_pat_integrationsdata
             ON klassifikation_attr_egenskaber
             USING gin
@@ -29277,7 +29277,7 @@ ALTER TABLE klassifikation_attr_egenskaber
         CREATE INDEX klassifikation_attr_egenskaber_idx_integrationsdata
             ON klassifikation_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -29324,7 +29324,7 @@ ALTER TABLE klassifikation_tils_publiceret_id_seq
 CREATE TABLE klassifikation_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('klassifikation_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret KlassifikationPubliceretTils NOT NULL, 
+    publiceret KlassifikationPubliceretTils NOT NULL,
     klassifikation_registrering_id bigint not null,
     CONSTRAINT klassifikation_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT klassifikation_tils_publiceret_forkey_klassifikationregistrering FOREIGN KEY (klassifikation_registrering_id) REFERENCES klassifikation_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -29342,7 +29342,7 @@ CREATE INDEX klassifikation_tils_publiceret_idx_publiceret
     ON klassifikation_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX klassifikation_tils_publiceret_idx_virkning_aktoerref
     ON klassifikation_tils_publiceret
     USING btree
@@ -29387,7 +29387,7 @@ CREATE TABLE klassifikation_relation (
     rel_type KlassifikationRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT klassifikation_relation_forkey_klassifikationregistrering FOREIGN KEY (klassifikation_registrering_id) REFERENCES klassifikation_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT klassifikation_relation_pkey PRIMARY KEY (id),
@@ -29477,20 +29477,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassifikationPublice
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -29498,15 +29498,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassifikationPublice
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassifikationEgenskaberAttrType[])
   RETURNS KlassifikationEgenskaberAttrType[] AS
   $$
-  DECLARE result KlassifikationEgenskaberAttrType[]; 
-   DECLARE element KlassifikationEgenskaberAttrType; 
+  DECLARE result KlassifikationEgenskaberAttrType[];
+   DECLARE element KlassifikationEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.kaldenavn IS NULL AND element.ophavsret IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.kaldenavn IS NULL AND element.ophavsret IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -29514,13 +29514,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassifikationEgenska
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -29531,14 +29531,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr KlassifikationRelatio
 RETURNS KlassifikationRelationType[] AS
 $$
  DECLARE result KlassifikationRelationType[];
- DECLARE element KlassifikationRelationType;  
+ DECLARE element KlassifikationRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -29546,13 +29546,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -29572,8 +29572,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_klassifikation_registrering(
     klassifikation_registrering
 ) RETURNS klassifikation_registrering AS $BODY$
   SELECT * FROM klassifikation_registrering as a WHERE
-    klassifikation_id = $1.klassifikation_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    klassifikation_id = $1.klassifikation_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -29662,17 +29662,17 @@ CREATE OR REPLACE FUNCTION as_update_klassifikation(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber KlassifikationEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber KlassifikationEgenskaberAttrType[],
+
+
+
     tilsPubliceret KlassifikationPubliceretTilsType[],
-    
+
 
     relationer KlassifikationRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      KlassifikationRegistreringType[] = null
@@ -29686,15 +29686,15 @@ DECLARE
     prev_klassifikation_registrering klassifikation_registrering;
     klassifikation_relation_navn     KlassifikationRelationKode;
 
-    
-    attrEgenskaberObj KlassifikationEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj KlassifikationEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from klassifikation a join klassifikation_registrering b ON b.klassifikation_id=a.id WHERE a.id=klassifikation_uuid) THEN
@@ -29737,7 +29737,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO klassifikation_relation (klassifikation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -29746,18 +29746,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH klassifikation_relation_navn IN ARRAY ARRAY['ansvarlig'::KlassifikationRelationKode ,  'ejer'::KlassifikationRelationKode  ]::KlassifikationRelationKode[]  LOOP
         INSERT INTO klassifikation_relation (klassifikation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -29769,7 +29769,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -29789,13 +29789,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH klassifikation_relation_navn IN ARRAY ARRAY[]::KlassifikationRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM klassifikation_relation
                      WHERE klassifikation_registrering_id = new_klassifikation_registrering.id AND rel_type = klassifikation_relation_navn) THEN
-                    
+
                     INSERT INTO klassifikation_relation (klassifikation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_klassifikation_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -29803,15 +29803,15 @@ BEGIN
         WHERE
             klassifikation_registrering_id = prev_klassifikation_registrering.id AND rel_type = klassifikation_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -29848,11 +29848,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.klassifikation_registrering_id = prev_klassifikation_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- klassifikation_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -29867,7 +29867,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.beskrivelse,a.kaldenavn,a.ophavsret,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update klassifikation with uuid [%], as the klassifikation have overlapping virknings in the given egenskaber array :%', klassifikation_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -29877,30 +29877,30 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).kaldenavn IS NULL  OR  (attrEgenskaberObj).ophavsret IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO klassifikation_attr_egenskaber ( brugervendtnoegle,beskrivelse,kaldenavn,ophavsret,integrationsdata, virkning, klassifikation_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.kaldenavn, a.kaldenavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.ophavsret, a.ophavsret),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -29915,20 +29915,20 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO klassifikation_attr_egenskaber ( brugervendtnoegle,beskrivelse,kaldenavn,ophavsret,integrationsdata, virkning, klassifikation_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.kaldenavn,
-                    
+
                      attrEgenskaberObj.ophavsret,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -29946,7 +29946,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO klassifikation_attr_egenskaber ( brugervendtnoegle,beskrivelse,kaldenavn,ophavsret,integrationsdata, virkning, klassifikation_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.kaldenavn,  attrEgenskaberObj.ophavsret,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_klassifikation_registrering.id );
@@ -29967,18 +29967,18 @@ BEGIN
 
     INSERT INTO klassifikation_attr_egenskaber ( brugervendtnoegle,beskrivelse,kaldenavn,ophavsret,integrationsdata, virkning, klassifikation_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.kaldenavn,
-        
+
             a.ophavsret,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -30020,23 +30020,23 @@ END IF;
     IF NOT (lower((read_new_klassifikation.registrering[1].registrering).TimePeriod) = lower((new_klassifikation_registrering.registrering).TimePeriod) and lower((read_prev_klassifikation.registrering[1].registrering).TimePeriod)=lower((prev_klassifikation_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating klassifikation with id [%]: The ordering of as_list_klassifikation should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', klassifikation_uuid, to_json(new_klassifikation_registrering), to_json(read_new_klassifikation.registrering[1].registrering), to_json(prev_klassifikation_registrering), to_json(prev_new_klassifikation.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_klassifikation_reg := ROW(
         ROW (null, (read_new_klassifikation.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_klassifikation.registrering[1]).tilsPubliceret ,
-        
+
         (read_new_klassifikation.registrering[1]).attrEgenskaber ,
         (read_new_klassifikation.registrering[1]).relationer
     )::klassifikationRegistreringType;
 
     read_prev_klassifikation_reg := ROW(
         ROW(null, (read_prev_klassifikation.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_klassifikation.registrering[1]).tilsPubliceret ,
-        
+
         (read_prev_klassifikation.registrering[1]).attrEgenskaber ,
         (read_prev_klassifikation.registrering[1]).relationer
     )::klassifikationRegistreringType;
@@ -30069,21 +30069,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_klassifikation (
     KlassifikationRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE klassifikation_registrering_id bigint;
 
-    
-    klassifikation_attr_egenskaber_obj klassifikationEgenskaberAttrType;
-    
 
-    
+    klassifikation_attr_egenskaber_obj klassifikationEgenskaberAttrType;
+
+
+
     klassifikation_tils_publiceret_obj klassifikationPubliceretTilsType;
-    
+
 
     klassifikation_relationer KlassifikationRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_klassifikation_registrering klassifikation_registrering;
@@ -30151,9 +30151,9 @@ IF klassifikation_registrering.attrEgenskaber IS NOT NULL and coalesce(array_len
   FOREACH klassifikation_attr_egenskaber_obj IN ARRAY klassifikation_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO klassifikation_attr_egenskaber (
-      
+
       brugervendtnoegle,
       beskrivelse,
       kaldenavn,
@@ -30163,7 +30163,7 @@ IF klassifikation_registrering.attrEgenskaber IS NOT NULL and coalesce(array_len
       klassifikation_registrering_id
     )
     SELECT
-     
+
      klassifikation_attr_egenskaber_obj.brugervendtnoegle,
       klassifikation_attr_egenskaber_obj.beskrivelse,
       klassifikation_attr_egenskaber_obj.kaldenavn,
@@ -30172,8 +30172,8 @@ IF klassifikation_registrering.attrEgenskaber IS NOT NULL and coalesce(array_len
       klassifikation_attr_egenskaber_obj.virkning,
       klassifikation_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -30232,9 +30232,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klassifikation(array[klassifikation_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[klassifikation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import klassifikation with uuid [%]. Object does not met stipulated criteria:%',klassifikation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import klassifikation with uuid [%]. Object does not met stipulated criteria:%',klassifikation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -30267,13 +30267,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(klassifikation_uuids,1),0) AND auth_filtered_uuids @>klassifikation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list klassifikation with uuids [%]. All objects do not fullfill the stipulated criteria:%',klassifikation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list klassifikation with uuids [%]. All objects do not fullfill the stipulated criteria:%',klassifikation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.klassifikationObj) into result
 FROM
 (
@@ -30287,8 +30287,8 @@ ROW(
 			a.KlassifikationAttrEgenskaberArr,
 			a.KlassifikationRelationArr
 		)::KlassifikationRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: KlassifikationType  klassifikationObj
 FROM
 (
@@ -30311,9 +30311,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) KlassifikationRelationArr
 	FROM
 	(
@@ -30325,7 +30325,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -30333,7 +30333,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) KlassifikationTilsPubliceretArr		
+				)) KlassifikationTilsPubliceretArr
 			FROM
 			(
 					SELECT
@@ -30342,46 +30342,46 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.beskrivelse,
 					 		b.kaldenavn,
 					 		b.ophavsret,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::KlassifikationEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.beskrivelse,b.kaldenavn,b.ophavsret,b.integrationsdata,b.virkning
-                        
+
 					)) KlassifikationAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id klassifikation_id,
 					b.id klassifikation_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		klassifikation a
 					JOIN 		klassifikation_registrering b 	ON b.klassifikation_id=a.id
 					WHERE a.id = ANY (klassifikation_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN klassifikation_attr_egenskaber as b ON b.klassifikation_registrering_id=a.klassifikation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.klassifikation_id,
 					a.klassifikation_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN klassifikation_tils_publiceret as b ON b.klassifikation_registrering_id=a.klassifikation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN klassifikation_tils_publiceret as b ON b.klassifikation_registrering_id=a.klassifikation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.klassifikation_id,
 			a.klassifikation_registrering_id,
 			a.registrering,
@@ -30397,7 +30397,7 @@ FROM
 ) as a
 
 WHERE a.klassifikation_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.klassifikation_id
 order by a.klassifikation_id
 ) as x
@@ -30457,7 +30457,7 @@ CREATE OR REPLACE FUNCTION as_search_klassifikation(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr KlassifikationRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -30466,7 +30466,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj KlassifikationEgenskaberAttrType;
 
-    
+
     tilsPubliceretTypeObj KlassifikationPubliceretTilsType;
 
     relationTypeObj KlassifikationRelationType;
@@ -30474,11 +30474,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -30501,20 +30501,20 @@ IF klassifikation_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -30535,16 +30535,16 @@ IF klassifikation_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -30557,7 +30557,7 @@ IF klassifikation_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -30582,7 +30582,7 @@ END IF;
 --RAISE NOTICE 'klassifikation_candidates step 2:%',klassifikation_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -30591,20 +30591,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(klassifikation_candidates,1),0)>0 OR NOT klassifikation_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             klassifikation_candidates:=array(
             SELECT DISTINCT
             b.klassifikation_id
             FROM  klassifikation_attr_egenskaber a
             JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -30626,7 +30626,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -30672,24 +30672,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -30710,16 +30710,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -30732,7 +30732,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -30765,10 +30765,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.klassifikation_id
-            
+
             FROM  klassifikation_attr_egenskaber a
             JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
@@ -30776,7 +30776,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.kaldenavn ILIKE anyAttrValue OR
                         a.ophavsret ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -30785,24 +30785,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -30823,16 +30823,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -30845,7 +30845,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -30929,20 +30929,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -30963,16 +30963,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -30985,7 +30985,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -31088,26 +31088,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -31128,16 +31128,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -31150,7 +31150,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -31177,38 +31177,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         klassifikation_candidates:=array(
             SELECT DISTINCT
             b.klassifikation_id
-            
+
             FROM  klassifikation_relation a
             JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -31229,16 +31229,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -31251,7 +31251,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -31278,38 +31278,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         klassifikation_candidates:=array(
             SELECT DISTINCT
             b.klassifikation_id
-            
+
             FROM  klassifikation_relation a
             JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -31330,16 +31330,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -31352,7 +31352,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -31373,7 +31373,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -31394,20 +31394,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -31428,16 +31428,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -31450,7 +31450,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -31485,7 +31485,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_klassifikation(klassifikation_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_klassifikation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -31494,7 +31494,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -31508,13 +31508,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_KlassifikationRegistreringType_to_json(KlassifikationRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_KlassifikationRegistreringType_to_json(KlassifikationRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -31522,44 +31522,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END klassifikationegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END klassifikationpubliceret
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -31573,7 +31573,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -31598,7 +31598,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -31616,13 +31616,13 @@ create cast (KlassifikationRegistreringType as json) with function actual_state.
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_klassifikationType_to_json(KlassifikationType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_klassifikationType_to_json(KlassifikationType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg KlassifikationRegistreringType;
@@ -31651,7 +31651,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (KlassifikationType as json);
-create cast (KlassifikationType as json) with function actual_state._cast_klassifikationType_to_json(KlassifikationType); 
+create cast (KlassifikationType as json) with function actual_state._cast_klassifikationType_to_json(KlassifikationType);
 
 
 
@@ -31710,14 +31710,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_klassifikation(
 	klassifikation_uuids uuid[],
 	registreringObjArr KlassifikationRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	klassifikation_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	klassifikation_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj KlassifikationEgenskaberAttrType;
-	
+
   	tilsPubliceretTypeObj KlassifikationPubliceretTilsType;
 	relationTypeObj KlassifikationRelationType;
 	registreringObj KlassifikationRegistreringType;
@@ -31731,8 +31731,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF klassifikation_uuids IS NULL OR coalesce(array_length(klassifikation_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -31751,7 +31751,7 @@ klassifikation_candidates:= klassifikation_uuids;
 --RAISE DEBUG 'klassifikation_candidates step 1:%',klassifikation_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -31763,43 +31763,43 @@ ELSE
 		LOOP
 			klassifikation_candidates:=array(
 			SELECT DISTINCT
-			b.klassifikation_id 
-			FROM  klassifikation_attr_egenskaber a 
-			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.klassifikation_id
+			FROM  klassifikation_attr_egenskaber a
+			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.kaldenavn IS NULL
-					OR 
-					a.kaldenavn = attrEgenskaberTypeObj.kaldenavn 
+					OR
+					a.kaldenavn = attrEgenskaberTypeObj.kaldenavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.ophavsret IS NULL
-					OR 
-					a.ophavsret = attrEgenskaberTypeObj.ophavsret 
+					OR
+					a.ophavsret = attrEgenskaberTypeObj.ophavsret
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.klassifikation_id = ANY (klassifikation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -31815,15 +31815,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_klassifikation: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(klassifikation_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(klassifikation_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			klassifikation_candidates:=array(
 			SELECT DISTINCT
-			b.klassifikation_id 
+			b.klassifikation_id
 			FROM  klassifikation_tils_publiceret a
-			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -31833,7 +31833,7 @@ ELSE
 				AND b.klassifikation_id = ANY (klassifikation_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -31859,11 +31859,11 @@ ELSE
 		LOOP
 			klassifikation_candidates:=array(
 			SELECT DISTINCT
-			b.klassifikation_id 
+			b.klassifikation_id
 			FROM  klassifikation_relation a
 			JOIN klassifikation_registrering b on a.klassifikation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -31872,7 +31872,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -31887,7 +31887,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.klassifikation_id = ANY (klassifikation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -31899,7 +31899,7 @@ END IF;
 
 klassifikation_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (klassifikation_passed_auth_filter) a(id)
 UNION
@@ -31909,7 +31909,7 @@ FROM
 unnest (klassifikation_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(klassifikation_passed_auth_filter,1),0)=coalesce(array_length(klassifikation_uuids,1),0) AND klassifikation_passed_auth_filter @>klassifikation_uuids THEN
 	RETURN klassifikation_passed_auth_filter;
 END IF;
@@ -31922,7 +31922,7 @@ RETURN klassifikation_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -31990,7 +31990,7 @@ CREATE TYPE LoghaendelseType AS
 (
   id uuid,
   registrering LoghaendelseRegistreringType[]
-);  
+);
 
 
 
@@ -32047,7 +32047,7 @@ CREATE TABLE loghaendelse_registrering (
    CONSTRAINT loghaendelse_registrering_loghaendelse_fkey FOREIGN KEY (loghaendelse_id)
        REFERENCES loghaendelse (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT loghaendelse_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT loghaendelse_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(loghaendelse_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -32131,8 +32131,8 @@ ALTER TABLE loghaendelse_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_service
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32141,9 +32141,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_service
             ON loghaendelse_attr_egenskaber
             USING btree
-            (service); 
- 
-     
+            (service);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_klasse
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32152,9 +32152,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_klasse
             ON loghaendelse_attr_egenskaber
             USING btree
-            (klasse); 
- 
-     
+            (klasse);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_tidspunkt
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32163,9 +32163,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_tidspunkt
             ON loghaendelse_attr_egenskaber
             USING btree
-            (tidspunkt); 
- 
-     
+            (tidspunkt);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_operation
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32174,9 +32174,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_operation
             ON loghaendelse_attr_egenskaber
             USING btree
-            (operation); 
- 
-     
+            (operation);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_objekttype
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32185,9 +32185,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_objekttype
             ON loghaendelse_attr_egenskaber
             USING btree
-            (objekttype); 
- 
-     
+            (objekttype);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_returkode
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32196,9 +32196,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_returkode
             ON loghaendelse_attr_egenskaber
             USING btree
-            (returkode); 
- 
-     
+            (returkode);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_returtekst
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32207,9 +32207,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_returtekst
             ON loghaendelse_attr_egenskaber
             USING btree
-            (returtekst); 
- 
-     
+            (returtekst);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_note
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32218,9 +32218,9 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_note
             ON loghaendelse_attr_egenskaber
             USING btree
-            (note); 
- 
-     
+            (note);
+
+
         CREATE INDEX loghaendelse_attr_egenskaber_pat_integrationsdata
             ON loghaendelse_attr_egenskaber
             USING gin
@@ -32229,7 +32229,7 @@ ALTER TABLE loghaendelse_attr_egenskaber
         CREATE INDEX loghaendelse_attr_egenskaber_idx_integrationsdata
             ON loghaendelse_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -32276,7 +32276,7 @@ ALTER TABLE loghaendelse_tils_gyldighed_id_seq
 CREATE TABLE loghaendelse_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('loghaendelse_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed LoghaendelseGyldighedTils NOT NULL, 
+    gyldighed LoghaendelseGyldighedTils NOT NULL,
     loghaendelse_registrering_id bigint not null,
     CONSTRAINT loghaendelse_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT loghaendelse_tils_gyldighed_forkey_loghaendelseregistrering FOREIGN KEY (loghaendelse_registrering_id) REFERENCES loghaendelse_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -32294,7 +32294,7 @@ CREATE INDEX loghaendelse_tils_gyldighed_idx_gyldighed
     ON loghaendelse_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX loghaendelse_tils_gyldighed_idx_virkning_aktoerref
     ON loghaendelse_tils_gyldighed
     USING btree
@@ -32339,7 +32339,7 @@ CREATE TABLE loghaendelse_relation (
     rel_type LoghaendelseRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT loghaendelse_relation_forkey_loghaendelseregistrering FOREIGN KEY (loghaendelse_registrering_id) REFERENCES loghaendelse_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT loghaendelse_relation_pkey PRIMARY KEY (id),
@@ -32429,20 +32429,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr LoghaendelseGyldighed
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -32450,15 +32450,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr LoghaendelseGyldighed
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr LoghaendelseEgenskaberAttrType[])
   RETURNS LoghaendelseEgenskaberAttrType[] AS
   $$
-  DECLARE result LoghaendelseEgenskaberAttrType[]; 
-   DECLARE element LoghaendelseEgenskaberAttrType; 
+  DECLARE result LoghaendelseEgenskaberAttrType[];
+   DECLARE element LoghaendelseEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.service IS NULL AND element.klasse IS NULL AND element.tidspunkt IS NULL AND element.operation IS NULL AND element.objekttype IS NULL AND element.returkode IS NULL AND element.returtekst IS NULL AND element.note IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.service IS NULL AND element.klasse IS NULL AND element.tidspunkt IS NULL AND element.operation IS NULL AND element.objekttype IS NULL AND element.returkode IS NULL AND element.returtekst IS NULL AND element.note IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -32466,13 +32466,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr LoghaendelseEgenskabe
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -32483,14 +32483,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr LoghaendelseRelationT
 RETURNS LoghaendelseRelationType[] AS
 $$
  DECLARE result LoghaendelseRelationType[];
- DECLARE element LoghaendelseRelationType;  
+ DECLARE element LoghaendelseRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -32498,13 +32498,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -32524,8 +32524,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_loghaendelse_registrering(
     loghaendelse_registrering
 ) RETURNS loghaendelse_registrering AS $BODY$
   SELECT * FROM loghaendelse_registrering as a WHERE
-    loghaendelse_id = $1.loghaendelse_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    loghaendelse_id = $1.loghaendelse_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -32614,17 +32614,17 @@ CREATE OR REPLACE FUNCTION as_update_loghaendelse(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber LoghaendelseEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber LoghaendelseEgenskaberAttrType[],
+
+
+
     tilsGyldighed LoghaendelseGyldighedTilsType[],
-    
+
 
     relationer LoghaendelseRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      LoghaendelseRegistreringType[] = null
@@ -32638,15 +32638,15 @@ DECLARE
     prev_loghaendelse_registrering loghaendelse_registrering;
     loghaendelse_relation_navn     LoghaendelseRelationKode;
 
-    
-    attrEgenskaberObj LoghaendelseEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj LoghaendelseEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from loghaendelse a join loghaendelse_registrering b ON b.loghaendelse_id=a.id WHERE a.id=loghaendelse_uuid) THEN
@@ -32689,7 +32689,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO loghaendelse_relation (loghaendelse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -32698,18 +32698,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH loghaendelse_relation_navn IN ARRAY ARRAY['objekt'::LoghaendelseRelationKode ,  'bruger'::LoghaendelseRelationKode ,  'brugerrolle'::LoghaendelseRelationKode  ]::LoghaendelseRelationKode[]  LOOP
         INSERT INTO loghaendelse_relation (loghaendelse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -32721,7 +32721,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -32741,13 +32741,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH loghaendelse_relation_navn IN ARRAY ARRAY[]::LoghaendelseRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM loghaendelse_relation
                      WHERE loghaendelse_registrering_id = new_loghaendelse_registrering.id AND rel_type = loghaendelse_relation_navn) THEN
-                    
+
                     INSERT INTO loghaendelse_relation (loghaendelse_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_loghaendelse_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -32755,15 +32755,15 @@ BEGIN
         WHERE
             loghaendelse_registrering_id = prev_loghaendelse_registrering.id AND rel_type = loghaendelse_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -32800,11 +32800,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.loghaendelse_registrering_id = prev_loghaendelse_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- loghaendelse_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -32819,7 +32819,7 @@ BEGIN
                 GROUP BY
                     a.service,a.klasse,a.tidspunkt,a.operation,a.objekttype,a.returkode,a.returtekst,a.note,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update loghaendelse with uuid [%], as the loghaendelse have overlapping virknings in the given egenskaber array :%', loghaendelse_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -32829,46 +32829,46 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).service IS NULL  OR  (attrEgenskaberObj).klasse IS NULL  OR  (attrEgenskaberObj).tidspunkt IS NULL  OR  (attrEgenskaberObj).operation IS NULL  OR  (attrEgenskaberObj).objekttype IS NULL  OR  (attrEgenskaberObj).returkode IS NULL  OR  (attrEgenskaberObj).returtekst IS NULL  OR  (attrEgenskaberObj).note IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO loghaendelse_attr_egenskaber ( service,klasse,tidspunkt,operation,objekttype,returkode,returtekst,note,integrationsdata, virkning, loghaendelse_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.service, a.service),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.klasse, a.klasse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.tidspunkt, a.tidspunkt),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.operation, a.operation),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.objekttype, a.objekttype),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.returkode, a.returkode),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.returtekst, a.returtekst),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.note, a.note),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -32883,28 +32883,28 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO loghaendelse_attr_egenskaber ( service,klasse,tidspunkt,operation,objekttype,returkode,returtekst,note,integrationsdata, virkning, loghaendelse_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.service,
-                    
+
                      attrEgenskaberObj.klasse,
-                    
+
                      attrEgenskaberObj.tidspunkt,
-                    
+
                      attrEgenskaberObj.operation,
-                    
+
                      attrEgenskaberObj.objekttype,
-                    
+
                      attrEgenskaberObj.returkode,
-                    
+
                      attrEgenskaberObj.returtekst,
-                    
+
                      attrEgenskaberObj.note,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -32922,7 +32922,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO loghaendelse_attr_egenskaber ( service,klasse,tidspunkt,operation,objekttype,returkode,returtekst,note,integrationsdata, virkning, loghaendelse_registrering_id)
                 VALUES (  attrEgenskaberObj.service,  attrEgenskaberObj.klasse,  attrEgenskaberObj.tidspunkt,  attrEgenskaberObj.operation,  attrEgenskaberObj.objekttype,  attrEgenskaberObj.returkode,  attrEgenskaberObj.returtekst,  attrEgenskaberObj.note,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_loghaendelse_registrering.id );
@@ -32943,26 +32943,26 @@ BEGIN
 
     INSERT INTO loghaendelse_attr_egenskaber ( service,klasse,tidspunkt,operation,objekttype,returkode,returtekst,note,integrationsdata, virkning, loghaendelse_registrering_id)
     SELECT
-        
-        
+
+
             a.service,
-        
+
             a.klasse,
-        
+
             a.tidspunkt,
-        
+
             a.operation,
-        
+
             a.objekttype,
-        
+
             a.returkode,
-        
+
             a.returtekst,
-        
+
             a.note,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -33004,23 +33004,23 @@ END IF;
     IF NOT (lower((read_new_loghaendelse.registrering[1].registrering).TimePeriod) = lower((new_loghaendelse_registrering.registrering).TimePeriod) and lower((read_prev_loghaendelse.registrering[1].registrering).TimePeriod)=lower((prev_loghaendelse_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating loghaendelse with id [%]: The ordering of as_list_loghaendelse should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', loghaendelse_uuid, to_json(new_loghaendelse_registrering), to_json(read_new_loghaendelse.registrering[1].registrering), to_json(prev_loghaendelse_registrering), to_json(prev_new_loghaendelse.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_loghaendelse_reg := ROW(
         ROW (null, (read_new_loghaendelse.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_loghaendelse.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_loghaendelse.registrering[1]).attrEgenskaber ,
         (read_new_loghaendelse.registrering[1]).relationer
     )::loghaendelseRegistreringType;
 
     read_prev_loghaendelse_reg := ROW(
         ROW(null, (read_prev_loghaendelse.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_loghaendelse.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_loghaendelse.registrering[1]).attrEgenskaber ,
         (read_prev_loghaendelse.registrering[1]).relationer
     )::loghaendelseRegistreringType;
@@ -33053,21 +33053,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_loghaendelse (
     LoghaendelseRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE loghaendelse_registrering_id bigint;
 
-    
-    loghaendelse_attr_egenskaber_obj loghaendelseEgenskaberAttrType;
-    
 
-    
+    loghaendelse_attr_egenskaber_obj loghaendelseEgenskaberAttrType;
+
+
+
     loghaendelse_tils_gyldighed_obj loghaendelseGyldighedTilsType;
-    
+
 
     loghaendelse_relationer LoghaendelseRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_loghaendelse_registrering loghaendelse_registrering;
@@ -33135,9 +33135,9 @@ IF loghaendelse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_lengt
   FOREACH loghaendelse_attr_egenskaber_obj IN ARRAY loghaendelse_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO loghaendelse_attr_egenskaber (
-      
+
       service,
       klasse,
       tidspunkt,
@@ -33151,7 +33151,7 @@ IF loghaendelse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_lengt
       loghaendelse_registrering_id
     )
     SELECT
-     
+
      loghaendelse_attr_egenskaber_obj.service,
       loghaendelse_attr_egenskaber_obj.klasse,
       loghaendelse_attr_egenskaber_obj.tidspunkt,
@@ -33164,8 +33164,8 @@ IF loghaendelse_registrering.attrEgenskaber IS NOT NULL and coalesce(array_lengt
       loghaendelse_attr_egenskaber_obj.virkning,
       loghaendelse_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -33224,9 +33224,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_loghaendelse(array[loghaendelse_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_loghaendelse(array[loghaendelse_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[loghaendelse_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import loghaendelse with uuid [%]. Object does not met stipulated criteria:%',loghaendelse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import loghaendelse with uuid [%]. Object does not met stipulated criteria:%',loghaendelse_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -33259,13 +33259,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_loghaendelse(loghaendelse_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_loghaendelse(loghaendelse_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(loghaendelse_uuids,1),0) AND auth_filtered_uuids @>loghaendelse_uuids) THEN
-  RAISE EXCEPTION 'Unable to list loghaendelse with uuids [%]. All objects do not fullfill the stipulated criteria:%',loghaendelse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list loghaendelse with uuids [%]. All objects do not fullfill the stipulated criteria:%',loghaendelse_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.loghaendelseObj) into result
 FROM
 (
@@ -33279,8 +33279,8 @@ ROW(
 			a.LoghaendelseAttrEgenskaberArr,
 			a.LoghaendelseRelationArr
 		)::LoghaendelseRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: LoghaendelseType  loghaendelseObj
 FROM
 (
@@ -33303,9 +33303,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) LoghaendelseRelationArr
 	FROM
 	(
@@ -33317,7 +33317,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -33325,7 +33325,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) LoghaendelseTilsGyldighedArr		
+				)) LoghaendelseTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -33334,11 +33334,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.service,
 					 		b.klasse,
 					 		b.tidspunkt,
@@ -33349,35 +33349,35 @@ FROM
 					 		b.note,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::LoghaendelseEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.service,b.klasse,b.tidspunkt,b.operation,b.objekttype,b.returkode,b.returtekst,b.note,b.integrationsdata,b.virkning
-                        
+
 					)) LoghaendelseAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id loghaendelse_id,
 					b.id loghaendelse_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		loghaendelse a
 					JOIN 		loghaendelse_registrering b 	ON b.loghaendelse_id=a.id
 					WHERE a.id = ANY (loghaendelse_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN loghaendelse_attr_egenskaber as b ON b.loghaendelse_registrering_id=a.loghaendelse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.loghaendelse_id,
 					a.loghaendelse_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN loghaendelse_tils_gyldighed as b ON b.loghaendelse_registrering_id=a.loghaendelse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN loghaendelse_tils_gyldighed as b ON b.loghaendelse_registrering_id=a.loghaendelse_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.loghaendelse_id,
 			a.loghaendelse_registrering_id,
 			a.registrering,
@@ -33393,7 +33393,7 @@ FROM
 ) as a
 
 WHERE a.loghaendelse_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.loghaendelse_id
 order by a.loghaendelse_id
 ) as x
@@ -33453,7 +33453,7 @@ CREATE OR REPLACE FUNCTION as_search_loghaendelse(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr LoghaendelseRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -33462,7 +33462,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj LoghaendelseEgenskaberAttrType;
 
-    
+
     tilsGyldighedTypeObj LoghaendelseGyldighedTilsType;
 
     relationTypeObj LoghaendelseRelationType;
@@ -33470,11 +33470,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -33497,20 +33497,20 @@ IF loghaendelse_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -33531,16 +33531,16 @@ IF loghaendelse_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -33553,7 +33553,7 @@ IF loghaendelse_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -33578,7 +33578,7 @@ END IF;
 --RAISE NOTICE 'loghaendelse_candidates step 2:%',loghaendelse_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -33587,20 +33587,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(loghaendelse_candidates,1),0)>0 OR NOT loghaendelse_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             loghaendelse_candidates:=array(
             SELECT DISTINCT
             b.loghaendelse_id
             FROM  loghaendelse_attr_egenskaber a
             JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -33622,7 +33622,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -33692,24 +33692,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -33730,16 +33730,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -33752,7 +33752,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -33785,10 +33785,10 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.loghaendelse_id
-            
+
             FROM  loghaendelse_attr_egenskaber a
             JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id
-            
+
             WHERE
             (
                         a.service ILIKE anyAttrValue OR
@@ -33800,7 +33800,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.returtekst ILIKE anyAttrValue OR
                         a.note ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -33809,24 +33809,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -33847,16 +33847,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -33869,7 +33869,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -33953,20 +33953,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -33987,16 +33987,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -34009,7 +34009,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -34112,26 +34112,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -34152,16 +34152,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -34174,7 +34174,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -34201,38 +34201,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         loghaendelse_candidates:=array(
             SELECT DISTINCT
             b.loghaendelse_id
-            
+
             FROM  loghaendelse_relation a
             JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -34253,16 +34253,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -34275,7 +34275,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -34302,38 +34302,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         loghaendelse_candidates:=array(
             SELECT DISTINCT
             b.loghaendelse_id
-            
+
             FROM  loghaendelse_relation a
             JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -34354,16 +34354,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -34376,7 +34376,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -34397,7 +34397,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -34418,20 +34418,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -34452,16 +34452,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -34474,7 +34474,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -34509,7 +34509,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_loghaendelse(loghaendelse_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_loghaendelse(loghaendelse_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_loghaendelse(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -34518,7 +34518,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -34532,13 +34532,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_LoghaendelseRegistreringType_to_json(LoghaendelseRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_LoghaendelseRegistreringType_to_json(LoghaendelseRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -34546,44 +34546,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END loghaendelseegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END loghaendelsegyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -34597,7 +34597,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -34622,7 +34622,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -34640,13 +34640,13 @@ create cast (LoghaendelseRegistreringType as json) with function actual_state._c
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_loghaendelseType_to_json(LoghaendelseType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_loghaendelseType_to_json(LoghaendelseType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg LoghaendelseRegistreringType;
@@ -34675,7 +34675,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (LoghaendelseType as json);
-create cast (LoghaendelseType as json) with function actual_state._cast_loghaendelseType_to_json(LoghaendelseType); 
+create cast (LoghaendelseType as json) with function actual_state._cast_loghaendelseType_to_json(LoghaendelseType);
 
 
 
@@ -34734,14 +34734,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_loghaendelse(
 	loghaendelse_uuids uuid[],
 	registreringObjArr LoghaendelseRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	loghaendelse_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	loghaendelse_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj LoghaendelseEgenskaberAttrType;
-	
+
   	tilsGyldighedTypeObj LoghaendelseGyldighedTilsType;
 	relationTypeObj LoghaendelseRelationType;
 	registreringObj LoghaendelseRegistreringType;
@@ -34755,8 +34755,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF loghaendelse_uuids IS NULL OR coalesce(array_length(loghaendelse_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -34775,7 +34775,7 @@ loghaendelse_candidates:= loghaendelse_uuids;
 --RAISE DEBUG 'loghaendelse_candidates step 1:%',loghaendelse_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -34787,67 +34787,67 @@ ELSE
 		LOOP
 			loghaendelse_candidates:=array(
 			SELECT DISTINCT
-			b.loghaendelse_id 
-			FROM  loghaendelse_attr_egenskaber a 
-			JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.loghaendelse_id
+			FROM  loghaendelse_attr_egenskaber a
+			JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.service IS NULL
-					OR 
-					a.service = attrEgenskaberTypeObj.service 
+					OR
+					a.service = attrEgenskaberTypeObj.service
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.klasse IS NULL
-					OR 
-					a.klasse = attrEgenskaberTypeObj.klasse 
+					OR
+					a.klasse = attrEgenskaberTypeObj.klasse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.tidspunkt IS NULL
-					OR 
-					a.tidspunkt = attrEgenskaberTypeObj.tidspunkt 
+					OR
+					a.tidspunkt = attrEgenskaberTypeObj.tidspunkt
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.operation IS NULL
-					OR 
-					a.operation = attrEgenskaberTypeObj.operation 
+					OR
+					a.operation = attrEgenskaberTypeObj.operation
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.objekttype IS NULL
-					OR 
-					a.objekttype = attrEgenskaberTypeObj.objekttype 
+					OR
+					a.objekttype = attrEgenskaberTypeObj.objekttype
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.returkode IS NULL
-					OR 
-					a.returkode = attrEgenskaberTypeObj.returkode 
+					OR
+					a.returkode = attrEgenskaberTypeObj.returkode
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.returtekst IS NULL
-					OR 
-					a.returtekst = attrEgenskaberTypeObj.returtekst 
+					OR
+					a.returtekst = attrEgenskaberTypeObj.returtekst
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.note IS NULL
-					OR 
-					a.note = attrEgenskaberTypeObj.note 
+					OR
+					a.note = attrEgenskaberTypeObj.note
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.loghaendelse_id = ANY (loghaendelse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -34863,15 +34863,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_loghaendelse: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(loghaendelse_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(loghaendelse_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			loghaendelse_candidates:=array(
 			SELECT DISTINCT
-			b.loghaendelse_id 
+			b.loghaendelse_id
 			FROM  loghaendelse_tils_gyldighed a
-			JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -34881,7 +34881,7 @@ ELSE
 				AND b.loghaendelse_id = ANY (loghaendelse_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -34907,11 +34907,11 @@ ELSE
 		LOOP
 			loghaendelse_candidates:=array(
 			SELECT DISTINCT
-			b.loghaendelse_id 
+			b.loghaendelse_id
 			FROM  loghaendelse_relation a
 			JOIN loghaendelse_registrering b on a.loghaendelse_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -34920,7 +34920,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -34935,7 +34935,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.loghaendelse_id = ANY (loghaendelse_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -34947,7 +34947,7 @@ END IF;
 
 loghaendelse_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (loghaendelse_passed_auth_filter) a(id)
 UNION
@@ -34957,7 +34957,7 @@ FROM
 unnest (loghaendelse_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(loghaendelse_passed_auth_filter,1),0)=coalesce(array_length(loghaendelse_uuids,1),0) AND loghaendelse_passed_auth_filter @>loghaendelse_uuids THEN
 	RETURN loghaendelse_passed_auth_filter;
 END IF;
@@ -34970,7 +34970,7 @@ RETURN loghaendelse_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -35032,7 +35032,7 @@ CREATE TYPE OrganisationType AS
 (
   id uuid,
   registrering OrganisationRegistreringType[]
-);  
+);
 
 
 
@@ -35089,7 +35089,7 @@ CREATE TABLE organisation_registrering (
    CONSTRAINT organisation_registrering_organisation_fkey FOREIGN KEY (organisation_id)
        REFERENCES organisation (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT organisation_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT organisation_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(organisation_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -35167,8 +35167,8 @@ ALTER TABLE organisation_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX organisation_attr_egenskaber_pat_brugervendtnoegle
             ON organisation_attr_egenskaber
             USING gin
@@ -35177,9 +35177,9 @@ ALTER TABLE organisation_attr_egenskaber
         CREATE INDEX organisation_attr_egenskaber_idx_brugervendtnoegle
             ON organisation_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX organisation_attr_egenskaber_pat_organisationsnavn
             ON organisation_attr_egenskaber
             USING gin
@@ -35188,9 +35188,9 @@ ALTER TABLE organisation_attr_egenskaber
         CREATE INDEX organisation_attr_egenskaber_idx_organisationsnavn
             ON organisation_attr_egenskaber
             USING btree
-            (organisationsnavn); 
- 
-     
+            (organisationsnavn);
+
+
         CREATE INDEX organisation_attr_egenskaber_pat_integrationsdata
             ON organisation_attr_egenskaber
             USING gin
@@ -35199,7 +35199,7 @@ ALTER TABLE organisation_attr_egenskaber
         CREATE INDEX organisation_attr_egenskaber_idx_integrationsdata
             ON organisation_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -35246,7 +35246,7 @@ ALTER TABLE organisation_tils_gyldighed_id_seq
 CREATE TABLE organisation_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('organisation_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed OrganisationGyldighedTils NOT NULL, 
+    gyldighed OrganisationGyldighedTils NOT NULL,
     organisation_registrering_id bigint not null,
     CONSTRAINT organisation_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT organisation_tils_gyldighed_forkey_organisationregistrering FOREIGN KEY (organisation_registrering_id) REFERENCES organisation_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -35264,7 +35264,7 @@ CREATE INDEX organisation_tils_gyldighed_idx_gyldighed
     ON organisation_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX organisation_tils_gyldighed_idx_virkning_aktoerref
     ON organisation_tils_gyldighed
     USING btree
@@ -35309,7 +35309,7 @@ CREATE TABLE organisation_relation (
     rel_type OrganisationRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT organisation_relation_forkey_organisationregistrering FOREIGN KEY (organisation_registrering_id) REFERENCES organisation_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT organisation_relation_pkey PRIMARY KEY (id),
@@ -35399,20 +35399,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationGyldighed
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -35420,15 +35420,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationGyldighed
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationEgenskaberAttrType[])
   RETURNS OrganisationEgenskaberAttrType[] AS
   $$
-  DECLARE result OrganisationEgenskaberAttrType[]; 
-   DECLARE element OrganisationEgenskaberAttrType; 
+  DECLARE result OrganisationEgenskaberAttrType[];
+   DECLARE element OrganisationEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.organisationsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.organisationsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -35436,13 +35436,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationEgenskabe
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -35453,14 +35453,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationRelationT
 RETURNS OrganisationRelationType[] AS
 $$
  DECLARE result OrganisationRelationType[];
- DECLARE element OrganisationRelationType;  
+ DECLARE element OrganisationRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -35468,13 +35468,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -35494,8 +35494,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_organisation_registrering(
     organisation_registrering
 ) RETURNS organisation_registrering AS $BODY$
   SELECT * FROM organisation_registrering as a WHERE
-    organisation_id = $1.organisation_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    organisation_id = $1.organisation_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -35584,17 +35584,17 @@ CREATE OR REPLACE FUNCTION as_update_organisation(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber OrganisationEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber OrganisationEgenskaberAttrType[],
+
+
+
     tilsGyldighed OrganisationGyldighedTilsType[],
-    
+
 
     relationer OrganisationRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      OrganisationRegistreringType[] = null
@@ -35608,15 +35608,15 @@ DECLARE
     prev_organisation_registrering organisation_registrering;
     organisation_relation_navn     OrganisationRelationKode;
 
-    
-    attrEgenskaberObj OrganisationEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj OrganisationEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from organisation a join organisation_registrering b ON b.organisation_id=a.id WHERE a.id=organisation_uuid) THEN
@@ -35659,7 +35659,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO organisation_relation (organisation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -35668,18 +35668,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH organisation_relation_navn IN ARRAY ARRAY['branche'::OrganisationRelationKode ,  'myndighed'::OrganisationRelationKode ,  'myndighedstype'::OrganisationRelationKode ,  'overordnet'::OrganisationRelationKode ,  'produktionsenhed'::OrganisationRelationKode ,  'skatteenhed'::OrganisationRelationKode ,  'tilhoerer'::OrganisationRelationKode ,  'virksomhed'::OrganisationRelationKode ,  'virksomhedstype'::OrganisationRelationKode  ]::OrganisationRelationKode[]  LOOP
         INSERT INTO organisation_relation (organisation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -35691,7 +35691,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -35711,13 +35711,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH organisation_relation_navn IN ARRAY ARRAY['adresser'::OrganisationRelationKode, 'ansatte'::OrganisationRelationKode, 'opgaver'::OrganisationRelationKode, 'tilknyttedebrugere'::OrganisationRelationKode, 'tilknyttedeenheder'::OrganisationRelationKode, 'tilknyttedefunktioner'::OrganisationRelationKode, 'tilknyttedeinteressefaellesskaber'::OrganisationRelationKode, 'tilknyttedeorganisationer'::OrganisationRelationKode, 'tilknyttedepersoner'::OrganisationRelationKode, 'tilknyttedeitsystemer'::OrganisationRelationKode]::OrganisationRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM organisation_relation
                      WHERE organisation_registrering_id = new_organisation_registrering.id AND rel_type = organisation_relation_navn) THEN
-                    
+
                     INSERT INTO organisation_relation (organisation_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_organisation_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -35725,15 +35725,15 @@ BEGIN
         WHERE
             organisation_registrering_id = prev_organisation_registrering.id AND rel_type = organisation_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -35770,11 +35770,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.organisation_registrering_id = prev_organisation_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- organisation_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -35789,7 +35789,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.organisationsnavn,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update organisation with uuid [%], as the organisation have overlapping virknings in the given egenskaber array :%', organisation_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -35799,22 +35799,22 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).organisationsnavn IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO organisation_attr_egenskaber ( brugervendtnoegle,organisationsnavn,integrationsdata, virkning, organisation_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.organisationsnavn, a.organisationsnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -35829,16 +35829,16 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO organisation_attr_egenskaber ( brugervendtnoegle,organisationsnavn,integrationsdata, virkning, organisation_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.organisationsnavn,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -35856,7 +35856,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO organisation_attr_egenskaber ( brugervendtnoegle,organisationsnavn,integrationsdata, virkning, organisation_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.organisationsnavn,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_organisation_registrering.id );
@@ -35877,14 +35877,14 @@ BEGIN
 
     INSERT INTO organisation_attr_egenskaber ( brugervendtnoegle,organisationsnavn,integrationsdata, virkning, organisation_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.organisationsnavn,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -35926,23 +35926,23 @@ END IF;
     IF NOT (lower((read_new_organisation.registrering[1].registrering).TimePeriod) = lower((new_organisation_registrering.registrering).TimePeriod) and lower((read_prev_organisation.registrering[1].registrering).TimePeriod)=lower((prev_organisation_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating organisation with id [%]: The ordering of as_list_organisation should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', organisation_uuid, to_json(new_organisation_registrering), to_json(read_new_organisation.registrering[1].registrering), to_json(prev_organisation_registrering), to_json(prev_new_organisation.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_organisation_reg := ROW(
         ROW (null, (read_new_organisation.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_organisation.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_organisation.registrering[1]).attrEgenskaber ,
         (read_new_organisation.registrering[1]).relationer
     )::organisationRegistreringType;
 
     read_prev_organisation_reg := ROW(
         ROW(null, (read_prev_organisation.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_organisation.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_organisation.registrering[1]).attrEgenskaber ,
         (read_prev_organisation.registrering[1]).relationer
     )::organisationRegistreringType;
@@ -35975,21 +35975,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_organisation (
     OrganisationRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE organisation_registrering_id bigint;
 
-    
-    organisation_attr_egenskaber_obj organisationEgenskaberAttrType;
-    
 
-    
+    organisation_attr_egenskaber_obj organisationEgenskaberAttrType;
+
+
+
     organisation_tils_gyldighed_obj organisationGyldighedTilsType;
-    
+
 
     organisation_relationer OrganisationRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_organisation_registrering organisation_registrering;
@@ -36057,9 +36057,9 @@ IF organisation_registrering.attrEgenskaber IS NOT NULL and coalesce(array_lengt
   FOREACH organisation_attr_egenskaber_obj IN ARRAY organisation_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO organisation_attr_egenskaber (
-      
+
       brugervendtnoegle,
       organisationsnavn,
       integrationsdata,
@@ -36067,15 +36067,15 @@ IF organisation_registrering.attrEgenskaber IS NOT NULL and coalesce(array_lengt
       organisation_registrering_id
     )
     SELECT
-     
+
      organisation_attr_egenskaber_obj.brugervendtnoegle,
       organisation_attr_egenskaber_obj.organisationsnavn,
       organisation_attr_egenskaber_obj.integrationsdata,
       organisation_attr_egenskaber_obj.virkning,
       organisation_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -36134,9 +36134,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(array[organisation_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisation(array[organisation_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisation_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisation with uuid [%]. Object does not met stipulated criteria:%',organisation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import organisation with uuid [%]. Object does not met stipulated criteria:%',organisation_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -36169,13 +36169,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisation_uuids,1),0) AND auth_filtered_uuids @>organisation_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisation with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list organisation with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisation_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.organisationObj) into result
 FROM
 (
@@ -36189,8 +36189,8 @@ ROW(
 			a.OrganisationAttrEgenskaberArr,
 			a.OrganisationRelationArr
 		)::OrganisationRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: OrganisationType  organisationObj
 FROM
 (
@@ -36213,9 +36213,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) OrganisationRelationArr
 	FROM
 	(
@@ -36227,7 +36227,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -36235,7 +36235,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) OrganisationTilsGyldighedArr		
+				)) OrganisationTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -36244,44 +36244,44 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.organisationsnavn,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::OrganisationEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.organisationsnavn,b.integrationsdata,b.virkning
-                        
+
 					)) OrganisationAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id organisation_id,
 					b.id organisation_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		organisation a
 					JOIN 		organisation_registrering b 	ON b.organisation_id=a.id
 					WHERE a.id = ANY (organisation_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN organisation_attr_egenskaber as b ON b.organisation_registrering_id=a.organisation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.organisation_id,
 					a.organisation_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN organisation_tils_gyldighed as b ON b.organisation_registrering_id=a.organisation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN organisation_tils_gyldighed as b ON b.organisation_registrering_id=a.organisation_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.organisation_id,
 			a.organisation_registrering_id,
 			a.registrering,
@@ -36297,7 +36297,7 @@ FROM
 ) as a
 
 WHERE a.organisation_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.organisation_id
 order by a.organisation_id
 ) as x
@@ -36357,7 +36357,7 @@ CREATE OR REPLACE FUNCTION as_search_organisation(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr OrganisationRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -36366,7 +36366,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj OrganisationEgenskaberAttrType;
 
-    
+
     tilsGyldighedTypeObj OrganisationGyldighedTilsType;
 
     relationTypeObj OrganisationRelationType;
@@ -36374,11 +36374,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -36401,20 +36401,20 @@ IF organisation_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -36435,16 +36435,16 @@ IF organisation_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -36457,7 +36457,7 @@ IF organisation_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -36482,7 +36482,7 @@ END IF;
 --RAISE NOTICE 'organisation_candidates step 2:%',organisation_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -36491,20 +36491,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(organisation_candidates,1),0)>0 OR NOT organisation_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             organisation_candidates:=array(
             SELECT DISTINCT
             b.organisation_id
             FROM  organisation_attr_egenskaber a
             JOIN organisation_registrering b on a.organisation_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -36526,7 +36526,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -36560,24 +36560,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -36598,16 +36598,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -36620,7 +36620,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -36653,16 +36653,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.organisation_id
-            
+
             FROM  organisation_attr_egenskaber a
             JOIN organisation_registrering b on a.organisation_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.organisationsnavn ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -36671,24 +36671,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -36709,16 +36709,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -36731,7 +36731,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -36815,20 +36815,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -36849,16 +36849,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -36871,7 +36871,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -36974,26 +36974,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -37014,16 +37014,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -37036,7 +37036,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -37063,38 +37063,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         organisation_candidates:=array(
             SELECT DISTINCT
             b.organisation_id
-            
+
             FROM  organisation_relation a
             JOIN organisation_registrering b on a.organisation_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -37115,16 +37115,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -37137,7 +37137,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -37164,38 +37164,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         organisation_candidates:=array(
             SELECT DISTINCT
             b.organisation_id
-            
+
             FROM  organisation_relation a
             JOIN organisation_registrering b on a.organisation_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -37216,16 +37216,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -37238,7 +37238,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -37259,7 +37259,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -37280,20 +37280,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -37314,16 +37314,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -37336,7 +37336,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -37371,7 +37371,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisation(organisation_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_organisation(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -37380,7 +37380,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -37394,13 +37394,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationRegistreringType_to_json(OrganisationRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationRegistreringType_to_json(OrganisationRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -37408,44 +37408,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END organisationegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END organisationgyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -37459,7 +37459,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -37484,7 +37484,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -37502,13 +37502,13 @@ create cast (OrganisationRegistreringType as json) with function actual_state._c
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_organisationType_to_json(OrganisationType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_organisationType_to_json(OrganisationType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg OrganisationRegistreringType;
@@ -37537,7 +37537,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (OrganisationType as json);
-create cast (OrganisationType as json) with function actual_state._cast_organisationType_to_json(OrganisationType); 
+create cast (OrganisationType as json) with function actual_state._cast_organisationType_to_json(OrganisationType);
 
 
 
@@ -37596,14 +37596,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_organisation(
 	organisation_uuids uuid[],
 	registreringObjArr OrganisationRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	organisation_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	organisation_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj OrganisationEgenskaberAttrType;
-	
+
   	tilsGyldighedTypeObj OrganisationGyldighedTilsType;
 	relationTypeObj OrganisationRelationType;
 	registreringObj OrganisationRegistreringType;
@@ -37617,8 +37617,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF organisation_uuids IS NULL OR coalesce(array_length(organisation_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -37637,7 +37637,7 @@ organisation_candidates:= organisation_uuids;
 --RAISE DEBUG 'organisation_candidates step 1:%',organisation_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -37649,31 +37649,31 @@ ELSE
 		LOOP
 			organisation_candidates:=array(
 			SELECT DISTINCT
-			b.organisation_id 
-			FROM  organisation_attr_egenskaber a 
-			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.organisation_id
+			FROM  organisation_attr_egenskaber a
+			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.organisationsnavn IS NULL
-					OR 
-					a.organisationsnavn = attrEgenskaberTypeObj.organisationsnavn 
+					OR
+					a.organisationsnavn = attrEgenskaberTypeObj.organisationsnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.organisation_id = ANY (organisation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -37689,15 +37689,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_organisation: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(organisation_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(organisation_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			organisation_candidates:=array(
 			SELECT DISTINCT
-			b.organisation_id 
+			b.organisation_id
 			FROM  organisation_tils_gyldighed a
-			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -37707,7 +37707,7 @@ ELSE
 				AND b.organisation_id = ANY (organisation_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -37733,11 +37733,11 @@ ELSE
 		LOOP
 			organisation_candidates:=array(
 			SELECT DISTINCT
-			b.organisation_id 
+			b.organisation_id
 			FROM  organisation_relation a
 			JOIN organisation_registrering b on a.organisation_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -37746,7 +37746,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -37761,7 +37761,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.organisation_id = ANY (organisation_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -37773,7 +37773,7 @@ END IF;
 
 organisation_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (organisation_passed_auth_filter) a(id)
 UNION
@@ -37783,7 +37783,7 @@ FROM
 unnest (organisation_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(organisation_passed_auth_filter,1),0)=coalesce(array_length(organisation_uuids,1),0) AND organisation_passed_auth_filter @>organisation_uuids THEN
 	RETURN organisation_passed_auth_filter;
 END IF;
@@ -37796,7 +37796,7 @@ RETURN organisation_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -37858,7 +37858,7 @@ CREATE TYPE OrganisationenhedType AS
 (
   id uuid,
   registrering OrganisationenhedRegistreringType[]
-);  
+);
 
 
 
@@ -37915,7 +37915,7 @@ CREATE TABLE organisationenhed_registrering (
    CONSTRAINT organisationenhed_registrering_organisationenhed_fkey FOREIGN KEY (organisationenhed_id)
        REFERENCES organisationenhed (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT organisationenhed_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT organisationenhed_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(organisationenhed_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -37993,8 +37993,8 @@ ALTER TABLE organisationenhed_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX organisationenhed_attr_egenskaber_pat_brugervendtnoegle
             ON organisationenhed_attr_egenskaber
             USING gin
@@ -38003,9 +38003,9 @@ ALTER TABLE organisationenhed_attr_egenskaber
         CREATE INDEX organisationenhed_attr_egenskaber_idx_brugervendtnoegle
             ON organisationenhed_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX organisationenhed_attr_egenskaber_pat_enhedsnavn
             ON organisationenhed_attr_egenskaber
             USING gin
@@ -38014,9 +38014,9 @@ ALTER TABLE organisationenhed_attr_egenskaber
         CREATE INDEX organisationenhed_attr_egenskaber_idx_enhedsnavn
             ON organisationenhed_attr_egenskaber
             USING btree
-            (enhedsnavn); 
- 
-     
+            (enhedsnavn);
+
+
         CREATE INDEX organisationenhed_attr_egenskaber_pat_integrationsdata
             ON organisationenhed_attr_egenskaber
             USING gin
@@ -38025,7 +38025,7 @@ ALTER TABLE organisationenhed_attr_egenskaber
         CREATE INDEX organisationenhed_attr_egenskaber_idx_integrationsdata
             ON organisationenhed_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -38072,7 +38072,7 @@ ALTER TABLE organisationenhed_tils_gyldighed_id_seq
 CREATE TABLE organisationenhed_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('organisationenhed_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed OrganisationenhedGyldighedTils NOT NULL, 
+    gyldighed OrganisationenhedGyldighedTils NOT NULL,
     organisationenhed_registrering_id bigint not null,
     CONSTRAINT organisationenhed_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT organisationenhed_tils_gyldighed_forkey_organisationenhedregistrering FOREIGN KEY (organisationenhed_registrering_id) REFERENCES organisationenhed_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -38090,7 +38090,7 @@ CREATE INDEX organisationenhed_tils_gyldighed_idx_gyldighed
     ON organisationenhed_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX organisationenhed_tils_gyldighed_idx_virkning_aktoerref
     ON organisationenhed_tils_gyldighed
     USING btree
@@ -38135,7 +38135,7 @@ CREATE TABLE organisationenhed_relation (
     rel_type OrganisationenhedRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT organisationenhed_relation_forkey_organisationenhedregistrering FOREIGN KEY (organisationenhed_registrering_id) REFERENCES organisationenhed_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT organisationenhed_relation_pkey PRIMARY KEY (id),
@@ -38225,20 +38225,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationenhedGyld
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -38246,15 +38246,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationenhedGyld
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationenhedEgenskaberAttrType[])
   RETURNS OrganisationenhedEgenskaberAttrType[] AS
   $$
-  DECLARE result OrganisationenhedEgenskaberAttrType[]; 
-   DECLARE element OrganisationenhedEgenskaberAttrType; 
+  DECLARE result OrganisationenhedEgenskaberAttrType[];
+   DECLARE element OrganisationenhedEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.enhedsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.enhedsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -38262,13 +38262,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationenhedEgen
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -38279,14 +38279,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationenhedRela
 RETURNS OrganisationenhedRelationType[] AS
 $$
  DECLARE result OrganisationenhedRelationType[];
- DECLARE element OrganisationenhedRelationType;  
+ DECLARE element OrganisationenhedRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -38294,13 +38294,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -38320,8 +38320,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_organisationenhed_registrering(
     organisationenhed_registrering
 ) RETURNS organisationenhed_registrering AS $BODY$
   SELECT * FROM organisationenhed_registrering as a WHERE
-    organisationenhed_id = $1.organisationenhed_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    organisationenhed_id = $1.organisationenhed_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -38410,17 +38410,17 @@ CREATE OR REPLACE FUNCTION as_update_organisationenhed(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber OrganisationenhedEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber OrganisationenhedEgenskaberAttrType[],
+
+
+
     tilsGyldighed OrganisationenhedGyldighedTilsType[],
-    
+
 
     relationer OrganisationenhedRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      OrganisationenhedRegistreringType[] = null
@@ -38434,15 +38434,15 @@ DECLARE
     prev_organisationenhed_registrering organisationenhed_registrering;
     organisationenhed_relation_navn     OrganisationenhedRelationKode;
 
-    
-    attrEgenskaberObj OrganisationenhedEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj OrganisationenhedEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from organisationenhed a join organisationenhed_registrering b ON b.organisationenhed_id=a.id WHERE a.id=organisationenhed_uuid) THEN
@@ -38485,7 +38485,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO organisationenhed_relation (organisationenhed_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -38494,18 +38494,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH organisationenhed_relation_navn IN ARRAY ARRAY['branche'::OrganisationenhedRelationKode ,  'enhedstype'::OrganisationenhedRelationKode ,  'overordnet'::OrganisationenhedRelationKode ,  'produktionsenhed'::OrganisationenhedRelationKode ,  'skatteenhed'::OrganisationenhedRelationKode ,  'tilhoerer'::OrganisationenhedRelationKode ,  'niveau'::OrganisationenhedRelationKode  ]::OrganisationenhedRelationKode[]  LOOP
         INSERT INTO organisationenhed_relation (organisationenhed_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -38517,7 +38517,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -38537,13 +38537,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH organisationenhed_relation_navn IN ARRAY ARRAY['adresser'::OrganisationenhedRelationKode, 'ansatte'::OrganisationenhedRelationKode, 'opgaver'::OrganisationenhedRelationKode, 'tilknyttedebrugere'::OrganisationenhedRelationKode, 'tilknyttedeenheder'::OrganisationenhedRelationKode, 'tilknyttedefunktioner'::OrganisationenhedRelationKode, 'tilknyttedeinteressefaellesskaber'::OrganisationenhedRelationKode, 'tilknyttedeorganisationer'::OrganisationenhedRelationKode, 'tilknyttedepersoner'::OrganisationenhedRelationKode, 'tilknyttedeitsystemer'::OrganisationenhedRelationKode, 'opmærkning'::OrganisationenhedRelationKode]::OrganisationenhedRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM organisationenhed_relation
                      WHERE organisationenhed_registrering_id = new_organisationenhed_registrering.id AND rel_type = organisationenhed_relation_navn) THEN
-                    
+
                     INSERT INTO organisationenhed_relation (organisationenhed_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_organisationenhed_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -38551,15 +38551,15 @@ BEGIN
         WHERE
             organisationenhed_registrering_id = prev_organisationenhed_registrering.id AND rel_type = organisationenhed_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -38596,11 +38596,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.organisationenhed_registrering_id = prev_organisationenhed_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- organisationenhed_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -38615,7 +38615,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.enhedsnavn,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update organisationenhed with uuid [%], as the organisationenhed have overlapping virknings in the given egenskaber array :%', organisationenhed_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -38625,22 +38625,22 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).enhedsnavn IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO organisationenhed_attr_egenskaber ( brugervendtnoegle,enhedsnavn,integrationsdata, virkning, organisationenhed_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.enhedsnavn, a.enhedsnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -38655,16 +38655,16 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO organisationenhed_attr_egenskaber ( brugervendtnoegle,enhedsnavn,integrationsdata, virkning, organisationenhed_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.enhedsnavn,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -38682,7 +38682,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO organisationenhed_attr_egenskaber ( brugervendtnoegle,enhedsnavn,integrationsdata, virkning, organisationenhed_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.enhedsnavn,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_organisationenhed_registrering.id );
@@ -38703,14 +38703,14 @@ BEGIN
 
     INSERT INTO organisationenhed_attr_egenskaber ( brugervendtnoegle,enhedsnavn,integrationsdata, virkning, organisationenhed_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.enhedsnavn,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -38752,23 +38752,23 @@ END IF;
     IF NOT (lower((read_new_organisationenhed.registrering[1].registrering).TimePeriod) = lower((new_organisationenhed_registrering.registrering).TimePeriod) and lower((read_prev_organisationenhed.registrering[1].registrering).TimePeriod)=lower((prev_organisationenhed_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating organisationenhed with id [%]: The ordering of as_list_organisationenhed should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', organisationenhed_uuid, to_json(new_organisationenhed_registrering), to_json(read_new_organisationenhed.registrering[1].registrering), to_json(prev_organisationenhed_registrering), to_json(prev_new_organisationenhed.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_organisationenhed_reg := ROW(
         ROW (null, (read_new_organisationenhed.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_organisationenhed.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_organisationenhed.registrering[1]).attrEgenskaber ,
         (read_new_organisationenhed.registrering[1]).relationer
     )::organisationenhedRegistreringType;
 
     read_prev_organisationenhed_reg := ROW(
         ROW(null, (read_prev_organisationenhed.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_organisationenhed.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_organisationenhed.registrering[1]).attrEgenskaber ,
         (read_prev_organisationenhed.registrering[1]).relationer
     )::organisationenhedRegistreringType;
@@ -38801,21 +38801,21 @@ CREATE OR REPLACE FUNCTION as_create_or_import_organisationenhed (
     OrganisationenhedRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE organisationenhed_registrering_id bigint;
 
-    
-    organisationenhed_attr_egenskaber_obj organisationenhedEgenskaberAttrType;
-    
 
-    
+    organisationenhed_attr_egenskaber_obj organisationenhedEgenskaberAttrType;
+
+
+
     organisationenhed_tils_gyldighed_obj organisationenhedGyldighedTilsType;
-    
+
 
     organisationenhed_relationer OrganisationenhedRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_organisationenhed_registrering organisationenhed_registrering;
@@ -38883,9 +38883,9 @@ IF organisationenhed_registrering.attrEgenskaber IS NOT NULL and coalesce(array_
   FOREACH organisationenhed_attr_egenskaber_obj IN ARRAY organisationenhed_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO organisationenhed_attr_egenskaber (
-      
+
       brugervendtnoegle,
       enhedsnavn,
       integrationsdata,
@@ -38893,15 +38893,15 @@ IF organisationenhed_registrering.attrEgenskaber IS NOT NULL and coalesce(array_
       organisationenhed_registrering_id
     )
     SELECT
-     
+
      organisationenhed_attr_egenskaber_obj.brugervendtnoegle,
       organisationenhed_attr_egenskaber_obj.enhedsnavn,
       organisationenhed_attr_egenskaber_obj.integrationsdata,
       organisationenhed_attr_egenskaber_obj.virkning,
       organisationenhed_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -38960,9 +38960,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationenhed(array[organisationenhed_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationenhed_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationenhed with uuid [%]. Object does not met stipulated criteria:%',organisationenhed_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import organisationenhed with uuid [%]. Object does not met stipulated criteria:%',organisationenhed_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -38995,13 +38995,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationenhed_uuids,1),0) AND auth_filtered_uuids @>organisationenhed_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationenhed with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationenhed_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list organisationenhed with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationenhed_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.organisationenhedObj) into result
 FROM
 (
@@ -39015,8 +39015,8 @@ ROW(
 			a.OrganisationenhedAttrEgenskaberArr,
 			a.OrganisationenhedRelationArr
 		)::OrganisationenhedRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: OrganisationenhedType  organisationenhedObj
 FROM
 (
@@ -39039,9 +39039,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) OrganisationenhedRelationArr
 	FROM
 	(
@@ -39053,7 +39053,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -39061,7 +39061,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) OrganisationenhedTilsGyldighedArr		
+				)) OrganisationenhedTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -39070,44 +39070,44 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.enhedsnavn,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::OrganisationenhedEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.enhedsnavn,b.integrationsdata,b.virkning
-                        
+
 					)) OrganisationenhedAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id organisationenhed_id,
 					b.id organisationenhed_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		organisationenhed a
 					JOIN 		organisationenhed_registrering b 	ON b.organisationenhed_id=a.id
 					WHERE a.id = ANY (organisationenhed_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN organisationenhed_attr_egenskaber as b ON b.organisationenhed_registrering_id=a.organisationenhed_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.organisationenhed_id,
 					a.organisationenhed_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN organisationenhed_tils_gyldighed as b ON b.organisationenhed_registrering_id=a.organisationenhed_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN organisationenhed_tils_gyldighed as b ON b.organisationenhed_registrering_id=a.organisationenhed_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.organisationenhed_id,
 			a.organisationenhed_registrering_id,
 			a.registrering,
@@ -39123,7 +39123,7 @@ FROM
 ) as a
 
 WHERE a.organisationenhed_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.organisationenhed_id
 order by a.organisationenhed_id
 ) as x
@@ -39183,7 +39183,7 @@ CREATE OR REPLACE FUNCTION as_search_organisationenhed(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr OrganisationenhedRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -39192,7 +39192,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj OrganisationenhedEgenskaberAttrType;
 
-    
+
     tilsGyldighedTypeObj OrganisationenhedGyldighedTilsType;
 
     relationTypeObj OrganisationenhedRelationType;
@@ -39200,11 +39200,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -39227,20 +39227,20 @@ IF organisationenhed_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39261,16 +39261,16 @@ IF organisationenhed_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39283,7 +39283,7 @@ IF organisationenhed_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39308,7 +39308,7 @@ END IF;
 --RAISE NOTICE 'organisationenhed_candidates step 2:%',organisationenhed_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -39317,20 +39317,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(organisationenhed_candidates,1),0)>0 OR NOT organisationenhed_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             organisationenhed_candidates:=array(
             SELECT DISTINCT
             b.organisationenhed_id
             FROM  organisationenhed_attr_egenskaber a
             JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -39352,7 +39352,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -39386,24 +39386,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39424,16 +39424,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39446,7 +39446,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39479,16 +39479,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.organisationenhed_id
-            
+
             FROM  organisationenhed_attr_egenskaber a
             JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.enhedsnavn ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -39497,24 +39497,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39535,16 +39535,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39557,7 +39557,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39641,20 +39641,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39675,16 +39675,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39697,7 +39697,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39800,26 +39800,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39840,16 +39840,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39862,7 +39862,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39889,38 +39889,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         organisationenhed_candidates:=array(
             SELECT DISTINCT
             b.organisationenhed_id
-            
+
             FROM  organisationenhed_relation a
             JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -39941,16 +39941,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -39963,7 +39963,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -39990,38 +39990,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         organisationenhed_candidates:=array(
             SELECT DISTINCT
             b.organisationenhed_id
-            
+
             FROM  organisationenhed_relation a
             JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -40042,16 +40042,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -40064,7 +40064,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -40085,7 +40085,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -40106,20 +40106,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -40140,16 +40140,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -40162,7 +40162,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -40197,7 +40197,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationenhed(organisationenhed_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_organisationenhed(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -40206,7 +40206,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -40220,13 +40220,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationenhedRegistreringType_to_json(OrganisationenhedRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationenhedRegistreringType_to_json(OrganisationenhedRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -40234,44 +40234,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END organisationenhedegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END organisationenhedgyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -40285,7 +40285,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -40310,7 +40310,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -40328,13 +40328,13 @@ create cast (OrganisationenhedRegistreringType as json) with function actual_sta
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_organisationenhedType_to_json(OrganisationenhedType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_organisationenhedType_to_json(OrganisationenhedType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg OrganisationenhedRegistreringType;
@@ -40363,7 +40363,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (OrganisationenhedType as json);
-create cast (OrganisationenhedType as json) with function actual_state._cast_organisationenhedType_to_json(OrganisationenhedType); 
+create cast (OrganisationenhedType as json) with function actual_state._cast_organisationenhedType_to_json(OrganisationenhedType);
 
 
 
@@ -40422,14 +40422,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_organisationenhed(
 	organisationenhed_uuids uuid[],
 	registreringObjArr OrganisationenhedRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	organisationenhed_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	organisationenhed_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj OrganisationenhedEgenskaberAttrType;
-	
+
   	tilsGyldighedTypeObj OrganisationenhedGyldighedTilsType;
 	relationTypeObj OrganisationenhedRelationType;
 	registreringObj OrganisationenhedRegistreringType;
@@ -40443,8 +40443,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF organisationenhed_uuids IS NULL OR coalesce(array_length(organisationenhed_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -40463,7 +40463,7 @@ organisationenhed_candidates:= organisationenhed_uuids;
 --RAISE DEBUG 'organisationenhed_candidates step 1:%',organisationenhed_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -40475,31 +40475,31 @@ ELSE
 		LOOP
 			organisationenhed_candidates:=array(
 			SELECT DISTINCT
-			b.organisationenhed_id 
-			FROM  organisationenhed_attr_egenskaber a 
-			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.organisationenhed_id
+			FROM  organisationenhed_attr_egenskaber a
+			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.enhedsnavn IS NULL
-					OR 
-					a.enhedsnavn = attrEgenskaberTypeObj.enhedsnavn 
+					OR
+					a.enhedsnavn = attrEgenskaberTypeObj.enhedsnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -40515,15 +40515,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_organisationenhed: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(organisationenhed_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(organisationenhed_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			organisationenhed_candidates:=array(
 			SELECT DISTINCT
-			b.organisationenhed_id 
+			b.organisationenhed_id
 			FROM  organisationenhed_tils_gyldighed a
-			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -40533,7 +40533,7 @@ ELSE
 				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -40559,11 +40559,11 @@ ELSE
 		LOOP
 			organisationenhed_candidates:=array(
 			SELECT DISTINCT
-			b.organisationenhed_id 
+			b.organisationenhed_id
 			FROM  organisationenhed_relation a
 			JOIN organisationenhed_registrering b on a.organisationenhed_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -40572,7 +40572,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -40587,7 +40587,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.organisationenhed_id = ANY (organisationenhed_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -40599,7 +40599,7 @@ END IF;
 
 organisationenhed_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (organisationenhed_passed_auth_filter) a(id)
 UNION
@@ -40609,7 +40609,7 @@ FROM
 unnest (organisationenhed_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(organisationenhed_passed_auth_filter,1),0)=coalesce(array_length(organisationenhed_uuids,1),0) AND organisationenhed_passed_auth_filter @>organisationenhed_uuids THEN
 	RETURN organisationenhed_passed_auth_filter;
 END IF;
@@ -40622,7 +40622,7 @@ RETURN organisationenhed_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -40704,7 +40704,7 @@ CREATE TYPE OrganisationfunktionType AS
 (
   id uuid,
   registrering OrganisationfunktionRegistreringType[]
-);  
+);
 
 
 
@@ -40761,7 +40761,7 @@ CREATE TABLE organisationfunktion_registrering (
    CONSTRAINT organisationfunktion_registrering_organisationfunktion_fkey FOREIGN KEY (organisationfunktion_id)
        REFERENCES organisationfunktion (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT organisationfunktion_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT organisationfunktion_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(organisationfunktion_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -40839,8 +40839,8 @@ ALTER TABLE organisationfunktion_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX organisationfunktion_attr_egenskaber_pat_brugervendtnoegle
             ON organisationfunktion_attr_egenskaber
             USING gin
@@ -40849,9 +40849,9 @@ ALTER TABLE organisationfunktion_attr_egenskaber
         CREATE INDEX organisationfunktion_attr_egenskaber_idx_brugervendtnoegle
             ON organisationfunktion_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX organisationfunktion_attr_egenskaber_pat_funktionsnavn
             ON organisationfunktion_attr_egenskaber
             USING gin
@@ -40860,9 +40860,9 @@ ALTER TABLE organisationfunktion_attr_egenskaber
         CREATE INDEX organisationfunktion_attr_egenskaber_idx_funktionsnavn
             ON organisationfunktion_attr_egenskaber
             USING btree
-            (funktionsnavn); 
- 
-     
+            (funktionsnavn);
+
+
         CREATE INDEX organisationfunktion_attr_egenskaber_pat_integrationsdata
             ON organisationfunktion_attr_egenskaber
             USING gin
@@ -40871,7 +40871,7 @@ ALTER TABLE organisationfunktion_attr_egenskaber
         CREATE INDEX organisationfunktion_attr_egenskaber_idx_integrationsdata
             ON organisationfunktion_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -40936,32 +40936,32 @@ ALTER TABLE organisationfunktion_attr_udvidelser
   OWNER TO {{ mox_user }};
 
 
- 
-    
-        
-             
+
+
+
+
                 CREATE INDEX organisationfunktion_attr_udvidelser_idx_primær
                     ON organisationfunktion_attr_udvidelser
                     USING btree
                     (primær);
 
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX organisationfunktion_attr_udvidelser_idx_fraktion
                     ON organisationfunktion_attr_udvidelser
                     USING btree
                     (fraktion);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_1
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -40970,9 +40970,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_1
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_1); 
- 
-     
+            (udvidelse_1);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_2
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -40981,9 +40981,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_2
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_2); 
- 
-     
+            (udvidelse_2);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_3
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -40992,9 +40992,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_3
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_3); 
- 
-     
+            (udvidelse_3);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_4
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41003,9 +41003,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_4
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_4); 
- 
-     
+            (udvidelse_4);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_5
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41014,9 +41014,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_5
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_5); 
- 
-     
+            (udvidelse_5);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_6
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41025,9 +41025,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_6
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_6); 
- 
-     
+            (udvidelse_6);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_7
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41036,9 +41036,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_7
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_7); 
- 
-     
+            (udvidelse_7);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_8
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41047,9 +41047,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_8
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_8); 
- 
-     
+            (udvidelse_8);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_9
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41058,9 +41058,9 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_9
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_9); 
- 
-     
+            (udvidelse_9);
+
+
         CREATE INDEX organisationfunktion_attr_udvidelser_pat_udvidelse_10
             ON organisationfunktion_attr_udvidelser
             USING gin
@@ -41069,7 +41069,7 @@ ALTER TABLE organisationfunktion_attr_udvidelser
         CREATE INDEX organisationfunktion_attr_udvidelser_idx_udvidelse_10
             ON organisationfunktion_attr_udvidelser
             USING btree
-            (udvidelse_10); 
+            (udvidelse_10);
 
 
 
@@ -41116,7 +41116,7 @@ ALTER TABLE organisationfunktion_tils_gyldighed_id_seq
 CREATE TABLE organisationfunktion_tils_gyldighed (
     id bigint NOT NULL DEFAULT nextval('organisationfunktion_tils_gyldighed_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    gyldighed OrganisationfunktionGyldighedTils NOT NULL, 
+    gyldighed OrganisationfunktionGyldighedTils NOT NULL,
     organisationfunktion_registrering_id bigint not null,
     CONSTRAINT organisationfunktion_tils_gyldighed_pkey PRIMARY KEY (id),
     CONSTRAINT organisationfunktion_tils_gyldighed_forkey_organisationfunktionregistrering FOREIGN KEY (organisationfunktion_registrering_id) REFERENCES organisationfunktion_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -41134,7 +41134,7 @@ CREATE INDEX organisationfunktion_tils_gyldighed_idx_gyldighed
     ON organisationfunktion_tils_gyldighed
     USING btree
     (gyldighed);
-  
+
 CREATE INDEX organisationfunktion_tils_gyldighed_idx_virkning_aktoerref
     ON organisationfunktion_tils_gyldighed
     USING btree
@@ -41179,7 +41179,7 @@ CREATE TABLE organisationfunktion_relation (
     rel_type OrganisationfunktionRelationKode not null,
     objekt_type text null,
 
-    
+
 
     CONSTRAINT organisationfunktion_relation_forkey_organisationfunktionregistrering FOREIGN KEY (organisationfunktion_registrering_id) REFERENCES organisationfunktion_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT organisationfunktion_relation_pkey PRIMARY KEY (id),
@@ -41269,20 +41269,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionG
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.gyldighed IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -41290,15 +41290,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionG
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionEgenskaberAttrType[])
   RETURNS OrganisationfunktionEgenskaberAttrType[] AS
   $$
-  DECLARE result OrganisationfunktionEgenskaberAttrType[]; 
-   DECLARE element OrganisationfunktionEgenskaberAttrType; 
+  DECLARE result OrganisationfunktionEgenskaberAttrType[];
+   DECLARE element OrganisationfunktionEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.funktionsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.funktionsnavn IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -41306,13 +41306,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionE
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -41321,15 +41321,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionE
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionUdvidelserAttrType[])
   RETURNS OrganisationfunktionUdvidelserAttrType[] AS
   $$
-  DECLARE result OrganisationfunktionUdvidelserAttrType[]; 
-   DECLARE element OrganisationfunktionUdvidelserAttrType; 
+  DECLARE result OrganisationfunktionUdvidelserAttrType[];
+   DECLARE element OrganisationfunktionUdvidelserAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.primær IS NULL AND element.fraktion IS NULL AND element.udvidelse_1 IS NULL AND element.udvidelse_2 IS NULL AND element.udvidelse_3 IS NULL AND element.udvidelse_4 IS NULL AND element.udvidelse_5 IS NULL AND element.udvidelse_6 IS NULL AND element.udvidelse_7 IS NULL AND element.udvidelse_8 IS NULL AND element.udvidelse_9 IS NULL AND element.udvidelse_10 IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.primær IS NULL AND element.fraktion IS NULL AND element.udvidelse_1 IS NULL AND element.udvidelse_2 IS NULL AND element.udvidelse_3 IS NULL AND element.udvidelse_4 IS NULL AND element.udvidelse_5 IS NULL AND element.udvidelse_6 IS NULL AND element.udvidelse_7 IS NULL AND element.udvidelse_8 IS NULL AND element.udvidelse_9 IS NULL AND element.udvidelse_10 IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -41337,13 +41337,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionU
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -41354,14 +41354,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr OrganisationfunktionR
 RETURNS OrganisationfunktionRelationType[] AS
 $$
  DECLARE result OrganisationfunktionRelationType[];
- DECLARE element OrganisationfunktionRelationType;  
+ DECLARE element OrganisationfunktionRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -41369,13 +41369,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -41395,8 +41395,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_organisationfunktion_registrering(
     organisationfunktion_registrering
 ) RETURNS organisationfunktion_registrering AS $BODY$
   SELECT * FROM organisationfunktion_registrering as a WHERE
-    organisationfunktion_id = $1.organisationfunktion_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    organisationfunktion_id = $1.organisationfunktion_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -41485,19 +41485,19 @@ CREATE OR REPLACE FUNCTION as_update_organisationfunktion(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber OrganisationfunktionEgenskaberAttrType[],
-    
-    attrUdvidelser OrganisationfunktionUdvidelserAttrType[],
-    
 
-    
+    attrEgenskaber OrganisationfunktionEgenskaberAttrType[],
+
+    attrUdvidelser OrganisationfunktionUdvidelserAttrType[],
+
+
+
     tilsGyldighed OrganisationfunktionGyldighedTilsType[],
-    
+
 
     relationer OrganisationfunktionRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      OrganisationfunktionRegistreringType[] = null
@@ -41511,17 +41511,17 @@ DECLARE
     prev_organisationfunktion_registrering organisationfunktion_registrering;
     organisationfunktion_relation_navn     OrganisationfunktionRelationKode;
 
-    
-    attrEgenskaberObj OrganisationfunktionEgenskaberAttrType;
-    
-    attrUdvidelserObj OrganisationfunktionUdvidelserAttrType;
-    
 
-    
+    attrEgenskaberObj OrganisationfunktionEgenskaberAttrType;
+
+    attrUdvidelserObj OrganisationfunktionUdvidelserAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from organisationfunktion a join organisationfunktion_registrering b ON b.organisationfunktion_id=a.id WHERE a.id=organisationfunktion_uuid) THEN
@@ -41564,7 +41564,7 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
 
     INSERT INTO organisationfunktion_relation (organisationfunktion_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
     SELECT
@@ -41573,18 +41573,18 @@ BEGIN
         a.uuid,
         a.urn,
         a.relType,
-        a.objektType 
+        a.objektType
         FROM
             unnest(relationer) AS a ;
 
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
-    
+
+
     FOREACH organisationfunktion_relation_navn IN ARRAY ARRAY['organisatoriskfunktionstype'::OrganisationfunktionRelationKode ,  'primær'::OrganisationfunktionRelationKode  ]::OrganisationfunktionRelationKode[]  LOOP
         INSERT INTO organisationfunktion_relation (organisationfunktion_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
         SELECT
@@ -41596,7 +41596,7 @@ BEGIN
             a.rel_maal_uuid,
             a.rel_maal_urn,
             a.rel_type,
-            a.objekt_type 
+            a.objekt_type
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -41616,13 +41616,13 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
     FOREACH organisationfunktion_relation_navn IN ARRAY ARRAY['adresser'::OrganisationfunktionRelationKode, 'opgaver'::OrganisationfunktionRelationKode, 'tilknyttedebrugere'::OrganisationfunktionRelationKode, 'tilknyttedeenheder'::OrganisationfunktionRelationKode, 'tilknyttedeorganisationer'::OrganisationfunktionRelationKode, 'tilknyttedeitsystemer'::OrganisationfunktionRelationKode, 'tilknyttedeinteressefaellesskaber'::OrganisationfunktionRelationKode, 'tilknyttedepersoner'::OrganisationfunktionRelationKode, 'tilknyttedefunktioner'::OrganisationfunktionRelationKode, 'tilknyttedeklasser'::OrganisationfunktionRelationKode]::OrganisationfunktionRelationKode[] LOOP
         IF NOT EXISTS (
                     SELECT 1
                       FROM organisationfunktion_relation
                      WHERE organisationfunktion_registrering_id = new_organisationfunktion_registrering.id AND rel_type = organisationfunktion_relation_navn) THEN
-                    
+
                     INSERT INTO organisationfunktion_relation (organisationfunktion_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type )
                     SELECT
                         new_organisationfunktion_registrering.id,  virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type
@@ -41630,15 +41630,15 @@ BEGIN
         WHERE
             organisationfunktion_registrering_id = prev_organisationfunktion_registrering.id AND rel_type = organisationfunktion_relation_navn ;
 
-    
+
         END IF;
     END LOOP;
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsGyldighed IS NOT NULL AND coalesce(array_length(tilsGyldighed, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Gyldighed] as it is explicit set to empty array';
     ELSE
@@ -41675,11 +41675,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.organisationfunktion_registrering_id = prev_organisationfunktion_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- organisationfunktion_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -41694,7 +41694,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.funktionsnavn,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update organisationfunktion with uuid [%], as the organisationfunktion have overlapping virknings in the given egenskaber array :%', organisationfunktion_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -41704,22 +41704,22 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).funktionsnavn IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO organisationfunktion_attr_egenskaber ( brugervendtnoegle,funktionsnavn,integrationsdata, virkning, organisationfunktion_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.funktionsnavn, a.funktionsnavn),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -41734,16 +41734,16 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO organisationfunktion_attr_egenskaber ( brugervendtnoegle,funktionsnavn,integrationsdata, virkning, organisationfunktion_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.funktionsnavn,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -41761,7 +41761,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO organisationfunktion_attr_egenskaber ( brugervendtnoegle,funktionsnavn,integrationsdata, virkning, organisationfunktion_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.funktionsnavn,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_organisationfunktion_registrering.id );
@@ -41782,14 +41782,14 @@ BEGIN
 
     INSERT INTO organisationfunktion_attr_egenskaber ( brugervendtnoegle,funktionsnavn,integrationsdata, virkning, organisationfunktion_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.funktionsnavn,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -41827,7 +41827,7 @@ END IF;
                 GROUP BY
                     a.primær,a.fraktion,a.udvidelse_1,a.udvidelse_2,a.udvidelse_3,a.udvidelse_4,a.udvidelse_5,a.udvidelse_6,a.udvidelse_7,a.udvidelse_8,a.udvidelse_9,a.udvidelse_10,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update organisationfunktion with uuid [%], as the organisationfunktion have overlapping virknings in the given udvidelser array :%', organisationfunktion_uuid, to_json(attrUdvidelser) USING ERRCODE = 'MO400';
     END IF;
@@ -41837,68 +41837,68 @@ END IF;
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrUdvidelserObj).primær IS NULL  OR  (attrUdvidelserObj).fraktion IS NULL  OR  (attrUdvidelserObj).udvidelse_1 IS NULL  OR  (attrUdvidelserObj).udvidelse_2 IS NULL  OR  (attrUdvidelserObj).udvidelse_3 IS NULL  OR  (attrUdvidelserObj).udvidelse_4 IS NULL  OR  (attrUdvidelserObj).udvidelse_5 IS NULL  OR  (attrUdvidelserObj).udvidelse_6 IS NULL  OR  (attrUdvidelserObj).udvidelse_7 IS NULL  OR  (attrUdvidelserObj).udvidelse_8 IS NULL  OR  (attrUdvidelserObj).udvidelse_9 IS NULL  OR  (attrUdvidelserObj).udvidelse_10 IS NULL  THEN
-            
+
             INSERT INTO organisationfunktion_attr_udvidelser ( primær,fraktion,udvidelse_1,udvidelse_2,udvidelse_3,udvidelse_4,udvidelse_5,udvidelse_6,udvidelse_7,udvidelse_8,udvidelse_9,udvidelse_10, virkning, organisationfunktion_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrUdvidelserObj.primær).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrUdvidelserObj.primær).value, a.primær)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             CASE WHEN ((attrUdvidelserObj.fraktion).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrUdvidelserObj.fraktion).value, a.fraktion)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_1, a.udvidelse_1),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_2, a.udvidelse_2),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_3, a.udvidelse_3),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_4, a.udvidelse_4),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_5, a.udvidelse_5),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_6, a.udvidelse_6),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_7, a.udvidelse_7),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_8, a.udvidelse_8),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_9, a.udvidelse_9),
-                    
-                        
-                        
+
+
+
                             coalesce(attrUdvidelserObj.udvidelse_10, a.udvidelse_10),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrUdvidelserObj.virkning).TimePeriod,
                             (attrUdvidelserObj.virkning).AktoerRef,
                             (attrUdvidelserObj.virkning).AktoerTypeKode,
@@ -41913,34 +41913,34 @@ END IF;
         -- For any periods within the virkning of the attrUdvidelserObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO organisationfunktion_attr_udvidelser ( primær,fraktion,udvidelse_1,udvidelse_2,udvidelse_3,udvidelse_4,udvidelse_5,udvidelse_6,udvidelse_7,udvidelse_8,udvidelse_9,udvidelse_10, virkning, organisationfunktion_registrering_id)
                 SELECT
-                    
+
                      attrUdvidelserObj.primær,
-                    
+
                      attrUdvidelserObj.fraktion,
-                    
+
                      attrUdvidelserObj.udvidelse_1,
-                    
+
                      attrUdvidelserObj.udvidelse_2,
-                    
+
                      attrUdvidelserObj.udvidelse_3,
-                    
+
                      attrUdvidelserObj.udvidelse_4,
-                    
+
                      attrUdvidelserObj.udvidelse_5,
-                    
+
                      attrUdvidelserObj.udvidelse_6,
-                    
+
                      attrUdvidelserObj.udvidelse_7,
-                    
+
                      attrUdvidelserObj.udvidelse_8,
-                    
+
                      attrUdvidelserObj.udvidelse_9,
-                    
+
                      attrUdvidelserObj.udvidelse_10,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrUdvidelserObj.virkning).AktoerRef,
                         (attrUdvidelserObj.virkning).AktoerTypeKode,
@@ -41958,7 +41958,7 @@ END IF;
 
         ELSE
             -- Insert attrUdvidelserObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO organisationfunktion_attr_udvidelser ( primær,fraktion,udvidelse_1,udvidelse_2,udvidelse_3,udvidelse_4,udvidelse_5,udvidelse_6,udvidelse_7,udvidelse_8,udvidelse_9,udvidelse_10, virkning, organisationfunktion_registrering_id)
                 VALUES (  attrUdvidelserObj.primær,  attrUdvidelserObj.fraktion,  attrUdvidelserObj.udvidelse_1,  attrUdvidelserObj.udvidelse_2,  attrUdvidelserObj.udvidelse_3,  attrUdvidelserObj.udvidelse_4,  attrUdvidelserObj.udvidelse_5,  attrUdvidelserObj.udvidelse_6,  attrUdvidelserObj.udvidelse_7,  attrUdvidelserObj.udvidelse_8,  attrUdvidelserObj.udvidelse_9,  attrUdvidelserObj.udvidelse_10, attrUdvidelserObj.virkning, new_organisationfunktion_registrering.id );
@@ -41979,32 +41979,32 @@ END IF;
 
     INSERT INTO organisationfunktion_attr_udvidelser ( primær,fraktion,udvidelse_1,udvidelse_2,udvidelse_3,udvidelse_4,udvidelse_5,udvidelse_6,udvidelse_7,udvidelse_8,udvidelse_9,udvidelse_10, virkning, organisationfunktion_registrering_id)
     SELECT
-        
-        
+
+
             a.primær,
-        
+
             a.fraktion,
-        
+
             a.udvidelse_1,
-        
+
             a.udvidelse_2,
-        
+
             a.udvidelse_3,
-        
+
             a.udvidelse_4,
-        
+
             a.udvidelse_5,
-        
+
             a.udvidelse_6,
-        
+
             a.udvidelse_7,
-        
+
             a.udvidelse_8,
-        
+
             a.udvidelse_9,
-        
+
             a.udvidelse_10,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -42046,14 +42046,14 @@ END IF;
     IF NOT (lower((read_new_organisationfunktion.registrering[1].registrering).TimePeriod) = lower((new_organisationfunktion_registrering.registrering).TimePeriod) and lower((read_prev_organisationfunktion.registrering[1].registrering).TimePeriod)=lower((prev_organisationfunktion_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating organisationfunktion with id [%]: The ordering of as_list_organisationfunktion should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', organisationfunktion_uuid, to_json(new_organisationfunktion_registrering), to_json(read_new_organisationfunktion.registrering[1].registrering), to_json(prev_organisationfunktion_registrering), to_json(prev_new_organisationfunktion.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_organisationfunktion_reg := ROW(
         ROW (null, (read_new_organisationfunktion.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_organisationfunktion.registrering[1]).tilsGyldighed ,
-        
+
         (read_new_organisationfunktion.registrering[1]).attrEgenskaber ,
         (read_new_organisationfunktion.registrering[1]).attrUdvidelser ,
         (read_new_organisationfunktion.registrering[1]).relationer
@@ -42061,9 +42061,9 @@ END IF;
 
     read_prev_organisationfunktion_reg := ROW(
         ROW(null, (read_prev_organisationfunktion.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_organisationfunktion.registrering[1]).tilsGyldighed ,
-        
+
         (read_prev_organisationfunktion.registrering[1]).attrEgenskaber ,
         (read_prev_organisationfunktion.registrering[1]).attrUdvidelser ,
         (read_prev_organisationfunktion.registrering[1]).relationer
@@ -42097,23 +42097,23 @@ CREATE OR REPLACE FUNCTION as_create_or_import_organisationfunktion (
     OrganisationfunktionRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE organisationfunktion_registrering_id bigint;
 
-    
-    organisationfunktion_attr_egenskaber_obj organisationfunktionEgenskaberAttrType;
-    
-    organisationfunktion_attr_udvidelser_obj organisationfunktionUdvidelserAttrType;
-    
 
-    
+    organisationfunktion_attr_egenskaber_obj organisationfunktionEgenskaberAttrType;
+
+    organisationfunktion_attr_udvidelser_obj organisationfunktionUdvidelserAttrType;
+
+
+
     organisationfunktion_tils_gyldighed_obj organisationfunktionGyldighedTilsType;
-    
+
 
     organisationfunktion_relationer OrganisationfunktionRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 
     does_exist boolean;
     new_organisationfunktion_registrering organisationfunktion_registrering;
@@ -42181,9 +42181,9 @@ IF organisationfunktion_registrering.attrEgenskaber IS NOT NULL and coalesce(arr
   FOREACH organisationfunktion_attr_egenskaber_obj IN ARRAY organisationfunktion_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO organisationfunktion_attr_egenskaber (
-      
+
       brugervendtnoegle,
       funktionsnavn,
       integrationsdata,
@@ -42191,15 +42191,15 @@ IF organisationfunktion_registrering.attrEgenskaber IS NOT NULL and coalesce(arr
       organisationfunktion_registrering_id
     )
     SELECT
-     
+
      organisationfunktion_attr_egenskaber_obj.brugervendtnoegle,
       organisationfunktion_attr_egenskaber_obj.funktionsnavn,
       organisationfunktion_attr_egenskaber_obj.integrationsdata,
       organisationfunktion_attr_egenskaber_obj.virkning,
       organisationfunktion_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -42208,9 +42208,9 @@ IF organisationfunktion_registrering.attrUdvidelser IS NOT NULL and coalesce(arr
   FOREACH organisationfunktion_attr_udvidelser_obj IN ARRAY organisationfunktion_registrering.attrUdvidelser
   LOOP
 
-  
+
     INSERT INTO organisationfunktion_attr_udvidelser (
-      
+
       primær,
       fraktion,
       udvidelse_1,
@@ -42227,7 +42227,7 @@ IF organisationfunktion_registrering.attrUdvidelser IS NOT NULL and coalesce(arr
       organisationfunktion_registrering_id
     )
     SELECT
-     
+
      organisationfunktion_attr_udvidelser_obj.primær,
       organisationfunktion_attr_udvidelser_obj.fraktion,
       organisationfunktion_attr_udvidelser_obj.udvidelse_1,
@@ -42243,8 +42243,8 @@ IF organisationfunktion_registrering.attrUdvidelser IS NOT NULL and coalesce(arr
       organisationfunktion_attr_udvidelser_obj.virkning,
       organisationfunktion_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -42303,9 +42303,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(array[organisationfunktion_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[organisationfunktion_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import organisationfunktion with uuid [%]. Object does not met stipulated criteria:%',organisationfunktion_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import organisationfunktion with uuid [%]. Object does not met stipulated criteria:%',organisationfunktion_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -42338,13 +42338,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(organisationfunktion_uuids,1),0) AND auth_filtered_uuids @>organisationfunktion_uuids) THEN
-  RAISE EXCEPTION 'Unable to list organisationfunktion with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationfunktion_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list organisationfunktion with uuids [%]. All objects do not fullfill the stipulated criteria:%',organisationfunktion_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.organisationfunktionObj) into result
 FROM
 (
@@ -42359,8 +42359,8 @@ ROW(
 			a.OrganisationfunktionAttrUdvidelserArr,
 			a.OrganisationfunktionRelationArr
 		)::OrganisationfunktionRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: OrganisationfunktionType  organisationfunktionObj
 FROM
 (
@@ -42384,9 +42384,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.virkning
-        
+
 	)) OrganisationfunktionRelationArr
 	FROM
 	(
@@ -42399,7 +42399,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.gyldighed
@@ -42407,7 +42407,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.gyldighed,b.virkning
-				)) OrganisationfunktionTilsGyldighedArr		
+				)) OrganisationfunktionTilsGyldighedArr
 			FROM
 			(
 					SELECT
@@ -42417,25 +42417,25 @@ FROM
 					a.OrganisationfunktionAttrUdvidelserArr,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.funktionsnavn,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::OrganisationfunktionEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.funktionsnavn,b.integrationsdata,b.virkning
-                        
+
 					)) OrganisationfunktionAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
@@ -42444,11 +42444,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.primær,
 					 		b.fraktion,
 					 		b.udvidelse_1,
@@ -42462,43 +42462,43 @@ FROM
 					 		b.udvidelse_9,
 					 		b.udvidelse_10,
 					   		b.virkning
-                            
+
 							)::OrganisationfunktionUdvidelserAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.primær,b.fraktion,b.udvidelse_1,b.udvidelse_2,b.udvidelse_3,b.udvidelse_4,b.udvidelse_5,b.udvidelse_6,b.udvidelse_7,b.udvidelse_8,b.udvidelse_9,b.udvidelse_10,b.virkning
-                        
+
 					)) OrganisationfunktionAttrUdvidelserArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id organisationfunktion_id,
 					b.id organisationfunktion_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		organisationfunktion a
 					JOIN 		organisationfunktion_registrering b 	ON b.organisationfunktion_id=a.id
 					WHERE a.id = ANY (organisationfunktion_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN organisationfunktion_attr_udvidelser as b ON b.organisationfunktion_registrering_id=a.organisationfunktion_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.organisationfunktion_id,
 					a.organisationfunktion_registrering_id,
 					a.registrering
 					) as a
 					LEFT JOIN organisationfunktion_attr_egenskaber as b ON b.organisationfunktion_registrering_id=a.organisationfunktion_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.organisationfunktion_id,
 					a.organisationfunktion_registrering_id,
 					a.registrering,
-					a.OrganisationfunktionAttrUdvidelserArr	
+					a.OrganisationfunktionAttrUdvidelserArr
 			) as a
-			LEFT JOIN organisationfunktion_tils_gyldighed as b ON b.organisationfunktion_registrering_id=a.organisationfunktion_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN organisationfunktion_tils_gyldighed as b ON b.organisationfunktion_registrering_id=a.organisationfunktion_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.organisationfunktion_id,
 			a.organisationfunktion_registrering_id,
 			a.registrering,
@@ -42516,7 +42516,7 @@ FROM
 ) as a
 
 WHERE a.organisationfunktion_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.organisationfunktion_id
 order by a.organisationfunktion_id
 ) as x
@@ -42576,7 +42576,7 @@ CREATE OR REPLACE FUNCTION as_search_organisationfunktion(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr OrganisationfunktionRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -42586,7 +42586,7 @@ DECLARE
     attrEgenskaberTypeObj OrganisationfunktionEgenskaberAttrType;
     attrUdvidelserTypeObj OrganisationfunktionUdvidelserAttrType;
 
-    
+
     tilsGyldighedTypeObj OrganisationfunktionGyldighedTilsType;
 
     relationTypeObj OrganisationfunktionRelationType;
@@ -42594,11 +42594,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -42621,20 +42621,20 @@ IF organisationfunktion_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -42655,16 +42655,16 @@ IF organisationfunktion_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -42677,7 +42677,7 @@ IF organisationfunktion_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -42702,7 +42702,7 @@ END IF;
 --RAISE NOTICE 'organisationfunktion_candidates step 2:%',organisationfunktion_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -42711,20 +42711,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(organisationfunktion_candidates,1),0)>0 OR NOT organisationfunktion_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             organisationfunktion_candidates:=array(
             SELECT DISTINCT
             b.organisationfunktion_id
             FROM  organisationfunktion_attr_egenskaber a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -42746,7 +42746,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -42780,24 +42780,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -42818,16 +42818,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -42840,7 +42840,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -42858,7 +42858,7 @@ ELSE
 
         END LOOP;
     END IF;
-END IF; 
+END IF;
 --/**********************************************************//
 --Filtration on attribute: Udvidelser
 --/**********************************************************//
@@ -42867,20 +42867,20 @@ IF registreringObj IS NULL OR (registreringObj).attrUdvidelser IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(organisationfunktion_candidates,1),0)>0 OR NOT organisationfunktion_candidates_is_initialized) THEN
-        
+
         FOREACH attrUdvidelserTypeObj IN ARRAY registreringObj.attrUdvidelser
-        
+
         LOOP
             organisationfunktion_candidates:=array(
             SELECT DISTINCT
             b.organisationfunktion_id
             FROM  organisationfunktion_attr_udvidelser a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrUdvidelserTypeObj.virkning IS NULL 
+                        attrUdvidelserTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -42902,7 +42902,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrUdvidelserTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrUdvidelserTypeObj.virkning).NoteTekst  
+                                    (attrUdvidelserTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrUdvidelserTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -42990,24 +42990,24 @@ ELSE
                     a.udvidelse_10 ILIKE attrUdvidelserTypeObj.udvidelse_10 --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43028,16 +43028,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43050,7 +43050,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43083,16 +43083,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.organisationfunktion_id
-            
+
             FROM  organisationfunktion_attr_egenskaber a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.funktionsnavn ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -43101,24 +43101,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43139,16 +43139,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43161,7 +43161,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43176,14 +43176,14 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.organisationfunktion_id
-            
+
             FROM  organisationfunktion_attr_udvidelser a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
-            
+
             WHERE
             (
                                 -- boolean is skipped intentionally
-                                
+
                                     a.fraktion::text ilike anyAttrValue OR
                         a.udvidelse_1 ILIKE anyAttrValue OR
                         a.udvidelse_2 ILIKE anyAttrValue OR
@@ -43195,7 +43195,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                         a.udvidelse_8 ILIKE anyAttrValue OR
                         a.udvidelse_9 ILIKE anyAttrValue OR
                         a.udvidelse_10 ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -43204,24 +43204,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43242,16 +43242,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43264,7 +43264,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43348,20 +43348,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43382,16 +43382,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43404,7 +43404,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43507,26 +43507,26 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43547,16 +43547,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43569,7 +43569,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43596,38 +43596,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         organisationfunktion_candidates:=array(
             SELECT DISTINCT
             b.organisationfunktion_id
-            
+
             FROM  organisationfunktion_relation a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43648,16 +43648,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43670,7 +43670,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43697,38 +43697,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         organisationfunktion_candidates:=array(
             SELECT DISTINCT
             b.organisationfunktion_id
-            
+
             FROM  organisationfunktion_relation a
             JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43749,16 +43749,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43771,7 +43771,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43792,7 +43792,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -43813,20 +43813,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -43847,16 +43847,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -43869,7 +43869,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -43904,7 +43904,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_organisationfunktion(organisationfunktion_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_organisationfunktion(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -43913,7 +43913,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -43927,13 +43927,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationfunktionRegistreringType_to_json(OrganisationfunktionRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_OrganisationfunktionRegistreringType_to_json(OrganisationfunktionRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -43941,51 +43941,51 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END organisationfunktionegenskaber
         ,
-        
-        CASE 
-        WHEN coalesce(array_length($1.attrUdvidelser,1),0)>0 THEN to_json($1.attrUdvidelser) 
-        ELSE 
+
+        CASE
+        WHEN coalesce(array_length($1.attrUdvidelser,1),0)>0 THEN to_json($1.attrUdvidelser)
+        ELSE
         NULL
         END organisationfunktionudvidelser
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsGyldighed,1),0)>0 THEN to_json($1.tilsGyldighed)
+        ELSE
         NULL
         END organisationfunktiongyldighed
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -43999,7 +43999,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -44024,7 +44024,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -44042,13 +44042,13 @@ create cast (OrganisationfunktionRegistreringType as json) with function actual_
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_organisationfunktionType_to_json(OrganisationfunktionType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_organisationfunktionType_to_json(OrganisationfunktionType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg OrganisationfunktionRegistreringType;
@@ -44077,7 +44077,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (OrganisationfunktionType as json);
-create cast (OrganisationfunktionType as json) with function actual_state._cast_organisationfunktionType_to_json(OrganisationfunktionType); 
+create cast (OrganisationfunktionType as json) with function actual_state._cast_organisationfunktionType_to_json(OrganisationfunktionType);
 
 
 
@@ -44136,15 +44136,15 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_organisationfunktion(
 	organisationfunktion_uuids uuid[],
 	registreringObjArr OrganisationfunktionRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	organisationfunktion_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	organisationfunktion_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
-	attrEgenskaberTypeObj OrganisationfunktionEgenskaberAttrType; 
+	--to_be_applyed_filter_uuids uuid[];
+	attrEgenskaberTypeObj OrganisationfunktionEgenskaberAttrType;
 	attrUdvidelserTypeObj OrganisationfunktionUdvidelserAttrType;
-	
+
   	tilsGyldighedTypeObj OrganisationfunktionGyldighedTilsType;
 	relationTypeObj OrganisationfunktionRelationType;
 	registreringObj OrganisationfunktionRegistreringType;
@@ -44158,8 +44158,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF organisationfunktion_uuids IS NULL OR coalesce(array_length(organisationfunktion_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -44178,7 +44178,7 @@ organisationfunktion_candidates:= organisationfunktion_uuids;
 --RAISE DEBUG 'organisationfunktion_candidates step 1:%',organisationfunktion_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -44190,34 +44190,34 @@ ELSE
 		LOOP
 			organisationfunktion_candidates:=array(
 			SELECT DISTINCT
-			b.organisationfunktion_id 
-			FROM  organisationfunktion_attr_egenskaber a 
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.organisationfunktion_id
+			FROM  organisationfunktion_attr_egenskaber a
+			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.funktionsnavn IS NULL
-					OR 
-					a.funktionsnavn = attrEgenskaberTypeObj.funktionsnavn 
+					OR
+					a.funktionsnavn = attrEgenskaberTypeObj.funktionsnavn
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
-END IF; 
+END IF;
 --/**********************************************************//
 --Filtration on attribute: Udvidelser
 --/**********************************************************//
@@ -44229,85 +44229,85 @@ ELSE
 		LOOP
 			organisationfunktion_candidates:=array(
 			SELECT DISTINCT
-			b.organisationfunktion_id 
-			FROM  organisationfunktion_attr_udvidelser a 
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.organisationfunktion_id
+			FROM  organisationfunktion_attr_udvidelser a
+			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrUdvidelserTypeObj.primær IS NULL
-					OR 
-					a.primær = attrUdvidelserTypeObj.primær 
+					OR
+					a.primær = attrUdvidelserTypeObj.primær
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.fraktion IS NULL
-					OR 
-					a.fraktion = attrUdvidelserTypeObj.fraktion 
+					OR
+					a.fraktion = attrUdvidelserTypeObj.fraktion
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_1 IS NULL
-					OR 
-					a.udvidelse_1 = attrUdvidelserTypeObj.udvidelse_1 
+					OR
+					a.udvidelse_1 = attrUdvidelserTypeObj.udvidelse_1
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_2 IS NULL
-					OR 
-					a.udvidelse_2 = attrUdvidelserTypeObj.udvidelse_2 
+					OR
+					a.udvidelse_2 = attrUdvidelserTypeObj.udvidelse_2
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_3 IS NULL
-					OR 
-					a.udvidelse_3 = attrUdvidelserTypeObj.udvidelse_3 
+					OR
+					a.udvidelse_3 = attrUdvidelserTypeObj.udvidelse_3
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_4 IS NULL
-					OR 
-					a.udvidelse_4 = attrUdvidelserTypeObj.udvidelse_4 
+					OR
+					a.udvidelse_4 = attrUdvidelserTypeObj.udvidelse_4
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_5 IS NULL
-					OR 
-					a.udvidelse_5 = attrUdvidelserTypeObj.udvidelse_5 
+					OR
+					a.udvidelse_5 = attrUdvidelserTypeObj.udvidelse_5
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_6 IS NULL
-					OR 
-					a.udvidelse_6 = attrUdvidelserTypeObj.udvidelse_6 
+					OR
+					a.udvidelse_6 = attrUdvidelserTypeObj.udvidelse_6
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_7 IS NULL
-					OR 
-					a.udvidelse_7 = attrUdvidelserTypeObj.udvidelse_7 
+					OR
+					a.udvidelse_7 = attrUdvidelserTypeObj.udvidelse_7
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_8 IS NULL
-					OR 
-					a.udvidelse_8 = attrUdvidelserTypeObj.udvidelse_8 
+					OR
+					a.udvidelse_8 = attrUdvidelserTypeObj.udvidelse_8
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_9 IS NULL
-					OR 
-					a.udvidelse_9 = attrUdvidelserTypeObj.udvidelse_9 
+					OR
+					a.udvidelse_9 = attrUdvidelserTypeObj.udvidelse_9
 				)
 				AND
 				(
 					attrUdvidelserTypeObj.udvidelse_10 IS NULL
-					OR 
-					a.udvidelse_10 = attrUdvidelserTypeObj.udvidelse_10 
+					OR
+					a.udvidelse_10 = attrUdvidelserTypeObj.udvidelse_10
 				)
 				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -44323,15 +44323,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsGyldighed IS NULL THEN
 	--RAISE DEBUG 'as_search_organisationfunktion: skipping filtration on tilsGyldighed';
 ELSE
-	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(organisationfunktion_candidates,1),0)>0 THEN
 
 		FOREACH tilsGyldighedTypeObj IN ARRAY registreringObj.tilsGyldighed
 		LOOP
 			organisationfunktion_candidates:=array(
 			SELECT DISTINCT
-			b.organisationfunktion_id 
+			b.organisationfunktion_id
 			FROM  organisationfunktion_tils_gyldighed a
-			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsGyldighedTypeObj.gyldighed IS NULL
@@ -44341,7 +44341,7 @@ ELSE
 				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -44367,11 +44367,11 @@ ELSE
 		LOOP
 			organisationfunktion_candidates:=array(
 			SELECT DISTINCT
-			b.organisationfunktion_id 
+			b.organisationfunktion_id
 			FROM  organisationfunktion_relation a
 			JOIN organisationfunktion_registrering b on a.organisationfunktion_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -44380,7 +44380,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -44395,7 +44395,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.organisationfunktion_id = ANY (organisationfunktion_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -44407,7 +44407,7 @@ END IF;
 
 organisationfunktion_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (organisationfunktion_passed_auth_filter) a(id)
 UNION
@@ -44417,7 +44417,7 @@ FROM
 unnest (organisationfunktion_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(organisationfunktion_passed_auth_filter,1),0)=coalesce(array_length(organisationfunktion_uuids,1),0) AND organisationfunktion_passed_auth_filter @>organisationfunktion_uuids THEN
 	RETURN organisationfunktion_passed_auth_filter;
 END IF;
@@ -44430,7 +44430,7 @@ RETURN organisationfunktion_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -44478,7 +44478,7 @@ CREATE TYPE SagRelationKode AS ENUM  ('behandlingarkiv','afleveringsarkiv','prim
 
 
 CREATE TYPE SagRelationJournalPostSpecifikKode AS ENUM ('journalnotat','vedlagtdokument','tilakteretdokument');
- 
+
 CREATE TYPE JournalNotatType AS (
 titel text,
 notat text,
@@ -44518,7 +44518,7 @@ CREATE TYPE SagType AS
 (
   id uuid,
   registrering SagRegistreringType[]
-);  
+);
 
 
 CREATE Type _SagRelationMaxIndex AS
@@ -44581,7 +44581,7 @@ CREATE TABLE sag_registrering (
    CONSTRAINT sag_registrering_sag_fkey FOREIGN KEY (sag_id)
        REFERENCES sag (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT sag_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT sag_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(sag_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -44666,8 +44666,8 @@ ALTER TABLE sag_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX sag_attr_egenskaber_pat_brugervendtnoegle
             ON sag_attr_egenskaber
             USING gin
@@ -44676,21 +44676,21 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_brugervendtnoegle
             ON sag_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-    
-        
-             
+            (brugervendtnoegle);
+
+
+
+
                 CREATE INDEX sag_attr_egenskaber_idx_afleveret
                     ON sag_attr_egenskaber
                     USING btree
                     (afleveret);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX sag_attr_egenskaber_pat_beskrivelse
             ON sag_attr_egenskaber
             USING gin
@@ -44699,9 +44699,9 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_beskrivelse
             ON sag_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-     
+            (beskrivelse);
+
+
         CREATE INDEX sag_attr_egenskaber_pat_hjemmel
             ON sag_attr_egenskaber
             USING gin
@@ -44710,9 +44710,9 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_hjemmel
             ON sag_attr_egenskaber
             USING btree
-            (hjemmel); 
- 
-     
+            (hjemmel);
+
+
         CREATE INDEX sag_attr_egenskaber_pat_kassationskode
             ON sag_attr_egenskaber
             USING gin
@@ -44721,11 +44721,11 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_kassationskode
             ON sag_attr_egenskaber
             USING btree
-            (kassationskode); 
- 
-    
-        
-             
+            (kassationskode);
+
+
+
+
                 CREATE INDEX sag_attr_egenskaber_pat_AlternativTitel_offentlighedundtaget
                     ON sag_attr_egenskaber
                     USING gin
@@ -44745,23 +44745,23 @@ ALTER TABLE sag_attr_egenskaber
                     ON sag_attr_egenskaber
                     USING btree
                     (((offentlighedundtaget).Hjemmel));
-            
-         
-     
- 
-    
-        
-             
+
+
+
+
+
+
+
                 CREATE INDEX sag_attr_egenskaber_idx_principiel
                     ON sag_attr_egenskaber
                     USING btree
                     (principiel);
 
-            
-         
-     
- 
-     
+
+
+
+
+
         CREATE INDEX sag_attr_egenskaber_pat_sagsnummer
             ON sag_attr_egenskaber
             USING gin
@@ -44770,9 +44770,9 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_sagsnummer
             ON sag_attr_egenskaber
             USING btree
-            (sagsnummer); 
- 
-     
+            (sagsnummer);
+
+
         CREATE INDEX sag_attr_egenskaber_pat_titel
             ON sag_attr_egenskaber
             USING gin
@@ -44781,9 +44781,9 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_titel
             ON sag_attr_egenskaber
             USING btree
-            (titel); 
- 
-     
+            (titel);
+
+
         CREATE INDEX sag_attr_egenskaber_pat_integrationsdata
             ON sag_attr_egenskaber
             USING gin
@@ -44792,7 +44792,7 @@ ALTER TABLE sag_attr_egenskaber
         CREATE INDEX sag_attr_egenskaber_idx_integrationsdata
             ON sag_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -44839,7 +44839,7 @@ ALTER TABLE sag_tils_fremdrift_id_seq
 CREATE TABLE sag_tils_fremdrift (
     id bigint NOT NULL DEFAULT nextval('sag_tils_fremdrift_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    fremdrift SagFremdriftTils NOT NULL, 
+    fremdrift SagFremdriftTils NOT NULL,
     sag_registrering_id bigint not null,
     CONSTRAINT sag_tils_fremdrift_pkey PRIMARY KEY (id),
     CONSTRAINT sag_tils_fremdrift_forkey_sagregistrering FOREIGN KEY (sag_registrering_id) REFERENCES sag_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -44857,7 +44857,7 @@ CREATE INDEX sag_tils_fremdrift_idx_fremdrift
     ON sag_tils_fremdrift
     USING btree
     (fremdrift);
-  
+
 CREATE INDEX sag_tils_fremdrift_idx_virkning_aktoerref
     ON sag_tils_fremdrift
     USING btree
@@ -44902,12 +44902,12 @@ CREATE TABLE sag_relation (
     rel_type SagRelationKode not null,
     objekt_type text null,
 
-    
+
     rel_index int null,
     rel_type_spec SagRelationJournalPostSpecifikKode null,
     journal_notat JournalNotatType null,
     journal_dokument_attr JournalPostDokumentAttrType null,
-    
+
 
     CONSTRAINT sag_relation_forkey_sagregistrering FOREIGN KEY (sag_registrering_id) REFERENCES sag_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT sag_relation_pkey PRIMARY KEY (id),
@@ -45005,20 +45005,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr SagFremdriftTilsType[
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.fremdrift IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -45026,15 +45026,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr SagFremdriftTilsType[
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr SagEgenskaberAttrType[])
   RETURNS SagEgenskaberAttrType[] AS
   $$
-  DECLARE result SagEgenskaberAttrType[]; 
-   DECLARE element SagEgenskaberAttrType; 
+  DECLARE result SagEgenskaberAttrType[];
+   DECLARE element SagEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.afleveret IS NULL AND element.beskrivelse IS NULL AND element.hjemmel IS NULL AND element.kassationskode IS NULL AND element.offentlighedundtaget IS NULL AND element.principiel IS NULL AND element.sagsnummer IS NULL AND element.titel IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.afleveret IS NULL AND element.beskrivelse IS NULL AND element.hjemmel IS NULL AND element.kassationskode IS NULL AND element.offentlighedundtaget IS NULL AND element.principiel IS NULL AND element.sagsnummer IS NULL AND element.titel IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -45042,13 +45042,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr SagEgenskaberAttrType
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -45059,7 +45059,7 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr SagRelationType[])
 RETURNS SagRelationType[] AS
 $$
  DECLARE result SagRelationType[];
- DECLARE element SagRelationType;  
+ DECLARE element SagRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
@@ -45074,13 +45074,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -45100,8 +45100,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_sag_registrering(
     sag_registrering
 ) RETURNS sag_registrering AS $BODY$
   SELECT * FROM sag_registrering as a WHERE
-    sag_id = $1.sag_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    sag_id = $1.sag_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -45190,17 +45190,17 @@ CREATE OR REPLACE FUNCTION as_update_sag(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber SagEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber SagEgenskaberAttrType[],
+
+
+
     tilsFremdrift SagFremdriftTilsType[],
-    
+
 
     relationer SagRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      SagRegistreringType[] = null
@@ -45214,22 +45214,22 @@ DECLARE
     prev_sag_registrering sag_registrering;
     sag_relation_navn     SagRelationKode;
 
-    
-    attrEgenskaberObj SagEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj SagEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     rel_type_max_index_prev_rev int;
     rel_type_max_index_arr _SagRelationMaxIndex[];
     sag_rel_type_cardinality_unlimited SagRelationKode[]:=ARRAY['andetarkiv'::SagRelationKode,'andrebehandlere'::SagRelationKode,'sekundaerpart'::SagRelationKode,'andresager'::SagRelationKode,'byggeri'::SagRelationKode,'fredning'::SagRelationKode,'journalpost'::SagRelationKode]::SagRelationKode[];
     sag_uuid_underscores text;
     sag_rel_seq_name text;
     sag_rel_type_cardinality_unlimited_present_in_argument sagRelationKode[];
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from sag a join sag_registrering b ON b.sag_id=a.id WHERE a.id=sag_uuid) THEN
@@ -45272,32 +45272,32 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
     -- Build array with the max index values of the different types of
     -- relations of the previous registration
-    
+
     SELECT array_agg(rel_type_max_index)::_SagRelationMaxIndex[] into rel_type_max_index_arr
-    
+
     FROM
     (
         SELECT
-        
+
         (ROW(rel_type,coalesce(max(rel_index),0))::_SagRelationMaxIndex) rel_type_max_index
-        
+
             FROM sag_relation a
            WHERE a.sag_registrering_id=prev_sag_registrering.id
              AND a.rel_type = ANY (sag_rel_type_cardinality_unlimited)
         GROUP BY rel_type
     ) AS a;
 
- 
+
     ---Create temporary sequences
-    
+
     sag_uuid_underscores:=replace(sag_uuid::text, '-', '_');
-    
+
 
     SELECT array_agg(DISTINCT a.RelType) INTO sag_rel_type_cardinality_unlimited_present_in_argument FROM unnest(relationer) a WHERE a.RelType = ANY (sag_rel_type_cardinality_unlimited);
-    
+
 
     IF coalesce(array_length(sag_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
         FOREACH sag_relation_navn IN ARRAY (sag_rel_type_cardinality_unlimited_present_in_argument) LOOP
@@ -45322,7 +45322,7 @@ BEGIN
 
         END LOOP;
     END IF;
-    
+
 
     INSERT INTO sag_relation (sag_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, rel_type_spec, journal_notat, journal_dokument_attr )
     SELECT
@@ -45366,35 +45366,35 @@ BEGIN
                 a.journalDokumentAttr
             ELSE
                 NULL
-            END 
+            END
         FROM
-            unnest(relationer) AS a 
+            unnest(relationer) AS a
         LEFT JOIN sag_relation b ON a.relType = ANY (sag_rel_type_cardinality_unlimited) AND b.sag_registrering_id = prev_sag_registrering.id AND a.relType = b.rel_type AND a.indeks = b.rel_index ;
 
-    
+
     -- Drop temporary sequences
     IF coalesce(array_length(sag_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
-        
+
         FOREACH sag_relation_navn IN ARRAY (sag_rel_type_cardinality_unlimited_present_in_argument)
-        
+
         LOOP
           sag_rel_seq_name := 'sag_' || sag_relation_navn::text || sag_uuid_underscores;
           EXECUTE 'DROP SEQUENCE ' || sag_rel_seq_name || ';';
         END LOOP;
     END IF;
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
+
     -- Please notice, that for 0..1 relations for aktivitet, we're ignoring index
     -- here, and handling it the same way, that is done for other object types (like
     -- Facet, Klasse etc). That is, you only make changes for the
     -- virkningsperiod that you explicitly specify (unless you delete all relations)
-    
-    
+
+
     FOREACH sag_relation_navn IN ARRAY ARRAY['behandlingarkiv'::SagRelationKode ,  'afleveringsarkiv'::SagRelationKode ,  'primaerklasse'::SagRelationKode ,  'opgaveklasse'::SagRelationKode ,  'handlingsklasse'::SagRelationKode ,  'kontoklasse'::SagRelationKode ,  'sikkerhedsklasse'::SagRelationKode ,  'foelsomhedsklasse'::SagRelationKode ,  'indsatsklasse'::SagRelationKode ,  'ydelsesklasse'::SagRelationKode ,  'ejer'::SagRelationKode ,  'ansvarlig'::SagRelationKode ,  'primaerbehandler'::SagRelationKode ,  'udlaanttil'::SagRelationKode ,  'primaerpart'::SagRelationKode ,  'ydelsesmodtager'::SagRelationKode ,  'oversag'::SagRelationKode ,  'praecedens'::SagRelationKode ,  'afgiftsobjekt'::SagRelationKode ,  'ejendomsskat'::SagRelationKode  ]::SagRelationKode[]  LOOP
         INSERT INTO sag_relation (sag_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, rel_type_spec, journal_notat, journal_dokument_attr )
         SELECT
@@ -45410,7 +45410,7 @@ BEGIN
                 NULL, -- a.rel_index, rel_index is not to be used for 0..1 relations
                 a.rel_type_spec,
                 a.journal_notat,
-                a.journal_dokument_attr 
+                a.journal_dokument_attr
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -45430,7 +45430,7 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
                     INSERT INTO sag_relation (sag_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, rel_type_spec, journal_notat, journal_dokument_attr )
                     SELECT
                         new_sag_registrering.id,  a.virkning, a.rel_maal_uuid, a.rel_maal_urn, a.rel_type, a.objekt_type, a.rel_index, a.rel_type_spec, a.journal_notat, a.journal_dokument_attr
@@ -45443,12 +45443,12 @@ BEGIN
                 -- update-function
                 ;
 
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsFremdrift IS NOT NULL AND coalesce(array_length(tilsFremdrift, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Fremdrift] as it is explicit set to empty array';
     ELSE
@@ -45485,11 +45485,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.sag_registrering_id = prev_sag_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- sag_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -45504,7 +45504,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.afleveret,a.beskrivelse,a.hjemmel,a.kassationskode,a.offentlighedundtaget,a.principiel,a.sagsnummer,a.titel,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update sag with uuid [%], as the sag have overlapping virknings in the given egenskaber array :%', sag_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -45514,60 +45514,60 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).afleveret IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).hjemmel IS NULL  OR  (attrEgenskaberObj).kassationskode IS NULL  OR  (attrEgenskaberObj).offentlighedundtaget IS NULL  OR  (attrEgenskaberObj).principiel IS NULL  OR  (attrEgenskaberObj).sagsnummer IS NULL  OR  (attrEgenskaberObj).titel IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO sag_attr_egenskaber ( brugervendtnoegle,afleveret,beskrivelse,hjemmel,kassationskode,offentlighedundtaget,principiel,sagsnummer,titel,integrationsdata, virkning, sag_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.afleveret).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.afleveret).value, a.afleveret)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.hjemmel, a.hjemmel),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.kassationskode, a.kassationskode),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.offentlighedundtaget, a.offentlighedundtaget),
-                    
-                        
-                        
+
+
+
                             CASE WHEN ((attrEgenskaberObj.principiel).cleared) THEN
                                 NULL
                             ELSE
                                 coalesce((attrEgenskaberObj.principiel).value, a.principiel)
                             END,
-                        
-                    
-                        
-                        
+
+
+
+
                             coalesce(attrEgenskaberObj.sagsnummer, a.sagsnummer),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.titel, a.titel),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -45582,30 +45582,30 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO sag_attr_egenskaber ( brugervendtnoegle,afleveret,beskrivelse,hjemmel,kassationskode,offentlighedundtaget,principiel,sagsnummer,titel,integrationsdata, virkning, sag_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.afleveret,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.hjemmel,
-                    
+
                      attrEgenskaberObj.kassationskode,
-                    
+
                      attrEgenskaberObj.offentlighedundtaget,
-                    
+
                      attrEgenskaberObj.principiel,
-                    
+
                      attrEgenskaberObj.sagsnummer,
-                    
+
                      attrEgenskaberObj.titel,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -45623,7 +45623,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO sag_attr_egenskaber ( brugervendtnoegle,afleveret,beskrivelse,hjemmel,kassationskode,offentlighedundtaget,principiel,sagsnummer,titel,integrationsdata, virkning, sag_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.afleveret,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.hjemmel,  attrEgenskaberObj.kassationskode,  attrEgenskaberObj.offentlighedundtaget,  attrEgenskaberObj.principiel,  attrEgenskaberObj.sagsnummer,  attrEgenskaberObj.titel,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_sag_registrering.id );
@@ -45644,28 +45644,28 @@ BEGIN
 
     INSERT INTO sag_attr_egenskaber ( brugervendtnoegle,afleveret,beskrivelse,hjemmel,kassationskode,offentlighedundtaget,principiel,sagsnummer,titel,integrationsdata, virkning, sag_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.afleveret,
-        
+
             a.beskrivelse,
-        
+
             a.hjemmel,
-        
+
             a.kassationskode,
-        
+
             a.offentlighedundtaget,
-        
+
             a.principiel,
-        
+
             a.sagsnummer,
-        
+
             a.titel,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -45707,23 +45707,23 @@ END IF;
     IF NOT (lower((read_new_sag.registrering[1].registrering).TimePeriod) = lower((new_sag_registrering.registrering).TimePeriod) and lower((read_prev_sag.registrering[1].registrering).TimePeriod)=lower((prev_sag_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating sag with id [%]: The ordering of as_list_sag should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', sag_uuid, to_json(new_sag_registrering), to_json(read_new_sag.registrering[1].registrering), to_json(prev_sag_registrering), to_json(prev_new_sag.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_sag_reg := ROW(
         ROW (null, (read_new_sag.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_sag.registrering[1]).tilsFremdrift ,
-        
+
         (read_new_sag.registrering[1]).attrEgenskaber ,
         (read_new_sag.registrering[1]).relationer
     )::sagRegistreringType;
 
     read_prev_sag_reg := ROW(
         ROW(null, (read_prev_sag.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_sag.registrering[1]).tilsFremdrift ,
-        
+
         (read_prev_sag.registrering[1]).attrEgenskaber ,
         (read_prev_sag.registrering[1]).relationer
     )::sagRegistreringType;
@@ -45756,28 +45756,28 @@ CREATE OR REPLACE FUNCTION as_create_or_import_sag (
     SagRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE sag_registrering_id bigint;
 
-    
-    sag_attr_egenskaber_obj sagEgenskaberAttrType;
-    
 
-    
+    sag_attr_egenskaber_obj sagEgenskaberAttrType;
+
+
+
     sag_tils_fremdrift_obj sagFremdriftTilsType;
-    
+
 
     sag_relationer SagRelationType;
 
-    
+
     sag_relation_kode SagRelationKode;
     sag_uuid_underscores text;
     sag_rel_seq_name text;
     sag_rel_type_cardinality_unlimited SagRelationKode[]:=ARRAY['andetarkiv'::SagRelationKode,'andrebehandlere'::SagRelationKode,'sekundaerpart'::SagRelationKode,'andresager'::SagRelationKode,'byggeri'::SagRelationKode,'fredning'::SagRelationKode,'journalpost'::SagRelationKode]::SagRelationKode[];
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     sag_rel_type_cardinality_unlimited_present_in_argument sagRelationKode[];
-    
+
 
     does_exist boolean;
     new_sag_registrering sag_registrering;
@@ -45845,9 +45845,9 @@ IF sag_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(sag_reg
   FOREACH sag_attr_egenskaber_obj IN ARRAY sag_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO sag_attr_egenskaber (
-      
+
       brugervendtnoegle,
       afleveret,
       beskrivelse,
@@ -45862,7 +45862,7 @@ IF sag_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(sag_reg
       sag_registrering_id
     )
     SELECT
-     
+
      sag_attr_egenskaber_obj.brugervendtnoegle,
       sag_attr_egenskaber_obj.afleveret,
       sag_attr_egenskaber_obj.beskrivelse,
@@ -45876,8 +45876,8 @@ IF sag_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(sag_reg
       sag_attr_egenskaber_obj.virkning,
       sag_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -45956,17 +45956,17 @@ END IF;
       a.objektType,
       CASE WHEN a.relType = any (sag_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('sag_' || a.relType::text || sag_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END,
-      CASE 
+      CASE
         WHEN a.relType='journalpost' THEN a.relTypeSpec  --rel_type_spec
         ELSE
         NULL
       END,
-    CASE 
-        WHEN  
-          (NOT (a.journalNotat IS NULL)) 
+    CASE
+        WHEN
+          (NOT (a.journalNotat IS NULL))
           AND
           (
             (a.journalNotat).titel IS NOT NULL
@@ -45979,7 +45979,7 @@ END IF;
          ELSE
          NULL
     END
-    ,CASE 
+    ,CASE
       WHEN (
               (NOT a.journalDokumentAttr IS NULL)
               AND
@@ -46000,7 +46000,7 @@ END IF;
        ELSE
        NULL
       END
-      
+
     FROM unnest(sag_registrering.relationer) a
   ;
 
@@ -46021,9 +46021,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_sag(array[sag_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_sag(array[sag_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[sag_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import sag with uuid [%]. Object does not met stipulated criteria:%',sag_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import sag with uuid [%]. Object does not met stipulated criteria:%',sag_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -46056,13 +46056,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_sag(sag_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_sag(sag_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(sag_uuids,1),0) AND auth_filtered_uuids @>sag_uuids) THEN
-  RAISE EXCEPTION 'Unable to list sag with uuids [%]. All objects do not fullfill the stipulated criteria:%',sag_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list sag with uuids [%]. All objects do not fullfill the stipulated criteria:%',sag_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.sagObj) into result
 FROM
 (
@@ -46076,8 +46076,8 @@ ROW(
 			a.SagAttrEgenskaberArr,
 			a.SagRelationArr
 		)::SagRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: SagType  sagObj
 FROM
 (
@@ -46104,9 +46104,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
         order by b.rel_type,b.rel_index,b.rel_maal_uuid,b.rel_maal_urn,b.objekt_type,b.rel_type_spec,b.journal_notat,b.journal_dokument_attr,b.virkning
-        
+
 	)) SagRelationArr
 	FROM
 	(
@@ -46118,7 +46118,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.fremdrift
@@ -46126,7 +46126,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.fremdrift,b.virkning
-				)) SagTilsFremdriftArr		
+				)) SagTilsFremdriftArr
 			FROM
 			(
 					SELECT
@@ -46135,11 +46135,11 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.afleveret,
 					 		b.beskrivelse,
@@ -46151,35 +46151,35 @@ FROM
 					 		b.titel,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::SagEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.afleveret,b.beskrivelse,b.hjemmel,b.kassationskode,b.offentlighedundtaget,b.principiel,b.sagsnummer,b.titel,b.integrationsdata,b.virkning
-                        
+
 					)) SagAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id sag_id,
 					b.id sag_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		sag a
 					JOIN 		sag_registrering b 	ON b.sag_id=a.id
 					WHERE a.id = ANY (sag_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN sag_attr_egenskaber as b ON b.sag_registrering_id=a.sag_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.sag_id,
 					a.sag_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN sag_tils_fremdrift as b ON b.sag_registrering_id=a.sag_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN sag_tils_fremdrift as b ON b.sag_registrering_id=a.sag_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.sag_id,
 			a.sag_registrering_id,
 			a.registrering,
@@ -46195,7 +46195,7 @@ FROM
 ) as a
 
 WHERE a.sag_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.sag_id
 order by a.sag_id
 ) as x
@@ -46255,7 +46255,7 @@ CREATE OR REPLACE FUNCTION as_search_sag(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr SagRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -46264,7 +46264,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj SagEgenskaberAttrType;
 
-    
+
     tilsFremdriftTypeObj SagFremdriftTilsType;
 
     relationTypeObj SagRelationType;
@@ -46272,11 +46272,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -46299,20 +46299,20 @@ IF sag_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -46333,16 +46333,16 @@ IF sag_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -46355,7 +46355,7 @@ IF sag_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -46380,7 +46380,7 @@ END IF;
 --RAISE NOTICE 'sag_candidates step 2:%',sag_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -46389,20 +46389,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(sag_candidates,1),0)>0 OR NOT sag_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             sag_candidates:=array(
             SELECT DISTINCT
             b.sag_id
             FROM  sag_attr_egenskaber a
             JOIN sag_registrering b on a.sag_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -46424,7 +46424,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -46512,24 +46512,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -46550,16 +46550,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -46572,7 +46572,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -46605,25 +46605,25 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.sag_id
-            
+
             FROM  sag_attr_egenskaber a
             JOIN sag_registrering b on a.sag_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                                 -- boolean is skipped intentionally
-                                
+
                         a.beskrivelse ILIKE anyAttrValue OR
                         a.hjemmel ILIKE anyAttrValue OR
                         a.kassationskode ILIKE anyAttrValue OR
                                     (a.offentlighedundtaget).Hjemmel ilike anyAttrValue OR (a.offentlighedundtaget).AlternativTitel ilike anyAttrValue OR
                                 -- boolean is skipped intentionally
-                                
+
                         a.sagsnummer ILIKE anyAttrValue OR
                         a.titel ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -46632,24 +46632,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -46670,16 +46670,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -46692,7 +46692,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -46776,20 +46776,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -46810,16 +46810,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -46832,7 +46832,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -46935,7 +46935,7 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
+
                 AND
                 (
                         relationTypeObj.indeks IS NULL
@@ -46990,7 +46990,7 @@ ELSE
                                                         (
                                                                 ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel IS NULL
                                                                 OR
-                                                                ((a.journal_dokument_attr).offentlighedundtaget).AlternativTitel ILIKE ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel 
+                                                                ((a.journal_dokument_attr).offentlighedundtaget).AlternativTitel ILIKE ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel
                                                         )
                                                         AND
                                                         (
@@ -47002,26 +47002,26 @@ ELSE
                                 )
                         )
                 )
-                
-                
+
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -47042,16 +47042,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -47064,7 +47064,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -47091,38 +47091,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         sag_candidates:=array(
             SELECT DISTINCT
             b.sag_id
-            
+
             FROM  sag_relation a
             JOIN sag_registrering b on a.sag_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -47143,16 +47143,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -47165,7 +47165,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -47192,38 +47192,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         sag_candidates:=array(
             SELECT DISTINCT
             b.sag_id
-            
+
             FROM  sag_relation a
             JOIN sag_registrering b on a.sag_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -47244,16 +47244,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -47266,7 +47266,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -47287,7 +47287,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -47308,20 +47308,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -47342,16 +47342,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -47364,7 +47364,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -47399,7 +47399,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_sag(sag_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_sag(sag_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_sag(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -47408,7 +47408,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -47422,13 +47422,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_SagRegistreringType_to_json(SagRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_SagRegistreringType_to_json(SagRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -47436,44 +47436,44 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END sagegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsFremdrift,1),0)>0 THEN to_json($1.tilsFremdrift)
+        ELSE
         NULL
         END sagfremdrift
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -47487,7 +47487,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -47512,7 +47512,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -47530,13 +47530,13 @@ create cast (SagRegistreringType as json) with function actual_state._cast_SagRe
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_sagType_to_json(SagType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_sagType_to_json(SagType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg SagRegistreringType;
@@ -47565,7 +47565,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (SagType as json);
-create cast (SagType as json) with function actual_state._cast_sagType_to_json(SagType); 
+create cast (SagType as json) with function actual_state._cast_sagType_to_json(SagType);
 
 
 
@@ -47624,14 +47624,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_sag(
 	sag_uuids uuid[],
 	registreringObjArr SagRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	sag_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	sag_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj SagEgenskaberAttrType;
-	
+
   	tilsFremdriftTypeObj SagFremdriftTilsType;
 	relationTypeObj SagRelationType;
 	registreringObj SagRegistreringType;
@@ -47645,8 +47645,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF sag_uuids IS NULL OR coalesce(array_length(sag_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -47665,7 +47665,7 @@ sag_candidates:= sag_uuids;
 --RAISE DEBUG 'sag_candidates step 1:%',sag_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -47677,38 +47677,38 @@ ELSE
 		LOOP
 			sag_candidates:=array(
 			SELECT DISTINCT
-			b.sag_id 
-			FROM  sag_attr_egenskaber a 
-			JOIN sag_registrering b on a.sag_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.sag_id
+			FROM  sag_attr_egenskaber a
+			JOIN sag_registrering b on a.sag_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.afleveret IS NULL
-					OR 
-					a.afleveret = attrEgenskaberTypeObj.afleveret 
+					OR
+					a.afleveret = attrEgenskaberTypeObj.afleveret
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.hjemmel IS NULL
-					OR 
-					a.hjemmel = attrEgenskaberTypeObj.hjemmel 
+					OR
+					a.hjemmel = attrEgenskaberTypeObj.hjemmel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.kassationskode IS NULL
-					OR 
-					a.kassationskode = attrEgenskaberTypeObj.kassationskode 
+					OR
+					a.kassationskode = attrEgenskaberTypeObj.kassationskode
 				)
 				AND
 				(
@@ -47718,7 +47718,7 @@ ELSE
 							(
 								(attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel IS NULL
 								OR
-								(a.offentlighedundtaget).AlternativTitel = (attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel 
+								(a.offentlighedundtaget).AlternativTitel = (attrEgenskaberTypeObj.offentlighedundtaget).AlternativTitel
 							)
 							AND
 							(
@@ -47726,36 +47726,36 @@ ELSE
 								OR
 								(a.offentlighedundtaget).Hjemmel = (attrEgenskaberTypeObj.offentlighedundtaget).Hjemmel
 							)
-						) 
+						)
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.principiel IS NULL
-					OR 
-					a.principiel = attrEgenskaberTypeObj.principiel 
+					OR
+					a.principiel = attrEgenskaberTypeObj.principiel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.sagsnummer IS NULL
-					OR 
-					a.sagsnummer = attrEgenskaberTypeObj.sagsnummer 
+					OR
+					a.sagsnummer = attrEgenskaberTypeObj.sagsnummer
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.titel IS NULL
-					OR 
-					a.titel = attrEgenskaberTypeObj.titel 
+					OR
+					a.titel = attrEgenskaberTypeObj.titel
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.sag_id = ANY (sag_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -47771,15 +47771,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsFremdrift IS NULL THEN
 	--RAISE DEBUG 'as_search_sag: skipping filtration on tilsFremdrift';
 ELSE
-	IF coalesce(array_length(sag_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(sag_candidates,1),0)>0 THEN
 
 		FOREACH tilsFremdriftTypeObj IN ARRAY registreringObj.tilsFremdrift
 		LOOP
 			sag_candidates:=array(
 			SELECT DISTINCT
-			b.sag_id 
+			b.sag_id
 			FROM  sag_tils_fremdrift a
-			JOIN sag_registrering b on a.sag_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN sag_registrering b on a.sag_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsFremdriftTypeObj.fremdrift IS NULL
@@ -47789,7 +47789,7 @@ ELSE
 				AND b.sag_id = ANY (sag_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -47815,11 +47815,11 @@ ELSE
 		LOOP
 			sag_candidates:=array(
 			SELECT DISTINCT
-			b.sag_id 
+			b.sag_id
 			FROM  sag_relation a
 			JOIN sag_registrering b on a.sag_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -47828,7 +47828,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -47843,7 +47843,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.sag_id = ANY (sag_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -47855,7 +47855,7 @@ END IF;
 
 sag_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (sag_passed_auth_filter) a(id)
 UNION
@@ -47865,7 +47865,7 @@ FROM
 unnest (sag_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(sag_passed_auth_filter,1),0)=coalesce(array_length(sag_uuids,1),0) AND sag_passed_auth_filter @>sag_uuids THEN
 	RETURN sag_passed_auth_filter;
 END IF;
@@ -47878,7 +47878,7 @@ RETURN sag_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -47956,7 +47956,7 @@ CREATE TYPE TilstandType AS
 (
   id uuid,
   registrering TilstandRegistreringType[]
-);  
+);
 
 
  CREATE Type _TilstandRelationMaxIndex AS
@@ -48019,7 +48019,7 @@ CREATE TABLE tilstand_registrering (
    CONSTRAINT tilstand_registrering_tilstand_fkey FOREIGN KEY (tilstand_id)
        REFERENCES tilstand (id) MATCH SIMPLE
        ON UPDATE NO ACTION ON DELETE NO ACTION,
-   CONSTRAINT tilstand_registrering__uuid_to_text_timeperiod_excl EXCLUDE 
+   CONSTRAINT tilstand_registrering__uuid_to_text_timeperiod_excl EXCLUDE
    USING gist (_uuid_to_text(tilstand_id) WITH =, _composite_type_to_time_range(registrering) WITH &&)
 )
 WITH (
@@ -48097,8 +48097,8 @@ ALTER TABLE tilstand_attr_egenskaber
   OWNER TO {{ mox_user }};
 
 
- 
-     
+
+
         CREATE INDEX tilstand_attr_egenskaber_pat_brugervendtnoegle
             ON tilstand_attr_egenskaber
             USING gin
@@ -48107,9 +48107,9 @@ ALTER TABLE tilstand_attr_egenskaber
         CREATE INDEX tilstand_attr_egenskaber_idx_brugervendtnoegle
             ON tilstand_attr_egenskaber
             USING btree
-            (brugervendtnoegle); 
- 
-     
+            (brugervendtnoegle);
+
+
         CREATE INDEX tilstand_attr_egenskaber_pat_beskrivelse
             ON tilstand_attr_egenskaber
             USING gin
@@ -48118,9 +48118,9 @@ ALTER TABLE tilstand_attr_egenskaber
         CREATE INDEX tilstand_attr_egenskaber_idx_beskrivelse
             ON tilstand_attr_egenskaber
             USING btree
-            (beskrivelse); 
- 
-     
+            (beskrivelse);
+
+
         CREATE INDEX tilstand_attr_egenskaber_pat_integrationsdata
             ON tilstand_attr_egenskaber
             USING gin
@@ -48129,7 +48129,7 @@ ALTER TABLE tilstand_attr_egenskaber
         CREATE INDEX tilstand_attr_egenskaber_idx_integrationsdata
             ON tilstand_attr_egenskaber
             USING btree
-            (integrationsdata); 
+            (integrationsdata);
 
 
 
@@ -48176,7 +48176,7 @@ ALTER TABLE tilstand_tils_status_id_seq
 CREATE TABLE tilstand_tils_status (
     id bigint NOT NULL DEFAULT nextval('tilstand_tils_status_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    status TilstandStatusTils NOT NULL, 
+    status TilstandStatusTils NOT NULL,
     tilstand_registrering_id bigint not null,
     CONSTRAINT tilstand_tils_status_pkey PRIMARY KEY (id),
     CONSTRAINT tilstand_tils_status_forkey_tilstandregistrering FOREIGN KEY (tilstand_registrering_id) REFERENCES tilstand_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -48194,7 +48194,7 @@ CREATE INDEX tilstand_tils_status_idx_status
     ON tilstand_tils_status
     USING btree
     (status);
-  
+
 CREATE INDEX tilstand_tils_status_idx_virkning_aktoerref
     ON tilstand_tils_status
     USING btree
@@ -48229,7 +48229,7 @@ ALTER TABLE tilstand_tils_publiceret_id_seq
 CREATE TABLE tilstand_tils_publiceret (
     id bigint NOT NULL DEFAULT nextval('tilstand_tils_publiceret_id_seq'::regclass),
     virkning Virkning NOT NULL CHECK( (virkning).TimePeriod IS NOT NULL AND not isempty((virkning).TimePeriod) ),
-    publiceret TilstandPubliceretTils NOT NULL, 
+    publiceret TilstandPubliceretTils NOT NULL,
     tilstand_registrering_id bigint not null,
     CONSTRAINT tilstand_tils_publiceret_pkey PRIMARY KEY (id),
     CONSTRAINT tilstand_tils_publiceret_forkey_tilstandregistrering FOREIGN KEY (tilstand_registrering_id) REFERENCES tilstand_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
@@ -48247,7 +48247,7 @@ CREATE INDEX tilstand_tils_publiceret_idx_publiceret
     ON tilstand_tils_publiceret
     USING btree
     (publiceret);
-  
+
 CREATE INDEX tilstand_tils_publiceret_idx_virkning_aktoerref
     ON tilstand_tils_publiceret
     USING btree
@@ -48292,10 +48292,10 @@ CREATE TABLE tilstand_relation (
     rel_type TilstandRelationKode not null,
     objekt_type text null,
 
-    
+
     rel_index int null,
     tilstand_vaerdi_attr TilstandVaerdiRelationAttrType null,
-    
+
 
     CONSTRAINT tilstand_relation_forkey_tilstandregistrering FOREIGN KEY (tilstand_registrering_id) REFERENCES tilstand_registrering (id) MATCH SIMPLE ON UPDATE NO ACTION ON DELETE NO ACTION,
     CONSTRAINT tilstand_relation_pkey PRIMARY KEY (id),
@@ -48391,20 +48391,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandStatusTilsTyp
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.status IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.status IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -48419,20 +48419,20 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandPubliceretTil
  IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
-      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.publiceret IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
      -- RAISE DEBUG 'Skipping element';
-      ELSE 
+      ELSE
       result:=array_append(result,element);
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -48440,15 +48440,15 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandPubliceretTil
 CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandEgenskaberAttrType[])
   RETURNS TilstandEgenskaberAttrType[] AS
   $$
-  DECLARE result TilstandEgenskaberAttrType[]; 
-   DECLARE element TilstandEgenskaberAttrType; 
+  DECLARE result TilstandEgenskaberAttrType[];
+   DECLARE element TilstandEgenskaberAttrType;
   BEGIN
 
   IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR (( element.brugervendtnoegle IS NULL AND element.beskrivelse IS NULL AND element.integrationsdata IS NULL ) AND element.virkning IS NULL) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
     --  RAISE DEBUG 'Skipping element';
       ELSE
@@ -48456,13 +48456,13 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandEgenskaberAtt
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
 
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -48473,14 +48473,14 @@ CREATE OR REPLACE FUNCTION _remove_nulls_in_array(inputArr TilstandRelationType[
 RETURNS TilstandRelationType[] AS
 $$
  DECLARE result TilstandRelationType[];
- DECLARE element TilstandRelationType;  
+ DECLARE element TilstandRelationType;
   BEGIN
 
    IF inputArr IS NOT NULL THEN
     FOREACH element IN ARRAY inputArr
     LOOP
 
-      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.indeks IS NULL AND (element.tilstandsVaerdiAttr IS NULL OR ((element.tilstandsVaerdiAttr).nominelVaerdi IS NULL AND (element.tilstandsVaerdiAttr).forventet IS NULL )) AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....) 
+      IF element IS NULL OR ( element.relType IS NULL AND element.uuid IS NULL AND element.urn IS NULL AND element.objektType IS NULL AND element.indeks IS NULL AND (element.tilstandsVaerdiAttr IS NULL OR ((element.tilstandsVaerdiAttr).nominelVaerdi IS NULL AND (element.tilstandsVaerdiAttr).forventet IS NULL )) AND element.virkning IS NULL  ) THEN --CAUTION: foreach on {null} will result in element gets initiated with ROW(null,null....)
 
       --RAISE DEBUG 'Skipping element';
       ELSE
@@ -48488,13 +48488,13 @@ $$
       END IF;
     END LOOP;
   ELSE
-    return null;  
+    return null;
   END IF;
 
   RETURN result;
-    
+
   END;
- 
+
  $$ LANGUAGE plpgsql IMMUTABLE
 ;
 
@@ -48514,8 +48514,8 @@ CREATE OR REPLACE FUNCTION _as_get_prev_tilstand_registrering(
     tilstand_registrering
 ) RETURNS tilstand_registrering AS $BODY$
   SELECT * FROM tilstand_registrering as a WHERE
-    tilstand_id = $1.tilstand_id 
-    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod) 
+    tilstand_id = $1.tilstand_id
+    AND UPPER((a.registrering).TimePeriod) = LOWER(($1.registrering).TimePeriod)
     AND UPPER_INC((a.registrering).TimePeriod) <> LOWER_INC(($1.registrering).TimePeriod)
     LIMIT 1 --constraints on timeperiod will also ensure max 1 hit
 $BODY$ LANGUAGE sql STABLE;
@@ -48604,19 +48604,19 @@ CREATE OR REPLACE FUNCTION as_update_tilstand(
     note text,
     livscykluskode Livscykluskode,
 
-    
-    attrEgenskaber TilstandEgenskaberAttrType[],
-    
 
-    
+    attrEgenskaber TilstandEgenskaberAttrType[],
+
+
+
     tilsStatus TilstandStatusTilsType[],
-    
+
     tilsPubliceret TilstandPubliceretTilsType[],
-    
+
 
     relationer TilstandRelationType[],
 
-    
+
 
     lostUpdatePreventionTZ TIMESTAMPTZ = null,
     auth_criteria_arr      TilstandRegistreringType[] = null
@@ -48630,22 +48630,22 @@ DECLARE
     prev_tilstand_registrering tilstand_registrering;
     tilstand_relation_navn     TilstandRelationKode;
 
-    
-    attrEgenskaberObj TilstandEgenskaberAttrType;
-    
 
-    
+    attrEgenskaberObj TilstandEgenskaberAttrType;
+
+
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     rel_type_max_index_prev_rev int;
     rel_type_max_index_arr _tilstandRelationMaxIndex[];
     tilstand_rel_type_cardinality_unlimited tilstandRelationKode[]:=ARRAY['tilstandsvaerdi'::TilstandRelationKode,'begrundelse'::TilstandRelationKode,'tilstandskvalitet'::TilstandRelationKode,'tilstandsvurdering'::TilstandRelationKode,'tilstandsaktoer'::TilstandRelationKode,'tilstandsudstyr'::TilstandRelationKode,'samtykke'::TilstandRelationKode,'tilstandsdokument'::TilstandRelationKode]::TilstandRelationKode[];
     tilstand_uuid_underscores text;
     tilstand_rel_seq_name text;
     tilstand_rel_type_cardinality_unlimited_present_in_argument tilstandRelationKode[];
-    
+
 BEGIN
     -- Create a new registrering
     IF NOT EXISTS (select a.id from tilstand a join tilstand_registrering b ON b.tilstand_id=a.id WHERE a.id=tilstand_uuid) THEN
@@ -48688,32 +48688,32 @@ BEGIN
     --      (using function subtract_tstzrange)
 
     --Ad 1)
-    
+
     -- Build array with the max index values of the different types of
     -- relations of the previous registration
-    
+
     SELECT array_agg(rel_type_max_index)::_tilstandRelationMaxIndex[] into rel_type_max_index_arr
-    
+
     FROM
     (
         SELECT
-        
+
         (ROW(rel_type,coalesce(max(rel_index),0))::_tilstandRelationMaxIndex) rel_type_max_index
-        
+
             FROM tilstand_relation a
            WHERE a.tilstand_registrering_id=prev_tilstand_registrering.id
              AND a.rel_type = ANY (tilstand_rel_type_cardinality_unlimited)
         GROUP BY rel_type
     ) AS a;
 
- 
+
     ---Create temporary sequences
-    
+
 
     SELECT array_agg(DISTINCT a.RelType) INTO tilstand_rel_type_cardinality_unlimited_present_in_argument FROM unnest(relationer) a WHERE a.RelType = ANY (tilstand_rel_type_cardinality_unlimited);
-    
+
     tilstand_uuid_underscores := replace(tilstand_uuid::text, '-', '_');
-    
+
 
     IF coalesce(array_length(tilstand_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
         FOREACH tilstand_relation_navn IN ARRAY (tilstand_rel_type_cardinality_unlimited_present_in_argument) LOOP
@@ -48738,7 +48738,7 @@ BEGIN
 
         END LOOP;
     END IF;
-    
+
 
     INSERT INTO tilstand_relation (tilstand_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, tilstand_vaerdi_attr )
     SELECT
@@ -48769,35 +48769,35 @@ BEGIN
                 (a.tilstandsVaerdiAttr)
             ELSE
                 NULL
-            END 
+            END
         FROM
-            unnest(relationer) AS a 
+            unnest(relationer) AS a
         LEFT JOIN tilstand_relation b ON a.relType = ANY (tilstand_rel_type_cardinality_unlimited) AND b.tilstand_registrering_id = prev_tilstand_registrering.id AND a.relType = b.rel_type AND a.indeks = b.rel_index ;
 
-    
+
     -- Drop temporary sequences
     IF coalesce(array_length(tilstand_rel_type_cardinality_unlimited_present_in_argument, 1), 0) > 0 THEN
-        
+
         FOREACH tilstand_relation_navn IN ARRAY (SELECT array_agg(DISTINCT a.RelType) FROM unnest(relationer) a WHERE a.RelType = ANY (tilstand_rel_type_cardinality_unlimited))
-        
+
         LOOP
           tilstand_rel_seq_name := 'tilstand_' || tilstand_relation_navn::text || tilstand_uuid_underscores;
           EXECUTE 'DROP SEQUENCE ' || tilstand_rel_seq_name || ';';
         END LOOP;
     END IF;
-    
+
 
 
     -- Ad 2)
     -- 0..1 relations
 
-    
+
     -- Please notice, that for 0..1 relations for aktivitet, we're ignoring index
     -- here, and handling it the same way, that is done for other object types (like
     -- Facet, Klasse etc). That is, you only make changes for the
     -- virkningsperiod that you explicitly specify (unless you delete all relations)
-    
-    
+
+
     FOREACH tilstand_relation_navn IN ARRAY ARRAY['tilstandsobjekt'::TilstandRelationKode ,  'tilstandstype'::TilstandRelationKode  ]::TilstandRelationKode[]  LOOP
         INSERT INTO tilstand_relation (tilstand_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, tilstand_vaerdi_attr )
         SELECT
@@ -48811,7 +48811,7 @@ BEGIN
             a.rel_type,
             a.objekt_type ,
                 NULL, -- a.rel_index, rel_index is not to be used for 0..1 relations
-                a.tilstand_vaerdi_attr 
+                a.tilstand_vaerdi_attr
             FROM (
                 -- Build an array of the timeperiod of the virkning of the
                 -- relations of the new registrering to pass to
@@ -48831,7 +48831,7 @@ BEGIN
     -- given name present in the new registration, otherwise copy the ones
     -- from the previous registration.
 
-    
+
                     INSERT INTO tilstand_relation (tilstand_registrering_id, virkning, rel_maal_uuid, rel_maal_urn, rel_type, objekt_type , rel_index, tilstand_vaerdi_attr )
                     SELECT
                         new_tilstand_registrering.id,  a.virkning, a.rel_maal_uuid, a.rel_maal_urn, a.rel_type, a.objekt_type, a.rel_index, a.tilstand_vaerdi_attr
@@ -48843,12 +48843,12 @@ BEGIN
             -- was specified in data given to the/this update-function
             ;
 
-    
+
     END IF;
 
 
     -- Handle tilstande (states)
-    
+
     IF tilsStatus IS NOT NULL AND coalesce(array_length(tilsStatus, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Status] as it is explicit set to empty array';
     ELSE
@@ -48885,7 +48885,7 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.tilstand_registrering_id = prev_tilstand_registrering.id;
     END IF;
-    
+
     IF tilsPubliceret IS NOT NULL AND coalesce(array_length(tilsPubliceret, 1), 0) = 0 THEN
         -- raise debug 'Skipping [Publiceret] as it is explicit set to empty array';
     ELSE
@@ -48922,11 +48922,11 @@ BEGIN
               JOIN unnest(_subtract_tstzrange_arr ((a.virkning).TimePeriod, tzranges_of_new_reg)) AS c (tz_range_leftover) ON TRUE
         WHERE a.tilstand_registrering_id = prev_tilstand_registrering.id;
     END IF;
-    
+
 
 
     -- Handle attributter (attributes)
-    
+
     -- tilstand_attr_egenskaber
 
     -- Generate and insert any merged objects, if any fields are null
@@ -48941,7 +48941,7 @@ BEGIN
                 GROUP BY
                     a.brugervendtnoegle,a.beskrivelse,a.integrationsdata,
                     a.virkning
-                    
+
                     HAVING COUNT(*) > 1) THEN
                     RAISE EXCEPTION 'Unable to update tilstand with uuid [%], as the tilstand have overlapping virknings in the given egenskaber array :%', tilstand_uuid, to_json(attrEgenskaber) USING ERRCODE = 'MO400';
     END IF;
@@ -48951,22 +48951,22 @@ BEGIN
         -- null values in the fields - and if none are present, we'll skip
         -- the merging operations
         IF  (attrEgenskaberObj).brugervendtnoegle IS NULL  OR  (attrEgenskaberObj).beskrivelse IS NULL  OR  (attrEgenskaberObj).integrationsdata IS NULL  THEN
-            
+
             INSERT INTO tilstand_attr_egenskaber ( brugervendtnoegle,beskrivelse,integrationsdata, virkning, tilstand_registrering_id)
                 SELECT
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.brugervendtnoegle, a.brugervendtnoegle),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.beskrivelse, a.beskrivelse),
-                    
-                        
-                        
+
+
+
                             coalesce(attrEgenskaberObj.integrationsdata, a.integrationsdata),
-                    
+
                     ROW ((a.virkning).TimePeriod * (attrEgenskaberObj.virkning).TimePeriod,
                             (attrEgenskaberObj.virkning).AktoerRef,
                             (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -48981,16 +48981,16 @@ BEGIN
         -- For any periods within the virkning of the attrEgenskaberObj,
         -- that is NOT covered by any "merged" rows inserted above, generate
         -- and insert rows.
-        
+
             INSERT INTO tilstand_attr_egenskaber ( brugervendtnoegle,beskrivelse,integrationsdata, virkning, tilstand_registrering_id)
                 SELECT
-                    
+
                      attrEgenskaberObj.brugervendtnoegle,
-                    
+
                      attrEgenskaberObj.beskrivelse,
-                    
+
                      attrEgenskaberObj.integrationsdata,
-                    
+
                     ROW (b.tz_range_leftover,
                         (attrEgenskaberObj.virkning).AktoerRef,
                         (attrEgenskaberObj.virkning).AktoerTypeKode,
@@ -49008,7 +49008,7 @@ BEGIN
 
         ELSE
             -- Insert attrEgenskaberObj raw (if there were no null-valued fields)
-            
+
 
             INSERT INTO tilstand_attr_egenskaber ( brugervendtnoegle,beskrivelse,integrationsdata, virkning, tilstand_registrering_id)
                 VALUES (  attrEgenskaberObj.brugervendtnoegle,  attrEgenskaberObj.beskrivelse,  attrEgenskaberObj.integrationsdata, attrEgenskaberObj.virkning, new_tilstand_registrering.id );
@@ -49029,14 +49029,14 @@ BEGIN
 
     INSERT INTO tilstand_attr_egenskaber ( brugervendtnoegle,beskrivelse,integrationsdata, virkning, tilstand_registrering_id)
     SELECT
-        
-        
+
+
             a.brugervendtnoegle,
-        
+
             a.beskrivelse,
-        
+
             a.integrationsdata,
-        
+
         ROW (c.tz_range_leftover,
             (a.virkning).AktoerRef,
             (a.virkning).AktoerTypeKode,
@@ -49078,25 +49078,25 @@ END IF;
     IF NOT (lower((read_new_tilstand.registrering[1].registrering).TimePeriod) = lower((new_tilstand_registrering.registrering).TimePeriod) and lower((read_prev_tilstand.registrering[1].registrering).TimePeriod)=lower((prev_tilstand_registrering.registrering).TimePeriod)) THEN
       RAISE EXCEPTION 'Error updating tilstand with id [%]: The ordering of as_list_tilstand should ensure that the latest registrering can be found at index 1. Expected new reg: [%]. Actual new reg at index 1: [%]. Expected prev reg: [%]. Actual prev reg at index 1: [%].', tilstand_uuid, to_json(new_tilstand_registrering), to_json(read_new_tilstand.registrering[1].registrering), to_json(prev_tilstand_registrering), to_json(prev_new_tilstand.registrering[1].registrering) USING ERRCODE = 'MO500';
     END IF;
-     
+
     -- We'll ignore the registreringBase part in the comparrison - except
     -- for the livcykluskode
     read_new_tilstand_reg := ROW(
         ROW (null, (read_new_tilstand.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_new_tilstand.registrering[1]).tilsStatus ,
         (read_new_tilstand.registrering[1]).tilsPubliceret ,
-        
+
         (read_new_tilstand.registrering[1]).attrEgenskaber ,
         (read_new_tilstand.registrering[1]).relationer
     )::tilstandRegistreringType;
 
     read_prev_tilstand_reg := ROW(
         ROW(null, (read_prev_tilstand.registrering[1].registrering).livscykluskode, null, null)::registreringBase,
-        
+
         (read_prev_tilstand.registrering[1]).tilsStatus ,
         (read_prev_tilstand.registrering[1]).tilsPubliceret ,
-        
+
         (read_prev_tilstand.registrering[1]).attrEgenskaber ,
         (read_prev_tilstand.registrering[1]).relationer
     )::tilstandRegistreringType;
@@ -49129,29 +49129,29 @@ CREATE OR REPLACE FUNCTION as_create_or_import_tilstand (
     TilstandRegistreringType[] DEFAULT NULL) RETURNS uuid AS
 $$ DECLARE tilstand_registrering_id bigint;
 
-    
-    tilstand_attr_egenskaber_obj tilstandEgenskaberAttrType;
-    
 
-    
+    tilstand_attr_egenskaber_obj tilstandEgenskaberAttrType;
+
+
+
     tilstand_tils_status_obj tilstandStatusTilsType;
-    
+
     tilstand_tils_publiceret_obj tilstandPubliceretTilsType;
-    
+
 
     tilstand_relationer TilstandRelationType;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
     tilstand_relation_kode tilstandRelationKode;
     tilstand_uuid_underscores text;
     tilstand_rel_seq_name text;
     tilstand_rel_type_cardinality_unlimited tilstandRelationKode[]:=ARRAY['tilstandsvaerdi'::TilstandRelationKode,'begrundelse'::TilstandRelationKode,'tilstandskvalitet'::TilstandRelationKode,'tilstandsvurdering'::TilstandRelationKode,'tilstandsaktoer'::TilstandRelationKode,'tilstandsudstyr'::TilstandRelationKode,'samtykke'::TilstandRelationKode,'tilstandsdokument'::TilstandRelationKode]::TilstandRelationKode[];
     tilstand_rel_type_cardinality_unlimited_present_in_argument tilstandRelationKode[];
-    
+
 
     does_exist boolean;
     new_tilstand_registrering tilstand_registrering;
@@ -49219,9 +49219,9 @@ IF tilstand_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(ti
   FOREACH tilstand_attr_egenskaber_obj IN ARRAY tilstand_registrering.attrEgenskaber
   LOOP
 
-  
+
     INSERT INTO tilstand_attr_egenskaber (
-      
+
       brugervendtnoegle,
       beskrivelse,
       integrationsdata,
@@ -49229,15 +49229,15 @@ IF tilstand_registrering.attrEgenskaber IS NOT NULL and coalesce(array_length(ti
       tilstand_registrering_id
     )
     SELECT
-     
+
      tilstand_attr_egenskaber_obj.brugervendtnoegle,
       tilstand_attr_egenskaber_obj.beskrivelse,
       tilstand_attr_egenskaber_obj.integrationsdata,
       tilstand_attr_egenskaber_obj.virkning,
       tilstand_registrering_id
     ;
-  
-    
+
+
   END LOOP;
 END IF;
 
@@ -49337,13 +49337,13 @@ END IF;
       a.objektType,
       CASE WHEN a.relType = any (tilstand_rel_type_cardinality_unlimited) THEN --rel_index
       nextval('tilstand_' || a.relType::text || tilstand_uuid_underscores)
-      ELSE 
+      ELSE
       NULL
       END,
       CASE
         WHEN a.relType='tilstandsvaerdi' AND
           (NOT (a.tilstandsVaerdiAttr IS NULL))
-          AND 
+          AND
           (
             (a.tilstandsVaerdiAttr).forventet IS NOT NULL
             OR
@@ -49352,7 +49352,7 @@ END IF;
         ELSE
         NULL
       END
-    
+
     FROM unnest(tilstand_registrering.relationer) a
   ;
 
@@ -49373,9 +49373,9 @@ END IF;
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
 /*** NOTICE: We are doing this check *after* the insertion of data BUT *before* transaction commit, to reuse code / avoid fragmentation  ***/
-auth_filtered_uuids:=_as_filter_unauth_tilstand(array[tilstand_uuid]::uuid[],auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_tilstand(array[tilstand_uuid]::uuid[],auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=1 AND auth_filtered_uuids @>ARRAY[tilstand_uuid]) THEN
-  RAISE EXCEPTION 'Unable to create/import tilstand with uuid [%]. Object does not met stipulated criteria:%',tilstand_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to create/import tilstand with uuid [%]. Object does not met stipulated criteria:%',tilstand_uuid,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
@@ -49408,13 +49408,13 @@ BEGIN
 
 
 /*** Verify that the object meets the stipulated access allowed criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_tilstand(tilstand_uuids,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_tilstand(tilstand_uuids,auth_criteria_arr);
 IF NOT (coalesce(array_length(auth_filtered_uuids,1),0)=coalesce(array_length(tilstand_uuids,1),0) AND auth_filtered_uuids @>tilstand_uuids) THEN
-  RAISE EXCEPTION 'Unable to list tilstand with uuids [%]. All objects do not fullfill the stipulated criteria:%',tilstand_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401'; 
+  RAISE EXCEPTION 'Unable to list tilstand with uuids [%]. All objects do not fullfill the stipulated criteria:%',tilstand_uuids,to_json(auth_criteria_arr)  USING ERRCODE = 'MO401';
 END IF;
 /*********************/
 
-SELECT 
+SELECT
 array_agg(x.tilstandObj) into result
 FROM
 (
@@ -49429,8 +49429,8 @@ ROW(
 			a.TilstandAttrEgenskaberArr,
 			a.TilstandRelationArr
 		)::TilstandRegistreringType
-		order by upper((a.registrering).TimePeriod) DESC		
-	) 
+		order by upper((a.registrering).TimePeriod) DESC
+	)
 ):: TilstandType  tilstandObj
 FROM
 (
@@ -49456,9 +49456,9 @@ FROM
 		ELSE
 		NULL
 		END
-        
+
 		order by b.rel_maal_uuid,b.rel_maal_urn,b.rel_type,b.objekt_type,b.rel_index,b.tilstand_vaerdi_attr,b.virkning
-        
+
 	)) TilstandRelationArr
 	FROM
 	(
@@ -49471,7 +49471,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.status
@@ -49479,7 +49479,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.status,b.virkning
-				)) TilstandTilsStatusArr		
+				)) TilstandTilsStatusArr
 			FROM
 			(
 			SELECT
@@ -49490,7 +49490,7 @@ FROM
 			_remove_nulls_in_array(array_agg
 				(
 					CASE
-					WHEN b.id is not null THEN 
+					WHEN b.id is not null THEN
 					ROW(
 						b.virkning,
 						b.publiceret
@@ -49498,7 +49498,7 @@ FROM
 					ELSE NULL
 					END
 					order by b.publiceret,b.virkning
-				)) TilstandTilsPubliceretArr		
+				)) TilstandTilsPubliceretArr
 			FROM
 			(
 					SELECT
@@ -49507,51 +49507,51 @@ FROM
 					a.registrering,
 					_remove_nulls_in_array(array_agg(
 						CASE
-                        
+
 						WHEN b.id is not null THEN
-                        
+
 						ROW(
-                            
+
 					 		b.brugervendtnoegle,
 					 		b.beskrivelse,
 					 		b.integrationsdata,
 					   		b.virkning
-                            
+
 							)::TilstandEgenskaberAttrType
 						ELSE
 						NULL
 						END
-                        
+
 						order by b.brugervendtnoegle,b.beskrivelse,b.integrationsdata,b.virkning
-                        
+
 					)) TilstandAttrEgenskaberArr
-                    
+
 					FROM
 					(
 					SELECT
 					a.id tilstand_id,
 					b.id tilstand_registrering_id,
-					b.registrering			
+					b.registrering
 					FROM		tilstand a
 					JOIN 		tilstand_registrering b 	ON b.tilstand_id=a.id
 					WHERE a.id = ANY (tilstand_uuids) AND ((registrering_tstzrange is null AND upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ) OR registrering_tstzrange && (b.registrering).timeperiod)--filter ON registrering_tstzrange
 					) as a
 					LEFT JOIN tilstand_attr_egenskaber as b ON b.tilstand_registrering_id=a.tilstand_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
-                    
-					GROUP BY 
+
+					GROUP BY
 					a.tilstand_id,
 					a.tilstand_registrering_id,
-					a.registrering	
+					a.registrering
 			) as a
-			LEFT JOIN tilstand_tils_publiceret as b ON b.tilstand_registrering_id=a.tilstand_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN tilstand_tils_publiceret as b ON b.tilstand_registrering_id=a.tilstand_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.tilstand_id,
 			a.tilstand_registrering_id,
 			a.registrering,
-			a.TilstandAttrEgenskaberArr	
+			a.TilstandAttrEgenskaberArr
 			) as a
-			LEFT JOIN tilstand_tils_status as b ON b.tilstand_registrering_id=a.tilstand_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given			
-			GROUP BY 
+			LEFT JOIN tilstand_tils_status as b ON b.tilstand_registrering_id=a.tilstand_registrering_id AND (virkning_tstzrange is null OR (b.virkning).TimePeriod && virkning_tstzrange) --filter ON virkning_tstzrange if given
+			GROUP BY
 			a.tilstand_id,
 			a.tilstand_registrering_id,
 			a.registrering,
@@ -49569,7 +49569,7 @@ FROM
 ) as a
 
 WHERE a.tilstand_id IS NOT NULL
-GROUP BY 
+GROUP BY
 a.tilstand_id
 order by a.tilstand_id
 ) as x
@@ -49629,7 +49629,7 @@ CREATE OR REPLACE FUNCTION as_search_tilstand(
     anyurnArr text[] = '{}'::text[],
     auth_criteria_arr TilstandRegistreringType[]=null
 
-    
+
 
 ) RETURNS uuid[] AS $$
 DECLARE
@@ -49638,7 +49638,7 @@ DECLARE
     --to_be_applyed_filter_uuids uuid[];
     attrEgenskaberTypeObj TilstandEgenskaberAttrType;
 
-    
+
     tilsStatusTypeObj TilstandStatusTilsType;
     tilsPubliceretTypeObj TilstandPubliceretTilsType;
 
@@ -49647,11 +49647,11 @@ DECLARE
     anyuuid uuid;
     anyurn text;
 
-    
+
 
     auth_filtered_uuids uuid[];
 
-    
+
 BEGIN
 
 --RAISE DEBUG 'step 0:registreringObj:%',registreringObj;
@@ -49674,20 +49674,20 @@ IF tilstand_uuid is not NULL THEN
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -49708,16 +49708,16 @@ IF tilstand_uuid is not NULL THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -49730,7 +49730,7 @@ IF tilstand_uuid is not NULL THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -49755,7 +49755,7 @@ END IF;
 --RAISE NOTICE 'tilstand_candidates step 2:%',tilstand_candidates;
 
 --/****************************//
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -49764,20 +49764,20 @@ IF registreringObj IS NULL OR (registreringObj).attrEgenskaber IS NULL THEN
 ELSE
 
     IF (coalesce(array_length(tilstand_candidates,1),0)>0 OR NOT tilstand_candidates_is_initialized) THEN
-        
+
         FOREACH attrEgenskaberTypeObj IN ARRAY registreringObj.attrEgenskaber
-        
+
         LOOP
             tilstand_candidates:=array(
             SELECT DISTINCT
             b.tilstand_id
             FROM  tilstand_attr_egenskaber a
             JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id
-            
+
             WHERE
                 (
                     (
-                        attrEgenskaberTypeObj.virkning IS NULL 
+                        attrEgenskaberTypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -49799,7 +49799,7 @@ ELSE
                             )
                             AND
                             (
-                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                    (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -49833,24 +49833,24 @@ ELSE
                     a.integrationsdata ILIKE attrEgenskaberTypeObj.integrationsdata --case insensitive
                 )
                 AND
-                
+
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -49871,16 +49871,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -49893,7 +49893,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -49926,16 +49926,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 
             SELECT DISTINCT
             b.tilstand_id
-            
+
             FROM  tilstand_attr_egenskaber a
             JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id
-            
+
             WHERE
             (
                         a.brugervendtnoegle ILIKE anyAttrValue OR
                         a.beskrivelse ILIKE anyAttrValue OR
                         a.integrationsdata ILIKE anyAttrValue
-                
+
             )
             AND
             (
@@ -49944,24 +49944,24 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
                 virkningSoeg && (a.virkning).TimePeriod
             )
             AND
-            
+
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -49982,16 +49982,16 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50004,7 +50004,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50088,20 +50088,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50122,16 +50122,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50144,7 +50144,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50223,20 +50223,20 @@ ELSE
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50257,16 +50257,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50279,7 +50279,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50382,8 +50382,8 @@ ELSE
                     OR
                     relationTypeObj.urn = a.rel_maal_urn
                 )
-                
-                
+
+
                 AND
                 (
                         relationTypeObj.indeks IS NULL
@@ -50406,28 +50406,28 @@ ELSE
                                 OR
                                 (a.tilstand_vaerdi_attr).forventet = (relationTypeObj.tilstandsVaerdiAttr).forventet
                         )
- 
+
                 )
                 )
-                
+
                 AND
                         -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50448,16 +50448,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50470,7 +50470,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50497,38 +50497,38 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
         tilstand_candidates:=array(
             SELECT DISTINCT
             b.tilstand_id
-            
+
             FROM  tilstand_relation a
             JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id
             WHERE
-            
+
             anyuuid = a.rel_maal_uuid
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50549,16 +50549,16 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50571,7 +50571,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50598,38 +50598,38 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
         tilstand_candidates:=array(
             SELECT DISTINCT
             b.tilstand_id
-            
+
             FROM  tilstand_relation a
             JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id
             WHERE
-            
+
             anyurn = a.rel_maal_urn
-            
+
             AND
             (
                 virkningSoeg IS NULL
                 OR
                 virkningSoeg && (a.virkning).TimePeriod
             )
-            
+
             AND
                     -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50650,16 +50650,16 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50672,7 +50672,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50693,7 +50693,7 @@ END IF;
 --/**********************//
 
 -- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
--- SPDX-License-Identifier: MPL-2.0 
+-- SPDX-License-Identifier: MPL-2.0
 
 
 
@@ -50714,20 +50714,20 @@ ELSE
                 -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
         -- SPDX-License-Identifier: MPL-2.0
 		(
-				(registreringObj.registrering) IS NULL 
+				(registreringObj.registrering) IS NULL
 				OR
 				(
 					(
-						(registreringObj.registrering).timeperiod IS NULL 
+						(registreringObj.registrering).timeperiod IS NULL
 						OR
 						(registreringObj.registrering).timeperiod && (b.registrering).timeperiod
 					)
 					AND
 					(
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode 		
-					) 
+						(registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+					)
 					AND
 					(
 						(registreringObj.registrering).brugerref IS NULL
@@ -50748,16 +50748,16 @@ ELSE
 				((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
 				AND
 					(
-						(registreringObj.registrering) IS NULL 
+						(registreringObj.registrering) IS NULL
 						OR
-						(registreringObj.registrering).livscykluskode IS NULL 
+						(registreringObj.registrering).livscykluskode IS NULL
 					)
 			)
 			OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
 				AND
-				(registreringObj.registrering).livscykluskode IS NOT NULL 
+				(registreringObj.registrering).livscykluskode IS NOT NULL
 			)
 		)
 		AND
@@ -50770,7 +50770,7 @@ ELSE
 			  )
 			  AND
 			  upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-			)  	
+			)
 		OR
 			(
 				(NOT ((registreringObj.registrering) IS NULL))
@@ -50805,7 +50805,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_tilstand(tilstand_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_tilstand(tilstand_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_tilstand(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -50814,7 +50814,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -50828,13 +50828,13 @@ NOTICE: This file is auto-generated!
 
 
 
-CREATE OR REPLACE FUNCTION actual_state._cast_TilstandRegistreringType_to_json(TilstandRegistreringType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_TilstandRegistreringType_to_json(TilstandRegistreringType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 
 BEGIN
@@ -50842,51 +50842,51 @@ BEGIN
 SELECT row_to_json(a.*) into result
 FROM
 (
-  WITH 
+  WITH
   attr AS (
-    SELECT 
+    SELECT
     row_to_json(
       c.*
       ) attr_json
-    FROM 
+    FROM
       (
         SELECT
-        CASE 
-        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber) 
-        ELSE 
+        CASE
+        WHEN coalesce(array_length($1.attrEgenskaber,1),0)>0 THEN to_json($1.attrEgenskaber)
+        ELSE
         NULL
         END tilstandegenskaber
-        
-        
+
+
       ) as c
   ),
   tils as (
-      SELECT 
+      SELECT
     row_to_json(
       d.*
       ) tils_json
-    FROM 
+    FROM
       (
-        SELECT 
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsStatus,1),0)>0 THEN to_json($1.tilsStatus) 
-        ELSE 
+        SELECT
+
+        CASE
+        WHEN coalesce(array_length($1.tilsStatus,1),0)>0 THEN to_json($1.tilsStatus)
+        ELSE
         NULL
         END tilstandstatus
         ,
-        
-        CASE 
-        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret) 
-        ELSE 
+
+        CASE
+        WHEN coalesce(array_length($1.tilsPubliceret,1),0)>0 THEN to_json($1.tilsPubliceret)
+        ELSE
         NULL
         END tilstandpubliceret
-        
-        
+
+
       ) as d
   ),
   rel as (
-    SELECT 
+    SELECT
     ('{' || string_agg(  to_json(f.relType::text) || ':' || array_to_json(f.rel_json_arr,false) ,',') || '}')::json rel_json
     FROM
     (
@@ -50900,7 +50900,7 @@ FROM
       order by e.relType asc
     ) as f
   )
-  SELECT 
+  SELECT
   row_to_json(FraTidspunkt.*) FraTidspunkt
   ,row_to_json(TilTidspunkt.*) TilTidspunkt
   ,($1.registrering).livscykluskode
@@ -50925,7 +50925,7 @@ FROM
      (SELECT UPPER(($1.registrering).TimePeriod)) as TidsstempelDatoTid
     ,(SELECT upper_inc(($1.registrering).TimePeriod)) as GraenseIndikator
     ) as TilTidspunkt
-  
+
 
 )
 as a
@@ -50943,13 +50943,13 @@ create cast (TilstandRegistreringType as json) with function actual_state._cast_
 
 ---------------------------------------------------------
 
-CREATE OR REPLACE FUNCTION actual_state._cast_tilstandType_to_json(TilstandType) 
+CREATE OR REPLACE FUNCTION actual_state._cast_tilstandType_to_json(TilstandType)
 
 RETURNS
 json
-AS 
+AS
 $$
-DECLARE 
+DECLARE
 result json;
 reg_json_arr json[];
 reg TilstandRegistreringType;
@@ -50978,7 +50978,7 @@ END;
 $$ LANGUAGE plpgsql immutable;
 
 drop cast if exists (TilstandType as json);
-create cast (TilstandType as json) with function actual_state._cast_tilstandType_to_json(TilstandType); 
+create cast (TilstandType as json) with function actual_state._cast_tilstandType_to_json(TilstandType);
 
 
 
@@ -51037,14 +51037,14 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_tilstand(
 	tilstand_uuids uuid[],
 	registreringObjArr TilstandRegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	tilstand_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	tilstand_candidates uuid[];
-	--to_be_applyed_filter_uuids uuid[]; 
+	--to_be_applyed_filter_uuids uuid[];
 	attrEgenskaberTypeObj TilstandEgenskaberAttrType;
-	
+
   	tilsStatusTypeObj TilstandStatusTilsType;
   	tilsPubliceretTypeObj TilstandPubliceretTilsType;
 	relationTypeObj TilstandRelationType;
@@ -51059,8 +51059,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF tilstand_uuids IS NULL OR coalesce(array_length(tilstand_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -51079,7 +51079,7 @@ tilstand_candidates:= tilstand_uuids;
 --RAISE DEBUG 'tilstand_candidates step 1:%',tilstand_candidates;
 --/****************************//
 
---filter on attributes 
+--filter on attributes
 --/**********************************************************//
 --Filtration on attribute: Egenskaber
 --/**********************************************************//
@@ -51091,31 +51091,31 @@ ELSE
 		LOOP
 			tilstand_candidates:=array(
 			SELECT DISTINCT
-			b.tilstand_id 
-			FROM  tilstand_attr_egenskaber a 
-			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.tilstand_id
+			FROM  tilstand_attr_egenskaber a
+			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-					OR 
-					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle 
+					OR
+					a.brugervendtnoegle = attrEgenskaberTypeObj.brugervendtnoegle
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.beskrivelse IS NULL
-					OR 
-					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse 
+					OR
+					a.beskrivelse = attrEgenskaberTypeObj.beskrivelse
 				)
 				AND
 				(
 					attrEgenskaberTypeObj.integrationsdata IS NULL
-					OR 
-					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata 
+					OR
+					a.integrationsdata = attrEgenskaberTypeObj.integrationsdata
 				)
 				AND b.tilstand_id = ANY (tilstand_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -51131,15 +51131,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsStatus IS NULL THEN
 	--RAISE DEBUG 'as_search_tilstand: skipping filtration on tilsStatus';
 ELSE
-	IF coalesce(array_length(tilstand_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(tilstand_candidates,1),0)>0 THEN
 
 		FOREACH tilsStatusTypeObj IN ARRAY registreringObj.tilsStatus
 		LOOP
 			tilstand_candidates:=array(
 			SELECT DISTINCT
-			b.tilstand_id 
+			b.tilstand_id
 			FROM  tilstand_tils_status a
-			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsStatusTypeObj.status IS NULL
@@ -51149,7 +51149,7 @@ ELSE
 				AND b.tilstand_id = ANY (tilstand_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -51159,15 +51159,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tilsPubliceret IS NULL THEN
 	--RAISE DEBUG 'as_search_tilstand: skipping filtration on tilsPubliceret';
 ELSE
-	IF coalesce(array_length(tilstand_candidates,1),0)>0 THEN 
+	IF coalesce(array_length(tilstand_candidates,1),0)>0 THEN
 
 		FOREACH tilsPubliceretTypeObj IN ARRAY registreringObj.tilsPubliceret
 		LOOP
 			tilstand_candidates:=array(
 			SELECT DISTINCT
-			b.tilstand_id 
+			b.tilstand_id
 			FROM  tilstand_tils_publiceret a
-			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tilsPubliceretTypeObj.publiceret IS NULL
@@ -51177,7 +51177,7 @@ ELSE
 				AND b.tilstand_id = ANY (tilstand_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -51203,11 +51203,11 @@ ELSE
 		LOOP
 			tilstand_candidates:=array(
 			SELECT DISTINCT
-			b.tilstand_id 
+			b.tilstand_id
 			FROM  tilstand_relation a
 			JOIN tilstand_registrering b on a.tilstand_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -51216,7 +51216,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -51231,7 +51231,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.tilstand_id = ANY (tilstand_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -51243,7 +51243,7 @@ END IF;
 
 tilstand_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest (tilstand_passed_auth_filter) a(id)
 UNION
@@ -51253,7 +51253,7 @@ FROM
 unnest (tilstand_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length(tilstand_passed_auth_filter,1),0)=coalesce(array_length(tilstand_uuids,1),0) AND tilstand_passed_auth_filter @>tilstand_uuids THEN
 	RETURN tilstand_passed_auth_filter;
 END IF;
@@ -51266,7 +51266,7 @@ RETURN tilstand_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 
@@ -51476,4 +51476,3 @@ BEGIN
     RETURN res_variant_id;
 END;
 $$ LANGUAGE plpgsql;
-

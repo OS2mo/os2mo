@@ -22,26 +22,11 @@ variables:
 
   PYPROJECT_ROOT: "./backend"
 
-  # We use kaniko v0.13.0 as newer versions contain fatal bugs
-  KANIKO_VERSION: v1.3.0-debug
   BACKEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
   FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
   # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
-
-include:
-  - local: "ra-data-models/.gitlab-ci.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/autopub.v1.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
-  - project: "labs/salt-automation"
-    ref: "master"
-    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
-
 
 # Conditions
 #############
@@ -69,6 +54,20 @@ include:
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
+include:
+  - local: "ra-data-models/.gitlab-ci.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/autopub.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/docker-build-meta.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
+  - project: "labs/salt-automation"
+    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
+  - project: 'labs/salt-automation'
+    file: "/gitlab-ci-templates/common/pre-commit.v1.yml"
+    rules:
+      - <<: *if-merge-request
 
 # Workflow
 ###########
@@ -142,7 +141,7 @@ default:
 
 .services:use-mo:
   needs:
-    - Build OS2MO
+    - Build OS2mo
   image: $BACKEND_IMAGE_SHA
   extends:
     - .mo-variables
@@ -173,32 +172,9 @@ Don't Interrupt:
 .lint-base:
   stage: lint
   needs: []
-  image: python:3.10
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
-
-Pre-commit:
-  extends: .lint-base
-  before_script:
-    - pip install pre-commit
-    - pre-commit install
-    # Fetch terraform
-    - TERRAFORM_VERSION="1.1.6"
-    - TERRAFORM_DOWNLOAD_URL=https://releases.hashicorp.com/terraform
-    - TERRAFORM_URL=${TERRAFORM_DOWNLOAD_URL}/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
-    - curl -o terraform_linux_amd64.zip -sL ${TERRAFORM_URL}
-    - unzip terraform_linux_amd64.zip -d /usr/bin/
-    - chmod +x /usr/bin/terraform
-  script:
-    - pre-commit run --all-files
-  variables:
-    PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
-    PRE_COMMIT_HOME: ${CI_PROJECT_DIR}/.cache/pre-commit
-  cache:
-    paths:
-      - ${PIP_CACHE_DIR}
-      - ${PRE_COMMIT_HOME}
 
 Lint Dockerfiles:
   extends: .lint-base
@@ -213,15 +189,6 @@ Lint Dockerfiles:
     # Run hadolint on every Dockerfile
     - fd Dockerfile --exec hadolint
 
-REUSE compliance:
-  # TODO: Do this as part of pre-commit instead
-  extends: .lint-base
-  image:
-    name: fsfe/reuse:latest
-    entrypoint: [""]
-  script:
-    - reuse lint
-
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
   extends: .lint-base
@@ -235,70 +202,47 @@ Lint shell scripts:
 
 # Build
 ########
-.build-base:
-  stage: build
-  needs: []
-  image:
-    name: gcr.io/kaniko-project/executor:${KANIKO_VERSION}
-    entrypoint: [""]
-
 .build:release-image:
-  extends:
-    - .build-base
   rules:
     - <<: *if-schedule
       when: never
     - when: on_success
 
 .build:test-image:
-  extends:
-    - .build-base
   rules:
     - <<: *if-merge-request
 
-Build OS2MO:
-  extends: .build:release-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead. Migration requires support for COMMIT_SHA and
-  # COMMIT_TAG, see https://git.magenta.dk/rammearkitektur/os2mo-triggers/os2mo-amqp-trigger-calculate-primary/-/blob/master/Dockerfile
-  # for alternatives to --build-arg.
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/api.Dockerfile
-      --destination=${BACKEND_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+Build OS2mo:
+  extends:
+    - .build:release-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${BACKEND_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/api.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build frontend:
-  extends: .build:release-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
-      --destination=${FRONTEND_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+  extends:
+    - .build:release-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${FRONTEND_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build test frontend:
-  extends: .build:test-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/frontend.Dockerfile
-      --destination=${FRONTEND_TEST_IMAGE_SHA}
-      --build-arg=COMMIT_SHA=${CI_COMMIT_SHA}
-      --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
-      --target frontend
+  extends:
+    - .build:test-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${FRONTEND_TEST_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
+    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
+    TARGET: frontend
 
 Build Keycloak-realm:
+  stage: build
+  needs: []
   extends: .build:test-image
   image:
     # TODO: Use new realm builder
@@ -326,28 +270,22 @@ Build Keycloak-realm:
     expire_in: 1 day
 
 Build Keycloak:
-  extends: .build:test-image
+  extends:
+    - .build:test-image
+    - .build-docker
   needs:
     - Build Keycloak-realm
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak.Dockerfile
-      --destination=${KEYCLOAK_IMAGE_SHA}
+  variables:
+    CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
 
 Build Keycloak DB:
-  extends: .build:test-image
-  # TODO: Use gitlab-ci-templates/common/docker-build-meta.v1.yml instead
-  script:
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor
-      --cache
-      --context=$CI_PROJECT_DIR
-      --dockerfile=$CI_PROJECT_DIR/docker/ci.keycloak-db.Dockerfile
-      --destination=${KEYCLOAK_DB_IMAGE_SHA}
+  extends:
+    - .build:test-image
+    - .build-docker
+  variables:
+    CI_IMAGE: ${KEYCLOAK_DB_IMAGE_SHA}
+    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak-db.Dockerfile
 
 # Tests
 ########
@@ -466,7 +404,7 @@ Coverage:
     - <<: *if-merge-request
 
 # Frontend Tests
-#################
+################
 Vue-unit-test:
   extends:
     - .test-base
@@ -497,7 +435,7 @@ Vue-unit-test:
 Deploy Review:
   stage: review
   needs:
-    - Build OS2MO
+    - Build OS2mo
   image: debian:bookworm
   variables:
     GIT_STRATEGY: none  # We do not need the source code

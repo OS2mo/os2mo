@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_indsats()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering indsatsRegistreringType;
 	actual_registrering RegistreringBase;
@@ -37,7 +37,7 @@ DECLARE
 	uuidIndsatsmodtager1B uuid:='7ce114e4-4378-4b73-95ff-fb9a5b651e70'::uuid;
 	uuidVirkIndsatsmodtager uuid:='88a7a37b-5423-4a4f-af64-b2031d0aa6a4'::uuid;
 	uuidVirkIndsatsmodtager1B uuid:='36171c3f-0018-4b89-accb-f0b89a41acea'::uuid;
-	
+
 	--uuidIndsatssag2 uuid :='08533179-fedb-4aa7-8902-ab34a219eed9'::uuid;
 	urnIndsatssag2 text:='urn:isbn:0451450523'::text;
 	uuidIndsatsaktoer1 uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09d'::uuid;
@@ -199,7 +199,7 @@ virkPubliceret,
 )::indsatsPubliceretTilsType;
 
 indsatsEgenskab := ROW (
-'brugervendtnoegle_indsats_1' --text, 
+'brugervendtnoegle_indsats_1' --text,
 ,'beskrivelse_indsats_1'-- text,
 , '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 , '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
@@ -245,7 +245,7 @@ virkEgenskaber1B :=	ROW (
 ;
 
 indsatsEgenskab1B:= ROW (
-null --text, 
+null --text,
 ,'beskrivelse_indsats_1A'-- text,
 , ''::text
 , '2017-01-20 13:00'::timestamptz -- sluttidspunkt,
@@ -258,7 +258,7 @@ null --text,
   new_uuid1,
   uuidRegistrering,
   'Opdatering reg note test #1',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   ARRAY[indsatsEgenskab1B]::IndsatsEgenskaberAttrType[],
   null,
   null,
@@ -282,7 +282,7 @@ expected_indsats1:=ROW(
 			,ARRAY[indsatsFremdrift]::indsatsFremdriftTilsType[]
 			,ARRAY[
 				ROW (
-						'brugervendtnoegle_indsats_1' --text, 
+						'brugervendtnoegle_indsats_1' --text,
 						,'beskrivelse_indsats_1'-- text,
 						, '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 						, '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
@@ -295,7 +295,7 @@ expected_indsats1:=ROW(
 								) :: Virkning
 						) :: indsatsEgenskaberAttrType,
 				ROW (
-						'brugervendtnoegle_indsats_1' --text, 
+						'brugervendtnoegle_indsats_1' --text,
 						,'beskrivelse_indsats_1'-- text,
 						, '2017-01-20 08:00'::timestamptz  -- starttidspunkt,
 						, '2017-01-20 12:00'::timestamptz -- sluttidspunkt,
@@ -308,14 +308,14 @@ expected_indsats1:=ROW(
 								) :: Virkning
 						) :: indsatsEgenskaberAttrType,
 				ROW (
-						'brugervendtnoegle_indsats_1' --text, 
+						'brugervendtnoegle_indsats_1' --text,
 						,'beskrivelse_indsats_1A'-- text,
 						, row(null,null)
 						, '2017-01-20 13:00'::timestamptz -- sluttidspunkt,
 						,'integrationsdata_1A'-- text,
 						,virkEgenskaber1B
 						) :: indsatsEgenskaberAttrType
-						
+
 			]::indsatsEgenskaberAttrType[]
 			,ARRAY[
 				ROW (
@@ -324,7 +324,7 @@ expected_indsats1:=ROW(
 				uuidIndsatsaktoer2,
 				null,
 				'Person'
-				,2 
+				,2
 			) :: indsatsRelationType
 				,
 				ROW (
@@ -412,7 +412,7 @@ indsatsRelIndsatsaktoer2B := ROW (
 				uuidIndsatsaktoer2B,
 				null,
 				'Person'
-				,2 
+				,2
 			) :: indsatsRelationType
 ;
 
@@ -421,7 +421,7 @@ indsatsRelIndsatsaktoer2B := ROW (
   new_uuid1,
   uuidRegistrering,
   'Opdatering reg note test #2',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   null,
   null,
   null,
@@ -460,7 +460,7 @@ expected_indsats2:=ROW(
 				uuidIndsatsaktoer2B,
 				null,
 				'Person'
-				,2 
+				,2
 			) :: indsatsRelationType
 				,
 				ROW (
@@ -481,7 +481,7 @@ expected_indsats2:=ROW(
 				,1 --NOTICE: Was replaced  by import function
 			) :: indsatsRelationType
 			,
-			 
+
 				ROW (
 				'indsatsmodtager'::indsatsRelationKode
 				,ROW (
@@ -493,7 +493,7 @@ expected_indsats2:=ROW(
 				,uuidIndsatsmodtager
 				,null
 				,'Person'
-				,NULL 
+				,NULL
 			) :: indsatsRelationType
 				,
 				ROW (
@@ -507,7 +507,7 @@ expected_indsats2:=ROW(
 				,uuidIndsatsmodtager
 				,null
 				,'Person'
-				,NULL 
+				,NULL
 			) :: indsatsRelationType
 
 			,ROW (

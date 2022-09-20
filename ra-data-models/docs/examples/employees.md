@@ -37,11 +37,11 @@ print(new_empl.json(by_alias=True, indent=2))
 # }
 ```
 
-However, this employee will have no association to the organisation as a whole. Usually, it is of interest to specify [details](../mo/api.md#details) when creating a new employee. 
+However, this employee will have no association to the organisation as a whole. Usually, it is of interest to specify [details](../mo/api.md#details) when creating a new employee.
 
 For this example, suppose that we wish to create an employee that has an engagement as a Software Developer in Unit B and the initials EMPLO.
 
-We need to create an [`Engagement`][ramodels.mo.details.engagement.Engagement], and we can use the initials (if unique) as the employee's user key. 
+We need to create an [`Engagement`][ramodels.mo.details.engagement.Engagement], and we can use the initials (if unique) as the employee's user key.
 We need three klasses: the job function (i.e. Software Developer), the engagement type, and the primary type (denoting whether the engagement is primary, secondary, etc.). These can be looked up at the `service/f/engagement_job_function/`, `service/f/engagement_type/` and `service/f/primary_type/` endpoints, respectively.
 
 Then, we can create a payload as follows.
@@ -102,4 +102,4 @@ In fact, we can include this payload directly in the Employee payload - if we do
   ]
 }
 ```
-The same logic can be applied for each detail type. 
+The same logic can be applied for each detail type.

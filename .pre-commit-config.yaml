@@ -36,16 +36,10 @@ repos:
           - prometheus_client
           - types-python-dateutil
 
-  - repo: https://github.com/antonbabenko/pre-commit-terraform
-    rev: v1.72.1
-    hooks:
-      - id: terraform_fmt
-
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v2.5.1
     hooks:
       - id: prettier
-        exclude: tempotest
         files: \.(js|vue|css|html)$
 
   - repo: https://github.com/pycqa/pydocstyle
@@ -54,3 +48,14 @@ repos:
       - id: pydocstyle
         files: backend/mora/graphapi/
         args: [ "--convention=google", "--add-ignore=D1" ]
+
+  - repo: https://github.com/fsfe/reuse-tool
+    rev: v1.0.0
+    hooks:
+      - id: reuse
+
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v4.0.1
+    hooks:
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

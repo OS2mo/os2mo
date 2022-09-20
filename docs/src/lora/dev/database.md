@@ -32,7 +32,7 @@ The templates are organised as follows:
 
 `templates`
 
->   The above-mentioned templates specifying core types, tables, functions, 
+>   The above-mentioned templates specifying core types, tables, functions,
 etc. for each
 
 `funcs/post`

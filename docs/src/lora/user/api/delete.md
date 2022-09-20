@@ -10,11 +10,11 @@ DELETE /(service)/(object)/(uuid)
 
 The Delete operation deletes the object and return its UUID.
 
-After an object is deleted, it cannot be retrieved by 
-[Read](./read.md), 
-[List](./list.md) and 
-[Search Operations](./search.md) 
-unless the `registreretTil` and/or `registreretFra` indicate a period where it did 
+After an object is deleted, it cannot be retrieved by
+[Read](./read.md),
+[List](./list.md) and
+[Search Operations](./search.md)
+unless the `registreretTil` and/or `registreretFra` indicate a period where it did
 exist.
 
 The Delete operation deletes the whole object. To delete part of an

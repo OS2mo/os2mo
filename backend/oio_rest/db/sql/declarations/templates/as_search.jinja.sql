@@ -93,7 +93,7 @@ END IF;
 --/****************************//
 --filter on attributes
 
-{%-for attribut , attribut_fields in attributter.items() %} 
+{%-for attribut , attribut_fields in attributter.items() %}
 --/**********************************************************//
 --Filtration on attribute: {{attribut|title}}
 --/**********************************************************//
@@ -147,7 +147,7 @@ END LOOP;
             WHERE
                 (
                     (
-                        attr{{attribut|title}}TypeObj.virkning IS NULL 
+                        attr{{attribut|title}}TypeObj.virkning IS NULL
                         OR
                         (
                             (
@@ -169,7 +169,7 @@ END LOOP;
                             )
                             AND
                             (
-                                    (attr{{attribut|title}}TypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attr{{attribut|title}}TypeObj.virkning).NoteTekst  
+                                    (attr{{attribut|title}}TypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attr{{attribut|title}}TypeObj.virkning).NoteTekst
                             )
                         )
                     )
@@ -191,7 +191,7 @@ END LOOP;
                     OR
                      {%- if attributter_metadata[attribut][attribut_field]['type'] %}
                         {%-if attributter_metadata[attribut][attribut_field]['type'] == "text[]" %}
-                    _as_search_match_array(attr{{attribut|title}}TypeObj.{{attribut_field}},a.{{attribut_field}})  
+                    _as_search_match_array(attr{{attribut|title}}TypeObj.{{attribut_field}},a.{{attribut_field}})
                         {%- else %}
                         {%-if attributter_metadata[attribut][attribut_field]['type'] == "offentlighedundtagettype" %}
                         (
@@ -225,19 +225,19 @@ END LOOP;
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator IS NULL
                                         OR
-                                        c.soegeordidentifikator ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator  
+                                        c.soegeordidentifikator ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordidentifikator
                                 )
                                 AND
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).beskrivelse IS NULL
                                         OR
-                                        c.beskrivelse ILIKE (attrEgenskaberTypeObj.soegeord[1]).beskrivelse  
-                                )               
+                                        c.beskrivelse ILIKE (attrEgenskaberTypeObj.soegeord[1]).beskrivelse
+                                )
                                 AND
                                 (
                                         (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori IS NULL
                                         OR
-                                        c.soegeordskategori ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori  
+                                        c.soegeordskategori ILIKE (attrEgenskaberTypeObj.soegeord[1]).soegeordskategori
                                 )
                         )
                 )
@@ -275,9 +275,9 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             SELECT DISTINCT
             b.{{oio_type}}_id
             {% if oio_type == "dokument" %}
-            FROM dokument_registrering b 
+            FROM dokument_registrering b
             LEFT JOIN dokument_attr_egenskaber a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or virkningSoeg && (a.virkning).TimePeriod )
-            LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id 
+            LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
             LEFT JOIN dokument_del f on f.variant_id=c.id
             LEFT JOIN dokument_del_egenskaber d on d.del_id = f.id and (virkningSoeg IS NULL or virkningSoeg && (d.virkning).TimePeriod )
             LEFT JOIN dokument_variant_egenskaber e on e.variant_id = c.id and (virkningSoeg IS NULL or virkningSoeg && (e.virkning).TimePeriod )
@@ -583,7 +583,7 @@ ELSE
                                                         (
                                                                 ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel IS NULL
                                                                 OR
-                                                                ((a.journal_dokument_attr).offentlighedundtaget).AlternativTitel ILIKE ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel 
+                                                                ((a.journal_dokument_attr).offentlighedundtaget).AlternativTitel ILIKE ((relationTypeObj.journalDokumentAttr).offentlighedundtaget).AlternativTitel
                                                         )
                                                         AND
                                                         (
@@ -612,7 +612,7 @@ ELSE
                                 (
                                         (relationTypeObj.aktoerAttr).obligatorisk IS NULL
                                         OR
-                                        (relationTypeObj.aktoerAttr).obligatorisk = (a.aktoer_attr).obligatorisk                                        
+                                        (relationTypeObj.aktoerAttr).obligatorisk = (a.aktoer_attr).obligatorisk
                                 )
                                 AND
                                 (
@@ -657,7 +657,7 @@ ELSE
                                 OR
                                 (a.tilstand_vaerdi_attr).forventet = (relationTypeObj.tilstandsVaerdiAttr).forventet
                         )
- 
+
                 )
                 )
                 {% endif %}
@@ -680,10 +680,10 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             SELECT DISTINCT
             b.{{oio_type}}_id
             {% if oio_type == "dokument" %}
-            FROM dokument_registrering b  
+            FROM dokument_registrering b
             LEFT JOIN dokument_relation a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or (virkningSoeg && (a.virkning).TimePeriod) )
             LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
-            LEFT JOIN dokument_del d on d.variant_id=c.id 
+            LEFT JOIN dokument_del d on d.variant_id=c.id
             LEFT JOIN dokument_del_relation e on d.id=e.del_id and (virkningSoeg IS NULL or (virkningSoeg && (e.virkning).TimePeriod) )
             WHERE
             (anyuuid = a.rel_maal_uuid OR anyuuid = e.rel_maal_uuid)
@@ -694,7 +694,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             {% if oio_type == "aktivitet" %}
             (
                     anyuuid = a.rel_maal_uuid
-            OR  
+            OR
                     ((NOT (a.aktoer_attr IS NULL)) AND anyuuid = (a.aktoer_attr).repraesentation_uuid )
             )
             {% else %}
@@ -726,7 +726,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             SELECT DISTINCT
             b.{{oio_type}}_id
             {% if oio_type == "dokument" %}
-            FROM dokument_registrering b  
+            FROM dokument_registrering b
             LEFT JOIN dokument_relation a on a.dokument_registrering_id=b.id and (virkningSoeg IS NULL or virkningSoeg && (a.virkning).TimePeriod )
             LEFT JOIN dokument_variant c on c.dokument_registrering_id=b.id
             LEFT JOIN dokument_del d on d.variant_id=c.id
@@ -740,7 +740,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             {% if oio_type == "aktivitet" %}
             (
             anyurn = a.rel_maal_urn
-                    OR 
+                    OR
                    ((NOT (a.aktoer_attr IS NULL)) AND anyurn = (a.aktoer_attr).repraesentation_urn)
             )
             {% else %}
@@ -764,7 +764,7 @@ END IF;
 
 --/**********************//
 
-{% include include_mixin  %} 
+{% include include_mixin  %}
 
 {% if oio_type in ("aktivitet", "indsats") %}
  --/**********************************************************//
@@ -776,13 +776,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                LOOP
                        {{oio_type}}_candidates:=array(
                        SELECT DISTINCT
-                       b.{{oio_type}}_id 
+                       b.{{oio_type}}_id
                        FROM  {{oio_type}}_attr_egenskaber a
                        JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -822,65 +822,65 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle >= attrEgenskaberTypeObj.brugervendtnoegle
                                )
                                {% if oio_type == "aktivitet" %}
                                AND
                                (
                                        attrEgenskaberTypeObj.{{oio_type}}navn IS NULL
-                                       OR 
-                                       a.{{oio_type}}navn >= attrEgenskaberTypeObj.{{oio_type}}navn 
+                                       OR
+                                       a.{{oio_type}}navn >= attrEgenskaberTypeObj.{{oio_type}}navn
                                )
                                {% endif %}
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse >= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt >= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt >= attrEgenskaberTypeObj.sluttidspunkt
                                )
                                {% if oio_type == "aktivitet" %}
                                AND
                                (
                                        attrEgenskaberTypeObj.tidsforbrug IS NULL
-                                       OR 
-                                       a.tidsforbrug >= attrEgenskaberTypeObj.tidsforbrug 
+                                       OR
+                                       a.tidsforbrug >= attrEgenskaberTypeObj.tidsforbrug
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.formaal IS NULL
-                                       OR 
-                                       a.formaal >= attrEgenskaberTypeObj.formaal 
+                                       OR
+                                       a.formaal >= attrEgenskaberTypeObj.formaal
                                )
                                {% endif %}
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -901,16 +901,16 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -923,7 +923,7 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -935,13 +935,13 @@ IF coalesce(array_length(search_operator_greater_than_or_equal_attr_egenskaber,1
                ((NOT {{oio_type}}_candidates_is_initialized) OR b.{{oio_type}}_id = ANY ({{oio_type}}_candidates) )
 
                        );
-                       
+
 
                        {{oio_type}}_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG '{{oio_type}}_candidates_is_initialized step 3:%',{{oio_type}}_candidates_is_initialized;
@@ -956,13 +956,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                LOOP
                        {{oio_type}}_candidates:=array(
                        SELECT DISTINCT
-                       b.{{oio_type}}_id 
+                       b.{{oio_type}}_id
                        FROM  {{oio_type}}_attr_egenskaber a
                        JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id
                        WHERE
                                (
                                        (
-                                               attrEgenskaberTypeObj.virkning IS NULL 
+                                               attrEgenskaberTypeObj.virkning IS NULL
                                                OR
                                                (
                                                        (
@@ -984,7 +984,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                                        )
                                                        AND
                                                        (
-                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst  
+                                                                       (attrEgenskaberTypeObj.virkning).NoteTekst IS NULL OR  (a.virkning).NoteTekst ILIKE (attrEgenskaberTypeObj.virkning).NoteTekst
                                                        )
                                                )
                                        )
@@ -1002,65 +1002,65 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                AND
                                (
                                        attrEgenskaberTypeObj.brugervendtnoegle IS NULL
-                                       OR 
-                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle 
+                                       OR
+                                       a.brugervendtnoegle <= attrEgenskaberTypeObj.brugervendtnoegle
                                )
                                {% if oio_type == "aktivitet" %}
                                AND
                                (
                                        attrEgenskaberTypeObj.{{oio_type}}navn IS NULL
-                                       OR 
-                                       a.{{oio_type}}navn <= attrEgenskaberTypeObj.{{oio_type}}navn 
+                                       OR
+                                       a.{{oio_type}}navn <= attrEgenskaberTypeObj.{{oio_type}}navn
                                )
                                {% endif %}
                                AND
                                (
                                        attrEgenskaberTypeObj.beskrivelse IS NULL
-                                       OR 
-                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse 
+                                       OR
+                                       a.beskrivelse <= attrEgenskaberTypeObj.beskrivelse
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.starttidspunkt IS NULL
-                                       OR 
-                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt 
+                                       OR
+                                       a.starttidspunkt <= attrEgenskaberTypeObj.starttidspunkt
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.sluttidspunkt IS NULL
-                                       OR 
-                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt 
+                                       OR
+                                       a.sluttidspunkt <= attrEgenskaberTypeObj.sluttidspunkt
                                )
                                {% if oio_type == "aktivitet" %}
                                AND
                                (
                                        attrEgenskaberTypeObj.tidsforbrug IS NULL
-                                       OR 
-                                       a.tidsforbrug <= attrEgenskaberTypeObj.tidsforbrug 
+                                       OR
+                                       a.tidsforbrug <= attrEgenskaberTypeObj.tidsforbrug
                                )
                                AND
                                (
                                        attrEgenskaberTypeObj.formaal IS NULL
-                                       OR 
-                                       a.formaal <= attrEgenskaberTypeObj.formaal 
+                                       OR
+                                       a.formaal <= attrEgenskaberTypeObj.formaal
                                )
                                {% endif %}
                                AND
                                                (
-                               (registreringObj.registrering) IS NULL 
+                               (registreringObj.registrering) IS NULL
                                OR
                                (
                                        (
-                                               (registreringObj.registrering).timeperiod IS NULL 
+                                               (registreringObj.registrering).timeperiod IS NULL
                                                OR
                                                (registreringObj.registrering).timeperiod && (b.registrering).timeperiod
                                        )
                                        AND
                                        (
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode                 
-                                       ) 
+                                               (registreringObj.registrering).livscykluskode = (b.registrering).livscykluskode
+                                       )
                                        AND
                                        (
                                                (registreringObj.registrering).brugerref IS NULL
@@ -1081,16 +1081,16 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                                ((b.registrering).livscykluskode <> 'Slettet'::Livscykluskode )
                                AND
                                        (
-                                               (registreringObj.registrering) IS NULL 
+                                               (registreringObj.registrering) IS NULL
                                                OR
-                                               (registreringObj.registrering).livscykluskode IS NULL 
+                                               (registreringObj.registrering).livscykluskode IS NULL
                                        )
                        )
                        OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
                                AND
-                               (registreringObj.registrering).livscykluskode IS NOT NULL 
+                               (registreringObj.registrering).livscykluskode IS NOT NULL
                        )
                )
                AND
@@ -1103,7 +1103,7 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                          )
                          AND
                          upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
-                       )       
+                       )
                OR
                        (
                                (NOT ((registreringObj.registrering) IS NULL))
@@ -1115,13 +1115,13 @@ IF coalesce(array_length(search_operator_less_than_or_equal_attr_egenskaber,1),0
                ((NOT {{oio_type}}_candidates_is_initialized) OR b.{{oio_type}}_id = ANY ({{oio_type}}_candidates) )
 
                        );
-                       
+
 
                        {{oio_type}}_candidates_is_initialized:=true;
-                       
-                       
+
+
                        END LOOP;
-               END IF; 
+               END IF;
        END IF;
 
 --RAISE DEBUG '{{oio_type}}_candidates_is_initialized step 3:%',{{oio_type}}_candidates_is_initialized;
@@ -1169,7 +1169,7 @@ END IF;
 
 
 /*** Filter out the objects that does not meets the stipulated access criteria  ***/
-auth_filtered_uuids:=_as_filter_unauth_{{oio_type}}({{oio_type}}_candidates,auth_criteria_arr); 
+auth_filtered_uuids:=_as_filter_unauth_{{oio_type}}({{oio_type}}_candidates,auth_criteria_arr);
 /*********************/
 IF firstResult > 0 or maxResults < 2147483647 THEN
    auth_filtered_uuids = _as_sorted_{{oio_type}}(auth_filtered_uuids, virkningSoeg, registreringObj, firstResult, maxResults);
@@ -1178,7 +1178,7 @@ return auth_filtered_uuids;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 

@@ -16,7 +16,7 @@ ELSE
 		variant_candidates_ids=array[]::bigint[];
 		variant_candidates_is_initialized:=false;
 
-		IF (coalesce(array_length(dokument_candidates,1),0)>0 OR NOT dokument_candidates_is_initialized) THEN 
+		IF (coalesce(array_length(dokument_candidates,1),0)>0 OR NOT dokument_candidates_is_initialized) THEN
 
 		--HACK: As variant_name logically can be said to be part of variant egenskaber (regarding virkning), we'll force a filter on variant egenskaber if needed
 		IF coalesce(array_length(variantTypeObj.egenskaber,1),0)=0 AND variantTypeObj.varianttekst IS NOT NULL THEN
@@ -24,7 +24,7 @@ ELSE
 		END IF;
 
 		IF coalesce(array_length(variantTypeObj.egenskaber,1),0)>0 THEN
-		
+
 		FOREACH variantEgenskaberTypeObj in ARRAY variantTypeObj.egenskaber
 		LOOP
 
@@ -41,7 +41,7 @@ ELSE
 					(NOT (variantEgenskaberTypeObj.produktion IS NULL))
 				)
 			 THEN --test if there is any data availiable for variant to filter on
-			
+
 
 			--part for searching on variant + egenskaber
 			variant_candidates_ids:=array(
@@ -68,8 +68,8 @@ ELSE
 			(
 				(
 				variantEgenskaberTypeObj.virkning IS NULL
-				OR 
-				(variantEgenskaberTypeObj.virkning).TimePeriod && (c.virkning).TimePeriod 
+				OR
+				(variantEgenskaberTypeObj.virkning).TimePeriod && (c.virkning).TimePeriod
 				)
 			)
 			AND
@@ -92,7 +92,7 @@ ELSE
 				)
 			AND
 			(
-				
+
 				(
 					variantEgenskaberTypeObj.arkivering IS NULL
 					OR
@@ -106,17 +106,17 @@ ELSE
 				)
 				AND
 				(
-					variantEgenskaberTypeObj.offentliggoerelse IS NULL 
+					variantEgenskaberTypeObj.offentliggoerelse IS NULL
 					OR
 					variantEgenskaberTypeObj.offentliggoerelse = c.offentliggoerelse
 				)
 				AND
 				(
-					variantEgenskaberTypeObj.produktion IS NULL  
+					variantEgenskaberTypeObj.produktion IS NULL
 					OR
 					variantEgenskaberTypeObj.produktion = c.produktion
 				)
-				
+
 			)
 			AND
 			{% include 'as_search_mixin_filter_reg.jinja.sql' %}
@@ -130,14 +130,14 @@ ELSE
 			END IF; --variant filter criterium exists
 			END LOOP; --variant egenskaber
 
-			
-			END IF;--variantTypeObj.egenskaber exists  
+
+			END IF;--variantTypeObj.egenskaber exists
 
 			/**************    Dokument Dele        ******************/
 
 			IF coalesce(array_length(variantTypeObj.dele,1),0)>0 THEN
-			
-			FOREACH delTypeObj IN ARRAY variantTypeObj.dele 
+
+			FOREACH delTypeObj IN ARRAY variantTypeObj.dele
 			LOOP
 
 			--HACK: As del_name logically can be said to be part of del egenskaber (regarding virkning), we'll force a filter on del egenskaber if needed
@@ -148,17 +148,17 @@ ELSE
 
 			/**************    Dokument Del Egenskaber    ******************/
 
-			IF coalesce(array_length(delTypeObj.egenskaber,1),0)>0 THEN 
-			
+			IF coalesce(array_length(delTypeObj.egenskaber,1),0)>0 THEN
+
 			FOREACH delEgenskaberTypeObj IN ARRAY delTypeObj.egenskaber
 			LOOP
-			
-			IF delTypeObj.deltekst IS NOT NULL  	
+
+			IF delTypeObj.deltekst IS NOT NULL
 			OR (NOT delEgenskaberTypeObj.indeks IS NULL)
 			OR delEgenskaberTypeObj.indhold IS NOT NULL
 			OR delEgenskaberTypeObj.lokation IS NOT NULL
 			OR delEgenskaberTypeObj.mimetype IS NOT NULL
-			THEN 
+			THEN
 
 			IF (coalesce(array_length(variant_candidates_ids,1),0)>0 OR not variant_candidates_is_initialized) THEN
 
@@ -169,7 +169,7 @@ ELSE
 			JOIN dokument_registrering b on a.dokument_registrering_id=b.id
 			JOIN dokument_del c on c.variant_id=a.id
 			JOIN dokument_del_egenskaber d on d.del_id=c.id --we require the presence egenskaber (del name is logically part of it)
-		
+
 			WHERE
 			(
 				delTypeObj.deltekst IS NULL
@@ -185,8 +185,8 @@ ELSE
 			AND
 			(
 				delEgenskaberTypeObj.virkning IS NULL --NOTICE only looking at first del egenskaber object throughout
-				OR 
-				(delEgenskaberTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod 
+				OR
+				(delEgenskaberTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod
 			)
 			AND
 			(
@@ -210,25 +210,25 @@ ELSE
 			(
 				(
 					(
-						delEgenskaberTypeObj.indeks IS NULL  
+						delEgenskaberTypeObj.indeks IS NULL
 						OR
 						delEgenskaberTypeObj.indeks = d.indeks
 					)
 					AND
 					(
-						delEgenskaberTypeObj.indhold IS NULL  
+						delEgenskaberTypeObj.indhold IS NULL
 						OR
-						d.indhold ilike delEgenskaberTypeObj.indhold  
+						d.indhold ilike delEgenskaberTypeObj.indhold
 					)
 					AND
 					(
-						delEgenskaberTypeObj.lokation IS NULL 
+						delEgenskaberTypeObj.lokation IS NULL
 						OR
-						d.lokation ilike delEgenskaberTypeObj.lokation 
+						d.lokation ilike delEgenskaberTypeObj.lokation
 					)
 					AND
 					(
-						delEgenskaberTypeObj.mimetype IS NULL 
+						delEgenskaberTypeObj.mimetype IS NULL
 						OR
 						d.mimetype ilike delEgenskaberTypeObj.mimetype
 					)
@@ -247,8 +247,8 @@ ELSE
 
 			/**************    Dokument Del Relationer    ******************/
 
-			IF coalesce(array_length(delTypeObj.relationer,1),0)>0 THEN 
-			
+			IF coalesce(array_length(delTypeObj.relationer,1),0)>0 THEN
+
 			FOREACH delRelationTypeObj IN ARRAY delTypeObj.relationer
 			LOOP
 
@@ -275,9 +275,9 @@ ELSE
 			)
 			AND
 			(
-				delRelationTypeObj.virkning IS NULL 
-				OR 
-				(delRelationTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod 
+				delRelationTypeObj.virkning IS NULL
+				OR
+				(delRelationTypeObj.virkning).TimePeriod && (d.virkning).TimePeriod
 			)
 			AND
 			(
@@ -298,7 +298,7 @@ ELSE
 					)
 			)
 			AND
-			(	
+			(
 				delRelationTypeObj.relType IS NULL
 				OR
 				delRelationTypeObj.relType = d.rel_type
@@ -307,7 +307,7 @@ ELSE
 			(
 				delRelationTypeObj.uuid IS NULL
 				OR
-				delRelationTypeObj.uuid = d.rel_maal_uuid	
+				delRelationTypeObj.uuid = d.rel_maal_uuid
 			)
 			AND
 			(
@@ -325,7 +325,7 @@ ELSE
 			{% include 'as_search_mixin_filter_reg.jinja.sql' %}
 			AND ((NOT variant_candidates_is_initialized) OR a.id = ANY (variant_candidates_ids) )
 			);
-			
+
 			variant_candidates_is_initialized:=true;
 
 			END IF; --any variant candidates left
@@ -337,13 +337,13 @@ ELSE
 			END IF;--dele exists
 
 
-			
+
 			IF variant_candidates_is_initialized THEN
 			--We'll then translate the collected variant ids into document ids (please notice that the resulting uuids are already a subset of dokument_candidates)
 
 			dokument_candidates:=array(
 			SELECT DISTINCT
-			b.dokument_id 
+			b.dokument_id
 			FROM dokument_variant a
 			JOIN dokument_registrering b on a.dokument_registrering_id=b.id
 			WHERE
@@ -353,11 +353,11 @@ ELSE
 			);
 
 			dokument_candidates_is_initialized:=true;
-			
+
 			END IF; --variant_candidates_is_initialized
 
 			END IF; --no doc candidates - skipping ahead;
 			END LOOP; --FOREACH variantTypeObj
-		
+
 		END IF; --varianter exists
 	END IF; --array registreringObj.varianter exists

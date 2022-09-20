@@ -7,13 +7,13 @@ CREATE OR REPLACE FUNCTION _as_filter_unauth_{{oio_type}}(
 	{{oio_type}}_uuids uuid[],
 	registreringObjArr {{oio_type|title}}RegistreringType[]
 	)
-  RETURNS uuid[] AS 
+  RETURNS uuid[] AS
 $$
 DECLARE
 	{{oio_type}}_passed_auth_filter uuid[]:=ARRAY[]::uuid[];
 	{{oio_type}}_candidates uuid[];
 	--to_be_applyed_filter_uuids uuid[];
-	{%-for attribut , attribut_fields in attributter.items() %} 
+	{%-for attribut , attribut_fields in attributter.items() %}
 	attr{{attribut|title}}TypeObj {{oio_type|title}}{{attribut|title}}AttrType;
 	{%- endfor %}
 	{% for tilstand, tilstand_values in tilstande.items() %}
@@ -31,8 +31,8 @@ IF registreringObjArr IS NULL THEN
 END IF;
 
 IF coalesce(array_length(registreringObjArr,1),0)=0 THEN
-	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.				
-END IF; 
+	RETURN ARRAY[]::uuid[]; --special case: Nothing is allowed. Empty list of criteria where at least one has to be met.
+END IF;
 
 IF {{oio_type}}_uuids IS NULL OR coalesce(array_length({{oio_type}}_uuids,1),0)=0 THEN
 	RETURN ARRAY[]::uuid[]; --special case: No candidates given to filter.
@@ -53,7 +53,7 @@ LOOP
 
 --filter on attributes
 
-{%-for attribut , attribut_fields in attributter.items() %} 
+{%-for attribut , attribut_fields in attributter.items() %}
 --/**********************************************************//
 --Filtration on attribute: {{attribut|title}}
 --/**********************************************************//
@@ -65,24 +65,24 @@ ELSE
 		LOOP
 			{{oio_type}}_candidates:=array(
 			SELECT DISTINCT
-			b.{{oio_type}}_id 
-			FROM  {{oio_type}}_attr_{{attribut}} a 
-			JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			b.{{oio_type}}_id
+			FROM  {{oio_type}}_attr_{{attribut}} a
+			JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				{%- for attribut_field in attribut_fields %}
 				(
 					attr{{attribut|title}}TypeObj.{{attribut_field}} IS NULL
 					OR
-					 {%- if attributter_metadata[attribut][attribut_field]['type'] is defined %} 
+					 {%- if attributter_metadata[attribut][attribut_field]['type'] is defined %}
 						{%-if attributter_metadata[attribut][attribut_field]['type'] == "text[]" %}
-						((coalesce(array_length(attr{{attribut|title}}TypeObj.{{attribut_field}},1),0)=0 AND coalesce(array_length(a.{{attribut_field}},1),0)=0 ) OR (attr{{attribut|title}}TypeObj.{{attribut_field}} @> a.{{attribut_field}} AND a.{{attribut_field}} @>attr{{attribut|title}}TypeObj.{{attribut_field}}  )) 
-						{%- else %} 
+						((coalesce(array_length(attr{{attribut|title}}TypeObj.{{attribut_field}},1),0)=0 AND coalesce(array_length(a.{{attribut_field}},1),0)=0 ) OR (attr{{attribut|title}}TypeObj.{{attribut_field}} @> a.{{attribut_field}} AND a.{{attribut_field}} @>attr{{attribut|title}}TypeObj.{{attribut_field}}  ))
+						{%- else %}
 						{%-if attributter_metadata[attribut][attribut_field]['type'] == "offentlighedundtagettype" %}
 						(
 							(
 								(attr{{attribut|title}}TypeObj.{{attribut_field}}).AlternativTitel IS NULL
 								OR
-								(a.{{attribut_field}}).AlternativTitel = (attr{{attribut|title}}TypeObj.{{attribut_field}}).AlternativTitel 
+								(a.{{attribut_field}}).AlternativTitel = (attr{{attribut|title}}TypeObj.{{attribut_field}}).AlternativTitel
 							)
 							AND
 							(
@@ -91,22 +91,22 @@ ELSE
 								(a.{{attribut_field}}).Hjemmel = (attr{{attribut|title}}TypeObj.{{attribut_field}}).Hjemmel
 							)
 						)
-						{%- else %} 
+						{%- else %}
 					a.{{attribut_field}} = attr{{attribut|title}}TypeObj.{{attribut_field}}
 						{%- endif %}
-						{%- endif %}		
-					{%- else %} 
-					a.{{attribut_field}} = attr{{attribut|title}}TypeObj.{{attribut_field}} 
-					{%- endif %} 
+						{%- endif %}
+					{%- else %}
+					a.{{attribut_field}} = attr{{attribut|title}}TypeObj.{{attribut_field}}
+					{%- endif %}
 				)
 				{%- if (not loop.last)%}
 				AND
 				{%- endif %}
 				{%- endfor %}
 				AND b.{{oio_type}}_id = ANY ({{oio_type}}_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 			);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -126,15 +126,15 @@ END IF;
 IF registreringObj IS NULL OR (registreringObj).tils{{tilstand|title}} IS NULL THEN
 	--RAISE DEBUG 'as_search_{{oio_type}}: skipping filtration on tils{{tilstand|title}}';
 ELSE
-	IF coalesce(array_length({{oio_type}}_candidates,1),0)>0 THEN 
+	IF coalesce(array_length({{oio_type}}_candidates,1),0)>0 THEN
 
 		FOREACH tils{{tilstand|title}}TypeObj IN ARRAY registreringObj.tils{{tilstand|title}}
 		LOOP
 			{{oio_type}}_candidates:=array(
 			SELECT DISTINCT
-			b.{{oio_type}}_id 
+			b.{{oio_type}}_id
 			FROM  {{oio_type}}_tils_{{tilstand}} a
-			JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ 
+			JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
 				(
 					tils{{tilstand|title}}TypeObj.{{tilstand}} IS NULL
@@ -144,7 +144,7 @@ ELSE
 				AND b.{{oio_type}}_id = ANY ({{oio_type}}_candidates)
 				AND (a.virkning).TimePeriod @> actual_virkning
 	);
-			
+
 		END LOOP;
 	END IF;
 END IF;
@@ -172,11 +172,11 @@ ELSE
 		LOOP
 			{{oio_type}}_candidates:=array(
 			SELECT DISTINCT
-			b.{{oio_type}}_id 
+			b.{{oio_type}}_id
 			FROM  {{oio_type}}_relation a
 			JOIN {{oio_type}}_registrering b on a.{{oio_type}}_registrering_id=b.id and upper((b.registrering).timeperiod)='infinity'::TIMESTAMPTZ
 			WHERE
-				(	
+				(
 					relationTypeObj.relType IS NULL
 					OR
 					relationTypeObj.relType = a.rel_type
@@ -185,7 +185,7 @@ ELSE
 				(
 					relationTypeObj.uuid IS NULL
 					OR
-					relationTypeObj.uuid = a.rel_maal_uuid	
+					relationTypeObj.uuid = a.rel_maal_uuid
 				)
 				AND
 				(
@@ -200,7 +200,7 @@ ELSE
 					relationTypeObj.urn = a.rel_maal_urn
 				)
 				AND b.{{oio_type}}_id = ANY ({{oio_type}}_candidates)
-				AND (a.virkning).TimePeriod @> actual_virkning 
+				AND (a.virkning).TimePeriod @> actual_virkning
 	);
 		END LOOP;
 	END IF;
@@ -212,7 +212,7 @@ END IF;
 
 {{oio_type}}_passed_auth_filter:=array(
 SELECT
-a.id 
+a.id
 FROM
 unnest ({{oio_type}}_passed_auth_filter) a(id)
 UNION
@@ -222,7 +222,7 @@ FROM
 unnest ({{oio_type}}_candidates) b(id)
 );
 
---optimization 
+--optimization
 IF coalesce(array_length({{oio_type}}_passed_auth_filter,1),0)=coalesce(array_length({{oio_type}}_uuids,1),0) AND {{oio_type}}_passed_auth_filter @>{{oio_type}}_uuids THEN
 	RETURN {{oio_type}}_passed_auth_filter;
 END IF;
@@ -235,7 +235,7 @@ RETURN {{oio_type}}_passed_auth_filter;
 
 
 END;
-$$ LANGUAGE plpgsql STABLE; 
+$$ LANGUAGE plpgsql STABLE;
 
 
 

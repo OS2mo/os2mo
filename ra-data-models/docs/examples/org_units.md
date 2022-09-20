@@ -4,7 +4,7 @@ SPDX-License-Identifier: MPL-2.0
 -->
 
 # Creating Organisation Units
-In order to create a new organisation unit, we use the [Organisation Unit Model][ramodels.mo.organisation_unit.OrganisationUnit]. 
+In order to create a new organisation unit, we use the [Organisation Unit Model][ramodels.mo.organisation_unit.OrganisationUnit].
 Suppose we already have the following organisation structure.
 
 - Top Unit 1: `UUID=topunit1_uuid`

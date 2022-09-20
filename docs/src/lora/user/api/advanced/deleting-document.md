@@ -35,7 +35,7 @@ explicitly specify an empty list in the JSON body. Eg. :
 ...
 "varianter": [],
 ...
-``` 
+```
 
 And again, please notice that this is different, than omitting the
 `varianter`-key completely in the JSON body, which will carry over all
@@ -62,7 +62,7 @@ JSON body to the update Dokument operation like this:
   }
 ]
 ...
-``` 
+```
 
 To clear / delete all the `dele` of a Variant, you should explicitly
 specify an empty list. Eg. for Del `Kap. 1` of a
@@ -77,7 +77,7 @@ specify an empty list. Eg. for Del `Kap. 1` of a
   }
 ]
 ...
-``` 
+```
 
 ## Deleting `egenskaber` of a Dokument Del
 
@@ -97,7 +97,7 @@ you should explicitly specify an empty list. Eg. to clear all the
   }
 ]
 ...
-``` 
+```
 
 To clear some or all the `egenskaber` of a Dokument Del for a particular
 `virkning` period, you should use the empty string to clear the unwanted
@@ -128,7 +128,7 @@ JSON body would look like this:
   }
 ]
 ...
-``` 
+```
 
 ## Deleting relations of a Dokument Del
 
@@ -149,7 +149,7 @@ specific part of the JSON body would look like this:
   }
 ]
 ...
-``` 
+```
 
 The delete / clear a specific relation of a Dokument Del you have to
 specify the full list of the relations of the Dokument Del sans the

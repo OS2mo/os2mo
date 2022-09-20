@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION my_as_create_or_import_tilstand()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	new_uuid2 uuid;
 	registrering tilstandRegistreringType;
@@ -27,7 +27,7 @@ DECLARE
 	tilstandRelTilstandsvaerdi2 tilstandRelationType;
 	tilstandRelTilstandskvalitet1 tilstandRelationType;
 	tilstandRelTilstandskvalitet2 tilstandRelationType;
-	
+
 	uuidTilstandsobjekt uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	--uuidTilstandsvaerdi1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 
@@ -192,7 +192,7 @@ virkPubliceret,
 )::tilstandPubliceretTilsType;
 
 tilstandEgenskab := ROW (
-'brugervendtnoegle_tilstand_1' --text, 
+'brugervendtnoegle_tilstand_1' --text,
 ,'beskrivelse_tilstand_1'-- text,
 ,virkEgenskaber
 ) :: tilstandEgenskaberAttrType
@@ -284,7 +284,7 @@ expected_tilstand1:=ROW(
 					,1 --NOTICE: Was replaced by import function
 					,ROW(true,'82')::TilstandVaerdiRelationAttrType
 				) :: tilstandRelationType
-			
+
 				]::TilstandRelationType[]
 			)::TilstandRegistreringType
 			]::TilstandRegistreringType[]

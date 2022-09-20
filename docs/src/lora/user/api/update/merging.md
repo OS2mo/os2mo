@@ -137,7 +137,7 @@ As we can se, the update operation will merge the incoming fragment with
 the `facetegenskaber` of the current registration according to the
 `virkning`-periods stipulated. The `facetegenskaber`-fields not provided
 in the incomming fragment, will be left untouched. If you wish to
-clear/delete particular `facetegenskaber`-fields, see 
+clear/delete particular `facetegenskaber`-fields, see
 [Delete operation](../delete.md).
 
 ## Example of updating states
@@ -145,7 +145,7 @@ clear/delete particular `facetegenskaber`-fields, see
 Lets say we have a `Facet`-object, where the state `facetpubliceret`
 look likes this in the DB:
 
-``` sql 
+``` sql
 ...
 "tilstande": {
         "facetpubliceret": [{
@@ -320,7 +320,7 @@ this:
 ...
 ```
 
-As it can be seen, the [Update operation](../update.md) 
+As it can be seen, the [Update operation](../update.md)
 has merged the incoming relation with the `ansvarlig`-relation of the
 previous registration.
 

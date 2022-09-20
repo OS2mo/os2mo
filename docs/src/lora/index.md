@@ -90,4 +90,3 @@ repository](https://github.com/magenta-aps/mox).
 - [Building documentation](/lora/dev/building-docs.html)
 - [Sending Messages on the Beskedfordeler](/lora/dev/beskedfordeler.html)
 - [Version history](/lora/dev/news.html)
-

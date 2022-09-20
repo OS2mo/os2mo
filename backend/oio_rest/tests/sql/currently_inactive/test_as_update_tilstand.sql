@@ -3,9 +3,9 @@
 
 --SELECT * FROM runtests('test'::name);
 CREATE OR REPLACE FUNCTION test.test_as_update_tilstand()
-RETURNS SETOF TEXT LANGUAGE plpgsql AS 
+RETURNS SETOF TEXT LANGUAGE plpgsql AS
 $$
-DECLARE 
+DECLARE
 	new_uuid1 uuid;
 	registrering tilstandRegistreringType;
 	actual_registrering RegistreringBase;
@@ -30,7 +30,7 @@ DECLARE
 	tilstandRelTilstandsvaerdi2 tilstandRelationType;
 	tilstandRelTilstandskvalitet1 tilstandRelationType;
 	tilstandRelTilstandskvalitet2 tilstandRelationType;
-	
+
 	uuidTilstandsobjekt uuid :='f7109356-e87e-4b10-ad5d-36de6e3ee09f'::uuid;
 	--uuidTilstandsvaerdi1 uuid :='b7160ce6-ac92-4752-9e82-f17d9e1e52ce'::uuid;
 
@@ -210,7 +210,7 @@ virkPubliceret,
 )::tilstandPubliceretTilsType;
 
 tilstandEgenskab := ROW (
-'brugervendtnoegle_tilstand_1' --text, 
+'brugervendtnoegle_tilstand_1' --text,
 ,'beskrivelse_tilstand_1'-- text,
 ,'integrationsdata_1'-- text,
 ,virkEgenskaber
@@ -254,7 +254,7 @@ virkEgenskaber2 :=	ROW (
 ;
 
 tilstandEgenskab2 := ROW (
-'brugervendtnoegle_tilstand_1A' --text, 
+'brugervendtnoegle_tilstand_1A' --text,
 ,'beskrivelse_tilstand_2'-- text,
 ,'integrationsdata_2'-- text,
 ,virkEgenskaber2
@@ -267,7 +267,7 @@ updated_reg_id_1:=as_update_tilstand(
   new_uuid1,
   uuidRegistrering,
   'Test Note 5',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   ARRAY[tilstandEgenskab2] :: TilstandEgenskaberAttrType[],
   null, --tilsStatus TilstandStatusTilsType[],
   null, -- tilsPubliceret TilstandPubliceretTilsType[],
@@ -290,7 +290,7 @@ expected_tilstand1:=ROW(
 			,ARRAY[tilstandPubliceret]::tilstandPubliceretTilsType[]
 			,ARRAY[
 				 ROW (
-				'brugervendtnoegle_tilstand_1' --text, 
+				'brugervendtnoegle_tilstand_1' --text,
 				,'beskrivelse_tilstand_1'-- text,
 				,'integrationsdata_1'-- text,
 				,ROW (
@@ -301,7 +301,7 @@ expected_tilstand1:=ROW(
 						) :: Virkning
 				),
 				  ROW (
-					'brugervendtnoegle_tilstand_1A' --text, 
+					'brugervendtnoegle_tilstand_1A' --text,
 					,'beskrivelse_tilstand_2'-- text,
 					,'integrationsdata_2'-- text,
 					,virkEgenskaber2
@@ -357,7 +357,7 @@ expected_tilstand1:=ROW(
 					,1 --NOTICE: Was replaced by import function
 					,ROW(true,'82')::TilstandVaerdiRelationAttrType
 				) :: tilstandRelationType
-			
+
 				]::TilstandRelationType[]
 			)::TilstandRegistreringType
 			]::TilstandRegistreringType[]
@@ -395,7 +395,7 @@ updated_reg_id_2:=as_update_tilstand(
   new_uuid1,
   uuidRegistrering,
   'Test Note 28',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   null, --ARRAY[tilstandEgenskab2] :: TilstandEgenskaberAttrType[],
    array[tilstandStatus2], --tilsStatus TilstandStatusTilsType[],
   null, -- tilsPubliceret TilstandPubliceretTilsType[],
@@ -440,7 +440,7 @@ expected_tilstand2:=ROW(
 				):: tilstandStatusTilsType
 				]::tilstandStatusTilsType[]
 			,(expected_tilstand1.registrering[1]).tilsPubliceret
-			,(expected_tilstand1.registrering[1]).attrEgenskaber 
+			,(expected_tilstand1.registrering[1]).attrEgenskaber
 			,(expected_tilstand1.registrering[1]).relationer
 			)::TilstandRegistreringType
 			]::TilstandRegistreringType[]
@@ -462,7 +462,7 @@ updated_reg_id_3:=as_update_tilstand(
   new_uuid1,
   uuidRegistrering,
   'Test Note 45',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   null, --ARRAY[tilstandEgenskab2] :: TilstandEgenskaberAttrType[],
   null, --tilsStatus TilstandStatusTilsType[],
   null, -- tilsPubliceret TilstandPubliceretTilsType[],
@@ -472,7 +472,7 @@ updated_reg_id_3:=as_update_tilstand(
 					null,
 					null,
 					null
-					,1 
+					,1
 					,ROW(true,'85')::TilstandVaerdiRelationAttrType ) ]::TilstandRelationType[]  --relationer TilstandRelationType[]
 	);
 
@@ -492,7 +492,7 @@ expected_tilstand3:=ROW(
 			(read_Tilstand3.registrering[1]).registrering
 			,(expected_tilstand2.registrering[1]).tilsStatus
 			,(expected_tilstand2.registrering[1]).tilsPubliceret
-			,(expected_tilstand2.registrering[1]).attrEgenskaber 
+			,(expected_tilstand2.registrering[1]).attrEgenskaber
 			,ARRAY[
 				ROW (
 				'tilstandsvaerdi'::tilstandRelationKode,
@@ -543,7 +543,7 @@ expected_tilstand3:=ROW(
 					,1 --NOTICE: Was replaced by import function
 					,ROW(true,'85')::TilstandVaerdiRelationAttrType
 				) :: tilstandRelationType
-			
+
 				]::TilstandRelationType[]
 
 
@@ -574,7 +574,7 @@ updated_reg_id_4:=as_update_tilstand(
   new_uuid1,
   uuidRegistrering,
   'Test Note 50',
-  'Rettet'::Livscykluskode,           
+  'Rettet'::Livscykluskode,
   null, --ARRAY[tilstandEgenskab2] :: TilstandEgenskaberAttrType[],
   null, --tilsStatus TilstandStatusTilsType[],
   null, -- tilsPubliceret TilstandPubliceretTilsType[],
@@ -584,7 +584,7 @@ updated_reg_id_4:=as_update_tilstand(
 					null,
 					null,
 					null
-					,1 
+					,1
 					,ROW(null,null)::TilstandVaerdiRelationAttrType ) ]::TilstandRelationType[]  --relationer TilstandRelationType[]
 	);
 
@@ -602,7 +602,7 @@ expected_tilstand4:=ROW(
 			(read_Tilstand4.registrering[1]).registrering
 			,(expected_tilstand2.registrering[1]).tilsStatus
 			,(expected_tilstand2.registrering[1]).tilsPubliceret
-			,(expected_tilstand2.registrering[1]).attrEgenskaber 
+			,(expected_tilstand2.registrering[1]).attrEgenskaber
 			,ARRAY[
 				ROW (
 				'tilstandsvaerdi'::tilstandRelationKode,
@@ -653,7 +653,7 @@ expected_tilstand4:=ROW(
 					,1 --NOTICE: Was replaced by import function
 					,ROW(null,null)::TilstandVaerdiRelationAttrType
 				) :: tilstandRelationType
-			
+
 				]::TilstandRelationType[]
 
 
@@ -662,7 +662,7 @@ expected_tilstand4:=ROW(
 		)::TilstandType
 ;
 
---raise notice 'expected_tilstand4:%',to_json(expected_tilstand4);	
+--raise notice 'expected_tilstand4:%',to_json(expected_tilstand4);
 
 RETURN NEXT IS(
 	read_Tilstand4,
