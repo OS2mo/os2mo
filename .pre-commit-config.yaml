@@ -40,7 +40,6 @@ repos:
     rev: v2.5.1
     hooks:
       - id: prettier
-        exclude: tempotest
         files: \.(js|vue|css|html)$
 
   - repo: https://github.com/pycqa/pydocstyle
