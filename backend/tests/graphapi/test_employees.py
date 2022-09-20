@@ -699,6 +699,28 @@ async def test_update_mutator(
             datetime.datetime.now(),
             {"cprNo": "0000000000"},
         ),
+        (
+            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+            datetime.datetime.now(),
+            {
+                "name": "YeeHaaa man",
+                "nickname": "Fancy Nickname",
+                "seniority": "blah?",
+                "cprNo": "0000000000",
+            },
+        ),
+        (
+            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+            datetime.datetime.now(),
+            {
+                "givenName": "TestMan",
+                "surName": "Duke",
+                "nicknameGivenName": "Test",
+                "nicknameSurName": "Lord",
+                "seniority": "blah?",
+                "cprNo": "0101872144",
+            },
+        ),
     ],
 )
 @pytest.mark.usefixtures("sample_structures_minimal_test1234")
