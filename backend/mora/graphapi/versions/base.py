@@ -3,6 +3,7 @@
 from datetime import date
 from typing import Any
 from typing import Dict
+from typing import Iterable
 from typing import Optional
 from typing import Sequence
 from typing import Type
@@ -30,6 +31,12 @@ class BaseGraphQLSchema:
     query: Type
     mutation: Optional[Type] = None
 
+    types: Iterable = ()
+
+    extensions: Sequence[Union[Type[Extension], Extension]] = [
+        StarletteContextExtension,
+    ]
+
     # Automatic camelCasing disabled because under_score style is simply better
     #
     # See: An Eye Tracking Study on camelCase and under_score Identifier Styles
@@ -45,19 +52,16 @@ class BaseGraphQLSchema:
         Dict[object, Union[ScalarWrapper, ScalarDefinition]]
     ] = None
 
-    extensions: Sequence[Union[Type[Extension], Extension]] = [
-        StarletteContextExtension,
-    ]
-
     @classmethod
     def get(cls) -> Schema:
         """Instantiate Strawberry Schema."""
         return Schema(
             query=cls.query,
             mutation=cls.mutation,
+            types=cls.types,
+            extensions=cls.extensions,
             config=cls.config,
             scalar_overrides=cls.scalar_overrides,
-            extensions=cls.extensions,
         )
 
 
