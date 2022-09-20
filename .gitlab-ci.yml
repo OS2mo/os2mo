@@ -386,8 +386,7 @@ Unit-test:
     - poetry install
     - poetry run pytest tests
       -p no:cacheprovider
-      -m "not serial"
-      -k "not graphapi"
+      -m "not integration_test"
       --color=yes
       --show-capture=stdout
       --cov=mora
@@ -400,49 +399,6 @@ Unit-test:
     paths:
       - $COVERAGE_FILE
 
-GraphAPI-test:
-  extends:
-    - .backend-test-base
-  script:
-    - pytest
-      backend/tests/graphapi
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --cov=backend/mora/graphapi
-      --cov-report html:$CI_PROJECT_DIR/coverage-html
-      --cov-report term
-      --cov-fail-under=35
-  artifacts:
-    when: always
-    paths:
-      - $CI_PROJECT_DIR/coverage-html
-      - $COVERAGE_FILE
-
-GraphAPI-Integration-test:
-  extends:
-    - .backend-test-base
-    - .services:start-all
-  needs:
-    - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
-  parallel: 4
-  script:
-    - pytest
-      backend/tests/integration/
-      -m "not equivalence"
-      -k "graphapi"
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --cov=mora
-      --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-
 Integration-test:
   extends:
     - .backend-test-base
@@ -450,11 +406,10 @@ Integration-test:
   needs:
     - !reference [".backend-test-base", needs]
     - !reference [".services:start-all", needs]
-  parallel: 4
+  parallel: 8
   script:
     - pytest backend/tests
-      -m "serial and not equivalence"
-      -k "not graphapi"
+      -m "integration_test"
       -p no:cacheprovider
       --color=yes
       --show-capture=no
@@ -489,7 +444,6 @@ Coverage:
   image: python:3.10-slim
   needs:
     - Unit-test
-    - GraphAPI-test
     - Integration-test
   before_script:
     - pip install coverage

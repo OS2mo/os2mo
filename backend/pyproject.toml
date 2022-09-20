@@ -71,7 +71,9 @@ git-username = "MagentaBot"
 git-email = "info@magenta.dk"
 
 [tool.pytest.ini_options]
-markers = ["serial"]
+markers = [
+    "integration_test: mark test as an integration test"
+]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"
 

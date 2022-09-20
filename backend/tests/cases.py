@@ -603,14 +603,14 @@ class MockRequestContextTestCase(TestCase):
         super().setUp()
 
 
-@pytest.mark.serial
+@pytest.mark.integration_test
 class AsyncLoRATestCase(_AsyncBaseTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
 
 
-@pytest.mark.serial
+@pytest.mark.integration_test
 class LoRATestCase(_BaseTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.

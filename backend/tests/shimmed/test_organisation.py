@@ -15,9 +15,8 @@ from fastapi.testclient import TestClient
 # Code
 # --------------------------------------------------------------------------------------
 
-pytestmark = pytest.mark.serial
 
-
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
 class TestOrganisationEndpoints:
     def test_list_organisation(self, service_client: TestClient):

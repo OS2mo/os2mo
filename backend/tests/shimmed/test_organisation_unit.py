@@ -16,9 +16,8 @@ from tests.util import set_get_configuration
 # Code
 # --------------------------------------------------------------------------------------
 
-pytestmark = pytest.mark.serial
 
-
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
 class TestOrganisationUnitRead:
     org_unit_type_facet = {
@@ -275,6 +274,7 @@ class TestOrganisationUnitRead:
         assert response.json() == []
 
 
+@pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("sample_structures")
 class TestOrganisationUnitWrite:
