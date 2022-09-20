@@ -18,9 +18,9 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora import mapping
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from mora.service.util import handle_gql_error
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
@@ -157,9 +157,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             if given_org_uuid:
                 var_values["org"] = {mapping.UUID: given_org_uuid}
 
-            response = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            response = await execute_graphql(query, variable_values=var_values)
 
             # Asserts
             if expected_result:
@@ -228,9 +226,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             if given_org_uuid:
                 var_values["org"] = {mapping.UUID: given_org_uuid}
 
-            _ = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            _ = await execute_graphql(query, variable_values=var_values)
 
             # Asserts
             if expected_result:
@@ -287,7 +283,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                         "{ uuid }"
                         "}"
                     )
-                    response = await LatestGraphQLSchema.get().execute(
+                    response = await execute_graphql(
                         query,
                         variable_values={
                             "name": given_name,
@@ -368,9 +364,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 to_date=given_to_date,
             )
 
-            response = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            response = await execute_graphql(query, variable_values=var_values)
 
             # Asserts
             if expected_result:
@@ -430,9 +424,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 to_date=given_to_date,
             )
 
-            _ = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            _ = await execute_graphql(query, variable_values=var_values)
 
             if expected_result:
                 mock_terminate_employee.assert_called()
@@ -574,9 +566,7 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             if given_nickname_last:
                 var_values["nicknameLast"] = given_nickname_last
 
-            response = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            response = await execute_graphql(query, variable_values=var_values)
 
             # Asserts
             if expected_result:
@@ -623,9 +613,7 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             if given_nickname_last:
                 var_values["nicknameLast"] = given_nickname_last
 
-            _ = await LatestGraphQLSchema.get().execute(
-                query, variable_values=var_values
-            )
+            _ = await execute_graphql(query, variable_values=var_values)
 
             if expected_result:
                 mock_employee_update.assert_called()

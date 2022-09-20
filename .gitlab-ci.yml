@@ -430,6 +430,7 @@ GraphAPI-Integration-test:
   script:
     - pytest
       backend/tests/integration/
+      -m "not equivalence"
       -k "graphapi"
       -p no:cacheprovider
       --color=yes
@@ -453,6 +454,7 @@ Integration-test:
   script:
     - pytest backend/tests
       -m "serial and not equivalence"
+      -k "not graphapi"
       -p no:cacheprovider
       --color=yes
       --show-capture=no

@@ -9,6 +9,15 @@ from uuid import UUID
 from uuid import uuid4
 
 import pytest
+from graphql import NameNode
+from graphql import VariableNode
+from hypothesis import assume
+from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings
+from hypothesis import strategies as st
+from hypothesis_graphql import nodes
+from hypothesis_graphql import strategies as gql_st
 from os2mo_fastapi_utils.auth.models import RealmAccess
 from strawberry.dataloader import DataLoader
 
@@ -16,8 +25,12 @@ from mora.auth.keycloak.models import Token
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import Response
+from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
+
+SCHEMA = str(LatestGraphQLSchema.get())
+
 
 ORG_QUERY = "query { org { uuid } }"
 ORG_UNIT_QUERY = "query { org_units { uuid } }"
@@ -129,3 +142,64 @@ async def test_graphql_rbac(
     if response.errors:
         error_messages = set(map(attrgetter("message"), response.errors))
     assert errors == error_messages
+
+
+@settings(
+    suppress_health_check=[
+        HealthCheck.function_scoped_fixture,
+    ],
+)
+@given(
+    mutation=gql_st.mutations(
+        SCHEMA,
+        custom_scalars={
+            "UUID": st.uuids().map(str).map(nodes.String),
+            # The below line generates raw GraphQL AST nodes, representing:
+            # 'upload_file(file: $upload_type_used, ...)'
+            #                    ^^^^^^^^^^^^^^^^^ This part of a query
+            "Upload": st.just(None).map(
+                lambda f: VariableNode(name=NameNode(value="upload_type_used"))
+            ),
+        },
+    )
+)
+async def test_mutators_require_rbac(
+    mutation, set_settings: Callable[..., None]
+) -> None:
+    # We reject if 'upload_type_used' is found within the generated mutation.
+    # NOTE: This assumes that this string is globally unique within the query.
+    #
+    # Upload files are a special case, as they are passed via http multi-part and not
+    # via a normal GraphQL arguments, and thus it is very, very hard to handle without
+    # patching inside hypothesis_graphql.
+    #
+    # If we were to patch hypothesis_graphql we would not only have to generate
+    # VariableNodes, but also the corresponding ArgumentNodes and additionally we would
+    # need to pass the generated variable/argument node name in as a context_value.
+    #
+    # Thus it is probably easier to just not test the 'upload_file' endpoint,
+    # especially as we are hoping to get rid of it long term.
+    assume("upload_type_used" not in mutation)
+
+    # Configure settings as required to enable GraphQL RBAC
+    set_settings(
+        **{
+            "os2mo_auth": "True",
+            "keycloak_rbac_enabled": "True",
+            "graphql_rbac": "True",
+            "confdb_show_owner": "True",
+        }
+    )
+    # Setup the GraphQL context with the required dataloaders and OIDC token
+    token = Token(
+        azp="mo",
+        uuid="00000000-0000-0000-0000-000000000000",
+        realm_access=RealmAccess(roles=[]),
+    )
+    context = {
+        "token": token,
+    }
+    response = await execute_graphql(query=mutation, context_value=context)
+    assert len(response.errors) >= 1
+    error_messages = set(map(attrgetter("message"), response.errors))
+    assert "User does not have required role: admin" in error_messages

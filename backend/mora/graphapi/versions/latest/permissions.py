@@ -15,7 +15,9 @@ rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowe
 
 
 @cache
-def gen_role_permission(role_name: str, message: str = None) -> Type[BasePermission]:
+def gen_role_permission(
+    role_name: str, message: str | None = None, force_permission_check: bool = False
+) -> Type[BasePermission]:
     """Generator function for permission classes.
 
     Args:
@@ -35,7 +37,8 @@ def gen_role_permission(role_name: str, message: str = None) -> Type[BasePermiss
         def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
             """Returns `True` if `role_name` exists in the token's roles."""
             settings = get_settings()
-            if not settings.graphql_rbac:
+            # If GraphQL RBAC is not enabled, do not check permissions, unless forced
+            if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
             # Allow access only if expected role is in roles
             token = info.context["token"]
