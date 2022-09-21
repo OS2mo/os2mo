@@ -17,7 +17,6 @@ from hypothesis import strategies as st
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
-from strawberry.types import ExecutionResult
 
 import tests.cases
 from .strategies import graph_data_strat
@@ -579,6 +578,9 @@ async def test_update_pydantic_model(
         "from": given_validity_from.date().isoformat(),
     }
 
+    if given_validity_to:
+        model_params["to"] = given_validity_to.date().isoformat()
+
     if given_name:
         model_params["name"] = given_name
     if given_givenname:
@@ -656,37 +658,33 @@ async def test_update_mutator(
         given_nickname_surname,
     ) = given_nickname_tuple
 
-    # Create variable values for GraphQL (init with required fields)
-    var_values = {
+    # Create arguments for GraphQL (init with required fields)
+    mutator_args = {
         "uuid": given_uuid_str,
         "from": given_validity_from.date().isoformat(),
     }
-    pydantic_values = {**var_values}
 
     if given_validity_to:
-        var_values["to"] = given_validity_to.date().isoformat()
-        pydantic_values["to"] = given_validity_to.date().isoformat()
+        mutator_args["to"] = given_validity_to.date().isoformat()
 
-    _set_gql_var("name", given_name, var_values, pydantic_values)
-    _set_gql_var("given_name", given_givenname, var_values, pydantic_values)
-    _set_gql_var("surname", given_surname, var_values, pydantic_values)
-    _set_gql_var("nickname", given_nickname, var_values, pydantic_values)
-    _set_gql_var(
-        "nickname_given_name", given_nickname_givenname, var_values, pydantic_values
-    )
-    _set_gql_var(
-        "nickname_surname", given_nickname_surname, var_values, pydantic_values
-    )
-    _set_gql_var("seniority", given_seniority, var_values, pydantic_values)
-    _set_gql_var("cpr_no", given_cpr_no, var_values, pydantic_values)
+    if given_name:
+        mutator_args["name"] = given_name
+    if given_givenname:
+        mutator_args["givenName"] = given_givenname
+    if given_surname:
+        mutator_args["surname"] = given_surname
 
-    # Create pydantic model manually, to determine how the test should be asserted.
-    # If we are not able to create it, the response from GraphQL should fail equally
-    expected_exception = None
-    try:
-        _ = EmployeeUpdate(**pydantic_values)
-    except Exception as e:
-        expected_exception = e
+    if given_nickname:
+        mutator_args["nickname"] = given_nickname
+    if given_nickname_givenname:
+        mutator_args["nicknameGivenName"] = given_nickname_givenname
+    if given_nickname_surname:
+        mutator_args["nicknameSurname"] = given_nickname_surname
+
+    if given_seniority:
+        mutator_args["seniority"] = given_seniority
+    if given_cpr_no:
+        mutator_args["cprNo"] = given_cpr_no
 
     # GraphQL
     with patch(
@@ -697,26 +695,14 @@ async def test_update_mutator(
         mutation_func = "employee_update"
         query = _get_employee_update_mutation_query(mutation_func)
         response = await LatestGraphQLSchema.get().execute(
-            query, variable_values=var_values
+            query, variable_values=mutator_args
         )
 
-        if expected_exception:
-            response_exception = None
-            if isinstance(response.errors, list) and response.errors[0]:
-                response_exception = response.errors[0].original_error
-
-            with pytest.raises(ValidationError) as e_info:
-                raise response_exception
-
-            assert e_info.type is ValidationError
-        else:
-            updated_employee_uuid = (
-                response.data.get(mutation_func)["uuid"]
-                if isinstance(response, ExecutionResult)
-                and isinstance(response.data, dict)
-                else None
-            )
-            assert updated_employee_uuid == given_uuid_str
+        # Assert
+        response_uuid = None
+        if response and response.data:
+            response_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+        assert response_uuid == str(given_uuid)
 
 
 @pytest.mark.parametrize(
@@ -741,6 +727,7 @@ async def test_update_mutator(
         (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": ""}),
         (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "00112233445"}),
         (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001122334"}),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001"}),
     ],
 )
 async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
@@ -886,7 +873,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         if value is None:
             continue
 
-        newest_update_value = _get_lora_mutator_arg(key, given_from, lora_employee)
+        newest_update_value = _get_lora_mutator_arg(key, lora_employee)
         assert newest_update_value == value
 
 
@@ -910,22 +897,14 @@ def _get_employee_update_mutation_query(mutation_func: str):
     )
 
 
-def _set_gql_var(field_name, value, gql_values, pydantic_values):
-    """Helper method to assign variables to dicts used by GraphQL and pydantic."""
+def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
+    """Finds LoRa-employee equivalent value to a employee-update mutation argument.
 
-    if not value:
-        return
-
-    components = field_name.split("_")
-    value_camel_case = components[0] + "".join(x.title() for x in components[1:])
-
-    gql_values[value_camel_case] = value
-    pydantic_values[field_name] = value
-
-
-def _get_lora_mutator_arg(
-    mutator_key: str, given_from: datetime.datetime, lora_employee: dict
-):
+    IMPORTANT: lora-employee attributes & relations are lists of objects with all
+    attributes, which all have a "from" and "to", to specify if "the set of attributes"
+    is active. The way this method finds the active ones are just by looking for an
+    object where "to" is set to the string: "infinity".
+    """
     # Find expansion by finding the one where to==infinity
     employee_expansions = lora_employee.get("attributter", {}).get(
         "brugerudvidelser", []
