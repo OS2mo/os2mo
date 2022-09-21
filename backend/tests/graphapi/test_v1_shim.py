@@ -26,6 +26,9 @@ def get_response(parent_uuid, graphapi_post, patch_loader):
             uuid=parent_uuid,
             name="parent",
             validity=Validity(from_date=date(2007, 8, 9), to_date=date(2026, 7, 8)),
+            # root org unit(s) have the org singleton as parent, which won't exist as an
+            # org unit.
+            parent_uuid=uuid4(),
         )
         child = OrganisationUnitRead(
             name="child",
@@ -35,9 +38,10 @@ def get_response(parent_uuid, graphapi_post, patch_loader):
         orphan = OrganisationUnitRead(
             name="orphan",
             validity=Validity(from_date=date(2011, 2, 3), to_date=date(2022, 3, 4)),
+            # parent_uuid should never be none unless the database is fucked
             parent_uuid=None,
         )
-        test_data = [child, orphan]
+        test_data = [parent, child, orphan]
 
         with MonkeyPatch.context() as patch:
             patch.setattr(dataloaders, "search_role_type", patch_loader(test_data))
@@ -64,8 +68,9 @@ def test_v1_shim_org_unit_parent(parent_uuid, get_response):
     response = get_response("/graphql/v1")
     parents = flatten_data(response.data["org_units"])
     assert parents == [
-        {"parent": [{"uuid": str(parent_uuid)}]},
-        {"parent": None},
+        {"parent": []},  # parent
+        {"parent": [{"uuid": str(parent_uuid)}]},  # child
+        {"parent": None},  # orphan
     ]
 
 
@@ -74,6 +79,7 @@ def test_v2_shim_org_unit_parent(parent_uuid, get_response):
     response = get_response("/graphql/v2")
     parents = flatten_data(response.data["org_units"])
     assert parents == [
-        {"parent": {"uuid": str(parent_uuid)}},
-        {"parent": None},
+        {"parent": None},  # parent
+        {"parent": {"uuid": str(parent_uuid)}},  # child
+        {"parent": None},  # orphan
     ]
