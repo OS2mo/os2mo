@@ -33,6 +33,8 @@ class OrganisationUnit(LatestOrganisationUnit):
 
         Returns an optional list of exactly one element, instead of an optional element.
         """
+        if root.parent_uuid is None:
+            return None
         response = await execute_graphql(
             """
             query OrgUnitParentQuery($uuid: UUID!) {
@@ -59,9 +61,8 @@ class OrganisationUnit(LatestOrganisationUnit):
             variable_values={"uuid": str(root.parent_uuid)},
             context_value=info.context,
         )
-        org_units: list[dict] = response.data["org_units"]
-        org_unit = only(org_units)
-        if org_unit is None:
-            return None
-        parent = one(org_unit["objects"])
-        return [OrganisationUnitRead(**parent)]  # type: ignore[list-item]
+        parent: dict | None = only(response.data["org_units"])
+        if parent is None:
+            return []
+        parent_object = one(parent["objects"])
+        return [OrganisationUnitRead(**parent_object)]  # type: ignore[list-item]
