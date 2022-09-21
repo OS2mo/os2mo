@@ -1,26 +1,16 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Parser utility to get LoRa data from localhost.
 
 This script is only intended for one-time use. Results are committed to git and used
 when mocking LoRa with pytest fixtures.
 """
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import json
 from pathlib import Path
 
 import httpx
 
 from mora.lora import LoraObjectType
-
-# --------------------------------------------------------------------------------------
-# Parse LoRa data
-# --------------------------------------------------------------------------------------
 
 
 def main() -> None:

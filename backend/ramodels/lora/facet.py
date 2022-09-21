@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import Optional
 from uuid import UUID
 
@@ -20,11 +14,6 @@ from ._shared import LoraBase
 from ._shared import Published
 from ._shared import RegistrationTime
 from ._shared import Responsible
-
-
-# --------------------------------------------------------------------------------------
-# Facet model
-# --------------------------------------------------------------------------------------
 
 
 class Facet(LoraBase):

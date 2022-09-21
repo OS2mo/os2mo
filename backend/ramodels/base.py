@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
 from typing import Dict
@@ -23,19 +17,11 @@ except ImportError:  # pragma: no cover
     from backports import zoneinfo  # type: ignore
 
 
-# --------------------------------------------------------------------------------------
-# Globals
-# --------------------------------------------------------------------------------------
-
 # TODO: Perhaps it's worth reading from e.g. env vars here
 DEFAULT_TZ = zoneinfo.ZoneInfo("Europe/Copenhagen")
 
 POS_INF = "infinity"
 NEG_INF = "-infinity"
-
-# --------------------------------------------------------------------------------------
-# Base models
-# --------------------------------------------------------------------------------------
 
 
 class RABase(BaseModel):
@@ -65,9 +51,6 @@ class RABase(BaseModel):
         return values
 
 
-# --------------------------------------------------------------------------------------
-# Base utils
-# --------------------------------------------------------------------------------------
 def tz_isodate(dt: Any) -> datetime:
     """Attempts to parse an incoming value as a timezone aware datetime.
 

@@ -1,22 +1,12 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Custom hypothesis strategies used in the GraphAPI testing suite."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import List
 
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
 
 from mora.graphapi.versions.latest.dataloaders import MOModel
-
-# --------------------------------------------------------------------------------------
-# Custom hypothesis strategies
-# --------------------------------------------------------------------------------------
 
 
 @st.composite

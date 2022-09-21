@@ -1,21 +1,11 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse
 
 from .errors import handle_gql_error
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 def meta_router():

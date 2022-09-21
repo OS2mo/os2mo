@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 from datetime import datetime
 from typing import Any
@@ -35,11 +29,6 @@ from mora.graphapi.versions.latest.models import OrganisationUnitRefreshRead
 from mora.service.orgunit import router as org_unit_router
 from mora.service.util import get_configuration
 from ramodels.mo.organisation_unit import OrganisationUnitTerminate
-
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 @org_unit_router.get(

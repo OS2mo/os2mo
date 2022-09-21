@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from base64 import b64decode
 from operator import itemgetter
 from typing import Any
@@ -31,10 +25,6 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import validate_token
 from mora.graphapi.shim import execute_graphql
 from mora.service.exports import router as exports_router
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")

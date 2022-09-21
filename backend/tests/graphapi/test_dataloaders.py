@@ -1,12 +1,6 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Tests of dataloaders used in the GraphQL implementation."""
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import pytest
 from hypothesis import given
 from pytest import MonkeyPatch
@@ -25,10 +19,6 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
-
-# --------------------------------------------------------------------------------------
-# Tests
-# --------------------------------------------------------------------------------------
 
 pytestmark = pytest.mark.asyncio
 

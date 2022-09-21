@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import List
 from uuid import UUID
 
@@ -14,10 +8,6 @@ from pydantic import Field
 from .._shared import MOBase
 from .._shared import OrgUnitRef
 from .._shared import Validity
-
-# --------------------------------------------------------------------------------------
-# Engagement models
-# --------------------------------------------------------------------------------------
 
 
 class RelatedUnitBase(MOBase):

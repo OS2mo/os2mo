@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 from datetime import datetime
 from typing import Any
@@ -27,9 +21,6 @@ from .details import EmployeeDetails
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 
-# --------------------------------------------------------------------------------------
-# Employee model
-# --------------------------------------------------------------------------------------
 
 # Type aliases
 DictStrAny = Dict[str, Any]

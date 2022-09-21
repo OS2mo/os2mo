@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import asyncio
 import os
 from dataclasses import dataclass
@@ -41,9 +35,7 @@ from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
 
-# --------------------------------------------------------------------------------------
 # Configs + fixtures
-# --------------------------------------------------------------------------------------
 h_db = InMemoryExampleDatabase()
 h_settings.register_profile("ci", max_examples=30, deadline=None, database=h_db)
 h_settings.register_profile("dev", max_examples=10, deadline=None, database=h_db)
