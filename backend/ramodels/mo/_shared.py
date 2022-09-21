@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import re
 import warnings
 from datetime import date
@@ -33,10 +27,6 @@ UTC = zoneinfo.ZoneInfo("UTC")
 
 # Type aliases
 DictStrAny = Dict[str, Any]
-
-# --------------------------------------------------------------------------------------
-# MOBase
-# --------------------------------------------------------------------------------------
 
 
 class UUIDBase(RABase):
@@ -81,11 +71,6 @@ class MOBase(UUIDBase):
             if not field.required and values["type_"] != field.default:
                 raise ValueError(f"type may only be its default: '{field.default}'")
         return values
-
-
-# --------------------------------------------------------------------------------------
-# Shared models
-# --------------------------------------------------------------------------------------
 
 
 class MORef(RABase):
@@ -265,11 +250,6 @@ class Visibility(MORef):
     """Visbility type reference."""
 
     pass
-
-
-# --------------------------------------------------------------------------------------
-# Auxiliary validator functions
-# --------------------------------------------------------------------------------------
 
 
 def deprecation(message: str) -> None:

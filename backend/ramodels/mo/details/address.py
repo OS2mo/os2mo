@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -25,11 +19,6 @@ from .._shared import PersonRef
 from .._shared import Validity
 from .._shared import Visibility
 from ._shared import Details
-
-
-# --------------------------------------------------------------------------------------
-# Address model
-# --------------------------------------------------------------------------------------
 
 
 class AddressBase(MOBase):

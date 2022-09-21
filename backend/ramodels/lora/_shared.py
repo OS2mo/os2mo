@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import datetime
 from typing import Any
 from typing import Callable
@@ -34,10 +28,6 @@ except ImportError:  # pragma: no cover
     from backports import zoneinfo  # type: ignore
 
 UTC = zoneinfo.ZoneInfo("UTC")
-
-# --------------------------------------------------------------------------------------
-# LoRaBase
-# --------------------------------------------------------------------------------------
 
 
 class LoraBase(RABase):
@@ -73,11 +63,6 @@ class LoraBase(RABase):
         if isinstance(object_type, str):
             return object_type.lower()
         return object_type
-
-
-# --------------------------------------------------------------------------------------
-# Infinite Datetime
-# --------------------------------------------------------------------------------------
 
 
 class InfiniteDatetime(str):
@@ -176,11 +161,6 @@ class InfiniteDatetime(str):
         This method is defined using `__gt__` and `__eq__`.
         """
         return self.__gt__(other) or self.__eq__(other)
-
-
-# --------------------------------------------------------------------------------------
-# Shared models
-# --------------------------------------------------------------------------------------
 
 
 class EffectiveTime(RABase):

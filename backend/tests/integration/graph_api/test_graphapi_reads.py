@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import pytest
 from hypothesis import given
 from hypothesis import HealthCheck
@@ -22,11 +16,6 @@ from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
 
 
-# --------------------------------------------------------------------------------------
-# Fixtures
-# --------------------------------------------------------------------------------------
-
-
 @pytest.fixture(autouse=True)
 async def sample_structures(fastapi_test_app, testing_db):
     """Class scoped sample structure.
@@ -38,10 +27,6 @@ async def sample_structures(fastapi_test_app, testing_db):
     yield
     _mox_testing_api("db-reset")
 
-
-# --------------------------------------------------------------------------------------
-# GraphAPI Reads integration tests
-# --------------------------------------------------------------------------------------
 
 SCHEMA = str(LatestGraphQLSchema.get())
 UUID_SEARCHABLE_FIELDS = [

@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from operator import itemgetter
 from typing import Any
 from typing import Dict
@@ -30,10 +24,6 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import MOFacetRead
 from mora.graphapi.shim import UUIDObject
 from mora.service.facet import router as facet_router
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 class MOClassReturn(BaseModel):

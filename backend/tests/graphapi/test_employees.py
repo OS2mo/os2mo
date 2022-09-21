@@ -440,11 +440,6 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         return query, var_values
 
 
-# --------------------------------------------------------------------------------------
-# Update tests
-# --------------------------------------------------------------------------------------
-
-
 # Create lists of possible values
 test_mutator_success_uuids = [
     "00000000-0000-0000-0000-000000000000",

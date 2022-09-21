@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import json
 from operator import itemgetter
 from typing import Any
@@ -15,10 +9,6 @@ from more_itertools import one
 from mora import exceptions
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import ExecutionResult
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 def handle_gql_error(response: ExecutionResult) -> None:

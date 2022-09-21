@@ -1,17 +1,11 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
 """Pytest configurations for GraphAPI tests.
 
 This file specifies different pytest fixtures and settings shared throughout the
 GraphAPI test suite. Some are autoused for each test invocation, while others are made
 available for use as needed.
 """
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import List
 from typing import Optional
 
@@ -24,11 +18,6 @@ from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from tests.conftest import fake_auth
-
-
-# --------------------------------------------------------------------------------------
-# Dataloader patch fixture
-# --------------------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="class")
@@ -50,11 +39,6 @@ def patch_loader():
         return _patcher
 
     yield patcher
-
-
-# --------------------------------------------------------------------------------------
-# FastAPI GraphAPI test client
-# --------------------------------------------------------------------------------------
 
 
 async def admin_auth():
@@ -87,11 +71,6 @@ def graphapi_test_no_exc():
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
     yield TestClient(test_app(), raise_server_exceptions=False)
-
-
-# --------------------------------------------------------------------------------------
-# GraphAPI schema fixture
-# --------------------------------------------------------------------------------------
 
 
 @pytest.fixture(scope="class")

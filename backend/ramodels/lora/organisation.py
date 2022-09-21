@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from typing import Optional
 from uuid import UUID
 
@@ -20,11 +14,6 @@ from ._shared import OrganisationRelations
 from ._shared import OrganisationStates
 from ._shared import OrganisationValidState
 from ._shared import RegistrationTime
-
-
-# --------------------------------------------------------------------------------------
-# Organisation model
-# --------------------------------------------------------------------------------------
 
 
 class Organisation(LoraBase):

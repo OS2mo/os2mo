@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 from datetime import datetime
 from datetime import timedelta
@@ -29,11 +26,6 @@ from mora.graphapi.shim import OrganisationUnitCount
 from mora.service.org import router as org_router
 from ramodels.mo import OpenValidity
 from ramodels.mo import OrganisationRead
-
-
-# --------------------------------------------------------------------------------------
-# Shimmed endpoints
-# --------------------------------------------------------------------------------------
 
 
 @org_router.get(

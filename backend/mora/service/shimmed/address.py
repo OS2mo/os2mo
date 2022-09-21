@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from asyncio import gather
 from typing import Optional
 from uuid import UUID
@@ -21,9 +15,6 @@ from mora import exceptions
 from mora.graphapi.shim import execute_graphql
 from mora.service.address import router as address_router
 
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 client = httpx.AsyncClient(
     headers={
