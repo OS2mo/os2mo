@@ -555,6 +555,82 @@ async def test_update():
     # cpr_no
     st.from_regex(r"^\d{10}$") | st.none(),
 )
+async def test_update_pydantic_model(
+    given_uuid,
+    given_validity_dts,
+    given_name_tuple,
+    given_nickname_tuple,
+    given_seniority,
+    given_cpr_no,
+):
+    # Unpack tuples
+    given_uuid_str = str(given_uuid)
+    given_validity_from, given_validity_to = given_validity_dts
+    given_name, given_givenname, given_surname = given_name_tuple
+    (
+        given_nickname,
+        given_nickname_givenname,
+        given_nickname_surname,
+    ) = given_nickname_tuple
+
+    # Create model params
+    model_params = {
+        "uuid": given_uuid_str,
+        "from": given_validity_from.date().isoformat(),
+    }
+
+    if given_name:
+        model_params["name"] = given_name
+    if given_givenname:
+        model_params["given_name"] = given_givenname
+    if given_surname:
+        model_params["surname"] = given_surname
+
+    if given_nickname:
+        model_params["nickname"] = given_nickname
+    if given_nickname_givenname:
+        model_params["nickname_given_name"] = given_nickname_givenname
+    if given_nickname_surname:
+        model_params["nickname_surname"] = given_nickname_surname
+
+    if given_seniority:
+        model_params["seniority"] = given_seniority
+    if given_cpr_no:
+        model_params["cpr_no"] = given_cpr_no
+
+    # Try and create the model
+    raised_exception = None
+    try:
+        _ = EmployeeUpdate(**model_params)
+    except Exception as e:
+        raised_exception = e
+
+    assert not raised_exception
+
+
+@given(
+    st.uuids(),
+    # from & to
+    st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+    # name, given_name, sur_name
+    st.tuples(
+        st.text() | st.none(),
+        st.text() | st.none(),
+        st.text() | st.none(),
+    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
+    # nickname, nickname_givenname, nickname_surname,
+    st.tuples(
+        st.text() | st.none(),
+        st.text() | st.none(),
+        st.text() | st.none(),
+    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
+    # given_seniority
+    st.text() | st.none(),
+    # cpr_no
+    st.from_regex(r"^\d{10}$") | st.none(),
+)
 async def test_update_mutator(
     given_uuid,
     given_validity_dts,
@@ -593,13 +669,13 @@ async def test_update_mutator(
 
     _set_gql_var("name", given_name, var_values, pydantic_values)
     _set_gql_var("given_name", given_givenname, var_values, pydantic_values)
-    _set_gql_var("sur_name", given_surname, var_values, pydantic_values)
+    _set_gql_var("surname", given_surname, var_values, pydantic_values)
     _set_gql_var("nickname", given_nickname, var_values, pydantic_values)
     _set_gql_var(
         "nickname_given_name", given_nickname_givenname, var_values, pydantic_values
     )
     _set_gql_var(
-        "nickname_sur_name", given_nickname_surname, var_values, pydantic_values
+        "nickname_surname", given_nickname_surname, var_values, pydantic_values
     )
     _set_gql_var("seniority", given_seniority, var_values, pydantic_values)
     _set_gql_var("cpr_no", given_cpr_no, var_values, pydantic_values)

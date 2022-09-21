@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import logging
-import re
 import typing
 from enum import Enum
 from typing import Any
@@ -441,11 +440,11 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
-        '"given_name" & "sur_name" are None.'
+        '"given_name" & "surname" are None.'
     )
     _ERR_INVALID_NICKNAME = (
         "EmployeeUpdate.nickname is only allowed to be set, if "
-        '"nickname_given_name" & "nickname_sur_name" are None.'
+        '"nickname_given_name" & "nickname_surname" are None.'
     )
     _ERR_INVALID_CPR = (
         "EmployeeUpdate.cpr_no must be a digits-string with the format: 0000000000"
@@ -459,7 +458,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         description="New first-name value of the employee nickname.",
     )
 
-    sur_name: Optional[str] = Field(
+    surname: Optional[str] = Field(
         None,
         description="New last-name value of the employee nickname.",
     )
@@ -474,7 +473,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         description="New nickname given-name value of the employee nickname.",
     )
 
-    nickname_sur_name: Optional[str] = Field(
+    nickname_surname: Optional[str] = Field(
         None,
         description="New nickname sur-name value of the employee nickname.",
     )
@@ -488,15 +487,14 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     )
 
     @root_validator
-    def validate_name_with_given_name_and_sur_name(cls, values: dict) -> dict:
+    def validate_name_with_given_name_and_surname(cls, values: dict) -> dict:
         """Validate the model after set of fields."""
-
         # Validate name-vars and nickname-vars
-        if values.get("name") and (values.get("given_name") or values.get("sur_name")):
+        if values.get("name") and (values.get("given_name") or values.get("surname")):
             raise ValueError(cls._ERR_INVALID_NAME)
 
         if values.get("nickname") and (
-            values.get("nickname_given_name") or values.get("nickname_sur_name")
+            values.get("nickname_given_name") or values.get("nickname_surname")
         ):
             raise ValueError(cls._ERR_INVALID_NICKNAME)
 
@@ -519,15 +517,15 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
             data_dict[mapping.NAME] = self.name
         if self.given_name:
             data_dict[mapping.GIVENNAME] = self.given_name
-        if self.sur_name:
-            data_dict[mapping.SURNAME] = self.sur_name
+        if self.surname:
+            data_dict[mapping.SURNAME] = self.surname
 
         if self.nickname:
             data_dict[mapping.NICKNAME] = self.nickname
         if self.nickname_given_name:
             data_dict[mapping.NICKNAME_GIVENNAME] = self.nickname_given_name
-        if self.nickname_sur_name:
-            data_dict[mapping.NICKNAME_SURNAME] = self.nickname_sur_name
+        if self.nickname_surname:
+            data_dict[mapping.NICKNAME_SURNAME] = self.nickname_surname
 
         if self.seniority:
             data_dict[mapping.SENIORITY] = self.seniority
