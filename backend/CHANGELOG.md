@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+11.7.1 - 2022-09-21
+-------------------
+
+[#51872] Fix GraphQL schema context extension
+
+We need to store a reference counter, instead of a simple boolean, to
+ensure we do not set is_graphql=False as soon as the first nested schema
+execution exits.
+
 11.7.0 - 2022-09-20
 -------------------
 
