@@ -133,7 +133,6 @@ class LoraObjectType(Enum):
     it_system = "organisation/itsystem"
     class_ = "klassifikation/klasse"
     facet = "klassifikation/facet"
-    classification = "klassifikation/klassifikation"
 
 
 def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
@@ -325,10 +324,6 @@ class Connector:
     @property
     def facet(self) -> "Scope":
         return self.scope(LoraObjectType.facet)
-
-    @property
-    def klassifikation(self) -> "Scope":
-        return self.scope(LoraObjectType.classification)
 
 
 def group_params(
