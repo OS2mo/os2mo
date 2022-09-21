@@ -9,7 +9,9 @@ from .models import EmployeeUpdate
 from .models import EngagementTerminate
 from .models import ITUserTerminate
 from .models import Organisation
+from .models import OrganisationUnit
 from .models import OrganisationUnitTerminate
+from .models import OrganisationUnitUpdate
 from .models import Validity
 
 
@@ -31,6 +33,28 @@ class ValidityInput:
 )
 class OrganizationInput:
     """input model for terminating organizations units."""
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnit,
+    all_fields=True
+)
+class OrganisationUnitInput:
+    """Input model for an organisation unit. """
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitUpdate,
+    all_fields=True
+)
+class OrganisationUnitUpdateInput:
+    """Input model for updating organisation units."""
+
+    pass
 
 
 # Addresses
@@ -121,7 +145,6 @@ class ITUserTerminateInput:
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
-
 
 # Related Units
 # -------------

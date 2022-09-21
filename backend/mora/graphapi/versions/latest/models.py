@@ -18,6 +18,8 @@ from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
+from ramodels.mo import Validity as ValidityFromRequired
+
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -50,7 +52,7 @@ class Validity(OpenValidity):
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organization Unit must be set with either 'to' or both 'from' "
-            "and 'to'",
+                "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
                 "to": self.to_date.isoformat() if self.to_date else None,
@@ -98,7 +100,7 @@ class MoraTriggerRequest(BaseModel):
 
     uuid: UUID = Field(
         description="UUID for the entity accessed in the request. "
-        "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
+                    "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
     )
 
     validity: Validity = Field(description="Type of the request, ex. 'org_unit'.")
@@ -109,7 +111,7 @@ class MoraTrigger(BaseModel):
 
     request_type: str = Field(
         description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-        "Ref: mora.mapping.RequestType"
+                    "Ref: mora.mapping.RequestType"
     )
 
     request: MoraTriggerRequest = Field(description="The Request for the trigger.")
@@ -122,7 +124,7 @@ class MoraTrigger(BaseModel):
 
     uuid: UUID = Field(
         description="UUID of the entity being handled in the trigger. "
-        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
+                    "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
     result: typing.Any = Field(description="Result of the trigger", default=None)
@@ -179,6 +181,105 @@ class OrgFuncTrigger(MoraTrigger):
 class Organisation(UUIDBase):
     """Model representing an Organization."""
 
+    pass
+
+
+class OrganisationUnit(UUIDBase):
+    """Model representing an Organization-Unit."""
+
+    pass
+
+
+class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
+    """Model representing updating an organisation unit."""
+
+    name: Optional[str] = Field(description="Name of the updated organisation unit.")
+
+    org_unit_type_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units type."
+    )
+
+    org_unit_level_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units level."
+    )
+
+    org_unit_hierarchy_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units hierarchy."
+    )
+
+    parent_uuid: Optional[UUID] = Field(
+        description="UUID of the related parent of the organisation unit."
+    )
+
+    time_planning: Optional[UUID] = Field(
+        description="UUID of the related organisation units time planning."
+    )
+
+    location: Optional[UUID]
+
+    def get_legacy_dict(self) -> dict:
+        uuid_as_str = str(self.uuid)
+
+        validity_dict = {mapping.FROM: self.from_date.date().isoformat()}
+
+        if self.to_date:
+            validity_dict[mapping.TO] = self.to_date.date().isoformat()
+
+        data_dict = {
+            mapping.UUID: uuid_as_str,
+            mapping.VALIDITY: validity_dict,
+        }
+
+        if self.name:
+            data_dict[mapping.NAME] = {mapping.NAME: self.name}
+
+        if self.org_unit_type_uuid:
+            data_dict[mapping.ORG_UNIT_TYPE] = {
+                mapping.UUID: str(self.org_unit_type_uuid)
+            }
+
+        if self.org_unit_level_uuid:
+            data_dict[mapping.ORG_UNIT_LEVEL] = {
+                mapping.UUID: str(self.org_unit_level_uuid)
+            }
+
+        if self.org_unit_hierarchy_uuid:
+            data_dict[mapping.ORG_UNIT_HIERARCHY] = {
+                mapping.UUID: str(self.org_unit_hierarchy_uuid)
+            }
+
+        if self.parent_uuid:
+            data_dict[mapping.PARENT] = {mapping.UUID: str(self.parent_uuid)}
+
+        if self.time_planning:
+            data_dict[mapping.TIME_PLANNING] = {mapping.UUID: str(self.time_planning)}
+
+        legacy_dict = {
+            mapping.UUID: uuid_as_str,
+            mapping.DATA: data_dict,
+        }
+        return legacy_dict
+
+
+class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
+    """Model representing an organization-unit termination."""
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationenhedgyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afslut enhed",
+        }
+
+
+class EngagementModel(UUIDBase):
+    """Model representing an Engagement."""
+
+    pass
+
 
 # Addresses
 # ---------
@@ -232,6 +333,8 @@ class AddressTerminate(Address, ValidityTerminate, Triggerless):
 class Employee(UUIDBase):
     """OS2Mo employee model."""
 
+    pass
+
 
 class EmployeeCreate(BaseModel):
     """Model representing an employee creation."""
@@ -247,6 +350,8 @@ class EmployeeCreate(BaseModel):
 
 class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
     """Model representing an employee termination."""
+
+    pass
 
 
 class EmployeeUpdate(UUIDBase):
@@ -288,7 +393,7 @@ class EmployeeUpdate(UUIDBase):
     validity: Optional[Validity] = Field(
         None,
         description="Validity range for the employee, "
-        "for when the employee is accessible",
+                    "for when the employee is accessible",
     )
 
     # user_key

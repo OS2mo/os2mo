@@ -10,14 +10,18 @@ from strawberry.dataloader import DataLoader
 from .dataloaders import get_loaders
 from .models import MoraTriggerRequest
 from .models import OrganisationUnitTerminate
+from .models import OrganisationUnitUpdate
 from .models import OrgUnitTrigger
 from .models import Validity
 from .schema import Response
+from .types import OrganizationUnitType
+from mora import common
 from .types import OrganizationUnit
 from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora import util
+from mora.service.detail_writing import handle_requests
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 from mora.triggers import Trigger
@@ -131,7 +135,7 @@ async def terminate_org_unit_validation(
 
 async def terminate_org_unit(
     ou_terminate: OrganisationUnitTerminate,
-) -> OrganizationUnit:
+) -> OrganizationUnitType:
     try:
         await terminate_org_unit_validation(ou_terminate)
     except Exception as e:
@@ -181,4 +185,20 @@ async def terminate_org_unit(
         _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
-    return OrganizationUnit(uuid=lora_result)
+    return OrganizationUnitType(uuid=lora_result)
+
+
+async def update_org_unit(
+    org_unit_update: OrganisationUnitUpdate,
+) -> OrganizationUnitType:
+    # Convert pydantic model to request-dict, to match legacy implementation.
+    update_dict = org_unit_update.dict(by_alias=True)
+    req = {
+        mapping.TYPE: mapping.ORG_UNIT,
+        # mapping.UUID: org_unit_update.uuid,
+        mapping.DATA: update_dict,
+    }
+
+    # Invoke existing update-logic
+    result = await handle_requests(req, mapping.RequestType.EDIT)
+    return OrganizationUnitType(uuid=UUID(result))
