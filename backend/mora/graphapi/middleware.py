@@ -34,22 +34,24 @@ class GraphQLContextPlugin(Plugin):
     async def process_request(
         self, request: Union[Request, HTTPConnection]
     ) -> Optional[Any]:
-        return False
+        return 0
 
 
 class StarletteContextExtension(Extension):
     def on_request_start(self) -> None:
         # clear query arguments bypassing the stack
         context["query_args"] = {}
-        context["is_graphql"] = True
+        # Store reference counter, instead of simple boolean, to ensure we do not set
+        # is_graphql=False as soon as the first nested schema execution exits.
+        context["is_graphql"] = context.get("is_graphql", 0) + 1
 
     def on_request_end(self) -> None:
-        context["is_graphql"] = False
+        context["is_graphql"] = context.get("is_graphql", 0) - 1
 
 
 def is_graphql() -> bool:
     """Determine if we are currently evaluating a GraphQL query."""
-    return context.get("is_graphql", False)
+    return context.get("is_graphql", 0) > 0
 
 
 class GraphQLIsShimPlugin(Plugin):
