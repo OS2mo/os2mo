@@ -190,16 +190,13 @@ async def terminate_org_unit(
 async def update_org_unit(
     org_unit_update: OrganisationUnitUpdate,
 ) -> OrganisationUnitType:
-    """
-    Call the OrgUnitRequestHandler to prepare an edit for updating fields on the given
-    UUID.
+    """Call the OrgUnitRequestHandler to prepare an edit for updating on the given UUID.
 
     Args:
         org_unit_update:
 
     Returns:
         The type model class.
-
     """
     request = await OrgUnitRequestHandler.construct(
         org_unit_update.get_legacy_dict(), mapping.RequestType.EDIT
@@ -207,3 +204,85 @@ async def update_org_unit(
     uuid = await request.submit()
 
     return OrganisationUnitType(uuid=UUID(uuid))
+
+
+def _get_terminate_effect(unit: OrganisationUnitTerminate) -> dict:
+    if unit.from_date and unit.to_date:
+        return common._create_virkning(
+            _get_terminate_effect_from_date(unit), _get_terminate_effect_to_date(unit)
+        )
+
+    if not unit.from_date and unit.to_date:
+        logger.warning(
+            'terminate org unit called without "from" in "validity"',
+        )
+
+        return common._create_virkning(_get_terminate_effect_to_date(unit), "infinity")
+
+    raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
+        key="Organisation Unit must be set with either 'to' or both 'from' " "and 'to'",
+        unit={
+            "from": unit.from_date.isoformat() if unit.from_date else None,
+            "to": unit.to_date.isoformat() if unit.to_date else None,
+        },
+    )
+
+
+def _get_terminate_effect_from_date(
+    unit: OrganisationUnitTerminate,
+) -> datetime.datetime:
+    if not unit.from_date or not isinstance(unit.from_date, datetime.datetime):
+        raise exceptions.ErrorCodes.V_MISSING_START_DATE()
+
+    if unit.from_date.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(unit.from_date.isoformat()),
+        )
+
+    return unit.from_date
+
+
+def _get_terminate_effect_to_date(
+    unit: OrganisationUnitTerminate,
+) -> datetime.datetime:
+    if not unit.to_date:
+        return POSITIVE_INFINITY
+
+    if unit.to_date.time() != datetime.time.min:
+        exceptions.ErrorCodes.E_INVALID_INPUT(
+            "{!r} is not at midnight!".format(unit.to_date.isoformat()),
+        )
+
+    return unit.to_date + ONE_DAY
+
+
+def _create_trigger_dict_from_org_unit_input(
+    unit: OrganisationUnitTerminate,
+) -> dict:
+    uuid_str = str(unit.uuid)
+
+    # create trigger dict request
+    validity = {}
+    if unit.from_date:
+        validity[mapping.FROM] = unit.from_date.isoformat()
+    if unit.to_date:
+        validity[mapping.TO] = unit.to_date.isoformat()
+
+    trigger_request = {
+        mapping.TYPE: mapping.ORG_UNIT,
+        mapping.UUID: uuid_str,
+        mapping.VALIDITY: validity,
+    }
+
+    # Create the return dict
+    trigger_dict = {
+        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
+        Trigger.REQUEST: trigger_request,
+        Trigger.ROLE_TYPE: mapping.ORG_UNIT,
+        Trigger.ORG_UNIT_UUID: uuid_str,
+        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
+        Trigger.UUID: uuid_str,
+        Trigger.RESULT: None,
+    }
+
+    return trigger_dict

@@ -68,11 +68,11 @@ class Mutation:
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
 
     @strawberry.mutation(
-        description="Terminates an organization unit by UUID",
+        description="Terminates an organisation unit by UUID",
         permission_classes=[admin_permission_class],
     )
     async def org_unit_terminate(
-        self, unit: OrganizationUnitTerminateInput
+        self, unit: OrganisationUnitTerminateInput
     ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())
 

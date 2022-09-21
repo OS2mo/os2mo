@@ -19,7 +19,6 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as ValidityFromRequired
-
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -51,8 +50,8 @@ class Validity(OpenValidity):
                 self.get_terminate_effect_to_date(), "infinity"
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organization Unit must be set with either 'to' or both 'from' "
-                "and 'to'",
+            key="Organisation Unit must be set with either 'to' or both 'from' "
+            "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
                 "to": self.to_date.isoformat() if self.to_date else None,
@@ -111,7 +110,7 @@ class MoraTrigger(BaseModel):
 
     request_type: str = Field(
         description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-        "Ref: mora.mapping.RequestType"
+                    "Ref: mora.mapping.RequestType"
     )
 
     request: MoraTriggerRequest = Field(description="The Request for the trigger.")
@@ -124,7 +123,7 @@ class MoraTrigger(BaseModel):
 
     uuid: UUID = Field(
         description="UUID of the entity being handled in the trigger. "
-        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
+                    "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
     result: typing.Any = Field(description="Result of the trigger", default=None)
@@ -165,10 +164,10 @@ class GenericUUIDModel(UUIDBase):
 
 
 class OrgFuncTrigger(MoraTrigger):
-    """General model for Mora-Organization-Function triggers."""
+    """General model for Mora-Organisation-Function triggers."""
 
     org_unit_uuid: UUID = Field(
-        description="UUID for the organization unit in question."
+        description="UUID for the organisation unit in question."
     )
 
     employee_id: Optional[UUID] = Field(
@@ -178,6 +177,34 @@ class OrgFuncTrigger(MoraTrigger):
 
 # Root Organisation
 # -----------------
+class OrgUnitTrigger(OrgFuncTrigger):
+    """Model representing a mora-trigger, specific for organisation-units."""
+
+    pass
+
+
+class EngagementTrigger(OrgFuncTrigger):
+    """Model representing a mora-trigger, specific for engagements.
+
+    Has the folling fields:
+        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
+
+        request: MoraTriggerRequest  description="The Request for the trigger."
+
+        role_type: str  description="Role type for the trigger, ex 'org_unit'."
+
+        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
+
+        uuid: UUID
+
+        org_unit_uuid: UUID
+
+        employee_id: Optional[UUID]
+    """
+
+    pass
+
+
 class Organisation(UUIDBase):
     """Model representing an organisation."""
 
@@ -192,38 +219,6 @@ class OrganisationUnit(UUIDBase):
 
 class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
     """Model representing updating an organisation unit."""
-
-    name: Optional[str] = Field(description="Name of the updated organisation unit.")
-
-    org_unit_type_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units type."
-    )
-
-    org_unit_level_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units level."
-    )
-
-    org_unit_hierarchy_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units hierarchy."
-    )
-
-    parent_uuid: Optional[UUID] = Field(
-        description="UUID of the related parent of the organisation unit."
-    )
-
-    time_planning: Optional[UUID] = Field(
-        description="UUID of the related organisation units time planning."
-    )
-
-    location: Optional[UUID]
-
-    def get_legacy_dict(self) -> dict:
-        uuid_as_str = str(self.uuid)
-
-        validity_dict = {mapping.FROM: self.from_date.date().isoformat()}
-
-        if self.to_date:
-            validity_dict[mapping.TO] = self.to_date.date().isoformat()
 
     name: Optional[str] = Field(description="Name of the updated organisation unit.")
 
@@ -296,7 +291,7 @@ class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
 
 
 class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
-    """Model representing an organization unit termination."""
+    """Model representing an organisation unit termination."""
 
     def get_lora_payload(self) -> dict:
         return {
@@ -378,7 +373,7 @@ class EmployeeCreate(BaseModel):
     cpr_no: str = Field(description="Danish CPR number of the employee.")
     org: Organisation = Field(
         Organisation(),
-        description="The organization the new employee will be created under.",
+        description="The organisation the new employee will be created under.",
     )
 
 
@@ -427,7 +422,7 @@ class EmployeeUpdate(UUIDBase):
     validity: Optional[Validity] = Field(
         None,
         description="Validity range for the employee, "
-        "for when the employee is accessible",
+                    "for when the employee is accessible",
     )
 
     # user_key

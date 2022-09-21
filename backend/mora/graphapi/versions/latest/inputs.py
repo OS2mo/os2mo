@@ -63,7 +63,7 @@ class OrganisationUnitUpdateInput:
     model=OrganisationUnitTerminate,
     all_fields=True,
 )
-class OrganizationUnitTerminateInput:
+class OrganisationUnitTerminateInput:
     """input model for terminating organisations units."""
 
     pass

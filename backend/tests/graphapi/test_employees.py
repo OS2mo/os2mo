@@ -29,6 +29,20 @@ now_beginning = datetime.datetime.now().replace(
 )
 
 
+# --------------------------------------------------------------------------------------
+# Query tests
+# --------------------------------------------------------------------------------------
+
+
+class TestEmployeesQuery:
+    """Class collecting employees query tests.
+
+    Data loaders are mocked to return specific values, generated via
+    Hypothesis.
+    MonkeyPatch.context is used as a context manager to achieve this,
+    because mocks are *not* reset between invocations of Hypothesis examples.
+    """
+
 @given(test_data=graph_data_strat(EmployeeRead))
 def test_query_all(test_data, graphapi_post, patch_loader):
     """Test that we can query all our employees."""
@@ -121,7 +135,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
             # GraphQL
             mutation_func = "employee_create"
             query = (
-                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
+                f"mutation($name: String!, $cpr_no: String!, $org: OrganisationInput!) {{"
                 f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
                 f"{{ uuid }}"
                 f"}}"
@@ -190,7 +204,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
         ) as mock_employee_create:
             mutation_func = "employee_create"
             query = (
-                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
+                f"mutation($name: String!, $cpr_no: String!, $org: OrganisationInput!) {{"
                 f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
                 f"{{ uuid }}"
                 f"}}"
@@ -258,7 +272,7 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                 result = None
                 try:
                     query = (
-                        "mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {"
+                        "mutation($name: String!, $cpr_no: String!, $org: OrganisationInput!) {"
                         "employee_create(input: {name: $name, cpr_no: $cpr_no, org: $org}) "
                         "{ uuid }"
                         "}"
