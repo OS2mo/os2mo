@@ -9,8 +9,10 @@ from .models import EmployeeUpdate
 from .models import EngagementTerminate
 from .models import ITUserTerminate
 from .models import Organisation
+from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import Validity
+from ramodels.mo import Validity as RAValidity
 
 
 # Various
@@ -20,6 +22,14 @@ from .models import Validity
     all_fields=True,
 )
 class ValidityInput:
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=RAValidity,
+    all_fields=True,
+)
+class RAValidityInput:
     pass
 
 
@@ -121,6 +131,14 @@ class ITUserTerminateInput:
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitCreate,
+    all_fields=True,
+)
+class OrganizationUnitCreateInput:
+    """input model for creating org-units."""
 
 
 # Related Units
