@@ -19,7 +19,6 @@ from pydantic import root_validator
 from pydantic import validator
 from strawberry.types import ExecutionResult
 
-from .middleware import set_is_shim
 from .versions.base import BaseGraphQLVersion
 from mora import util
 from mora.auth.keycloak.oidc import noauth
@@ -206,8 +205,6 @@ async def execute_graphql(
         from .versions.latest.version import LatestGraphQLVersion
 
         graphql_version = LatestGraphQLVersion
-
-    set_is_shim()
 
     if "context_value" not in kwargs:
         # TODO: The token should be passed from the original caller, such that the
