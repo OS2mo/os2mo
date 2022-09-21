@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.7.2 - 2022-09-21
+-------------------
+
+[#50861] Fix compatibility shim for v1 org unit parent behaviour
+
 11.7.1 - 2022-09-21
 -------------------
 
