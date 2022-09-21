@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """GraphQL org-unit related helper functions."""
-import datetime
 import logging
 from typing import cast
 from uuid import UUID
@@ -15,7 +14,6 @@ from .models import OrgUnitTrigger
 from .models import Validity
 from .schema import Response
 from .types import OrganizationUnit
-from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -23,8 +21,6 @@ from mora import util
 from mora.service.orgunit import OrgUnitRequestHandler
 from mora.service.validation import validator
 from mora.triggers import Trigger
-from mora.util import ONE_DAY
-from mora.util import POSITIVE_INFINITY
 
 logger = logging.getLogger(__name__)
 
@@ -186,85 +182,3 @@ async def terminate_org_unit(
 
     # Return the unit as the final thing
     return OrganizationUnit(uuid=lora_result)
-
-
-def _get_terminate_effect(unit: OrganisationUnitTerminate) -> dict:
-    if unit.from_date and unit.to_date:
-        return common._create_virkning(
-            _get_terminate_effect_from_date(unit), _get_terminate_effect_to_date(unit)
-        )
-
-    if not unit.from_date and unit.to_date:
-        logger.warning(
-            'terminate org unit called without "from" in "validity"',
-        )
-
-        return common._create_virkning(_get_terminate_effect_to_date(unit), "infinity")
-
-    raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-        key="Organization Unit must be set with either 'to' or both 'from' " "and 'to'",
-        unit={
-            "from": unit.from_date.isoformat() if unit.from_date else None,
-            "to": unit.to_date.isoformat() if unit.to_date else None,
-        },
-    )
-
-
-def _get_terminate_effect_from_date(
-    unit: OrganisationUnitTerminate,
-) -> datetime.datetime:
-    if not unit.from_date or not isinstance(unit.from_date, datetime.datetime):
-        raise exceptions.ErrorCodes.V_MISSING_START_DATE()
-
-    if unit.from_date.time() != datetime.time.min:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            "{!r} is not at midnight!".format(unit.from_date.isoformat()),
-        )
-
-    return unit.from_date
-
-
-def _get_terminate_effect_to_date(
-    unit: OrganisationUnitTerminate,
-) -> datetime.datetime:
-    if not unit.to_date:
-        return POSITIVE_INFINITY
-
-    if unit.to_date.time() != datetime.time.min:
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            "{!r} is not at midnight!".format(unit.to_date.isoformat()),
-        )
-
-    return unit.to_date + ONE_DAY
-
-
-def _create_trigger_dict_from_org_unit_input(
-    unit: OrganisationUnitTerminate,
-) -> dict:
-    uuid_str = str(unit.uuid)
-
-    # create trigger dict request
-    validity = {}
-    if unit.from_date:
-        validity[mapping.FROM] = unit.from_date.isoformat()
-    if unit.to_date:
-        validity[mapping.TO] = unit.to_date.isoformat()
-
-    trigger_request = {
-        mapping.TYPE: mapping.ORG_UNIT,
-        mapping.UUID: uuid_str,
-        mapping.VALIDITY: validity,
-    }
-
-    # Create the return dict
-    trigger_dict = {
-        Trigger.REQUEST_TYPE: mapping.RequestType.TERMINATE,
-        Trigger.REQUEST: trigger_request,
-        Trigger.ROLE_TYPE: mapping.ORG_UNIT,
-        Trigger.ORG_UNIT_UUID: uuid_str,
-        Trigger.EVENT_TYPE: mapping.EventType.ON_BEFORE,
-        Trigger.UUID: uuid_str,
-        Trigger.RESULT: None,
-    }
-
-    return trigger_dict
