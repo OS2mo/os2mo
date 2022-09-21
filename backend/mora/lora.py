@@ -409,10 +409,6 @@ class BaseScope:
         self.connector = connector
         self.path = path
 
-    @property
-    def base_path(self):
-        return config.get_settings().lora_url + self.path
-
 
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
