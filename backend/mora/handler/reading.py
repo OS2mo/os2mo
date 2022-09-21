@@ -247,22 +247,6 @@ class OrgFunkReadingHandler(ReadingHandler):
         return {cls.SEARCH_FIELDS[type]: objid}
 
     @classmethod
-    def __function_key_filter(cls, object_tuple: Tuple[str, Dict[Any, Any]]) -> bool:
-        """
-
-        :param object_tuple: UUID, object
-        :return: whether function key matches class
-        """
-        _, obj = object_tuple
-
-        field = mapping.ORG_FUNK_EGENSKABER_FIELD(obj)
-
-        if not field:
-            return False
-
-        return field[0]["funktionsnavn"] == cls.function_key
-
-    @classmethod
     async def _get_lora_object(
         cls, c, search_fields, changed_since: Optional[datetime] = None
     ):

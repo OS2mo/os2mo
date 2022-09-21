@@ -24,7 +24,6 @@ VALUE = "value"
 VALUE2 = "value2"
 HREF = "href"
 UUID = "uuid"
-URN = "urn"
 VALIDITY = "validity"
 ORG = "org"
 ORG_UNIT = "org_unit"
@@ -35,7 +34,6 @@ ADDRESS = "address"
 ITSYSTEM_KEY = "IT-system"
 EMPLOYEE = "employee"
 LOCATION = "location"
-ERROR = "error"
 USER_SETTINGS = "user_settings"
 PRIMARY = "primary"
 EXPLICITLY_PRIMARY = "explicitly-primary"
@@ -115,7 +113,6 @@ OU = "ou"
 ORG_UNIT_TYPE = "org_unit_type"
 TIME_PLANNING = "time_planning"
 PARENT = "parent"
-ADDRESSES = "addresses"
 ORG_UNIT_LEVEL = "org_unit_level"
 ORG_UNIT_HIERARCHY = "org_unit_hierarchy"
 
@@ -139,7 +136,6 @@ class OwnerInferencePriority(enum.Enum):
 
 # LoRa names for org unit keys
 ORG_UNIT_HIERARCHY_KEY = "opmærkning"
-ORG_UNIT_NAME_KEY = "enhedsnavn"
 
 IT = "it"
 KLE = "kle"
@@ -373,17 +369,7 @@ SINGLE_ADDRESS_FIELD = FieldTuple(
     type=FieldTypes.ADAPTED_ZERO_TO_MANY,
 )
 
-FUNCTION_ADDRESS_FIELD = FieldTuple(
-    path=("relationer", "tilknyttedefunktioner"),
-    type=FieldTypes.ADAPTED_ZERO_TO_MANY,
-)
-
 ADDRESS_TYPE_FIELD = FieldTuple(
-    path=("relationer", "organisatoriskfunktionstype"),
-    type=FieldTypes.ZERO_TO_ONE,
-)
-
-MANAGER_TYPE_FIELD = FieldTuple(
     path=("relationer", "organisatoriskfunktionstype"),
     type=FieldTypes.ZERO_TO_ONE,
 )

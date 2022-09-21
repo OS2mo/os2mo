@@ -51,7 +51,6 @@ from oio_rest.app import create_app as create_lora_app
 from tests.util import setup_test_routing
 
 basedir = os.path.dirname(__file__)
-templatedir = os.path.join(basedir, "templates")
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
 logger = get_logger()
 

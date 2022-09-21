@@ -54,41 +54,6 @@ def is_graphql() -> bool:
     return context.get("is_graphql", 0) > 0
 
 
-class GraphQLIsShimPlugin(Plugin):
-    """Starlette Plugin to create the `is_graphql_shim` context variable.
-
-    The variable is used to toggle GraphQL authentication within the
-    GraphQL shim.
-
-    The variable is `False` by default as to keep everything unaffected by default,
-    and is only switched to `True` when query is being executed via the GraphQL
-    shim.
-
-    After all reading code is implemented using GraphQL / shimming this plugin and the
-    corresponding extension can be eliminated.
-    """
-
-    key = "is_graphql_shim"
-
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
-        return False
-
-
-def set_is_shim() -> None:
-    context["is_graphql_shim"] = True
-
-
-def is_graphql_shim() -> bool:
-    """Determine if we are currently in the GraphQL shim.
-
-    Returns:
-        bool: True if GraphQL shim. False if not.
-    """
-    return context.get("is_graphql_shim", False)
-
-
 class GraphQLDatesPlugin(Plugin):
     """Starlette plugin to create the `graphql_args` context variable.
 

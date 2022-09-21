@@ -162,16 +162,6 @@ async def get_class_tree(
     return await get_classes(root for root in root_uuids)
 
 
-async def prepare_class_child(c, entry):
-    """Minimize and enrich JSON, by only returning relevant data."""
-    return {
-        "child_count": await count_class_children(c, entry["uuid"]),
-        "name": entry["name"],
-        "user_key": entry["user_key"],
-        "uuid": entry["uuid"],
-    }
-
-
 async def __get_facet_from_cache(facetid, orgid=None, data=None) -> Any:
     """
     Get org unit from cache and process it
@@ -411,33 +401,6 @@ async def get_facetids(facet: str):
     return facetids
 
 
-async def get_classes_under_facet(
-    orgid: UUID,
-    facet: str,
-    details: Set[ClassDetails] = None,
-    only_primary_uuid: bool = False,
-    start: int = 0,
-    limit: int = 0,
-):
-    c = common.get_connector()
-
-    facetids = await get_facetids(facet)
-
-    async def getter_fn(*args, **kwargs):
-        return await get_one_class(
-            *args, **kwargs, details=details, only_primary_uuid=only_primary_uuid
-        )
-
-    return facetids and await get_one_facet(
-        c=c,
-        facetid=facetids[0],
-        orgid=orgid,
-        data=await c.klasse.paged_get(
-            getter_fn, facet=facetids, publiceret="Publiceret", start=start, limit=limit
-        ),
-    )
-
-
 async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, int]]:
     """
     Return a list of primary classes, sorted by priority in the "scope" field
@@ -468,24 +431,6 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, in
     sorted_classes = sorted(parsed_classes, key=lambda x: x[1], reverse=True)
 
     return sorted_classes
-
-
-def map_query_args_to_class_details(args):
-    arg_map = {
-        "full_name": ClassDetails.FULL_NAME,
-        "top_level_facet": ClassDetails.TOP_LEVEL_FACET,
-        "facet": ClassDetails.FACET,
-    }
-
-    # If unknown args
-    if not set(args) <= set(arg_map):
-        exceptions.ErrorCodes.E_INVALID_INPUT(
-            f"Invalid args: {set(args) - set(arg_map)}"
-        )
-
-    mapped = set(map(arg_map.get, args))
-
-    return mapped
 
 
 class ClassRequestHandler(handlers.RequestHandler):
