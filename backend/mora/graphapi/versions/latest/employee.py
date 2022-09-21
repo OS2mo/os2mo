@@ -94,8 +94,34 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
 
 
 async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
+    if _is_update_changeset_empty(employee_update):
+        return EmployeeUpdateResponseType(uuid=employee_update.uuid)
+
     result = await handle_requests(
         employee_update.get_legacy_dict(), mapping.RequestType.EDIT
     )
 
+    try:
+        tst = UUID(result)
+    except Exception as e:
+        tap="test"
+
     return EmployeeUpdateResponseType(uuid=UUID(result))
+
+
+# Helper methods
+def _is_update_changeset_empty(employee_update: EmployeeUpdate):
+    if employee_update.name or employee_update.given_name or employee_update.surname:
+        return False
+
+    if (
+        employee_update.nickname
+        or employee_update.nickname_given_name
+        or employee_update.nickname_surname
+    ):
+        return False
+
+    if employee_update.seniority or employee_update.cpr_no:
+        return False
+
+    return True

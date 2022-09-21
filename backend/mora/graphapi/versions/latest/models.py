@@ -437,6 +437,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     name: Optional[str] = Field(
         None, description="New value for the name of the employee"
     )
+    # class EmployeeUpdate(UUIDBase):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
@@ -452,7 +453,6 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         'string does not match regex "^\\d{10}$"'
     )
 
-    # Fields
     name: Optional[str] = Field(None, description="something")
 
     given_name: Optional[str] = Field(
@@ -491,6 +491,13 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     @root_validator
     def validate_name_with_given_name_and_surname(cls, values: dict) -> dict:
         """Validate the model after set of fields."""
+        # Validate dates
+        model_from_date = values.get("from_date")
+        model_to_date = values.get("to_date")
+        if model_to_date:
+            if model_to_date < model_from_date:
+                raise ValueError("'to_date' must be after 'from_date'.")
+
         # Validate name-vars and nickname-vars
         if values.get("name") and (values.get("given_name") or values.get("surname")):
             raise ValueError(cls._ERR_INVALID_NAME)
@@ -510,8 +517,25 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         if self.to_date:
             validity_dict[mapping.FROM] = self.to_date.date().isoformat()
 
+        uuid_str = str(self.uuid)
+
+        # Configure user-key
+        user_key = uuid_str
+        if self.given_name:
+            user_key = (
+                f"{self.given_name}{self.surname}" if self.surname else self.given_name
+            )
+            user_key = user_key.lower()
+
+            if self.surname:
+                user_key = f"{self.given_name}{self.surname}".lower()
+            else:
+                user_key = self.given_name.lower()
+
+        # Create data dict
         data_dict = {
-            mapping.UUID: str(self.uuid),
+            mapping.UUID: uuid_str,
+            mapping.USER_KEY: user_key,
             mapping.VALIDITY: validity_dict,
         }
 

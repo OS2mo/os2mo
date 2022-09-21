@@ -10,6 +10,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 import mock
 import pytest
+from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
@@ -24,6 +25,7 @@ from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora import lora
 from mora import mapping
+from mora import util
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -877,6 +879,87 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         assert newest_update_value == value
 
 
+# @given(test_data=...)
+# @given(
+#     test_data=st.builds(EmployeeUpdate).filter(
+#         lambda model: model.from_date <= model.to_date if model.from_date and model.to_date else True
+#     ).filter(
+#         lambda model: not (model.name and (model.given_name or model.surname))
+#     ).filter(
+#         lambda model: not (
+#             model.nickname and (model.nickname_given_name or model.nickname_surname))
+#     )
+# )
+@given(st.data())
+@pytest.mark.serial
+@pytest.mark.usefixtures("sample_structures")
+async def test_update_integration_hypothesis(data):
+    valid_parents = [
+        UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+        UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
+        UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),
+        UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+    ]
+
+    model = data.draw(
+        st.builds(
+            EmployeeUpdate,
+            uuid=st.sampled_from(valid_parents),
+            from_date=st.datetimes(
+                min_value=datetime.datetime(1930, 1, 1),
+                timezones=st.timezones(),
+                allow_imaginary=False,
+            ),
+
+            # to_date=st.datetimes(
+            #     min_value=datetime.datetime(1930, 1, 1),
+            #     timezones=st.timezones(),
+            #     allow_imaginary=False,
+            # ) | st.none(),
+
+            # name=st.text() | st.none(),
+            # given_name=st.text() | st.none(),
+            # surname=st.text() | st.none(),
+            #
+            # nickname=st.text() | st.none(),
+            # nickname_given_name=st.text() | st.none(),
+            # nickname_surname=st.text() | st.none(),
+            #
+            # seniority=st.text() | st.none(),
+            # cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
+        ).filter(
+            lambda model: model.from_date <= model.to_date
+            if model.from_date and model.to_date
+            else True
+        )
+        .filter(lambda model: not (model.name and (model.given_name or model.surname)))
+        .filter(
+            lambda model: not (
+                model.nickname and (model.nickname_given_name or model.nickname_surname)
+            )
+        )
+    )
+
+    mutate_query = """
+            mutation($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+
+    if model.name:
+        tap="test"
+
+    payload = jsonable_encoder(model)
+    response = await LatestGraphQLSchema.get().execute(
+        mutate_query, variable_values={"input": payload}
+    )
+
+    assert response.errors is None
+    assert response.data == {"employee_update": {"uuid": str(model.uuid)}}
+
+
 # --------------------------------------------------------------------------------------
 # Helper methods
 # --------------------------------------------------------------------------------------
@@ -903,7 +986,7 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
     IMPORTANT: lora-employee attributes & relations are lists of objects with all
     attributes, which all have a "from" and "to", to specify if "the set of attributes"
     is active. The way this method finds the active ones are just by looking for an
-    object where "to" is set to the string: "infinity".
+    object where "to" is set to the string: "infinity".>
     """
     # Find expansion by finding the one where to==infinity
     employee_expansions = lora_employee.get("attributter", {}).get(
