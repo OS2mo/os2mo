@@ -447,7 +447,9 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         '"nickname_given_name" & "nickname_surname" are None.'
     )
     _ERR_INVALID_CPR = (
-        "EmployeeUpdate.cpr_no must be a digits-string with the format: 0000000000"
+        # OBS: This have been created based on the GraphQLError the type "CprNo"
+        # generates, if the value is invalid.
+        'string does not match regex "^\\d{10}$"'
     )
 
     # Fields

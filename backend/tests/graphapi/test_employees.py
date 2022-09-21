@@ -689,24 +689,13 @@ async def test_update_mutator(
         expected_exception = e
 
     # GraphQL
-    mutation_func = "employee_update"
-    query = (
-        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
-        "$givenName: String, $surName: String, $nickname: String, "
-        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
-        "$cprNo: String) {"
-        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
-        "nickname_given_name: $nicknameGivenName, "
-        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
-        "{ uuid }"
-        "}"
-    )
-
     with patch(
         "mora.graphapi.versions.latest.mutators.employee_update"
     ) as mock_employee_update:
         mock_employee_update.return_value = EmployeeUpdateResponseType(uuid=given_uuid)
+
+        mutation_func = "employee_update"
+        query = _get_employee_update_mutation_query(mutation_func)
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
@@ -733,25 +722,25 @@ async def test_update_mutator(
 @pytest.mark.parametrize(
     "given_expected_err_str,given_mutator_args",
     [
-        # (
-        #     EmployeeUpdate._ERR_INVALID_NAME,
-        #     {
-        #         "name": "TestMan Duke",
-        #         "givenName": "TestMan",
-        #         "surName": "Duke",
-        #     },
-        # ),
-        # (
-        #     EmployeeUpdate._ERR_INVALID_NICKNAME,
-        #     {
-        #         "nickname": "Test Lord",
-        #         "nicknameGivenName": "Test",
-        #         "nicknameSurName": "Lord",
-        #     },
-        # ),
+        (
+            EmployeeUpdate._ERR_INVALID_NAME,
+            {
+                "name": "TestMan Duke",
+                "givenName": "TestMan",
+                "surName": "Duke",
+            },
+        ),
+        (
+            EmployeeUpdate._ERR_INVALID_NICKNAME,
+            {
+                "nickname": "Test Lord",
+                "nicknameGivenName": "Test",
+                "nicknameSurName": "Lord",
+            },
+        ),
         (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": ""}),
-        # (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "00112233445"}),
-        # (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001122334"}),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "00112233445"}),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001122334"}),
     ],
 )
 async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
@@ -885,19 +874,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 
     # Run the query
     mutation_func = "employee_update"
-    query = (
-        "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
-        "$givenName: String, $surName: String, $nickname: String, "
-        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
-        "$cprNo: String) {"
-        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
-        "nickname_given_name: $nicknameGivenName, "
-        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
-        "{ uuid }"
-        "}"
-    )
-
+    query = _get_employee_update_mutation_query(mutation_func)
     _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
 
     # Fetch employee from LoRa
@@ -925,9 +902,9 @@ def _get_employee_update_mutation_query(mutation_func: str):
         "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
         "$cprNo: String) {"
         f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-        "given_name: $givenName, sur_name: $surName, nickname: $nickname, "
+        "given_name: $givenName, surname: $surName, nickname: $nickname, "
         "nickname_given_name: $nicknameGivenName, "
-        "nickname_sur_name: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
+        "nickname_surname: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
         "{ uuid }"
         "}"
     )
