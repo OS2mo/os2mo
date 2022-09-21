@@ -57,6 +57,7 @@ class OrganisationUnit(LatestOrganisationUnit):
             """,
             graphql_version=GraphQLVersion2,
             variable_values={"uuid": str(root.parent_uuid)},
+            context_value=info.context,
         )
         org_units: list[dict] = response.data["org_units"]
         org_unit = only(org_units)
