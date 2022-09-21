@@ -9,11 +9,6 @@ from prometheus_fastapi_instrumentator.metrics import default
 from prometheus_fastapi_instrumentator.metrics import Info as InstInfo
 
 from .config import get_settings
-from mora.graphapi.versions.latest.health import amqp
-from mora.graphapi.versions.latest.health import dar
-from mora.graphapi.versions.latest.health import dataset
-from mora.graphapi.versions.latest.health import keycloak
-from mora.graphapi.versions.latest.health import oio_rest
 
 
 def setup_metrics(app):
@@ -25,14 +20,6 @@ def setup_metrics(app):
     # Never changes
     instrumentator.add(os2mo_version())
     instrumentator.add(amqp_enabled())
-
-    # Could change periodically
-    # if get_settings().amqp_enable:
-    #     instrumentator.add(amqp_health())
-    # instrumentator.add(oio_rest_health())
-    # instrumentator.add(dataset_health())
-    # instrumentator.add(dar_health())
-    # instrumentator.add(keycloak_health())
 
     instrumentator.instrument(app).expose(app)
 
@@ -55,68 +42,5 @@ def amqp_enabled() -> Callable[[InstInfo], None]:
 
     def instrumentation(_: InstInfo):
         METRIC.set(get_settings().amqp_enable)
-
-    return instrumentation
-
-
-def amqp_health() -> Callable[[InstInfo], None]:
-    """Check if AMQP connection is open.
-
-    Updates metric with `True` if open. `False` if not open or an error occurs.
-    Doesn't run if AMQP support is disabled.
-    """
-    METRIC = Gauge("amqp_health", "AMQP health")
-
-    async def instrumentation(_: InstInfo) -> None:
-        METRIC.set(await amqp())
-
-    return instrumentation
-
-
-def oio_rest_health() -> Callable[[InstInfo], None]:
-    """Check if the configured oio_rest can be reached
-    True if reachable. False if not
-    """
-    METRIC = Gauge("oio_rest_health", "OIO REST health")
-
-    async def instrumentation(_: InstInfo) -> None:
-        METRIC.set(await oio_rest())
-
-    return instrumentation
-
-
-def dataset_health() -> Callable[[InstInfo], None]:
-    """Check if LoRa contains data. We check this by determining if an organisation
-    exists in the system
-    True if data. False if not.
-    """
-    METRIC = Gauge("dataset_health", "Dataset health")
-
-    async def instrumentation(_: InstInfo):
-        METRIC.set(await dataset())
-
-    return instrumentation
-
-
-def dar_health() -> Callable[[InstInfo], None]:
-    """Check whether DAR can be reached
-    True if reachable. False if not.
-    """
-    METRIC = Gauge("dar_health", "DAR health")
-
-    async def instrumentation(_: InstInfo):
-        METRIC.set(await dar())
-
-    return instrumentation
-
-
-def keycloak_health() -> Callable[[InstInfo], None]:
-    """Check whether Keycloak can be reached
-    True if reachable. False if not.
-    """
-    METRIC = Gauge("keycloak_health", "Keycloak health")
-
-    async def instrumentation(_: InstInfo):
-        METRIC.set(await keycloak())
 
     return instrumentation
