@@ -9,8 +9,6 @@ This section describes how to interact with IT systems.
 """
 from operator import itemgetter
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -38,12 +36,12 @@ router = APIRouter()
 
 logger = get_logger()
 
-MO_OBJ_TYPE = Dict[str, Any]
+MO_OBJ_TYPE = dict[str, Any]
 
 
 class _ITUserGroupValidation(GroupValidation):
     @classmethod
-    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
         return [
             {
                 "uuid": util.get_uuid(mo_object, required=False),

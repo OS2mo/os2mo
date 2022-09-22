@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import abc
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import Union
 
 from ... import common
@@ -114,7 +112,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
             properties.append({"objekttype": "synlighed", "uuid": self.visibility})
         return properties
 
-    def get_lora_address(self) -> Union[List[Dict[str, str]], Dict[str, str]]:
+    def get_lora_address(self) -> Union[list[dict[str, str]], dict[str, str]]:
         """
         Get a LoRa object fragment for the address
 
@@ -132,7 +130,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     async def __get_mo_properties(
         self, only_primary_uuid: bool = False
-    ) -> Dict[Any, Any]:
+    ) -> dict[Any, Any]:
         """
         Get a MO object fragment for the properties.
 
@@ -163,7 +161,7 @@ class AddressHandler(metaclass=_AddressHandlerMeta):
 
     async def get_mo_address_and_properties(
         self, only_primary_uuid: bool = False
-    ) -> Dict[Any, Any]:
+    ) -> dict[Any, Any]:
         """
         Get a MO object fragment for the address, including any eventual
         properties

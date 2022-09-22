@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
 from typing import Any
-from typing import Dict
 
 from structlog import get_logger
 
@@ -19,7 +18,7 @@ ROLE_TYPE = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
 logger = get_logger()
 
-MO_OBJ_TYPE = Dict[str, Any]
+MO_OBJ_TYPE = dict[str, Any]
 
 
 @reading.register(ROLE_TYPE)

@@ -47,9 +47,9 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     def extract_info_owner_info(
         self, req
     ) -> Tuple[
-        Optional[Dict[str, Any]],
-        Optional[Dict[str, Any]],
-        Optional[Dict[str, Any]],
+        Optional[dict[str, Any]],
+        Optional[dict[str, Any]],
+        Optional[dict[str, Any]],
         Optional[str],
         Optional[str],
         Optional[str],
@@ -108,8 +108,8 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     def calc_triggers(
         owned_person_uuid: Optional[str],
         org_unit_uuid: Optional[str],
-        req: Dict[str, Any],
-    ) -> Dict[str, str]:
+        req: dict[str, Any],
+    ) -> dict[str, str]:
         """
         Determine what to trigger
         :param owned_person_uuid: candidate owned_person_uuid
@@ -128,9 +128,9 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     async def validate(
         validity_from: datetime,
         validity_to: datetime,
-        org_unit: Optional[Dict[str, Any]],
-        owned_person: Optional[Dict[str, Any]],
-        owner: Optional[Dict[str, Any]],
+        org_unit: Optional[dict[str, Any]],
+        owned_person: Optional[dict[str, Any]],
+        owner: Optional[dict[str, Any]],
     ):
         """
         validate parsed input - raise on error

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import asynccontextmanager
 from typing import Any
-from typing import Dict
 from typing import Optional
 
 from more_itertools import one
@@ -12,7 +11,7 @@ from mora.lora import Connector
 from mora.lora import filter_registrations
 from mora.lora import LoraObjectType
 
-LORA_OBJ = Dict[Any, Any]
+LORA_OBJ = dict[Any, Any]
 UUID = str
 
 

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
 from typing import Any
-from typing import Dict
 from typing import Iterable
 from typing import Optional
 from typing import Sequence
@@ -49,7 +48,7 @@ class BaseGraphQLSchema:
     config: Optional[StrawberryConfig] = StrawberryConfig(auto_camel_case=False)
 
     scalar_overrides: Optional[
-        Dict[object, Union[ScalarWrapper, ScalarDefinition]]
+        dict[object, Union[ScalarWrapper, ScalarDefinition]]
     ] = None
 
     @classmethod

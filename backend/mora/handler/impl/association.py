@@ -5,9 +5,7 @@ from asyncio import gather
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from typing import Dict
 from typing import Iterable
-from typing import List
 from typing import Optional
 
 from more_itertools import only
@@ -27,7 +25,7 @@ from mora import exceptions
 
 ROLE_TYPE = "association"
 SUBSTITUTE_ASSOCIATION = {"name": "i18n:substitute_association"}
-MO_OBJ_TYPE = Dict[str, Any]
+MO_OBJ_TYPE = dict[str, Any]
 
 logger = get_logger()
 
@@ -154,7 +152,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     @staticmethod
     async def __dynamic_classes_helper(
         classes: Iterable[str], only_primary_uuid: bool = False
-    ) -> List[MO_OBJ_TYPE]:
+    ) -> list[MO_OBJ_TYPE]:
         """
         helper, is an awaitable, that will gather a bunch of classes in a list
         :param classes:

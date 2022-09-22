@@ -93,7 +93,7 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
         kwargs (Any): Additional query arguments passed to LoRa.
 
     Returns:
-        List[MOModel]: List of parsed MO models.
+        list[MOModel]: List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
@@ -114,7 +114,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
         model (MOModel): The MO model to parse into.
 
     Returns:
-        List[Optional[MOModel]]: List of parsed MO models.
+        list[MOModel | None]: List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
@@ -166,7 +166,7 @@ async def get_itsystems(**kwargs: Any) -> list[ITSystemRead]:
     return list(mo_models)
 
 
-async def load_itsystems(uuids: list[UUID]) -> list[Optional[ITSystemRead]]:
+async def load_itsystems(uuids: list[UUID]) -> list[ITSystemRead | None]:
     c = get_connector()
     lora_result = await c.itsystem.get_all_by_uuid(uuids)
     mo_models = lora_itsystem_to_mo_itsystem(lora_result)
@@ -215,14 +215,14 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
     return list(mo_models)
 
 
-async def load_classes(uuids: list[UUID]) -> list[Optional[ClassRead]]:
+async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
     """Load MO models from LoRa by UUID.
 
     Args:
         uuids (List[UUID]): UUIDs to load.
 
     Returns:
-        List[Optional[ClassRead]]: List of parsed MO classes.
+        list[ClassRead | None]: List of parsed MO classes.
     """
     c = get_connector()
     lora_result = await c.klasse.get_all_by_uuid(uuids)
@@ -278,14 +278,14 @@ async def get_facets(**kwargs: Any) -> list[FacetRead]:
     return list(mo_models)
 
 
-async def load_facets(uuids: list[UUID]) -> list[Optional[FacetRead]]:
+async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     """Load MO models from LoRa by UUID.
 
     Args:
         uuids (List[UUID]): UUIDs to load.
 
     Returns:
-        List[Optional[FacetRead]]: List of parsed MO facets.
+        list[FacetRead | None]: List of parsed MO facets.
     """
     c = get_connector()
     lora_result = await c.facet.get_all_by_uuid(uuids)

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -43,19 +42,19 @@ class ITSystem(LoraBase):
         name: Optional[str] = None,
         note: Optional[str] = None,
         type: Optional[str] = None,
-        configuration_ref: Optional[List[str]] = None,
+        configuration_ref: Optional[list[str]] = None,
         # Relation
         belongs_to: Optional[UUID] = None,
-        affiliated_orgs: Optional[List[UUID]] = None,
-        affiliated_units: Optional[List[UUID]] = None,
-        affiliated_functions: Optional[List[UUID]] = None,
-        affiliated_users: Optional[List[UUID]] = None,
-        affiliated_interests: Optional[List[UUID]] = None,
-        affiliated_itsystems: Optional[List[UUID]] = None,
-        affiliated_persons: Optional[List[UUID]] = None,
-        addresses: Optional[List[UUID]] = None,
-        system_types: Optional[List[UUID]] = None,
-        tasks: Optional[List[UUID]] = None,
+        affiliated_orgs: Optional[list[UUID]] = None,
+        affiliated_units: Optional[list[UUID]] = None,
+        affiliated_functions: Optional[list[UUID]] = None,
+        affiliated_users: Optional[list[UUID]] = None,
+        affiliated_interests: Optional[list[UUID]] = None,
+        affiliated_itsystems: Optional[list[UUID]] = None,
+        affiliated_persons: Optional[list[UUID]] = None,
+        addresses: Optional[list[UUID]] = None,
+        system_types: Optional[list[UUID]] = None,
+        tasks: Optional[list[UUID]] = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "ITSystem":

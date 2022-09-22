@@ -4,7 +4,6 @@
 # It assumes that the underlying LoRa database contains the MO extensions
 # defined in `mo-01.json`. Thus, it cannot be used with a basic LoRa database
 # where the MO extensions have not been installed.
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -48,7 +47,7 @@ def execute_query(query, limit=1000, **kwargs):
         return rows
 
 
-def find_users_matching(phrase: str, class_uuids: Optional[List[UUID]] = None):
+def find_users_matching(phrase: str, class_uuids: Optional[list[UUID]] = None):
     """Search for users matching `phrase`, returning a list of database rows
     with `uuid` and `name` attributes."""
 
@@ -195,7 +194,7 @@ def find_users_matching(phrase: str, class_uuids: Optional[List[UUID]] = None):
     return execute_query(decorated_hits, phrase=phrase)
 
 
-def find_org_units_matching(phrase: str, class_uuids: Optional[List[UUID]] = None):
+def find_org_units_matching(phrase: str, class_uuids: Optional[list[UUID]] = None):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
 

@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -29,7 +28,7 @@ class KLERead(KLEBase):
     """A MO KLERead object."""
 
     kle_number_uuid: UUID = Field(description="UUID of the KLE number.")
-    kle_aspect_uuids: List[UUID] = Field(description="List of UUIDs of the KLE aspect.")
+    kle_aspect_uuids: list[UUID] = Field(description="List of UUIDs of the KLE aspect.")
     org_unit_uuid: Optional[UUID] = Field(
         description="UUID of the organisation unit related to the KLE."
     )
@@ -39,7 +38,7 @@ class KLEWrite(KLEBase):
     """A MO KLEWrite object."""
 
     kle_number: KLENumberRef = Field(description="Reference to the KLE number klasse.")
-    kle_aspects: List[KLEAspectRef] = Field(
+    kle_aspects: list[KLEAspectRef] = Field(
         description="List of references to the KLE aspect klasse."
     )
     org_unit: Optional[OrgUnitRef] = Field(
@@ -55,7 +54,7 @@ class KLE(KLEBase):
     """Service API-compatible model with singular `kle_aspect`."""
 
     kle_number: KLENumberRef = Field(description="Reference to the KLE number klasse.")
-    kle_aspect: List[KLEAspectRef] = Field(
+    kle_aspect: list[KLEAspectRef] = Field(
         description="List of references to the KLE aspect klasse."
     )
     org_unit: Optional[OrgUnitRef] = Field(

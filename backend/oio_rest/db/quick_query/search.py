@@ -3,9 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict
-from typing import List
 from typing import Optional
-from typing import Tuple
 from typing import Union
 
 from more_itertools import flatten
@@ -113,10 +111,10 @@ class SearchQueryBuilder:
         )
 
         # core-containers
-        self.__conditions: List[str] = []
-        self.__relations: List[Relation] = []
-        self.__relation_conditions: List[str] = []
-        self.__inner_join_tables: List[str] = []
+        self.__conditions: list[str] = []
+        self.__relations: list[Relation] = []
+        self.__relation_conditions: list[str] = []
+        self.__inner_join_tables: list[str] = []
 
         # eagerly create statement-parts
         self.__reg_table = f"{self.__class_name}_{REG}"
@@ -135,7 +133,7 @@ class SearchQueryBuilder:
     @staticmethod
     def __validate_ts_range(
         start: Union[datetime, str], end: Union[datetime, str]
-    ) -> Tuple[InfiniteDatetime, InfiniteDatetime]:
+    ) -> tuple[InfiniteDatetime, InfiniteDatetime]:
         """
         a defensive (type) validation and conversion
         :param start: (candidate) start of range
@@ -437,7 +435,7 @@ def quick_search(
     any_rel_uuid_arr=None,
     first_result=None,
     max_results=None,
-) -> Tuple[List[str]]:
+) -> tuple[list[str]]:
     """
     (partial) Implementation of MOX search api against LoRa.
     Returns results (uuids) from LoRa.

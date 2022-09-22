@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import List
 from uuid import UUID
 
 from pydantic import Field
@@ -20,7 +19,7 @@ class RelatedUnitBase(MOBase):
 class RelatedUnitRead(RelatedUnitBase):
     """A MO RelatedUnitRead object."""
 
-    org_unit_uuids: List[UUID] = Field(
+    org_unit_uuids: list[UUID] = Field(
         description="UUIDs of the related organisation units."
     )
 
@@ -28,6 +27,6 @@ class RelatedUnitRead(RelatedUnitBase):
 class RelatedUnitWrite(RelatedUnitBase):
     """A MO RelatedUnitWrite object."""
 
-    org_units: List[OrgUnitRef] = Field(
+    org_units: list[OrgUnitRef] = Field(
         description="List of references of the related the organisation units."
     )

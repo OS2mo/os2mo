@@ -5,7 +5,6 @@ from enum import Enum
 from functools import lru_cache
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Optional
 
 from pydantic import AnyHttpUrl
@@ -77,14 +76,14 @@ class Settings(BaseSettings):
     environment: Environment = Environment.PRODUCTION
     os2mo_log_level: str = "WARNING"
     enable_cors: bool = False
-    navlinks: List[NavLink] = []
+    navlinks: list[NavLink] = []
 
     # File Store settings
     file_storage: str = "noop"
     filesystem_settings: Optional[FileSystemSettings] = None
 
     @root_validator
-    def check_filesystem_settings(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_filesystem_settings(cls, values: dict[str, Any]) -> Dict[str, Any]:
         if values.get("file_storage") != "filesystem":
             return values
 
@@ -101,7 +100,7 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
 
     @root_validator
-    def graphql_rbac_dependencies(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> Dict[str, Any]:
         if not values["graphql_rbac"]:
             return values
 
@@ -144,7 +143,7 @@ class Settings(BaseSettings):
     graphiql_enable: bool = False
 
     # HTTP Trigger settings
-    http_endpoints: Optional[List[str]]
+    http_endpoints: Optional[list[str]]
     fetch_trigger_timeout: int = 5
     run_trigger_timeout: int = 5
 
@@ -158,7 +157,7 @@ class Settings(BaseSettings):
     sp_settings: Optional[ServicePlatformenSettings] = None
 
     @root_validator
-    def check_sp_configuration(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_sp_configuration(cls, values: dict[str, Any]) -> Dict[str, Any]:
         # If SP is not enabled, no reason to check configuration
         if not values.get("enable_sp"):
             return values
@@ -192,8 +191,8 @@ class Settings(BaseSettings):
 
     @root_validator
     def show_owners_must_be_true_if_rbac_is_enabled(
-        cls, values: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
         if values["keycloak_rbac_enabled"]:
             if not values["confdb_show_owner"]:
                 raise ValueError(
@@ -231,10 +230,10 @@ class Settings(BaseSettings):
     confdb_autocomplete_use_new_api: bool = False
     # List of class UUIDs whose title and value will be displayed for each
     # matching employee.
-    confdb_autocomplete_attrs_employee: Optional[List[UUID]]
+    confdb_autocomplete_attrs_employee: Optional[list[UUID]]
     # List of class UUIDs whose title and value will be displayed for each
     # matching organisation unit.
-    confdb_autocomplete_attrs_orgunit: Optional[List[UUID]]
+    confdb_autocomplete_attrs_orgunit: Optional[list[UUID]]
 
     # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
     cpr_validate_birthdate: bool = True

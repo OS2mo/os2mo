@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import List
-from typing import Set
 from uuid import UUID
 
 from more_itertools import flatten
@@ -19,14 +17,14 @@ from mora.mapping import UUID as UUID_KEY
 logger = get_logger()
 
 
-async def get_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
+async def get_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     logger.debug("get_owners called")
     if entity_type == EntityType.ORG_UNIT:
         return await get_ancestor_owners(uuid)
     return await _get_entity_owners(uuid, EntityType.EMPLOYEE)
 
 
-async def get_ancestor_owners(uuid: UUID) -> Set[UUID]:
+async def get_ancestor_owners(uuid: UUID) -> set[UUID]:
     """
     Get the owners of an org unit and all of its ancestors. For example, if
     UnitA (with owner A) is a parent of UnitB (with owner B) which is a parent
@@ -51,7 +49,7 @@ async def get_ancestor_owners(uuid: UUID) -> Set[UUID]:
     return ancestor_owners
 
 
-async def _get_ancestors(uuid: UUID) -> List[dict]:
+async def _get_ancestors(uuid: UUID) -> list[dict]:
     """
     Get org unit ancestor tree from LoRa.
 
@@ -101,7 +99,7 @@ async def _get_ancestors(uuid: UUID) -> List[dict]:
     return await mora.service.orgunit.get_unit_tree(c, [str(uuid)], with_siblings=False)
 
 
-async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> Set[UUID]:
+async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     """
     Get the UUID of the owner of an entity (org unit or employee)
 

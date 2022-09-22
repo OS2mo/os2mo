@@ -36,7 +36,7 @@ def name_from_dar_object(address_object) -> str:
     return "".join(DARAddressHandler._address_string_chunks(address_object))
 
 
-async def load_addresses(keys: List[UUID]) -> List[Optional[dict]]:
+async def load_addresses(keys: list[UUID]) -> List[dict | None]:
     adarclient = AsyncDARClient(timeout=120)
     async with adarclient:
         try:

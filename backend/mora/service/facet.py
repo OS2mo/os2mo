@@ -20,11 +20,8 @@ from asyncio import create_task
 from asyncio import gather
 from typing import Any
 from typing import Awaitable
-from typing import Dict
 from typing import List
 from typing import Optional
-from typing import Set
-from typing import Tuple
 from uuid import UUID
 from uuid import uuid4
 
@@ -45,7 +42,7 @@ from ramodels.mo.class_ import ClassWrite
 
 router = APIRouter()
 
-MO_OBJ_TYPE = Dict[str, Any]
+MO_OBJ_TYPE = dict[str, Any]
 
 
 @enum.unique
@@ -68,7 +65,7 @@ FULL_DETAILS = {
 @router.get("/c/ancestor-tree")
 # @util.restrictargs('at', 'uuid')
 async def get_class_ancestor_tree(
-    uuid: Optional[List[UUID]] = None, only_primary_uuid: Optional[bool] = None
+    uuid: Optional[list[UUID]] = None, only_primary_uuid: Optional[bool] = None
 ):
     """Obtain the tree of ancestors for the given classes.
 
@@ -220,7 +217,7 @@ async def count_class_children(c, parent_uuid):
 
 async def __get_class_from_cache(
     classid: str,
-    details: Optional[Set[ClassDetails]] = None,
+    details: Optional[set[ClassDetails]] = None,
     only_primary_uuid: bool = False,
 ) -> MO_OBJ_TYPE:
     """
@@ -245,7 +242,7 @@ async def __get_class_from_cache(
 
 async def request_bulked_get_one_class(
     classid: str,
-    details: Optional[Set[ClassDetails]] = None,
+    details: Optional[set[ClassDetails]] = None,
     only_primary_uuid: bool = False,
 ) -> Awaitable[MO_OBJ_TYPE]:
     """
@@ -280,7 +277,7 @@ async def get_one_class(
     c: lora.Connector,
     classid,
     clazz=None,
-    details: Optional[Set[ClassDetails]] = None,
+    details: Optional[set[ClassDetails]] = None,
     only_primary_uuid: bool = False,
 ) -> MO_OBJ_TYPE:
     if not details:
@@ -401,7 +398,7 @@ async def get_facetids(facet: str):
     return facetids
 
 
-async def get_sorted_primary_class_list(c: lora.Connector) -> List[Tuple[str, int]]:
+async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, int]]:
     """
     Return a list of primary classes, sorted by priority in the "scope" field
 

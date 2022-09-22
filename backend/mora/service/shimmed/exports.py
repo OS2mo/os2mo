@@ -3,7 +3,6 @@
 from base64 import b64decode
 from operator import itemgetter
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -138,7 +137,7 @@ async def download_export_file(
     if not files:
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
     try:
-        file: Dict[str, Any] = one(files)
+        file: dict[str, Any] = one(files)
     except ValueError as err:
         raise ValueError("Wrong number of files returned, expected one.") from err
     content = file["base64_contents"]

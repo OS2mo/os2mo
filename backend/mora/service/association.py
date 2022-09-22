@@ -10,8 +10,6 @@ This section describes how to interact with employee associations.
 import uuid
 from operator import itemgetter
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import TYPE_CHECKING
 
 from structlog import get_logger
@@ -39,7 +37,7 @@ logger = get_logger()
 
 class _ITAssociationGroupValidation(GroupValidation):
     @classmethod
-    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
         async def get_validation_item(mo_object: dict, it_user: dict):
             return {
                 "uuid": util.get_uuid(mo_object),
@@ -105,7 +103,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
         else:
             return False
 
-    async def prepare_create(self, req: Dict[Any, Any]):
+    async def prepare_create(self, req: dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
@@ -199,7 +197,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    async def prepare_edit(self, req: Dict[Any, Any]):
+    async def prepare_edit(self, req: dict[Any, Any]):
         """
         To edit into a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
@@ -388,7 +386,7 @@ class AssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    async def prepare_terminate(self, request: Dict[Any, Any]):
+    async def prepare_terminate(self, request: dict[Any, Any]):
         """Initialize a 'termination' request. Performs validation and all
         necessary processing
 

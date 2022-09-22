@@ -10,7 +10,6 @@ from itertools import starmap
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
-from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
@@ -32,7 +31,7 @@ from mora.service.insight import router as insight_router
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
 )
-async def get_insight_filenames() -> List[str]:
+async def get_insight_filenames() -> list[str]:
     """Lists all available files."""
     query = "query FilesQuery { files(file_store: INSIGHT) { file_name } }"
     gql_response = await execute_graphql(query)
@@ -49,7 +48,7 @@ class Insight(BaseModel):
     """
 
     title: str
-    data: List[Union[int, str]]
+    data: list[Union[int, str]]
 
     class Config:
         frozen = True
@@ -58,7 +57,7 @@ class Insight(BaseModel):
 
 
 @insight_router.get("/insight")
-async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insight]:
+async def get_insight_data(q: Optional[list[str]] = Query(["all"])) -> list[Insight]:
     """Loads data from a directory of JSONs and returns it as a list.
 
     Args:
@@ -93,7 +92,7 @@ async def get_insight_data(q: Optional[List[str]] = Query(["all"])) -> List[Insi
     return list(jsons)
 
 
-def json_to_csv(json_data: Dict[str, Any], fieldnames: List[str]) -> StringIO:
+def json_to_csv(json_data: dict[str, Any], fieldnames: list[str]) -> StringIO:
     output = StringIO()
 
     writer = csv.DictWriter(output, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
@@ -103,7 +102,7 @@ def json_to_csv(json_data: Dict[str, Any], fieldnames: List[str]) -> StringIO:
     return output
 
 
-def extract_fieldnames(json_data: Dict[str, Any]) -> List[str]:
+def extract_fieldnames(json_data: dict[str, Any]) -> list[str]:
     return [field["name"] for field in json_data["schema"]["fields"]]
 
 

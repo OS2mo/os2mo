@@ -3,9 +3,7 @@
 import asyncio
 import functools
 import re
-from typing import List
 from typing import Optional
-from typing import Set
 from uuid import UUID
 
 from fastapi import Request
@@ -72,7 +70,7 @@ def return_value_logger(coro):
     return wrapper
 
 
-def get_ancestor_uuids(tree: List[dict]) -> Set[UUID]:
+def get_ancestor_uuids(tree: list[dict]) -> set[UUID]:
     """
     Recursively extract org unit UUIDs from org unit ancestor tree.
 
@@ -99,7 +97,7 @@ def get_ancestor_uuids(tree: List[dict]) -> Set[UUID]:
 # corresponding org units
 
 
-async def get_entity_uuids(request: Request) -> Set[UUID]:
+async def get_entity_uuids(request: Request) -> set[UUID]:
     # State like pattern - choose appropriate UUID extraction strategy based
     # on the URL path of the incoming request
     """
@@ -129,7 +127,7 @@ async def get_entity_uuids(request: Request) -> Set[UUID]:
     return await json_extract_strategy(request)
 
 
-async def create_ou_extract_strategy(request: Request) -> Set[UUID]:
+async def create_ou_extract_strategy(request: Request) -> set[UUID]:
     # Strategy pattern
     """
     Extract org unit UUID from the request payload when creating a new
@@ -150,7 +148,7 @@ async def create_ou_extract_strategy(request: Request) -> Set[UUID]:
     return {UUID(uuid)}
 
 
-def path_extract_strategy(request: Request) -> Set[UUID]:
+def path_extract_strategy(request: Request) -> set[UUID]:
     # Strategy pattern
     """
     Extract org unit UUID from the request path.
@@ -164,7 +162,7 @@ def path_extract_strategy(request: Request) -> Set[UUID]:
     return {UUID(request.path_params.get(UUID_KEY))}
 
 
-async def terminate_detail_extract_strategy(request: Request) -> Set[UUID]:
+async def terminate_detail_extract_strategy(request: Request) -> set[UUID]:
     # Strategy pattern
     """
     Extract org unit UUID from the request payload when terminating an
@@ -199,7 +197,7 @@ async def terminate_detail_extract_strategy(request: Request) -> Set[UUID]:
     return {UUID(employee_uuid)}
 
 
-async def json_extract_strategy(request: Request) -> Set[UUID]:
+async def json_extract_strategy(request: Request) -> set[UUID]:
     # Strategy pattern
     """
     Extract org unit UUID from the request payload when creating, editing,

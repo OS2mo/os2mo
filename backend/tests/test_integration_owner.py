@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import Dict
-from typing import List
 from typing import Literal
 from typing import Optional
 from typing import Union
@@ -98,7 +96,7 @@ def simplified_owner(
     from_date: str = "2017-01-01",
     to_date: Optional[str] = None,
     as_json: bool = True,
-) -> Union[Owner, Dict[str, Any]]:
+) -> Union[Owner, dict[str, Any]]:
     """
     human-friendly helper function: creates an owner object, either as the
     model object, or directly as json-friendly dict
@@ -132,10 +130,10 @@ def simplified_owner(
 class OwnerOrgUnitTestCase(LoRATestCase):
     def create_helper(
         self,
-        jsonified_owner: Dict[str, Any],
+        jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_org_unit: UUID = top_level_ou,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
 
@@ -354,10 +352,10 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
 class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
     async def create_helper(
         self,
-        jsonified_owner: Dict[str, Any],
+        jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_person: UUID = person1,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
 
@@ -386,10 +384,10 @@ class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
 class OwnerPersonTestCase(LoRATestCase):
     def create_helper(
         self,
-        jsonified_owner: Dict[str, Any],
+        jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_person: UUID = person1,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
 
@@ -528,9 +526,9 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
 
     async def create_helper(
         self,
-        jsonified_owner: Dict[str, Any],
+        jsonified_owner: dict[str, Any],
         create_status_code: int,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
 
@@ -687,11 +685,11 @@ class OwnerEditCase(OwnerPersonTestCase):
 
     def edit_helper(
         self,
-        jsonified_owner: Dict[str, Any],
+        jsonified_owner: dict[str, Any],
         edit_status_code: int,
         verifying_type: str,
         verifying_obj_uuid: UUID,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
 
@@ -724,7 +722,7 @@ class OwnerEditCase(OwnerPersonTestCase):
         terminate_status_code: int,
         verifying_type: str,
         verifying_obj_uuid: UUID,
-        verifying_response: Optional[List[Dict[str, Any]]] = None,
+        verifying_response: Optional[list[dict[str, Any]]] = None,
     ):
         """
         :param terminate_func_uuid: uuid of func to terminate

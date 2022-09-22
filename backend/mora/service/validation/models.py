@@ -7,7 +7,6 @@ from itertools import chain
 from operator import itemgetter
 from typing import Callable
 from typing import Iterable
-from typing import List
 from typing import TYPE_CHECKING
 
 from more_itertools import flatten
@@ -40,7 +39,7 @@ class GroupValidation:
         return cls(await cls._get_filtered_validation_items(mo_objects))
 
     @classmethod
-    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> List[dict]:
+    async def get_validation_items_from_mo_object(cls, mo_object: dict) -> list[dict]:
         """Given a `MO object`, return a list of zero or more "validation items" that
         are relevant to this group validation.
         Must be implemented by subclasses of `GroupValidation`.

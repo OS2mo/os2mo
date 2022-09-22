@@ -80,7 +80,7 @@ async def create_lora_client(app: Optional[FastAPI] = None) -> httpx.AsyncClient
 client = None
 
 
-def registration_changed_since(reg: Dict[str, Any], since: datetime) -> bool:
+def registration_changed_since(reg: dict[str, Any], since: datetime) -> bool:
     from_time = reg.get("fratidspunkt", {}).get("tidsstempeldatotid", None)
     if from_time is None:
         raise ValueError(f"unexpected reg: {reg}")
@@ -96,10 +96,10 @@ def registration_changed_since(reg: Dict[str, Any], since: datetime) -> bool:
 
 
 def filter_registrations(
-    response: List[Dict[str, Any]],
+    response: list[dict[str, Any]],
     wantregs: bool,
     changed_since: Optional[datetime] = None,
-) -> Iterable[Tuple[str, Union[List[Dict[str, Any]], Dict[str, Any]]]]:
+) -> Iterable[tuple[str, Union[list[dict[str, Any]], dict[str, Any]]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
@@ -213,8 +213,8 @@ def exotics_to_str(value):
 
 
 def param_exotics_to_strings(
-    params: Dict[T, Union[bool, List, Set, str, int, uuid.UUID]]
-) -> Dict[T, Union[str, int, List]]:
+    params: dict[T, Union[bool, List, Set, str, int, uuid.UUID]]
+) -> dict[T, Union[str, int, List]]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
@@ -327,9 +327,9 @@ class Connector:
 
 
 def group_params(
-    param_keys: Tuple[T],
-    params_list: List[Tuple[FrozenSet[V]]],
-) -> Dict[T, Set[V]]:
+    param_keys: tuple[T],
+    params_list: list[tuple[FrozenSet[V]]],
+) -> dict[T, set[V]]:
     """
     Transform parameters from
         (a, b)
@@ -356,8 +356,8 @@ def group_params(
 class ParameterValuesExtractor:
     @classmethod
     def get_key_value_items(
-        cls, d: Dict[str, Any], search_keys: Container[str]
-    ) -> Iterable[Tuple[str, Any]]:
+        cls, d: dict[str, Any], search_keys: Container[str]
+    ) -> Iterable[tuple[str, Any]]:
         """
         Given a LoRa result (nested dict), extract the value(s) for each key in
         search_keys as (key,value)-pairs.
@@ -369,7 +369,7 @@ class ParameterValuesExtractor:
     @classmethod
     def traverse(
         cls,
-        items: Union[Iterable[Tuple[str, Any]], ItemsView[str, Any]],
+        items: Union[Iterable[tuple[str, Any]], ItemsView[str, Any]],
         path: tuple = (),
     ):
         """
@@ -413,9 +413,9 @@ class BaseScope:
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.loaders: Dict[Tuple[str], DataLoader] = {}
+        self.loaders: dict[Tuple[str], DataLoader] = {}
 
-    def load(self, **params: Any) -> Awaitable[List[dict]]:
+    def load(self, **params: Any) -> Awaitable[list[dict]]:
         """
         Like fetch(), but utilises Strawberry DataLoader to bulk requests automatically.
         Unlike fetch(), we never return just a list of UUIDs, since full objects are
@@ -492,7 +492,7 @@ class Scope(BaseScope):
 
         return loader.load(tuple(to_frozenset(v) for v in params.values()))
 
-    async def load_uuids(self, **params: Union[str, Iterable]) -> List[str]:
+    async def load_uuids(self, **params: Union[str, Iterable]) -> list[str]:
         """
         Like load(), but map results back into UUIDs.
         load_uuids(**params) == fetch(**params)
@@ -501,9 +501,9 @@ class Scope(BaseScope):
 
     async def _load_loads(
         self,
-        param_keys: Tuple[str],
-        params_list: List[Tuple[frozenset]],
-    ) -> List[List[Dict]]:
+        param_keys: tuple[str],
+        params_list: list[tuple[frozenset]],
+    ) -> list[list[Dict]]:
         """
         Called by the DataLoader once all the load() calls have been collected.
         Takes a list of arguments to the original load() calls, and must return a list
@@ -577,7 +577,7 @@ class Scope(BaseScope):
 
         return results_for_calls
 
-    def encode_params(self, params: Dict[str, Any]) -> bytes:
+    def encode_params(self, params: dict[str, Any]) -> bytes:
         return json.dumps(
             jsonable_encoder(param_exotics_to_strings({**params}))
         ).encode()
@@ -626,7 +626,7 @@ class Scope(BaseScope):
         self,
         uuids: Union[List, Set],
         changed_since: Optional[datetime] = None,
-    ) -> Iterable[Tuple[str, Dict[Any, Any]]]:
+    ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """
         Get a list of objects by their UUIDs.
         Returns an iterator of tuples (obj_id, obj) of all matches.

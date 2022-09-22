@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import Any
 from typing import Dict
 from typing import Optional
-from typing import Tuple
 from uuid import UUID
 from uuid import uuid4
 
@@ -26,7 +25,7 @@ except ImportError:  # pragma: no cover
 UTC = zoneinfo.ZoneInfo("UTC")
 
 # Type aliases
-DictStrAny = Dict[str, Any]
+DictStrAny = dict[str, Any]
 
 
 class UUIDBase(RABase):
@@ -219,7 +218,7 @@ class OpenValidity(RABase):
         return tz_isodate(to_date) if to_date is not None else None
 
     @root_validator
-    def check_from_leq_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_from_leq_to(cls, values: dict[str, Any]) -> Dict[str, Any]:
         # Note: the values of from_date & to_date are not changed here
         # just leq compared.
         _from_dt, _to_dt = values.get("from_date"), values.get("to_date")
@@ -257,7 +256,7 @@ def deprecation(message: str) -> None:
     warnings.warn(message, DeprecationWarning, stacklevel=2)
 
 
-def split_name(name: str) -> Tuple[str, str]:
+def split_name(name: str) -> tuple[str, str]:
     """Split a name into first and last name.
 
     Args:

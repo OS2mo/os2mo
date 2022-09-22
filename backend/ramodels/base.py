@@ -45,7 +45,7 @@ class RABase(BaseModel):
         extra = Extra.forbid
 
     @root_validator(pre=True)
-    def remove_integration_data(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def remove_integration_data(cls, values: dict[str, Any]) -> Dict[str, Any]:
         values.pop("integration_data", None)
         values.pop("integrationsdata", None)
         return values
