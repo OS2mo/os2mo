@@ -32,7 +32,7 @@ variables:
       - ra-data-models/.venv/
 
 .source-venv: &source-venv
-  image: python:3-slim
+  image: python:3
   needs: [Install ramodels]
   before_script:
     - cd ra-data-models
@@ -45,7 +45,7 @@ variables:
 
 Install ramodels:
   <<: *install-deps
-  image: python:3-slim
+  image: python:3
   stage: build
   script:
     - poetry --version
@@ -75,7 +75,7 @@ Test ramodels:
 
 Check coverage ramodels:
   stage: coverage
-  image: python:3-slim
+  image: python:3
   needs: [Test ramodels]
   before_script:
     - cd ra-data-models
@@ -90,7 +90,7 @@ Check coverage ramodels:
 Release to PyPI:
   <<: *install-deps
   stage: release
-  image: python:3-slim
+  image: python:3
   script:
     - sed -i "s/^version = .*$/version = \"${CI_COMMIT_TAG}\"/g" pyproject.toml
     - poetry publish --build -u __token__ -p $PYPI_TOKEN
