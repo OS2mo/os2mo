@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from oio_rest.tests import util
-from oio_rest.tests.util import DBTestCase
+from tests.oio_rest import util
+from tests.oio_rest.util import DBTestCase
 
 
 class Tests(DBTestCase):

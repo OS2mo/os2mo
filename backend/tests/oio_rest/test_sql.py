@@ -9,8 +9,8 @@ import tap.parser
 from oio_rest import config
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
-from oio_rest.tests import util
-from oio_rest.tests.util import DBTestCase
+from tests.oio_rest import util
+from tests.oio_rest.util import DBTestCase
 
 
 class SQLTests(DBTestCase):

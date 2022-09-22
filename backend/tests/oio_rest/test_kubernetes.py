@@ -6,7 +6,7 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from oio_rest.custom_exceptions import DBException
-from oio_rest.tests.util import BaseTestCase
+from tests.oio_rest.util import BaseTestCase
 
 
 class TestKubernetesProbes(BaseTestCase):

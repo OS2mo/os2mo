@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: MPL-2.0
 import uuid
 
-from oio_rest.tests import util
-from oio_rest.tests.util import DBTestCase
 from oio_rest.utils import is_uuid
+from tests.oio_rest import util
+from tests.oio_rest.util import DBTestCase
 
 
 class Test21660PutUpdate(DBTestCase):

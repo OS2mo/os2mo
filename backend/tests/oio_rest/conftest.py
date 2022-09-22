@@ -13,7 +13,7 @@ from oio_rest.db.testing import teardown_testing_database
 os.environ["LORA_AUTH"] = "true"
 
 
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="session")
 def tests_setup_and_teardown():
     # Will be executed before the first test
     ensure_testing_database_exists()

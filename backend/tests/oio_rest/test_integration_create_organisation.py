@@ -4,7 +4,7 @@ import copy
 import json
 import unittest
 
-from oio_rest.tests.test_integration_helper import TestCreateObject
+from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateOrganisation(TestCreateObject):

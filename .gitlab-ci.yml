@@ -89,30 +89,6 @@ default:
 
 # Services
 ###########
-.services-start-base:
-  variables:
-    FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
-
-.services:start-all:
-  extends:
-    - .services-start-base
-  needs:
-    - Build Keycloak DB
-    - Build Keycloak
-  services:
-    # mox db
-    - name: magentaaps/postgres-os2mo:11-11.7-test
-      alias: mox-db
-      variables:
-        DB_NAME: mox
-        DB_USER: mox
-        DB_PASSWORD: mox
-    # Keycloak
-    - name: $KEYCLOAK_DB_IMAGE_SHA
-      alias: keycloak-db
-    - name: $KEYCLOAK_IMAGE_SHA
-      alias: keycloak
-
 .mo-variables:
   variables:
     PYTHONASYNCIODEBUG: "1"
@@ -340,10 +316,25 @@ Unit-test:
 Integration-test:
   extends:
     - .backend-test-base
-    - .services:start-all
   needs:
     - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
+    - Build Keycloak DB
+    - Build Keycloak
+  variables:
+    FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
+  services:
+    # mox db
+    - name: magentaaps/postgres-os2mo:11-11.7-test
+      alias: mox-db
+      variables:
+        DB_NAME: mox
+        DB_USER: mox
+        DB_PASSWORD: mox
+    # Keycloak
+    - name: $KEYCLOAK_DB_IMAGE_SHA
+      alias: keycloak-db
+    - name: $KEYCLOAK_IMAGE_SHA
+      alias: keycloak
   parallel: 8
   script:
     - pytest backend/tests
@@ -352,26 +343,9 @@ Integration-test:
       --color=yes
       --show-capture=no
       --cov=mora
+      --cov=oio_rest
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
-  artifacts:
-    when: always
-    paths:
-      - $COVERAGE_FILE
-
-LoRa-integration-test:
-  extends:
-    - .backend-test-base
-    - .services:start-all
-  needs:
-    - !reference [".backend-test-base", needs]
-    - !reference [".services:start-all", needs]
-  script:
-    - pytest backend/oio_rest/tests
-      -p no:cacheprovider
-      --color=yes
-      --show-capture=stdout
-      --cov=oio_rest
   artifacts:
     when: always
     paths:

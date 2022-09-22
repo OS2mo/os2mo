@@ -29,7 +29,7 @@ from oio_rest.db import db_helpers
 from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import OIORestObject
 from oio_rest.oio_base import OIOStandardHierarchy
-from oio_rest.tests.util import ExtTestCase
+from tests.oio_rest.util import ExtTestCase
 
 CallableReturnType = TypeVar("CallableReturnType")
 

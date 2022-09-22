@@ -9,7 +9,7 @@ import freezegun
 from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import DefaultSearcher
 from oio_rest.oio_base import QuickSearcher
-from oio_rest.tests.util import DBTestCase
+from tests.oio_rest.util import DBTestCase
 
 
 @freezegun.freeze_time("2018-01-01")
