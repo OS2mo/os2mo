@@ -4,7 +4,6 @@ import os
 from enum import Enum
 from functools import lru_cache
 from typing import Any
-from typing import Dict
 from typing import Optional
 
 from pydantic import AnyHttpUrl
@@ -83,7 +82,7 @@ class Settings(BaseSettings):
     filesystem_settings: Optional[FileSystemSettings] = None
 
     @root_validator
-    def check_filesystem_settings(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def check_filesystem_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
         if values.get("file_storage") != "filesystem":
             return values
 
@@ -100,7 +99,7 @@ class Settings(BaseSettings):
     log_level: LogLevel = LogLevel.INFO
 
     @root_validator
-    def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def graphql_rbac_dependencies(cls, values: dict[str, Any]) -> dict[str, Any]:
         if not values["graphql_rbac"]:
             return values
 
@@ -157,7 +156,7 @@ class Settings(BaseSettings):
     sp_settings: Optional[ServicePlatformenSettings] = None
 
     @root_validator
-    def check_sp_configuration(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def check_sp_configuration(cls, values: dict[str, Any]) -> dict[str, Any]:
         # If SP is not enabled, no reason to check configuration
         if not values.get("enable_sp"):
             return values

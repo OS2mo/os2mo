@@ -19,7 +19,6 @@ from asyncio import gather
 from itertools import chain
 from typing import Any
 from typing import Awaitable
-from typing import Dict
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
@@ -703,7 +702,7 @@ async def get_unit_tree(
     with_siblings: bool = False,
     only_primary_uuid: bool = False,
     org_unit_hierarchy: str = None,
-    count_related: Optional[Dict] = None,
+    count_related: Optional[dict] = None,
 ):
     """Return a tree, bounded by the given unitid.
 

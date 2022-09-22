@@ -7,7 +7,6 @@ from abc import ABCMeta
 from abc import abstractmethod
 from itertools import filterfalse
 from typing import Any
-from typing import Dict
 from typing import Optional
 from typing import Union
 from uuid import UUID
@@ -87,7 +86,7 @@ class Searcher(metaclass=ABCMeta):
         self,
         class_name: str,
         uuid: Optional[str],
-        registration: Dict,
+        registration: dict,
         virkning_fra: Union[datetime.datetime, str],
         virkning_til: Union[datetime.datetime, str],
         registreret_fra: Optional[Union[datetime.datetime, str]] = None,
@@ -108,7 +107,7 @@ class DefaultSearcher(Searcher):
     def search_objects(
         class_name: str,
         uuid: Optional[str],
-        registration: Dict,
+        registration: dict,
         virkning_fra: Union[datetime.datetime, str],
         virkning_til: Union[datetime.datetime, str],
         registreret_fra: Optional[Union[datetime.datetime, str]] = None,
@@ -144,7 +143,7 @@ class QuickSearcher(Searcher):
     def search_objects(
         class_name: str,
         uuid: Optional[str],
-        registration: Dict,
+        registration: dict,
         virkning_fra: Union[datetime.datetime, str],
         virkning_til: Union[datetime.datetime, str],
         registreret_fra: Optional[Union[datetime.datetime, str]] = None,

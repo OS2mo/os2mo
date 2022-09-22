@@ -12,7 +12,6 @@ from typing import Any
 from typing import Dict
 from typing import NoReturn
 from typing import Optional
-from typing import Tuple
 
 from . import handlers
 from . import org
@@ -46,7 +45,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
     def extract_info_owner_info(
         self, req
-    ) -> Tuple[
+    ) -> tuple[
         Optional[dict[str, Any]],
         Optional[dict[str, Any]],
         Optional[dict[str, Any]],

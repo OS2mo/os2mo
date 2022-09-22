@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import List
 from typing import Optional
 from uuid import UUID
 
@@ -36,7 +35,7 @@ def name_from_dar_object(address_object) -> str:
     return "".join(DARAddressHandler._address_string_chunks(address_object))
 
 
-async def load_addresses(keys: list[UUID]) -> List[dict | None]:
+async def load_addresses(keys: list[UUID]) -> list[dict | None]:
     adarclient = AsyncDARClient(timeout=120)
     async with adarclient:
         try:

@@ -5,7 +5,6 @@ import warnings
 from datetime import date
 from datetime import datetime
 from typing import Any
-from typing import Dict
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
@@ -218,7 +217,7 @@ class OpenValidity(RABase):
         return tz_isodate(to_date) if to_date is not None else None
 
     @root_validator
-    def check_from_leq_to(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def check_from_leq_to(cls, values: dict[str, Any]) -> dict[str, Any]:
         # Note: the values of from_date & to_date are not changed here
         # just leq compared.
         _from_dt, _to_dt = values.get("from_date"), values.get("to_date")

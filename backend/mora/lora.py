@@ -18,7 +18,6 @@ from typing import Awaitable
 from typing import Callable
 from typing import Container
 from typing import Coroutine
-from typing import Dict
 from typing import FrozenSet
 from typing import ItemsView
 from typing import Iterable
@@ -503,7 +502,7 @@ class Scope(BaseScope):
         self,
         param_keys: tuple[str],
         params_list: list[tuple[frozenset]],
-    ) -> list[list[Dict]]:
+    ) -> list[list[dict]]:
         """
         Called by the DataLoader once all the load() calls have been collected.
         Takes a list of arguments to the original load() calls, and must return a list

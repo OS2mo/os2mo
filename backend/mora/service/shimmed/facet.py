@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from operator import itemgetter
 from typing import Any
-from typing import Dict
 from typing import Generic
 from typing import List
 from typing import Optional
@@ -190,7 +189,7 @@ async def list_facets(
     def filter_by_orgid(facet: dict[str, Any]) -> bool:
         return UUID(facet["org_uuid"]) == orgid
 
-    def construct(facet: dict[str, Any]) -> Dict[str, Any]:
+    def construct(facet: dict[str, Any]) -> dict[str, Any]:
         return {
             "uuid": facet["uuid"],
             "user_key": facet["user_key"],
@@ -385,7 +384,7 @@ class MOFacetChildren(BaseModel):
     child_count: int = Field(description="Number of children.")
 
 
-def construct_clazz_children(clazz: dict[str, Any]) -> Dict[str, Any]:
+def construct_clazz_children(clazz: dict[str, Any]) -> dict[str, Any]:
     return {
         "uuid": clazz["uuid"],
         "name": clazz["name"],
