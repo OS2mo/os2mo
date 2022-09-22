@@ -353,7 +353,7 @@ def urnquote(s):
 urnunquote = urllib.parse.unquote
 K = typing.TypeVar("K", bound=typing.Hashable)
 V = typing.TypeVar("V")
-D = typing.Dict[K, V]
+D = dict[K, V]
 
 
 def checked_get(

@@ -352,9 +352,7 @@ def inactivate_org_funktion_payload(enddate, note):
     return payload
 
 
-def to_lora_obj(
-    value: typing.Union[typing.Dict[str, str], str]
-) -> typing.Dict[str, str]:
+def to_lora_obj(value: typing.Union[dict[str, str], str]) -> dict[str, str]:
     """
     transforms values to uniform lora-format
     :param value: (potentially) High-level specification of lora obj
@@ -371,9 +369,7 @@ def to_lora_obj(
     raise TypeError(f"unexpected type: {type(value)}")
 
 
-def associated_orgfunc(
-    uuid: str, orgfunc_type: mapping.MoOrgFunk
-) -> typing.Dict[str, str]:
+def associated_orgfunc(uuid: str, orgfunc_type: mapping.MoOrgFunk) -> dict[str, str]:
     """
     creates a lora-understandable object appropriate for
     associating org funcstions with each other
@@ -394,7 +390,7 @@ def create_organisationsfunktion_payload(
     tilknyttedebrugere: list[str] | None = None,
     tilknyttedeenheder: list[str] | None = None,
     tilknyttedefunktioner: typing.Optional[
-        list[typing.Union[typing.Dict[str, str], str]]
+        list[typing.Union[dict[str, str], str]]
     ] = None,
     tilknyttedeitsystemer: list[str] | None = None,
     tilknyttedeklasser: list[str] | None = None,
