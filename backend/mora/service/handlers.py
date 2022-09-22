@@ -357,8 +357,8 @@ def get_handler_for_role_type(role_type: str):
 
 
 async def generate_requests(
-    requests: typing.List[dict], request_type: RequestType
-) -> typing.List[RequestHandler]:
+    requests: list[dict], request_type: RequestType
+) -> list[RequestHandler]:
     operations = {req.get("type") for req in requests}
 
     if not operations.issubset(HANDLERS_BY_ROLE_TYPE):
@@ -386,5 +386,5 @@ async def generate_requests(
     return requesthandlers
 
 
-async def submit_requests(requests: typing.List[RequestHandler]) -> typing.List[str]:
+async def submit_requests(requests: list[RequestHandler]) -> typing.List[str]:
     return await asyncio.gather(*(request.submit() for request in requests))

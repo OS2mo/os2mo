@@ -243,7 +243,7 @@ class FieldTuple(object):
         return self.__type
 
     @property
-    def filter_fn(self) -> typing.Optional[typing.Callable[[dict], bool]]:
+    def filter_fn(self) -> typing.Callable[[dict], bool] | None:
         return self.__filter_fn
 
     def __repr__(self):
