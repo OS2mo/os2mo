@@ -9,7 +9,6 @@ from typing import Callable
 from typing import Iterable
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 from uuid import UUID
 
 from more_itertools import bucket
@@ -430,7 +429,7 @@ async def load_org_units_children(keys: list[UUID]) -> list[list[MOModel]]:
     return await gather(*tasks)
 
 
-async def get_loaders() -> dict[str, Union[DataLoader, Callable]]:
+async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),

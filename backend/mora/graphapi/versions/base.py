@@ -6,7 +6,6 @@ from typing import Iterable
 from typing import Optional
 from typing import Sequence
 from typing import Type
-from typing import Union
 
 from fastapi import APIRouter
 from strawberry import Schema
@@ -32,7 +31,7 @@ class BaseGraphQLSchema:
 
     types: Iterable = ()
 
-    extensions: Sequence[Union[Type[Extension], Extension]] = [
+    extensions: Sequence[Type[Extension] | Extension] = [
         StarletteContextExtension,
     ]
 
@@ -47,9 +46,7 @@ class BaseGraphQLSchema:
     # Additionally, it preserves the naming of the underlying Python functions.
     config: Optional[StrawberryConfig] = StrawberryConfig(auto_camel_case=False)
 
-    scalar_overrides: Optional[
-        dict[object, Union[ScalarWrapper, ScalarDefinition]]
-    ] = None
+    scalar_overrides: Optional[dict[object, ScalarWrapper | ScalarDefinition]] = None
 
     @classmethod
     def get(cls) -> Schema:

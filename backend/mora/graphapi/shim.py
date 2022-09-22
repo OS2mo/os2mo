@@ -9,7 +9,6 @@ from datetime import date
 from typing import Any
 from typing import Optional
 from typing import Type
-from typing import Union
 from uuid import UUID
 
 from more_itertools import flatten
@@ -186,9 +185,9 @@ class VisibilityRead(ClassRead):
 
 class MOAddress(AddressRead):
     address_type_uuid: Optional[UUID]
-    address_type: Union[None, MOAddressType, UUIDObject]
-    person: Union[None, list[MOEmployee], UUIDObject]
-    org_unit: Union[None, OrgUnitType, UUIDObject]
+    address_type: None | MOAddressType | UUIDObject
+    person: None | list[MOEmployee] | UUIDObject
+    org_unit: None | OrgUnitType | UUIDObject
     visibility: Optional[VisibilityRead]
     validity: ValidityDates
     href: Optional[str]

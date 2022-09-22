@@ -4,7 +4,6 @@ import collections
 from asyncio import create_task
 from queue import Empty
 from queue import Queue
-from typing import Dict
 
 from ..lora import Scope
 from ..mapping import (
@@ -73,7 +72,7 @@ async def prepare_ancestor_tree(
         cache.update(objs)
         return objs
 
-    async def get_children(uuid, parent_uuid) -> Dict:
+    async def get_children(uuid, parent_uuid) -> dict:
         children = dict(
             await connector_entry.get_all(**get_children_args(uuid, parent_uuid, cache))
         )

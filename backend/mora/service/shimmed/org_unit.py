@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Any
 from typing import Literal
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from fastapi import Body
@@ -33,7 +32,7 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 @org_unit_router.get(
     "/ou/{unitid}/",
-    response_model=Union[MOOrgUnit, UUIDObject],
+    response_model=MOOrgUnit | UUIDObject,
     response_model_exclude_unset=True,
     responses={404: {"description": "Org unit not found"}},
 )
@@ -42,7 +41,7 @@ async def get_orgunit(
     only_primary_uuid: Optional[bool] = Query(
         None, description="Only retrieve the UUID of the organisation unit"
     ),
-    at: Optional[Union[date, datetime]] = Query(
+    at: Optional[date | datetime] = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",
@@ -204,7 +203,9 @@ async def get_orgunit(
 )
 async def get_org_unit_children(
     parentid: UUID = Path(..., description="The UUID of the parent."),
-    at: Optional[Union[date, datetime]] = Query(
+    at: date
+    | datetime
+    | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",

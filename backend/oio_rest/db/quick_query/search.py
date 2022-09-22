@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
-from typing import Union
 
 from more_itertools import flatten
 
@@ -79,11 +78,11 @@ class SearchQueryBuilder:
         class_name: str,
         limit: Optional[int],
         offset: Optional[int],
-        virkning_fra: Union[datetime, str],
-        virkning_til: Union[datetime, str],
+        virkning_fra: datetime | str,
+        virkning_til: datetime | str,
         uuid: Optional[str] = None,
-        registreret_fra: Optional[Union[datetime, str]] = None,
-        registreret_til: Optional[Union[datetime, str]] = None,
+        registreret_fra: Optional[datetime | str] = None,
+        registreret_til: Optional[datetime | str] = None,
     ):
         """
         :param class_name: determines where to query
@@ -131,7 +130,7 @@ class SearchQueryBuilder:
 
     @staticmethod
     def __validate_ts_range(
-        start: Union[datetime, str], end: Union[datetime, str]
+        start: datetime | str, end: datetime | str
     ) -> tuple[InfiniteDatetime, InfiniteDatetime]:
         """
         a defensive (type) validation and conversion
@@ -183,8 +182,8 @@ class SearchQueryBuilder:
 
     def __handle_registreret_dates(
         self,
-        reg_start: Optional[Union[str, datetime]],
-        reg_end: Optional[Union[str, datetime]],
+        reg_start: Optional[str | datetime],
+        reg_end: Optional[str | datetime],
     ):
         """
         validate, and optionally add conditions
@@ -423,10 +422,10 @@ def quick_search(
     class_name: str,
     uuid: Optional[str],
     registration: dict,
-    virkning_fra: Union[datetime, str],
-    virkning_til: Union[datetime, str],
-    registreret_fra: Optional[Union[datetime, str]] = None,
-    registreret_til: Optional[Union[datetime, str]] = None,
+    virkning_fra: datetime | str,
+    virkning_til: datetime | str,
+    registreret_fra: Optional[datetime | str] = None,
+    registreret_til: Optional[datetime | str] = None,
     life_cycle_code=None,
     user_ref=None,
     note=None,

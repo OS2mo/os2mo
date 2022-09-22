@@ -3,8 +3,6 @@
 from datetime import date
 from datetime import datetime
 from typing import Any
-from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from fastapi import Path
@@ -22,15 +20,15 @@ from mora.service.employee import router as employee_router
 
 @employee_router.get(
     "/e/{id}/",
-    response_model=Union[MOEmployee, dict[str, UUID]],
+    response_model=MOEmployee | dict[str, UUID],
     response_model_exclude_unset=True,
 )
 async def get_employee(
     id: UUID = Path(..., description="UUID of the employee to retrieve"),
-    only_primary_uuid: Optional[bool] = Query(
-        None, description="Only retrieve the UUID"
-    ),
-    at: Optional[Union[date, datetime]] = Query(
+    only_primary_uuid: bool | None = Query(None, description="Only retrieve the UUID"),
+    at: date
+    | datetime
+    | None = Query(
         None, description="Show the employee at this point in time, in ISO-8601 format."
     ),
 ):

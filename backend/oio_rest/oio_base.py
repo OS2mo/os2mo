@@ -8,7 +8,6 @@ from abc import abstractmethod
 from itertools import filterfalse
 from typing import Any
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 import dateutil
@@ -87,10 +86,10 @@ class Searcher(metaclass=ABCMeta):
         class_name: str,
         uuid: Optional[str],
         registration: dict,
-        virkning_fra: Union[datetime.datetime, str],
-        virkning_til: Union[datetime.datetime, str],
-        registreret_fra: Optional[Union[datetime.datetime, str]] = None,
-        registreret_til: Optional[Union[datetime.datetime, str]] = None,
+        virkning_fra: datetime.datetime | str,
+        virkning_til: datetime.datetime | str,
+        registreret_fra: Optional[datetime.datetime | str] = None,
+        registreret_til: Optional[datetime.datetime | str] = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,
@@ -108,10 +107,10 @@ class DefaultSearcher(Searcher):
         class_name: str,
         uuid: Optional[str],
         registration: dict,
-        virkning_fra: Union[datetime.datetime, str],
-        virkning_til: Union[datetime.datetime, str],
-        registreret_fra: Optional[Union[datetime.datetime, str]] = None,
-        registreret_til: Optional[Union[datetime.datetime, str]] = None,
+        virkning_fra: datetime.datetime | str,
+        virkning_til: datetime.datetime | str,
+        registreret_fra: Optional[datetime.datetime | str] = None,
+        registreret_til: Optional[datetime.datetime | str] = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,
@@ -144,10 +143,10 @@ class QuickSearcher(Searcher):
         class_name: str,
         uuid: Optional[str],
         registration: dict,
-        virkning_fra: Union[datetime.datetime, str],
-        virkning_til: Union[datetime.datetime, str],
-        registreret_fra: Optional[Union[datetime.datetime, str]] = None,
-        registreret_til: Optional[Union[datetime.datetime, str]] = None,
+        virkning_fra: datetime.datetime | str,
+        virkning_til: datetime.datetime | str,
+        registreret_fra: Optional[datetime.datetime | str] = None,
+        registreret_til: Optional[datetime.datetime | str] = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,

@@ -3,7 +3,6 @@
 import asyncio
 from datetime import datetime
 from itertools import product
-from typing import Dict
 from uuid import UUID
 
 from ramqp.mo import MOAMQPSystem
@@ -33,7 +32,7 @@ async def stop_amqp():
     await amqp_system.stop()
 
 
-def to_datetime(trigger_dict: Dict) -> datetime:
+def to_datetime(trigger_dict: dict) -> datetime:
     request = trigger_dict[triggers.Trigger.REQUEST]
     if trigger_dict[triggers.Trigger.REQUEST_TYPE] == mapping.RequestType.EDIT:
         request = request["data"]
@@ -43,7 +42,7 @@ def to_datetime(trigger_dict: Dict) -> datetime:
         return util.get_valid_to(request)
 
 
-async def amqp_sender(trigger_dict: Dict) -> None:
+async def amqp_sender(trigger_dict: dict) -> None:
 
     object_type = ObjectType(trigger_dict[triggers.Trigger.ROLE_TYPE].lower())
     request_type = RequestType(trigger_dict[triggers.Trigger.REQUEST_TYPE].lower())

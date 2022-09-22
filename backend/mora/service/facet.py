@@ -20,8 +20,6 @@ from asyncio import create_task
 from asyncio import gather
 from typing import Any
 from typing import Awaitable
-from typing import List
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -65,7 +63,7 @@ FULL_DETAILS = {
 @router.get("/c/ancestor-tree")
 # @util.restrictargs('at', 'uuid')
 async def get_class_ancestor_tree(
-    uuid: Optional[list[UUID]] = None, only_primary_uuid: Optional[bool] = None
+    uuid: list[UUID] | None = None, only_primary_uuid: bool | None = None
 ):
     """Obtain the tree of ancestors for the given classes.
 
@@ -204,7 +202,7 @@ async def get_one_facet(c, facetid, orgid=None, facet=None, data=None):
     return response
 
 
-async def fetch_class_children(c, parent_uuid) -> List:
+async def fetch_class_children(c, parent_uuid) -> list:
     return list(
         await c.klasse.get_all(publiceret="Publiceret", overordnetklasse=parent_uuid)
     )
@@ -217,7 +215,7 @@ async def count_class_children(c, parent_uuid):
 
 async def __get_class_from_cache(
     classid: str,
-    details: Optional[set[ClassDetails]] = None,
+    details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
 ) -> MO_OBJ_TYPE:
     """
@@ -242,7 +240,7 @@ async def __get_class_from_cache(
 
 async def request_bulked_get_one_class(
     classid: str,
-    details: Optional[set[ClassDetails]] = None,
+    details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
 ) -> Awaitable[MO_OBJ_TYPE]:
     """
@@ -277,7 +275,7 @@ async def get_one_class(
     c: lora.Connector,
     classid,
     clazz=None,
-    details: Optional[set[ClassDetails]] = None,
+    details: set[ClassDetails] | None = None,
     only_primary_uuid: bool = False,
 ) -> MO_OBJ_TYPE:
     if not details:

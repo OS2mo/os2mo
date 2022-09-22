@@ -3,7 +3,6 @@
 from typing import Any
 from typing import Literal
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 import freezegun
@@ -96,7 +95,7 @@ def simplified_owner(
     from_date: str = "2017-01-01",
     to_date: Optional[str] = None,
     as_json: bool = True,
-) -> Union[Owner, dict[str, Any]]:
+) -> Owner | dict[str, Any]:
     """
     human-friendly helper function: creates an owner object, either as the
     model object, or directly as json-friendly dict

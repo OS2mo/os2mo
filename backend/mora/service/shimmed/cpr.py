@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import random
 from typing import Any
-from typing import Union
 
 import requests
 import service_person_stamdata_udvidet
@@ -212,7 +211,7 @@ class SearchCPRReturn(BaseModel):
 
 @cpr_router.get(
     "/e/cpr_lookup/",
-    response_model=Union[SearchCPRReturn, dict[str, str]],
+    response_model=SearchCPRReturn | dict[str, str],
     response_model_exclude_unset=True,
     responses={
         "404": {"description": "No person found"},

@@ -10,9 +10,6 @@ from itertools import starmap
 from operator import itemgetter
 from pathlib import Path
 from typing import Any
-from typing import List
-from typing import Optional
-from typing import Union
 from zipfile import ZipFile
 
 from fastapi import Query
@@ -27,7 +24,7 @@ from mora.service.insight import router as insight_router
 
 @insight_router.get(
     "/insight/files",
-    response_model=List[str],
+    response_model=list[str],
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
 )
@@ -48,7 +45,7 @@ class Insight(BaseModel):
     """
 
     title: str
-    data: list[Union[int, str]]
+    data: list[int | str]
 
     class Config:
         frozen = True
@@ -57,7 +54,7 @@ class Insight(BaseModel):
 
 
 @insight_router.get("/insight")
-async def get_insight_data(q: Optional[list[str]] = Query(["all"])) -> list[Insight]:
+async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight]:
     """Loads data from a directory of JSONs and returns it as a list.
 
     Args:

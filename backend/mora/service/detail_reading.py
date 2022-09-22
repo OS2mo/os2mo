@@ -23,7 +23,6 @@ from datetime import datetime
 from functools import partial
 from typing import Any
 from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -135,7 +134,7 @@ def filter_by_validity(validity: ValidityLiteral, element: dict):
 async def list_addresses_employee(
     eid: UUID,
     only_primary_uuid: Optional[bool] = None,
-    at: Optional[Union[date, datetime]] = None,
+    at: Optional[date | datetime] = None,
     validity: Optional[ValidityLiteral] = None,
 ):
     """GraphQL shim"""
@@ -261,7 +260,7 @@ async def list_addresses_employee(
 async def list_addresses_ou(
     orgid: UUID,
     only_primary_uuid: Optional[bool] = None,
-    at: Optional[Union[date, datetime]] = None,
+    at: Optional[date | datetime] = None,
     validity: Optional[ValidityLiteral] = None,
 ):
     """GraphQL shim"""

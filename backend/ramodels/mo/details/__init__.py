@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Union
-
 from .address import Address
 from .address import AddressDetail
 from .address import AddressRead
@@ -47,16 +45,16 @@ from .role import RoleRead
 from .role import RoleWrite
 
 
-Details = Union[
-    AssociationDetail,
-    EngagementDetail,
-    EngagementAssociation,
-    KLEDetail,
-    ManagerDetail,
-    ITUserDetail,
-    RoleDetail,
-]
-EmployeeDetails = Union[Details, AddressDetail, LeaveDetail]
+Details = (
+    AssociationDetail
+    | EngagementDetail
+    | EngagementAssociation
+    | KLEDetail
+    | ManagerDetail
+    | ITUserDetail
+    | RoleDetail
+)
+EmployeeDetails = Details | AddressDetail | LeaveDetail
 OrgUnitDetails = Details
 
 __all__ = [
