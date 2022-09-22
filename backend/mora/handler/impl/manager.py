@@ -5,7 +5,6 @@ from asyncio import gather
 from datetime import datetime
 from typing import Any
 from typing import Awaitable
-from typing import Dict
 from typing import Iterable
 from typing import Optional
 
@@ -128,7 +127,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
             )
         )
 
-        func: Dict[Any, Any] = {
+        func: dict[Any, Any] = {
             **base_obj,
             mapping.RESPONSIBILITY: gather(*resp_tasks),
             mapping.ORG_UNIT: await org_unit_task,

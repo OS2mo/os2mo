@@ -353,7 +353,7 @@ Integration-test:
 
 Coverage:
   stage: coverage
-  image: python:3.10-slim
+  image: python:3.10
   needs:
     - Unit-test
     - Integration-test

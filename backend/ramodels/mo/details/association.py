@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Dict
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -88,7 +87,7 @@ class AssociationWrite(AssociationBase):
     )
 
     @validator("job_function", "it_user", always=True)
-    def validate_mutually_exclusive(cls, v: UUID, values: Dict[str, UUID]) -> UUID:
+    def validate_mutually_exclusive(cls, v: UUID, values: dict[str, UUID]) -> UUID:
         if values.get("substitute") and v:
             raise ValueError(
                 "'substitute' must be None if 'job_function' or 'it_user' are not None"

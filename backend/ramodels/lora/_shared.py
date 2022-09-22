@@ -5,7 +5,6 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterator
-from typing import List
 from typing import Literal
 from typing import Optional
 from typing import Union
@@ -188,7 +187,7 @@ class EffectiveTime(RABase):
     )
 
     @root_validator
-    def check_from_lt_to(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def check_from_lt_to(cls, values: dict[str, Any]) -> Dict[str, Any]:
         from_date, to_date = values.get("from_date"), values.get("to_date")
         # Mypy complains here about unsupported use of operators due to Nones,
         # but we catch those with if all...
@@ -228,7 +227,7 @@ class FacetAttributes(RABase):
     Attributes of a given LoRa facet.
     """
 
-    properties: List[FacetProperties] = Field(
+    properties: list[FacetProperties] = Field(
         alias="facetegenskaber",
         min_items=1,
         max_items=1,
@@ -259,7 +258,7 @@ class FacetStates(RABase):
     States of a given LoRa facet.
     """
 
-    published_state: List[Published] = Field(
+    published_state: list[Published] = Field(
         alias="facetpubliceret",
         min_items=1,
         max_items=1,
@@ -281,9 +280,9 @@ class Relation(RABase):
 
 
 def get_relations(
-    uuids: Union[None, UUID, List[UUID]] = None,
+    uuids: Union[None, UUID, list[UUID]] = None,
     effective_time: Optional[EffectiveTime] = None,
-) -> Optional[List[Relation]]:
+) -> Optional[list[Relation]]:
     """Returns a list of `Relation`s obtained from UUIDs or None if `uuids=None`"""
 
     if uuids is None or effective_time is None:
@@ -368,13 +367,13 @@ class FacetRelations(RABase):
     Facet relations given by responsible objects.
     """
 
-    responsible: List[Responsible] = Field(
+    responsible: list[Responsible] = Field(
         alias="ansvarlig",
         min_items=1,
         max_items=1,
         description="The responsible object.",
     )
-    parent: Optional[List[ParentClassification]] = Field(
+    parent: Optional[list[ParentClassification]] = Field(
         alias="facettilhoerer",
         min_items=1,
         max_items=1,
@@ -395,7 +394,7 @@ class ITSystemProperties(RABase):
     type: Optional[str] = Field(
         alias="itsystemtype", description="Short description of the type of properties."
     )
-    configuration_ref: Optional[List[str]] = Field(
+    configuration_ref: Optional[list[str]] = Field(
         alias="konfigurationsreference", description="One of ['Ja', 'Nej', 'Ved ikke']."
     )
 
@@ -405,7 +404,7 @@ class ITSystemAttributes(RABase):
 
     Referencing a list of `ITSystemProperties`."""
 
-    properties: List[ITSystemProperties] = Field(
+    properties: list[ITSystemProperties] = Field(
         alias="itsystemegenskaber", min_items=1, max_items=1
     )
 
@@ -429,7 +428,7 @@ class ITSystemStates(RABase):
     Referencing a list of `ITSystemValidState`
     """
 
-    valid_state: List[ITSystemValidState] = Field(
+    valid_state: list[ITSystemValidState] = Field(
         alias="itsystemgyldighed", min_items=1, max_items=1
     )
 
@@ -442,60 +441,60 @@ class ITSystemRelations(RABase):
     # effetive_time; thus they share type here.
 
     # zero2one relation
-    belongs_to: Optional[List[Relation]] = Field(
+    belongs_to: Optional[list[Relation]] = Field(
         alias="tilhoerer",
         min_items=1,
         max_items=1,
         description="Reference to a organisation the ITSystem belongs to",
     )
     # zero2many relations
-    affiliated_orgs: Optional[List[Relation]] = Field(
+    affiliated_orgs: Optional[list[Relation]] = Field(
         alias="tilknyttedeorganisationer",
         description="Reference to affiliated organisations",
         min_items=1,
     )
-    affiliated_units: Optional[List[Relation]] = Field(
+    affiliated_units: Optional[list[Relation]] = Field(
         alias="tilknyttedeenheder",
         description="Reference to affiliated organisation units",
         min_items=1,
     )
-    affiliated_functions: Optional[List[Relation]] = Field(
+    affiliated_functions: Optional[list[Relation]] = Field(
         alias="tilknyttedefunktioner",
         description="Reference to affiliated organisation functions",
         min_items=1,
     )
-    affiliated_users: Optional[List[Relation]] = Field(
+    affiliated_users: Optional[list[Relation]] = Field(
         alias="tilknyttedebrugere",
         description="Reference to affiliated users",
         min_items=1,
     )
-    affiliated_interests: Optional[List[Relation]] = Field(
+    affiliated_interests: Optional[list[Relation]] = Field(
         alias="tilknyttedeinteressefaelleskaber",
         description="Reference to affiliated common interest",
         min_items=1,
     )
-    affiliated_itsystems: Optional[List[Relation]] = Field(
+    affiliated_itsystems: Optional[list[Relation]] = Field(
         alias="tilknyttedeitsystemer",
         description="Reference to affiliated ITSystems",
         min_items=1,
     )
-    affiliated_persons: Optional[List[Relation]] = Field(
+    affiliated_persons: Optional[list[Relation]] = Field(
         alias="tilknyttedepersoner",
         description="Reference to affiliated persons",
         min_items=1,
     )
-    addresses: Optional[List[Relation]] = Field(
+    addresses: Optional[list[Relation]] = Field(
         alias="adresser",
         description="Affiliated addresses, like URL",
         min_items=1,
     )
     # the two following are type Klasse
-    system_types: Optional[List[Relation]] = Field(
+    system_types: Optional[list[Relation]] = Field(
         alias="systemtyper",
         description="Reference to affiliated systemtypes, like STORM",
         min_items=1,
     )
-    tasks: Optional[List[Relation]] = Field(
+    tasks: Optional[list[Relation]] = Field(
         alias="opgaver",
         description="Reference to affiliated tasks, like FORM",
         min_items=1,
@@ -526,22 +525,22 @@ class KlasseRelations(RABase):
     Klasse relations given by responsible objects and facet references.
     """
 
-    responsible: List[Responsible] = Field(
+    responsible: list[Responsible] = Field(
         alias="ansvarlig",
         min_items=1,
         max_items=1,
         description="The responsible object.",
     )
-    facet: List[FacetRef] = Field(
+    facet: list[FacetRef] = Field(
         min_items=1, max_items=1, description="Facet reference."
     )
-    parent: Optional[List[ClassRef]] = Field(
+    parent: Optional[list[ClassRef]] = Field(
         alias="overordnetklasse",
         min_items=1,
         max_items=1,
         description="The parent class object.",
     )
-    owner: Optional[List[OwnerRef]] = Field(
+    owner: Optional[list[OwnerRef]] = Field(
         alias="ejer",
         min_items=1,
         max_items=1,
@@ -554,7 +553,7 @@ class KlasseAttributes(RABase):
     LoRa Klasse attributes.
     """
 
-    properties: List[KlasseProperties] = Field(
+    properties: list[KlasseProperties] = Field(
         alias="klasseegenskaber",
         min_items=1,
         max_items=1,
@@ -567,7 +566,7 @@ class KlasseStates(RABase):
     Published state of a LoRa Klasse.
     """
 
-    published_state: List[Published] = Field(
+    published_state: list[Published] = Field(
         alias="klassepubliceret",
         min_items=1,
         max_items=1,
@@ -594,7 +593,7 @@ class OrganisationAttributes(RABase):
     LoRa organisation attributes.
     """
 
-    properties: List[OrganisationProperties] = Field(
+    properties: list[OrganisationProperties] = Field(
         alias="organisationegenskaber",
         min_items=1,
         max_items=1,
@@ -622,7 +621,7 @@ class OrganisationStates(RABase):
     Organisation validity as given by OrganisationValidState.
     """
 
-    valid_state: List[OrganisationValidState] = Field(
+    valid_state: list[OrganisationValidState] = Field(
         alias="organisationgyldighed",
         min_items=1,
         max_items=1,
@@ -635,7 +634,7 @@ class OrganisationRelations(RABase):
     Organisation relations given by an authority object.
     """
 
-    authority: List[Authority] = Field(
+    authority: list[Authority] = Field(
         alias="myndighed",
         min_items=1,
         max_items=1,

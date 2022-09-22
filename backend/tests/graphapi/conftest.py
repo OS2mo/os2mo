@@ -6,7 +6,6 @@ This file specifies different pytest fixtures and settings shared throughout the
 GraphAPI test suite. Some are autoused for each test invocation, while others are made
 available for use as needed.
 """
-from typing import List
 from typing import Optional
 
 import pytest
@@ -29,7 +28,7 @@ def patch_loader():
     with extra parameters.
     """
 
-    def patcher(data: List[MOModel]):
+    def patcher(data: list[MOModel]):
         # If our dataloader functions were sync, we could have used a lambda directly
         # when monkeypatching. They are async, however, and as such we need to mock
         # using an async function.

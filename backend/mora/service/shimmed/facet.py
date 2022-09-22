@@ -187,10 +187,10 @@ async def list_facets(
     if not facets:
         exceptions.ErrorCodes.E_UNKNOWN()
 
-    def filter_by_orgid(facet: Dict[str, Any]) -> bool:
+    def filter_by_orgid(facet: dict[str, Any]) -> bool:
         return UUID(facet["org_uuid"]) == orgid
 
-    def construct(facet: Dict[str, Any]) -> Dict[str, Any]:
+    def construct(facet: dict[str, Any]) -> Dict[str, Any]:
         return {
             "uuid": facet["uuid"],
             "user_key": facet["user_key"],
@@ -228,7 +228,7 @@ class MOPaged(GenericModel, Generic[DataT]):
 
     total: int = Field(description="Total number of results")
     offset: int = Field(description="Offset of results")
-    items: List[DataT] = Field(description="Actual results")
+    items: list[DataT] = Field(description="Actual results")
 
 
 class MOFacetAllClasses(BaseModel):
@@ -385,7 +385,7 @@ class MOFacetChildren(BaseModel):
     child_count: int = Field(description="Number of children.")
 
 
-def construct_clazz_children(clazz: Dict[str, Any]) -> Dict[str, Any]:
+def construct_clazz_children(clazz: dict[str, Any]) -> Dict[str, Any]:
     return {
         "uuid": clazz["uuid"],
         "name": clazz["name"],
@@ -396,7 +396,7 @@ def construct_clazz_children(clazz: Dict[str, Any]) -> Dict[str, Any]:
 
 @facet_router.get(
     "/f/{facet}/children",
-    response_model=Union[List[MOFacetChildren], List[UUIDObject]],
+    response_model=Union[list[MOFacetChildren], list[UUIDObject]],
     response_model_exclude_unset=True,
     responses={404: {"description": "Facet not found."}},
 )
@@ -467,7 +467,7 @@ async def get_all_classes_children(
 
 @facet_router.get(
     "/c/{classid}/children",
-    response_model=Union[List[MOFacetChildren], List[UUIDObject]],
+    response_model=Union[list[MOFacetChildren], list[UUIDObject]],
     response_model_exclude_unset=True,
     responses={404: {"description": "Class not found."}},
 )

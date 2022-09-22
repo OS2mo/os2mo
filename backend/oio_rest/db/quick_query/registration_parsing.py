@@ -5,7 +5,6 @@ from enum import auto
 from enum import Enum
 from enum import unique
 from typing import Dict
-from typing import List
 from typing import Optional
 
 from more_itertools import flatten
@@ -44,7 +43,7 @@ class Attribute:
     value_type: ValueType  # e.g. '0' could mean a bool False or the literal string
 
     @staticmethod
-    def get_valid_attr(class_name) -> Dict[str, List[str]]:
+    def get_valid_attr(class_name) -> dict[str, list[str]]:
         """
         This style object
 
@@ -61,9 +60,9 @@ class Attribute:
     @classmethod
     def from_attr_egenskaber(
         cls,
-        attr: Dict[str, Optional[str]],
+        attr: dict[str, Optional[str]],
         class_name: str,
-        valid_attr: Dict[str, List[str]],
+        valid_attr: dict[str, list[str]],
     ) -> "Attribute":
         """
         deals with this sort of thing
@@ -105,8 +104,8 @@ class Attribute:
 
     @classmethod
     def parse_registration_attributes(
-        cls, class_name: str, attributes: Dict[str, List[Dict[str, Optional[str]]]]
-    ) -> List["Attribute"]:
+        cls, class_name: str, attributes: dict[str, list[dict[str, Optional[str]]]]
+    ) -> list["Attribute"]:
         """
         deals with the 'attributes'-value of this sort of thing
         {'attributes': {'organisationfunktionegenskaber':
@@ -133,15 +132,15 @@ class State:
     value: str
 
     @staticmethod
-    def get_valid_states(class_name: str) -> Dict[str, List[str]]:
+    def get_valid_states(class_name: str) -> dict[str, list[str]]:
         # "tilstande": {
         #     "gyldighed": ["Aktiv", "Inaktiv"]
         return dict(db_structure.REAL_DB_STRUCTURE[class_name]["tilstande"])
 
     @classmethod
     def parse_registration_states(
-        cls, class_name: str, states: Dict[str, List[Dict[str, Optional[str]]]]
-    ) -> List["State"]:
+        cls, class_name: str, states: dict[str, list[dict[str, Optional[str]]]]
+    ) -> list["State"]:
         """
         deals with 'states'-value of this sort of thing
         'states': {'gyldighed': [{'gyldighed': 'Aktiv', 'virkning': None}]}
@@ -163,7 +162,7 @@ class State:
 
     @classmethod
     def from_state_dict(
-        cls, state: Dict[str, Optional[str]], valid_states: Dict[str, List[str]]
+        cls, state: dict[str, Optional[str]], valid_states: Dict[str, list[str]]
     ) -> "State":
         """
         deals with this sort of thing
@@ -210,7 +209,7 @@ class Relation:  # OVERLY defensive, on purpose
     id_is_uuid: bool  # else, it is urn
 
     @staticmethod
-    def get_valid_relations(class_name: str) -> List[str]:
+    def get_valid_relations(class_name: str) -> list[str]:
         return db_structure.REAL_DB_STRUCTURE[class_name].get(
             "relationer_nul_til_en", []
         ) + db_structure.REAL_DB_STRUCTURE[class_name].get(
@@ -221,9 +220,9 @@ class Relation:  # OVERLY defensive, on purpose
     def from_relation_list(
         cls,
         relation_type: str,
-        relation_values: List[Dict[str, Optional[str]]],
-        valid_relations: List[str],
-    ) -> List["Relation"]:
+        relation_values: list[dict[str, Optional[str]]],
+        valid_relations: list[str],
+    ) -> list["Relation"]:
         """
         deals with this sort of thing
         'tilknyttedebrugere':
@@ -288,8 +287,8 @@ class Relation:  # OVERLY defensive, on purpose
 
     @classmethod
     def parse_registration_relations(
-        cls, class_name: str, relations: Dict[str, List[Dict[str, Optional[str]]]]
-    ) -> List["Relation"]:
+        cls, class_name: str, relations: dict[str, list[dict[str, Optional[str]]]]
+    ) -> list["Relation"]:
         """
         deals with key-value pairs of this sort of thing
         'relations': {

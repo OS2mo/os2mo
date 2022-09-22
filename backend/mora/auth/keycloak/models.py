@@ -3,7 +3,6 @@
 import binascii
 from base64 import b64decode
 from typing import Any
-from typing import Dict
 from uuid import UUID
 
 from os2mo_fastapi_utils.auth.models import Token as BaseToken
@@ -18,8 +17,8 @@ from mora import config
 class KeycloakToken(BaseToken):
     @root_validator
     def uuid_attribute_required_for_mo_client(
-        cls, values: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        cls, values: dict[str, Any]
+    ) -> dict[str, Any]:
         if (
             config.get_settings().keycloak_rbac_enabled
             and values.get("azp") == config.get_settings().keycloak_mo_client

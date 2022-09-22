@@ -34,7 +34,7 @@ class TestCreateObject(DBTestCase):
         }
 
     def parametrized_basic_integration(
-        self, path: str, lora_object: Dict[str, Any], search_params: Dict[str, Any]
+        self, path: str, lora_object: dict[str, Any], search_params: Dict[str, Any]
     ):
         """
         Tests basic create-search-delete-search flow

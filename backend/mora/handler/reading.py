@@ -8,9 +8,7 @@ from inspect import isawaitable
 from typing import Any
 from typing import Dict
 from typing import Iterable
-from typing import List
 from typing import Optional
-from typing import Tuple
 
 from structlog import get_logger
 
@@ -48,7 +46,7 @@ class ReadingHandler:
         search_fields,
         changed_since: Optional[datetime] = None,
         flat: bool = False,
-    ) -> List[Dict]:
+    ) -> list[Dict]:
         """
         Read a list of objects based on the given search parameters
 
@@ -107,7 +105,7 @@ class ReadingHandler:
     @classmethod
     async def __async_get_mo_object_from_effect(
         cls, c, function_id, function_obj, flat: bool = False
-    ) -> List[Any]:
+    ) -> list[Any]:
         """
         just a wrapper that makes calls in parallel. Not encapsulating / motivated by
         business logic
@@ -132,9 +130,9 @@ class ReadingHandler:
     async def _get_obj_effects(
         cls,
         c: Connector,
-        object_tuples: Iterable[Tuple[str, Dict[Any, Any]]],
+        object_tuples: Iterable[tuple[str, dict[Any, Any]]],
         flat: bool = False,
-    ) -> List[Dict[Any, Any]]:
+    ) -> list[dict[Any, Any]]:
         """
         Convert a list of LoRa objects into a list of MO objects
 
@@ -297,7 +295,7 @@ class OrgFunkReadingHandler(ReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         properties = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
         user_key = properties["brugervendtnoegle"]

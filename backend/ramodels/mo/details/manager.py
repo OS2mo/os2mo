@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -36,7 +35,7 @@ class ManagerRead(ManagerBase):
     )
     manager_type_uuid: Optional[UUID] = Field(description="UUID of the manager type.")
     manager_level_uuid: Optional[UUID] = Field(description="UUID of the manager level.")
-    responsibility_uuids: Optional[List[UUID]] = Field(
+    responsibility_uuids: Optional[list[UUID]] = Field(
         description="List of UUID's of the responsibilities."
     )
 
@@ -56,7 +55,7 @@ class ManagerWrite(ManagerBase):
     manager_type: Optional[ManagerType] = Field(
         description="Reference to the manager type klasse for the created manager."
     )
-    responsibility: Optional[List[Responsibility]] = Field(
+    responsibility: Optional[list[Responsibility]] = Field(
         description="List of manager responsibility objects."
     )
 
@@ -80,7 +79,7 @@ class Manager(MOBase):
     person: PersonRef = Field(
         description="Reference to the person that will be the resulting manager."
     )
-    responsibility: List[Responsibility] = Field(
+    responsibility: list[Responsibility] = Field(
         description="Manager responsibility objects."
     )
     manager_level: ManagerLevel = Field(
@@ -96,7 +95,7 @@ class Manager(MOBase):
         cls,
         org_unit_uuid: UUID,
         person_uuid: UUID,
-        responsibility_uuids: List[UUID],
+        responsibility_uuids: list[UUID],
         manager_level_uuid: UUID,
         manager_type_uuid: UUID,
         from_date: str,

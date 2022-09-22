@@ -42,8 +42,8 @@ class Trigger:
             Dict[
                 EventType,
                 Set[
-                    # TODO: Replace Dict[str, Any] with MOTriggerPayload
-                    Callable[[Dict[str, Any]], None]
+                    # TODO: Replace dict[str, Any] with MOTriggerPayload
+                    Callable[[dict[str, Any]], None]
                 ],
             ],
         ],

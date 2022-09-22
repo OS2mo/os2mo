@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from functools import partial
-from typing import Dict
-from typing import List
 
 import aiohttp
 from fastapi.encoders import jsonable_encoder
@@ -66,7 +64,7 @@ async def http_sender(trigger_url: str, trigger_dict: dict, timeout: int):
 
 async def fetch_endpoint_trigger(
     session, endpoint: str, timeout: int = 10
-) -> List[MOTriggerRegister]:
+) -> list[MOTriggerRegister]:
     """Fetch the trigger configuration from endpoint.
 
     Note: Expects the /triggers endpoint to return a JSON list with this format:
@@ -102,7 +100,7 @@ async def fetch_endpoint_trigger(
         async with session.get(full_url, timeout=client_timeout) as response:
             try:
                 trigger_configuration = parse_obj_as(
-                    List[MOTriggerRegister], await response.json()
+                    list[MOTriggerRegister], await response.json()
                 )
                 return trigger_configuration
             except aiohttp.client_exceptions.ContentTypeError as exc:
@@ -117,8 +115,8 @@ async def fetch_endpoint_trigger(
 
 
 async def fetch_endpoint_triggers(
-    endpoints: List[str], timeout: int = 10
-) -> Dict[str, List[MOTriggerRegister]]:
+    endpoints: list[str], timeout: int = 10
+) -> dict[str, list[MOTriggerRegister]]:
     """Construct trigger configuration maps from endpoints.
 
     Args:

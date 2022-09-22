@@ -4,7 +4,6 @@ from datetime import date
 from datetime import datetime
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Literal
 from typing import Optional
 
@@ -23,7 +22,7 @@ from ramodels.base import tz_isodate
 
 
 # Type aliases
-DictStrAny = Dict[str, Any]
+DictStrAny = dict[str, Any]
 
 
 class EmployeeBase(MOBase):
@@ -55,7 +54,7 @@ class EmployeeRead(EmployeeBase):
     validity: OpenValidity = Field(description="Validity of the employee.")
 
     @root_validator(pre=True)
-    def handle_deprecated_keys(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_deprecated_keys(cls, values: dict[str, Any]) -> Dict[str, Any]:
         values.pop("name", None)
         values.pop("nickname", None)
         return values
@@ -74,7 +73,7 @@ class EmployeeWrite(EmployeeBase):
             "Deprecated, please use given name/surname parts if needed."
         )
     )
-    details: Optional[List[EmployeeDetails]] = Field(
+    details: Optional[list[EmployeeDetails]] = Field(
         description=(
             "Details to be created for the employee. Note that when this is used, the"
             " employee reference is implicit in the payload."
@@ -134,7 +133,7 @@ class Employee(MOBase):
             "Deprecated, please use given name/surname parts if needed."
         )
     )
-    details: Optional[List[EmployeeDetails]] = Field(
+    details: Optional[list[EmployeeDetails]] = Field(
         description=(
             "Details to be created for the employee. Note that when this is used, the"
             " employee reference is implicit in the payload."

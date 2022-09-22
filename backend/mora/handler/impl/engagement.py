@@ -3,7 +3,6 @@
 from asyncio import create_task
 from asyncio import gather
 from typing import Any
-from typing import Dict
 from typing import Optional
 from uuid import UUID
 
@@ -180,7 +179,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 return class_id == primary
 
 
-async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[Dict[str, Any]]:
+async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[dict[str, Any]]:
     """
     convenience, for an often used pattern: Eagerly getting an engagement.
     :param c:

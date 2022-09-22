@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import List
 from typing import Literal
 from typing import Optional
 from uuid import UUID
@@ -61,7 +60,7 @@ class OrganisationUnitWrite(OrganisationUnitBase):
     time_planning: Optional[TimePlanning] = Field(
         description="Reference to the time planning type."
     )
-    details: Optional[List[OrgUnitDetails]] = Field(
+    details: Optional[list[OrgUnitDetails]] = Field(
         description=(
             "Details to be created for the organisation unit. "
             "Note that when this is used, the organisation unit reference "
@@ -91,7 +90,7 @@ class OrganisationUnit(MOBase):
     org_unit_level: OrgUnitLevel = Field(
         description="Reference to the organisation unit level type."
     )
-    details: Optional[List[OrgUnitDetails]] = Field(
+    details: Optional[list[OrgUnitDetails]] = Field(
         description=(
             "Details to be created for the organisation unit. "
             "Note that when this is used, the organisation unit reference "

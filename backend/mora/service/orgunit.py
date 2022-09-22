@@ -20,7 +20,6 @@ from itertools import chain
 from typing import Any
 from typing import Awaitable
 from typing import Dict
-from typing import List
 from typing import Optional
 from uuid import UUID
 from uuid import uuid4
@@ -370,7 +369,7 @@ async def __get_one_orgunit_from_cache(
     details: UnitDetails = UnitDetails.NCHILDREN,
     validity: Optional[Any] = None,
     only_primary_uuid: bool = False,
-) -> Optional[Dict[Any, Any]]:
+) -> Optional[dict[Any, Any]]:
     """
     Get org unit from cache and process it
     :param unitid: uuid of orgunit
@@ -425,7 +424,7 @@ async def get_one_orgunit(
     validity=None,
     only_primary_uuid: bool = False,
     count_related: dict = None,
-) -> Optional[Dict[Any, Any]]:
+) -> Optional[dict[Any, Any]]:
     """
     Internal API for returning one organisation unit.
     """
@@ -613,7 +612,7 @@ async def autocomplete_orgunits(query: str):
 
 @router.get("/ou/ancestor-tree")
 async def get_unit_ancestor_tree(
-    uuid: List[UUID] = Query(...),
+    uuid: list[UUID] = Query(...),
     only_primary_uuid: bool = Query(False),
     org_unit_hierarchy: str = "",
 ):
@@ -700,7 +699,7 @@ async def get_unit_ancestor_tree(
 
 async def get_unit_tree(
     c: lora.Connector,
-    unitids: List[str],
+    unitids: list[str],
     with_siblings: bool = False,
     only_primary_uuid: bool = False,
     org_unit_hierarchy: str = None,
@@ -784,7 +783,7 @@ async def list_orgunits(
     limit: Optional[int] = 0,
     query: Optional[str] = None,
     root: Optional[str] = None,
-    hierarchy_uuids: Optional[List[UUID]] = Query(default=None),
+    hierarchy_uuids: Optional[list[UUID]] = Query(default=None),
     only_primary_uuid: Optional[bool] = None,
 ):
     """Query organisational units in an organisation.
@@ -915,7 +914,7 @@ async def list_orgunits(
 async def list_orgunit_tree(
     orgid: UUID,
     query: Optional[str] = None,
-    uuid: Optional[List[UUID]] = Query(None),
+    uuid: Optional[list[UUID]] = Query(None),
     only_primary_uuid: bool = False,
 ):
     """

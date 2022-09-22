@@ -18,7 +18,6 @@ from operator import contains
 from operator import itemgetter
 from typing import Any
 from typing import Awaitable
-from typing import Dict
 from typing import Optional
 from typing import Union
 from uuid import UUID
@@ -142,7 +141,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
-    def _handle_nickname(self, obj: Dict[Union[str, Any], Any]):
+    def _handle_nickname(self, obj: dict[Union[str, Any], Any]):
         nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
         nickname_surname = obj.get(mapping.NICKNAME_SURNAME, None)
         nickname = obj.get(mapping.NICKNAME, None)
@@ -332,7 +331,7 @@ async def request_bulked_get_one_employee(
 async def get_one_employee(
     c: lora.Connector,
     userid,
-    user: Optional[Dict[str, Any]] = None,
+    user: Optional[dict[str, Any]] = None,
     details=EmployeeDetails.MINIMAL,
     only_primary_uuid: bool = False,
 ):

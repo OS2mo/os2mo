@@ -7,9 +7,7 @@ from math import inf
 from typing import Any
 from typing import Awaitable
 from typing import Dict
-from typing import List
 from typing import Optional
-from typing import Tuple
 from uuid import UUID
 
 from structlog import get_logger
@@ -83,8 +81,8 @@ class OwnerReader(reading.OrgFunkReadingHandler):
 
     @staticmethod
     def __owner_priority(
-        obj: Dict[str, Any], primary_priorities: Dict[str, int]
-    ) -> Tuple[int, float, str]:
+        obj: dict[str, Any], primary_priorities: Dict[str, int]
+    ) -> tuple[int, float, str]:
         """
         strict ordering between objects with scope-based priority
         :param obj: An appropriate MO-obj
@@ -108,7 +106,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     @staticmethod
     async def get_relation_candidates(
         owned_person_uuid: UUID, inference_priority: OwnerInferencePriority
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         if inference_priority is OwnerInferencePriority.engagement:
             return list(
                 await EngagementReader.get(
@@ -131,7 +129,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         cls,
         owned_person_uuid: UUID,
         inference_priority: OwnerInferencePriority,
-    ) -> Optional[Awaitable[Dict[str, Any]]]:
+    ) -> Optional[Awaitable[dict[str, Any]]]:
 
         candidates = await cls.get_relation_candidates(
             owned_person_uuid=owned_person_uuid,
@@ -219,7 +217,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                     str(owned_person), only_primary_uuid=only_primary_uuid
                 )
             )
-        func: Dict[Any, Any] = {
+        func: dict[Any, Any] = {
             **await base_obj,
             mapping.OWNER_INFERENCE_PRIORITY: inference_priority.value
             if inference_priority is not None

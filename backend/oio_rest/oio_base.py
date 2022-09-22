@@ -8,9 +8,7 @@ from abc import abstractmethod
 from itertools import filterfalse
 from typing import Any
 from typing import Dict
-from typing import List
 from typing import Optional
-from typing import Tuple
 from typing import Union
 from uuid import UUID
 
@@ -101,7 +99,7 @@ class Searcher(metaclass=ABCMeta):
         any_rel_uuid_arr=None,
         first_result=None,
         max_results=None,
-    ) -> Tuple[List[str]]:
+    ) -> tuple[list[str]]:
         pass
 
 
@@ -122,7 +120,7 @@ class DefaultSearcher(Searcher):
         any_rel_uuid_arr=None,
         first_result=None,
         max_results=None,
-    ) -> Tuple[List[str]]:
+    ) -> tuple[list[str]]:
         return db.search_objects(
             class_name=class_name,
             uuid=uuid,
@@ -158,7 +156,7 @@ class QuickSearcher(Searcher):
         any_rel_uuid_arr=None,
         first_result=None,
         max_results=None,
-    ) -> Tuple[List[str]]:
+    ) -> tuple[list[str]]:
         try:
             return quick_search(
                 class_name=class_name,
@@ -417,7 +415,7 @@ class OIORestObject:
         If supplied, arguments will be extracted from the json body of GET requests.
         """
         if request.method == "GET" and await request.body():
-            json_body: Dict[str, Any] = await request.json()
+            json_body: dict[str, Any] = await request.json()
             # Flatten into list of two-tuples, as required by ArgumentDict
             args = (
                 (key, value)

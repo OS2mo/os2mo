@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Custom hypothesis strategies used in the GraphAPI testing suite."""
-from typing import List
-
 from fastapi.encoders import jsonable_encoder
 from hypothesis import strategies as st
 
@@ -10,7 +8,7 @@ from mora.graphapi.versions.latest.dataloaders import MOModel
 
 
 @st.composite
-def data_strat(draw, models: List[MOModel]):
+def data_strat(draw, models: list[MOModel]):
     """Hypothesis strategy for drawing test data based on MOModels."""
     model = draw(st.sampled_from(models))
     test_data = draw(st.lists(st.builds(model)))
@@ -18,7 +16,7 @@ def data_strat(draw, models: List[MOModel]):
 
 
 @st.composite
-def data_with_uuids_strat(draw, models: List[MOModel]):
+def data_with_uuids_strat(draw, models: list[MOModel]):
     """Hypothesis strategy for drawing test data including UUID samples."""
     model, test_data = draw(data_strat(models))
     test_uuids = [model.uuid for model in test_data]

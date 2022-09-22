@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Any
-from typing import Dict
 from typing import Optional
 
 from structlog import get_logger
@@ -27,7 +26,7 @@ class EmployeeReader(reading.ReadingHandler):
     async def get(
         cls,
         c: Connector,
-        search_fields: Dict[Any, Any],
+        search_fields: dict[Any, Any],
         changed_since: Optional[datetime] = None,
         flat: bool = False,
     ):

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import os
-from typing import List
 
 from psycopg2.errors import UndefinedTable
 from sqlalchemy.orm import sessionmaker
@@ -42,7 +41,7 @@ def is_alembic_installed() -> bool:
 
 def get_prerequisites(
     schema_name="actual_state", db_user="mox", db_name="mox"
-) -> List[str]:
+) -> list[str]:
     return [
         # These steps are also performed by the "mox-db-init" container.
         # We perform them here as well as part of the setup/teardown process of

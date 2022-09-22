@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import Dict
 from typing import Optional
 
 from fastapi import APIRouter
@@ -49,7 +48,7 @@ async def readiness(response: Response):
 
 
 @router.get("/")
-async def root() -> Dict[str, bool]:
+async def root() -> dict[str, bool]:
     query = """
     query HealthQuery {
       healths {

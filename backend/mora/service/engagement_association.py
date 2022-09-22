@@ -9,7 +9,6 @@ This section describes how to interact with employee associations.
 """
 import uuid
 from typing import Any
-from typing import Dict
 
 from . import handlers
 from . import org
@@ -24,7 +23,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
     role_type = mapping.ENGAGEMENT_ASSOCIATION_KEY
     function_key = mapping.ENGAGEMENT_ASSOCIATION_KEY
 
-    async def prepare_create(self, req: Dict[Any, Any]):
+    async def prepare_create(self, req: dict[Any, Any]):
         """
         To create a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
@@ -102,7 +101,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
             }
         )
 
-    async def prepare_edit(self, req: Dict[Any, Any]):
+    async def prepare_edit(self, req: dict[Any, Any]):
         """
         To edit into a vacant association, set employee_uuid to None and set a
         value org_unit_uuid
