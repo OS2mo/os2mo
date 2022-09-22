@@ -203,7 +203,7 @@ class FieldTuple(object):
 
     def __init__(
         self,
-        path: typing.Tuple[str, str],
+        path: tuple[str, str],
         type: FieldTypes,
         filter_fn: typing.Callable[[dict], bool] = None,
     ):
@@ -235,7 +235,7 @@ class FieldTuple(object):
         return next(self.get_uuids(obj), None)
 
     @property
-    def path(self) -> typing.Tuple[str, str]:
+    def path(self) -> tuple[str, str]:
         return self.__path
 
     @property

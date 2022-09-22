@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import logging
-import typing
 from enum import Enum
+from typing import Any
 from typing import Optional
 from uuid import UUID
 
@@ -125,7 +125,7 @@ class MoraTrigger(BaseModel):
         "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
-    result: typing.Any = Field(description="Result of the trigger", default=None)
+    result: Any = Field(description="Result of the trigger", default=None)
 
     def to_trigger_dict(self) -> dict:
         trigger_dict = self.dict(by_alias=True)

@@ -21,12 +21,9 @@ from typing import Coroutine
 from typing import FrozenSet
 from typing import ItemsView
 from typing import Iterable
-from typing import List
 from typing import Literal
 from typing import NoReturn
 from typing import Optional
-from typing import Set
-from typing import Tuple
 from typing import TypeVar
 from typing import Union
 
@@ -212,8 +209,8 @@ def exotics_to_str(value):
 
 
 def param_exotics_to_strings(
-    params: dict[T, Union[bool, List, Set, str, int, uuid.UUID]]
-) -> dict[T, Union[str, int, List]]:
+    params: dict[T, Union[bool, list, set, str, int, uuid.UUID]]
+) -> dict[T, Union[str, int, list]]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
@@ -412,7 +409,7 @@ class BaseScope:
 class Scope(BaseScope):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.loaders: dict[Tuple[str], DataLoader] = {}
+        self.loaders: dict[tuple[str], DataLoader] = {}
 
     def load(self, **params: Any) -> Awaitable[list[dict]]:
         """
@@ -623,7 +620,7 @@ class Scope(BaseScope):
 
     async def get_all_by_uuid(
         self,
-        uuids: Union[List, Set],
+        uuids: Union[list, set],
         changed_since: Optional[datetime] = None,
     ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """

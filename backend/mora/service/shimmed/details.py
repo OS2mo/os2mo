@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import typing
-
 from fastapi import Body
 from fastapi import Depends
 
@@ -26,7 +24,7 @@ GRAPHQL_COMPATIBLE_TYPES = {
     "/details/terminate", responses={"400": {"description": "Unknown role type"}}
 )
 async def terminate(
-    reqs: typing.Union[list[DetailTermination], DetailTermination] = Body(...),
+    reqs: list[DetailTermination] | DetailTermination = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     results: list[str] = []

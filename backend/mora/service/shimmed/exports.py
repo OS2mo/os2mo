@@ -3,7 +3,6 @@
 from base64 import b64decode
 from operator import itemgetter
 from typing import Any
-from typing import List
 from typing import Optional
 
 from fastapi import Cookie
@@ -31,7 +30,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")
 
 @exports_router.get(
     "/exports/",
-    response_model=List[str],
+    response_model=list[str],
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
     dependencies=[Depends(auth)],

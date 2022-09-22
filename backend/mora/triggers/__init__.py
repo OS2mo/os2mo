@@ -2,8 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 from typing import Callable
-from typing import Dict
-from typing import Set
 
 from structlog import get_logger
 
@@ -35,13 +33,13 @@ async def register(app):
 class Trigger:
     """Trigger registry, retrieval, and decorator methods"""
 
-    registry: Dict[
+    registry: dict[
         str,
-        Dict[
+        dict[
             RequestType,
-            Dict[
+            dict[
                 EventType,
-                Set[
+                set[
                     # TODO: Replace dict[str, Any] with MOTriggerPayload
                     Callable[[dict[str, Any]], None]
                 ],
