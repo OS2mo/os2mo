@@ -13,8 +13,8 @@ import collections
 import copy
 import datetime
 import functools
-import typing
 import uuid
+from typing import Any
 
 import werkzeug
 from starlette.requests import HTTPConnection
@@ -39,9 +39,7 @@ class LoRaConnectorPlugin(Plugin):
 
     key = "lora_connector"
 
-    async def process_request(
-        self, request: Request | HTTPConnection
-    ) -> typing.Any | None:
+    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
         @functools.lru_cache()
         def cached_create_connector(**kwargs):
             return _create_connector(**kwargs)
@@ -388,7 +386,7 @@ def create_organisationsfunktion_payload(
     tilknyttedeorganisationer: list[str],
     tilknyttedebrugere: list[str] | None = None,
     tilknyttedeenheder: list[str] | None = None,
-    tilknyttedefunktioner: typing.Optional[list[dict[str, str] | str]] = None,
+    tilknyttedefunktioner: list[dict[str, str] | str] | None = None,
     tilknyttedeitsystemer: list[str] | None = None,
     tilknyttedeklasser: list[str] | None = None,
     funktionstype: str | None = None,
