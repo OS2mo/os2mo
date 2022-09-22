@@ -10,6 +10,7 @@ import unittest
 import uuid
 from unittest import mock
 
+import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app
@@ -340,6 +341,8 @@ class ExtTestCase(BaseTestCase):
             yield
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("tests_setup_and_teardown")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
 
