@@ -5,7 +5,6 @@ from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
 from typing import Optional
-from typing import Union
 
 from .models import FileStore
 from mora import exceptions
@@ -50,7 +49,7 @@ class FileStorage(ABC):
     @abstractmethod
     def load_file(
         self, file_store: FileStore, file_name: str, binary: bool = False
-    ) -> Union[str, bytes]:
+    ) -> str | bytes:
         """Load an file with a given name from the given file store.
 
         Args:
@@ -78,7 +77,7 @@ class NOOPFileStorage(FileStorage):
 
     def load_file(
         self, file_store: FileStore, file_name: str, binary: bool = False
-    ) -> Union[str, bytes]:
+    ) -> str | bytes:
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
         return ""
 
@@ -169,7 +168,7 @@ class FileSystemStorage(FileStorage):
 
     def load_file(
         self, file_store: FileStore, file_name: str, binary: bool = False
-    ) -> Union[str, bytes]:
+    ) -> str | bytes:
         """Load an export file with a given name.
 
         Args:

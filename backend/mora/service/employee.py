@@ -19,7 +19,6 @@ from operator import itemgetter
 from typing import Any
 from typing import Awaitable
 from typing import Optional
-from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -141,7 +140,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.uuid = userid
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
-    def _handle_nickname(self, obj: dict[Union[str, Any], Any]):
+    def _handle_nickname(self, obj: dict[str | Any, Any]):
         nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
         nickname_surname = obj.get(mapping.NICKNAME_SURNAME, None)
         nickname = obj.get(mapping.NICKNAME, None)

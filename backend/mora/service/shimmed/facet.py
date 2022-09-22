@@ -5,7 +5,6 @@ from typing import Any
 from typing import Generic
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 from uuid import UUID
 
 from fastapi import Path
@@ -56,7 +55,7 @@ class MOClassReturn(BaseModel):
 
 @facet_router.get(
     "/c/{classid}/",
-    response_model=Union[MOClassReturn, UUIDObject],
+    response_model=MOClassReturn | UUIDObject,
     response_model_exclude_unset=True,
     responses={404: {"description": "Class not found."}},
 )
@@ -256,7 +255,7 @@ class MOFacetAllClasses(BaseModel):
     uuid: UUID = Field(description="The UUID of the facet.")
     user_key: str = Field(description="Short, unique key.")
     description: str = Field(description="Description of the facet object.", default="")
-    data: MOPaged[Union[MOClassReturn, UUIDObject]] = Field(
+    data: MOPaged[MOClassReturn | UUIDObject] = Field(
         description="Paged listing of classes"
     )
 
@@ -294,7 +293,7 @@ async def facet_user_key_to_uuid(user_key: str) -> Optional[UUID]:
     responses={404: {"description": "Facet not found."}},
 )
 async def get_all_classes(
-    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: Optional[int] = Query(
         None, description="Maximum number of items to return."
@@ -394,12 +393,12 @@ def construct_clazz_children(clazz: dict[str, Any]) -> dict[str, Any]:
 
 @facet_router.get(
     "/f/{facet}/children",
-    response_model=Union[list[MOFacetChildren], list[UUIDObject]],
+    response_model=list[MOFacetChildren] | list[UUIDObject],
     response_model_exclude_unset=True,
     responses={404: {"description": "Facet not found."}},
 )
 async def get_all_classes_children(
-    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: Optional[int] = Query(
         None, description="Maximum number of items to return."
@@ -465,7 +464,7 @@ async def get_all_classes_children(
 
 @facet_router.get(
     "/c/{classid}/children",
-    response_model=Union[list[MOFacetChildren], list[UUIDObject]],
+    response_model=list[MOFacetChildren] | list[UUIDObject],
     response_model_exclude_unset=True,
     responses={404: {"description": "Class not found."}},
 )
@@ -558,7 +557,7 @@ async def get_classes(
         description="UUID of the organisation to retrieve facets from.",
         example="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
-    facet: Union[str, UUID] = Path(..., description="UUID or user_key of a facet."),
+    facet: str | UUID = Path(..., description="UUID or user_key of a facet."),
     start: int = Query(0, description="Index of the first item for paging."),
     limit: Optional[int] = Query(
         None, description="Maximum number of items to return."

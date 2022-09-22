@@ -9,9 +9,7 @@ This section describes how to interact with owners.
 import uuid
 from datetime import datetime
 from typing import Any
-from typing import Dict
 from typing import NoReturn
-from typing import Optional
 
 from . import handlers
 from . import org
@@ -31,7 +29,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.OWNER
 
     @staticmethod
-    def raise_unexpected_input(obj: Dict) -> NoReturn:
+    def raise_unexpected_input(obj: dict) -> NoReturn:
         """
         tiny wrapper, just convenience
         :param obj: used to construct error msg, could be e.g. received request
@@ -46,13 +44,13 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     def extract_info_owner_info(
         self, req
     ) -> tuple[
-        Optional[dict[str, Any]],
-        Optional[dict[str, Any]],
-        Optional[dict[str, Any]],
-        Optional[str],
-        Optional[str],
-        Optional[str],
-        Optional[OwnerInferencePriority],
+        dict[str, Any] | None,
+        dict[str, Any] | None,
+        dict[str, Any] | None,
+        str | None,
+        str | None,
+        str | None,
+        OwnerInferencePriority | None,
     ]:
         """
         Parsing owner-spec
@@ -105,8 +103,8 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
     @staticmethod
     def calc_triggers(
-        owned_person_uuid: Optional[str],
-        org_unit_uuid: Optional[str],
+        owned_person_uuid: str | None,
+        org_unit_uuid: str | None,
         req: dict[str, Any],
     ) -> dict[str, str]:
         """
@@ -127,9 +125,9 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
     async def validate(
         validity_from: datetime,
         validity_to: datetime,
-        org_unit: Optional[dict[str, Any]],
-        owned_person: Optional[dict[str, Any]],
-        owner: Optional[dict[str, Any]],
+        org_unit: dict[str, Any] | None,
+        owned_person: dict[str, Any] | None,
+        owner: dict[str, Any] | None,
     ):
         """
         validate parsed input - raise on error
@@ -155,7 +153,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 owner, validity_from, validity_to
             )
 
-    async def prepare_create(self, req: Dict):
+    async def prepare_create(self, req: dict):
         """To create a vacant owner, set employee_uuid to None
         and set a value org_unit_uuid"""
 

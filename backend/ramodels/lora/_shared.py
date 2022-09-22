@@ -6,7 +6,6 @@ from typing import Callable
 from typing import Iterator
 from typing import Literal
 from typing import Optional
-from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -73,7 +72,7 @@ class InfiniteDatetime(str):
     If a new object is desired, please use the from_value class method."""
 
     @classmethod
-    def from_value(cls, value: Union[str, datetime]) -> "InfiniteDatetime":
+    def from_value(cls, value: str | datetime) -> "InfiniteDatetime":
         return cls.validate(value)
 
     @classmethod
@@ -279,7 +278,7 @@ class Relation(RABase):
 
 
 def get_relations(
-    uuids: Union[None, UUID, list[UUID]] = None,
+    uuids: None | UUID | list[UUID] = None,
     effective_time: Optional[EffectiveTime] = None,
 ) -> Optional[list[Relation]]:
     """Returns a list of `Relation`s obtained from UUIDs or None if `uuids=None`"""

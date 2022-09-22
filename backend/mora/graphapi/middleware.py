@@ -3,7 +3,6 @@
 """Starlette plugins to create context variables that can be used in the service app."""
 from typing import Any
 from typing import Optional
-from typing import Union
 
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
@@ -31,9 +30,7 @@ class GraphQLContextPlugin(Plugin):
 
     key = "is_graphql"
 
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
+    async def process_request(self, request: Request | HTTPConnection) -> Optional[Any]:
         return 0
 
 
@@ -66,9 +63,7 @@ class GraphQLDatesPlugin(Plugin):
 
     key: str = "graphql_dates"
 
-    async def process_request(
-        self, request: Union[Request, HTTPConnection]
-    ) -> Optional[Any]:
+    async def process_request(self, request: Request | HTTPConnection) -> Optional[Any]:
         return None
 
 

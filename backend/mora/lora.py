@@ -25,7 +25,6 @@ from typing import Literal
 from typing import NoReturn
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 
 import httpx
 import lora_utils
@@ -95,7 +94,7 @@ def filter_registrations(
     response: list[dict[str, Any]],
     wantregs: bool,
     changed_since: Optional[datetime] = None,
-) -> Iterable[tuple[str, Union[list[dict[str, Any]], dict[str, Any]]]]:
+) -> Iterable[tuple[str, list[dict[str, Any]] | dict[str, Any]]]:
     """
     Helper, to filter registrations
     :param response: Registrations as received from LoRa
@@ -209,8 +208,8 @@ def exotics_to_str(value):
 
 
 def param_exotics_to_strings(
-    params: dict[T, Union[bool, list, set, str, int, uuid.UUID]]
-) -> dict[T, Union[str, int, list]]:
+    params: dict[T, bool | list | set | str | int | uuid.UUID]
+) -> dict[T, str | int | list]:
     """
     converts requests-compatible (and more) params to aiohttp-compatible params
 
@@ -365,7 +364,7 @@ class ParameterValuesExtractor:
     @classmethod
     def traverse(
         cls,
-        items: Union[Iterable[tuple[str, Any]], ItemsView[str, Any]],
+        items: Iterable[tuple[str, Any]] | ItemsView[str, Any],
         path: tuple = (),
     ):
         """
@@ -383,7 +382,7 @@ class ParameterValuesExtractor:
                 yield p, value
 
     @classmethod
-    def get_key_for_path(cls, path: Iterable[Union[str, int]]) -> str:
+    def get_key_for_path(cls, path: Iterable[str | int]) -> str:
         """
         Given a path (a,b,c), extract the final relevant path component (c). Each path
         component can be either a string or integer, for a dict key or list index,
@@ -488,7 +487,7 @@ class Scope(BaseScope):
 
         return loader.load(tuple(to_frozenset(v) for v in params.values()))
 
-    async def load_uuids(self, **params: Union[str, Iterable]) -> list[str]:
+    async def load_uuids(self, **params: str | Iterable) -> list[str]:
         """
         Like load(), but map results back into UUIDs.
         load_uuids(**params) == fetch(**params)
@@ -620,7 +619,7 @@ class Scope(BaseScope):
 
     async def get_all_by_uuid(
         self,
-        uuids: Union[list, set],
+        uuids: list | set,
         changed_since: Optional[datetime] = None,
     ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """
@@ -636,7 +635,7 @@ class Scope(BaseScope):
         self,
         func: Callable[
             ["Connector", Any, Any],
-            Union[Any, Coroutine],
+            Any | Coroutine,
         ],
         *,
         start=0,

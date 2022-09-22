@@ -5,7 +5,6 @@ from typing import Any
 from typing import Awaitable
 from typing import Iterable
 from typing import TypeVar
-from typing import Union
 
 from structlog import get_logger
 
@@ -41,7 +40,7 @@ class RoleReader(reading.OrgFunkReadingHandler):
     @classmethod
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
-    ) -> dict[str, Union[Awaitable, Any]]:
+    ) -> dict[str, Awaitable | Any]:
         org_units_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuids(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)

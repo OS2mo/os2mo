@@ -12,7 +12,6 @@ from json import dumps
 from typing import Any
 from typing import Iterator
 from typing import Optional
-from typing import Union
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from urllib.parse import parse_qsl
@@ -505,7 +504,7 @@ class darmock(aioresponses.aioresponses):
         return super().get(*args, **kwargs, body=body)
 
 
-def modified_normalize_url(url: Union[URL, str]) -> URL:
+def modified_normalize_url(url: URL | str) -> URL:
     """Normalize url to make comparisons."""
     url = URL(url)
     return url.with_query(sorted(parse_qsl(url.query_string)))

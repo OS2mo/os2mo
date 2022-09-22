@@ -4,8 +4,6 @@ from datetime import date
 from datetime import datetime
 from datetime import timedelta
 from typing import Literal
-from typing import Optional
-from typing import Union
 from uuid import UUID
 
 from fastapi import Path
@@ -125,7 +123,9 @@ async def get_organisation(
 )
 async def get_org_children(
     parentid: UUID = Path(..., description="UUID of the parent"),
-    at: Optional[Union[date, datetime]] = Query(
+    at: date
+    | datetime
+    | None = Query(
         None,
         description="Show the children valid at this point in time, in ISO-8601 format",
     ),
@@ -137,7 +137,8 @@ async def get_org_children(
         "associations in the unit. `count=engagement` is also allowed. "
         "It is allowed to pass more than one `count` query parameter.",
     ),
-    org_unit_hierarchy: Optional[UUID] = Query(
+    org_unit_hierarchy: UUID
+    | None = Query(
         None,
         description="The tree returned is filtered to contain "
         "only organisational units which belong to the given hierarchy.",

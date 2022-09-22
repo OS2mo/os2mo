@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """LoRa data read helpers."""
 from typing import Any
-from typing import Union
 from uuid import UUID
 
 from mora.common import get_connector
@@ -18,9 +17,7 @@ def to_lora_args(key: Any, value: Any) -> tuple[Any, Any]:
     return key, value
 
 
-def _extract_search_params(
-    query_args: dict[Union[Any, MoOrgFunk], Any]
-) -> dict[Any, Any]:
+def _extract_search_params(query_args: dict[Any | MoOrgFunk, Any]) -> dict[Any, Any]:
     """Deals with special LoRa-search format.
 
     Requires data to be written properly formatted.
