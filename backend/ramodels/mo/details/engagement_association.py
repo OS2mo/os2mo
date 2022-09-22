@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -80,8 +79,8 @@ class EngagementAssociation(MOBase):
         engagement_uuid: UUID,
         engagement_association_type_uuid: UUID,
         from_date: str,
-        to_date: Optional[str] = None,
-        uuid: Optional[UUID] = None,
+        to_date: str | None = None,
+        uuid: UUID | None = None,
     ) -> "EngagementAssociation":
         """Create an engagement association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)

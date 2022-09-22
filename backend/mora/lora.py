@@ -1,26 +1,23 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from __future__ import generator_stop
-
 import asyncio
 import json
 import re
 import uuid
 from asyncio import gather
 from collections import defaultdict
+from collections.abc import Awaitable
+from collections.abc import Callable
+from collections.abc import Container
+from collections.abc import Coroutine
+from collections.abc import ItemsView
+from collections.abc import Iterable
 from datetime import datetime
 from enum import Enum
 from enum import unique
 from functools import partial
 from itertools import starmap
 from typing import Any
-from typing import Awaitable
-from typing import Callable
-from typing import Container
-from typing import Coroutine
-from typing import FrozenSet
-from typing import ItemsView
-from typing import Iterable
 from typing import Literal
 from typing import NoReturn
 from typing import Optional
@@ -52,7 +49,7 @@ logger = get_logger()
 settings = config.get_settings()
 
 
-async def create_lora_client(app: Optional[FastAPI] = None) -> httpx.AsyncClient:
+async def create_lora_client(app: FastAPI | None = None) -> httpx.AsyncClient:
     """Return lora client.
 
     If `ENABLE_INTERNAL_LORA` is set, this transparently sends requests to the
@@ -93,7 +90,7 @@ def registration_changed_since(reg: dict[str, Any], since: datetime) -> bool:
 def filter_registrations(
     response: list[dict[str, Any]],
     wantregs: bool,
-    changed_since: Optional[datetime] = None,
+    changed_since: datetime | None = None,
 ) -> Iterable[tuple[str, list[dict[str, Any]] | dict[str, Any]]]:
     """
     Helper, to filter registrations
@@ -323,7 +320,7 @@ class Connector:
 
 def group_params(
     param_keys: tuple[T],
-    params_list: list[tuple[FrozenSet[V]]],
+    params_list: list[tuple[frozenset[V]]],
 ) -> dict[T, set[V]]:
     """
     Transform parameters from
@@ -594,7 +591,7 @@ class Scope(BaseScope):
         except IndexError:
             return []
 
-    async def get_all(self, changed_since: Optional[datetime] = None, **params):
+    async def get_all(self, changed_since: datetime | None = None, **params):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -620,7 +617,7 @@ class Scope(BaseScope):
     async def get_all_by_uuid(
         self,
         uuids: list | set,
-        changed_since: Optional[datetime] = None,
+        changed_since: datetime | None = None,
     ) -> Iterable[tuple[str, dict[Any, Any]]]:
         """
         Get a list of objects by their UUIDs.

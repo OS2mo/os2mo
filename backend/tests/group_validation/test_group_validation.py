@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from operator import itemgetter
-from typing import Callable
-from typing import Optional
 
 import pytest
 from parameterized import parameterized
@@ -116,7 +115,7 @@ class TestGroupValidation:
             instance.validate_at_most_one(itemgetter("foo"), lambda val: val == "baz")
 
     def _assert_conditional_exception(
-        self, func: Callable, exception: Optional[Exception]
+        self, func: Callable, exception: Exception | None
     ):
         if exception:
             with pytest.raises(exception):

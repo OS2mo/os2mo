@@ -160,7 +160,7 @@ async def test_failed_lookup_from_effect():
     }
 
     # Act
-    effect = {"relationer": {"adresser": [{"urn": "urn:dar:{}".format(value)}]}}
+    effect = {"relationer": {"adresser": [{"urn": f"urn:dar:{value}"}]}}
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
             address_handler = await DARAddressHandler.from_effect(effect)
@@ -173,7 +173,7 @@ def test_get_lora_address(valid_value):
     visibility = "d99b500c-34b4-4771-9381-5c989eede969"
     address_handler = DARAddressHandler(valid_value, visibility)
 
-    expected = {"objekttype": "DAR", "urn": "urn:dar:{}".format(valid_value)}
+    expected = {"objekttype": "DAR", "urn": f"urn:dar:{valid_value}"}
 
     # Act
     actual = address_handler.get_lora_address()

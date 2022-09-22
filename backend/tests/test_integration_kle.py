@@ -105,7 +105,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         actual = self.assertRequest(
-            "/service/ou/{}/details/kle".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/kle",
             amqp_topics={
                 "org_unit.kle.create": 1,
             },
@@ -202,7 +202,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         actual = self.assertRequest(
-            "/service/ou/{}/details/kle".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/kle",
             amqp_topics={
                 "org_unit.kle.update": 1,
             },

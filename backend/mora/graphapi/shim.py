@@ -8,7 +8,6 @@ Used for shimming the service API.
 from datetime import date
 from typing import Any
 from typing import Optional
-from typing import Type
 from uuid import UUID
 
 from more_itertools import flatten
@@ -32,8 +31,8 @@ from ramodels.mo.details import AddressRead
 class MOEmployee(EmployeeRead):
     name: str
     nickname: str
-    org: Optional[OrganisationRead]
-    validity: Optional[Any]  # not part of the "old" MO response
+    org: OrganisationRead | None
+    validity: Any | None  # not part of the "old" MO response
 
     @root_validator(pre=True)
     def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -49,36 +48,36 @@ class UUIDObject(BaseModel):
 class ValidityDates(BaseModel):
     """Validity with (imprecise) `date` types."""
 
-    from_date: Optional[date] = Field(alias="from")
-    to_date: Optional[date] = Field(alias="to")
+    from_date: date | None = Field(alias="from")
+    to_date: date | None = Field(alias="to")
 
     @validator("from_date", pre=True, always=True)
-    def parse_from_date(cls, v: Any) -> Optional[date]:
+    def parse_from_date(cls, v: Any) -> date | None:
         return v and util.parsedatetime(v).date()
 
     @validator("to_date", pre=True, always=True)
-    def parse_to_date(cls, v: Any) -> Optional[date]:
+    def parse_to_date(cls, v: Any) -> date | None:
         return v and util.parsedatetime(v).date()
 
 
 class MOAddressType(ClassRead):
-    org_uuid: Optional[Any]
-    facet_uuid: Optional[Any]
-    facet: Optional[Any]
-    top_level_facet: Optional[Any]
+    org_uuid: Any | None
+    facet_uuid: Any | None
+    facet: Any | None
+    top_level_facet: Any | None
 
 
 class MOFacetRead(FacetRead):
-    org_uuid: Optional[UUID]
-    user_key: Optional[str]
+    org_uuid: UUID | None
+    user_key: str | None
 
 
 class MOClassRead(ClassRead):
-    org_uuid: Optional[UUID]
-    facet_uuid: Optional[UUID]
+    org_uuid: UUID | None
+    facet_uuid: UUID | None
     facet: MOFacetRead
     top_level_facet: MOFacetRead
-    full_name: Optional[str]
+    full_name: str | None
 
 
 class OrgUnitType(OrganisationUnitRead):
@@ -158,10 +157,10 @@ class MOOrgUnit(OrgUnitRead):
 
     location: str = ""
     parent: Optional["MOOrgUnit"]
-    org: Optional[OrganisationRead]
-    org_unit_level: Optional[MOClassRead]
+    org: OrganisationRead | None
+    org_unit_level: MOClassRead | None
     org_unit_type: MOClassRead
-    time_planning: Optional[MOClassRead]
+    time_planning: MOClassRead | None
     user_settings: dict[str, Any] = {}
     engagement_count: int = 0
     association_count: int = 0
@@ -179,25 +178,23 @@ class OrganisationLevelRead(OrganisationRead):
 
 
 class VisibilityRead(ClassRead):
-    org_uuid: Optional[UUID]
-    facet_uuid: Optional[UUID]
+    org_uuid: UUID | None
+    facet_uuid: UUID | None
 
 
 class MOAddress(AddressRead):
-    address_type_uuid: Optional[UUID]
+    address_type_uuid: UUID | None
     address_type: None | MOAddressType | UUIDObject
     person: None | list[MOEmployee] | UUIDObject
     org_unit: None | OrgUnitType | UUIDObject
-    visibility: Optional[VisibilityRead]
+    visibility: VisibilityRead | None
     validity: ValidityDates
-    href: Optional[str]
-    name: Optional[str]
+    href: str | None
+    name: str | None
 
 
 async def execute_graphql(
-    *args: Any,
-    graphql_version: Optional[Type[BaseGraphQLVersion]] = None,
-    **kwargs: Any
+    *args: Any, graphql_version: type[BaseGraphQLVersion] | None = None, **kwargs: Any
 ) -> ExecutionResult:
     # Imports must be done here to avoid circular imports... eww
     if graphql_version is None:

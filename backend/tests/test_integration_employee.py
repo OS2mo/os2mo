@@ -304,7 +304,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         }
 
         await self.assertRequestResponse(
-            "/service/e/{}/".format(userid),
+            f"/service/e/{userid}/",
             expected_employee,
             amqp_topics={"employee.employee.create": 1},
         )
@@ -685,7 +685,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/".format(employee_uuid),
+            f"/service/e/{employee_uuid}/",
             {
                 "surname": "Testperson",
                 "givenname": "Torkild Von",
@@ -710,7 +710,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        r = self.request("/service/e/{}/details/engagement".format(employee_uuid))
+        r = self.request(f"/service/e/{employee_uuid}/details/engagement")
         self.assertEqual(1, len(r.json()), "One engagement should exist")
 
     def test_create_employee_with_details_fails_atomically(self):
@@ -793,7 +793,7 @@ class Tests(tests.cases.LoRATestCase):
         # Assert that nothing has been written
 
         self.assertRequestResponse(
-            "/service/e/{}/".format(employee_uuid),
+            f"/service/e/{employee_uuid}/",
             {
                 "status": 404,
                 "error": True,
@@ -804,7 +804,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         engagement = self.request(
-            "/service/e/{}/details/engagement".format(employee_uuid)
+            f"/service/e/{employee_uuid}/details/engagement"
         ).json()
         self.assertEqual([], engagement, "No engagement should have been created")
 
@@ -815,7 +815,7 @@ class Tests(tests.cases.LoRATestCase):
         expected = {"name": "Merle Mortensen", "cpr_no": cpr}
 
         # Act
-        self.assertRequestResponse("/service/e/cpr_lookup/?q={}".format(cpr), expected)
+        self.assertRequestResponse(f"/service/e/cpr_lookup/?q={cpr}", expected)
 
     def test_cpr_lookup_raises_on_wrong_length(self):
         # Arrange

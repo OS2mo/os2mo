@@ -109,7 +109,7 @@ async def _check_auth_cookie(auth_cookie=Optional[str]) -> None:
 )
 async def download_export_file(
     file_name: str = Path(..., description="Name of the export file."),
-    mo_file_download: Optional[str] = Cookie(None, alias="MO_FILE_DOWNLOAD"),
+    mo_file_download: str | None = Cookie(None, alias="MO_FILE_DOWNLOAD"),
 ) -> StreamingResponse:
     """Download an export file with a given name.
 

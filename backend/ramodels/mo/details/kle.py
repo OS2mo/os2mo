@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -29,7 +28,7 @@ class KLERead(KLEBase):
 
     kle_number_uuid: UUID = Field(description="UUID of the KLE number.")
     kle_aspect_uuids: list[UUID] = Field(description="List of UUIDs of the KLE aspect.")
-    org_unit_uuid: Optional[UUID] = Field(
+    org_unit_uuid: UUID | None = Field(
         description="UUID of the organisation unit related to the KLE."
     )
 
@@ -41,7 +40,7 @@ class KLEWrite(KLEBase):
     kle_aspects: list[KLEAspectRef] = Field(
         description="List of references to the KLE aspect klasse."
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the KLE."
     )
 
@@ -57,6 +56,6 @@ class KLE(KLEBase):
     kle_aspect: list[KLEAspectRef] = Field(
         description="List of references to the KLE aspect klasse."
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the KLE."
     )

@@ -5,7 +5,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 class TestCreateFacet(TestCreateObject):
     def setUp(self):
-        super(TestCreateFacet, self).setUp()
+        super().setUp()
 
     def test_create_facet(self):
         facet = {

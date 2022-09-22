@@ -1247,7 +1247,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "adresser": [
                         {
                             "objekttype": "DAR",
-                            "urn": "urn:dar:{}".format(addrid),
+                            "urn": f"urn:dar:{addrid}",
                             "virkning": {
                                 "from": "2016-01-01",
                                 "to": "2020-01-01",
@@ -1260,7 +1260,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/address".format(unitid),
+            f"/service/ou/{unitid}/details/address",
             [
                 {
                     "address_type": {
@@ -1315,7 +1315,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
                     "adresser": [
                         {
                             "objekttype": "DAR",
-                            "urn": "urn:dar:{}".format(addrid),
+                            "urn": f"urn:dar:{addrid}",
                             "virkning": {
                                 "from": "2016-01-01",
                                 "to": "2020-01-01",
@@ -1328,7 +1328,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/address".format(unitid),
+            f"/service/ou/{unitid}/details/address",
             [
                 {
                     "address_type": {

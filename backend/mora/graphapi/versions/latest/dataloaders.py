@@ -2,12 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from asyncio import gather
+from collections.abc import Callable
+from collections.abc import Iterable
 from functools import partial
 from itertools import starmap
 from typing import Any
-from typing import Callable
-from typing import Iterable
-from typing import Optional
 from typing import TypeVar
 from uuid import UUID
 
@@ -64,7 +63,7 @@ RoleType = TypeVar("RoleType")
 
 
 def group_by_uuid(
-    models: list[MOModel], uuids: Optional[list[UUID]] = None
+    models: list[MOModel], uuids: list[UUID] | None = None
 ) -> dict[UUID, list[MOModel]]:
     """Auxiliary function to group MOModels by their UUID.
 
@@ -303,7 +302,7 @@ async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
 
 async def get_employee_details(
     employee_uuid: UUID, role_type: str
-) -> Optional[list[MOModel]]:
+) -> list[MOModel] | None:
     """Non-bulk loader for employee details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -332,7 +331,7 @@ async def load_employee_details(
 
 async def get_engagement_details(
     engagement_uuid: UUID, role_type: str
-) -> Optional[list[MOModel]]:
+) -> list[MOModel] | None:
     c = get_connector()
     cls = get_handler_for_type(role_type)
     result = await cls.get(
@@ -360,7 +359,7 @@ async def load_engagement_details(
 
 async def get_org_unit_details(
     org_unit_uuid: UUID, role_type: str
-) -> Optional[list[MOModel]]:
+) -> list[MOModel] | None:
     """Non-bulk loader for organisation unit details."""
     c = get_connector()
     cls = get_handler_for_type(role_type)

@@ -5,7 +5,6 @@ import warnings
 from datetime import date
 from datetime import datetime
 from typing import Any
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -41,7 +40,7 @@ class UUIDBase(RABase):
 
     # Autogenerate UUID if necessary
     @validator("uuid", pre=True, always=True)
-    def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
+    def set_uuid(cls, _uuid: UUID | None) -> UUID:
         return _uuid or uuid4()
 
 
@@ -58,7 +57,7 @@ class MOBase(UUIDBase):
     )
 
     @validator("user_key", pre=True, always=True)
-    def set_user_key(cls, user_key: Optional[Any], values: DictStrAny) -> str:
+    def set_user_key(cls, user_key: Any | None, values: DictStrAny) -> str:
         return user_key or str(values["uuid"])
 
     @root_validator
@@ -201,19 +200,19 @@ class TimePlanning(MORef):
 class OpenValidity(RABase):
     """Validity of a MO object with optional `from_date`."""
 
-    from_date: Optional[datetime] = Field(
+    from_date: datetime | None = Field(
         None, alias="from", description="Start date of the validity."
     )
-    to_date: Optional[datetime] = Field(
+    to_date: datetime | None = Field(
         None, alias="to", description="End date of the validity, if applicable."
     )
 
     @validator("from_date", pre=True, always=True)
-    def parse_from_date(cls, from_date: Optional[Any]) -> Optional[datetime]:
+    def parse_from_date(cls, from_date: Any | None) -> datetime | None:
         return tz_isodate(from_date) if from_date is not None else None
 
     @validator("to_date", pre=True, always=True)
-    def parse_to_date(cls, to_date: Optional[Any]) -> Optional[datetime]:
+    def parse_to_date(cls, to_date: Any | None) -> datetime | None:
         return tz_isodate(to_date) if to_date is not None else None
 
     @root_validator
@@ -306,7 +305,7 @@ def validate_names(
     return values
 
 
-def validate_cpr(cpr_no: Optional[str]) -> Optional[str]:
+def validate_cpr(cpr_no: str | None) -> str | None:
     """Validate a Danish CPR number.
     Note that this function does not check whether a CPR number *exists*,
     just that it is valid according to the spec.

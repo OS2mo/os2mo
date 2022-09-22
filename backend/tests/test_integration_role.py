@@ -967,7 +967,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         payload = {"validity": {"to": "2017-11-30"}}
 
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={

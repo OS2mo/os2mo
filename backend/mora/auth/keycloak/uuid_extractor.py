@@ -3,7 +3,6 @@
 import asyncio
 import functools
 import re
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Request
@@ -224,7 +223,7 @@ async def json_extract_strategy(request: Request) -> set[UUID]:
         )
     _type = payload[0].get(TYPE)
 
-    async def obj_to_uuid(obj: dict) -> Optional[UUID]:
+    async def obj_to_uuid(obj: dict) -> UUID | None:
         # All role, association and manager manipulations should be
         # granted access via the org unit(s)
         if _type in {ENGAGEMENT, ROLE, ASSOCIATION, MANAGER}:

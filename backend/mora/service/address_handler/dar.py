@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 from aiohttp import ClientResponseError
@@ -22,7 +21,7 @@ NOT_FOUND = "Ukendt"
 logger = get_logger()
 
 
-def open_street_map_href_from_dar_object(address_object) -> Optional[str]:
+def open_street_map_href_from_dar_object(address_object) -> str | None:
     if not ("x" in address_object and "y" in address_object):
         return None
     x, y = address_object["x"], address_object["y"]
@@ -49,7 +48,7 @@ async def load_addresses(keys: list[UUID]) -> list[dict | None]:
 class DARLoaderPlugin(Plugin):
     key = "dar_loader"
 
-    async def process_request(self, _: Any) -> Optional[Any]:
+    async def process_request(self, _: Any) -> Any | None:
         return DataLoader(load_fn=load_addresses)
 
 
@@ -152,6 +151,6 @@ class DARAddressHandler(base.AddressHandler):
         try:
             address_object = await dar_loader.load(UUID(value))
             if address_object is None:
-                raise LookupError("no such address {!r}".format(value))
+                raise LookupError(f"no such address {value!r}")
         except (ValueError, LookupError):
             exceptions.ErrorCodes.V_INVALID_ADDRESS_DAR(value=value)

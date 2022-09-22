@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from functools import lru_cache
-from typing import Optional
 
 from pydantic import BaseSettings
 
@@ -18,10 +17,10 @@ class Settings(BaseSettings):
 
     db_name: str = "mox"
     db_user: str = "mox"
-    db_password: Optional[str]
+    db_password: str | None
     db_host: str = "mox-db"
     db_port: str = "5432"
-    db_sslmode: Optional[str]
+    db_sslmode: str | None
 
     # Authentication
     lora_auth: bool = True
@@ -52,6 +51,6 @@ class Settings(BaseSettings):
     enable_restrictions: bool = False
 
 
-@lru_cache()
+@lru_cache
 def get_settings():
     return Settings()

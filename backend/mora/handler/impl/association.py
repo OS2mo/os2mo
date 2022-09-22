@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Iterable
 from datetime import datetime
 from enum import Enum
 from typing import Any
-from typing import Iterable
-from typing import Optional
 
 from more_itertools import only
 from more_itertools import partition
@@ -51,9 +50,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
     function_key = mapping.ASSOCIATION_KEY
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, objid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
         search_fields = cls._get_search_fields(type, objid)
 
         # Get *all* associations for this employee or org unit
@@ -102,7 +99,7 @@ class AssociationReader(reading.OrgFunkReadingHandler):
         c,
         objid,
         assocs: Iterable[dict],
-        changed_since: Optional[datetime] = None,
+        changed_since: datetime | None = None,
     ):
         normal_assocs = cls._get_normal_associations(assocs)
         # Fetch associations linked to this employee by the relation

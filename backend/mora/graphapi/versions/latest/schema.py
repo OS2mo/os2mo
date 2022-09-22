@@ -116,9 +116,7 @@ class Address:
         "Note that this is mutually exclusive with the org_unit field",
         permission_classes=[gen_read_permission("employees")],
     )
-    async def employee(
-        self, root: AddressRead, info: Info
-    ) -> Optional[list["Employee"]]:
+    async def employee(self, root: AddressRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
@@ -131,14 +129,14 @@ class Address:
     )
     async def org_unit(
         self, root: AddressRead, info: Info
-    ) -> Optional[list["OrganisationUnit"]]:
+    ) -> list["OrganisationUnit"] | None:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
         return (await loader.load(root.org_unit_uuid)).objects
 
     @strawberry.field(description="Name of address")
-    async def name(self, root: AddressRead, info: Info) -> Optional[str]:
+    async def name(self, root: AddressRead, info: Info) -> str | None:
         address_type = await Address.address_type(self, root, info)
 
         if address_type.scope == "MULTIFIELD_TEXT":
@@ -152,7 +150,7 @@ class Address:
         return root.value
 
     @strawberry.field(description="href of address")
-    async def href(self, root: AddressRead, info: Info) -> Optional[str]:
+    async def href(self, root: AddressRead, info: Info) -> str | None:
         address_type = await Address.address_type(self, root, info)
 
         if address_type.scope == "PHONE":
@@ -172,7 +170,7 @@ class Address:
 
 
 async def filter_address_types(
-    addresses: list[AddressRead], address_types: Optional[list[UUID]]
+    addresses: list[AddressRead], address_types: list[UUID] | None
 ) -> list[AddressRead]:
     """Filter a list of addresses based on their address type UUID.
 
@@ -406,7 +404,7 @@ class Employee:
         self,
         root: EmployeeRead,
         info: Info,
-        address_types: Optional[list[UUID]] = None,
+        address_types: list[UUID] | None = None,
     ) -> list["Address"]:
         loader: DataLoader = info.context["employee_address_loader"]
         result = await loader.load(root.uuid)
@@ -625,9 +623,7 @@ class ITUser:
         description="Connected employee",
         permission_classes=[gen_read_permission("employees")],
     )
-    async def employee(
-        self, root: ITUserRead, info: Info
-    ) -> Optional[list["Employee"]]:
+    async def employee(self, root: ITUserRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
@@ -639,7 +635,7 @@ class ITUser:
     )
     async def org_unit(
         self, root: ITUserRead, info: Info
-    ) -> Optional[list["OrganisationUnit"]]:
+    ) -> list["OrganisationUnit"] | None:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
@@ -686,7 +682,7 @@ class KLE:
     )
     async def org_unit(
         self, root: KLERead, info: Info
-    ) -> Optional[list["OrganisationUnit"]]:
+    ) -> list["OrganisationUnit"] | None:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
@@ -775,9 +771,7 @@ class Manager:
         description="Manager identity details",
         permission_classes=[gen_read_permission("employees")],
     )
-    async def employee(
-        self, root: ManagerRead, info: Info
-    ) -> Optional[list["Employee"]]:
+    async def employee(self, root: ManagerRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
@@ -808,7 +802,7 @@ class Organisation:
     @strawberry.field(description="The municipality code for the organisation unit")
     async def municipality_code(
         self, root: OrganisationUnitRead, info: Info
-    ) -> Optional[int]:
+    ) -> int | None:
         """Get The municipality code for the organisation unit (if any).
 
         Returns:
@@ -961,7 +955,7 @@ class OrganisationUnit:
         self,
         root: OrganisationUnitRead,
         info: Info,
-        address_types: Optional[list[UUID]] = None,
+        address_types: list[UUID] | None = None,
     ) -> list["Address"]:
         loader: DataLoader = info.context["org_unit_address_loader"]
         result = await loader.load(root.uuid)
@@ -1091,7 +1085,7 @@ class Role:
 @strawberry.type(description="MO & LoRa versions")
 class Version:
     @strawberry.field(description="OS2mo Version")
-    async def mo_version(self) -> Optional[str]:
+    async def mo_version(self) -> str | None:
         """Get the mo version.
 
         Returns:
@@ -1100,7 +1094,7 @@ class Version:
         return config.get_settings().commit_tag
 
     @strawberry.field(description="OS2mo commit hash")
-    async def mo_hash(self) -> Optional[str]:
+    async def mo_hash(self) -> str | None:
         """Get the mo commit hash.
 
         Returns:
@@ -1109,7 +1103,7 @@ class Version:
         return config.get_settings().commit_sha
 
     @strawberry.field(description="LoRa version")
-    async def lora_version(self) -> Optional[str]:
+    async def lora_version(self) -> str | None:
         """Get the lora version.
 
         Returns:
@@ -1125,7 +1119,7 @@ class Version:
 )
 class Health:
     @strawberry.field(description="Healthcheck status")
-    async def status(self, root: HealthRead) -> Optional[bool]:
+    async def status(self, root: HealthRead) -> bool | None:
         return await health_map[root.identifier]()
 
 

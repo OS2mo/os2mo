@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
-
 import strawberry
 from more_itertools import one
 from more_itertools import only
@@ -28,7 +26,7 @@ class OrganisationUnit(LatestOrganisationUnit):
     )
     async def parent(
         self, root: OrganisationUnitRead, info: Info
-    ) -> Optional[list["OrganisationUnit"]]:
+    ) -> list["OrganisationUnit"] | None:
         """Implements backwards-compatibility of org unit parent.
 
         Returns an optional list of exactly one element, instead of an optional element.

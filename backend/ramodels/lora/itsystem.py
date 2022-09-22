@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -25,8 +24,8 @@ class ITSystem(LoraBase):
         alias="tilstande", description="The ITSystem states."
     )
 
-    note: Optional[str] = Field(description="Note describing the ITSystem.")
-    relations: Optional[ITSystemRelations] = Field(
+    note: str | None = Field(description="Note describing the ITSystem.")
+    relations: ITSystemRelations | None = Field(
         alias="relationer", description="The ITSystem relations."
     )
 
@@ -38,23 +37,23 @@ class ITSystem(LoraBase):
         # Properties
         user_key: str,  # often == name,
         #  UUID of the ITSys model. Auto-created if not set
-        uuid: Optional[UUID] = None,
-        name: Optional[str] = None,
-        note: Optional[str] = None,
-        type: Optional[str] = None,
-        configuration_ref: Optional[list[str]] = None,
+        uuid: UUID | None = None,
+        name: str | None = None,
+        note: str | None = None,
+        type: str | None = None,
+        configuration_ref: list[str] | None = None,
         # Relation
-        belongs_to: Optional[UUID] = None,
-        affiliated_orgs: Optional[list[UUID]] = None,
-        affiliated_units: Optional[list[UUID]] = None,
-        affiliated_functions: Optional[list[UUID]] = None,
-        affiliated_users: Optional[list[UUID]] = None,
-        affiliated_interests: Optional[list[UUID]] = None,
-        affiliated_itsystems: Optional[list[UUID]] = None,
-        affiliated_persons: Optional[list[UUID]] = None,
-        addresses: Optional[list[UUID]] = None,
-        system_types: Optional[list[UUID]] = None,
-        tasks: Optional[list[UUID]] = None,
+        belongs_to: UUID | None = None,
+        affiliated_orgs: list[UUID] | None = None,
+        affiliated_units: list[UUID] | None = None,
+        affiliated_functions: list[UUID] | None = None,
+        affiliated_users: list[UUID] | None = None,
+        affiliated_interests: list[UUID] | None = None,
+        affiliated_itsystems: list[UUID] | None = None,
+        affiliated_persons: list[UUID] | None = None,
+        addresses: list[UUID] | None = None,
+        system_types: list[UUID] | None = None,
+        tasks: list[UUID] | None = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "ITSystem":

@@ -87,9 +87,7 @@ def _get_metadata(obj, metadata_type, key):
     :param key: The attribute to get the metadata from, e.g. 'egenskaber'
     :return: Dictionary containing the metadata for the attribute fields
     """
-    metadata = db_structure.REAL_DB_STRUCTURE[obj].get(
-        "{}_metadata".format(metadata_type), []
-    )
+    metadata = db_structure.REAL_DB_STRUCTURE[obj].get(f"{metadata_type}_metadata", [])
     if not metadata or key not in metadata:
         return metadata
     return metadata[key]
@@ -146,7 +144,7 @@ def _generate_attributter(obj, do_create):
     required = []
 
     for attrname, attrval in db_attributter.items():
-        full_name = "{}{}".format(obj, attrname)
+        full_name = f"{obj}{attrname}"
         schema = {key: STRING for key in attrval}
         schema.update({"virkning": {"$ref": "#/definitions/virkning"}})
 

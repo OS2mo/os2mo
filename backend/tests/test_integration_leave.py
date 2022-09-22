@@ -205,7 +205,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         actual = self.assertRequest(
-            "/service/e/{}/details/leave?only_primary_uuid=1".format(userid),
+            f"/service/e/{userid}/details/leave?only_primary_uuid=1",
             amqp_topics={
                 "employee.leave.create": 1,
             },
@@ -295,7 +295,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         actual = self.assertRequest(
-            "/service/e/{}/details/leave?only_primary_uuid=1".format(user_id),
+            f"/service/e/{user_id}/details/leave?only_primary_uuid=1",
             amqp_topics={
                 "employee.leave.update": 1,
             },
@@ -352,7 +352,7 @@ class Tests(tests.cases.LoRATestCase):
         payload = {"validity": {"to": "2017-11-30"}}
 
         self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -372,7 +372,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         actual = self.assertRequest(
-            "/service/e/{}/details/leave?only_primary_uuid=1".format(userid),
+            f"/service/e/{userid}/details/leave?only_primary_uuid=1",
             amqp_topics={
                 "employee.address.delete": 1,
                 "employee.association.delete": 1,

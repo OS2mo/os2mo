@@ -3,10 +3,10 @@
 import asyncio
 import copy
 from collections import Counter
+from collections.abc import Callable
+from collections.abc import Iterable
 from itertools import chain
 from operator import itemgetter
-from typing import Callable
-from typing import Iterable
 from typing import TYPE_CHECKING
 
 from more_itertools import flatten

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 import freezegun
@@ -27,7 +26,7 @@ class ConfiguredBase(BaseModel):
 
 class Validity(ConfiguredBase):
     from_date: str = Field("1930-01-01", alias="from")
-    to_date: Optional[str] = Field(None, alias="to")
+    to_date: str | None = Field(None, alias="to")
 
 
 class Person(ConfiguredBase):
@@ -44,11 +43,11 @@ class MoObj(ConfiguredBase):
 
 class Owner(MoObj):
     type: Literal["owner"] = "owner"
-    uuid: Optional[UUID] = None
-    owner: Optional[Person] = None
-    org_unit: Optional[OrgUnitRef] = None
-    person: Optional[Person] = None
-    owner_inference_priority: Optional[OwnerInferencePriority] = None
+    uuid: UUID | None = None
+    owner: Person | None = None
+    org_unit: OrgUnitRef | None = None
+    person: Person | None = None
+    owner_inference_priority: OwnerInferencePriority | None = None
     validity: Validity
 
 
@@ -87,13 +86,13 @@ def uuid_to_str(obj: Any):
 
 
 def simplified_owner(
-    uuid: Optional[UUID] = None,
-    owner: Optional[UUID] = None,
-    org_unit: Optional[UUID] = None,
-    person: Optional[UUID] = None,
-    owner_inference_priority: Optional[OwnerInferencePriority] = None,
+    uuid: UUID | None = None,
+    owner: UUID | None = None,
+    org_unit: UUID | None = None,
+    person: UUID | None = None,
+    owner_inference_priority: OwnerInferencePriority | None = None,
     from_date: str = "2017-01-01",
-    to_date: Optional[str] = None,
+    to_date: str | None = None,
     as_json: bool = True,
 ) -> Owner | dict[str, Any]:
     """
@@ -132,7 +131,7 @@ class OwnerOrgUnitTestCase(LoRATestCase):
         jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_org_unit: UUID = top_level_ou,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
 
@@ -354,7 +353,7 @@ class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
         jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_person: UUID = person1,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
 
@@ -386,7 +385,7 @@ class OwnerPersonTestCase(LoRATestCase):
         jsonified_owner: dict[str, Any],
         create_status_code: int,
         verifying_person: UUID = person1,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
 
@@ -527,7 +526,7 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
         self,
         jsonified_owner: dict[str, Any],
         create_status_code: int,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
 
@@ -688,7 +687,7 @@ class OwnerEditCase(OwnerPersonTestCase):
         edit_status_code: int,
         verifying_type: str,
         verifying_obj_uuid: UUID,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
 
@@ -721,7 +720,7 @@ class OwnerEditCase(OwnerPersonTestCase):
         terminate_status_code: int,
         verifying_type: str,
         verifying_obj_uuid: UUID,
-        verifying_response: Optional[list[dict[str, Any]]] = None,
+        verifying_response: list[dict[str, Any]] | None = None,
     ):
         """
         :param terminate_func_uuid: uuid of func to terminate

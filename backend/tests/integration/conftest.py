@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import Optional
 
 import pytest
 from fastapi.testclient import TestClient
@@ -22,7 +21,7 @@ def graphapi_test():
 
 @pytest.fixture
 def graphapi_post_integration(graphapi_test: TestClient):
-    def _post(query: str, variables: Optional[dict[str, Any]] = None) -> GQLResponse:
+    def _post(query: str, variables: dict[str, Any] | None = None) -> GQLResponse:
         response = graphapi_test.post(
             "/graphql", json={"query": query, "variables": variables}
         )

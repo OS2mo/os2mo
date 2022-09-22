@@ -21,7 +21,7 @@ ORG_UNIT_2 = "20000000-0000-0000-0000-000000000000"
 FILOSOFISK_INSTITUT = "85715fc7-925d-401b-822d-467eb4b163b6"
 
 
-class TestRole(object):
+class TestRole:
     async def test_raise_exception_for_normal_user(self):
         # The user is neither admin or owner
         token = mock_auth()()
@@ -39,7 +39,7 @@ class TestRole(object):
         assert r is None
 
 
-class TestOwnerSingleOrgUnit(object):
+class TestOwnerSingleOrgUnit:
     """
     This class covers test cases where the user has the owner role and
     the users modifications involves a single org unit (i.e. we are not
@@ -104,7 +104,7 @@ class TestOwnerSingleOrgUnit(object):
             await _rbac(token, None, False)
 
 
-class TestOwnerMultipleOrgUnits(object):
+class TestOwnerMultipleOrgUnits:
     """
     This class covers test cases where the user has the owner role and
     the users modifications involves two org units (i.e. when we are
@@ -168,7 +168,7 @@ class TestOwnerMultipleOrgUnits(object):
         assert r is None
 
 
-class TestGetAncestorOwners(object):
+class TestGetAncestorOwners:
     def set_up(self) -> None:
         self.org_unit_tree = [
             {

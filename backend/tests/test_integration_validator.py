@@ -38,7 +38,7 @@ class AsyncTestHelper(tests.cases.AsyncLoRATestCase):
         payload = {"validity": {"to": "2018-01-01"}}
 
         await self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(org_unit),
+            f"/service/ou/{org_unit}/terminate",
             org_unit,
             json=payload,
             amqp_topics={"org_unit.org_unit.delete": 1},
@@ -61,7 +61,7 @@ class TestHelper(tests.cases.LoRATestCase):
         payload = {"validity": {"to": "2018-01-01"}}
 
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(org_unit),
+            f"/service/ou/{org_unit}/terminate",
             org_unit,
             json=payload,
             amqp_topics={"org_unit.org_unit.delete": 1},

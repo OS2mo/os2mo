@@ -103,7 +103,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         }
 
         await self.assertRequestResponse(
-            "/service/e/{}/".format(userid),
+            f"/service/e/{userid}/",
             expected_employee,
             amqp_topics={"employee.employee.create": 1},
         )

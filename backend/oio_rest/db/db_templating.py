@@ -52,14 +52,14 @@ def _render_templates():
                 context[reltype] = OrderedDict(context[reltype])
 
                 # fill these out to avoid the need to check for membership
-                meta = context.get("{}_metadata".format(reltype), {})
+                meta = context.get(f"{reltype}_metadata", {})
 
-                context["{}_metadata".format(reltype)] = {
+                context[f"{reltype}_metadata"] = {
                     a: {p: meta.get(a, {}).get(p, {}) for p in ps}
                     for a, ps in context["attributter"].items()
                 }
 
-                context["{}_mandatory".format(reltype)] = {
+                context[f"{reltype}_mandatory"] = {
                     attr: [k for k, v in vs.items() if v.get("mandatory")]
                     for attr, vs in meta.items()
                 }

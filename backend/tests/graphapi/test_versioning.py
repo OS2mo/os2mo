@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import itertools
 from datetime import date
-from typing import Type
 
 import freezegun
 import pytest
@@ -18,7 +17,7 @@ from tests.cases import fake_auth
 
 
 def get_test_client(
-    versions: list[Type[BaseGraphQLVersion]] | None = None,
+    versions: list[type[BaseGraphQLVersion]] | None = None,
 ) -> TestClient:
     app = FastAPI()
     app.dependency_overrides[auth] = fake_auth

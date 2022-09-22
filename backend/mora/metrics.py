@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Callable
+from collections.abc import Callable
 
 from prometheus_client import Gauge
 from prometheus_client import Info

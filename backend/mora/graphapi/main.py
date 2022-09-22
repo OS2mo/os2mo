@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
-from typing import Type
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -17,7 +16,7 @@ from .versions.v2.version import GraphQLVersion2
 from mora.auth.keycloak.oidc import auth
 from mora.graphapi.versions.base import BaseGraphQLVersion
 
-graphql_versions: list[Type[BaseGraphQLVersion]] = [
+graphql_versions: list[type[BaseGraphQLVersion]] = [
     # Latest is never exposed directly, forcing clients to pin to a specific version
     GraphQLVersion1,
     GraphQLVersion2,
@@ -27,7 +26,7 @@ graphql_versions: list[Type[BaseGraphQLVersion]] = [
 def setup_graphql(
     app: FastAPI,
     enable_graphiql: bool = False,
-    versions: list[Type[BaseGraphQLVersion]] | None = None,
+    versions: list[type[BaseGraphQLVersion]] | None = None,
 ) -> None:
     if versions is None:
         versions = graphql_versions

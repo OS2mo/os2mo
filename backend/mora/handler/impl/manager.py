@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Awaitable
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Any
-from typing import Awaitable
-from typing import Iterable
-from typing import Optional
 
 from structlog import get_logger
 
@@ -29,7 +28,7 @@ class ManagerReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def get_from_type(
-        cls, c, type, object_id, changed_since: Optional[datetime] = None
+        cls, c, type, object_id, changed_since: datetime | None = None
     ):
         if util.get_args_flag("inherit_manager"):
             return await cls.get_inherited_manager(c, type, object_id)

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from functools import cache
 from typing import Any
-from typing import Type
 
 from prometheus_client import Counter
 from strawberry import BasePermission
@@ -17,7 +16,7 @@ rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowe
 @cache
 def gen_role_permission(
     role_name: str, message: str | None = None, force_permission_check: bool = False
-) -> Type[BasePermission]:
+) -> type[BasePermission]:
     """Generator function for permission classes.
 
     Args:
@@ -81,7 +80,7 @@ PERMISSIONS = {
 }
 
 
-def gen_read_permission(collection_name: str) -> Type[BasePermission]:
+def gen_read_permission(collection_name: str) -> type[BasePermission]:
     """Generator function for permission classes.
 
     Utilizes `gen_role_permission` with a generated role-name and a custom message.

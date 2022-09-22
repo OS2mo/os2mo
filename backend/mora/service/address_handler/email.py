@@ -15,7 +15,7 @@ class EmailAddressHandler(base.AddressHandler):
 
     @property
     def href(self):
-        return "mailto:{}".format(self.value)
+        return f"mailto:{self.value}"
 
     @staticmethod
     @forceable

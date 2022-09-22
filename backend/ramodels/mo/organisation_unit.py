@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -27,40 +26,40 @@ class OrganisationUnitBase(MOBase):
 
 
 class OrganisationUnitRead(OrganisationUnitBase):
-    parent_uuid: Optional[UUID] = Field(
+    parent_uuid: UUID | None = Field(
         description="UUID of the parent organisation unit."
     )
-    org_unit_hierarchy: Optional[UUID] = Field(
+    org_unit_hierarchy: UUID | None = Field(
         description="UUID of the organisation unit hierarchy."
     )
-    unit_type_uuid: Optional[UUID] = Field(
+    unit_type_uuid: UUID | None = Field(
         description="UUID of the organisation unit type."
     )
-    org_unit_level_uuid: Optional[UUID] = Field(
+    org_unit_level_uuid: UUID | None = Field(
         description="UUID of the organisation unit level."
     )
-    time_planning_uuid: Optional[UUID] = Field(
+    time_planning_uuid: UUID | None = Field(
         description="UUID of the time planning object."
     )
 
 
 class OrganisationUnitWrite(OrganisationUnitBase):
-    parent: Optional[ParentRef] = Field(
+    parent: ParentRef | None = Field(
         description="Reference to the parent organisation unit."
     )
-    org_unit_hierarchy: Optional[OrgUnitHierarchy] = Field(
+    org_unit_hierarchy: OrgUnitHierarchy | None = Field(
         description="Reference to the organisation unit hierarchy type."
     )
-    org_unit_type: Optional[OrgUnitType] = Field(
+    org_unit_type: OrgUnitType | None = Field(
         description="Reference to the organisation unit type."
     )
-    org_unit_level: Optional[OrgUnitLevel] = Field(
+    org_unit_level: OrgUnitLevel | None = Field(
         description="Reference to the organisation unit level type."
     )
-    time_planning: Optional[TimePlanning] = Field(
+    time_planning: TimePlanning | None = Field(
         description="Reference to the time planning type."
     )
-    details: Optional[list[OrgUnitDetails]] = Field(
+    details: list[OrgUnitDetails] | None = Field(
         description=(
             "Details to be created for the organisation unit. "
             "Note that when this is used, the organisation unit reference "
@@ -78,10 +77,10 @@ class OrganisationUnit(MOBase):
     user_key: str = Field(description="Short, unique key.")
     validity: Validity = Field(description="Validity of the created organisation unit.")
     name: str = Field(description="Name of the created organisation unit.")
-    parent: Optional[ParentRef] = Field(
+    parent: ParentRef | None = Field(
         description="Reference to the parent organisation unit, if applicable."
     )
-    org_unit_hierarchy: Optional[OrgUnitHierarchy] = Field(
+    org_unit_hierarchy: OrgUnitHierarchy | None = Field(
         description="Reference to the organisation unit hierarchy type, if applicable."
     )
     org_unit_type: OrgUnitType = Field(
@@ -90,7 +89,7 @@ class OrganisationUnit(MOBase):
     org_unit_level: OrgUnitLevel = Field(
         description="Reference to the organisation unit level type."
     )
-    details: Optional[list[OrgUnitDetails]] = Field(
+    details: list[OrgUnitDetails] | None = Field(
         description=(
             "Details to be created for the organisation unit. "
             "Note that when this is used, the organisation unit reference "
@@ -106,10 +105,10 @@ class OrganisationUnit(MOBase):
         org_unit_type_uuid: UUID,
         org_unit_level_uuid: UUID,
         from_date: str,
-        uuid: Optional[UUID] = None,
-        parent_uuid: Optional[UUID] = None,
-        org_unit_hierarchy_uuid: Optional[UUID] = None,
-        to_date: Optional[str] = None,
+        uuid: UUID | None = None,
+        parent_uuid: UUID | None = None,
+        org_unit_hierarchy_uuid: UUID | None = None,
+        to_date: str | None = None,
     ) -> "OrganisationUnit":
         """Create an organisation unit from simplified fields."""
         parent = ParentRef(uuid=parent_uuid) if parent_uuid else None

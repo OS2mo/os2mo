@@ -189,6 +189,6 @@ def get_handler_for_scope(scope: str) -> AddressHandler:
     handler = ADDRESS_HANDLERS.get(scope)
     if not handler:
         raise exceptions.ErrorCodes.E_INVALID_INPUT(
-            "Invalid address scope type {}".format(scope)
+            f"Invalid address scope type {scope}"
         )
     return handler

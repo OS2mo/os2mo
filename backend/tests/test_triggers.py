@@ -221,7 +221,7 @@ class TriggerlessTests(tests.cases.LoRATestCase):
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": {"to": "2016-10-21"}}
         self.assertRequestResponse(
-            "/service/ou/{}/terminate?triggerless=1".format(unitid),
+            f"/service/ou/{unitid}/terminate?triggerless=1",
             unitid,
             json=payload,
             amqp_topics={},
@@ -232,7 +232,7 @@ class TriggerlessTests(tests.cases.LoRATestCase):
         unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
         payload = {"validity": {"to": "2016-10-21"}}
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid),
+            f"/service/ou/{unitid}/terminate",
             unitid,
             json=payload,
             amqp_topics={"org_unit.org_unit.delete": 1},

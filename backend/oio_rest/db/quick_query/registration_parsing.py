@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from enum import auto
 from enum import Enum
 from enum import unique
-from typing import Optional
 
 from more_itertools import flatten
 
@@ -59,7 +58,7 @@ class Attribute:
     @classmethod
     def from_attr_egenskaber(
         cls,
-        attr: dict[str, Optional[str]],
+        attr: dict[str, str | None],
         class_name: str,
         valid_attr: dict[str, list[str]],
     ) -> "Attribute":
@@ -103,7 +102,7 @@ class Attribute:
 
     @classmethod
     def parse_registration_attributes(
-        cls, class_name: str, attributes: dict[str, list[dict[str, Optional[str]]]]
+        cls, class_name: str, attributes: dict[str, list[dict[str, str | None]]]
     ) -> list["Attribute"]:
         """
         deals with the 'attributes'-value of this sort of thing
@@ -138,7 +137,7 @@ class State:
 
     @classmethod
     def parse_registration_states(
-        cls, class_name: str, states: dict[str, list[dict[str, Optional[str]]]]
+        cls, class_name: str, states: dict[str, list[dict[str, str | None]]]
     ) -> list["State"]:
         """
         deals with 'states'-value of this sort of thing
@@ -161,7 +160,7 @@ class State:
 
     @classmethod
     def from_state_dict(
-        cls, state: dict[str, Optional[str]], valid_states: dict[str, list[str]]
+        cls, state: dict[str, str | None], valid_states: dict[str, list[str]]
     ) -> "State":
         """
         deals with this sort of thing
@@ -203,7 +202,7 @@ class Relation:  # OVERLY defensive, on purpose
     """
 
     type: str
-    object_type: Optional[str]
+    object_type: str | None
     id: str
     id_is_uuid: bool  # else, it is urn
 
@@ -219,7 +218,7 @@ class Relation:  # OVERLY defensive, on purpose
     def from_relation_list(
         cls,
         relation_type: str,
-        relation_values: list[dict[str, Optional[str]]],
+        relation_values: list[dict[str, str | None]],
         valid_relations: list[str],
     ) -> list["Relation"]:
         """
@@ -286,7 +285,7 @@ class Relation:  # OVERLY defensive, on purpose
 
     @classmethod
     def parse_registration_relations(
-        cls, class_name: str, relations: dict[str, list[dict[str, Optional[str]]]]
+        cls, class_name: str, relations: dict[str, list[dict[str, str | None]]]
     ) -> list["Relation"]:
         """
         deals with key-value pairs of this sort of thing

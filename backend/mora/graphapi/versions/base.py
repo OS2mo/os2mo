@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Iterable
+from collections.abc import Sequence
 from datetime import date
 from typing import Any
-from typing import Iterable
-from typing import Optional
-from typing import Sequence
-from typing import Type
 
 from fastapi import APIRouter
 from strawberry import Schema
@@ -26,12 +24,12 @@ class BaseGraphQLSchema:
     wrapper allows for import-time definitions.
     """
 
-    query: Type
-    mutation: Optional[Type] = None
+    query: type
+    mutation: type | None = None
 
     types: Iterable = ()
 
-    extensions: Sequence[Type[Extension] | Extension] = [
+    extensions: Sequence[type[Extension] | Extension] = [
         StarletteContextExtension,
     ]
 
@@ -44,9 +42,9 @@ class BaseGraphQLSchema:
     #   visual effort with the underscore style.
     #
     # Additionally, it preserves the naming of the underlying Python functions.
-    config: Optional[StrawberryConfig] = StrawberryConfig(auto_camel_case=False)
+    config: StrawberryConfig | None = StrawberryConfig(auto_camel_case=False)
 
-    scalar_overrides: Optional[dict[object, ScalarWrapper | ScalarDefinition]] = None
+    scalar_overrides: dict[object, ScalarWrapper | ScalarDefinition] | None = None
 
     @classmethod
     def get(cls) -> Schema:
@@ -65,8 +63,8 @@ class BaseGraphQLVersion:
     """Base container for a versioned GraphQL API."""
 
     version: int
-    deprecation_date: Optional[date] = None
-    schema: Type[BaseGraphQLSchema]
+    deprecation_date: date | None = None
+    schema: type[BaseGraphQLSchema]
 
     @classmethod
     async def get_context(cls) -> dict[str, Any]:

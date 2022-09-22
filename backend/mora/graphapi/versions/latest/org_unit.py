@@ -107,12 +107,12 @@ async def terminate_org_unit_validation(
     active_roles = roles - addresses
     role_counts = set()
     if active_roles:
-        role_counts = set(
+        role_counts = {
             mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
             for objid, obj in await c.organisationfunktion.get_all_by_uuid(
                 uuids=active_roles
             )
-        )
+        }
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(

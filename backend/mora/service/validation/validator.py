@@ -529,7 +529,7 @@ async def does_employee_with_cpr_already_exist(
     )
 
     user_ids = await c.bruger.load_uuids(
-        tilknyttedepersoner="urn:dk:cpr:person:{}".format(cpr), tilhoerer=org_uuid
+        tilknyttedepersoner=f"urn:dk:cpr:person:{cpr}", tilhoerer=org_uuid
     )
 
     if user_ids and allowed_user_id not in user_ids:

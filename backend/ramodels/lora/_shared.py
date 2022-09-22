@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+from collections.abc import Iterator
 from datetime import datetime
 from typing import Any
-from typing import Callable
-from typing import Iterator
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -48,11 +47,11 @@ class LoraBase(RABase):
     # However, the beta version of default_factory is still unstable and prone to
     # side-effects.
     @validator("uuid", pre=True, always=True)
-    def set_uuid(cls, _uuid: Optional[UUID]) -> UUID:
+    def set_uuid(cls, _uuid: UUID | None) -> UUID:
         return _uuid or uuid4()
 
     @validator("object_type", pre=True, check_fields=False)
-    def lower_object_type(cls, object_type: Optional[Any]) -> Any:
+    def lower_object_type(cls, object_type: Any | None) -> Any:
         """
         Lower the object_type before validating equality with the literal, as some LoRa
         databases define the capitalised value, while others do not.
@@ -168,19 +167,19 @@ class EffectiveTime(RABase):
     from_date: InfiniteDatetime = Field(
         alias="from", description="Start of the effective time interval."
     )
-    from_included: Optional[bool] = Field(
+    from_included: bool | None = Field(
         description="Whether from_date is included in the interval."
     )
     to_date: InfiniteDatetime = Field(
         alias="to", description="End of the effective time interval."
     )
-    to_included: Optional[bool] = Field(
+    to_included: bool | None = Field(
         description="Whether to_date is included in the interval."
     )
-    actor_type: Optional[str] = Field(
+    actor_type: str | None = Field(
         alias="aktoertypekode", description="Actor type indicator, e.g. Bruger"
     )
-    actor_ref: Optional[UUID] = Field(
+    actor_ref: UUID | None = Field(
         alias="aktoerref", description="Actor UUID reference."
     )
 
@@ -212,7 +211,7 @@ class FacetProperties(RABase):
     """
 
     user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    description: Optional[str] = Field(
+    description: str | None = Field(
         alias="beskrivelse", description="The facet description."
     )
     effective_time: EffectiveTime = Field(
@@ -279,8 +278,8 @@ class Relation(RABase):
 
 def get_relations(
     uuids: None | UUID | list[UUID] = None,
-    effective_time: Optional[EffectiveTime] = None,
-) -> Optional[list[Relation]]:
+    effective_time: EffectiveTime | None = None,
+) -> list[Relation] | None:
     """Returns a list of `Relation`s obtained from UUIDs or None if `uuids=None`"""
 
     if uuids is None or effective_time is None:
@@ -371,7 +370,7 @@ class FacetRelations(RABase):
         max_items=1,
         description="The responsible object.",
     )
-    parent: Optional[list[ParentClassification]] = Field(
+    parent: list[ParentClassification] | None = Field(
         alias="facettilhoerer",
         min_items=1,
         max_items=1,
@@ -383,16 +382,16 @@ class ITSystemProperties(RABase):
     """Properties for an ITSystem attribute."""
 
     user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
-    effective_time: Optional[EffectiveTime] = Field(
+    effective_time: EffectiveTime | None = Field(
         alias="virkning", description="Effective time of the properties."
     )
-    name: Optional[str] = Field(
+    name: str | None = Field(
         alias="itsystemnavn", description="Official name for the ITSystem."
     )
-    type: Optional[str] = Field(
+    type: str | None = Field(
         alias="itsystemtype", description="Short description of the type of properties."
     )
-    configuration_ref: Optional[list[str]] = Field(
+    configuration_ref: list[str] | None = Field(
         alias="konfigurationsreference", description="One of ['Ja', 'Nej', 'Ved ikke']."
     )
 
@@ -439,60 +438,60 @@ class ITSystemRelations(RABase):
     # effetive_time; thus they share type here.
 
     # zero2one relation
-    belongs_to: Optional[list[Relation]] = Field(
+    belongs_to: list[Relation] | None = Field(
         alias="tilhoerer",
         min_items=1,
         max_items=1,
         description="Reference to a organisation the ITSystem belongs to",
     )
     # zero2many relations
-    affiliated_orgs: Optional[list[Relation]] = Field(
+    affiliated_orgs: list[Relation] | None = Field(
         alias="tilknyttedeorganisationer",
         description="Reference to affiliated organisations",
         min_items=1,
     )
-    affiliated_units: Optional[list[Relation]] = Field(
+    affiliated_units: list[Relation] | None = Field(
         alias="tilknyttedeenheder",
         description="Reference to affiliated organisation units",
         min_items=1,
     )
-    affiliated_functions: Optional[list[Relation]] = Field(
+    affiliated_functions: list[Relation] | None = Field(
         alias="tilknyttedefunktioner",
         description="Reference to affiliated organisation functions",
         min_items=1,
     )
-    affiliated_users: Optional[list[Relation]] = Field(
+    affiliated_users: list[Relation] | None = Field(
         alias="tilknyttedebrugere",
         description="Reference to affiliated users",
         min_items=1,
     )
-    affiliated_interests: Optional[list[Relation]] = Field(
+    affiliated_interests: list[Relation] | None = Field(
         alias="tilknyttedeinteressefaelleskaber",
         description="Reference to affiliated common interest",
         min_items=1,
     )
-    affiliated_itsystems: Optional[list[Relation]] = Field(
+    affiliated_itsystems: list[Relation] | None = Field(
         alias="tilknyttedeitsystemer",
         description="Reference to affiliated ITSystems",
         min_items=1,
     )
-    affiliated_persons: Optional[list[Relation]] = Field(
+    affiliated_persons: list[Relation] | None = Field(
         alias="tilknyttedepersoner",
         description="Reference to affiliated persons",
         min_items=1,
     )
-    addresses: Optional[list[Relation]] = Field(
+    addresses: list[Relation] | None = Field(
         alias="adresser",
         description="Affiliated addresses, like URL",
         min_items=1,
     )
     # the two following are type Klasse
-    system_types: Optional[list[Relation]] = Field(
+    system_types: list[Relation] | None = Field(
         alias="systemtyper",
         description="Reference to affiliated systemtypes, like STORM",
         min_items=1,
     )
-    tasks: Optional[list[Relation]] = Field(
+    tasks: list[Relation] | None = Field(
         alias="opgaver",
         description="Reference to affiliated tasks, like FORM",
         min_items=1,
@@ -506,14 +505,12 @@ class KlasseProperties(RABase):
 
     user_key: str = Field(alias="brugervendtnoegle", description="Short, unique key.")
     title: str = Field(alias="titel", description="Title of the LoRa Klasse.")
-    scope: Optional[str] = Field(
-        alias="omfang", description="Scope of the LoRa Klasse."
-    )
+    scope: str | None = Field(alias="omfang", description="Scope of the LoRa Klasse.")
     effective_time: EffectiveTime = Field(
         alias="virkning", description="Effective time of the properties."
     )
-    example: Optional[str] = Field(alias="eksempel", description="Example usage.")
-    description: Optional[str] = Field(
+    example: str | None = Field(alias="eksempel", description="Example usage.")
+    description: str | None = Field(
         alias="beskrivelse", description="Description of the Klasse."
     )
 
@@ -532,13 +529,13 @@ class KlasseRelations(RABase):
     facet: list[FacetRef] = Field(
         min_items=1, max_items=1, description="Facet reference."
     )
-    parent: Optional[list[ClassRef]] = Field(
+    parent: list[ClassRef] | None = Field(
         alias="overordnetklasse",
         min_items=1,
         max_items=1,
         description="The parent class object.",
     )
-    owner: Optional[list[OwnerRef]] = Field(
+    owner: list[OwnerRef] | None = Field(
         alias="ejer",
         min_items=1,
         max_items=1,
@@ -644,6 +641,6 @@ class RegistrationTime(BaseModel):
     timestamp_datetime: InfiniteDatetime = Field(
         alias="tidsstempeldatotid", description="The registration timestamp"
     )
-    limit_indicator: Optional[bool] = Field(
+    limit_indicator: bool | None = Field(
         alias="graenseindikator", description="The registration limit indicator"
     )

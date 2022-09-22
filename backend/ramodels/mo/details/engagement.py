@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -22,22 +21,22 @@ class EngagementBase(MOBase):
 
     type_: str = Field("engagement", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the engagement object.")
-    fraction: Optional[int] = Field(
+    fraction: int | None = Field(
         description=(
             "Indication of contribution to the "
             "collection of engagements for the given employee."
         )
     )
-    extension_1: Optional[str] = Field(description="Optional extra information.")
-    extension_2: Optional[str] = Field(description="Optional extra information.")
-    extension_3: Optional[str] = Field(description="Optional extra information.")
-    extension_4: Optional[str] = Field(description="Optional extra information.")
-    extension_5: Optional[str] = Field(description="Optional extra information.")
-    extension_6: Optional[str] = Field(description="Optional extra information.")
-    extension_7: Optional[str] = Field(description="Optional extra information.")
-    extension_8: Optional[str] = Field(description="Optional extra information.")
-    extension_9: Optional[str] = Field(description="Optional extra information.")
-    extension_10: Optional[str] = Field(description="Optional extra information.")
+    extension_1: str | None = Field(description="Optional extra information.")
+    extension_2: str | None = Field(description="Optional extra information.")
+    extension_3: str | None = Field(description="Optional extra information.")
+    extension_4: str | None = Field(description="Optional extra information.")
+    extension_5: str | None = Field(description="Optional extra information.")
+    extension_6: str | None = Field(description="Optional extra information.")
+    extension_7: str | None = Field(description="Optional extra information.")
+    extension_8: str | None = Field(description="Optional extra information.")
+    extension_9: str | None = Field(description="Optional extra information.")
+    extension_10: str | None = Field(description="Optional extra information.")
 
 
 class EngagementRead(EngagementBase):
@@ -55,10 +54,10 @@ class EngagementRead(EngagementBase):
     job_function_uuid: UUID = Field(
         description="UUID of the job function klasse of the engagement."
     )
-    leave_uuid: Optional[UUID] = Field(
+    leave_uuid: UUID | None = Field(
         description="UUID of the leave related to the engagement."
     )
-    primary_uuid: Optional[UUID] = Field(
+    primary_uuid: UUID | None = Field(
         description="UUID of the primary klasse of the engagement."
     )
 
@@ -90,10 +89,10 @@ class EngagementWrite(EngagementBase):
             "Reference to the job function klasse for the created engagement object."
         )
     )
-    leave: Optional[LeaveRef] = Field(
+    leave: LeaveRef | None = Field(
         description="Reference to the leave for the created engagement."
     )
-    primary: Optional[Primary] = Field(
+    primary: Primary | None = Field(
         description="Reference to the primary klasse for the created engagement object."
     )
 
@@ -130,20 +129,20 @@ class Engagement(MOBase):
         )
     )
     validity: Validity = Field(description="Validity of the created engagement object.")
-    primary: Optional[Primary] = Field(
+    primary: Primary | None = Field(
         description="Reference to the primary klasse for the created engagement object."
     )
     user_key: str = Field(description="Short, unique key.")
-    extension_1: Optional[str] = Field(description="Optional extra information.")
-    extension_2: Optional[str] = Field(description="Optional extra information.")
-    extension_3: Optional[str] = Field(description="Optional extra information.")
-    extension_4: Optional[str] = Field(description="Optional extra information.")
-    extension_5: Optional[str] = Field(description="Optional extra information.")
-    extension_6: Optional[str] = Field(description="Optional extra information.")
-    extension_7: Optional[str] = Field(description="Optional extra information.")
-    extension_8: Optional[str] = Field(description="Optional extra information.")
-    extension_9: Optional[str] = Field(description="Optional extra information.")
-    extension_10: Optional[str] = Field(description="Optional extra information.")
+    extension_1: str | None = Field(description="Optional extra information.")
+    extension_2: str | None = Field(description="Optional extra information.")
+    extension_3: str | None = Field(description="Optional extra information.")
+    extension_4: str | None = Field(description="Optional extra information.")
+    extension_5: str | None = Field(description="Optional extra information.")
+    extension_6: str | None = Field(description="Optional extra information.")
+    extension_7: str | None = Field(description="Optional extra information.")
+    extension_8: str | None = Field(description="Optional extra information.")
+    extension_9: str | None = Field(description="Optional extra information.")
+    extension_10: str | None = Field(description="Optional extra information.")
 
     @classmethod
     def from_simplified_fields(
@@ -154,19 +153,19 @@ class Engagement(MOBase):
         engagement_type_uuid: UUID,
         user_key: str,
         from_date: str,
-        to_date: Optional[str] = None,
-        uuid: Optional[UUID] = None,
-        primary_uuid: Optional[UUID] = None,
-        extension_1: Optional[str] = None,
-        extension_2: Optional[str] = None,
-        extension_3: Optional[str] = None,
-        extension_4: Optional[str] = None,
-        extension_5: Optional[str] = None,
-        extension_6: Optional[str] = None,
-        extension_7: Optional[str] = None,
-        extension_8: Optional[str] = None,
-        extension_9: Optional[str] = None,
-        extension_10: Optional[str] = None,
+        to_date: str | None = None,
+        uuid: UUID | None = None,
+        primary_uuid: UUID | None = None,
+        extension_1: str | None = None,
+        extension_2: str | None = None,
+        extension_3: str | None = None,
+        extension_4: str | None = None,
+        extension_5: str | None = None,
+        extension_6: str | None = None,
+        extension_7: str | None = None,
+        extension_8: str | None = None,
+        extension_9: str | None = None,
+        extension_10: str | None = None,
     ) -> "Engagement":
         """Create an engagement from simplified fields."""
         org_unit = OrgUnitRef(uuid=org_unit_uuid)

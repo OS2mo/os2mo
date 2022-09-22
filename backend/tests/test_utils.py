@@ -389,7 +389,7 @@ def test_checked_get_py(key, default, required, expected_raise):
         "null": None,
         "empty_list": list(),
         "empty_dict": dict(),
-        "empty_str": str(),
+        "empty_str": "",
     }
     with expected_raise:
         assert util.checked_get(
@@ -420,7 +420,7 @@ def test_checked_get_exception(key, default, required):
         "string": "1337",
     }
     output = {
-        "description": "'{0}' cannot be empty".format(key),
+        "description": f"'{key}' cannot be empty",
         "error": True,
         "error_key": "V_MISSING_REQUIRED_VALUE",
         "key": key,
@@ -430,7 +430,7 @@ def test_checked_get_exception(key, default, required):
     if not required and mapping.get(key) is not None:
         expected = type(default).__name__
         output["error_key"] = "E_INVALID_TYPE"
-        output["description"] = "Invalid '{0}', " "expected {1}, got: {2}".format(
+        output["description"] = "Invalid '{}', " "expected {}, got: {}".format(
             key, expected, json.dumps(mapping.get(key))
         )
         output["actual"] = mapping.get(key)

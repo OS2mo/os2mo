@@ -927,7 +927,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         payload = {"validity": {"to": "2017-11-30"}}
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -1278,7 +1278,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/{}/details/association?only_primary_uuid=1".format(unitid),
+            f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
             [
                 {
                     "association_type": {
@@ -1324,7 +1324,7 @@ class Tests(tests.cases.LoRATestCase):
             )
 
             self.assertRequestResponse(
-                "/service/ou/{}/details/association?only_primary_uuid=1".format(unitid),
+                f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
                 [
                     {
                         "association_type": {
@@ -1420,7 +1420,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/{}/details/association?only_primary_uuid=1".format(unitid),
+            f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
             [
                 {
                     "association_type": {
@@ -1452,7 +1452,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/ou/{}/details/association?only_primary_uuid=1".format(subid),
+            f"/service/ou/{subid}/details/association?only_primary_uuid=1",
             [],
             amqp_topics={
                 "employee.association.update": 2,

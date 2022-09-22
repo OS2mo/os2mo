@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -34,7 +33,7 @@ class Facet(LoraBase):
         cls,
         user_key: str,
         organisation_uuid: UUID,
-        uuid: Optional[UUID] = None,
+        uuid: UUID | None = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Facet":

@@ -51,7 +51,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         expected_manager = await get_expected(manager_uuid, True)
 
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -126,7 +126,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         expected_association = await get_expected(association_uuid)
 
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -163,7 +163,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         payload = {"vacate": True, "validity": {"to": "2017-11-30"}}
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -239,7 +239,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         }
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/manager?only_primary_uuid=1".format(userid),
+            f"/service/e/{userid}/details/manager?only_primary_uuid=1",
             [expected],
             amqp_topics={
                 "employee.address.delete": 1,
@@ -293,7 +293,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         payload = {"vacate": True, "validity": {"to": "2017-11-30"}}
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -361,7 +361,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         }
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/association?only_primary_uuid=1".format(userid),
+            f"/service/e/{userid}/details/association?only_primary_uuid=1",
             [expected],
             amqp_topics={
                 "employee.address.delete": 1,
@@ -416,7 +416,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         payload = {"vacate": False, "validity": {"to": "2017-11-30"}}
 
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -478,7 +478,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         payload = {"vacate": False, "validity": {"to": "2017-11-30"}}
 
         await self.assertRequestResponse(
-            "/service/e/{}/terminate".format(userid),
+            f"/service/e/{userid}/terminate",
             userid,
             json=payload,
             amqp_topics={
@@ -538,7 +538,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
 
         original_manager = await self.assertRequest(
-            "/service/e/{}/details/manager".format(userid),
+            f"/service/e/{userid}/details/manager",
         )
 
         original = await c.organisationfunktion.get(manager_uuid)
@@ -597,7 +597,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             current[0]["validity"]["to"] = "2017-11-30"
 
             await self.assertRequestResponse(
-                "/service/e/{}/details/manager".format(userid),
+                f"/service/e/{userid}/details/manager",
                 current,
                 amqp_topics={
                     "employee.manager.delete": 1,
@@ -607,7 +607,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         with self.subTest("future"):
             await self.assertRequestResponse(
-                "/service/e/{}/details/manager?validity=future".format(userid),
+                f"/service/e/{userid}/details/manager?validity=future",
                 [],
                 amqp_topics={
                     "employee.manager.delete": 1,
@@ -624,7 +624,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
         original_association = await self.assertRequest(
-            "/service/e/{}/details/association".format(userid),
+            f"/service/e/{userid}/details/association",
         )
 
         original = await c.organisationfunktion.get(association_uuid)
@@ -683,7 +683,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             current[0]["validity"]["to"] = "2017-11-30"
 
             await self.assertRequestResponse(
-                "/service/e/{}/details/association".format(userid),
+                f"/service/e/{userid}/details/association",
                 current,
                 amqp_topics={
                     "employee.association.delete": 1,
@@ -693,7 +693,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         with self.subTest("future"):
             await self.assertRequestResponse(
-                "/service/e/{}/details/association?validity=future".format(userid),
+                f"/service/e/{userid}/details/association?validity=future",
                 [],
                 amqp_topics={
                     "employee.association.delete": 1,

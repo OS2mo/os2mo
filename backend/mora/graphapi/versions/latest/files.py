@@ -4,7 +4,6 @@
 from abc import ABC
 from abc import abstractmethod
 from pathlib import Path
-from typing import Optional
 
 from .models import FileStore
 from mora import exceptions
@@ -195,7 +194,7 @@ class FileSystemStorage(FileStorage):
             return f.read()
 
 
-def get_filestorage(settings: Optional[Settings] = None) -> FileStorage:
+def get_filestorage(settings: Settings | None = None) -> FileStorage:
     settings = settings or get_settings()
 
     if settings.file_storage == "noop":

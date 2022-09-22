@@ -3,11 +3,10 @@
 import abc
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Iterable
 from datetime import datetime
 from inspect import isawaitable
 from typing import Any
-from typing import Iterable
-from typing import Optional
 
 from structlog import get_logger
 
@@ -43,7 +42,7 @@ class ReadingHandler:
         cls,
         c,
         search_fields,
-        changed_since: Optional[datetime] = None,
+        changed_since: datetime | None = None,
         flat: bool = False,
     ) -> list[dict]:
         """
@@ -58,7 +57,7 @@ class ReadingHandler:
     @classmethod
     @abc.abstractmethod
     async def get_from_type(
-        cls, c, type, obj_uuid, changed_since: Optional[datetime] = None
+        cls, c, type, obj_uuid, changed_since: datetime | None = None
     ):
         """
         Read a list of objects related to a certain object
@@ -177,7 +176,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         cls,
         c,
         search_fields,
-        changed_since: Optional[datetime] = None,
+        changed_since: datetime | None = None,
         flat: bool = False,
     ):
         object_tuples = await cls._get_lora_object(
@@ -205,9 +204,7 @@ class OrgFunkReadingHandler(ReadingHandler):
         return mo_objects
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, objid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
         """Retrieve a list of MO objects of type 'type' and with object ID
         'objid'.
 
@@ -245,7 +242,7 @@ class OrgFunkReadingHandler(ReadingHandler):
 
     @classmethod
     async def _get_lora_object(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
+        cls, c, search_fields, changed_since: datetime | None = None
     ):
         if mapping.UUID in search_fields:
             object_tuples = await c.organisationfunktion.get_all_by_uuid(

@@ -40,7 +40,7 @@ class LoRaConnectorPlugin(Plugin):
     key = "lora_connector"
 
     async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        @functools.lru_cache()
+        @functools.lru_cache
         def cached_create_connector(**kwargs):
             return _create_connector(**kwargs)
 
@@ -578,7 +578,7 @@ def create_bruger_payload(
     if cpr:
         user["relationer"]["tilknyttedepersoner"] = [
             {
-                "urn": "urn:dk:cpr:person:{}".format(cpr),
+                "urn": f"urn:dk:cpr:person:{cpr}",
             },
         ]
 

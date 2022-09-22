@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 from typing import cast
-from typing import Optional
 
 import strawberry
 from pydantic import parse_obj_as
@@ -199,7 +198,7 @@ class Query:
         description="Get a list of all health checks, optionally by identifier(s)",
         permission_classes=[gen_read_permission("healths")],
     )
-    async def healths(self, identifiers: Optional[list[str]] = None) -> list[Health]:
+    async def healths(self, identifiers: list[str] | None = None) -> list[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
@@ -218,7 +217,7 @@ class Query:
         permission_classes=[gen_read_permission("files")],
     )
     async def files(
-        self, info: Info, file_store: FileStore, file_names: Optional[list[str]] = None
+        self, info: Info, file_store: FileStore, file_names: list[str] | None = None
     ) -> list[File]:
         filestorage = info.context["filestorage"]
         found_files = filestorage.list_files(file_store)
@@ -239,7 +238,7 @@ class Query:
         permission_classes=[gen_read_permission("configuration")],
     )
     async def configuration(
-        self, identifiers: Optional[list[str]] = None
+        self, identifiers: list[str] | None = None
     ) -> list[Configuration]:
         settings_keys = get_public_settings()
         if identifiers is not None:

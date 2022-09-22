@@ -68,7 +68,7 @@ def to_lower_param(s):
     item in lowercase. The second item is left untouched."""
     try:
         a, b = s.split(":")
-        return "%s:%s" % (a.lower(), b)
+        return f"{a.lower()}:{b}"
     except ValueError:
         return s.lower()
 

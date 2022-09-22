@@ -4,7 +4,6 @@ import os
 from enum import Enum
 from functools import lru_cache
 from typing import Any
-from typing import Optional
 
 from pydantic import AnyHttpUrl
 from pydantic import BaseSettings
@@ -56,7 +55,7 @@ class ServicePlatformenSettings(BaseSettings):
 
 class FileSystemSettings(BaseSettings):
     query_export_dir: DirectoryPath = "/queries"
-    query_insight_dir: Optional[DirectoryPath] = None
+    query_insight_dir: DirectoryPath | None = None
 
 
 class Settings(BaseSettings):
@@ -66,8 +65,8 @@ class Settings(BaseSettings):
     E.g. LORA_URL == lora_url
     """
 
-    commit_tag: Optional[str]
-    commit_sha: Optional[str]
+    commit_tag: str | None
+    commit_sha: str | None
     lora_url: AnyHttpUrl = "http://mox/"
     enable_internal_lora: bool = False
 
@@ -79,7 +78,7 @@ class Settings(BaseSettings):
 
     # File Store settings
     file_storage: str = "noop"
-    filesystem_settings: Optional[FileSystemSettings] = None
+    filesystem_settings: FileSystemSettings | None = None
 
     @root_validator
     def check_filesystem_settings(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -124,7 +123,7 @@ class Settings(BaseSettings):
     # Legacy auth
     os2mo_legacy_session_support: bool = False
     session_db_user = "sessions"
-    session_db_password: Optional[str]
+    session_db_password: str | None
     session_db_host = "mox-db"
     session_db_port = "5432"
     session_db_name = "sessions"
@@ -142,7 +141,7 @@ class Settings(BaseSettings):
     graphiql_enable: bool = False
 
     # HTTP Trigger settings
-    http_endpoints: Optional[list[str]]
+    http_endpoints: list[str] | None
     fetch_trigger_timeout: int = 5
     run_trigger_timeout: int = 5
 
@@ -153,7 +152,7 @@ class Settings(BaseSettings):
     amqp_enable: bool = False
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
-    sp_settings: Optional[ServicePlatformenSettings] = None
+    sp_settings: ServicePlatformenSettings | None = None
 
     @root_validator
     def check_sp_configuration(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -184,7 +183,7 @@ class Settings(BaseSettings):
 
     # Lora client
     lora_client_id: str = "mo"
-    lora_client_secret: Optional[str]
+    lora_client_secret: str | None
     lora_auth_realm: str = "lora"
     lora_auth_server: AnyHttpUrl = "http://keycloak:8080/auth"
 
@@ -229,10 +228,10 @@ class Settings(BaseSettings):
     confdb_autocomplete_use_new_api: bool = False
     # List of class UUIDs whose title and value will be displayed for each
     # matching employee.
-    confdb_autocomplete_attrs_employee: Optional[list[UUID]]
+    confdb_autocomplete_attrs_employee: list[UUID] | None
     # List of class UUIDs whose title and value will be displayed for each
     # matching organisation unit.
-    confdb_autocomplete_attrs_orgunit: Optional[list[UUID]]
+    confdb_autocomplete_attrs_orgunit: list[UUID] | None
 
     # MO allows "fictitious" birthdates in CPR numbers, if this is set to False
     cpr_validate_birthdate: bool = True
@@ -256,7 +255,7 @@ class Settings(BaseSettings):
         return os.environ.get("PYTEST_RUNNING") is not None
 
 
-@lru_cache()
+@lru_cache
 def get_settings(*args, **kwargs) -> Settings:
     return Settings(*args, **kwargs)
 

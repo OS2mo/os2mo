@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
 
 from more_itertools import flatten
 
@@ -76,13 +75,13 @@ class SearchQueryBuilder:
     def __init__(
         self,
         class_name: str,
-        limit: Optional[int],
-        offset: Optional[int],
+        limit: int | None,
+        offset: int | None,
         virkning_fra: datetime | str,
         virkning_til: datetime | str,
-        uuid: Optional[str] = None,
-        registreret_fra: Optional[datetime | str] = None,
-        registreret_til: Optional[datetime | str] = None,
+        uuid: str | None = None,
+        registreret_fra: datetime | str | None = None,
+        registreret_til: datetime | str | None = None,
     ):
         """
         :param class_name: determines where to query
@@ -182,8 +181,8 @@ class SearchQueryBuilder:
 
     def __handle_registreret_dates(
         self,
-        reg_start: Optional[str | datetime],
-        reg_end: Optional[str | datetime],
+        reg_start: str | datetime | None,
+        reg_end: str | datetime | None,
     ):
         """
         validate, and optionally add conditions
@@ -406,7 +405,7 @@ class SearchQueryBuilder:
             # Need to condition on the *set* of relation types to support multiple
             # conditions on the same relation OR'd together, since the sub-query counts
             # DISTINCT rel_types.
-            distinct_relations = set(r.type for r in self.__relations)
+            distinct_relations = {r.type for r in self.__relations}
             where_stmt = f"""
             WHERE sub.{self.__count_col_name}={len(distinct_relations)}"""
 
@@ -420,12 +419,12 @@ class SearchQueryBuilder:
 
 def quick_search(
     class_name: str,
-    uuid: Optional[str],
+    uuid: str | None,
     registration: dict,
     virkning_fra: datetime | str,
     virkning_til: datetime | str,
-    registreret_fra: Optional[datetime | str] = None,
-    registreret_til: Optional[datetime | str] = None,
+    registreret_fra: datetime | str | None = None,
+    registreret_til: datetime | str | None = None,
     life_cycle_code=None,
     user_ref=None,
     note=None,

@@ -13,12 +13,11 @@ http:get:`/service/(any:type)/(uuid:id)/details/`
 import asyncio
 import copy
 import enum
+from collections.abc import Awaitable
 from functools import partial
 from operator import contains
 from operator import itemgetter
 from typing import Any
-from typing import Awaitable
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -250,7 +249,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
             related = mapping.EMPLOYEE_PERSON_FIELD.get(original)
             if related and len(related) > 0:
                 attrs = related[-1].copy()
-                attrs["urn"] = "urn:dk:cpr:person:{}".format(data[mapping.CPR_NO])
+                attrs["urn"] = f"urn:dk:cpr:person:{data[mapping.CPR_NO]}"
                 update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
         payload = common.update_payload(
@@ -330,7 +329,7 @@ async def request_bulked_get_one_employee(
 async def get_one_employee(
     c: lora.Connector,
     userid,
-    user: Optional[dict[str, Any]] = None,
+    user: dict[str, Any] | None = None,
     details=EmployeeDetails.MINIMAL,
     only_primary_uuid: bool = False,
 ):
@@ -410,11 +409,11 @@ async def autocomplete_employees(query: str):
 # @util.restrictargs('at', 'start', 'limit', 'query', 'associated')
 async def list_employees(
     orgid: UUID,
-    start: Optional[int] = 0,
-    limit: Optional[int] = 0,
-    query: Optional[str] = None,
-    associated: Optional[bool] = None,
-    only_primary_uuid: Optional[bool] = None,
+    start: int | None = 0,
+    limit: int | None = 0,
+    query: str | None = None,
+    associated: bool | None = None,
+    only_primary_uuid: bool | None = None,
 ):
     """Query employees in an organisation.
 
@@ -510,7 +509,7 @@ async def list_employees(
             *args,
             **kwargs,
             details=EmployeeDetails.FULL,
-            only_primary_uuid=only_primary_uuid
+            only_primary_uuid=only_primary_uuid,
         )
 
     search_result = await c.bruger.paged_get(

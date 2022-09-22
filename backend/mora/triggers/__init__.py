@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from typing import Any
-from typing import Callable
 
 from structlog import get_logger
 

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -29,7 +28,7 @@ class LeaveRead(LeaveBase):
         description="UUID of the employee related to the leave."
     )
     leave_type_uuid: UUID = Field(description="UUID of the leave type klasse.")
-    engagement_uuid: Optional[UUID] = Field(
+    engagement_uuid: UUID | None = Field(
         description="UUID of the engagement related to the leave."
     )
 
@@ -41,7 +40,7 @@ class LeaveWrite(LeaveBase):
     employee: EmployeeRef = Field(
         description="Reference to the employee for which the leave should be created."
     )
-    engagement: Optional[EngagementRef] = Field(
+    engagement: EngagementRef | None = Field(
         description="Reference to the engagement for which the leave should be created."
     )
 
@@ -60,7 +59,7 @@ class Leave(MOBase):
             "Reference to the person object for which the role should be created."
         )
     )
-    engagement: Optional[EngagementRef] = Field(
+    engagement: EngagementRef | None = Field(
         description="Reference to the engagement for which the role should be created."
     )
     validity: Validity = Field(description="Validity of the created role object.")

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """Starlette plugins to create context variables that can be used in the service app."""
 from typing import Any
-from typing import Optional
 
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
@@ -30,7 +29,7 @@ class GraphQLContextPlugin(Plugin):
 
     key = "is_graphql"
 
-    async def process_request(self, request: Request | HTTPConnection) -> Optional[Any]:
+    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
         return 0
 
 
@@ -63,7 +62,7 @@ class GraphQLDatesPlugin(Plugin):
 
     key: str = "graphql_dates"
 
-    async def process_request(self, request: Request | HTTPConnection) -> Optional[Any]:
+    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
         return None
 
 
@@ -72,5 +71,5 @@ def set_graphql_dates(dates: OpenValidity) -> None:
     context["graphql_dates"] = dates
 
 
-def get_graphql_dates() -> Optional[OpenValidity]:
+def get_graphql_dates() -> OpenValidity | None:
     return context.get("graphql_dates")

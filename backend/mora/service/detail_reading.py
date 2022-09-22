@@ -15,14 +15,11 @@ creating and editing relations for employees and organisational units:
 
 
 """
-from __future__ import generator_stop
-
 import collections
 from datetime import date
 from datetime import datetime
 from functools import partial
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -133,9 +130,9 @@ def filter_by_validity(validity: ValidityLiteral, element: dict):
 )
 async def list_addresses_employee(
     eid: UUID,
-    only_primary_uuid: Optional[bool] = None,
-    at: Optional[date | datetime] = None,
-    validity: Optional[ValidityLiteral] = None,
+    only_primary_uuid: bool | None = None,
+    at: date | datetime | None = None,
+    validity: ValidityLiteral | None = None,
 ):
     """GraphQL shim"""
     if only_primary_uuid:
@@ -259,9 +256,9 @@ async def list_addresses_employee(
 )
 async def list_addresses_ou(
     orgid: UUID,
-    only_primary_uuid: Optional[bool] = None,
-    at: Optional[date | datetime] = None,
-    validity: Optional[ValidityLiteral] = None,
+    only_primary_uuid: bool | None = None,
+    at: date | datetime | None = None,
+    validity: ValidityLiteral | None = None,
 ):
     """GraphQL shim"""
     if only_primary_uuid:
@@ -389,13 +386,13 @@ async def get_detail(
     type,
     id: UUID,
     function,
-    at: Optional[Any] = None,
-    validity: Optional[Any] = None,
-    inherit_manager: Optional[Any] = None,
-    calculate_primary: Optional[Any] = None,
-    only_primary_uuid: Optional[Any] = None,
-    first_party_perspective: Optional[Any] = None,
-    changed_since: Optional[datetime] = None,
+    at: Any | None = None,
+    validity: Any | None = None,
+    inherit_manager: Any | None = None,
+    calculate_primary: Any | None = None,
+    only_primary_uuid: Any | None = None,
+    first_party_perspective: Any | None = None,
+    changed_since: datetime | None = None,
 ):
     """Obtain the list of engagements, associations, roles, etc.
     corresponding to a user or organisational unit. See
