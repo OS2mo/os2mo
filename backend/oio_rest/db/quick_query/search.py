@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict
 from typing import Optional
 from typing import Union
 
@@ -423,7 +422,7 @@ class SearchQueryBuilder:
 def quick_search(
     class_name: str,
     uuid: Optional[str],
-    registration: Dict,
+    registration: dict,
     virkning_fra: Union[datetime, str],
     virkning_til: Union[datetime, str],
     registreret_fra: Optional[Union[datetime, str]] = None,

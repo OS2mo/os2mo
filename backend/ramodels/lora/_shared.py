@@ -3,7 +3,6 @@
 from datetime import datetime
 from typing import Any
 from typing import Callable
-from typing import Dict
 from typing import Iterator
 from typing import Literal
 from typing import Optional
@@ -187,7 +186,7 @@ class EffectiveTime(RABase):
     )
 
     @root_validator
-    def check_from_lt_to(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def check_from_lt_to(cls, values: dict[str, Any]) -> dict[str, Any]:
         from_date, to_date = values.get("from_date"), values.get("to_date")
         # Mypy complains here about unsupported use of operators due to Nones,
         # but we catch those with if all...

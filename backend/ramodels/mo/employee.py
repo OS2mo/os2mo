@@ -3,7 +3,6 @@
 from datetime import date
 from datetime import datetime
 from typing import Any
-from typing import Dict
 from typing import Literal
 from typing import Optional
 
@@ -54,7 +53,7 @@ class EmployeeRead(EmployeeBase):
     validity: OpenValidity = Field(description="Validity of the employee.")
 
     @root_validator(pre=True)
-    def handle_deprecated_keys(cls, values: dict[str, Any]) -> Dict[str, Any]:
+    def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
         values.pop("name", None)
         values.pop("nickname", None)
         return values

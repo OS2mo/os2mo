@@ -6,7 +6,6 @@ from asyncio import gather
 from datetime import datetime
 from inspect import isawaitable
 from typing import Any
-from typing import Dict
 from typing import Iterable
 from typing import Optional
 
@@ -46,7 +45,7 @@ class ReadingHandler:
         search_fields,
         changed_since: Optional[datetime] = None,
         flat: bool = False,
-    ) -> list[Dict]:
+    ) -> list[dict]:
         """
         Read a list of objects based on the given search parameters
 
