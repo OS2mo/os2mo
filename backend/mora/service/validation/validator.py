@@ -42,7 +42,7 @@ def forceable(fn):
 
 
 async def _is_date_range_valid(
-    obj: typing.Union[dict, str],
+    obj: dict | str,
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
     lora_scope: lora.Scope,
@@ -183,7 +183,7 @@ async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
 
 @forceable
 def is_distinct_responsibility(
-    fields: list[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
+    fields: list[tuple[mapping.FieldTuple, typing.Mapping]],
 ):
     uuid_counts = collections.Counter(
         value["uuid"]
@@ -200,7 +200,7 @@ def is_distinct_responsibility(
 
 @forceable
 async def is_date_range_in_employee_range(
-    employee_obj: typing.Dict,
+    employee_obj: dict,
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
 ):
@@ -215,7 +215,7 @@ async def is_date_range_in_employee_range(
 
 @forceable
 async def is_date_range_in_engagement_range(
-    obj: typing.Dict, valid_from: datetime.datetime, valid_to: datetime.datetime
+    obj: dict, valid_from: datetime.datetime, valid_to: datetime.datetime
 ):
     return await is_date_range_in_obj_range(
         obj=obj,
@@ -228,7 +228,7 @@ async def is_date_range_in_engagement_range(
 
 @forceable
 async def is_date_range_in_obj_range(
-    obj: typing.Dict,
+    obj: dict,
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
     obj_type: LoraObjectType,

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
-from typing import Dict
 from unittest.mock import patch
 
 import freezegun
@@ -34,7 +33,7 @@ class TestCreateObject(DBTestCase):
         }
 
     def parametrized_basic_integration(
-        self, path: str, lora_object: dict[str, Any], search_params: Dict[str, Any]
+        self, path: str, lora_object: dict[str, Any], search_params: dict[str, Any]
     ):
         """
         Tests basic create-search-delete-search flow

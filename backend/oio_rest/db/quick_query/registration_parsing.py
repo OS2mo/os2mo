@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from enum import auto
 from enum import Enum
 from enum import unique
-from typing import Dict
 from typing import Optional
 
 from more_itertools import flatten
@@ -162,7 +161,7 @@ class State:
 
     @classmethod
     def from_state_dict(
-        cls, state: dict[str, Optional[str]], valid_states: Dict[str, list[str]]
+        cls, state: dict[str, Optional[str]], valid_states: dict[str, list[str]]
     ) -> "State":
         """
         deals with this sort of thing

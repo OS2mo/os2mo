@@ -386,5 +386,5 @@ async def generate_requests(
     return requesthandlers
 
 
-async def submit_requests(requests: list[RequestHandler]) -> typing.List[str]:
+async def submit_requests(requests: list[RequestHandler]) -> list[str]:
     return await asyncio.gather(*(request.submit() for request in requests))

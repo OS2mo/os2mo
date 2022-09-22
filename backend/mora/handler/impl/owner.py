@@ -6,7 +6,6 @@ from functools import partial
 from math import inf
 from typing import Any
 from typing import Awaitable
-from typing import Dict
 from typing import Optional
 from uuid import UUID
 
@@ -81,7 +80,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
 
     @staticmethod
     def __owner_priority(
-        obj: dict[str, Any], primary_priorities: Dict[str, int]
+        obj: dict[str, Any], primary_priorities: dict[str, int]
     ) -> tuple[int, float, str]:
         """
         strict ordering between objects with scope-based priority

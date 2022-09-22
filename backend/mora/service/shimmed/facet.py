@@ -3,7 +3,6 @@
 from operator import itemgetter
 from typing import Any
 from typing import Generic
-from typing import List
 from typing import Optional
 from typing import TypeVar
 from typing import Union
@@ -156,7 +155,7 @@ class MOFacetReturn(BaseModel):
 
 @facet_router.get(
     "/o/{orgid}/f/",
-    response_model=List[MOFacetReturn],
+    response_model=list[MOFacetReturn],
     response_model_exclude_unset=True,
     responses={500: {"description": "Unknown Error."}},
 )

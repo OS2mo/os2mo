@@ -5,7 +5,6 @@ import json
 import os
 import pprint
 import types
-import typing
 import unittest
 import uuid
 from unittest import mock
@@ -312,7 +311,7 @@ class ExtTestCase(BaseTestCase):
 
     @classmethod
     @contextlib.contextmanager
-    def patch_db_struct(cls, new: typing.Union[types.ModuleType, dict]):
+    def patch_db_struct(cls, new: types.ModuleType | dict):
         """Context manager for overriding db_structures"""
 
         patches = [

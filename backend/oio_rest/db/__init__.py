@@ -6,7 +6,6 @@ import datetime
 import enum
 import os
 import pathlib
-import typing
 
 import dateutil
 import psycopg2
@@ -886,9 +885,7 @@ def _consolidate_virkninger(virkninger_list):
     return new_virkninger
 
 
-def _parse_timestamp(
-    timestamp: typing.Union[datetime.datetime, str]
-) -> datetime.datetime:
+def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     if timestamp == "infinity":
         dt = datetime.datetime.max
     elif timestamp == "-infinity":

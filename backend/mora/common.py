@@ -15,7 +15,6 @@ import datetime
 import functools
 import typing
 import uuid
-from typing import Union
 
 import werkzeug
 from starlette.requests import HTTPConnection
@@ -41,7 +40,7 @@ class LoRaConnectorPlugin(Plugin):
     key = "lora_connector"
 
     async def process_request(
-        self, request: Union[Request, HTTPConnection]
+        self, request: Request | HTTPConnection
     ) -> typing.Any | None:
         @functools.lru_cache()
         def cached_create_connector(**kwargs):
@@ -189,7 +188,7 @@ def ensure_bounds(
 def update_payload(
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
-    relevant_fields: list[typing.Tuple[mapping.FieldTuple, dict]],
+    relevant_fields: list[tuple[mapping.FieldTuple, dict]],
     obj: dict,
     payload: dict,
 ):
@@ -305,8 +304,8 @@ def _merge_obj_effects(
 
 
 def _create_virkning(
-    valid_from: Union[str, datetime.date, datetime.datetime],
-    valid_to: Union[str, datetime.date, datetime.datetime],
+    valid_from: str | datetime.date | datetime.datetime,
+    valid_to: str | datetime.date | datetime.datetime,
 ) -> dict:
     """
     Create virkning object
@@ -352,7 +351,7 @@ def inactivate_org_funktion_payload(enddate, note):
     return payload
 
 
-def to_lora_obj(value: typing.Union[dict[str, str], str]) -> dict[str, str]:
+def to_lora_obj(value: dict[str, str] | str) -> dict[str, str]:
     """
     transforms values to uniform lora-format
     :param value: (potentially) High-level specification of lora obj
@@ -389,9 +388,7 @@ def create_organisationsfunktion_payload(
     tilknyttedeorganisationer: list[str],
     tilknyttedebrugere: list[str] | None = None,
     tilknyttedeenheder: list[str] | None = None,
-    tilknyttedefunktioner: typing.Optional[
-        list[typing.Union[dict[str, str], str]]
-    ] = None,
+    tilknyttedefunktioner: typing.Optional[list[dict[str, str] | str]] = None,
     tilknyttedeitsystemer: list[str] | None = None,
     tilknyttedeklasser: list[str] | None = None,
     funktionstype: str | None = None,

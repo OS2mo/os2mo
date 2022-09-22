@@ -18,7 +18,6 @@ import typing
 import urllib.parse
 import uuid
 from functools import reduce
-from typing import Union
 
 import dateutil.parser
 import dateutil.tz
@@ -51,7 +50,7 @@ logger = get_logger()
 
 
 def parsedatetime(
-    s: Union[str, datetime.date, datetime.datetime], default=_sentinel
+    s: str | datetime.date | datetime.datetime, default=_sentinel
 ) -> datetime.datetime:
 
     if isinstance(s, datetime.date):
@@ -106,7 +105,7 @@ def do_ranges_overlap(first_start, first_end, second_start, second_end):
     return max(first_start, second_start) < min(first_end, second_end)
 
 
-def to_lora_time(s: Union[str, datetime.date, datetime.datetime]) -> str:
+def to_lora_time(s: str | datetime.date | datetime.datetime) -> str:
     dt = parsedatetime(s)
 
     if dt == POSITIVE_INFINITY:
@@ -294,7 +293,7 @@ class CPR(str):
         return f"CPR({super().__repr__()})"
 
 
-def get_cpr_birthdate(number: typing.Union[int, str]) -> datetime.datetime:
+def get_cpr_birthdate(number: int | str) -> datetime.datetime:
     if isinstance(number, str):
         number = int(number)
 
@@ -501,7 +500,7 @@ T = typing.TypeVar("T")
 
 def get_obj_value(
     obj,
-    path: typing.Tuple[str, str],
+    path: tuple[str, str],
     filter_fn: typing.Callable[[dict], bool] = None,
     default: T = None,
 ) -> T | None:
@@ -652,9 +651,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         )
 
 
-def get_validities(
-    obj, fallback=None
-) -> typing.Tuple[datetime.datetime, datetime.datetime]:
+def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.datetime]:
     valid_from = get_valid_from(obj, fallback)
     valid_to = get_valid_to(obj, fallback)
     if valid_to < valid_from:
@@ -723,7 +720,7 @@ def get_args_flag(name: str):
 #         return str(value)
 
 
-def ensure_list(obj: typing.Union[T, list[T]]) -> typing.List[T]:
+def ensure_list(obj: T | list[T]) -> list[T]:
     """
     wraps obj in a list, unless it is already a list
     :param obj: Anything
