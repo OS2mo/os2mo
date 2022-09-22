@@ -42,7 +42,7 @@ class LoRaConnectorPlugin(Plugin):
 
     async def process_request(
         self, request: Union[Request, HTTPConnection]
-    ) -> typing.Optional[typing.Any]:
+    ) -> typing.Any | None:
         @functools.lru_cache()
         def cached_create_connector(**kwargs):
             return _create_connector(**kwargs)
@@ -391,20 +391,20 @@ def create_organisationsfunktion_payload(
     valid_to: str,
     brugervendtnoegle: str,
     tilknyttedeorganisationer: typing.List[str],
-    tilknyttedebrugere: typing.Optional[typing.List[str]] = None,
-    tilknyttedeenheder: typing.Optional[typing.List[str]] = None,
+    tilknyttedebrugere: typing.List[str] | None = None,
+    tilknyttedeenheder: typing.List[str] | None = None,
     tilknyttedefunktioner: typing.Optional[
         typing.List[typing.Union[typing.Dict[str, str], str]]
     ] = None,
-    tilknyttedeitsystemer: typing.Optional[typing.List[str]] = None,
-    tilknyttedeklasser: typing.Optional[typing.List[str]] = None,
-    funktionstype: typing.Optional[str] = None,
-    primær: typing.Optional[str] = None,
-    opgaver: typing.Optional[typing.List[dict]] = None,
-    adresser: typing.Optional[typing.List[dict]] = None,
-    fraktion: typing.Optional[str] = None,
-    udvidelse_attributter: typing.Optional[dict] = None,
-    tilknyttedepersoner: typing.Optional[typing.List[str]] = None,
+    tilknyttedeitsystemer: typing.List[str] | None = None,
+    tilknyttedeklasser: typing.List[str] | None = None,
+    funktionstype: str | None = None,
+    primær: str | None = None,
+    opgaver: typing.List[dict] | None = None,
+    adresser: typing.List[dict] | None = None,
+    fraktion: str | None = None,
+    udvidelse_attributter: dict | None = None,
+    tilknyttedepersoner: typing.List[str] | None = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -552,11 +552,11 @@ def create_organisationsenhed_payload(
 def create_bruger_payload(
     valid_from: str,
     valid_to: str,
-    fornavn: typing.Optional[str],
-    efternavn: typing.Optional[str],
-    kaldenavn_fornavn: typing.Optional[str],
-    kaldenavn_efternavn: typing.Optional[str],
-    seniority: typing.Optional[str],
+    fornavn: str | None,
+    efternavn: str | None,
+    kaldenavn_fornavn: str | None,
+    kaldenavn_efternavn: str | None,
+    seniority: str | None,
     brugervendtnoegle: str,
     tilhoerer: str,
     cpr: str,
@@ -622,10 +622,10 @@ def create_klasse_payload(
     title: str,
     facet_uuid: uuid.UUID,
     org_uuid: uuid.UUID,
-    owner: typing.Optional[uuid.UUID] = None,
-    description: typing.Optional[str] = None,
-    scope: typing.Optional[str] = None,
-    parent_uuid: typing.Optional[uuid.UUID] = None,
+    owner: uuid.UUID | None = None,
+    description: str | None = None,
+    scope: str | None = None,
+    parent_uuid: uuid.UUID | None = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 

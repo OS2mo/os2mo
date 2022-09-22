@@ -443,7 +443,7 @@ def get_uuid(
     *,
     required: bool = True,
     key: typing.Hashable = mapping.UUID,
-) -> typing.Optional[str]:
+) -> str | None:
     v = checked_get(mapping, key, "", fallback=fallback, required=required)
 
     if not v and not required:
@@ -504,7 +504,7 @@ def get_obj_value(
     path: typing.Tuple[str, str],
     filter_fn: typing.Callable[[dict], bool] = None,
     default: T = None,
-) -> typing.Optional[T]:
+) -> T | None:
     try:
         props = reduce(operator.getitem, path, obj)
     except (LookupError, TypeError):

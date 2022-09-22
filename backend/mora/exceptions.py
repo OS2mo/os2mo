@@ -147,8 +147,8 @@ class HTTPException(fastapiHTTPException):
 
     def __init__(
         self,
-        error_key: typing.Optional[ErrorCodes] = None,
-        message: typing.Optional[str] = None,
+        error_key: ErrorCodes | None = None,
+        message: str | None = None,
         *,
         cause=None,
         **extras
@@ -157,8 +157,8 @@ class HTTPException(fastapiHTTPException):
         if error_key is not None:
             self.key = error_key
 
-        self.traceback: typing.Optional[str] = None
-        self.stack: typing.Optional[typing.List[str]] = None
+        self.traceback: str | None = None
+        self.stack: typing.List[str] | None = None
 
         body = {
             "error": True,
