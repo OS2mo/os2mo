@@ -183,7 +183,7 @@ async def is_date_range_in_org_unit_range(org_unit_obj, valid_from, valid_to):
 
 @forceable
 def is_distinct_responsibility(
-    fields: typing.List[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
+    fields: list[typing.Tuple[mapping.FieldTuple, typing.Mapping]],
 ):
     uuid_counts = collections.Counter(
         value["uuid"]

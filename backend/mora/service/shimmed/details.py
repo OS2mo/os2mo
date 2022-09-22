@@ -26,10 +26,10 @@ GRAPHQL_COMPATIBLE_TYPES = {
     "/details/terminate", responses={"400": {"description": "Unknown role type"}}
 )
 async def terminate(
-    reqs: typing.Union[typing.List[DetailTermination], DetailTermination] = Body(...),
+    reqs: typing.Union[list[DetailTermination], DetailTermination] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
-    results: typing.List[str] = []
+    results: list[str] = []
     for req in [reqs] if not isinstance(reqs, list) else reqs:
         results.append(await _termination_request_handler(req))
 

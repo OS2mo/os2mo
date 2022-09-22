@@ -28,7 +28,7 @@ router = APIRouter()
 
 
 async def handle_requests(
-    reqs: typing.Union[typing.Dict, typing.List[typing.Dict]],
+    reqs: typing.Union[typing.Dict, list[typing.Dict]],
     request_type: mapping.RequestType,
 ):
     if isinstance(reqs, dict):
@@ -54,7 +54,7 @@ async def handle_requests(
 )
 # @util.restrictargs('force', 'triggerless')
 async def create(
-    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    reqs: typing.Union[list[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     """Creates new relations on employees and units
@@ -432,7 +432,7 @@ async def create(
 @router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})
 # @util.restrictargs('force', 'triggerless')
 async def edit(
-    reqs: typing.Union[typing.List[typing.Dict], typing.Dict] = Body(...),
+    reqs: typing.Union[list[typing.Dict], typing.Dict] = Body(...),
     permissions=Depends(oidc.rbac_owner),
 ):
     """Edits a relation or attribute on an employee or unit

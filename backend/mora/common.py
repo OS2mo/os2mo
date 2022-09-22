@@ -140,7 +140,7 @@ def inactivate_old_interval(
 def ensure_bounds(
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
-    props: typing.List[mapping.FieldTuple],
+    props: list[mapping.FieldTuple],
     obj: dict,
     payload: dict,
 ):
@@ -149,7 +149,7 @@ def ensure_bounds(
         if not props:
             continue
 
-        updated_props = []  # type: typing.List[mapping.FieldTuple]
+        updated_props = []  # type: list[mapping.FieldTuple]
         if field.type == mapping.FieldTypes.ADAPTED_ZERO_TO_MANY:
             # If adapted zero-to-many, move first and last, and merge
             sorted_props = sorted(props, key=util.get_effect_from)
@@ -189,7 +189,7 @@ def ensure_bounds(
 def update_payload(
     valid_from: datetime.datetime,
     valid_to: datetime.datetime,
-    relevant_fields: typing.List[typing.Tuple[mapping.FieldTuple, dict]],
+    relevant_fields: list[typing.Tuple[mapping.FieldTuple, dict]],
     obj: dict,
     payload: dict,
 ):
@@ -227,9 +227,9 @@ def update_payload(
 
 
 def _merge_obj_effects(
-    orig_objs: typing.List[dict],
-    new_objs: typing.List[dict],
-) -> typing.List[dict]:
+    orig_objs: list[dict],
+    new_objs: list[dict],
+) -> list[dict]:
     """
     Performs LoRa-like merging of a relation object, with a current list of
     relation objects, with regards to virkningstider,
@@ -390,21 +390,21 @@ def create_organisationsfunktion_payload(
     valid_from: str,
     valid_to: str,
     brugervendtnoegle: str,
-    tilknyttedeorganisationer: typing.List[str],
-    tilknyttedebrugere: typing.List[str] | None = None,
-    tilknyttedeenheder: typing.List[str] | None = None,
+    tilknyttedeorganisationer: list[str],
+    tilknyttedebrugere: list[str] | None = None,
+    tilknyttedeenheder: list[str] | None = None,
     tilknyttedefunktioner: typing.Optional[
-        typing.List[typing.Union[typing.Dict[str, str], str]]
+        list[typing.Union[typing.Dict[str, str], str]]
     ] = None,
-    tilknyttedeitsystemer: typing.List[str] | None = None,
-    tilknyttedeklasser: typing.List[str] | None = None,
+    tilknyttedeitsystemer: list[str] | None = None,
+    tilknyttedeklasser: list[str] | None = None,
     funktionstype: str | None = None,
     primær: str | None = None,
-    opgaver: typing.List[dict] | None = None,
-    adresser: typing.List[dict] | None = None,
+    opgaver: list[dict] | None = None,
+    adresser: list[dict] | None = None,
     fraktion: str | None = None,
     udvidelse_attributter: dict | None = None,
-    tilknyttedepersoner: typing.List[str] | None = None,
+    tilknyttedepersoner: list[str] | None = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 
@@ -507,7 +507,7 @@ def create_organisationsenhed_payload(
     overordnet: str,
     niveau: str = None,
     opmærkning: str = None,
-    opgaver: typing.List[dict] = None,
+    opgaver: list[dict] = None,
 ) -> dict:
     virkning = _create_virkning(valid_from, valid_to)
 

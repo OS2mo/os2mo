@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import traceback
-import typing
 from enum import Enum
 
 from fastapi import HTTPException as fastapiHTTPException
@@ -158,7 +157,7 @@ class HTTPException(fastapiHTTPException):
             self.key = error_key
 
         self.traceback: str | None = None
-        self.stack: typing.List[str] | None = None
+        self.stack: list[str] | None = None
 
         body = {
             "error": True,

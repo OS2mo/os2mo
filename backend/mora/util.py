@@ -477,7 +477,7 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
         return None
 
 
-def set_obj_value(obj: dict, path: tuple, val: typing.List[dict]):
+def set_obj_value(obj: dict, path: tuple, val: list[dict]):
     path_list = list(path)
     obj_copy = copy.deepcopy(obj)
 
@@ -723,7 +723,7 @@ def get_args_flag(name: str):
 #         return str(value)
 
 
-def ensure_list(obj: typing.Union[T, typing.List[T]]) -> typing.List[T]:
+def ensure_list(obj: typing.Union[T, list[T]]) -> typing.List[T]:
     """
     wraps obj in a list, unless it is already a list
     :param obj: Anything
