@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from oio_rest.tests.test_integration_helper import TestCreateObject
+from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
 class TestCreateKlassifikation(TestCreateObject):

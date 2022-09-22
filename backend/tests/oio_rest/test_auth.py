@@ -13,7 +13,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 from oio_rest.app import create_app
 from oio_rest.auth.oidc import auth
-from oio_rest.tests.util import DBTestCase
+from tests.oio_rest.util import DBTestCase
 
 
 class TestEndpointAuthDependency(unittest.TestCase):

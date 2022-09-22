@@ -11,7 +11,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.db import db_helpers
 from oio_rest.db import db_structure
-from oio_rest.tests.util import ExtTestCase
+from tests.oio_rest.util import ExtTestCase
 
 
 class TestDBHelpers(ExtTestCase):
