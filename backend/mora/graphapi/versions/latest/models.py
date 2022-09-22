@@ -51,7 +51,7 @@ class Validity(OpenValidity):
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organisation Unit must be set with either 'to' or both 'from' "
-            "and 'to'",
+                "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
                 "to": self.to_date.isoformat() if self.to_date else None,
@@ -177,135 +177,9 @@ class OrgFuncTrigger(MoraTrigger):
 
 # Root Organisation
 # -----------------
-class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organisation-units."""
-
-    pass
-
-
-class EngagementTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for engagements.
-
-    Has the folling fields:
-        request_type: str "Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-
-        request: MoraTriggerRequest  description="The Request for the trigger."
-
-        role_type: str  description="Role type for the trigger, ex 'org_unit'."
-
-        event_type: str  description="Trigger event-type. " "Ref: mora.mapping.EventType"
-
-        uuid: UUID
-
-        org_unit_uuid: UUID
-
-        employee_id: Optional[UUID]
-    """
-
-    pass
-
 
 class Organisation(UUIDBase):
     """Model representing an organisation."""
-
-    pass
-
-
-class OrganisationUnit(UUIDBase):
-    """Model representing an organisation unit."""
-
-    pass
-
-
-class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
-    """Model representing updating an organisation unit."""
-
-    name: Optional[str] = Field(description="Name of the updated organisation unit.")
-
-    org_unit_type_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units type."
-    )
-
-    org_unit_level_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units level."
-    )
-
-    org_unit_hierarchy_uuid: Optional[UUID] = Field(
-        description="UUID of the organisation units hierarchy."
-    )
-
-    parent_uuid: Optional[UUID] = Field(
-        description="UUID of the related parent of the organisation unit."
-    )
-
-    time_planning: Optional[UUID] = Field(
-        description="UUID of the related organisation units time planning."
-    )
-
-    location: Optional[UUID] = Field(
-        description="UUID of the related organisation units location."
-    )
-
-    def get_legacy_dict(self) -> dict:
-        uuid_as_str = str(self.uuid)
-
-        validity_dict = {mapping.FROM: self.from_date.date().isoformat()}
-
-        if self.to_date:
-            validity_dict[mapping.TO] = self.to_date.date().isoformat()
-
-        data_dict = {
-            mapping.UUID: uuid_as_str,
-            mapping.VALIDITY: validity_dict,
-        }
-
-        if self.name:
-            data_dict[mapping.NAME] = {mapping.NAME: self.name}
-
-        if self.org_unit_type_uuid:
-            data_dict[mapping.ORG_UNIT_TYPE] = {
-                mapping.UUID: str(self.org_unit_type_uuid)
-            }
-
-        if self.org_unit_level_uuid:
-            data_dict[mapping.ORG_UNIT_LEVEL] = {
-                mapping.UUID: str(self.org_unit_level_uuid)
-            }
-
-        if self.org_unit_hierarchy_uuid:
-            data_dict[mapping.ORG_UNIT_HIERARCHY] = {
-                mapping.UUID: str(self.org_unit_hierarchy_uuid)
-            }
-
-        if self.parent_uuid:
-            data_dict[mapping.PARENT] = {mapping.UUID: str(self.parent_uuid)}
-
-        if self.time_planning:
-            data_dict[mapping.TIME_PLANNING] = {mapping.UUID: str(self.time_planning)}
-
-        legacy_dict = {
-            mapping.UUID: uuid_as_str,
-            mapping.DATA: data_dict,
-        }
-        return legacy_dict
-
-
-class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
-    """Model representing an organisation unit termination."""
-
-    def get_lora_payload(self) -> dict:
-        return {
-            "tilstande": {
-                "organisationenhedgyldighed": [
-                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
-                ]
-            },
-            "note": "Afslut enhed",
-        }
-
-
-class EngagementModel(UUIDBase):
-    """Model representing an Engagement."""
 
     pass
 
@@ -560,6 +434,91 @@ class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless
             },
             "note": "Afslut enhed",
         }
+
+
+class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
+    """Model representing updating an organisation unit."""
+
+    from_date: Optional[datetime.datetime] = Field(
+        util.POSITIVE_INFINITY,
+        alias="from",
+        description="When the validity of the organisation unit should start."
+    )
+
+    to_date: Optional[datetime.datetime] = Field(
+        util.NEGATIVE_INFINITY,
+        alias="to",
+        description="When the validity of the organisation unit should end."
+    )
+
+    name: Optional[str] = Field(description="Name of the updated organisation unit.")
+
+    org_unit_type_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units type."
+    )
+
+    org_unit_level_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units level."
+    )
+
+    org_unit_hierarchy_uuid: Optional[UUID] = Field(
+        description="UUID of the organisation units hierarchy."
+    )
+
+    parent_uuid: Optional[UUID] = Field(
+        description="UUID of the related parent of the organisation unit."
+    )
+
+    time_planning: Optional[UUID] = Field(
+        description="UUID of the related organisation units time planning."
+    )
+
+    location: Optional[UUID] = Field(
+        description="UUID of the related organisation units location."
+    )
+
+    def get_legacy_dict(self) -> dict:
+        uuid_as_str = str(self.uuid)
+
+        validity_dict = {mapping.FROM: self.from_date.date().isoformat()}
+
+        if self.to_date:
+            validity_dict[mapping.TO] = self.to_date.date().isoformat()
+
+        data_dict = {
+            mapping.UUID: uuid_as_str,
+            mapping.VALIDITY: validity_dict,
+        }
+
+        if self.name:
+            data_dict[mapping.NAME] = {mapping.NAME: self.name}
+
+        if self.org_unit_type_uuid:
+            data_dict[mapping.ORG_UNIT_TYPE] = {
+                mapping.UUID: str(self.org_unit_type_uuid)
+            }
+
+        if self.org_unit_level_uuid:
+            data_dict[mapping.ORG_UNIT_LEVEL] = {
+                mapping.UUID: str(self.org_unit_level_uuid)
+            }
+
+        if self.org_unit_hierarchy_uuid:
+            data_dict[mapping.ORG_UNIT_HIERARCHY] = {
+                mapping.UUID: str(self.org_unit_hierarchy_uuid)
+            }
+
+        if self.parent_uuid:
+            data_dict[mapping.PARENT] = {mapping.UUID: str(self.parent_uuid)}
+
+        if self.time_planning:
+            data_dict[mapping.TIME_PLANNING] = {mapping.UUID: str(self.time_planning)}
+
+        legacy_dict = {
+            mapping.UUID: uuid_as_str,
+            mapping.DATA: data_dict,
+        }
+        return legacy_dict
 
 
 # Related Units

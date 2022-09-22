@@ -23,18 +23,6 @@ CPRType = strawberry.scalar(
     model=UUIDBase,
     all_fields=True,
 )
-class OrganisationUnitType:
-    """GraphQL type for/of an organisation unit."""
-
-    pass
-
-
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementTerminateType:
-    """GraphQL type for an engagement."""
 class GenericUUIDType:
     """Generic UUID model for return types."""
 
@@ -108,6 +96,15 @@ class EngagementTerminateType:
 class OrganizationUnit:
     """GraphQL type for/of a organization unit."""
 
+
+@strawberry.experimental.pydantic.type(
+    model=UUIDBase,
+    all_fields=True,
+)
+class OrganisationUnitType:
+    """GraphQL type for/of an organisation unit."""
+
+    pass
 
 # Related Units
 # -------------

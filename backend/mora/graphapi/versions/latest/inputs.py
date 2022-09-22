@@ -37,36 +37,7 @@ class OrganisationInput:
     pass
 
 
-@strawberry.experimental.pydantic.input(
-    model=OrganisationUnit,
-    all_fields=True
-)
-class OrganisationUnitInput:
-    """Input model for an organisation unit. """
-
-    pass
-
-
-@strawberry.experimental.pydantic.input(
-    model=OrganisationUnitUpdate,
-    all_fields=True
-)
-class OrganisationUnitUpdateInput:
-    """Input model for updating organisation units."""
-
-    pass
-
-
 # Addresses
-# ---------
-@strawberry.experimental.pydantic.input(
-    model=OrganisationUnitTerminate,
-    all_fields=True,
-)
-class OrganisationUnitTerminateInput:
-    """input model for terminating organisations units."""
-
-    pass
 
 
 @strawberry.experimental.pydantic.input(
@@ -155,6 +126,29 @@ class ITUserTerminateInput:
 )
 class OrganizationUnitTerminateInput:
     """input model for terminating organizations units."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnit,
+    all_fields=True
+)
+class OrganisationUnitInput:
+    """Input model for an organisation unit. """
+
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitUpdate,
+    all_fields=True
+)
+class OrganisationUnitUpdateInput:
+    """Input model for updating organisation units."""
+
+    pass
+
+# ---------
+
 
 # Related Units
 # -------------
