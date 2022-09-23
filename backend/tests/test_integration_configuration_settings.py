@@ -15,10 +15,10 @@ class AsyncTests(tests.cases.AsyncTestCase):
         """
         url = "/service/configuration"
         user_settings = await self.assertRequest(url)
-        self.assertTrue("show_location" in user_settings)
-        self.assertTrue("show_user_key" in user_settings)
-        self.assertTrue("show_roles" in user_settings)
-        self.assertTrue(user_settings["show_location"] is True)
+        assert "show_location" in user_settings
+        assert "show_user_key" in user_settings
+        assert "show_roles" in user_settings
+        assert user_settings["show_location"] is True
 
     async def test_global_user_settings_write(self):
         """
@@ -30,12 +30,12 @@ class AsyncTests(tests.cases.AsyncTestCase):
         payload = {"org_units": {"show_roles": "False"}}
         await self.assertRequest(url, json=payload, status_code=410)
         user_settings = await self.assertRequest(url)
-        self.assertTrue(user_settings["show_roles"] is True)
+        assert user_settings["show_roles"] is True
 
         payload = {"org_units": {"show_roles": "True"}}
         await self.assertRequest(url, json=payload, status_code=410)
         user_settings = await self.assertRequest(url)
-        self.assertTrue(user_settings["show_roles"] is True)
+        assert user_settings["show_roles"] is True
 
     async def test_ou_user_settings(self):
         """
@@ -49,7 +49,7 @@ class AsyncTests(tests.cases.AsyncTestCase):
         await self.assertRequest(url, json=payload, status_code=410)
 
         user_settings = await self.assertRequest(url)
-        self.assertIn("show_kle", user_settings)
+        assert "show_kle" in user_settings
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -71,8 +71,8 @@ class LoRaTest(tests.cases.LoRATestCase):
         service_url = f"/service/ou/{uuid}/"
         response = self.assertRequest(service_url)
         user_settings = response["user_settings"]["orgunit"]
-        self.assertTrue(user_settings["show_user_key"])
-        self.assertTrue(user_settings["show_location"])
+        assert user_settings["show_user_key"]
+        assert user_settings["show_location"]
 
 
 class AsyncTestNavLink(tests.cases.AsyncTestCase):
@@ -94,6 +94,6 @@ class AsyncTestNavLink(tests.cases.AsyncTestCase):
 
         with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
             populated_list = await self.assertRequest(self.url)
-        self.assertEqual(len(populated_list), 1)
-        self.assertEqual(populated_list[0]["href"], href)
-        self.assertEqual(populated_list[0]["text"], text)
+        assert len(populated_list) == 1
+        assert populated_list[0]["href"] == href
+        assert populated_list[0]["text"] == text

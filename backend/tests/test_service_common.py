@@ -34,34 +34,28 @@ class AsyncTestClass(tests.cases.AsyncTestCase):
             )
         )
 
-        with self.assertRaises(exceptions.HTTPException) as cm:
+        with pytest.raises(exceptions.HTTPException) as cm:
             await common.add_history_entry(
                 lora.Connector().bruger,
                 userid,
                 "kaflaflibob",
             )
 
-        self.assertEqual(
-            json.loads(route.calls[0].request.read()),
-            {
-                "uuid": [userid],
-                "virkningfra": "2018-01-01T00:00:00+01:00",
-                "virkningtil": "2018-01-01T00:00:00.000001+01:00",
-                "konsolider": "True",
-            },
-        )
+        assert json.loads(route.calls[0].request.read()) == {
+            "uuid": [userid],
+            "virkningfra": "2018-01-01T00:00:00+01:00",
+            "virkningtil": "2018-01-01T00:00:00.000001+01:00",
+            "konsolider": "True",
+        }
 
-        self.assertEqual(
-            cm.exception.detail,
-            {
-                "description": "Not found.",
-                "error": True,
-                "error_key": "E_NOT_FOUND",
-                "path": "organisation/bruger",
-                "status": 404,
-                "uuid": userid,
-            },
-        )
+        assert cm.value.detail == {
+            "description": "Not found.",
+            "error": True,
+            "error_key": "E_NOT_FOUND",
+            "path": "organisation/bruger",
+            "status": 404,
+            "uuid": userid,
+        }
 
 
 def test_update_payload_complex():

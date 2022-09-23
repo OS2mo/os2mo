@@ -13,6 +13,6 @@ class TestItSystem(DBTestCase):
                 "json": util.get_fixture("itsystem_opret.json", as_text=False),
             },
         )
-        self.assertEqual(result.status_code, 201)
+        assert result.status_code == 201
         uuid_ = result.json()["uuid"]
-        self.assertTrue(is_uuid(uuid_))
+        assert is_uuid(uuid_)

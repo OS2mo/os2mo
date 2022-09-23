@@ -16,14 +16,14 @@ class TestKubernetesProbes(BaseTestCase):
 
     def test_liveness(self):
         r = self.perform_request("/kubernetes/live")
-        self.assertEqual(HTTP_204_NO_CONTENT, r.status_code)
+        assert HTTP_204_NO_CONTENT == r.status_code
 
     @patch("oio_rest.kubernetes.object_exists")
     def test_readiness_everything_ready(self, mock_object_exists):
         mock_object_exists.return_value = False
         r = self.perform_request("/kubernetes/ready")
 
-        self.assertEqual(HTTP_204_NO_CONTENT, r.status_code)
+        assert HTTP_204_NO_CONTENT == r.status_code
         mock_object_exists.assert_called_once_with(
             "Organisation", "00000000-0000-0000-0000-000000000000"
         )
@@ -32,4 +32,4 @@ class TestKubernetesProbes(BaseTestCase):
     def test_readiness_db_not_ready(self, mock_object_exists):
         mock_object_exists.side_effect = DBException(0)
         r = self.perform_request("/kubernetes/ready")
-        self.assertEqual(HTTP_503_SERVICE_UNAVAILABLE, r.status_code)
+        assert HTTP_503_SERVICE_UNAVAILABLE == r.status_code

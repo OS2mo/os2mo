@@ -226,9 +226,9 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        self.assertEqual(r.keys(), {"added", "deleted", "unchanged"})
-        self.assertEqual(r["deleted"], ["daa77a4d-6500-483d-b099-2c2eb7fa7a76"])
-        self.assertEqual(r["unchanged"], ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"])
+        assert r.keys() == {"added", "deleted", "unchanged"}
+        assert r["deleted"] == ["daa77a4d-6500-483d-b099-2c2eb7fa7a76"]
+        assert r["unchanged"] == ["9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"]
         (functionid,) = r["added"]
 
         samf = {
@@ -263,8 +263,8 @@ class Tests(tests.cases.LoRATestCase):
         r = self.assertRequest(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3" "/details/related_unit"
         )
-        self.assertIn(samf, r)
-        self.assertIn(HUM, r)
+        assert samf in r
+        assert HUM in r
 
         self.assertRequestResponse(
             "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e" "/details/related_unit",

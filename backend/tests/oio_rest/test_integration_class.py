@@ -355,8 +355,8 @@ class Tests(DBTestCase):
             "/klassifikation/klasse/" + objid,
         )
 
-        self.assertEqual(r.status_code, 202)
-        self.assertEqual(r.json(), {"uuid": objid})
+        assert r.status_code == 202
+        assert r.json() == {"uuid": objid}
 
         # once more for prince canut!
         self.assertRequestResponse(

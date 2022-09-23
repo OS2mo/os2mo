@@ -156,7 +156,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             actual_leave["brugerref"],
         )
 
-        self.assertEqual(expected_leave, actual_leave)
+        assert expected_leave == actual_leave
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -211,7 +211,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_create_leave_fails_on_empty_payload(self):
         payload = [
@@ -314,7 +314,7 @@ class Tests(tests.cases.LoRATestCase):
 
         # drop lora-generated timestamps & users
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_edit_leave_fails_when_no_active_engagement(self):
         leave_uuid = "b807628c-030c-4f5f-a438-de41c1f26ba5"
@@ -389,7 +389,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        self.assertEqual([], actual)
+        assert [] == actual
 
     def test_create_leave_missing_user(self):
         # Check the POST request

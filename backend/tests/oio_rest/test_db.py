@@ -8,6 +8,7 @@ from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest import db
@@ -37,7 +38,7 @@ class TestDB(TestCase):
 
         actual_value = db.convert_relation_value("test", "field", value)
 
-        self.assertEqual(value, actual_value)
+        assert value == actual_value
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_journalnotat(self, mock_get_rel):
@@ -57,7 +58,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relation_value("test", "field", value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_journaldokument(self, mock_get_rel):
@@ -86,7 +87,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relation_value("test", "field", value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_aktoerattr(self, mock_get_rel):
@@ -115,7 +116,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relation_value("test", "field", value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_aktoerattr_no_value(self, mock_get_rel):
@@ -130,7 +131,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relation_value("test", "field", value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_vaerdirelationattr(self, mock_get_rel):
@@ -150,7 +151,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relation_value("test", "field", value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
     def test_convert_attributes_no_value(self, mock_get_attr):
@@ -163,7 +164,7 @@ class TestDB(TestCase):
         actual_result = db.convert_attributes(attributes)
 
         # Assert
-        self.assertEqual(attributes, actual_result)
+        assert attributes == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
     def test_convert_attributes_is_correct_order(self, mock_get_attr):
@@ -195,7 +196,7 @@ class TestDB(TestCase):
         actual_result = db.convert_attributes(attributes)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
     def test_convert_attributes_adds_none_values(self, mock_get_attr):
@@ -218,7 +219,7 @@ class TestDB(TestCase):
         actual_result = db.convert_attributes(attributes)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_attribute_fields")
     def test_convert_attributes_handles_multiple_attributes(self, mock_get_attr):
@@ -252,7 +253,7 @@ class TestDB(TestCase):
         actual_result = db.convert_attributes(attributes)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.convert_relation_value")
     def test_convert_relations_no_value(self, mock_conv_rel):
@@ -267,7 +268,7 @@ class TestDB(TestCase):
         actual_result = db.convert_relations(relations, "classname")
 
         # Assert
-        self.assertEqual(relations, actual_result)
+        assert relations == actual_result
 
     @patch("oio_rest.db.convert_relation_value")
     def test_convert_relations_calls_convert_relation_value(self, mock_conv_rel):
@@ -285,18 +286,10 @@ class TestDB(TestCase):
         db.convert_relations(relations, "classname")
 
         # Assert
-        self.assertIn(
-            call("classname", "field1", "value1"), mock_conv_rel.call_args_list
-        )
-        self.assertIn(
-            call("classname", "field2", "value2"), mock_conv_rel.call_args_list
-        )
-        self.assertIn(
-            call("classname", "field3", "value3"), mock_conv_rel.call_args_list
-        )
-        self.assertIn(
-            call("classname", "field4", "value4"), mock_conv_rel.call_args_list
-        )
+        assert call("classname", "field1", "value1") in mock_conv_rel.call_args_list
+        assert call("classname", "field2", "value2") in mock_conv_rel.call_args_list
+        assert call("classname", "field3", "value3") in mock_conv_rel.call_args_list
+        assert call("classname", "field4", "value4") in mock_conv_rel.call_args_list
 
     @patch("oio_rest.db.convert_relation_value", new=lambda x, y, z: z)
     def test_convert_relations_returns_as_expected(self):
@@ -317,14 +310,14 @@ class TestDB(TestCase):
         actual_result = db.convert_relations(relations, "classname")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_convert_relations_raises_on_malformed_relation(self):
         # Arrange
         relations = {"relation": ["This is not a dict"]}
 
         # Act & Assert
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             db.convert_relations(relations, "classname")
 
     def test_convert_variants_none_value(self):
@@ -335,7 +328,7 @@ class TestDB(TestCase):
         actual_result = db.convert_variants(variants)
 
         # Assert
-        self.assertIsNone(actual_result)
+        assert actual_result is None
 
     @patch("oio_rest.db.DokumentVariantType.input")
     def test_convert_variants_calls_constructor(self, mock_dvt_input):
@@ -350,8 +343,8 @@ class TestDB(TestCase):
         actual_result = db.convert_variants(variants)
 
         # Assert
-        self.assertEqual(2, mock_dvt_input.call_count)
-        self.assertEqual(expected_result, actual_result)
+        assert mock_dvt_input.call_count == 2
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_default(self, mock_get_field_type):
@@ -365,7 +358,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_soegeord(self, mock_get_field_type):
@@ -387,7 +380,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_offentlighedundtagettype(self, mock_get_field_type):
@@ -409,7 +402,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_offentlighedundtagettype_none(
@@ -429,7 +422,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_date(self, mock_get_field_type):
@@ -447,7 +440,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_timestamptz(self, mock_get_field_type):
@@ -465,7 +458,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_interval(self, mock_get_field_type):
@@ -483,7 +476,7 @@ class TestDB(TestCase):
             "attribute_name", "attribute_field_name", value
         )
         # Assert
-        self.assertEqual(expected_result, str(actual_result))
+        assert expected_result == str(actual_result)
 
     @patch("oio_rest.db.transform_virkning")
     @patch("oio_rest.db.filter_empty")
@@ -504,7 +497,7 @@ class TestDB(TestCase):
         mock_transform.assert_called()
         mock_filter.assert_called()
         mock_simplify.assert_called()
-        self.assertEqual(expected_output, actual_output)
+        assert expected_output == actual_output
 
     def test_simplify_cleared_wrappers_dict_with_cleared(self):
         # Arrange
@@ -514,7 +507,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual("testvalue", actual_result)
+        assert actual_result == "testvalue"
 
     def test_simplify_cleared_wrappers_dict_without_cleared(self):
         # Arrange
@@ -524,7 +517,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_simplify_cleared_wrappers_list(self):
         # Arrange
@@ -534,7 +527,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_simplify_cleared_wrappers_tuple(self):
         # Arrange
@@ -544,7 +537,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_simplify_cleared_wrappers_recursive(self):
         # Arrange
@@ -567,7 +560,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_simplify_cleared_wrappers_default(self):
         # Arrange
@@ -577,7 +570,7 @@ class TestDB(TestCase):
         actual_result = db.simplify_cleared_wrappers(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_transform_virkning_parses_included(self):
         # Arrange
@@ -588,10 +581,10 @@ class TestDB(TestCase):
         # Act
         actual_result = db.transform_virkning(value)
         # Assert
-        self.assertTrue(actual_result[0]["from_included"])
-        self.assertTrue(actual_result[0]["to_included"])
-        self.assertFalse(actual_result[1]["from_included"])
-        self.assertFalse(actual_result[1]["to_included"])
+        assert actual_result[0]["from_included"]
+        assert actual_result[0]["to_included"]
+        assert not actual_result[1]["from_included"]
+        assert not actual_result[1]["to_included"]
 
     def test_transform_virkning_removes_quotes(self):
         # Arrange
@@ -601,8 +594,8 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual("12345678", actual_result["from"])
-        self.assertEqual("12345678", actual_result["to"])
+        assert actual_result["from"] == "12345678"
+        assert actual_result["to"] == "12345678"
 
     def test_transform_virkning_dict_with_timeperiod(self):
         # Arrange
@@ -619,7 +612,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_transform_virkning_dict_without_timeperiod(self):
         # Arrange
@@ -629,7 +622,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_transform_virkning_list(self):
         # Arrange
@@ -639,7 +632,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_transform_virkning_tuple(self):
         # Arrange
@@ -649,7 +642,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_transform_virkning_recursive(self):
         # Arrange
@@ -695,7 +688,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_transform_virkning_default(self):
         # Arrange
@@ -705,7 +698,7 @@ class TestDB(TestCase):
         actual_result = db.transform_virkning(value)
 
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_filter_empty_with_dict(self):
         # Arrange
@@ -717,7 +710,7 @@ class TestDB(TestCase):
         actual_result = db.filter_empty(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_filter_empty_recursive(self):
         # Arrange
@@ -740,7 +733,7 @@ class TestDB(TestCase):
         actual_result = db.filter_empty(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_transform_relations_with_list_dict(self):
         # Arrange
@@ -762,7 +755,7 @@ class TestDB(TestCase):
         actual_value = db.transform_relations(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_value)
+        assert expected_result == actual_value
 
     def test_transform_relations_with_tuple_dict(self):
         # Arrange
@@ -784,7 +777,7 @@ class TestDB(TestCase):
         actual_value = db.transform_relations(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_value)
+        assert expected_result == actual_value
 
     def test_transform_relations_recursive(self):
         # Arrange
@@ -834,7 +827,7 @@ class TestDB(TestCase):
         actual_value = db.transform_relations(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_value)
+        assert expected_result == actual_value
 
     @patch("oio_rest.db.list_objects")
     def test_get_life_cycle_code(self, mock_list_objs):
@@ -864,7 +857,7 @@ class TestDB(TestCase):
         actual_result = db.get_life_cycle_code(class_name, uuid)
 
         # Assert
-        self.assertEqual("Importeret", actual_result)
+        assert actual_result == "Importeret"
 
 
 class TestConsolidateVirkninger(unittest.TestCase):
@@ -907,7 +900,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_consolidate_handles_differing_attributes(self):
         # Arrange
@@ -945,7 +938,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(effects, actual)
+        assert effects == actual
 
     def test_consolidate_handles_zero_to_many(self):
         """Handle overlapping intervals as found in zero-to-many relations"""
@@ -1014,7 +1007,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_consolidate_handles_zero_to_many_many_equal_overlaps(self):
         """Handle overlapping intervals as found in zero-to-many relations"""
@@ -1083,7 +1076,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_consolidate_handles_non_sequential_periods(self):
         # Arrange
@@ -1112,7 +1105,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(effects, actual)
+        assert effects == actual
 
     def test_consolidate_handles_single_element(self):
         # Arrange
@@ -1132,7 +1125,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(effects, actual)
+        assert effects == actual
 
     def test_consolidate_handles_empty_list(self):
         # Arrange
@@ -1142,7 +1135,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual = db._consolidate_virkninger(effects)
 
         # Assert
-        self.assertEqual(effects, actual)
+        assert effects == actual
 
     def test_consolidate_and_trim_removes_empty_keys(self):
         obj = [
@@ -1196,8 +1189,8 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual_attributes = actual[0][0]["registreringer"][0]["attributter"]
 
         # 'organisationfunktionudvidelser' should be gone at this point
-        self.assertIn("organisationfunktionegenskaber", actual_attributes)
-        self.assertNotIn("organisationfunktionudvidelser", actual_attributes)
+        assert "organisationfunktionegenskaber" in actual_attributes
+        assert "organisationfunktionudvidelser" not in actual_attributes
 
     def test_consolidate_and_trim_removes_empty_categories(self):
         obj = [
@@ -1240,7 +1233,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
         actual_registration = actual[0][0]["registreringer"][0]
 
         # 'attributter' should be gone at this point
-        self.assertNotIn("attributter", actual_registration)
+        assert "attributter" not in actual_registration
 
     def test_trim_virkninger_lower_bound_not_included(self):
         effects = [
@@ -1278,7 +1271,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
         actual = db._trim_virkninger(effects, "1950-01-01 00:00:00+01", "infinity")
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_trim_virkninger_lower_bound_included(self):
         effects = [
@@ -1325,7 +1318,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
         actual = db._trim_virkninger(effects, "1950-01-01 00:00:00+01", "infinity")
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_trim_virkninger_upper_bound_not_included(self):
         effects = [
@@ -1363,7 +1356,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
         actual = db._trim_virkninger(effects, "-infinity", "1950-01-01 00:00:00+01")
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_trim_virkninger_upper_bound_included(self):
         effects = [
@@ -1410,7 +1403,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
         actual = db._trim_virkninger(effects, "-infinity", "1950-01-01 00:00:00+01")
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
 
 @patch("oio_rest.db.sql_convert_registration", new=MagicMock())
@@ -1426,7 +1419,7 @@ class TestDBObjectFunctions(unittest.TestCase):
         actual_result = db.update_object("classname", {}, "note", uuid)
 
         # Assert
-        self.assertEqual(uuid, actual_result)
+        assert uuid == actual_result
 
     @patch("oio_rest.db.get_connection")
     @patch("oio_rest.db.jinja_env")
@@ -1437,7 +1430,7 @@ class TestDBObjectFunctions(unittest.TestCase):
         cursor.fetchone.return_value = None
 
         # Act
-        with self.assertRaises(NotFoundException):
+        with pytest.raises(NotFoundException):
             db.list_objects(
                 "classname",
                 ["uuid"],
@@ -1489,11 +1482,11 @@ class TestDBGeneralSQL(unittest.TestCase):
 
         # Assert
         sql_state_array_args = mock_sql_attribute_array.call_args_list
-        self.assertIn(call("attribute1", ["val1"]), sql_state_array_args)
-        self.assertIn(call("attribute2", None), sql_state_array_args)
-        self.assertEqual(2, len(sql_state_array_args))
+        assert call("attribute1", ["val1"]) in sql_state_array_args
+        assert call("attribute2", None) in sql_state_array_args
+        assert len(sql_state_array_args) == 2
 
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.sql_state_array")
     @patch("oio_rest.db.sql_relations_array")
@@ -1531,11 +1524,11 @@ class TestDBGeneralSQL(unittest.TestCase):
 
         # Assert
         sql_state_array_args = mock_sql_state_array.call_args_list
-        self.assertIn(call("state1", "val1", "classname"), sql_state_array_args)
-        self.assertIn(call("state2", None, "classname"), sql_state_array_args)
-        self.assertEqual(2, len(sql_state_array_args))
+        assert call("state1", "val1", "classname") in sql_state_array_args
+        assert call("state2", None, "classname") in sql_state_array_args
+        assert len(sql_state_array_args) == 2
 
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.sql_relations_array")
     @patch("oio_rest.db.convert_relations", new=lambda x, y: x)
@@ -1559,8 +1552,9 @@ class TestDBGeneralSQL(unittest.TestCase):
 
         # Assert
         sql_state_array_args = mock_sql_relations_array.call_args_list
-        self.assertIn(
-            call("classname", {"relation1": [], "relation2": []}), sql_state_array_args
+        assert (
+            call("classname", {"relation1": [], "relation2": []})
+            in sql_state_array_args
         )
 
     @patch("oio_rest.db.convert_variants")
@@ -1618,7 +1612,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = TestPGErrors.TestException
 
         # Act
-        with self.assertRaises(Exception):
+        with pytest.raises(Exception):
             db.object_exists(classname, uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1634,7 +1628,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.object_exists(classname, uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1646,7 +1640,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = TestPGErrors.TestException
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.get_document_from_content_url("")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1662,7 +1656,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.get_document_from_content_url("")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1674,7 +1668,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = TestPGErrors.TestException
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.create_or_import_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1697,7 +1691,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.create_or_import_object(class_name, "", "", uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1714,7 +1708,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.create_or_import_object(class_name, "", "", uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1726,7 +1720,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = TestPGErrors.TestException
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.delete_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1750,7 +1744,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(NotFoundException):
+        with pytest.raises(NotFoundException):
             db.delete_object(class_name, "", "", uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1764,7 +1758,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.delete_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1777,7 +1771,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.passivate_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1791,7 +1785,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.passivate_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1804,7 +1798,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.update_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1828,7 +1822,7 @@ class TestPGErrors(unittest.TestCase):
         actual_result = db.update_object(class_name, "", "", uuid)
 
         # Assert
-        self.assertEqual(uuid, actual_result)
+        assert uuid == actual_result
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
     def test_update_object_raises_on_unknown_pgerror(self, mock_get_conn):
@@ -1841,7 +1835,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.update_object("", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1854,7 +1848,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.list_objects("", "", "", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1868,7 +1862,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.list_objects("", "", "", "", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1881,7 +1875,7 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(DBException):
+        with pytest.raises(DBException):
             db.search_objects("", "", "")
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
@@ -1895,5 +1889,5 @@ class TestPGErrors(unittest.TestCase):
         cursor.execute.side_effect = exception
 
         # Act
-        with self.assertRaises(TestPGErrors.TestException):
+        with pytest.raises(TestPGErrors.TestException):
             db.search_objects("", "", "")

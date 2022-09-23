@@ -605,10 +605,10 @@ class TestsMinimal(tests.cases.LoRATestCase):
         actual_get = self.assertRequest("/service/f/engagement_job_function/")
 
         # Tests new creation - 200 message
-        self.assertEqual(expected_post, actual_post)
+        assert expected_post == actual_post
 
         # Tests the GET data matches
-        self.assertEqual(expected_get, actual_get)
+        assert expected_get == actual_get
 
         # Updated payload, same uuid
         payload = {
@@ -645,10 +645,10 @@ class TestsMinimal(tests.cases.LoRATestCase):
         actual_get = self.assertRequest("/service/f/engagement_job_function/")
 
         # Tests PUT on the same class
-        self.assertEqual(expected_put, actual_put)
+        assert expected_put == actual_put
 
         # Tests the GET data matches
-        self.assertEqual(expected_get, actual_get)
+        assert expected_get == actual_get
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -963,7 +963,7 @@ class Tests(tests.cases.LoRATestCase):
         r = self.assertRequest(
             "/service/ou/9d07123e-47ac-4a9a-88c8-da82e3a4bc9e" "/details/engagement",
         )
-        self.assertEqual(3, len(r))
+        assert len(r) == 3
 
         self.assertRequestResponse(
             "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053" "/details/engagement",
@@ -1056,7 +1056,7 @@ class Tests(tests.cases.LoRATestCase):
             "/details/leave?only_primary_uuid=1",
         )
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_manager(self):
         func = [
@@ -1622,4 +1622,4 @@ class Tests(tests.cases.LoRATestCase):
             "/service/f/1a6045a2-7a8e-4916-ab27-b2402e64f2be/children"
         )
 
-        self.assertEqual(expected, actual)
+        assert expected == actual

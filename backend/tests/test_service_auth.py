@@ -288,7 +288,7 @@ class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
         r = self.assertRequest(
             "/service/o/", status_code=HTTP_401_UNAUTHORIZED, set_auth_header=True
         )
-        self.assertEqual({"status": "Unauthorized", "msg": str(validation_err)}, r)
+        assert {"status": "Unauthorized", "msg": str(validation_err)} == r
 
 
 # TODO: Find a way to test that endpoints works when auth is disabled

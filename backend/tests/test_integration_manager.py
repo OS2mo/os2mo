@@ -920,14 +920,14 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
         with self.subTest("verify assumption about relation in LoRA"):
-            self.assertEqual(
+            assert (
                 sorted(
                     (await c.organisationfunktion.get(manager_uuid))["relationer"][
                         "opgaver"
                     ],
                     key=mora_util.get_uuid,
-                ),
-                overwritten_responsibilities,
+                )
+                == overwritten_responsibilities
             )
 
         await self.assertRequestResponse(
@@ -1223,7 +1223,7 @@ class Tests(tests.cases.LoRATestCase):
         filins = "85715fc7-925d-401b-822d-467eb4b163b6"
         # We are NOT allowed to inherit Anders And
         inherited_managers = self.assertRequest(f"/service/ou/{filins}/details/manager")
-        self.assertEqual(inherited_managers, [])
+        assert inherited_managers == []
 
     def test_read_inherit_manager_one_level(self):
         # Anders And is manager at humfak
@@ -1234,8 +1234,8 @@ class Tests(tests.cases.LoRATestCase):
         inherited_managers = self.assertRequest(
             f"/service/ou/{filins}/details/manager?inherit_manager=1"
         )
-        self.assertEqual(len(inherited_managers), 1)
-        self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
+        assert len(inherited_managers) == 1
+        assert inherited_managers[0]["org_unit"]["uuid"] == humfak
 
     def test_read_inherit_manager_none_found_all_the_way_up(self):
         # There is no manager at samfak
@@ -1244,4 +1244,4 @@ class Tests(tests.cases.LoRATestCase):
         inherited_managers = self.assertRequest(
             f"/service/ou/{samfak}/details/manager?inherit_manager=1"
         )
-        self.assertEqual(inherited_managers, [])
+        assert inherited_managers == []
