@@ -111,7 +111,7 @@ class Tests(tests.cases.LoRATestCase):
             },
         )
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_edit_kle_no_overwrite(self):
         org_unit_uuid = "dad7d0ad-c7a9-4a94-969d-464337e31fec"

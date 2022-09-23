@@ -4,28 +4,30 @@ import unittest
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+import pytest
+
 from oio_rest import utils
 
 
 class TestBuildRegistration(unittest.TestCase):
     def test_is_urn_returns_true_when_string_begins_with_urn(self):
         urn1 = "urn:thisisaurn"
-        self.assertTrue(utils.is_urn(urn1))
+        assert utils.is_urn(urn1)
 
         urn2 = "URN:thisisaurn"
-        self.assertTrue(utils.is_urn(urn2))
+        assert utils.is_urn(urn2)
 
     def test_is_urn_returns_false_when_string_does_not_begin_with_urn(self):
         urn = "this is not a urn"
-        self.assertFalse(utils.is_urn(urn))
+        assert not utils.is_urn(urn)
 
     def test_is_uuid_returns_true_when_string_is_uuid(self):
         uuid = "c97e1dee-1477-4dd4-a2e6-0bfc6b6b04da"
-        self.assertTrue(utils.is_uuid(uuid))
+        assert utils.is_uuid(uuid)
 
     def test_is_uuid_returns_false_when_string_is_not_uuid(self):
         uuid = "notuuid"
-        self.assertFalse(utils.is_uuid(uuid))
+        assert not utils.is_uuid(uuid)
 
     def test_escape_underscores(self):
         # Arrange
@@ -35,7 +37,7 @@ class TestBuildRegistration(unittest.TestCase):
         # Act
         actual_result = utils.escape_underscores(value)
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_escape_underscores_if_none(self):
         # Arrange
@@ -44,7 +46,7 @@ class TestBuildRegistration(unittest.TestCase):
         # Act
         actual_result = utils.escape_underscores(value)
         # Assert
-        self.assertEqual(value, actual_result)
+        assert value == actual_result
 
     def test_build_relation_builds_correct_relation_with_uuid_value(self):
         virkning = "VIRKNING"
@@ -62,7 +64,7 @@ class TestBuildRegistration(unittest.TestCase):
             value=value, virkning=virkning, objekttype=objekttype
         )
 
-        self.assertEqual(expected_relation, actual_relation)
+        assert expected_relation == actual_relation
 
     def test_build_relation_builds_correct_relation_with_urn_value(self):
         virkning = "VIRKNING"
@@ -80,12 +82,12 @@ class TestBuildRegistration(unittest.TestCase):
             value=value, virkning=virkning, objekttype=objekttype
         )
 
-        self.assertEqual(expected_relation, actual_relation)
+        assert expected_relation == actual_relation
 
     def test_build_relation_raises_ValueError_on_non_uuid_or_non_urn_value(self):
         value = "not urn or uuid"
 
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             utils.build_relation(value)
 
     def test_split_param_splits_on_colon(self):
@@ -97,7 +99,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.split_param(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_split_param_handles_valueerror(self):
         # Arrange
@@ -108,7 +110,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.split_param(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_to_lower_param_lowers_first_item(self):
         # Arrange
@@ -119,7 +121,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.to_lower_param(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_to_lower_param_handles_value_error(self):
         # Arrange
@@ -130,7 +132,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.to_lower_param(value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_dict_from_dot_notation(self):
         # Arrange
@@ -142,7 +144,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.dict_from_dot_notation(notation, value)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_add_journal_post_relation_fields_journalpostkode(self):
         # Arrange
@@ -162,7 +164,7 @@ class TestBuildRegistration(unittest.TestCase):
         utils.add_journal_post_relation_fields(param, values, relation)
 
         # Assert
-        self.assertEqual(expected_result, relation)
+        assert expected_result == relation
 
     def test_add_journal_post_relation_fields_non_journalpostkode(self):
         # Arrange
@@ -188,7 +190,7 @@ class TestBuildRegistration(unittest.TestCase):
         utils.add_journal_post_relation_fields(param, values, relation)
 
         # Assert
-        self.assertEqual(expected_result, relation)
+        assert expected_result == relation
 
     def test_add_journal_post_relation_fields_unknown_param(self):
         # Arrange
@@ -202,7 +204,7 @@ class TestBuildRegistration(unittest.TestCase):
         utils.add_journal_post_relation_fields(param, values, relation)
 
         # Assert
-        self.assertEqual(expected_result, relation)
+        assert expected_result == relation
 
     @patch("oio_rest.utils.get_relation_names", new=MagicMock())
     @patch("oio_rest.utils.get_state_names", new=MagicMock())
@@ -231,7 +233,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.build_registration(classname, list_args)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.utils.get_relation_names", new=MagicMock())
     @patch("oio_rest.utils.get_state_names")
@@ -263,7 +265,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.build_registration(classname, list_args)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.utils.get_relation_names")
     @patch("oio_rest.utils.get_state_names", new=MagicMock())
@@ -293,7 +295,7 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.build_registration(classname, list_args)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @patch("oio_rest.utils.get_document_part_relation_names")
     @patch("oio_rest.utils.DokumentDelEgenskaberType.get_fields")
@@ -351,4 +353,4 @@ class TestBuildRegistration(unittest.TestCase):
         actual_result = utils.build_registration("Dokument", list_args)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result

@@ -94,135 +94,130 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         c = lora.Connector(validity="future")
 
-        self.assertEqual(
-            [
-                (
-                    "2100-01-01 00:00:00+01:00",
-                    "2300-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2100-01-01T00:00:00+01:00",
-                                        "to": "2300-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2300-01-01 00:00:00+01:00",
-                    "2500-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2300-01-01T00:00:00+01:00",
-                                        "to": "2500-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2500-01-01 00:00:00+01:00",
-                    "2700-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2500-01-01T00:00:00+01:00",
-                                        "to": "2700-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2700-01-01 00:00:00+01:00",
-                    "2900-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2700-01-01T00:00:00+01:00",
-                                        "to": "2900-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2900-01-01 00:00:00+01:00",
-                    "3100-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2900-01-01T00:00:00+01:00",
-                                        "to": "3100-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "3100-01-01 00:00:00+01:00",
-                    "3300-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "3100-01-01T00:00:00+01:00",
-                                        "to": "3300-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-            ],
-            [
-                (str(start), str(end), entry)
-                for start, end, entry in (
-                    await c.organisationenhed.get_effects(
-                        "00000000-0000-0000-0000-000000000000",
-                        relevant={
-                            "tilstande": ("organisationenhedgyldighed",),
-                        },
-                    )
+        assert [
+            (
+                "2100-01-01 00:00:00+01:00",
+                "2300-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2100-01-01T00:00:00+01:00",
+                                    "to": "2300-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2300-01-01 00:00:00+01:00",
+                "2500-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2300-01-01T00:00:00+01:00",
+                                    "to": "2500-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2500-01-01 00:00:00+01:00",
+                "2700-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2500-01-01T00:00:00+01:00",
+                                    "to": "2700-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2700-01-01 00:00:00+01:00",
+                "2900-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2700-01-01T00:00:00+01:00",
+                                    "to": "2900-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2900-01-01 00:00:00+01:00",
+                "3100-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2900-01-01T00:00:00+01:00",
+                                    "to": "3100-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "3100-01-01 00:00:00+01:00",
+                "3300-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "3100-01-01T00:00:00+01:00",
+                                    "to": "3300-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+        ] == [
+            (str(start), str(end), entry)
+            for (start, end, entry) in (
+                await c.organisationenhed.get_effects(
+                    "00000000-0000-0000-0000-000000000000",
+                    relevant={"tilstande": ("organisationenhedgyldighed",)},
                 )
-            ],
-        )
+            )
+        ]
 
     @parameterized.expand(
         [
@@ -252,10 +247,10 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
         )
 
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
+        with pytest.raises(exceptions.HTTPException) as ctxt:
             await lora.Connector().organisationenhed.get("42")
 
-        assert ctxt.exception.detail == {
+        assert ctxt.value.detail == {
             "error": True,
             "status": status_out,
             "error_key": error_key,
@@ -288,10 +283,10 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
         )
 
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
+        with pytest.raises(exceptions.HTTPException) as ctxt:
             await lora.Connector().organisationenhed.get("42")
 
-        assert ctxt.exception.detail == {
+        assert ctxt.value.detail == {
             "error": True,
             "status": status_out,
             "error_key": error_key,
@@ -318,10 +313,10 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
         )
 
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
+        with pytest.raises(exceptions.HTTPException) as ctxt:
             await lora.Connector().organisationenhed.get("42")
 
-        assert ctxt.exception.detail == {
+        assert ctxt.value.detail == {
             "error": True,
             "status": 500,
             "error_key": "E_UNKNOWN",
@@ -345,7 +340,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
         )
 
-        self.assertIsNone(await lora.Connector().organisationenhed.get("42"))
+        assert (await lora.Connector().organisationenhed.get("42")) is None
 
     @freezegun.freeze_time("2001-01-01", tz_offset=1)
     @respx.mock
@@ -426,145 +421,137 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         c = lora.Connector(validity="future")
 
-        self.assertEqual(
-            [
-                (
-                    "2100-01-01 00:00:00+01:00",
-                    "2300-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2100-01-01T00:00:00+01:00",
-                                        "to": "2300-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2300-01-01 00:00:00+01:00",
-                    "2500-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2300-01-01T00:00:00+01:00",
-                                        "to": "2500-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2500-01-01 00:00:00+01:00",
-                    "2700-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2500-01-01T00:00:00+01:00",
-                                        "to": "2700-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2700-01-01 00:00:00+01:00",
-                    "2900-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2700-01-01T00:00:00+01:00",
-                                        "to": "2900-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "2900-01-01 00:00:00+01:00",
-                    "3100-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Inaktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "2900-01-01T00:00:00+01:00",
-                                        "to": "3100-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-                (
-                    "3100-01-01 00:00:00+01:00",
-                    "3300-01-01 00:00:00+01:00",
-                    {
-                        "tilstande": {
-                            "organisationenhedgyldighed": [
-                                {
-                                    "gyldighed": "Aktiv",
-                                    "virkning": {
-                                        "from_included": True,
-                                        "to_included": False,
-                                        "from": "3100-01-01T00:00:00+01:00",
-                                        "to": "3300-01-01T00:00:00+01:00",
-                                    },
-                                }
-                            ]
-                        }
-                    },
-                ),
-            ],
-            [
-                (str(start), str(end), entry)
-                for start, end, entry in (
-                    await c.organisationenhed.get_effects(
-                        "00000000-0000-0000-0000-000000000000",
-                        relevant={
-                            "tilstande": ("organisationenhedgyldighed",),
-                        },
-                    )
+        assert [
+            (
+                "2100-01-01 00:00:00+01:00",
+                "2300-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2100-01-01T00:00:00+01:00",
+                                    "to": "2300-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2300-01-01 00:00:00+01:00",
+                "2500-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2300-01-01T00:00:00+01:00",
+                                    "to": "2500-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2500-01-01 00:00:00+01:00",
+                "2700-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2500-01-01T00:00:00+01:00",
+                                    "to": "2700-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2700-01-01 00:00:00+01:00",
+                "2900-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2700-01-01T00:00:00+01:00",
+                                    "to": "2900-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "2900-01-01 00:00:00+01:00",
+                "3100-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Inaktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "2900-01-01T00:00:00+01:00",
+                                    "to": "3100-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+            (
+                "3100-01-01 00:00:00+01:00",
+                "3300-01-01 00:00:00+01:00",
+                {
+                    "tilstande": {
+                        "organisationenhedgyldighed": [
+                            {
+                                "gyldighed": "Aktiv",
+                                "virkning": {
+                                    "from_included": True,
+                                    "to_included": False,
+                                    "from": "3100-01-01T00:00:00+01:00",
+                                    "to": "3300-01-01T00:00:00+01:00",
+                                },
+                            }
+                        ]
+                    }
+                },
+            ),
+        ] == [
+            (str(start), str(end), entry)
+            for (start, end, entry) in (
+                await c.organisationenhed.get_effects(
+                    "00000000-0000-0000-0000-000000000000",
+                    relevant={"tilstande": ("organisationenhedgyldighed",)},
                 )
-            ],
-        )
+            )
+        ]
 
-        self.assertEqual(
-            json.loads(route.calls[0].request.read()),
-            {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2001-01-01T01:00:00+01:00",
-                "virkningtil": "infinity",
-                "konsolider": "True",
-            },
-        )
+        assert json.loads(route.calls[0].request.read()) == {
+            "uuid": ["00000000-0000-0000-0000-000000000000"],
+            "virkningfra": "2001-01-01T01:00:00+01:00",
+            "virkningtil": "infinity",
+            "konsolider": "True",
+        }
 
     @respx.mock
     async def test_noop_update_returns_null(self):
@@ -586,7 +573,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # caller.
         c = lora.Connector()
         same_uuid = await c.bruger.update({}, uuid)
-        self.assertEqual(uuid, same_uuid)
+        assert uuid == same_uuid
 
     @respx.mock
     async def test_actual_update_returns_uuid(self):
@@ -600,7 +587,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # value of the 'uuid' key to its caller.
         c = lora.Connector()
         updated_uuid = await c.bruger.update({}, uuid)
-        self.assertEqual(uuid, updated_uuid)
+        assert uuid == updated_uuid
 
     @respx.mock
     async def test_update_returns_nothing_on_lora_404(self):
@@ -614,7 +601,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         # UUID in this case.
         c = lora.Connector()
         response = await c.bruger.update({}, uuid)
-        self.assertIsNone(response)
+        assert response is None
 
 
 @freezegun.freeze_time("2010-06-01", tz_offset=2)

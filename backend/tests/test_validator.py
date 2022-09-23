@@ -17,7 +17,7 @@ from mora.service.validation import validator
 @pytest.mark.usefixtures("mock_asgi_transport")
 class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
     async def test_startdate_should_be_smaller_than_enddate(self):
-        self.assertFalse(
+        assert not (
             await validator._is_date_range_valid(
                 None, "01-01-2017", "01-01-2016", None, "whatever"
             )
@@ -121,23 +121,19 @@ class AsyncTestIsDateRangeValid(tests.cases.AsyncLoRATestCase):
         }
         route = respx.get(url).mock(Response(200, json=payload))
 
-        self.assertIs(
-            expect,
+        assert expect is (
             await validator._is_date_range_valid(
                 "00000000-0000-0000-0000-000000000000",
                 mora_util.parsedatetime("01-01-2000"),
                 mora_util.parsedatetime("01-01-3000"),
                 c,
                 "organisationenhedgyldighed",
-            ),
+            )
         )
 
-        self.assertEqual(
-            json.loads(route.calls[0].request.read()),
-            {
-                "uuid": ["00000000-0000-0000-0000-000000000000"],
-                "virkningfra": "2000-01-01T00:00:00+01:00",
-                "virkningtil": "3000-01-01T00:00:00+01:00",
-                "konsolider": "True",
-            },
-        )
+        assert json.loads(route.calls[0].request.read()) == {
+            "uuid": ["00000000-0000-0000-0000-000000000000"],
+            "virkningfra": "2000-01-01T00:00:00+01:00",
+            "virkningtil": "3000-01-01T00:00:00+01:00",
+            "konsolider": "True",
+        }

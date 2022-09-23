@@ -90,20 +90,17 @@ class Tests(DBTestCase):
             if endpoint.endswith(UUID_PATTERN)
         ]
 
-        self.assertEqual(
-            [
-                "/klassifikation/facet",
-                "/klassifikation/klasse",
-                "/klassifikation/klassifikation",
-                "/organisation/bruger",
-                "/organisation/interessefaellesskab",
-                "/organisation/itsystem",
-                "/organisation/organisation",
-                "/organisation/organisationenhed",
-                "/organisation/organisationfunktion",
-            ],
-            endpoints,
-        )
+        assert [
+            "/klassifikation/facet",
+            "/klassifikation/klasse",
+            "/klassifikation/klassifikation",
+            "/organisation/bruger",
+            "/organisation/interessefaellesskab",
+            "/organisation/itsystem",
+            "/organisation/organisation",
+            "/organisation/organisationenhed",
+            "/organisation/organisationfunktion",
+        ] == endpoints
 
         for endpoint in endpoints:
             req = endpoint + "?bvn=%"

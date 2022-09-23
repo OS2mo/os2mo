@@ -14,6 +14,7 @@ from unittest.mock import patch
 from urllib.parse import urlencode
 
 import freezegun
+import pytest
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
@@ -30,6 +31,7 @@ from oio_rest.oio_base import ConfiguredDBInterface
 from oio_rest.oio_base import OIORestObject
 from oio_rest.oio_base import OIOStandardHierarchy
 from tests.oio_rest.util import ExtTestCase
+
 
 CallableReturnType = TypeVar("CallableReturnType")
 
@@ -83,15 +85,15 @@ class TestOIORestObjectCreateApi(TestCase):
         endpoints = filter(lambda route: name == route.name, endpoints)
 
         rule = next(endpoints, None)
-        self.assertIsNotNone(rule, f"Expected {method} {name}")
+        assert rule is not None, f"Expected {method} {name}"
 
     def test_create_api_call_returns_router(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
 
     def test_create_api_has_get_objects_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_get_objects",
@@ -101,7 +103,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_get_object_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_get_object",
@@ -111,7 +113,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_put_object_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_put_object",
@@ -121,7 +123,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_patch_object_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_patch_object",
@@ -131,7 +133,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_create_object_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_create_object",
@@ -141,7 +143,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_delete_object_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_delete_object",
@@ -151,7 +153,7 @@ class TestOIORestObjectCreateApi(TestCase):
 
     def test_create_api_adds_fields_rule(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")
-        self.assertIsInstance(router, APIRouter)
+        assert isinstance(router, APIRouter)
         self.assert_api_rule(
             router,
             "TestClassRestObject_fields",
@@ -237,7 +239,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     async def test_get_args_returns_dict_as_default(self):
         # Arrange
@@ -250,7 +252,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     async def test_get_args_returns_as_lists(self):
         # Arrange
@@ -263,7 +265,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request, as_lists=True)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     async def test_get_args_from_json_lowercases_arg_keys(self):
         # Arrange
@@ -285,7 +287,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     async def test_get_args_from_json_returns_dict_as_default(self):
         # Arrange
@@ -304,7 +306,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     async def test_get_args_from_json_returns_as_lists(self):
         # Arrange
@@ -323,7 +325,7 @@ class TestOIORestObject(ExtTestCase):
         actual_result = await self.testclass._get_args(request, as_lists=True)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @async_to_sync
     async def test_get_json_returns_json_if_request_json(self):
@@ -339,7 +341,7 @@ class TestOIORestObject(ExtTestCase):
         actual_json = await self.testclass.get_json(request)
 
         # Assert
-        self.assertEqual(expected_json, actual_json)
+        assert expected_json == actual_json
 
     @async_to_sync
     async def test_get_json_returns_json_if_form_json(self):
@@ -354,7 +356,7 @@ class TestOIORestObject(ExtTestCase):
         actual_json = await self.testclass.get_json(request)
 
         # Assert
-        self.assertEqual(expected_json, actual_json)
+        assert expected_json == actual_json
 
     @async_to_sync
     async def test_get_json_returns_badrequest_if_malformed_form_json(self):
@@ -366,7 +368,7 @@ class TestOIORestObject(ExtTestCase):
             data=urlencode({"json": "{123123123}"}),
         )
 
-        with self.assertRaises(BadRequest):
+        with pytest.raises(BadRequest):
             await self.testclass.get_json(request)
 
     @async_to_sync
@@ -381,7 +383,7 @@ class TestOIORestObject(ExtTestCase):
         actual_json = await self.testclass.get_json(request)
 
         # Assert
-        self.assertEqual(expected_json, actual_json)
+        assert expected_json == actual_json
 
     @patch("oio_rest.db.create_or_import_object")
     @async_to_sync
@@ -434,11 +436,11 @@ class TestOIORestObject(ExtTestCase):
         request = self.create_request(
             method="POST",
         )
-        with self.assertRaises(HTTPException) as exp:
+        with pytest.raises(HTTPException) as exp:
             await self.testclass.create_object(request)
             # Assert
             self.assertDictEqual(exp.detail, expected_data)
-            self.assertEqual(exp.status_code, 400)
+            assert exp.status_code == 400
 
     @async_to_sync
     async def test_create_object_raises_on_unknown_args(self):
@@ -450,7 +452,7 @@ class TestOIORestObject(ExtTestCase):
             method="POST",
             params=params,
         )
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.create_object(request)
 
     async def test_get_fields(self):
@@ -464,7 +466,7 @@ class TestOIORestObject(ExtTestCase):
             actual_fields = await self.testclass.get_fields(request)
 
             # Assert
-            self.assertEqual(expected_fields, actual_fields)
+            assert expected_fields == actual_fields
 
     async def test_get_fields_raises_on_unknown_args(self):
         # Arrange
@@ -472,7 +474,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(params=params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.get_fields(request)
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -506,7 +508,7 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock_list.call_args[0]
 
-        self.assertEqual(expected_args, actual_args)
+        assert expected_args == actual_args
         self.assertDictEqual(expected_result, actual_result)
 
     @patch("oio_rest.db.list_objects")
@@ -553,7 +555,7 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock.call_args[0]
 
-        self.assertEqual(expected_args, actual_args)
+        assert expected_args == actual_args
         self.assertDictEqual(expected_result, actual_result)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -658,7 +660,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         actual_args = mock_searcher.search_objects.call_args.kwargs
-        self.assertEqual(expected_args, actual_args)
+        assert expected_args == actual_args
         self.assertDictEqual(expected_result, actual_result)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -726,7 +728,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Assert
         actual_args = mock_searcher.search_objects.call_args.kwargs
-        self.assertEqual(expected_args, actual_args)
+        assert expected_args == actual_args
         self.assertDictEqual(expected_result, actual_result)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -755,7 +757,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(params=request_params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.get_objects(request)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -771,7 +773,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(params=request_params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.get_objects(request)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -793,7 +795,7 @@ class TestOIORestObject(ExtTestCase):
         # Act
         request = self.create_request(params=request_params)
         results = await self.testclass.get_objects(request)
-        self.assertEqual(results, {"results": []})
+        assert results == {"results": []}
 
     @patch("oio_rest.db.list_objects")
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
@@ -826,8 +828,8 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock_list.call_args[0]
 
-        self.assertEqual(expected_args, actual_args)
-        self.assertEqual(expected_result, actual_result)
+        assert expected_args == actual_args
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.list_objects")
     @async_to_sync
@@ -867,8 +869,8 @@ class TestOIORestObject(ExtTestCase):
         # Assert
         actual_args = mock.call_args[0]
 
-        self.assertEqual(expected_args, actual_args)
-        self.assertEqual(expected_result, actual_result)
+        assert expected_args == actual_args
+        assert expected_result == actual_result
 
     @patch("oio_rest.db.list_objects")
     @async_to_sync
@@ -881,7 +883,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request()
-        with self.assertRaises(NotFoundException):
+        with pytest.raises(NotFoundException):
             await self.testclass.get_object(uuid, request)
 
     @patch("oio_rest.db.list_objects")
@@ -895,7 +897,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request()
-        with self.assertRaises(GoneException):
+        with pytest.raises(GoneException):
             await self.testclass.get_object(uuid, request)
 
     @ExtTestCase.patch_db_struct(db_struct)
@@ -910,7 +912,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(params=params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.get_object(uuid, request)
 
     @async_to_sync
@@ -922,11 +924,11 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="PUT")
-        with self.assertRaises(HTTPException) as exp:
+        with pytest.raises(HTTPException) as exp:
             await self.testclass.put_object(uuid, request)
             # Assert
             self.assertDictEqual(exp.detail, expected_data)
-            self.assertEqual(exp.status_code, 400)
+            assert exp.status_code == 400
 
     @patch("oio_rest.db.object_exists")
     @patch("oio_rest.db.create_or_import_object")
@@ -1079,7 +1081,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="PUT", params=params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.put_object(uuid, request)
 
     @patch("oio_rest.db.delete_object")
@@ -1124,8 +1126,8 @@ class TestOIORestObject(ExtTestCase):
         mock_delete.assert_called()
         actual_reg = mock_delete.call_args[0][1]
         actual_uuid = mock_delete.call_args[0][3]
-        self.assertEqual(expected_reg, actual_reg)
-        self.assertEqual(uuid, actual_uuid)
+        assert expected_reg == actual_reg
+        assert uuid == actual_uuid
 
     @async_to_sync
     async def test_delete_object_raises_on_unknown_args(self):
@@ -1136,7 +1138,7 @@ class TestOIORestObject(ExtTestCase):
 
         # Act
         request = self.create_request(method="PUT", params=params)
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             await self.testclass.delete_object(uuid, request)
 
     def test_gather_registration(self):
@@ -1153,7 +1155,7 @@ class TestOIORestObject(ExtTestCase):
         actual = self.testclass.gather_registration(input)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_gather_registration_empty_input(self):
         # Arrange
@@ -1165,7 +1167,7 @@ class TestOIORestObject(ExtTestCase):
         actual = self.testclass.gather_registration(input)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_gather_registration_empty_lists(self):
         # Arrange
@@ -1177,7 +1179,7 @@ class TestOIORestObject(ExtTestCase):
         actual = self.testclass.gather_registration(input)
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_gather_registration_raises_on_bad_attributter_input(self):
         # Arrange
@@ -1186,7 +1188,7 @@ class TestOIORestObject(ExtTestCase):
         }
 
         # Act
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             self.testclass.gather_registration(input)
 
     def test_gather_registration_raises_on_bad_tilstande_input(self):
@@ -1196,7 +1198,7 @@ class TestOIORestObject(ExtTestCase):
         }
 
         # Act
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             self.testclass.gather_registration(input)
 
     def test_gather_registration_raises_on_bad_relationer_input(self):
@@ -1206,7 +1208,7 @@ class TestOIORestObject(ExtTestCase):
         }
 
         # Act
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             self.testclass.gather_registration(input)
 
 
@@ -1242,10 +1244,10 @@ class TestOIOStandardHierarchy(ExtTestCase):
         route = next(routes)
 
         # Assert
-        self.assertIn("GET", route.methods)
-        self.assertEqual("/testclass/classes", route.path)
-        self.assertEqual("testclass_classes", route.name)
-        self.assertIsInstance(route.endpoint, types.FunctionType)
+        assert "GET" in route.methods
+        assert route.path == "/testclass/classes"
+        assert route.name == "testclass_classes"
+        assert isinstance(route.endpoint, types.FunctionType)
 
     def test_setup_api_get_classes_returns_correct_result(self):
         # Arrange
@@ -1283,7 +1285,7 @@ class TestOIORest(TestCase):
         actual_result = oio_base.typed_get(d, testkey, "default")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_typed_get_returns_default_if_value_none(self):
         # Arrange
@@ -1295,7 +1297,7 @@ class TestOIORest(TestCase):
         actual_result = oio_base.typed_get(d, testkey, expected_result)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_typed_get_raises_on_wrong_type(self):
         # Arrange
@@ -1305,7 +1307,7 @@ class TestOIORest(TestCase):
         d = {testkey: "value"}
 
         # Act & Assert
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             oio_base.typed_get(d, testkey, default)
 
     def test_get_virkning_dates_virkningstid(self):
@@ -1321,8 +1323,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_virkning_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     def test_get_virkning_dates_from_to(self):
         # Arrange
@@ -1338,8 +1340,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_virkning_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     def test_get_virkning_dates_defaults(self):
@@ -1353,8 +1355,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_virkning_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     def test_get_virkning_dates_raises_on_invalid_args_combination(self):
         # Arrange
@@ -1365,7 +1367,7 @@ class TestOIORest(TestCase):
         }
 
         # Act
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             oio_base.get_virkning_dates(args)
 
     def test_get_registreret_dates_registreringstid(self):
@@ -1381,8 +1383,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_registreret_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     def test_get_registreret_dates_from_to(self):
         # Arrange
@@ -1398,8 +1400,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_registreret_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     @freezegun.freeze_time("2017-01-01", tz_offset=1)
     def test_get_registreret_dates_defaults(self):
@@ -1413,8 +1415,8 @@ class TestOIORest(TestCase):
         actual_from, actual_to = oio_base.get_registreret_dates(args)
 
         # Assert
-        self.assertEqual(expected_from, actual_from)
-        self.assertEqual(expected_to, actual_to)
+        assert expected_from == actual_from
+        assert expected_to == actual_to
 
     def test_get_registreret_dates_raises_on_invalid_args_combination(self):
         # Arrange
@@ -1425,5 +1427,5 @@ class TestOIORest(TestCase):
         }
 
         # Act
-        with self.assertRaises(BadRequestException):
+        with pytest.raises(BadRequestException):
             oio_base.get_registreret_dates(args)

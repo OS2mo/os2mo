@@ -1175,16 +1175,14 @@ class Tests(tests.cases.LoRATestCase):
             f"/service/e/{employee_uuid}/details/engagement"
             f"?validity=past&at=2021-10-08"
         )
-        self.assertEqual(
-            {"from": "2017-01-01", "to": "2018-10-21"}, r.json()[0]["validity"]
-        )
+        assert {"from": "2017-01-01", "to": "2018-10-21"} == r.json()[0]["validity"]
 
         # Assert termination request is persisted correctly in the present
         r = self.request(
             f"/service/e/{employee_uuid}/details/engagement"
             f"?validity=present&at=2021-10-08"
         )
-        self.assertEqual({"from": "2018-10-26", "to": None}, r.json()[0]["validity"])
+        assert {"from": "2018-10-26", "to": None} == r.json()[0]["validity"]
 
     def test_reading_engagement_only_primary_uuid(self):
         actual = self.assertRequest(
@@ -1208,5 +1206,5 @@ class Tests(tests.cases.LoRATestCase):
             "/details/engagement?calculate_primary=1"
         )
 
-        self.assertEqual(False, r[0]["is_primary"])
-        self.assertEqual(True, r[1]["is_primary"])
+        assert r[0]["is_primary"] is False
+        assert r[1]["is_primary"] is True

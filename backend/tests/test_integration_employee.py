@@ -152,17 +152,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = await c.bruger.get(userid)
 
-        self.assertEqual(
-            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
-        )
-        self.assertEqual(
-            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
-        )
-        self.assertEqual(
-            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
-        )
-        self.assertEqual(
-            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
+        assert expected_brugeregenskaber == actual["attributter"]["brugeregenskaber"]
+        assert expected_brugerudvidelser == actual["attributter"]["brugerudvidelser"]
+        assert expected_brugergyldighed == actual["tilstande"]["brugergyldighed"]
+        assert (
+            expected_tilknyttedepersoner == actual["relationer"]["tilknyttedepersoner"]
         )
 
     async def test_edit_remove_seniority(self):
@@ -196,14 +190,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = await c.bruger.get(userid)
-        self.assertEqual(
-            expected_seniorities,
-            list(
-                map(
-                    lambda x: x.get("seniority", None),
-                    actual["attributter"]["brugerudvidelser"],
-                )
-            ),
+        assert expected_seniorities == list(
+            map(
+                (lambda x: x.get("seniority", None)),
+                actual["attributter"]["brugerudvidelser"],
+            )
         )
 
         req = [
@@ -232,15 +223,12 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = await c.bruger.get(userid)
 
-        self.assertEqual(
-            expected_seniorities,
-            sorted(
-                map(
-                    lambda x: x.get("seniority", None),
-                    actual["attributter"]["brugerudvidelser"],
-                ),
-                key=lambda x: "" if x is None else x,
+        assert expected_seniorities == sorted(
+            map(
+                (lambda x: x.get("seniority", None)),
+                actual["attributter"]["brugerudvidelser"],
             ),
+            key=(lambda x: ("" if (x is None) else x)),
         )
 
     @parameterized.expand(
@@ -506,17 +494,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         actual = await c.bruger.get(userid)
 
-        self.assertEqual(
-            expected_brugeregenskaber, actual["attributter"]["brugeregenskaber"]
-        )
-        self.assertEqual(
-            expected_brugerudvidelser, actual["attributter"]["brugerudvidelser"]
-        )
-        self.assertEqual(
-            expected_brugergyldighed, actual["tilstande"]["brugergyldighed"]
-        )
-        self.assertEqual(
-            expected_tilknyttedepersoner, actual["relationer"]["tilknyttedepersoner"]
+        assert expected_brugeregenskaber == actual["attributter"]["brugeregenskaber"]
+        assert expected_brugerudvidelser == actual["attributter"]["brugerudvidelser"]
+        assert expected_brugergyldighed == actual["tilstande"]["brugergyldighed"]
+        assert (
+            expected_tilknyttedepersoner == actual["relationer"]["tilknyttedepersoner"]
         )
 
 
@@ -637,16 +619,13 @@ class Tests(tests.cases.LoRATestCase):
             "org": {"uuid": "3dcb1072-482e-491e-a8ad-647991d0bfcf"},
         }
         r = self.request("/service/e/create", json=payload)
-        self.assertEqual(
-            {
-                "description": "Organisation is not allowed",
-                "uuid": "3dcb1072-482e-491e-a8ad-647991d0bfcf",
-                "status": 400,
-                "error_key": "E_ORG_NOT_ALLOWED",
-                "error": True,
-            },
-            r.json(),
-        )
+        assert {
+            "description": "Organisation is not allowed",
+            "uuid": "3dcb1072-482e-491e-a8ad-647991d0bfcf",
+            "status": 400,
+            "error_key": "E_ORG_NOT_ALLOWED",
+            "error": True,
+        } == r.json()
 
     def test_create_employee_with_details(self):
         """Test creating an employee with added details.
@@ -711,7 +690,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         r = self.request(f"/service/e/{employee_uuid}/details/engagement")
-        self.assertEqual(1, len(r.json()), "One engagement should exist")
+        assert len(r.json()) == 1, "One engagement should exist"
 
     def test_create_employee_with_details_fails_atomically(self):
         """Ensure that we only save data when everything validates correctly"""
@@ -806,7 +785,7 @@ class Tests(tests.cases.LoRATestCase):
         engagement = self.request(
             f"/service/e/{employee_uuid}/details/engagement"
         ).json()
-        self.assertEqual([], engagement, "No engagement should have been created")
+        assert [] == engagement, "No engagement should have been created"
 
     def test_cpr_lookup_prod_mode_false(self):
         # Arrange

@@ -3,6 +3,8 @@
 from unittest import TestCase
 from unittest.mock import patch
 
+import pytest
+
 from oio_rest.db import db_structure
 
 
@@ -15,7 +17,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_lists(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_merge_lists_one_empty(self):
         a = [1, 2, 3, 4]
@@ -25,7 +27,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_lists(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_merge_lists_both_empty(self):
         a = []
@@ -35,7 +37,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_lists(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_merge_dicts(self):
         a = {"outer1": 123, "outer2": {"inner1": ["hest"]}, "outer3": [4, 5, 6]}
@@ -50,7 +52,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_dicts(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_merge_dicts_a_is_none(self):
         a = None
@@ -60,7 +62,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_dicts(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_merge_dicts_b_is_none(self):
         a = {"test": "hest"}
@@ -70,7 +72,7 @@ class TestDBStructure(TestCase):
 
         actual = db_structure._merge_dicts(a, b)
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     @patch("oio_rest.db.db_structure._merge_dicts")
     def test_merge_objects_dicts(self, mock):
@@ -94,12 +96,12 @@ class TestDBStructure(TestCase):
         a = [1, 2, 3]
         b = {}
 
-        with self.assertRaises(AssertionError):
+        with pytest.raises(AssertionError):
             db_structure.merge_objects(a, b)
 
     def test_merge_objects_fails_on_unsupported_types(self):
         a = 123
         b = 456
 
-        with self.assertRaises(AttributeError):
+        with pytest.raises(AttributeError):
             db_structure.merge_objects(a, b)

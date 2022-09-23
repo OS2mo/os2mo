@@ -4,7 +4,10 @@ from datetime import datetime
 from datetime import timedelta
 from unittest import TestCase
 
+import pytest
+
 from oio_rest.db.quick_query.search import InfiniteDatetime
+
 
 INFINITY = "infinity"
 NINFINITY = "-infinity"
@@ -15,10 +18,10 @@ class TestInfiniteDatetime(TestCase):
         base = datetime.now()
         base_str = base.isoformat()
 
-        self.assertEqual(base_str, InfiniteDatetime.from_datetime(base).value)
-        self.assertEqual(base_str, InfiniteDatetime.from_date_string(base_str).value)
-        self.assertEqual(INFINITY, InfiniteDatetime.from_date_string(INFINITY).value)
-        self.assertEqual(NINFINITY, InfiniteDatetime.from_date_string(NINFINITY).value)
+        assert base_str == InfiniteDatetime.from_datetime(base).value
+        assert base_str == InfiniteDatetime.from_date_string(base_str).value
+        assert INFINITY == InfiniteDatetime.from_date_string(INFINITY).value
+        assert NINFINITY == InfiniteDatetime.from_date_string(NINFINITY).value
 
     def test_comparison(self):
         base = datetime.now()
@@ -29,33 +32,33 @@ class TestInfiniteDatetime(TestCase):
         inf = InfiniteDatetime.from_date_string(INFINITY)
 
         # assert small to large
-        self.assertTrue(ninf < small)
-        self.assertTrue(ninf < greater)
-        self.assertTrue(ninf < inf)
+        assert ninf < small
+        assert ninf < greater
+        assert ninf < inf
 
-        self.assertTrue(small < greater)
-        self.assertTrue(small < inf)
+        assert small < greater
+        assert small < inf
 
-        self.assertTrue(greater < inf)
+        assert greater < inf
 
         # assert large to small
-        self.assertFalse(inf < greater)
-        self.assertFalse(inf < small)
-        self.assertFalse(inf < ninf)
+        assert not (inf < greater)
+        assert not (inf < small)
+        assert not (inf < ninf)
 
-        self.assertFalse(greater < small)
-        self.assertFalse(greater < ninf)
+        assert not (greater < small)
+        assert not (greater < ninf)
 
-        self.assertFalse(small < ninf)
+        assert not (small < ninf)
 
         # illegal asserts
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             ninf < ninf
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             inf < inf
 
         # Type asserts
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             small < base
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             small < base.isoformat()

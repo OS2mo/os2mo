@@ -6,6 +6,7 @@ from unittest.mock import call
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
+import pytest
 from werkzeug.datastructures import ImmutableMultiDict
 
 from oio_rest.custom_exceptions import BadRequestException
@@ -43,7 +44,7 @@ class TestDBHelpers(ExtTestCase):
 
         # Assert
         self.assertDictEqual(expected_fields, actual_fields)
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_attribute_fields_uses_cache(self):
         # Arrange
@@ -54,7 +55,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_attribute_fields("test")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_field_type_default(self):
         # Arrange
@@ -64,7 +65,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_field_type("attributename", "fieldname")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(
         {
@@ -83,7 +84,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_field_type("testclass1testattribut", "value")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(
         {
@@ -104,7 +105,7 @@ class TestDBHelpers(ExtTestCase):
         )
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(MagicMock())
     def test_get_relation_field_type_default(self):
@@ -115,7 +116,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_relation_field_type("attributename", "fieldname")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(
         {
@@ -142,8 +143,8 @@ class TestDBHelpers(ExtTestCase):
         actual_result2 = db_helpers.get_relation_field_type("testclass1", "key2")
 
         # Assert
-        self.assertEqual(expected_result1, actual_result1)
-        self.assertEqual(expected_result2, actual_result2)
+        assert expected_result1 == actual_result1
+        assert expected_result2 == actual_result2
 
     @ExtTestCase.patch_db_struct(
         {
@@ -170,7 +171,7 @@ class TestDBHelpers(ExtTestCase):
         )
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(
         {
@@ -190,7 +191,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_attribute_names("testclass1")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_attribute_names_default(self):
         # Arrange
@@ -221,7 +222,7 @@ class TestDBHelpers(ExtTestCase):
         }
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_attribute_names_uses_cache(self):
         # Arrange
@@ -232,7 +233,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_attribute_names("testclass1")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_state_names(self):
         with self.patch_db_struct(
@@ -255,7 +256,7 @@ class TestDBHelpers(ExtTestCase):
             actual_result = db_helpers.get_state_names("testclass1")
 
             # Assert
-            self.assertEqual(expected_result, sorted(actual_result))
+            assert expected_result == sorted(actual_result)
 
         with self.patch_db_struct(
             {
@@ -277,7 +278,7 @@ class TestDBHelpers(ExtTestCase):
             actual_result = db_helpers.get_state_names("testclass1")
 
             # Assert
-            self.assertEqual(expected_result, actual_result)
+            assert expected_result == actual_result
 
     @ExtTestCase.patch_db_struct(
         {
@@ -295,7 +296,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_relation_names("testclass1")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_relation_names_default(self):
         # Arrange
@@ -512,7 +513,7 @@ class TestDBHelpers(ExtTestCase):
         }
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_relation_names_uses_cache(self):
         # Arrange
@@ -524,7 +525,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.get_relation_names("testclass1")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_state_names_order(self):
         # Arrange
@@ -586,7 +587,7 @@ class TestDBHelpers(ExtTestCase):
         }
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_get_state_names_default(self):
         # Arrange
@@ -616,7 +617,7 @@ class TestDBHelpers(ExtTestCase):
         }
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_input_list(self):
         # Arrange
@@ -633,9 +634,9 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.input_list(_type, input, "testkey")
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
-        self.assertEqual(2, _type.input.call_count)
-        self.assertEqual(expected_args, _type.input.call_args_list)
+        assert expected_result == actual_result
+        assert _type.input.call_count == 2
+        assert expected_args == _type.input.call_args_list
 
     def test_input_list_none_value(self):
         # Arrange
@@ -646,7 +647,7 @@ class TestDBHelpers(ExtTestCase):
         # Act
         actual_result = db_helpers.input_list("", input, "testkey")
         # Assert
-        self.assertIsNone(actual_result)
+        assert actual_result is None
 
     def test_input_dict_list(self):
         # Arrange
@@ -663,9 +664,9 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.input_dict_list(_type, input)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
-        self.assertEqual(2, _type.input.call_count)
-        self.assertEqual(expected_args, _type.input.call_args_list)
+        assert expected_result == actual_result
+        assert _type.input.call_count == 2
+        assert expected_args == _type.input.call_args_list
 
     def test_input_dict_list_none_value(self):
         # Arrange
@@ -680,7 +681,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.input_dict_list(_type, input)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_to_bool_correctly_parses_bools(self):
         # Arrange
@@ -688,8 +689,8 @@ class TestDBHelpers(ExtTestCase):
         actual_true = db_helpers.to_bool(True)
         actual_false = db_helpers.to_bool(False)
         # Assert
-        self.assertTrue(actual_true)
-        self.assertFalse(actual_false)
+        assert actual_true
+        assert not actual_false
 
     def test_to_bool_correctly_parses_true_strings(self):
         # Arrange
@@ -699,9 +700,9 @@ class TestDBHelpers(ExtTestCase):
         actual_true_one = db_helpers.to_bool("1")
 
         # Assert
-        self.assertTrue(actual_true_capital)
-        self.assertTrue(actual_true_lc)
-        self.assertTrue(actual_true_one)
+        assert actual_true_capital
+        assert actual_true_lc
+        assert actual_true_one
 
     def test_to_bool_correctly_parses_false_strings(self):
         # Arrange
@@ -711,9 +712,9 @@ class TestDBHelpers(ExtTestCase):
         actual_false_one = db_helpers.to_bool("0")
 
         # Assert
-        self.assertFalse(actual_false_capital)
-        self.assertFalse(actual_false_lc)
-        self.assertFalse(actual_false_one)
+        assert not actual_false_capital
+        assert not actual_false_lc
+        assert not actual_false_one
 
     def test_to_bool_handles_none(self):
         # Arrange
@@ -722,12 +723,12 @@ class TestDBHelpers(ExtTestCase):
         actual_result = db_helpers.to_bool(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_to_bool_raises_on_invalid_value(self):
         # Arrange
         # Act & Assert
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             db_helpers.to_bool("This is not a valid boolean value")
 
     def test_dokumentvarianttype_input_when_none(self):
@@ -740,7 +741,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = DokumentVariantType.input(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_dokumentvariantegenskabertype_input_when_none(self):
         from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
@@ -752,7 +753,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = DokumentVariantEgenskaberType.input(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_dokumentdeltype_input_when_none(self):
         from oio_rest.db.db_helpers import DokumentDelType
@@ -764,7 +765,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = DokumentDelType.input(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_virkning_input_when_none(self):
         from oio_rest.db.db_helpers import Virkning
@@ -776,7 +777,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = Virkning.input(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     @skip("Document support destroyed when introducint FastAPI")
     def test_dokumentdelegenskabertype_get_file_storage_raises_bre(self):
@@ -811,7 +812,7 @@ class TestDBHelpers(ExtTestCase):
             )
 
         # Assert
-        self.assertEqual(mockfile, actual_result)
+        assert mockfile == actual_result
 
     def test_dokumentdelegenskabertype_get_file_storage_returns_none(self):
         from oio_rest.db.db_helpers import DokumentDelEgenskaberType
@@ -824,7 +825,7 @@ class TestDBHelpers(ExtTestCase):
         )
 
         # Assert
-        self.assertIsNone(actual_result)
+        assert actual_result is None
 
     @skip("Document support destroyed when introducint FastAPI")
     @patch(
@@ -863,7 +864,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = DokumentDelEgenskaberType.input(None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_dokumentdelrelationtype_input_when_none(self):
         from oio_rest.db.db_helpers import DokumentDelRelationType
@@ -875,7 +876,7 @@ class TestDBHelpers(ExtTestCase):
         actual_result = DokumentDelRelationType.input("key", None)
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
 
 class TestNamedTupleAdapter(TestCase):
@@ -899,7 +900,7 @@ class TestNamedTupleAdapter(TestCase):
         actual_result = nta.prepare_and_adapt(x)
 
         # Assert
-        self.assertEqual(adapted, actual_result)
+        assert adapted == actual_result
         mock_psyco_adapt.assert_called_with(x)
         adapted.prepare.assert_called()
 
@@ -919,7 +920,7 @@ class TestNamedTupleAdapter(TestCase):
         actual_result = nta.getquoted()
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
 
 class TestAktoerAttrAdapter(TestCase):
@@ -952,7 +953,7 @@ class TestAktoerAttrAdapter(TestCase):
         actual_result = aaa.getquoted()
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
 
 class TestSearchable(TestCase):
@@ -973,7 +974,7 @@ class TestSearchable(TestCase):
         actual_result = self.TestSearchableClass.get_fields()
 
         # Assert
-        self.assertEqual(expected_result, actual_result)
+        assert expected_result == actual_result
 
     def test_searchable_get_fields_with_virkning(self):
         # Arrange
@@ -985,4 +986,4 @@ class TestSearchable(TestCase):
 
         # Assert - Cast to set for comparison,
         # as result is converted from set with no ordering
-        self.assertEqual(set(expected_result), set(actual_result))
+        assert set(expected_result) == set(actual_result)

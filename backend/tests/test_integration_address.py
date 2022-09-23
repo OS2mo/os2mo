@@ -574,7 +574,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
             "tilknyttedefunktioner"
         ]
 
-        self.assertEqual(expected_tilknyttedefunktioner, actual)
+        assert expected_tilknyttedefunktioner == actual
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_org_unit_with_address(self, mock):
@@ -893,7 +893,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
             },
         ]
 
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_address_related_to_engagement(self, mock):
@@ -932,7 +932,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                 },
             }
         ]
-        self.assertEqual(actual, expected)
+        assert actual == expected
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -1166,7 +1166,7 @@ class Writing(tests.cases.LoRATestCase):
             ],
         )
 
-        self.assertEqual(expected_msg, msg)
+        assert expected_msg == msg
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_edit_errors(self, mock):

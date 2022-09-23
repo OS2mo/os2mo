@@ -114,9 +114,9 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             if status_code is None:
                 self.assertOK(r, status_message)
             else:
-                self.assertEqual(r.status_code, status_code, status_message)
+                assert r.status_code == status_code, status_message
 
-            self.assertEqual(expected, actual, content_message)
+            assert expected == actual, content_message
 
         except AssertionError:
             print(path)
@@ -139,7 +139,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         r = self.perform_request(path, **kwargs)
 
-        self.assertEqual(r.status_code, code, message + ": " + r.text)
+        assert r.status_code == code, (message + ": ") + r.text
 
     def perform_request(self, path, **kwargs):
         if "json" in kwargs:
@@ -180,16 +180,11 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             actual.pop("brugerref", None)
 
         # Sort all inner lists and compare
-        self.assertEqual(
-            sort_inner_lists(expected),
-            sort_inner_lists(actual),
-            message,
-        )
+        assert sort_inner_lists(expected) == sort_inner_lists(actual), message
 
     def assertOK(self, response, message=None):
-        self.assertTrue(
-            200 <= response.status_code < 300,
-            message or f"request failed with {response.status_code}!",
+        assert 200 <= response.status_code < 300, (
+            message or f"request failed with {response.status_code}!"
         )
 
     def assertUUID(self, s):
@@ -204,8 +199,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         JSON.
         :param response: Response from LoRa when creating a new object
         """
-        self.assertEqual(201, response.status_code)
-        self.assertEqual(1, len(response.json()))
+        assert response.status_code == 201
+        assert len(response.json()) == 1
         self.assertUUID(response.json()["uuid"])
 
     def get(self, path, **params):
@@ -218,7 +213,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         if not d or not all(isinstance(v, dict) for v in d):
             return d
 
-        self.assertEqual(len(d), 1)
+        assert len(d) == 1
 
         registrations = d[0]["registreringer"]
 
@@ -229,7 +224,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         }:
             return registrations
         else:
-            self.assertEqual(len(registrations), 1)
+            assert len(registrations) == 1
             return registrations[0]
 
     def put(self, path, json):
@@ -295,7 +290,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             objid = r.json().get("uuid")
 
-            self.assertTrue(objid)
+            assert objid
         except AssertionError:
             print(path)
             print(r.status)

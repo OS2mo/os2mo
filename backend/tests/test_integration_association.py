@@ -201,7 +201,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         associations = await c.organisationfunktion.fetch(
             tilknyttedebrugere=_userid, funktionsnavn="Tilknytning"
         )
-        self.assertEqual(len(associations), 1)
+        assert len(associations) == 1
         associationid = associations[0]
         actual_association = await c.organisationfunktion.get(associationid)
         self.assertRegistrationsEqual(actual_association, expected)
@@ -444,10 +444,10 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             brugervendtnoegle="1234",
             funktionsnavn="Tilknytning",
         )
-        self.assertEqual(len(associations), 2)
+        assert len(associations) == 2
         for associationid in associations:
             # assert we got back one of the newly created associations (ie. exists)
-            self.assertIn(associationid, [association_uuid, association_uuid2])
+            assert associationid in [association_uuid, association_uuid2]
 
             # check that the content is also as expected
             actual_association = await c.organisationfunktion.get(associationid)
@@ -631,7 +631,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         associations = await c.organisationfunktion.fetch(
             tilknyttedebrugere=userid, funktionsnavn="Tilknytning"
         )
-        self.assertEqual(len(associations), 1)
+        assert len(associations) == 1
         associationid = associations[0]
 
         actual_association = await c.organisationfunktion.get(associationid)
@@ -700,7 +700,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             tilknyttedebrugere=userid,
             funktionsnavn=mapping.ASSOCIATION_KEY,
         )
-        self.assertEqual(len(associations), 1)
+        assert len(associations) == 1
 
         with self.subTest("validation"):
             req = [
@@ -1044,7 +1044,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             actual_association["brugerref"],
         )
 
-        self.assertEqual(actual_association, expected)
+        assert actual_association == expected
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")

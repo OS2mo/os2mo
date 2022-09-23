@@ -23,7 +23,7 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
 
     async def test_get_from_type(self):
         result = await OrgFunkReadingHandler.get_from_type(*self._args)
-        self.assertIsInstance(result, list)
+        assert isinstance(result, list)
         self.assertSetEqual(
             {item["user_key"] for item in result},
             {"rod <-> fil", "rod <-> hum"},
@@ -33,4 +33,4 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
         # This counts the 2 org funcs of type "tilknyttedeenheder"
         # ("rod <-> fil", "rod <-> hum")
         result = await OrgFunkReadingHandler.get_count(*self._args)
-        self.assertEqual(result, 2)
+        assert result == 2

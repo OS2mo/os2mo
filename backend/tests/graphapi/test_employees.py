@@ -144,9 +144,9 @@ class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
                 mock_construct.assert_called()
                 mock_submit.assert_called()
 
-                self.assertEqual(
-                    response.data.get(mutation_func, {}).get("uuid", None),
-                    mock_new_uuid,
+                assert (
+                    response.data.get(mutation_func, {}).get("uuid", None)
+                    == mock_new_uuid
                 )
             else:
                 mock_construct.assert_not_called()
@@ -355,9 +355,8 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
                 mock_request_handler_construct.assert_called()
                 mock_request_handler_submit.assert_called()
 
-                self.assertEqual(
-                    response.data.get(mutation_func, {}).get("uuid", None),
-                    given_uuid,
+                assert (
+                    response.data.get(mutation_func, {}).get("uuid", None) == given_uuid
                 )
             else:
                 mock_lora_get_all.assert_not_called()
@@ -547,9 +546,8 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
             if expected_result:
                 mock_handle_requests.assert_called()
 
-                self.assertEqual(
-                    response.data.get(mutation_func, {}).get("uuid", None),
-                    given_uuid,
+                assert (
+                    response.data.get(mutation_func, {}).get("uuid", None) == given_uuid
                 )
             else:
                 mock_handle_requests.assert_not_called()

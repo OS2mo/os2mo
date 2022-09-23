@@ -32,13 +32,13 @@ class DatasetHealthTests(tests.cases.AsyncTestCase):
             return_value=Response(200, json={"results": [[]]})
         )
         actual = await health.dataset()
-        self.assertEqual(False, actual)
+        assert actual is False
 
     @respx.mock
     @pytest.mark.usefixtures("mock_organisation")
     async def test_dataset_returns_true_if_data_found(self):
         actual = await health.dataset()
-        self.assertEqual(True, actual)
+        assert actual is True
 
 
 class DARHealthTests(tests.cases.AsyncTestCase):
@@ -48,7 +48,7 @@ class DARHealthTests(tests.cases.AsyncTestCase):
 
         actual = await health.dar()
 
-        self.assertEqual(False, actual)
+        assert actual is False
 
     @util.darmock()
     async def test_dar_returns_false_if_request_error(self, mock):
@@ -56,7 +56,7 @@ class DARHealthTests(tests.cases.AsyncTestCase):
 
         actual = await health.dar()
 
-        self.assertEqual(False, actual)
+        assert actual is False
 
     @util.darmock()
     async def test_dar_returns_true_if_reachable(self, mock):
@@ -64,7 +64,7 @@ class DARHealthTests(tests.cases.AsyncTestCase):
 
         actual = await health.dar()
 
-        self.assertEqual(True, actual)
+        assert actual is True
 
 
 def test_liveness(service_client):

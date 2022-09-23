@@ -3,6 +3,8 @@
 from datetime import datetime
 from unittest import TestCase
 
+import pytest
+
 from oio_rest.db.db_structure import REAL_DB_STRUCTURE
 from oio_rest.db.quick_query.registration_parsing import Attribute
 from oio_rest.db.quick_query.registration_parsing import Relation
@@ -28,54 +30,54 @@ class TestParseAttribute(TestCase):
 
         # interface
         attr_cand = ["brugernavn", "abc", "virkning", None]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # interface - additional information
         attr_cand = {"brugernavn": "abc", "virkning": None, "brugervendtnoegle": "123"}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # interface - missing information
         attr_cand = {"virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # interface - missing information
         attr_cand = {"brugernavn": "abc"}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )  # key type
         attr_cand = {123: "abc", "virkning": None}
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # value type
         attr_cand = {"brugernavn": 123, "virkning": None}
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # virkning value
         attr_cand = {"brugernavn": "abc", "virkning": datetime.now()}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # virkning value
         attr_cand = {"brugernavn": "abc", "virkning": datetime.now().isoformat()}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
         # invalid key
         attr_cand = {"enhedsnavn": "abc", "virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Attribute.from_attr_egenskaber(
                 attr=attr_cand, valid_attr=valid_attr, class_name=class_name
             )
@@ -140,7 +142,7 @@ class TestParseState(TestCase):
 
         # interface
         state_cand = ["gyldighed", "Aktiv", "virkning", None]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
 
         # interface - additional information
@@ -149,41 +151,41 @@ class TestParseState(TestCase):
             "virkning": None,
             "brugervendtnoegle": "123",
         }
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # interface - missing information
         state_cand = {"virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # interface - missing information
         state_cand = {"gyldighed": "Aktiv"}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
 
         # key type
         state_cand = {123: "Aktiv", "virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # value type
         state_cand = {"gyldighed": 123, "virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # virkning value
         state_cand = {"gyldighed": "Aktiv", "virkning": datetime.now()}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # virkning value
         state_cand = {"gyldighed": "Aktiv", "virkning": datetime.now().isoformat()}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         # enum value
         state_cand = {"gyldighed": "abc", "virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
 
         # invalid key
         state_cand = {"enhedsnavn": "Aktiv", "virkning": None}
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             State.from_state_dict(state=state_cand, valid_states=valid_states)
         state_cand = {"gyldighed": "Aktiv", "virkning": None}
         expected = State(key="gyldighed", value="Aktiv")
@@ -232,7 +234,7 @@ class TestParseRelation(TestCase):
             "objekttype": "lederniveau",
             "urn": "urn:Direktion",
         }
-        with self.assertRaises(AttributeError):
+        with pytest.raises(AttributeError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -248,7 +250,7 @@ class TestParseRelation(TestCase):
                 "uuid": "33268774-dc76-47b7-b54e-79d2a99a7e6a",
             }
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -257,7 +259,7 @@ class TestParseRelation(TestCase):
 
         # interface - missing information
         relation_cand = [{"virkning": None, "urn": "urn:Direktion"}]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -266,7 +268,7 @@ class TestParseRelation(TestCase):
 
         # interface - missing information
         relation_cand = [{"virkning": None, "objekttype": "lederniveau"}]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -275,7 +277,7 @@ class TestParseRelation(TestCase):
 
         # interface - missing information
         relation_cand = [{"objekttype": "lederniveau", "urn": "urn:Direktion"}]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -284,7 +286,7 @@ class TestParseRelation(TestCase):
 
         # interface - missing information
         relation_cand = [{"urn": "urn:Direktion"}]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -295,7 +297,7 @@ class TestParseRelation(TestCase):
         relation_cand = [
             {"virkning": None, 123: "lederniveau", "urn": "urn:Direktion"},
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -305,7 +307,7 @@ class TestParseRelation(TestCase):
         relation_cand = [
             {"virkning": None, "objekttype": "lederniveau", 123: "urn:Direktion"},
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -316,7 +318,7 @@ class TestParseRelation(TestCase):
         relation_cand = [
             {"virkning": None, "objekttype": "lederniveau", "urn": 123},
         ]
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -327,7 +329,7 @@ class TestParseRelation(TestCase):
         relation_cand = [
             {"virkning": None, "objekttype": 123, "urn": "urn:Direktion"},
         ]
-        with self.assertRaises(TypeError):
+        with pytest.raises(TypeError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -342,7 +344,7 @@ class TestParseRelation(TestCase):
                 "urn": "urn:Direktion",
             },
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -357,7 +359,7 @@ class TestParseRelation(TestCase):
                 "urn": "urn:Direktion",
             },
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,
@@ -368,7 +370,7 @@ class TestParseRelation(TestCase):
         relation_cand = [
             {"virkning": None, "objekttype": "lederniveau", "abc": "urn:Direktion"},
         ]
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             Relation.from_relation_list(
                 relation_type=key,
                 relation_values=relation_cand,

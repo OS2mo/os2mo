@@ -68,7 +68,7 @@ class TestCreateObject(DBTestCase):
         with self.subTest("delete"):
             # test delete
             deleted_uuid = self.delete(f"{path}/{uuid}", json={})
-            self.assertEqual(uuid, deleted_uuid)
+            assert uuid == deleted_uuid
 
             with self.subTest("search deleted"):
                 # test searching for deleted objects

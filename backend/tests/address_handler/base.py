@@ -18,4 +18,4 @@ class AsyncAddressHandlerTestCase(tests.cases.AsyncMockRequestContextTestCase):
         actual = address_handler.get_lora_properties()
 
         # Assert
-        self.assertEqual(expected, actual)
+        assert expected == actual

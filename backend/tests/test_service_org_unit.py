@@ -176,15 +176,12 @@ class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
         with util.patch_query_args({"validity": "past"}):
             await self.assertRequestResponse(mo_url, [])
 
-        self.assertEqual(
-            json.loads(route.calls[0].request.read()),
-            {
-                "uuid": [unitid],
-                "virkningfra": "-infinity",
-                "virkningtil": "2018-03-15T00:00:00+01:00",
-                "konsolider": "True",
-            },
-        )
+        assert json.loads(route.calls[0].request.read()) == {
+            "uuid": [unitid],
+            "virkningfra": "-infinity",
+            "virkningtil": "2018-03-15T00:00:00+01:00",
+            "konsolider": "True",
+        }
 
 
 class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
@@ -218,8 +215,8 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=400
         )
-        self.assertIn("INTEGRATION_ERROR", r.get("error_key"))
-        self.assertIn(error_msg, r.get("description"))
+        assert "INTEGRATION_ERROR" in r.get("error_key")
+        assert error_msg in r.get("description")
 
         t_sender_mock.assert_called_with(
             "http://whatever/triggers/ou/refresh",
@@ -265,7 +262,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
         )
-        self.assertEqual(response_msg, r["message"])
+        assert response_msg == r["message"]
 
         t_sender_mock.assert_has_calls(
             [
@@ -291,7 +288,7 @@ class AsyncTestTriggerExternalIntegration(tests.cases.AsyncTestCase):
         r = await self.assertRequest(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh", status_code=404
         )
-        self.assertIn("NOT_FOUND", r.get("error_key"))
+        assert "NOT_FOUND" in r.get("error_key")
 
 
 @sample_structures_minimal_cls_fixture
@@ -310,7 +307,7 @@ class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
             self._orgunit_uuid,
             count_related={"association": AssociationReader},
         )
-        self.assertIn("association_count", result)
+        assert "association_count" in result
 
     @util.patch_query_args()
     async def test_details_nchildren(self):
@@ -410,6 +407,6 @@ class TestGetUnitAncestorTree(tests.cases.AsyncLoRATestCase):
                         visit(ou)
                 if node.get("user_key") == user_key:
                     for attr_name, attr_value in attrs.items():
-                        self.assertEqual(node.get(attr_name), attr_value)
+                        assert node.get(attr_name) == attr_value
 
         visit(doc)

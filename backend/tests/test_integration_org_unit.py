@@ -1492,7 +1492,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 resp.raise_for_status()
                 doc = resp.json()
                 actual_parent = doc["parent"]["uuid"]
-                self.assertEqual(actual_parent, expected_parent)
+                assert actual_parent == expected_parent
 
         # Initial state: parent is "Overordnet Enhed"
         await assert_parent_is(overordnet_enhed, "2016-01-01")
@@ -2332,17 +2332,13 @@ class Tests(tests.cases.LoRATestCase):
         topics = {}
 
         def check_future_names(*names):
-            self.assertEqual(
-                list(names),
-                [
-                    (d["name"], d["validity"]["from"], d["validity"]["to"])
-                    for d in self.assertRequest(
-                        "/service/ou/{}/details/org_unit?"
-                        "validity=future".format(unitid),
-                        amqp_topics=topics,
-                    )
-                ],
-            )
+            assert list(names) == [
+                (d["name"], d["validity"]["from"], d["validity"]["to"])
+                for d in self.assertRequest(
+                    f"/service/ou/{unitid}/details/org_unit?validity=future",
+                    amqp_topics=topics,
+                )
+            ]
 
         with self.subTest("prerequisites"):
             check_future_names(
@@ -2462,7 +2458,7 @@ class Tests(tests.cases.LoRATestCase):
 
         actual = response[-1].get("time_planning")
 
-        self.assertEqual(expected, actual)
+        assert expected == actual
 
     def test_move_org_unit_should_fail_validation(self):
         """Should fail validation when trying to move an org unit to one of

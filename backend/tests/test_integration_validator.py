@@ -127,7 +127,7 @@ class AsyncTestValidator(AsyncTestHelper):
         startdate = "01-01-2016"
         enddate = "01-06-2017"
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_date_range_in_org_unit_range(
                 {"uuid": self.PARENT},
                 mora_util.parsedatetime(startdate),
@@ -144,7 +144,7 @@ class AsyncTestValidator(AsyncTestHelper):
         startdate = "01-02-2017"
         enddate = "01-06-2019"
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_date_range_in_org_unit_range(
                 {"uuid": self.PARENT},
                 mora_util.parsedatetime(startdate),
@@ -161,7 +161,7 @@ class AsyncTestValidator(AsyncTestHelper):
         startdate = "01-02-2010"
         enddate = "01-06-2015"
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_date_range_in_org_unit_range(
                 {"uuid": self.PARENT},
                 mora_util.parsedatetime(startdate),
@@ -179,7 +179,7 @@ class AsyncTestValidator(AsyncTestHelper):
         employee = {"uuid": employee_uuid}
 
         # Act & Assert
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_date_range_in_employee_range(
                 employee, valid_from, valid_to
             )
@@ -201,7 +201,7 @@ class AsyncTestValidator(AsyncTestHelper):
 
 class TestValidator(TestHelper):
     def test_is_distinct_responsibility_with_duplicate(self):
-        with self.assertRaises(exceptions.HTTPException) as ctxt:
+        with pytest.raises(exceptions.HTTPException) as ctxt:
             validator.is_distinct_responsibility(
                 [
                     (
@@ -228,18 +228,13 @@ class TestValidator(TestHelper):
                 ]
             )
 
-        self.assertEqual(
-            ctxt.exception.detail,
-            {
-                "description": "Manager has the same responsibility more than " "once.",
-                "duplicates": [
-                    "00000000-0000-0000-0000-000000000000",
-                ],
-                "error": True,
-                "error_key": "V_DUPLICATED_RESPONSIBILITY",
-                "status": 400,
-            },
-        )
+        assert ctxt.value.detail == {
+            "description": "Manager has the same responsibility more than once.",
+            "duplicates": ["00000000-0000-0000-0000-000000000000"],
+            "error": True,
+            "error_key": "V_DUPLICATED_RESPONSIBILITY",
+            "status": 400,
+        }
 
     def test_is_distinct_responsibility_no_duplicate(self):
         validator.is_distinct_responsibility(
@@ -276,7 +271,7 @@ class TestValidator(TestHelper):
         validator.is_substitute_allowed("bcd05828-cc10-48b1-bc48-2f0d204859b2")
 
         # This shouldn't
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             validator.is_substitute_allowed("8b073375-4196-4d90-9af9-0eb6ef8b6d0d")
 
     def test_is_substitute_self(self):
@@ -287,7 +282,7 @@ class TestValidator(TestHelper):
         )
 
         # This shouldn't
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             validator.is_substitute_self(
                 "8b073375-4196-4d90-9af9-0eb6ef8b6d0d",
                 "8b073375-4196-4d90-9af9-0eb6ef8b6d0d",
@@ -306,7 +301,7 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
         move_date = "01-02-2017"
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
@@ -329,7 +324,7 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
         move_date = "01-02-2017"
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_candidate_parent_valid(
                 root_org_unit, new_org_uuid, move_date
             )
@@ -340,7 +335,7 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
         move_date = "01-02-2017"
         new_org_uuid = candidate_parent
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
@@ -348,7 +343,7 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
     async def test_should_not_move_org_unit_to_itself(self):
         move_date = "01-02-2017"
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, self.UNIT_TO_MOVE, move_date
             )
@@ -359,7 +354,7 @@ class AsyncTestIntegrationMoveOrgUnitValidator(AsyncTestHelper):
 
         await self.expire_org_unit(self.PARENT)
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             await validator.is_candidate_parent_valid(
                 self.UNIT_TO_MOVE, new_org_uuid, move_date
             )
@@ -373,7 +368,7 @@ class TestIsContainedInRange(TestHelper):
         valid_from = datetime.date(2012, 1, 1)
         valid_to = datetime.date(2020, 1, 1)
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             validator.is_contained_in_range(
                 empl_from,
                 empl_to,
@@ -389,7 +384,7 @@ class TestIsContainedInRange(TestHelper):
         valid_from = datetime.date(2008, 1, 1)
         valid_to = datetime.date(2016, 1, 1)
 
-        with self.assertRaises(exceptions.HTTPException):
+        with pytest.raises(exceptions.HTTPException):
             validator.is_contained_in_range(
                 empl_from,
                 empl_to,

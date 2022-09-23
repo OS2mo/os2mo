@@ -33,14 +33,13 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                 [],
             )
 
-        self.assertEqual(
+        assert (
             list(
                 await c.organisationfunktion.get_all(
-                    funktionsnavn="IT-system",
-                    tilknyttedebrugere=userid,
+                    funktionsnavn="IT-system", tilknyttedebrugere=userid
                 )
-            ),
-            [],
+            )
+            == []
         )
 
         (funcid,) = await self.assertRequest(
@@ -113,14 +112,13 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                 [],
             )
 
-        self.assertEqual(
+        assert (
             list(
                 await c.organisationfunktion.get_all(
-                    funktionsnavn="IT-system",
-                    tilknyttedebrugere=unitid,
+                    funktionsnavn="IT-system", tilknyttedebrugere=unitid
                 )
-            ),
-            [],
+            )
+            == []
         )
 
         (funcid,) = await self.assertRequest(

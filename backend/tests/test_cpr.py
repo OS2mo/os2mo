@@ -22,7 +22,7 @@ class AsyncTests(tests.cases.AsyncTestCase):
             )
 
         with self.subTest("too early"):
-            self.assertEqual(mora_util.get_cpr_birthdate(2004936541).year, 1893)
+            assert mora_util.get_cpr_birthdate(2004936541).year == 1893
 
             await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=2004936541",
@@ -37,7 +37,7 @@ class AsyncTests(tests.cases.AsyncTestCase):
             )
 
         with self.subTest("too late"):
-            self.assertEqual(mora_util.get_cpr_birthdate(2004256543).year, 2025)
+            assert mora_util.get_cpr_birthdate(2004256543).year == 2025
 
             await self.assertRequestResponse(
                 "/service/e/cpr_lookup/?q=2004256543",
