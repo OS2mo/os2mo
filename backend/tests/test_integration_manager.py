@@ -169,7 +169,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(actual_manager, expected)
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/manager".format(userid),
+            f"/service/e/{userid}/details/manager",
             [],
             amqp_topics={
                 "employee.manager.create": 1,
@@ -931,7 +931,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/manager?only_primary_uuid=1".format(userid),
+            f"/service/e/{userid}/details/manager?only_primary_uuid=1",
             [
                 {
                     "manager_level": {
@@ -1000,7 +1000,7 @@ class Tests(tests.cases.LoRATestCase):
 
         with self.subTest("preconditions"):
             self.assertRequestResponse(
-                "/service/ou/{}/details/manager".format(unit_id),
+                f"/service/ou/{unit_id}/details/manager",
                 [],
             )
 
@@ -1042,7 +1042,7 @@ class Tests(tests.cases.LoRATestCase):
         }
 
         self.assertRequestResponse(
-            "/service/ou/{}/details/manager".format(unit_id),
+            f"/service/ou/{unit_id}/details/manager",
             [
                 {
                     "manager_level": {
@@ -1155,7 +1155,7 @@ class Tests(tests.cases.LoRATestCase):
             expected["uuid"] = function_id
 
             self.assertRequestResponse(
-                "/service/ou/{}/details/manager?only_primary_uuid=1".format(unit_id),
+                f"/service/ou/{unit_id}/details/manager?only_primary_uuid=1",
                 [expected],
                 amqp_topics={
                     "org_unit.manager.create": 1,
@@ -1196,7 +1196,7 @@ class Tests(tests.cases.LoRATestCase):
             }
 
             self.assertRequestResponse(
-                "/service/ou/{}/details/manager?only_primary_uuid=1".format(unit_id),
+                f"/service/ou/{unit_id}/details/manager?only_primary_uuid=1",
                 [expected],
                 amqp_topics={
                     "org_unit.manager.create": 1,
@@ -1222,9 +1222,7 @@ class Tests(tests.cases.LoRATestCase):
         # Anders And is manager at humfak
         filins = "85715fc7-925d-401b-822d-467eb4b163b6"
         # We are NOT allowed to inherit Anders And
-        inherited_managers = self.assertRequest(
-            "/service/ou/{}/details/manager".format(filins)
-        )
+        inherited_managers = self.assertRequest(f"/service/ou/{filins}/details/manager")
         self.assertEqual(inherited_managers, [])
 
     def test_read_inherit_manager_one_level(self):
@@ -1234,7 +1232,7 @@ class Tests(tests.cases.LoRATestCase):
         filins = "85715fc7-925d-401b-822d-467eb4b163b6"
         # We must inherit Anders And
         inherited_managers = self.assertRequest(
-            "/service/ou/{}/details/manager?inherit_manager=1".format(filins)
+            f"/service/ou/{filins}/details/manager?inherit_manager=1"
         )
         self.assertEqual(len(inherited_managers), 1)
         self.assertEqual(inherited_managers[0]["org_unit"]["uuid"], humfak)
@@ -1244,6 +1242,6 @@ class Tests(tests.cases.LoRATestCase):
         samfak = "b688513d-11f7-4efc-b679-ab082a2055d0"
         # We must not find no managers
         inherited_managers = self.assertRequest(
-            "/service/ou/{}/details/manager?inherit_manager=1".format(samfak)
+            f"/service/ou/{samfak}/details/manager?inherit_manager=1"
         )
         self.assertEqual(inherited_managers, [])

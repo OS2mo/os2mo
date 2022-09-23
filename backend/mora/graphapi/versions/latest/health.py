@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 """Endpoints for health checks."""
 from collections.abc import Callable
-from typing import Optional
 
 import aiohttp
 from httpx import HTTPStatusError
@@ -27,7 +26,7 @@ def register_health_endpoint(func: Callable) -> Callable:
 
 
 @register_health_endpoint
-async def amqp() -> Optional[bool]:
+async def amqp() -> bool | None:
     """Check if AMQP connection is open.
 
     Returns:

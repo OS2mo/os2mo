@@ -4,9 +4,9 @@ import asyncio
 import datetime
 import json
 import types
+from collections.abc import Awaitable
+from collections.abc import Callable
 from functools import wraps
-from typing import Awaitable
-from typing import Callable
 from typing import TypeVar
 from unittest import TestCase
 from unittest.mock import MagicMock
@@ -83,7 +83,7 @@ class TestOIORestObjectCreateApi(TestCase):
         endpoints = filter(lambda route: name == route.name, endpoints)
 
         rule = next(endpoints, None)
-        self.assertIsNotNone(rule, "Expected {} {}".format(method, name))
+        self.assertIsNotNone(rule, f"Expected {method} {name}")
 
     def test_create_api_call_returns_router(self):
         router = self.testclass.create_api(hierarchy="Hierarchy")

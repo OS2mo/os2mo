@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -29,7 +28,7 @@ class Klasse(LoraBase):
     relations: KlasseRelations = Field(
         alias="relationer", description="The klasse relations."
     )
-    note: Optional[str] = Field(description="Optional note.")
+    note: str | None = Field(description="Optional note.")
 
     @classmethod
     def from_simplified_fields(
@@ -38,8 +37,8 @@ class Klasse(LoraBase):
         user_key: str,  # rarely used
         organisation_uuid: UUID,
         title: str,
-        uuid: Optional[UUID] = None,
-        scope: Optional[str] = None,
+        uuid: UUID | None = None,
+        scope: str | None = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Klasse":

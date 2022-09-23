@@ -147,7 +147,7 @@ def to_bool(s):
         raise ValueError("%s is not a valid boolean value" % s)
 
 
-class Searchable(object):
+class Searchable:
     """Mixin class for searchable namedtuples."""
 
     non_searchable_fields = ("virkning",)
@@ -279,7 +279,7 @@ class DokumentDelRelationType(
         )
 
 
-class NamedTupleAdapter(object):
+class NamedTupleAdapter:
     """Adapt namedtuples, while performing a cast to the tuple's classname."""
 
     def __init__(self, tuple_obj):

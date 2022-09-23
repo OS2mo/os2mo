@@ -60,7 +60,7 @@ def initdb(wait):
             break
         if i == attempts:
             sys.exit(1)
-        click.echo("Postgres is unavailable - attempt %s/%s" % (i, attempts))
+        click.echo(f"Postgres is unavailable - attempt {i}/{attempts}")
         time.sleep(SLEEPING_TIME)
 
     if is_schema_installed():

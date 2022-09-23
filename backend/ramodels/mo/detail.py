@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 
 from pydantic import Field
 
@@ -20,7 +19,7 @@ class Detail(UUIDBase):
 
 class DetailTermination(Detail):
 
-    validity: Optional[dict] = Field(
+    validity: dict | None = Field(
         description="MO unit validity, determining in what date-interval "
         "a unit is available."
     )

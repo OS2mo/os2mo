@@ -9,7 +9,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 class TestCreateOrganisation(TestCreateObject):
     def setUp(self):
-        super(TestCreateOrganisation, self).setUp()
+        super().setUp()
         self.org = {
             "attributter": {
                 "organisationegenskaber": [

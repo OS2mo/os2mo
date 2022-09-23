@@ -9,7 +9,6 @@
 import json
 from pathlib import Path
 from typing import Any
-from typing import Dict
 
 from graphql import GraphQLSchema
 from graphql import utilities as gql_util
@@ -43,7 +42,7 @@ def main() -> None:
 
     # Get introspection from loaded schema
     schema: GraphQLSchema = gql_util.build_schema(LatestGraphQLSchema.get().as_str())
-    introspect: Dict[str, Any] = gql_util.introspection_from_schema(schema)
+    introspect: dict[str, Any] = gql_util.introspection_from_schema(schema)
 
     # Apply to template & write out
     template: Template = Environment(

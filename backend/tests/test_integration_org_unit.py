@@ -618,7 +618,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
             await self.assertRequestResponse(
-                "/service/ou/{}/".format(unitid),
+                f"/service/ou/{unitid}/",
                 {
                     "location": "Overordnet Enhed",
                     "name": "Fake Corp",
@@ -847,7 +847,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/org_unit".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/org_unit",
             [
                 {
                     "name": "Whatever",
@@ -1219,7 +1219,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
         with self.subTest("prerequisites"):
             await self.assertRequestResponse(
-                "/service/ou/{}".format(unitid) + "/details/org_unit?validity=past",
+                f"/service/ou/{unitid}" + "/details/org_unit?validity=past",
                 [
                     {
                         "name": "AlexTestah",
@@ -1313,7 +1313,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
 
             await self.assertRequestResponse(
-                "/service/ou/{}".format(unitid) + "/details/org_unit?validity=present",
+                f"/service/ou/{unitid}" + "/details/org_unit?validity=present",
                 [
                     {
                         "name": "AlexTest",
@@ -1351,21 +1351,21 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
 
             await self.assertRequestResponse(
-                "/service/ou/{}".format(unitid) + "/details/org_unit?validity=future",
+                f"/service/ou/{unitid}" + "/details/org_unit?validity=future",
                 [],
             )
 
         payload = {"validity": {"to": "2018-09-30"}}
 
         await self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid),
+            f"/service/ou/{unitid}/terminate",
             unitid,
             json=payload,
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}".format(unitid) + "/details/org_unit?validity=present",
+            f"/service/ou/{unitid}" + "/details/org_unit?validity=present",
             [
                 {
                     "name": "AlexTest",
@@ -1404,7 +1404,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}".format(unitid) + "/details/org_unit?validity=future",
+            f"/service/ou/{unitid}" + "/details/org_unit?validity=future",
             [],
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
@@ -2444,7 +2444,7 @@ class Tests(tests.cases.LoRATestCase):
         )
 
         response = self.assertRequest(
-            "/service/ou/{}/details/org_unit?validity=present".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/org_unit?validity=present",
             amqp_topics={"org_unit.org_unit.update": 1},
         )
 
@@ -2671,14 +2671,14 @@ class Tests(tests.cases.LoRATestCase):
         payload = {"validity": inactive_validity}
 
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid),
+            f"/service/ou/{unitid}/terminate",
             unitid,
             json=payload,
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
 
         self.assertRequestResponse(
-            "/service/ou/{}".format(unitid) + "/details/org_unit?validity=past",
+            f"/service/ou/{unitid}" + "/details/org_unit?validity=past",
             [
                 {
                     "location": "Overordnet Enhed\\Humanistisk fakultet",
@@ -2765,7 +2765,7 @@ class Tests(tests.cases.LoRATestCase):
 
         # Verify that we are no longer able to see org unit
         self.assertRequestResponse(
-            "/service/ou/{}".format(unitid) + "/details/org_unit?validity=present",
+            f"/service/ou/{unitid}" + "/details/org_unit?validity=present",
             [],
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
@@ -2781,7 +2781,7 @@ class Tests(tests.cases.LoRATestCase):
     def test_terminate_org_unit_invalid_uuid(self, validity):
         unitid = "00000000-0000-0000-0000-000000000000"
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid),
+            f"/service/ou/{unitid}/terminate",
             {
                 "error": True,
                 "error_key": "E_ORG_UNIT_NOT_FOUND",
@@ -2858,7 +2858,7 @@ class Tests(tests.cases.LoRATestCase):
         self, org_unit_uuid, validity, expected_error_response
     ):
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/terminate",
             {"error": True, "status": 400, **expected_error_response},
             json={"validity": validity},
             status_code=400,
@@ -2870,14 +2870,14 @@ class Tests(tests.cases.LoRATestCase):
         unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid_a),
+            f"/service/ou/{unitid_a}/terminate",
             unitid_a,
             json={"validity": {"to": "2018-12-31"}},
             amqp_topics={"org_unit.org_unit.delete": 1},
         )
 
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(unitid_b),
+            f"/service/ou/{unitid_b}/terminate",
             {
                 "error": True,
                 "status": 400,
@@ -2956,7 +2956,7 @@ class Tests(tests.cases.LoRATestCase):
         message,
     ):
         self.assertRequestResponse(
-            "/service/ou/{}/terminate".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/terminate",
             {"error": True, "status": 400, **expected_error_response},
             json={"validity": validity},
             status_code=400,

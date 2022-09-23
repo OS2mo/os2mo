@@ -14,7 +14,7 @@ from tests.oio_rest.util import DBTestCase
 @freezegun.freeze_time("2018-01-01")
 class TestCreateObject(DBTestCase):
     def setUp(self):
-        super(TestCreateObject, self).setUp()
+        super().setUp()
         self.standard_virkning1 = {
             "from": "2000-01-01 12:00:00+01",
             "from_included": True,

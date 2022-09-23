@@ -20,7 +20,7 @@ VALUE = "mail@mail.dk"
 
 async def test_from_effect():
     # Arrange
-    effect = {"relationer": {"adresser": [{"urn": "urn:mailto:{}".format(VALUE)}]}}
+    effect = {"relationer": {"adresser": [{"urn": f"urn:mailto:{VALUE}"}]}}
 
     address_handler = await EmailAddressHandler.from_effect(effect)
 
@@ -67,7 +67,7 @@ def test_get_lora_address():
     # Arrange
     address_handler = EmailAddressHandler(VALUE, None)
 
-    expected = {"objekttype": "EMAIL", "urn": "urn:mailto:{}".format(VALUE)}
+    expected = {"objekttype": "EMAIL", "urn": f"urn:mailto:{VALUE}"}
 
     # Act
     actual = address_handler.get_lora_address()

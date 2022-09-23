@@ -51,7 +51,7 @@ def _get_connection_url():
     return connection_url
 
 
-@lru_cache()
+@lru_cache
 def _get_engine():
     connection_url = _get_connection_url()
     logger.debug("Open connection to database")

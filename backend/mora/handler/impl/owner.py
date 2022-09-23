@@ -1,11 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import create_task
+from collections.abc import Awaitable
 from datetime import datetime
 from functools import partial
 from math import inf
 from typing import Any
-from typing import Awaitable
 from typing import Optional
 from uuid import UUID
 
@@ -128,7 +128,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         cls,
         owned_person_uuid: UUID,
         inference_priority: OwnerInferencePriority,
-    ) -> Optional[Awaitable[dict[str, Any]]]:
+    ) -> Awaitable[dict[str, Any]] | None:
 
         candidates = await cls.get_relation_candidates(
             owned_person_uuid=owned_person_uuid,

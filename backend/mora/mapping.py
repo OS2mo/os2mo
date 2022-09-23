@@ -194,7 +194,7 @@ class FieldTypes(enum.IntEnum):
     ZERO_TO_ONE, ZERO_TO_MANY, ADAPTED_ZERO_TO_MANY = range(3)
 
 
-class FieldTuple(object):
+class FieldTuple:
     __slots__ = (
         "__path",
         "__type",

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
 from typing import Any
-from typing import Optional
 
 from structlog import get_logger
 
@@ -27,7 +26,7 @@ class EmployeeReader(reading.ReadingHandler):
         cls,
         c: Connector,
         search_fields: dict[Any, Any],
-        changed_since: Optional[datetime] = None,
+        changed_since: datetime | None = None,
         flat: bool = False,
     ):
         object_tuples = await cls._get_lora_object(
@@ -37,7 +36,7 @@ class EmployeeReader(reading.ReadingHandler):
 
     @classmethod
     async def get_from_type(
-        cls, c: Connector, type: str, objid, changed_since: Optional[datetime] = None
+        cls, c: Connector, type: str, objid, changed_since: datetime | None = None
     ):
         if type != "e":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
@@ -49,7 +48,7 @@ class EmployeeReader(reading.ReadingHandler):
 
     @classmethod
     async def _get_lora_object(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
+        cls, c, search_fields, changed_since: datetime | None = None
     ):
         if mapping.UUID in search_fields:
             return await c.bruger.get_all_by_uuid(

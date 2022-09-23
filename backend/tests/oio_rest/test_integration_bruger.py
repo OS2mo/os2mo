@@ -5,7 +5,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 class TestCreateBruger(TestCreateObject):
     def setUp(self):
-        super(TestCreateBruger, self).setUp()
+        super().setUp()
 
     def test_bruger(self):
 

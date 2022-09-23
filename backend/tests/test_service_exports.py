@@ -4,7 +4,6 @@ from base64 import b64encode
 from pathlib import Path
 from pathlib import PosixPath
 from typing import Any
-from typing import Optional
 from unittest import mock
 
 import pytest
@@ -25,7 +24,7 @@ from tests.conftest import test_app
 
 @pytest.fixture(scope="class")
 def fastapi_test_app_weird_auth():
-    async def _noop_oauth2_scheme(request: Request) -> Optional[str]:
+    async def _noop_oauth2_scheme(request: Request) -> str | None:
         return "jwt-goes-here"
 
     def test_app_weird_auth():
@@ -42,7 +41,7 @@ def service_client_weird_auth(fastapi_test_app_weird_auth):
         yield client
 
 
-async def _noop_check_auth_cookie(auth_cookie: Optional[str]) -> None:
+async def _noop_check_auth_cookie(auth_cookie: str | None) -> None:
     pass
 
 

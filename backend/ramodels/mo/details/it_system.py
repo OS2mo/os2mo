@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -21,7 +20,7 @@ class ITSystemRead(MOBase):
     type_: str = Field("itsystem", alias="type", description="The object type")
     name: str = Field(description="Name/titel of the itsystem.")
     user_key: str = Field(description="Short, unique key.")
-    system_type: Optional[str] = Field(description="The ITSystem type.")
+    system_type: str | None = Field(description="The ITSystem type.")
 
 
 class ITUserBase(MOBase):
@@ -35,13 +34,13 @@ class ITUserRead(ITUserBase):
     """A MO IT user read object."""
 
     itsystem_uuid: UUID = Field(description="UUID of the ITSystem related to the user.")
-    employee_uuid: Optional[UUID] = Field(
+    employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the user."
     )
-    org_unit_uuid: Optional[UUID] = Field(
+    org_unit_uuid: UUID | None = Field(
         description="UUID organisation unit related to the user."
     )
-    primary_uuid: Optional[UUID] = Field(
+    primary_uuid: UUID | None = Field(
         description="UUID of an associated `primary_type` class."
     )
 
@@ -52,10 +51,10 @@ class ITUserWrite(ITUserBase):
     itsystem: ITSystemRef = Field(
         description="Reference to the IT system for the IT user."
     )
-    employee: Optional[EmployeeRef] = Field(
+    employee: EmployeeRef | None = Field(
         description="Reference to the employee for the IT user."
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
     )
 
@@ -70,10 +69,10 @@ class ITUser(MOBase):
     itsystem: ITSystemRef = Field(
         description="Reference to the IT system for the IT user."
     )
-    person: Optional[PersonRef] = Field(
+    person: PersonRef | None = Field(
         description="Reference to the person for the IT user."
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
     )
     validity: Validity = Field(description="Validity of the created IT user object.")
@@ -84,10 +83,10 @@ class ITUser(MOBase):
         user_key: str,
         itsystem_uuid: UUID,
         from_date: str,
-        uuid: Optional[UUID] = None,
-        to_date: Optional[str] = None,
-        person_uuid: Optional[UUID] = None,
-        org_unit_uuid: Optional[UUID] = None,
+        uuid: UUID | None = None,
+        to_date: str | None = None,
+        person_uuid: UUID | None = None,
+        org_unit_uuid: UUID | None = None,
     ) -> "ITUser":
         """Create an IT User from simplified fields."""
         it_system = ITSystemRef(uuid=itsystem_uuid)

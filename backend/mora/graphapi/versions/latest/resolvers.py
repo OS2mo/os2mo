@@ -5,7 +5,6 @@ from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 from pydantic import ValidationError
@@ -34,8 +33,8 @@ class StaticResolver:
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
-        uuids: Optional[list[UUID]] = None,
-        user_keys: Optional[list[str]] = None,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
     ):
         """Resolve queries with no validity, i.e. class/facet/itsystem.
 
@@ -52,10 +51,10 @@ class StaticResolver:
     async def _resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
-        uuids: Optional[list[UUID]] = None,
-        user_keys: Optional[list[str]] = None,
-        from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = UNSET,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
@@ -102,10 +101,10 @@ class Resolver(StaticResolver):
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
-        uuids: Optional[list[UUID]] = None,
-        user_keys: Optional[list[str]] = None,
-        from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = UNSET,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
     ):
         """Resolve a query using the specified arguments.
 
@@ -148,11 +147,11 @@ class EmployeeResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
-        uuids: Optional[list[UUID]] = None,
-        user_keys: Optional[list[str]] = None,
-        from_date: Optional[datetime] = UNSET,
-        to_date: Optional[datetime] = UNSET,
-        cpr_numbers: Optional[list[CPR]] = None,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        cpr_numbers: list[CPR] | None = None,
     ):
         """Resolve an employee query, optionally filtering on CPR numbers."""
         kwargs = {}
@@ -171,7 +170,7 @@ class EmployeeResolver(Resolver):
 
 
 def get_date_interval(
-    from_date: Optional[datetime] = UNSET, to_date: Optional[datetime] = UNSET
+    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
 ) -> OpenValidityModel:
     """Get the date interval for GraphQL queries to support bitemporal lookups.
 

@@ -4,7 +4,6 @@ from datetime import date
 from datetime import datetime
 from typing import Any
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from fastapi import Body
@@ -38,10 +37,11 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 )
 async def get_orgunit(
     unitid: UUID = Path(..., description="UUID of the unit to retrieve."),
-    only_primary_uuid: Optional[bool] = Query(
-        None, description="Only retrieve the UUID of the organisation unit"
-    ),
-    at: Optional[date | datetime] = Query(
+    only_primary_uuid: bool
+    | None = Query(None, description="Only retrieve the UUID of the organisation unit"),
+    at: date
+    | datetime
+    | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",
@@ -218,7 +218,8 @@ async def get_org_unit_children(
         "associations in the unit. `count=engagement` is also allowed. "
         "It is allowed to pass more than one `count` query parameter.",
     ),
-    org_unit_hierarchy: Optional[UUID] = Query(
+    org_unit_hierarchy: UUID
+    | None = Query(
         None,
         description="The tree returned is filtered to contain "
         "only organisational units which belong to the given hierarchy.",

@@ -4,7 +4,6 @@ import datetime
 import logging
 from enum import Enum
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 import strawberry
@@ -63,7 +62,7 @@ class Validity(OpenValidity):
 
         if self.from_date.time() != datetime.time.min:
             exceptions.ErrorCodes.E_INVALID_INPUT(
-                "{!r} is not at midnight!".format(self.from_date.isoformat()),
+                f"{self.from_date.isoformat()!r} is not at midnight!",
             )
 
         return self.from_date
@@ -74,7 +73,7 @@ class Validity(OpenValidity):
 
         if self.to_date.time() != datetime.time.min:
             exceptions.ErrorCodes.E_INVALID_INPUT(
-                "{!r} is not at midnight!".format(self.to_date.isoformat()),
+                f"{self.to_date.isoformat()!r} is not at midnight!",
             )
 
         return self.to_date + ONE_DAY
@@ -152,7 +151,7 @@ class MoraTrigger(BaseModel):
 
 
 class Triggerless(BaseModel):
-    triggerless: Optional[bool] = Field(
+    triggerless: bool | None = Field(
         description="Flag specifying if triggers should not be invoked, if true.",
         default=False,
     )
@@ -169,9 +168,7 @@ class OrgFuncTrigger(MoraTrigger):
         description="UUID for the organization unit in question."
     )
 
-    employee_id: Optional[UUID] = Field(
-        None, description="OrgFunc Related employee UUID."
-    )
+    employee_id: UUID | None = Field(None, description="OrgFunc Related employee UUID.")
 
 
 # Root Organisation
@@ -251,41 +248,37 @@ class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
 
 class EmployeeUpdate(UUIDBase):
     # name
-    name: Optional[str] = Field(
-        None, description="New value for the name of the employee"
-    )
+    name: str | None = Field(None, description="New value for the name of the employee")
 
     # nickname_givenname
-    nickname_firstname: Optional[str] = Field(
+    nickname_firstname: str | None = Field(
         None,
         alias="nickname_givenname",
         description="New first-name value of the employee nickname.",
     )
 
     # nickname_surname
-    nickname_lastname: Optional[str] = Field(
+    nickname_lastname: str | None = Field(
         None,
         alias="nickname_surname",
         description="New last-name value of the employee nickname.",
     )
 
     # seniority
-    seniority: Optional[str] = Field(
+    seniority: str | None = Field(
         None, description="New seniority value of the employee."
     )
 
     # cpr_no
-    cpr_no: Optional[str] = Field(
-        None, description="New seniority value of the employee."
-    )
+    cpr_no: str | None = Field(None, description="New seniority value of the employee.")
 
     # org
-    org: Optional[Organisation] = Field(
+    org: Organisation | None = Field(
         None, description="Organization the employee belongs to."
     )
 
     # validity
-    validity: Optional[Validity] = Field(
+    validity: Validity | None = Field(
         None,
         description="Validity range for the employee, "
         "for when the employee is accessible",

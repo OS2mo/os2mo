@@ -13,7 +13,7 @@ from datetime import datetime
 from datetime import timedelta
 from functools import lru_cache
 from functools import partial
-from typing import Pattern
+from re import Pattern
 
 import hypothesis as ht
 import pytest

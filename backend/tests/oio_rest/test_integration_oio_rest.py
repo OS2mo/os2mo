@@ -30,7 +30,7 @@ class Tests(DBTestCase):
         update = {"attributter": {}, "tilstande": {}, "relationer": {}}
 
         # Act
-        self.patch("{}/{}".format(path, uuid), json=update)
+        self.patch(f"{path}/{uuid}", json=update)
 
         # Assert
         actual = self.get(path, uuid=uuid)

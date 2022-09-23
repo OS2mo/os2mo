@@ -7,7 +7,6 @@ from abc import ABCMeta
 from abc import abstractmethod
 from itertools import filterfalse
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 import dateutil
@@ -84,12 +83,12 @@ class Searcher(metaclass=ABCMeta):
     def search_objects(
         self,
         class_name: str,
-        uuid: Optional[str],
+        uuid: str | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,
-        registreret_fra: Optional[datetime.datetime | str] = None,
-        registreret_til: Optional[datetime.datetime | str] = None,
+        registreret_fra: datetime.datetime | str | None = None,
+        registreret_til: datetime.datetime | str | None = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,
@@ -105,12 +104,12 @@ class DefaultSearcher(Searcher):
     @staticmethod
     def search_objects(
         class_name: str,
-        uuid: Optional[str],
+        uuid: str | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,
-        registreret_fra: Optional[datetime.datetime | str] = None,
-        registreret_til: Optional[datetime.datetime | str] = None,
+        registreret_fra: datetime.datetime | str | None = None,
+        registreret_til: datetime.datetime | str | None = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,
@@ -141,12 +140,12 @@ class QuickSearcher(Searcher):
     @staticmethod
     def search_objects(
         class_name: str,
-        uuid: Optional[str],
+        uuid: str | None,
         registration: dict,
         virkning_fra: datetime.datetime | str,
         virkning_til: datetime.datetime | str,
-        registreret_fra: Optional[datetime.datetime | str] = None,
-        registreret_til: Optional[datetime.datetime | str] = None,
+        registreret_fra: datetime.datetime | str | None = None,
+        registreret_til: datetime.datetime | str | None = None,
         life_cycle_code=None,
         user_ref=None,
         note=None,
@@ -295,7 +294,7 @@ class ArgumentDict(ImmutableOrderedMultiDict):
         # that mapping is specified as list of two-tuples -- which
         # happens to be the case when contructing the dictionary from
         # query arguments
-        super(ArgumentDict, self).__init__(list(map(self._process_item, mapping)))
+        super().__init__(list(map(self._process_item, mapping)))
 
 
 class Registration:
@@ -327,7 +326,7 @@ class OIOStandardHierarchy:
             oio_router.include_router(router)
 
         hierarchy = cls._name.lower()
-        classes_url = "/{0}/{1}".format(hierarchy, "classes")
+        classes_url = "/{}/{}".format(hierarchy, "classes")
 
         @oio_router.get(classes_url, name="_".join([hierarchy, "classes"]))
         def get_classes():
@@ -766,8 +765,8 @@ class OIORestObject:
         cls.service_name = hierarchy
         hierarchy = hierarchy.lower()
         class_name = cls.__name__.lower()
-        class_url = "/{0}/{1}".format(hierarchy, class_name)
-        cls_fields_url = "{0}/{1}".format(class_url, "fields")
+        class_url = f"/{hierarchy}/{class_name}"
+        cls_fields_url = "{}/{}".format(class_url, "fields")
         object_url = class_url + "/{uuid}"
 
         rest_router = APIRouter()
@@ -785,7 +784,7 @@ class OIORestObject:
         )
         # JSON schemas
         rest_router.get(
-            "{0}/{1}".format(class_url, "schema"),
+            "{}/{}".format(class_url, "schema"),
             name="_".join([cls.__name__, "schema"]),
         )(cls.get_schema)
 
@@ -833,7 +832,7 @@ class OIORestObject:
         search=False,
         consolidate=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         req_args = set(await cls._get_args(request, *args, **kwargs))
 
@@ -856,4 +855,4 @@ class OIORestObject:
 
         if req_args:
             arg_string = ", ".join(sorted(req_args))
-            raise BadRequestException("Unsupported argument(s): {}".format(arg_string))
+            raise BadRequestException(f"Unsupported argument(s): {arg_string}")

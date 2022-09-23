@@ -3,7 +3,6 @@
 from asyncio import create_task
 from asyncio import gather
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 from structlog import get_logger
@@ -126,7 +125,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
     @classmethod
     async def _is_primary(
         cls, c: lora.Connector, person: str, primary: str
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """
         Calculate whether a given primary class is _the_ primary class for a
         person.
@@ -179,7 +178,7 @@ class EngagementReader(reading.OrgFunkReadingHandler):
                 return class_id == primary
 
 
-async def get_engagement(c: lora.Connector, uuid: UUID) -> Optional[dict[str, Any]]:
+async def get_engagement(c: lora.Connector, uuid: UUID) -> dict[str, Any] | None:
     """
     convenience, for an often used pattern: Eagerly getting an engagement.
     :param c:

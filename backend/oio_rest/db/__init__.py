@@ -169,7 +169,7 @@ def convert_attr_value(attribute_name, attribute_field_name, attribute_field_val
         # delegate actual interval parsing to PostgreSQL in all cases,
         # bypassing psycopg2 cleverness
         s = QuotedString(attribute_field_value or "0")
-        return AsIs("{} :: interval".format(s))
+        return AsIs(f"{s} :: interval")
     elif field_type == "boolean":
         return Boolean(to_bool(attribute_field_value))
     else:
@@ -497,7 +497,7 @@ def delete_object(class_name, registration, note, uuid):
     """
 
     if not object_exists(class_name, uuid):
-        raise NotFoundException("No {} with ID {} found.".format(class_name, uuid))
+        raise NotFoundException(f"No {class_name} with ID {uuid} found.")
 
     life_cycle_code = Livscyklus.SLETTET.value
 
@@ -687,7 +687,7 @@ def list_objects(
 
     if not output:
         # nothing found
-        raise NotFoundException("{0} with UUID {1} not found.".format(class_name, uuid))
+        raise NotFoundException(f"{class_name} with UUID {uuid} not found.")
     ret = filter_json_output(output)
     return ret
 
@@ -895,7 +895,7 @@ def _parse_timestamp(timestamp: datetime.datetime | str) -> datetime.datetime:
     elif type(timestamp) == datetime:
         dt = copy.copy(timestamp)
     else:
-        raise TypeError("Invalid parameter {}".format(timestamp))
+        raise TypeError(f"Invalid parameter {timestamp}")
 
     if not dt.tzinfo:
         dt = dt.replace(tzinfo=datetime.timezone.utc)

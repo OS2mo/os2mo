@@ -6,8 +6,6 @@ This file specifies different pytest fixtures and settings shared throughout the
 GraphAPI test suite. Some are autoused for each test invocation, while others are made
 available for use as needed.
 """
-from typing import Optional
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -81,7 +79,7 @@ def execute():
     pick up the mock correctly.
     """
 
-    async def _execute(query: str, values: Optional[dict] = None):
+    async def _execute(query: str, values: dict | None = None):
         schema = LatestGraphQLSchema.get()
         loaders = await get_loaders()
         result = await schema.execute(

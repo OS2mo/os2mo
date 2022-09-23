@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from unittest import mock
 from uuid import uuid4
 
@@ -55,7 +54,7 @@ class TestITAssociationGroupValidationBase:
     async def test_get_validation_item_from_mo_object(
         self,
         mo_object: dict,
-        expected_result: Optional[dict],
+        expected_result: dict | None,
     ):
         with mock.patch(
             "mora.service.association.get_mo_object_primary_value",

@@ -18,8 +18,8 @@ import enum
 import locale
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Awaitable
 from typing import Any
-from typing import Awaitable
 from uuid import UUID
 from uuid import uuid4
 
@@ -388,7 +388,7 @@ async def get_facetids(facet: str):
     if not facetids:
         raise exceptions.HTTPException(
             exceptions.ErrorCodes.E_NOT_FOUND,
-            message="Facet {} not found.".format(facet),
+            message=f"Facet {facet} not found.",
         )
 
     assert len(facetids) <= 1, "Facet is not unique"

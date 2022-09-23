@@ -5,7 +5,7 @@ from tests.oio_rest.test_integration_helper import TestCreateObject
 
 class TestCreateKlasse(TestCreateObject):
     def setUp(self):
-        super(TestCreateKlasse, self).setUp()
+        super().setUp()
 
     def test_create_klasse(self):
         klasse = {

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-from typing import Optional
 from uuid import UUID
 
 from .models import AddressTerminate
@@ -50,8 +49,8 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
 
 
 async def _get_original_addr(
-    addr_uuid: UUID, from_date: Optional[datetime.datetime]
-) -> Optional[dict]:
+    addr_uuid: UUID, from_date: datetime.datetime | None
+) -> dict | None:
     original = await lora.Connector(effective_date=from_date).organisationfunktion.get(
         str(addr_uuid)
     )

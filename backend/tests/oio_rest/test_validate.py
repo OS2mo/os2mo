@@ -813,7 +813,7 @@ class TestGenerateJSONSchema(TestBase):
     def test_create_request_valid(self):
         for obj in db.db_structure.REAL_DB_STRUCTURE:
             with self.subTest(obj):
-                req = self._json_to_dict("{}_opret.json".format(obj))
+                req = self._json_to_dict(f"{obj}_opret.json")
                 validate.validate(req, obj)
 
     def test_create_facet_request_invalid(self):
@@ -1301,7 +1301,7 @@ class TestSchemaEndPoints(util.BaseTestCase):
         self.assertEqual(
             expected,
             actual,
-            "schemas changed. Please update {}".format(expected_path),
+            f"schemas changed. Please update {expected_path}",
         )
 
     def assertSchemaOK(self, hierarchy):
@@ -1313,7 +1313,7 @@ class TestSchemaEndPoints(util.BaseTestCase):
         # Careful now - no logic in the test code!
 
         for obj in hierarchy._classes:
-            url = "/{}/{}/schema".format(hierarchy._name.lower(), obj.__name__.lower())
+            url = f"/{hierarchy._name.lower()}/{obj.__name__.lower()}/schema"
             r = self.client.get(url)
             self.assertEqual(200, r.status_code)
             json.loads(r.text)

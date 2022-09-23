@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import os
 from operator import attrgetter
-from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -67,13 +66,13 @@ def setup_views(app):
     @app.get("/autocomplete/bruger", dependencies=[Depends(auth)])
     def autocomplete_user(
         phrase: str,
-        class_uuids: Optional[list[UUID]] = Query(None),
+        class_uuids: list[UUID] | None = Query(None),
     ):
         return {"results": find_users_matching(phrase, class_uuids=class_uuids)}
 
     @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
     def autocomplete_org_unit(
-        phrase: str, class_uuids: Optional[list[UUID]] = Query(None)
+        phrase: str, class_uuids: list[UUID] | None = Query(None)
     ):
         return {"results": find_org_units_matching(phrase, class_uuids=class_uuids)}
 

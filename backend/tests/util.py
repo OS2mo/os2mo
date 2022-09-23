@@ -6,12 +6,11 @@ import json
 import os
 import re
 from asyncio import gather
+from collections.abc import Iterator
 from copy import deepcopy
 from itertools import starmap
 from json import dumps
 from typing import Any
-from typing import Iterator
-from typing import Optional
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from urllib.parse import parse_qsl
@@ -272,7 +271,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "klassifikation/facet",
-                "create_facet_{}.json".format(facetkey),
+                f"create_facet_{facetkey}.json",
                 facetid,
             )
         )
@@ -281,7 +280,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "klassifikation/klasse",
-                "create_klasse_{}.json".format(classkey),
+                f"create_klasse_{classkey}.json",
                 classid,
             )
         )
@@ -290,7 +289,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "organisation/organisationenhed",
-                "create_organisationenhed_{}.json".format(unitkey),
+                f"create_organisationenhed_{unitkey}.json",
                 unitid,
             )
         )
@@ -299,7 +298,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "organisation/organisationfunktion",
-                "create_organisationfunktion_{}.json".format(funckey),
+                f"create_organisationfunktion_{funckey}.json",
                 funcid,
             )
         )
@@ -308,7 +307,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "organisation/bruger",
-                "create_bruger_{}.json".format(userkey),
+                f"create_bruger_{userkey}.json",
                 userid,
             )
         )
@@ -317,7 +316,7 @@ async def load_sample_structures(minimal=False):
         fixtures.append(
             (
                 "organisation/itsystem",
-                "create_itsystem_{}.json".format(itsystemkey),
+                f"create_itsystem_{itsystemkey}.json",
                 itsystemid,
             )
         )
@@ -425,7 +424,7 @@ class mock(requests_mock.Mocker):
         self.__overrider = None
         self.register_uri(
             requests_mock.ANY,
-            re.compile("^{}/.*".format(config.get_settings().lora_url)),
+            re.compile(f"^{config.get_settings().lora_url}/.*"),
             real_http=True,
         )
 
@@ -594,7 +593,7 @@ def set_settings_contextmanager(**kwargs: Any) -> Iterator[None]:
 
 @contextlib.contextmanager
 def set_get_configuration(
-    get_configuration_path: str, configuration: Optional[dict[str, Any]] = None
+    get_configuration_path: str, configuration: dict[str, Any] | None = None
 ) -> Iterator[None]:
     """Contextmanager which makes get_configuration return the provided dict.
 

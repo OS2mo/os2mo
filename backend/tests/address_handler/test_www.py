@@ -16,9 +16,7 @@ def url_value() -> str:
 
 async def test_from_effect(url_value):
     # Arrange
-    effect = {
-        "relationer": {"adresser": [{"urn": "urn:magenta.dk:www:{}".format(url_value)}]}
-    }
+    effect = {"relationer": {"adresser": [{"urn": f"urn:magenta.dk:www:{url_value}"}]}}
 
     address_handler = await WWWAddressHandler.from_effect(effect)
 

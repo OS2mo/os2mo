@@ -91,7 +91,7 @@ def parsedatetime(
         if default is not _sentinel:
             return default
         else:
-            exceptions.ErrorCodes.E_INVALID_INPUT("cannot parse {!r}".format(s))
+            exceptions.ErrorCodes.E_INVALID_INPUT(f"cannot parse {s!r}")
 
     if dt.date() == POSITIVE_INFINITY.date():
         return POSITIVE_INFINITY
@@ -303,7 +303,7 @@ def get_cpr_birthdate(number: int | str) -> datetime.datetime:
     rest, day = divmod(rest, 100)
 
     if rest:
-        raise ValueError("invalid CPR number {}".format(number))
+        raise ValueError(f"invalid CPR number {number}")
 
     # see https://da.wikipedia.org/wiki/CPR-nummer :(
     if code < 4000:
@@ -318,7 +318,7 @@ def get_cpr_birthdate(number: int | str) -> datetime.datetime:
     try:
         return datetime.datetime(century + year, month, day, tzinfo=DEFAULT_TIMEZONE)
     except ValueError:
-        raise ValueError("invalid CPR number {}".format(number))
+        raise ValueError(f"invalid CPR number {number}")
 
 
 URN_SAFE = frozenset(b"abcdefghijklmnopqrstuvwxyz" b"0123456789" b"+")
@@ -343,7 +343,7 @@ def urnquote(s):
             if character in URN_SAFE:
                 buf.write(chr(character))
             else:
-                buf.write("%{:02x}".format(character))
+                buf.write(f"%{character:02x}")
 
         return buf.getvalue()
 
@@ -383,7 +383,7 @@ def checked_get(
     except (LookupError, TypeError):
         exc = exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,
-            message="Missing {}".format(key),
+            message=f"Missing {key}",
             key=key,
             obj=mapping,
         )
@@ -407,7 +407,7 @@ def checked_get(
                 return default
             else:
                 exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-                    message="Missing {}".format(key),
+                    message=f"Missing {key}",
                     key=key,
                     obj=mapping,
                 )
@@ -449,7 +449,7 @@ def get_uuid(
         return None
     elif not is_uuid(v):
         exceptions.ErrorCodes.E_INVALID_UUID(
-            message="Invalid uuid for {!r}: {!r}".format(key, v), obj=mapping
+            message=f"Invalid uuid for {key!r}: {v!r}", obj=mapping
         )
 
     return v
@@ -575,7 +575,7 @@ def get_valid_from(obj, fallback=None) -> datetime.datetime:
 
             if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    "{!r} is not at midnight!".format(dt.isoformat()),
+                    f"{dt.isoformat()!r} is not at midnight!",
                 )
 
             return dt
@@ -631,7 +631,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
 
             if dt.time() != datetime.time.min:
                 exceptions.ErrorCodes.E_INVALID_INPUT(
-                    "{!r} is not at midnight!".format(dt.isoformat()),
+                    f"{dt.isoformat()!r} is not at midnight!",
                 )
 
             # this is the reverse of to_iso_date, and an end date
@@ -645,7 +645,7 @@ def get_valid_to(obj, fallback=None, required=False) -> datetime.datetime:
         return POSITIVE_INFINITY
     else:
         exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            message="Missing {}".format(mapping.VALIDITY),
+            message=f"Missing {mapping.VALIDITY}",
             key=mapping.VALIDITY,
             obj=obj,
         )

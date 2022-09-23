@@ -25,7 +25,7 @@ async def test_from_effect(value_string):
 
     effect = {
         "relationer": {
-            "adresser": [{"urn": "urn:dk:cvr:produktionsenhed:{}".format(value_string)}]
+            "adresser": [{"urn": f"urn:dk:cvr:produktionsenhed:{value_string}"}]
         }
     }
 
@@ -78,7 +78,7 @@ def test_get_lora_address(value_string):
 
     expected = {
         "objekttype": "PNUMBER",
-        "urn": "urn:dk:cvr:produktionsenhed:{}".format(value_string),
+        "urn": f"urn:dk:cvr:produktionsenhed:{value_string}",
     }
 
     # Act

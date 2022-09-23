@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -24,7 +23,7 @@ class AssociationBase(MOBase):
 
     type_: str = Field("association", alias="type", description="The object type.")
     validity: Validity = Field(description="Validity of the association object.")
-    dynamic_class_uuid: Optional[UUID] = Field(description="Attached class")
+    dynamic_class_uuid: UUID | None = Field(description="Attached class")
 
 
 class AssociationRead(AssociationBase):
@@ -36,19 +35,19 @@ class AssociationRead(AssociationBase):
     employee_uuid: UUID = Field(
         description="UUID of the employee related to the association."
     )
-    association_type_uuid: Optional[UUID] = Field(
+    association_type_uuid: UUID | None = Field(
         description="UUID of the association type."
     )
-    primary_uuid: Optional[UUID] = Field(
+    primary_uuid: UUID | None = Field(
         description="UUID of the primary type of the association."
     )
-    substitute_uuid: Optional[UUID] = Field(
+    substitute_uuid: UUID | None = Field(
         description="UUID of the substitute for the employee in the association."
     )
-    job_function_uuid: Optional[UUID] = Field(
+    job_function_uuid: UUID | None = Field(
         description="UUID of a job function class, only defined for 'IT associations.'"
     )
-    it_user_uuid: Optional[UUID] = Field(
+    it_user_uuid: UUID | None = Field(
         description="UUID of an 'ITUser' model, only defined for 'IT associations.'"
     )
 
@@ -67,22 +66,22 @@ class AssociationWrite(AssociationBase):
     association_type: AssociationType = Field(
         description="Reference to the association type klasse."
     )
-    primary: Optional[Primary] = Field(
+    primary: Primary | None = Field(
         description=(
             "Reference to the primary klasse for the created association object."
         )
     )
-    substitute: Optional[EmployeeRef] = Field(
+    substitute: EmployeeRef | None = Field(
         description=(
             "Reference to the substitute for the employee in the association object."
         )
     )
-    job_function: Optional[JobFunction] = Field(
+    job_function: JobFunction | None = Field(
         description=(
             "References a job function class (only defined for 'IT associations.')"
         )
     )
-    it_user: Optional[ITUserRef] = Field(
+    it_user: ITUserRef | None = Field(
         description="References an 'ITUser' (only defined for 'IT associations.')"
     )
 
@@ -132,8 +131,8 @@ class Association(MOBase):
         person_uuid: UUID,
         association_type_uuid: UUID,
         from_date: str,
-        to_date: Optional[str] = None,
-        uuid: Optional[UUID] = None,
+        to_date: str | None = None,
+        uuid: UUID | None = None,
     ) -> "Association":
         """Create a new association from simplified fields."""
         validity = Validity(from_date=from_date, to_date=to_date)

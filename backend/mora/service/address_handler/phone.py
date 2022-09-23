@@ -13,7 +13,7 @@ class PhoneAddressHandler(base.AddressHandler):
 
     @property
     def href(self):
-        return "tel:{}".format(self._value)
+        return f"tel:{self._value}"
 
     @staticmethod
     @forceable

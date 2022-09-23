@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
+from collections.abc import Awaitable
+from collections.abc import Iterable
 from typing import Any
-from typing import Awaitable
-from typing import Iterable
 from typing import TypeVar
 
 from structlog import get_logger

@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from contextlib import asynccontextmanager
 from typing import Any
-from typing import Optional
 
 from more_itertools import one
 
@@ -26,7 +25,7 @@ class __BulkBookkeeper:
 
     async def get_lora_object(
         self, type_: LoraObjectType, uuid: str
-    ) -> Optional[LORA_OBJ]:
+    ) -> LORA_OBJ | None:
         results = await self.connector.scope(type_).load(uuid=uuid)
         if not results:
             return None

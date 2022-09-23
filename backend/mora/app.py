@@ -4,7 +4,6 @@ import os
 from itertools import chain
 from pathlib import Path
 from typing import Any
-from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import Depends
@@ -126,7 +125,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
-def create_app(settings_overrides: Optional[dict[str, Any]] = None):
+def create_app(settings_overrides: dict[str, Any] | None = None):
     """
     Create and return a FastApi app instance for MORA.
     """

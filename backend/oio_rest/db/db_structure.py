@@ -601,7 +601,7 @@ def merge_objects(a, b):
         return _merge_lists(a, b)
 
     else:
-        raise AttributeError("Unsupported parameter type {}".format(type(a)))
+        raise AttributeError(f"Unsupported parameter type {type(a)}")
 
 
 def _merge_lists(a: list, b: list):

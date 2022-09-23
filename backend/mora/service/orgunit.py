@@ -16,10 +16,9 @@ import locale
 import logging
 from asyncio import create_task
 from asyncio import gather
+from collections.abc import Awaitable
 from itertools import chain
 from typing import Any
-from typing import Awaitable
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -366,9 +365,9 @@ def _get_count_related():
 async def __get_one_orgunit_from_cache(
     unitid: str,
     details: UnitDetails = UnitDetails.NCHILDREN,
-    validity: Optional[Any] = None,
+    validity: Any | None = None,
     only_primary_uuid: bool = False,
-) -> Optional[dict[Any, Any]]:
+) -> dict[Any, Any] | None:
     """
     Get org unit from cache and process it
     :param unitid: uuid of orgunit
@@ -394,7 +393,7 @@ async def __get_one_orgunit_from_cache(
 async def request_bulked_get_one_orgunit(
     unitid: str,
     details: UnitDetails = UnitDetails.NCHILDREN,
-    validity: Optional[Any] = None,
+    validity: Any | None = None,
     only_primary_uuid: bool = False,
 ) -> Awaitable:
     """
@@ -423,7 +422,7 @@ async def get_one_orgunit(
     validity=None,
     only_primary_uuid: bool = False,
     count_related: dict = None,
-) -> Optional[dict[Any, Any]]:
+) -> dict[Any, Any] | None:
     """
     Internal API for returning one organisation unit.
     """
@@ -590,7 +589,7 @@ async def get_one_orgunit(
     elif details is UnitDetails.MINIMAL:
         pass  # already done
     else:
-        raise AssertionError("enum is {}!?".format(details))
+        raise AssertionError(f"enum is {details}!?")
 
     r[mapping.VALIDITY] = validity or util.get_effect_validity(validities[0])
 
@@ -702,7 +701,7 @@ async def get_unit_tree(
     with_siblings: bool = False,
     only_primary_uuid: bool = False,
     org_unit_hierarchy: str = None,
-    count_related: Optional[dict] = None,
+    count_related: dict | None = None,
 ):
     """Return a tree, bounded by the given unitid.
 
@@ -778,12 +777,12 @@ def get_details_from_query_args(args):
 @router.get("/o/{orgid}/ou/")
 async def list_orgunits(
     orgid: UUID,
-    start: Optional[int] = 0,
-    limit: Optional[int] = 0,
-    query: Optional[str] = None,
-    root: Optional[str] = None,
-    hierarchy_uuids: Optional[list[UUID]] = Query(default=None),
-    only_primary_uuid: Optional[bool] = None,
+    start: int | None = 0,
+    limit: int | None = 0,
+    query: str | None = None,
+    root: str | None = None,
+    hierarchy_uuids: list[UUID] | None = Query(default=None),
+    only_primary_uuid: bool | None = None,
 ):
     """Query organisational units in an organisation.
 
@@ -867,7 +866,7 @@ async def list_orgunits(
     )
 
     if query:
-        kwargs.update(vilkaarligattr="%{}%".format(query))
+        kwargs.update(vilkaarligattr=f"%{query}%")
     if hierarchy_uuids:
         kwargs["opmærkning"] = [str(uuid) for uuid in hierarchy_uuids]
 
@@ -912,8 +911,8 @@ async def list_orgunits(
 @router.get("/o/{orgid}/ou/tree")
 async def list_orgunit_tree(
     orgid: UUID,
-    query: Optional[str] = None,
-    uuid: Optional[list[UUID]] = Query(None),
+    query: str | None = None,
+    uuid: list[UUID] | None = Query(None),
     only_primary_uuid: bool = False,
 ):
     """
@@ -990,7 +989,7 @@ async def list_orgunit_tree(
     )
 
     if query:
-        kwargs.update(vilkaarligattr="%{}%".format(query))
+        kwargs.update(vilkaarligattr=f"%{query}%")
 
     unitids = (
         list(map(str, uuid))
@@ -1094,12 +1093,12 @@ async def terminate_org_unit_validation(unitid, request):
     active_roles = roles - addresses
     role_counts = set()
     if active_roles:
-        role_counts = set(
+        role_counts = {
             mapping.ORG_FUNK_EGENSKABER_FIELD.get(obj)[0]["funktionsnavn"]
             for objid, obj in await c.organisationfunktion.get_all_by_uuid(
                 uuids=active_roles
             )
-        )
+        }
 
     if children and role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES(

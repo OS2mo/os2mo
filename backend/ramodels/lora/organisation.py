@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -27,7 +26,7 @@ class Organisation(LoraBase):
     states: OrganisationStates = Field(
         alias="tilstande", description="The organisation states."
     )
-    relations: Optional[OrganisationRelations] = Field(
+    relations: OrganisationRelations | None = Field(
         alias="relationer", description="The organisation relations."
     )
 
@@ -37,8 +36,8 @@ class Organisation(LoraBase):
         cls,
         name: str,
         user_key: str,  # often == name,
-        uuid: Optional[UUID] = None,
-        municipality_code: Optional[int] = None,
+        uuid: UUID | None = None,
+        municipality_code: int | None = None,
         from_date: str = "-infinity",
         to_date: str = "infinity",
     ) -> "Organisation":
@@ -59,7 +58,7 @@ class Organisation(LoraBase):
         # Organisation fields
         attributes = OrganisationAttributes(properties=[_properties])
         states = OrganisationStates(valid_state=[_valid_state])
-        relations: Optional[OrganisationRelations] = (
+        relations: OrganisationRelations | None = (
             OrganisationRelations(authority=[_authority]) if _authority else None
         )
 

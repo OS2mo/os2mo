@@ -1,8 +1,8 @@
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from datetime import date
 from operator import attrgetter
-from typing import Callable
 from uuid import UUID
 from uuid import uuid4
 

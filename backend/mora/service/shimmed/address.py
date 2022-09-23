@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
-from typing import Optional
 from uuid import UUID
 
 import httpx
@@ -65,7 +64,8 @@ async def address_autocomplete(
         example="3b866d97-0b1f-48e0-8078-686d96f430b3",
     ),
     q: str = Query(..., description="A query string to be used for lookup"),
-    global_lookup: Optional[bool] = Query(
+    global_lookup: bool
+    | None = Query(
         False,
         alias="global",
         description=(
@@ -82,7 +82,7 @@ async def address_autocomplete(
     if not config.get_settings().enable_dar:
         return []
 
-    code: Optional[int] = None
+    code: int | None = None
     if not global_lookup:
         query = "query OrganisationQuery { org { uuid, municipality_code } }"
         r = await execute_graphql(query)

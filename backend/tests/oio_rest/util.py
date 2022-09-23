@@ -135,7 +135,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         One addition is that we support a 'json' argument that
         automatically posts the given JSON data.
         """
-        message = message or "request {!r} didn't fail properly".format(path)
+        message = message or f"request {path!r} didn't fail properly"
 
         r = self.perform_request(path, **kwargs)
 
@@ -189,14 +189,14 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
     def assertOK(self, response, message=None):
         self.assertTrue(
             200 <= response.status_code < 300,
-            message or "request failed with {}!".format(response.status_code),
+            message or f"request failed with {response.status_code}!",
         )
 
     def assertUUID(self, s):
         try:
             uuid.UUID(s)
         except (TypeError, ValueError):
-            self.fail("{!r} is not a uuid!".format(s))
+            self.fail(f"{s!r} is not a uuid!")
 
     def assert201(self, response):
         """
@@ -278,7 +278,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         """
         if uuid:
             method = "PUT"
-            path = "{}/{}".format(path, uuid)
+            path = f"{path}/{uuid}"
         else:
             method = "POST"
 
@@ -288,7 +288,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             method=method,
         )
 
-        msg = "write of {!r} to {!r} failed!".format(fixture_name, path)
+        msg = f"write of {fixture_name!r} to {path!r} failed!"
 
         try:
             self.assertOK(r, msg)

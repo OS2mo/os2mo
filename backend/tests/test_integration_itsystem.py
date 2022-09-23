@@ -19,17 +19,17 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
         with self.subTest("preconditions"):
             await self.assertRequestResponse(
-                "/service/e/{}/details/it?validity=past".format(userid),
+                f"/service/e/{userid}/details/it?validity=past",
                 [],
             )
 
             await self.assertRequestResponse(
-                "/service/e/{}/details/it".format(userid),
+                f"/service/e/{userid}/details/it",
                 [],
             )
 
             await self.assertRequestResponse(
-                "/service/e/{}/details/it?validity=future".format(userid),
+                f"/service/e/{userid}/details/it?validity=future",
                 [],
             )
 
@@ -60,13 +60,13 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/it?validity=past".format(userid),
+            f"/service/e/{userid}/details/it?validity=past",
             [],
             amqp_topics={"employee.it.create": 1},
         )
 
         await self.assertRequestResponse(
-            "/service/e/{}/details/it".format(userid),
+            f"/service/e/{userid}/details/it",
             [],
             amqp_topics={"employee.it.create": 1},
         )
@@ -99,17 +99,17 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
         with self.subTest("preconditions"):
             await self.assertRequestResponse(
-                "/service/ou/{}/details/it?validity=past".format(unitid),
+                f"/service/ou/{unitid}/details/it?validity=past",
                 [],
             )
 
             await self.assertRequestResponse(
-                "/service/ou/{}/details/it".format(unitid),
+                f"/service/ou/{unitid}/details/it",
                 [],
             )
 
             await self.assertRequestResponse(
-                "/service/ou/{}/details/it?validity=future".format(unitid),
+                f"/service/ou/{unitid}/details/it?validity=future",
                 [],
             )
 
@@ -140,19 +140,19 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/it?validity=past".format(unitid),
+            f"/service/ou/{unitid}/details/it?validity=past",
             [],
             amqp_topics={"org_unit.it.create": 1},
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/it".format(unitid),
+            f"/service/ou/{unitid}/details/it",
             [],
             amqp_topics={"org_unit.it.create": 1},
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/it?validity=future".format(unitid),
+            f"/service/ou/{unitid}/details/it?validity=future",
             [
                 {
                     "itsystem": {
@@ -606,7 +606,7 @@ class Reading(tests.cases.LoRATestCase):
             "da77153e-30f3-4dc2-a611-ee912a28d8aa",
         ):
             for validity in ("past", "present", "future"):
-                with self.subTest("{} - {}".format(unitid, validity)):
+                with self.subTest(f"{unitid} - {validity}"):
                     self.assertRequestResponse(
                         "/service/ou/{}/details/it?validity={}".format(
                             unitid,

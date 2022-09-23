@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
-from typing import Optional
 
 from structlog import get_logger
 
@@ -22,7 +21,7 @@ logger = get_logger()
 class OrgUnitReader(reading.ReadingHandler):
     @classmethod
     async def get(
-        cls, c, search_fields, changed_since: Optional[datetime] = None, flat=False
+        cls, c, search_fields, changed_since: datetime | None = None, flat=False
     ):
         object_tuples = await cls._get_lora_object(
             c=c, search_fields=search_fields, changed_since=changed_since
@@ -30,9 +29,7 @@ class OrgUnitReader(reading.ReadingHandler):
         return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
-    async def get_from_type(
-        cls, c, type, objid, changed_since: Optional[datetime] = None
-    ):
+    async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
         if type != "ou":
             exceptions.ErrorCodes.E_INVALID_ROLE_TYPE()
         object_tuples = await c.organisationenhed.get_all_by_uuid(
@@ -42,7 +39,7 @@ class OrgUnitReader(reading.ReadingHandler):
 
     @classmethod
     async def _get_lora_object(
-        cls, c, search_fields, changed_since: Optional[datetime] = None
+        cls, c, search_fields, changed_since: datetime | None = None
     ):
         if mapping.UUID in search_fields:
             return await c.organisationenhed.get_all_by_uuid(

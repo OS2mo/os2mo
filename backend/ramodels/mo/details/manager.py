@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from pydantic import Field
@@ -30,12 +29,12 @@ class ManagerRead(ManagerBase):
     org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the manager."
     )
-    employee_uuid: Optional[UUID] = Field(
+    employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the manager."
     )
-    manager_type_uuid: Optional[UUID] = Field(description="UUID of the manager type.")
-    manager_level_uuid: Optional[UUID] = Field(description="UUID of the manager level.")
-    responsibility_uuids: Optional[list[UUID]] = Field(
+    manager_type_uuid: UUID | None = Field(description="UUID of the manager type.")
+    manager_level_uuid: UUID | None = Field(description="UUID of the manager level.")
+    responsibility_uuids: list[UUID] | None = Field(
         description="List of UUID's of the responsibilities."
     )
 
@@ -46,16 +45,16 @@ class ManagerWrite(ManagerBase):
     org_unit: OrgUnitRef = Field(
         description="Reference to the organisation unit for the manager."
     )
-    employee: Optional[EmployeeRef] = Field(
+    employee: EmployeeRef | None = Field(
         description="Reference to the employee that will be the resulting manager."
     )
-    manager_level: Optional[ManagerLevel] = Field(
+    manager_level: ManagerLevel | None = Field(
         description="Reference to the manager level klasse for the created manager."
     )
-    manager_type: Optional[ManagerType] = Field(
+    manager_type: ManagerType | None = Field(
         description="Reference to the manager type klasse for the created manager."
     )
-    responsibility: Optional[list[Responsibility]] = Field(
+    responsibility: list[Responsibility] | None = Field(
         description="List of manager responsibility objects."
     )
 
@@ -99,8 +98,8 @@ class Manager(MOBase):
         manager_level_uuid: UUID,
         manager_type_uuid: UUID,
         from_date: str,
-        to_date: Optional[str] = None,
-        uuid: Optional[UUID] = None,
+        to_date: str | None = None,
+        uuid: UUID | None = None,
     ) -> "Manager":
         """Create a manager from simplified fields."""
         person = PersonRef(uuid=person_uuid)

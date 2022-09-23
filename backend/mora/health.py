@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-from typing import Optional
 
 from fastapi import APIRouter
 from fastapi import HTTPException
@@ -65,7 +64,7 @@ async def root() -> dict[str, bool]:
 
 
 @router.get("/{identifier}")
-async def healthcheck(identifier: str) -> Optional[bool]:
+async def healthcheck(identifier: str) -> bool | None:
     query = """
     query HealthQuery($identifier: String!) {
       healths(identifiers: [$identifier]) {

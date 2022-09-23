@@ -112,7 +112,7 @@ class Tests(DBTestCase):
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         self.assertRequestResponse(
-            "/klassifikation/klasse/{}".format(objid),
+            f"/klassifikation/klasse/{objid}",
             {
                 "uuid": objid,
             },
@@ -228,7 +228,7 @@ class Tests(DBTestCase):
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
         self.assertRequestResponse(
-            "/klassifikation/klasse/{}".format(objid),
+            f"/klassifikation/klasse/{objid}",
             {
                 "uuid": objid,
             },

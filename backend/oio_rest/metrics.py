@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Callable
+from collections.abc import Callable
 
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator

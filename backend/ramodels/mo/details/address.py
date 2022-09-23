@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from typing import Literal
-from typing import Optional
 from uuid import UUID
 
 from more_itertools import one
@@ -28,7 +27,7 @@ class AddressBase(MOBase):
 
     type_: str = Field("address", alias="type", description="The object type.")
     value: str = Field(description="Value of the address, e.g. street or phone number.")
-    value2: Optional[str] = Field(description="Optional second value of the address.")
+    value2: str | None = Field(description="Optional second value of the address.")
     validity: Validity = Field(description="Validity of the address object.")
 
 
@@ -40,16 +39,16 @@ class AddressRead(AddressBase):
     """
 
     address_type_uuid: UUID = Field(description="UUID of the address type klasse.")
-    employee_uuid: Optional[UUID] = Field(
+    employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the address."
     )
-    org_unit_uuid: Optional[UUID] = Field(
+    org_unit_uuid: UUID | None = Field(
         description="UUID of the organisation unit related to the address."
     )
-    engagement_uuid: Optional[UUID] = Field(
+    engagement_uuid: UUID | None = Field(
         description="UUID of the engagement related to the address."
     )
-    visibility_uuid: Optional[UUID] = Field(
+    visibility_uuid: UUID | None = Field(
         description="UUID of the visibility klasse of the address."
     )
 
@@ -66,21 +65,21 @@ class AddressWrite(AddressBase):
     address_type: AddressType = Field(
         description="Reference to the address type klasse."
     )
-    employee: Optional[EmployeeRef] = Field(
+    employee: EmployeeRef | None = Field(
         description="Reference to the employee for which the address should be created."
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description=(
             "Reference to the organisation unit for which the address should "
             "be created."
         )
     )
-    engagement: Optional[EngagementRef] = Field(
+    engagement: EngagementRef | None = Field(
         description=(
             "Reference to the engagement for which the address should be created."
         )
     )
-    visibility: Optional[Visibility] = Field(
+    visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
     )
 
@@ -121,34 +120,34 @@ class Address(MOBase):
         "address", alias="type", description="The object type."
     )
     value: str = Field(description="Value of the address, e.g. street or phone number.")
-    value2: Optional[str] = Field(description="Optional second value of the address.")
+    value2: str | None = Field(description="Optional second value of the address.")
     address_type: AddressType = Field(
         description="Reference to the address type facet."
     )
-    org: Optional[OrganisationRef] = Field(
+    org: OrganisationRef | None = Field(
         description=(
             "Reference to the organisation under which the address should be created. "
             "MO only supports one organisation, so this is rarely used."
         )
     )
-    person: Optional[PersonRef] = Field(
+    person: PersonRef | None = Field(
         description=(
             "Reference to the person object for which the address should be created."
         )
     )
-    org_unit: Optional[OrgUnitRef] = Field(
+    org_unit: OrgUnitRef | None = Field(
         description=(
             "Reference to the organisation unit for which the address should be "
             "created."
         )
     )
-    engagement: Optional[EngagementRef] = Field(
+    engagement: EngagementRef | None = Field(
         description=(
             "Reference to the engagement for which the address should be created."
         )
     )
     validity: Validity = Field(description="Validity of the created address object.")
-    visibility: Optional[Visibility] = Field(
+    visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
     )
 
@@ -158,14 +157,14 @@ class Address(MOBase):
         value: str,
         address_type_uuid: UUID,
         from_date: str,
-        uuid: Optional[UUID] = None,
-        to_date: Optional[str] = None,
-        value2: Optional[str] = None,
-        person_uuid: Optional[UUID] = None,
-        org_unit_uuid: Optional[UUID] = None,
-        engagement_uuid: Optional[UUID] = None,
-        visibility_uuid: Optional[UUID] = None,
-        org_uuid: Optional[UUID] = None,
+        uuid: UUID | None = None,
+        to_date: str | None = None,
+        value2: str | None = None,
+        person_uuid: UUID | None = None,
+        org_unit_uuid: UUID | None = None,
+        engagement_uuid: UUID | None = None,
+        visibility_uuid: UUID | None = None,
+        org_uuid: UUID | None = None,
     ) -> "Address":
         """Create an address from simplified fields."""
         address_type = AddressType(uuid=address_type_uuid)

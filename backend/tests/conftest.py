@@ -2,11 +2,10 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
+from collections.abc import Callable
+from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Any
-from typing import Callable
-from typing import Generator
-from typing import Optional
 from uuid import UUID
 from uuid import uuid4
 
@@ -234,15 +233,15 @@ def service_client_not_raising(fastapi_test_app):
 
 @dataclass
 class GQLResponse:
-    data: Optional[dict]
-    errors: Optional[list[dict]]
+    data: dict | None
+    errors: list[dict] | None
     status_code: int
 
 
 @pytest.fixture(scope="class")
 def graphapi_post(graphapi_test: TestClient):
     def _post(
-        query: str, variables: Optional[dict[str, Any]] = None, url: str = "/graphql"
+        query: str, variables: dict[str, Any] | None = None, url: str = "/graphql"
     ) -> GQLResponse:
         with graphapi_test as client:
             response = client.post(url, json={"query": query, "variables": variables})
@@ -254,7 +253,7 @@ def graphapi_post(graphapi_test: TestClient):
 
 
 def gen_organisation(
-    uuid: Optional[UUID] = None,
+    uuid: UUID | None = None,
     name: str = "name",
     user_key: str = "user_key",
 ) -> dict[str, Any]:

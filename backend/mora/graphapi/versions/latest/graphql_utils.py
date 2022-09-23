@@ -15,4 +15,4 @@ class PrintableStr(ConstrainedStr):
     Used in Pydantic models.
     """
 
-    regex = re.compile(r"^[{0}\n]+$".format(string.printable))
+    regex = re.compile(rf"^[{string.printable}\n]+$")

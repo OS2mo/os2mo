@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from typing import Optional
-
 from fastapi import APIRouter
 from fastapi import Body
 
@@ -285,9 +283,7 @@ async def candidate_parent_org_unit(req: dict = Body(...)):
 
 
 @_router.post("/address/")
-async def address_value(
-    req: dict = Body(...), only_primary_uuid: Optional[bool] = None
-):
+async def address_value(req: dict = Body(...), only_primary_uuid: bool | None = None):
     """
     Verify that a given address value conforms to the format for the given
     address type. E.g. that a phone number consists of 8 digits.
