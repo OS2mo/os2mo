@@ -101,16 +101,18 @@ async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
         employee_update.get_legacy_dict(), mapping.RequestType.EDIT
     )
 
-    try:
-        tst = UUID(result)
-    except Exception as e:
-        tap="test"
+    # Based on the logic at: backend/mora/lora.py:159
+    # If there is no data changed, it looks like we wont get a UUID  back.
+    updated_uuid = UUID(result) if result else employee_update.uuid
 
-    return EmployeeUpdateResponseType(uuid=UUID(result))
+    return EmployeeUpdateResponseType(uuid=updated_uuid)
 
 
 # Helper methods
 def _is_update_changeset_empty(employee_update: EmployeeUpdate):
+    if employee_update.to_date:
+        return False
+
     if employee_update.name or employee_update.given_name or employee_update.surname:
         return False
 

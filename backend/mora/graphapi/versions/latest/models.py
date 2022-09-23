@@ -488,28 +488,27 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         None, description="New danish CPR No. of the employee."
     )
 
-    @root_validator
-    def validate_name_with_given_name_and_surname(cls, values: dict) -> dict:
-        """Validate the model after set of fields."""
-        # Validate dates
-        model_from_date = values.get("from_date")
-        model_to_date = values.get("to_date")
-        if model_to_date:
-            if model_to_date < model_from_date:
-                raise ValueError("'to_date' must be after 'from_date'.")
-
-        # Validate name-vars and nickname-vars
-        if values.get("name") and (values.get("given_name") or values.get("surname")):
-            raise ValueError(cls._ERR_INVALID_NAME)
-
-        if values.get("nickname") and (
-            values.get("nickname_given_name") or values.get("nickname_surname")
-        ):
-            raise ValueError(cls._ERR_INVALID_NICKNAME)
-
-        return values
+    # @root_validator
+    # def validate_name_with_given_name_and_surname(cls, values: dict) -> dict:
+    #     """Validate the model after set of fields."""
+    #     # Validate dates
+    #     model_from_date = values.get("from_date")
+    #     model_to_date = values.get("to_date")
+    #     if model_to_date:
+    #         if model_to_date < model_from_date:
+    #             raise ValueError("'to_date' must be after 'from_date'.")
+    #
+    #     return values
 
     def get_legacy_dict(self) -> dict:
+        # Validate name-vars and nickname-vars before going further
+        if self.name and (self.given_name or self.surname):
+            raise ValueError(self._ERR_INVALID_NAME)
+
+        if self.nickname and (self.nickname_given_name or self.nickname_surname):
+            raise ValueError(self._ERR_INVALID_NICKNAME)
+
+        # Create validity dict
         validity_dict = {}
         if self.from_date:
             validity_dict[mapping.FROM] = self.from_date.date().isoformat()
