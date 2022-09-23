@@ -241,7 +241,7 @@ class GQLResponse:
 @pytest.fixture(scope="class")
 def graphapi_post(graphapi_test: TestClient):
     def _post(
-        query: str, variables: dict[str, Any] | None = None, url: str = "/graphql"
+        query: str, variables: dict[str, Any] | None = None, url: str = "/graphql/v2"
     ) -> GQLResponse:
         with graphapi_test as client:
             response = client.post(url, json={"query": query, "variables": variables})

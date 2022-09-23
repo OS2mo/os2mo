@@ -23,7 +23,7 @@ def graphapi_test():
 def graphapi_post_integration(graphapi_test: TestClient):
     def _post(query: str, variables: dict[str, Any] | None = None) -> GQLResponse:
         response = graphapi_test.post(
-            "/graphql", json={"query": query, "variables": variables}
+            "/graphql/v2", json={"query": query, "variables": variables}
         )
         data, errors = response.json().get("data"), response.json().get("errors")
         status_code = response.status_code
