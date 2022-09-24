@@ -17,6 +17,7 @@ from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
+from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -418,6 +419,42 @@ class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless
                 ]
             },
             "note": "Afslut enhed",
+        }
+
+
+class OrganisationUnitCreate(OrganisationUnit):
+    """Model for creating org-units."""
+
+    name: str = Field(description="Org-unit name.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    parent: UUID | None = Field(None, description="UUID of the related parent.")
+    org_unit_type: UUID | None = Field(description="UUID of the type.")
+    time_planning: UUID | None = Field(description="UUID of time planning.")
+    org_unit_level: UUID | None = Field(description="UUID of unit level.")
+    org_unit_hierarchy: UUID | None = Field(description="UUID of the unit hierarchy.")
+    validity: RAValidity = Field(description="Validity range for the org-unit.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        return {
+            "name": self.name,
+            "user_key": self.user_key,
+            "time_planning": gen_uuid(self.time_planning),
+            "parent": gen_uuid(self.parent),
+            "org_unit_type": gen_uuid(self.org_unit_type),
+            "org_unit_level": gen_uuid(self.org_unit_level),
+            "org_unit_hierarchy": gen_uuid(self.org_unit_hierarchy),
+            "details": [],
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
         }
 
 

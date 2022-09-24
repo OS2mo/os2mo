@@ -9,6 +9,7 @@ from strawberry.dataloader import DataLoader
 
 from .dataloaders import get_loaders
 from .models import MoraTriggerRequest
+from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrgUnitTrigger
 from .models import Validity
@@ -182,3 +183,14 @@ async def terminate_org_unit(
 
     # Return the unit as the final thing
     return OrganizationUnit(uuid=lora_result)
+
+
+async def create_org_unit(input: OrganisationUnitCreate) -> OrganizationUnit:
+    input_dict = input.to_handler_dict()
+
+    handler = await OrgUnitRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
+    uuid = await handler.submit()
+
+    return OrganizationUnit(uuid=UUID(uuid))

@@ -18,9 +18,11 @@ from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
 from .inputs import EngagementTerminateInput
 from .inputs import ITUserTerminateInput
+from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
+from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
@@ -136,6 +138,17 @@ class Mutation:
         result = await trigger_org_unit_refresh(uuid)
         organisation_unit_refresh = OrganisationUnitRefreshRead(**result)
         return OrganisationUnitRefresh.from_pydantic(organisation_unit_refresh)
+
+    @strawberry.mutation(
+        description="Creates org-unit",
+        permission_classes=[admin_permission_class],
+    )
+    async def org_unit_create(
+        self, input: OrganizationUnitCreateInput
+    ) -> OrganizationUnit:
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
+        return await create_org_unit(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an organization unit by UUID",
