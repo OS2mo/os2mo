@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.8.0 - 2022-09-24
+-------------------
+
+[#51181] introduce organization unit create mutator
+
 11.7.2 - 2022-09-21
 -------------------
 
