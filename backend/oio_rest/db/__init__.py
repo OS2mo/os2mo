@@ -6,6 +6,7 @@ import datetime
 import enum
 import os
 import pathlib
+from uuid import uuid4
 
 import dateutil
 import psycopg2
@@ -39,6 +40,7 @@ from .db_helpers import OffentlighedUndtaget
 from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
+from mora.graphapi.middleware import IdempotencyToken
 from oio_rest import config
 
 """
@@ -438,7 +440,23 @@ where de.indhold = %s"""
     return result
 
 
-def create_or_import_object(class_name, note, registration, uuid=None):
+def insert_idempotency_token(cursor, token: IdempotencyToken | None) -> None:
+    if token is None:
+        return
+
+    cursor.execute(
+        "INSERT INTO idempotency_token (id, token, expiration) VALUES (%s, %s, %s)",
+        (
+            str(uuid4()),
+            token.token,
+            datetime.datetime.now() + datetime.timedelta(seconds=token.lifespan),
+        ),
+    )
+
+
+def create_or_import_object(
+    class_name, note, registration, uuid=None, token: IdempotencyToken | None = None
+):
     """Create a new object by calling the corresponding stored procedure.
 
     Create a new object by calling actual_state_create_or_import_{class_name}.
@@ -477,6 +495,7 @@ def create_or_import_object(class_name, note, registration, uuid=None):
     # Call Postgres! Return OK or not accordingly
     with get_connection().cursor() as cursor:
         try:
+            insert_idempotency_token(cursor, token)
             cursor.execute(sql)
         except psycopg2.Error as e:
             if e.pgcode is not None and e.pgcode[:2] == "MO":

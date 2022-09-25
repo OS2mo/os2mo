@@ -13,8 +13,11 @@ import dateutil
 import jsonschema
 import more_itertools
 from fastapi import APIRouter
+from fastapi import Depends
+from fastapi import Header
 from fastapi import HTTPException
 from fastapi import Request
+from pydantic import parse_raw_as
 from werkzeug.datastructures import ImmutableOrderedMultiDict
 from werkzeug.exceptions import BadRequest
 
@@ -30,6 +33,7 @@ from .db.quick_query.search import quick_search
 from .utils import build_registration
 from .utils import split_param
 from .utils import to_lower_param
+from mora.graphapi.middleware import IdempotencyToken
 
 """List of parameters allowed for all searches."""
 GENERAL_SEARCH_PARAMS = frozenset(
@@ -305,6 +309,15 @@ class Registration:
         self.relations = relations
 
 
+def idempotency_token(
+    x_idempotency_token: str | None = Header(default=None),
+) -> IdempotencyToken | None:
+    if x_idempotency_token is None:
+        return None
+    token = parse_raw_as(IdempotencyToken, x_idempotency_token)
+    return token
+
+
 class OIOStandardHierarchy:
     """Implement API for entire hierarchy."""
 
@@ -377,14 +390,17 @@ class OIORestObject:
                 return None
 
     @classmethod
-    async def create_object(cls, request: Request):
+    async def create_object(
+        cls,
+        request: Request,
+        token: IdempotencyToken | None = Depends(idempotency_token),
+    ):
         """A :ref:`CreateOperation` that creates a new object from the JSON
         payload. It returns a newly generated UUID for the created object.
 
         .. :quickref: :ref:`CreateOperation`
 
         """
-
         await cls.verify_args(request)
 
         input = await cls.get_json(request)
@@ -399,7 +415,7 @@ class OIORestObject:
 
         note = typed_get(input, "note", "")
         registration = cls.gather_registration(input)
-        uuid = db.create_or_import_object(cls.__name__, note, registration)
+        uuid = db.create_or_import_object(cls.__name__, note, registration, token)
         # Pass log info on request object.
         # request.api_operation = "Opret"
         # request.uuid = uuid
@@ -600,7 +616,12 @@ class OIORestObject:
         }
 
     @classmethod
-    async def put_object(cls, uuid: UUID, request: Request):
+    async def put_object(
+        cls,
+        uuid: UUID,
+        request: Request,
+        token: IdempotencyToken | None = Depends(idempotency_token),
+    ):
         """A :ref:`ImportOperation` that creates or overwrites an object from
         the JSON payload.  It returns the UUID for the object.
 
@@ -614,7 +635,6 @@ class OIORestObject:
         ``livscykluskode: "Rettet"``.
 
         .. :quickref: :ref:`ImportOperation`
-
         """
         uuid = str(uuid)
         await cls.verify_args(request)
@@ -647,7 +667,7 @@ class OIORestObject:
         if not exists:
             # Do import.
             # request.api_operation = "Import"
-            db.create_or_import_object(cls.__name__, note, registration, uuid)
+            db.create_or_import_object(cls.__name__, note, registration, uuid, token)
         elif deleted_or_passive:
             # Import.
             # request.api_operation = "Import"
@@ -661,7 +681,7 @@ class OIORestObject:
         else:
             # Edit.
             # request.api_operation = "Ret"
-            db.create_or_import_object(cls.__name__, note, registration, uuid)
+            db.create_or_import_object(cls.__name__, note, registration, uuid, token)
         return {"uuid": uuid}
 
     @classmethod
