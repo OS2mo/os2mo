@@ -11,14 +11,13 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import HealthCheck
-from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.middleware import IdempotencyToken
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -27,6 +26,7 @@ from mora.graphapi.versions.latest.types import OrganizationUnit
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo import Validity as RAValidity
 from tests.conftest import GQLResponse
+from tests.util import starlette_context
 
 
 @given(test_data=graph_data_strat(OrganisationUnitRead))
@@ -176,8 +176,6 @@ def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     return class_uuids
 
 
-# We can suppress this as we use subtests
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -223,6 +221,7 @@ async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) 
                 from_date=st.just(test_data_validity_start),
                 to_date=test_data_validity_end_strat,
             ),
+            idempotency_token=st.none(),
         )
     )
     payload = jsonable_encoder(test_data)
@@ -234,9 +233,7 @@ async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) 
             }
         }
     """
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
+    response: GQLResponse = graphapi_post(mutate_query, {"input": payload})
     assert response.errors is None
     uuid = UUID(response.data["org_unit_create"]["uuid"])
 
@@ -283,3 +280,49 @@ async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) 
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@pytest.mark.parametrize("idempotency", [True, False])
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_create_org_unit_idempotency_token(graphapi_post, idempotency: bool) -> None:
+    """Test that organisation units are protected with idempotency token."""
+    mutate_query = """
+        mutation CreateOrgUnit($input: OrganizationUnitCreateInput!) {
+            org_unit_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    test_data = OrganisationUnitCreate(
+        name="New org-unit",
+        org_unit_type=UUID("4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"),
+        time_planning=UUID("ebce5c35-4e30-4ba8-9a08-c34592650b04"),
+        org_unit_level=UUID("0f015b67-f250-43bb-9160-043ec19fad48"),
+        org_unit_hierarchy=None,
+        validity=RAValidity(
+            from_date="1970-01-01",
+        ),
+    )
+    if idempotency:
+        test_data = test_data.copy(
+            update={"idempotency_token": IdempotencyToken(token="UniqueTokenHere")}
+        )
+    payload = jsonable_encoder(test_data)
+
+    with starlette_context():
+        response = graphapi_post(mutate_query, {"input": payload})
+        assert response.errors is None
+        UUID(response.data["org_unit_create"]["uuid"])
+
+        response = graphapi_post(mutate_query, {"input": payload})
+        if idempotency:
+            assert response.errors is not None
+            error = one(response.errors)
+            assert (
+                'duplicate key value violates unique constraint "idempotency_token_token_key"'
+                in error["message"]
+            )
+        else:
+            assert response.errors is None
+            UUID(response.data["org_unit_create"]["uuid"])

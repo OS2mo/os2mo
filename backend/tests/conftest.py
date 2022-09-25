@@ -33,6 +33,7 @@ from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
+from tests.util import starlette_context
 
 # Configs + fixtures
 h_db = InMemoryExampleDatabase()
@@ -107,6 +108,13 @@ def mocked_context(monkeypatch) -> _Context:
 
     monkeypatch.setattr(_Context, "data", data)
     return _Context()
+
+
+@pytest.fixture(autouse=True, scope="session")
+def patch_idempotency_token():
+    with starlette_context() as context:
+        context["idempotency_token"] = None
+        yield context
 
 
 async def fake_auth():
