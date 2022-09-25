@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.8.1 - 2022-09-25
+-------------------
+
+[#51674] IT-user terminate bugfix and model correction
+
 11.8.0 - 2022-09-24
 -------------------
 
