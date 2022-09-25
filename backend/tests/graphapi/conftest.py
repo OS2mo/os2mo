@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import Token
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
@@ -43,8 +44,16 @@ def patch_loader():
 
 async def admin_auth():
     auth = await fake_auth()
-    auth.update({"realm_access": {"roles": "admin"}})
-    return auth
+    auth.update(
+        {
+            "realm_access": {
+                "roles": {
+                    "admin",
+                }
+            }
+        }
+    )
+    return Token(**auth)
 
 
 def test_app():

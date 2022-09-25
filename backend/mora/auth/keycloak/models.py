@@ -7,7 +7,6 @@ from typing import Dict
 from uuid import UUID
 
 from os2mo_fastapi_utils.auth.models import Token as BaseToken
-from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import root_validator
 from pydantic import validator
@@ -42,15 +41,4 @@ class KeycloakToken(BaseToken):
         extra = Extra.ignore
 
 
-# TODO: Remove the stuff below, once a proper auth solution is in place,
-#  that works for local DIPEX development.
-#  https://redmine.magenta-aps.dk/issues/44020
-
-
-class NoAuthToken(BaseModel):
-    pass
-
-
 Token = KeycloakToken
-if not config.get_settings().os2mo_auth:
-    Token = NoAuthToken
