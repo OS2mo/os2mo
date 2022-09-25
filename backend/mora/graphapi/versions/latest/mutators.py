@@ -117,10 +117,10 @@ class Mutation:
     # Facets
     # ------
     @strawberry.mutation(
-        description="Create new facet", permission_classes=[admin_permission_class]
+        description="Create new facet object",
+        permission_classes=[admin_permission_class],
     )
     async def facet_create(self, input: FacetCreateInput) -> FacetType:
-
         return await create_facet(input.to_pydantic())  # type: ignore
 
     # ITSystems
