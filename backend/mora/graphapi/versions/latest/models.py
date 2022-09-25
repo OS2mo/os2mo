@@ -13,6 +13,7 @@ from pydantic import Field
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora.graphapi.middleware import IdempotencyToken
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -439,13 +440,16 @@ class OrganisationUnitCreate(OrganisationUnit):
     """Model for creating org-units."""
 
     name: str = Field(description="Org-unit name.")
-    user_key: str | None = Field(description="Extra info or uuid.")
+    user_key: str | None = Field(None, description="Extra info or uuid.")
     parent: UUID | None = Field(None, description="UUID of the related parent.")
     org_unit_type: UUID | None = Field(description="UUID of the type.")
     time_planning: UUID | None = Field(description="UUID of time planning.")
     org_unit_level: UUID | None = Field(description="UUID of unit level.")
     org_unit_hierarchy: UUID | None = Field(description="UUID of the unit hierarchy.")
     validity: RAValidity = Field(description="Validity range for the org-unit.")
+    idempotency_token: IdempotencyToken | None = Field(
+        None, description="Idempotency token."
+    )
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:

@@ -12,6 +12,7 @@ from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import Validity
+from mora.graphapi.middleware import IdempotencyToken
 from ramodels.mo import Validity as RAValidity
 
 
@@ -30,6 +31,14 @@ class ValidityInput:
     all_fields=True,
 )
 class RAValidityInput:
+    pass
+
+
+@strawberry.experimental.pydantic.input(
+    model=IdempotencyToken,
+    all_fields=True,
+)
+class IdempotencyTokenInput:
     pass
 
 

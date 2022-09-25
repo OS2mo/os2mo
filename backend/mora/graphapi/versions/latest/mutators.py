@@ -20,6 +20,7 @@ from .inputs import EngagementTerminateInput
 from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
+from .it_user import terminate as terminate_ituser
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
@@ -32,7 +33,7 @@ from .types import EmployeeType
 from .types import EngagementTerminateType
 from .types import ITUserType
 from .types import OrganizationUnit
-from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
+from mora.graphapi.middleware import set_idempotency_token
 
 logger = logging.getLogger(__name__)
 
@@ -148,7 +149,9 @@ class Mutation:
     ) -> OrganizationUnit:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await create_org_unit(input.to_pydantic())  # type: ignore
+        payload = input.to_pydantic()  # type: ignore
+        set_idempotency_token(payload.idempotency_token)
+        return await create_org_unit(payload)
 
     @strawberry.mutation(
         description="Terminates an organization unit by UUID",
