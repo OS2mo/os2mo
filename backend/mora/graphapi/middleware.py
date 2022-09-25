@@ -3,6 +3,8 @@
 """Starlette plugins to create context variables that can be used in the service app."""
 from typing import Any
 
+from pydantic import BaseModel
+from pydantic import Field
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
@@ -73,3 +75,30 @@ def set_graphql_dates(dates: OpenValidity) -> None:
 
 def get_graphql_dates() -> OpenValidity | None:
     return context.get("graphql_dates")
+
+
+class IdempotencyToken(BaseModel):
+    token: str = Field(
+        description="The token itself, a domain specific deterministic string."
+    )
+    lifespan: int = Field(
+        60 * 60 * 24, description="Seconds of validity for the idempotency token."
+    )
+
+
+class IdempotencyTokenPlugin(Plugin):
+    """Starlette plugin to create the `idempotency_token` context variable."""
+
+    key: str = "idempotency_token"
+
+    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
+        return None
+
+
+def set_idempotency_token(token: IdempotencyToken | None) -> None:
+    """Set token directly in the Starlette context."""
+    context["idempotency_token"] = token
+
+
+def get_idempotency_token() -> IdempotencyToken | None:
+    return context.get("idempotency_token")

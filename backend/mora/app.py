@@ -41,6 +41,7 @@ from mora.auth.keycloak.router import keycloak_router
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
+from mora.graphapi.middleware import IdempotencyTokenPlugin
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
@@ -145,6 +146,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
+                IdempotencyTokenPlugin(),
             ),
         )
     ]

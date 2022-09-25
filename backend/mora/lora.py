@@ -34,6 +34,7 @@ from structlog import get_logger
 from . import config
 from . import exceptions
 from . import util
+from .graphapi.middleware import get_idempotency_token
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
@@ -695,13 +696,19 @@ class Scope(BaseScope):
     async def create(self, obj, uuid=None):
         obj = uuid_to_str(obj)
 
+        headers = {}
+
+        token = get_idempotency_token()
+        if token:
+            headers = {"X-Idempotency-Token": token.json()}
+
         if uuid:
             uuid_path = f"{self.path}/{uuid}"
-            response = await client.put(uuid_path, json=obj)
+            response = await client.put(uuid_path, json=obj, headers=headers)
             await _check_response(response)
             return response.json()["uuid"]
         else:
-            response = await client.post(self.path, json=obj)
+            response = await client.post(self.path, json=obj, headers=headers)
             await _check_response(response)
             return response.json()["uuid"]
 
