@@ -4,13 +4,13 @@
 from uuid import UUID
 
 from .models import ITUserTerminate
-from .types import GenericUUIDType
+from .types import ITUserType
 from mora import lora
 from mora import mapping
 from mora.triggers import Trigger
 
 
-async def terminate(input: ITUserTerminate) -> GenericUUIDType:
+async def terminate(input: ITUserTerminate) -> ITUserType:
     trigger = input.get_trigger()
     trigger_dict = trigger.to_trigger_dict()
 
@@ -35,4 +35,4 @@ async def terminate(input: ITUserTerminate) -> GenericUUIDType:
     if not input.triggerless:
         _ = await Trigger.run(trigger_dict)
 
-    return GenericUUIDType(uuid=UUID(lora_result))
+    return ITUserType(uuid=UUID(lora_result))

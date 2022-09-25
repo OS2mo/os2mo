@@ -330,7 +330,7 @@ async def terminate_org_unit(
 ):
     mutation_func = "org_unit_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, $triggerless: Boolean) "
         f"{{ {mutation_func}"
         f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
         f"{{ uuid }} }}"

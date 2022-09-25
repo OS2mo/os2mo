@@ -30,7 +30,7 @@ from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
-from .types import GenericUUIDType
+from .types import ITUserType
 from .types import OrganizationUnit
 from mora.graphapi.versions.latest.it_user import terminate as terminate_ituser
 
@@ -54,7 +54,7 @@ class Mutation:
     async def address_terminate(
         self, at: AddressTerminateInput
     ) -> AddressTerminateType:
-        return await terminate_addr(at.to_pydantic())
+        return await terminate_addr(at.to_pydantic())  # type: ignore
 
     # Associations
     # ------------
@@ -85,7 +85,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
-        return await terminate_employee(input.to_pydantic())
+        return await terminate_employee(input.to_pydantic())  # type: ignore
 
     # Engagements
     # -----------
@@ -96,7 +96,7 @@ class Mutation:
     async def engagement_terminate(
         self, unit: EngagementTerminateInput
     ) -> EngagementTerminateType:
-        return await terminate_engagement(unit.to_pydantic())
+        return await terminate_engagement(unit.to_pydantic())  # type: ignore
 
     # EngagementsAssociations
     # -----------------------
@@ -113,8 +113,8 @@ class Mutation:
         description="Terminates IT-user by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> GenericUUIDType:
-        return await terminate_ituser(input.to_pydantic())
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
+        return await terminate_ituser(input.to_pydantic())  # type: ignore
 
     # KLEs
     # ----
@@ -157,7 +157,7 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
-        return await terminate_org_unit(unit.to_pydantic())
+        return await terminate_org_unit(unit.to_pydantic())  # type: ignore
 
     # Related Units
     # -------------

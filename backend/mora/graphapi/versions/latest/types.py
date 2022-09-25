@@ -19,14 +19,6 @@ CPRType = strawberry.scalar(
 )
 
 
-@strawberry.experimental.pydantic.type(
-    model=UUIDBase,
-    all_fields=True,
-)
-class GenericUUIDType:
-    """Generic UUID model for return types."""
-
-
 # Addresses
 # ---------
 @strawberry.experimental.pydantic.type(
@@ -74,6 +66,13 @@ class EngagementTerminateType:
 
 # ITUsers
 # -------
+@strawberry.experimental.pydantic.type(
+    model=UUIDBase,
+    all_fields=True,
+)
+class ITUserType:
+    """Generic UUID model for return types."""
+
 
 # KLEs
 # ----

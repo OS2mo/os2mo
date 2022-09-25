@@ -13,7 +13,6 @@ from pydantic import Field
 from mora import common
 from mora import exceptions
 from mora import mapping
-from mora import util
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -82,10 +81,6 @@ class Validity(OpenValidity):
 
 class ValidityTerminate(Validity):
     to_date: datetime.datetime = Field(
-        util.NEGATIVE_INFINITY,
-        # OBS: Above line should not be necessary, but due to mypy and strawberry not
-        # working together properly, this is required in order to prevent mypy from
-        # complaining about the strawberry inputs in ".inputs" (and types)
         alias="to",
         description="When the validity should end " "- required when terminating",
     )
@@ -177,6 +172,8 @@ class OrgFuncTrigger(MoraTrigger):
 class Organisation(UUIDBase):
     """Model representing an Organization."""
 
+    pass
+
 
 # Addresses
 # ---------
@@ -188,8 +185,10 @@ class Address(UUIDBase):
     """Address (detail) model."""
 
 
-class AddressTerminate(Address, ValidityTerminate, Triggerless):
+class AddressTerminate(ValidityTerminate, Triggerless):
     """Model representing an address-termination."""
+
+    uuid: UUID = Field(description="UUID for the address we want to terminate.")
 
     def get_address_trigger(self) -> AddressTrigger:
         return AddressTrigger(
@@ -243,8 +242,10 @@ class EmployeeCreate(BaseModel):
     )
 
 
-class EmployeeTerminate(Employee, ValidityTerminate, Triggerless):
+class EmployeeTerminate(ValidityTerminate, Triggerless):
     """Model representing an employee termination."""
+
+    uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
 class EmployeeUpdate(UUIDBase):
@@ -314,8 +315,10 @@ class EngagementModel(UUIDBase):
     """Model representing an Engagement."""
 
 
-class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
+class EngagementTerminate(ValidityTerminate, Triggerless):
     """Model representing an engagement termination(or rather end-date update)."""
+
+    uuid: UUID = Field(description="UUID for the engagement we want to terminate.")
 
     def get_lora_payload(self) -> dict:
         return {
@@ -353,10 +356,18 @@ class EngagementTerminate(EngagementModel, ValidityTerminate, Triggerless):
 
 # ITUsers
 # -------
-class ITUserTerminate(UUIDBase, ValidityTerminate, Triggerless):
+class ITUserModel(UUIDBase):
+    """Model representing an Engagement."""
+
+    pass
+
+
+class ITUserTerminate(ValidityTerminate, Triggerless):
     """Model representing termination of it-user."""
 
     """(or rather end-date update for access to IT-system)."""
+
+    uuid: UUID = Field(description="UUID for the it-user we want to terminate.")
 
     def get_lora_payload(self) -> dict:
         return {
@@ -408,8 +419,10 @@ class OrganisationUnit(UUIDBase):
     """Model representing a Organization-Unit."""
 
 
-class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless):
+class OrganisationUnitTerminate(ValidityTerminate, Triggerless):
     """Model representing a organization-unit termination."""
+
+    uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
 
     def get_lora_payload(self) -> dict:
         return {
