@@ -56,6 +56,7 @@ def run_migrations_online():
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
+            # target_metadata=target_metadata,
             # Where to create Alembics own "alembic_version" table
             version_table_schema="public",
         )
