@@ -633,7 +633,12 @@ async def test_update_pydantic_model(
         st.text() | st.none(),
     ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
     # given_seniority
-    st.text() | st.none(),
+    # st.text() | st.none(),
+    st.datetimes(
+        min_value=datetime.datetime(1930, 1, 1),
+        max_value=now_beginning,
+    )
+    | st.none(),
     # cpr_no
     st.from_regex(r"^\d{10}$") | st.none(),
 )
@@ -674,21 +679,21 @@ async def test_update_mutator(
     if given_name:
         mutator_args["name"] = given_name
     if given_givenname:
-        mutator_args["givenName"] = given_givenname
+        mutator_args["given_name"] = given_givenname
     if given_surname:
         mutator_args["surname"] = given_surname
 
     if given_nickname:
         mutator_args["nickname"] = given_nickname
     if given_nickname_givenname:
-        mutator_args["nicknameGivenName"] = given_nickname_givenname
+        mutator_args["nickname_given_name"] = given_nickname_givenname
     if given_nickname_surname:
-        mutator_args["nicknameSurname"] = given_nickname_surname
+        mutator_args["nickname_surname"] = given_nickname_surname
 
     if given_seniority:
-        mutator_args["seniority"] = given_seniority
+        mutator_args["seniority"] = given_seniority.date().isoformat()
     if given_cpr_no:
-        mutator_args["cprNo"] = given_cpr_no
+        mutator_args["cpr_no"] = given_cpr_no
 
     # GraphQL
     with patch(
@@ -706,6 +711,7 @@ async def test_update_mutator(
         response_uuid = None
         if response and response.data:
             response_uuid = response.data.get(mutation_func, {}).get("uuid", None)
+
         assert response_uuid == str(given_uuid)
 
 
