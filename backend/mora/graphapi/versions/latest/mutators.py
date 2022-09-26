@@ -215,6 +215,12 @@ class Mutation:
 
     # Facets
     # ------
+
+    # ITSystems
+    # ---------
+
+    # Facets
+    # ------
     @strawberry.mutation(
         description="Create new facet object",
         permission_classes=[admin_permission_class],
@@ -241,6 +247,20 @@ class Mutation:
     async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
         return await terminate_ituser(input.to_pydantic())  # type: ignore
 
+    # KLEs
+    # ----
+
+    # Leave
+    # -----
+
+    # Managers
+    # --------
+
+    # Root Organisation
+    # -----------------
+
+    # Organisational Units
+    # --------------------
     @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
@@ -318,6 +338,14 @@ class Mutation:
     ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
 
+    # Related Units
+    # -------------
+
+    # Roles
+    # -----
+
+    # Files
+    # -----
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
