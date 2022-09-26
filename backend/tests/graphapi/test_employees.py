@@ -32,7 +32,6 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import EmployeeUpdate
 from mora.graphapi.versions.latest.types import EmployeeUpdateResponseType
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from mora.service.util import handle_gql_error
 from mora.graphapi.versions.latest.models import EmployeeCreate
 from mora.graphapi.versions.latest.types import EmployeeType
@@ -702,9 +701,7 @@ async def test_update_mutator(
 
         mutation_func = "employee_update"
         query = _get_employee_update_mutation_query(mutation_func)
-        response = await LatestGraphQLSchema.get().execute(
-            query, variable_values=mutator_args
-        )
+        response = await execute_graphql(query=query, variable_values=mutator_args)
 
         # Assert
         response_uuid = None
@@ -766,9 +763,7 @@ async def test_update_mutator_fails(
         mock_handle_requests.return_value = var_values["uuid"]
 
         query = _get_employee_update_mutation_query("employee_update")
-        response = await LatestGraphQLSchema.get().execute(
-            query, variable_values=var_values
-        )
+        response = await execute_graphql(query=query, variable_values=var_values)
 
         response_exception_type = None
         response_exception_msg_str = None
@@ -861,8 +856,8 @@ async def test_update_mutator_fails(
         ),
     ],
 )
-@pytest.mark.usefixtures("sample_structures")
 @pytest.mark.serial
+@pytest.mark.usefixtures("sample_structures")
 async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Configure mutator variables
     var_values = {
@@ -880,7 +875,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Run the query
     mutation_func = "employee_update"
     query = _get_employee_update_mutation_query(mutation_func)
-    _ = await LatestGraphQLSchema.get().execute(query, variable_values=var_values)
+    _ = await execute_graphql(query=query, variable_values=var_values)
 
     # Fetch employee from LoRa
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
