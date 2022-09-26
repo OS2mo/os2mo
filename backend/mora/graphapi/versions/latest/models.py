@@ -5,6 +5,7 @@ import logging
 import typing
 from enum import Enum
 from typing import Any
+from typing import Optional
 from uuid import UUID
 
 import strawberry
@@ -488,18 +489,6 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     cpr_no: Optional[CprNo] = Field(
         None, description="New danish CPR No. of the employee."
     )
-
-    # @root_validator
-    # def validate_name_with_given_name_and_surname(cls, values: dict) -> dict:
-    #     """Validate the model after set of fields."""
-    #     # Validate dates
-    #     model_from_date = values.get("from_date")
-    #     model_to_date = values.get("to_date")
-    #     if model_to_date:
-    #         if model_to_date < model_from_date:
-    #             raise ValueError("'to_date' must be after 'from_date'.")
-    #
-    #     return values
 
     def no_values(self) -> bool:
         if self.to_date:

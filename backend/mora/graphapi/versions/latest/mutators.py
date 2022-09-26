@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
-import traceback
 from uuid import UUID
 
 import strawberry
@@ -167,12 +166,6 @@ class Mutation:
         self, input: EmployeeUpdateInput
     ) -> EmployeeUpdateResponseType:
         return await employee_update(input.to_pydantic())  # type: ignore
-
-        # try:
-        #     return await employee_update(input.to_pydantic())
-        # except Exception as e:
-        #     tap="test"
-        #     return EmployeeUpdateResponseType()
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
