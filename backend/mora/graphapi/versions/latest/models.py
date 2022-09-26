@@ -480,7 +480,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         description="New nickname sur-name value of the employee nickname.",
     )
 
-    seniority: Optional[str] = Field(
+    seniority: Optional[datetime.date] = Field(
         None, description="New seniority value of the employee."
     )
 
@@ -499,6 +499,21 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     #             raise ValueError("'to_date' must be after 'from_date'.")
     #
     #     return values
+
+    def no_values(self) -> bool:
+        if self.to_date:
+            return False
+
+        if self.name or self.given_name or self.surname:
+            return False
+
+        if self.nickname or self.nickname_given_name or self.nickname_surname:
+            return False
+
+        if self.seniority or self.cpr_no:
+            return False
+
+        return True
 
     def get_legacy_dict(self) -> dict:
         # Validate name-vars and nickname-vars before going further
@@ -553,7 +568,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
             data_dict[mapping.NICKNAME_SURNAME] = self.nickname_surname
 
         if self.seniority:
-            data_dict[mapping.SENIORITY] = self.seniority
+            data_dict[mapping.SENIORITY] = self.seniority.isoformat()
 
         if self.cpr_no:
             data_dict[mapping.CPR_NO] = self.cpr_no

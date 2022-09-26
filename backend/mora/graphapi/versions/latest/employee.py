@@ -95,6 +95,7 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
 
 async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
     if _is_update_changeset_empty(employee_update):
+        # if employee_update.no_values():
         return EmployeeUpdateResponseType(uuid=employee_update.uuid)
 
     result = await handle_requests(

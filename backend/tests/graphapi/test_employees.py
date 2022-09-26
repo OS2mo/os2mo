@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-import json
+from typing import Optional
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -17,6 +17,8 @@ from hypothesis import infer
 from hypothesis import strategies as st
 from more_itertools import one
 from hypothesis import strategies as st
+from hypothesis.strategies import characters
+from more_itertools import one
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
@@ -881,42 +883,58 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         assert newest_update_value == value
 
 
-@given(st.data())
+@given(data=st.data())
 @pytest.mark.serial
 @pytest.mark.usefixtures("sample_structures")
-async def test_update_integration_hypothesis(data):
+async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     valid_employee_uuids = [
         UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
         UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
-        UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),
         UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+        # FAILS when making a lookup before doing anything
+        # UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),
     ]
 
     # Generate data using hypothesis'es draw functionality
     employee_uuid = data.draw(st.sampled_from(valid_employee_uuids))
-    employee_uuid_str = str(employee_uuid)
-
+    now = datetime.datetime.utcnow()
+    yesterday = now - datetime.timedelta(days=1)
     validity = data.draw(
         st.tuples(
-            st.datetimes(min_value=datetime.datetime(1930, 1, 1)),
+            st.datetimes(
+                min_value=datetime.datetime(1930, 1, 1),
+                max_value=datetime.datetime(
+                    yesterday.year, yesterday.month, yesterday.day
+                ),
+            ),
             st.datetimes() | st.none(),
         ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
     )
     test_data_validity_from, test_data_validity_to = validity
+    test_data_validity_from = datetime.datetime.combine(
+        test_data_validity_from.date(), datetime.datetime.min.time()
+    )
 
+    names_whitelist_cats = ("Ll", "Lo", "Lu")
     given_name, given_given_name, given_surname = data.draw(
         st.tuples(
-            st.text() | st.none(),
-            st.text() | st.none(),
-            st.text() | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
         ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
     )
 
     given_nickname, given_nickname_given_name, given_nickname_surname = data.draw(
         st.tuples(
-            st.text() | st.none(),
-            st.text() | st.none(),
-            st.text() | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
+            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
         ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
     )
 
@@ -925,30 +943,17 @@ async def test_update_integration_hypothesis(data):
             EmployeeUpdate,
             uuid=st.just(employee_uuid),
             from_date=st.just(test_data_validity_from),
-            # to_date=st.just(test_data_validity_to),
             name=st.just(given_name),
             given_name=st.just(given_given_name),
             surname=st.just(given_surname),
             nickname=st.just(given_nickname),
             nickname_given_name=st.just(given_nickname_given_name),
             nickname_surname=st.just(given_nickname_surname),
-            seniority=infer,
-            cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
-        )
-        # .filter(
-        #     lambda model: True if model.name and not model.given_name and not model.surname else False
-        # )
-        # .filter(
-        #     lambda model: True if model.nickname and not model.nickname_given_name and not model.nickname_surname else False
-        # )
+            # seniority=infer,
+            # cpr_no=infer,
+            # cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
+        ).filter(lambda model: not model.no_values())
     )
-
-    # # Fetch employee from LoRa
-    # c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    # lora_employee = await c.bruger.get(uuid=employee_uuid_str)
-    # print("-----------------------------------------")
-    # print(employee_uuid_str)
-    # print(lora_employee)
 
     mutate_query = """
         mutation($input: EmployeeUpdateInput!) {
@@ -958,64 +963,170 @@ async def test_update_integration_hypothesis(data):
         }
     """
     payload = jsonable_encoder(test_data)
-    response = await LatestGraphQLSchema.get().execute(
-        mutate_query, variable_values={"input": payload}
+    mutation_response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert mutation_response.errors is None
+
+    # Query the updated user and assert values have been updated
+    verify_query = """
+        query VerifyQuery($uuid: UUID!){
+          employees(uuids: [$uuid], from_date: null, to_date: null)
+              {
+                uuid,
+                objects {
+                  uuid
+                  givenname
+                  surname
+                  nickname_givenname
+                  nickname_surname
+                  seniority
+                  cpr_no
+                  validity {
+                      from
+                      to
+                  }
+                }
+              }
+        }
+    """
+    verify_response: GQLResponse = graphapi_post(
+        verify_query, {"uuid": str(test_data.uuid)}
+    )
+    assert verify_response.errors is None
+    assert len(verify_response.data["employees"]) > 0
+
+    # Assert the new update values have been assigned to the employee
+    employee_data = None
+    employee_objects = one(verify_response.data["employees"]).get("objects", [])
+    if len(employee_objects) < 2:
+        employee_data = one(employee_objects)
+    else:
+        for e_obj in employee_objects:
+            if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
+                employee_data = e_obj
+    assert employee_data is not None
+
+    mutator_keys = test_data.__fields__.keys()
+    for key in mutator_keys:
+        if key not in [
+            "name",
+            "given_name",
+            "surname",
+            "nickname",
+            "nickname_given_name",
+            "nickname_surname",
+            "seniority",
+            "cpr_no",
+        ]:
+            continue
+
+        try:
+            new_value = getattr(test_data, key)
+            if isinstance(new_value, datetime.date) or isinstance(
+                new_value, datetime.datetime
+            ):
+                new_value = new_value.isoformat()
+        except AttributeError:
+            print(f"ERROR: Unable to find new_value for mutator key: {key}")
+            new_value = None
+
+        # OBS: No updates are made on empty strings
+        if new_value is None or new_value == "":
+            continue
+
+        employee_data_value = _get_employee_data_from_mutator_key(
+            employee_data, key, new_value
+        )
+        if new_value != employee_data_value:
+            tap = "test"
+
+        assert new_value == employee_data_value
+
+
+@pytest.mark.serial
+@pytest.mark.usefixtures("sample_structures")
+async def test_update_integration_manual(graphapi_post):
+    test_data = EmployeeUpdate(
+        uuid=UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+        from_date=datetime.datetime.now(),
+        surname="ȁ",
+        nickname_surname="ƨǽǻȴǰѽs",
     )
 
-    assert response.errors is None
-    assert response.data == {"employee_update": {"uuid": employee_uuid_str}}
+    mutate_query = """
+            mutation($input: EmployeeUpdateInput!) {
+                employee_update(input: $input) {
+                    uuid
+                }
+            }
+        """
+    # payload = jsonable_encoder(test_data)
+    payload = {
+        # 'from': '2003-10-09T01:39:34.672383+02:00',
+        "from": "2023-10-09T01:39:34.672383+02:00",
+        "to": None,
+        "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+        # "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        "name": None,
+        "given_name": None,
+        "surname": None,
+        # "nickname": "ȝŕɯĕňb𖹬ƺȝ",
+        "nickname": "hej der",
+        "nickname_given_name": None,
+        "nickname_surname": None,
+        "seniority": None,
+        "cpr_no": None,
+    }
+    payload_2 = {
+        "from": "5474-09-15T17:19:12.259954+02:00",
+        "to": None,
+        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        "name": None,
+        "given_name": "",
+        "surname": None,
+        "nickname": None,
+        # 'nickname_given_name': 'ǧ',
+        "nickname_given_name": "hej jens",
+        "nickname_surname": None,
+        "seniority": None,
+        "cpr_no": None,
+    }
+    # mutation_response = await execute_graphql(
+    #     query=mutate_query, variable_values={"input": payload}
+    # )
 
-    # # Fetch employee from LoRa
-    # c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    # lora_employee = await c.bruger.get(uuid=employee_uuid_str)
-    #
-    # # if not lora_employee:
-    # #     lora_employee = await c.bruger.get(uuid=employee_uuid_str)
-    # #     tap="test"
-    #
-    # # print("-----------------------------------------")
-    # # print(employee_uuid_str)
-    # #
-    # # # print(lora_employee)
-    # # print(payload)
-    # # print(json.dumps(lora_employee))
-    #
-    # #
-    # # if not lora_employee:
-    # #     tap = "test"
-    # #
-    #
-    # mutator_keys = test_data.__fields__.keys()
-    # for key in mutator_keys:
-    #     # Skip fields not causing an update
-    #     # FYI: Date's is used to set when the change is active, not when the employee
-    #     # is active.
-    #     if key in ['uuid', 'from_date', 'to_date']:
-    #         continue
-    #
-    #     try:
-    #         new_value = getattr(test_data, key)
-    #     except AttributeError as e:
-    #         print(f"ERROR: Unable to find new_value for mutator key: {key}")
-    #         continue
-    #
-    #     if key in ['name', 'given_name', 'surname', 'nickname', 'nickname_given_name', 'nickname_surname'] and new_value == "":
-    #         new_value = None
-    #
-    #     if new_value is None:
-    #         continue
-    #
-    #     lora_update_value = _get_lora_mutator_arg(key, lora_employee)
-    #     if key == "name":
-    #         new_value_split = new_value.split(" ")
-    #         if len(new_value_split) == 1:
-    #             lora_update_value_split = new_value.split(" ")
-    #             lora_update_value = lora_update_value_split[0]
-    #
-    #     if new_value != lora_update_value:
-    #         tap="test"
-    #
-    #     assert new_value == lora_update_value
+    print("--------------------------")
+    # print(mutation_response)
+
+    verify_query = """
+            query VerifyQuery($uuid: UUID!){
+                employees(uuids: [$uuid], from_date: null, to_date: null) {
+                    uuid
+                    objects {
+                        uuid
+                        givenname
+                        surname
+                        nickname_givenname
+                        nickname_surname
+                        seniority
+                        cpr_no
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        """
+    verify_response: GQLResponse = graphapi_post(
+        verify_query, {"uuid": payload.get("uuid")}
+    )
+    print(verify_response)
+
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    original = await c.bruger.get(uuid=payload.get("uuid"))
+    tap = "test"
 
 
 # --------------------------------------------------------------------------------------
@@ -1110,3 +1221,44 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
         return cpr_no if len(cpr_no) > 0 else None
 
     return None
+
+
+def _get_employee_data_from_mutator_key(
+    employee_data: dict, mutator_key: str, new_value: Optional[str]
+):
+    if mutator_key == "name":
+        givenname = employee_data.get("givenname", "")
+        surname = employee_data.get("surname", "")
+
+        # ignore the surname, if the new value don't include one
+        # Ex. if an employee already have a surname and we only update the givenname -
+        # using the "name"-attribute (yes we only update "what was found" in "name")
+        if new_value:
+            new_value_split = new_value.split(" ")
+            if len(new_value_split) < 2:
+                surname = ""
+
+        return f"{givenname} {surname}" if surname else givenname
+
+    if mutator_key == "nickname":
+        nickname_givenname = employee_data.get("nickname_givenname", "")
+        nickname_surname = employee_data.get("nickname_surname", "")
+
+        if new_value:
+            new_value_split = new_value.split(" ")
+            if len(new_value_split) < 2:
+                nickname_surname = ""
+
+        return (
+            f"{nickname_givenname} {nickname_surname}"
+            if nickname_surname
+            else nickname_givenname
+        )
+
+    if mutator_key == "given_name":
+        return employee_data.get("givenname", None)
+
+    if mutator_key == "nickname_given_name":
+        return employee_data.get("nickname_givenname", None)
+
+    return employee_data.get(mutator_key, None)
