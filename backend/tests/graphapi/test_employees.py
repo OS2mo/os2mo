@@ -1028,6 +1028,11 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     )
 
     assert verify_response.errors is None
+
+    if len(verify_response.data["employees"]) < 1:
+        print("-----------------------------")
+        print(verify_response)
+        print("-----------------------------")
     assert len(verify_response.data["employees"]) > 0
 
     # Assert the new update values have been assigned to the employee
