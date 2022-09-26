@@ -11,7 +11,6 @@ from hypothesis import given
 from hypothesis import settings
 from hypothesis import strategies as st
 from pydantic import parse_obj_as
-from pydantic.error_wrappers import ValidationError
 from pytest import MonkeyPatch
 
 import mora.lora as lora
@@ -234,37 +233,6 @@ async def test_integration_create_class(test_data, graphapi_post):
 
 
 """Test exception gets raised if illegal values are entered"""
-
-
-@pytest.mark.parametrize(
-    "input",
-    [
-        (
-            {
-                "uuid": "23d891b5-85aa-4eee-bec7-e84fe21883c5",
-                "type_": "class",
-                "user_key": "",
-                "name": "\x01",
-                "org_uuid": "8d6c00dd-4be9-4bdb-a558-1f85183cd920",
-                "facet_uuid": "630d1b15-a880-4292-b73d-b14f7cf6b252",
-            }
-        ),
-        (
-            {
-                "uuid": "23d891b5-85aa-4eee-bec7-e84fe21883c5",
-                "type_": "class",
-                "user_key": "",
-                "name": "",
-                "org_uuid": "8d6c00dd-4be9-4bdb-a558-1f85183cd920",
-                "facet_uuid": "67b3ef6b-2fd1-4fcd-8c89-43937fd9b012",
-            }
-        ),
-    ],
-)
-def test_write_fails(input):
-
-    with pytest.raises(ValidationError):
-        ClassCreate(**input)
 
 
 @given(test_data=write_strat())
