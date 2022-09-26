@@ -4,6 +4,7 @@ import asyncio
 import datetime
 from unittest.mock import patch
 
+import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
@@ -132,3 +133,50 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
         assert terminate_result_uuid == at.uuid
     else:
         assert caught_exception is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.parametrize(
+    "filter_snippet,expected",
+    [
+        ("", 7),
+        ('(address_type_user_keys: "BrugerPostadresse")', 1),
+        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 1),
+        ('(address_type_user_keys: "BrugerEmail")', 2),
+        ('(address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")', 2),
+        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 3),
+        (
+            """
+            (address_types: [
+                "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+            ])
+        """,
+            3,
+        ),
+        (
+            """
+            (
+                address_type_user_keys: "BrugerPostadresse"
+                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+            )
+        """,
+            3,
+        ),
+    ],
+)
+async def test_address_address_type_filter(
+    graphapi_post, filter_snippet, expected
+) -> None:
+    """Test address_type filters on addresses."""
+    address_query = f"""
+        query Addresses {{
+            addresses{filter_snippet} {{
+                uuid
+            }}
+        }}
+    """
+    response: GQLResponse = graphapi_post(address_query)
+    assert response.errors is None
+    assert len(response.data["addresses"]) == expected
