@@ -175,7 +175,7 @@ async def list_facets(
     # Handle org unit data
     facets = response.data["facets"]
     if not facets:
-        exceptions.ErrorCodes.E_UNKNOWN()
+        return []
 
     def filter_by_orgid(facet: dict[str, Any]) -> bool:
         return UUID(facet["org_uuid"]) == orgid
