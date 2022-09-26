@@ -16,16 +16,14 @@ from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(ec: EmployeeCreate) -> EmployeeType:
-    # Convert data model to dict to fit into existing logic
-    req_dict = ec.dict(by_alias=True)
-    req_dict[mapping.ORG][mapping.UUID] = str(req_dict[mapping.ORG][mapping.UUID])
+async def create(input: EmployeeCreate) -> EmployeeType:
+    input_dict = input.to_handler_dict()
 
     # Copied service-logic
-    request = await EmployeeRequestHandler.construct(
-        req_dict, mapping.RequestType.CREATE
+    handler = await EmployeeRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
     )
-    uuid = await request.submit()
+    uuid = await handler.submit()
 
     return EmployeeType(uuid=UUID(uuid))
 

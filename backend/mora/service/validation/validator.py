@@ -512,7 +512,7 @@ async def does_employee_have_active_engagement(employee_uuid, valid_from, valid_
 @forceable
 async def does_employee_with_cpr_already_exist(
     cpr, valid_from, valid_to, org_uuid, allowed_user_id=None
-):
+) -> None:
     """
     Check whether we're able to find an existing user with the given CPR,
     and raise a validation error accordingly
