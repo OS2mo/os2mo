@@ -17,13 +17,19 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
+from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
 
-
 # Various
 # -------
+
+# --------------------------------------------------------------------------------------
+# Models
+# --------------------------------------------------------------------------------------
+
+
 class Validity(OpenValidity):
     """Model representing an entities validity range."""
 
@@ -223,6 +229,24 @@ class AddressTerminate(ValidityTerminate, Triggerless):
 
 # Classes
 # -------
+class ClassCreate(MOBase):
+    """A MO Class create object."""
+
+    type_: str = Field(
+        "class", alias="type", description="The object type"
+    )  # type is always "class"
+
+    name: str = Field(description="Mo-class name.")
+    user_key: str = Field(description="Extra info or uuid")
+    org_uuid: UUID = Field(description="UUID of the related organisation.")
+    facet_uuid: UUID = Field(description="UUID of the related facet.")
+
+    scope: str | None = Field(description="Scope of the class.")
+    published: str | None = Field(description="Published state of the class object.")
+    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
+    example: str | None = Field(description="Example usage.")
+    owner: UUID | None = Field(description="Owner of class")
+
 
 # Employees
 # ---------
@@ -502,6 +526,8 @@ class FileRead(BaseModel):
 
 # Configuration
 # -------------
+
+
 class ConfigurationRead(BaseModel):
     """Payload model for configuration."""
 

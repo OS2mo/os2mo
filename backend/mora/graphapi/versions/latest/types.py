@@ -35,6 +35,15 @@ class AddressTerminateType:
 # Classes
 # -------
 
+
+@strawberry.experimental.pydantic.type(
+    model=UUIDBase,
+    all_fields=True,
+)
+class ClassCreateType:
+    """GraphQL type for a Class."""
+
+
 # Employees
 # ---------
 @strawberry.experimental.pydantic.type(

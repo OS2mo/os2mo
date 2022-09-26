@@ -3,6 +3,7 @@
 import strawberry
 
 from .models import AddressTerminate
+from .models import ClassCreate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
@@ -58,6 +59,13 @@ class AddressTerminateInput:
 
 # Classes
 # -------
+@strawberry.experimental.pydantic.input(
+    model=ClassCreate,
+    all_fields=True,
+)
+class ClassCreateInput:
+    """Input model for creating a mo-class."""
+
 
 # Employees
 # ---------
