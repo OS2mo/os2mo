@@ -161,7 +161,10 @@ class Mutation:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await employee_create(input.to_pydantic())  # type: ignore
 
-    @strawberry.mutation(description="Terminates an employee by UUID")
+    @strawberry.mutation(
+        description="Terminates an employee by UUID",
+        permission_classes=[admin_permission_class],
+    )
     async def employee_update(
         self, input: EmployeeUpdateInput
     ) -> EmployeeUpdateResponseType:

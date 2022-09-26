@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import datetime
-from typing import Optional
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -1180,7 +1179,7 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
 
 
 def _get_employee_data_from_mutator_key(
-    employee_data: dict, mutator_key: str, new_value: Optional[str]
+    employee_data: dict, mutator_key: str, new_value: str | None
 ):
     if mutator_key == "name":
         givenname = employee_data.get("givenname", "")

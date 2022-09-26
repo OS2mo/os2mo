@@ -2,10 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import logging
-import typing
 from enum import Enum
 from typing import Any
-from typing import Optional
 from uuid import UUID
 
 import strawberry
@@ -16,14 +14,13 @@ from pydantic import Field
 from mora import common
 from mora import exceptions
 from mora import mapping
-from mora import util
 from mora.graphapi.versions.latest.grapql_utils import CprNo
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo._shared import MOBase
 from ramodels.mo import Validity as ValidityFromRequired
+from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 
@@ -434,10 +431,6 @@ class EmployeeTerminate(ValidityTerminate, Triggerless):
 
 
 class EmployeeUpdate(UUIDBase, ValidityFromRequired):
-    name: Optional[str] = Field(
-        None, description="New value for the name of the employee"
-    )
-    # class EmployeeUpdate(UUIDBase):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
@@ -453,40 +446,40 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         'string does not match regex "^\\d{10}$"'
     )
 
-    name: Optional[str] = Field(None, description="something")
+    name: str | None = Field(None, description="New value for the name of the employee")
 
-    given_name: Optional[str] = Field(
+    given_name: str | None = Field(
         None,
         description="New first-name value of the employee nickname.",
     )
 
-    surname: Optional[str] = Field(
+    surname: str | None = Field(
         None,
         description="New last-name value of the employee nickname.",
     )
 
-    nickname: Optional[str] = Field(
+    nickname: str | None = Field(
         None,
         description="New nickname value of the employee nickname.",
     )
 
-    nickname_given_name: Optional[str] = Field(
+    nickname_given_name: str | None = Field(
         None,
         description="New nickname given-name value of the employee nickname.",
     )
 
-    nickname_surname: Optional[str] = Field(
+    nickname_surname: str | None = Field(
         None,
         description="New nickname sur-name value of the employee nickname.",
     )
 
-    seniority: Optional[datetime.date] = Field(
+    seniority: datetime.date | None = Field(
         # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
         None,
         description="New seniority value of the employee.",
     )
 
-    cpr_no: Optional[CprNo] = Field(
+    cpr_no: CprNo | None = Field(
         None, description="New danish CPR No. of the employee."
     )
 
@@ -572,6 +565,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
 
 class EmployeeUpdateResponse(UUIDBase):
     pass
+
 
 # Engagements
 # -----------
