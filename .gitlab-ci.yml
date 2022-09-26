@@ -304,6 +304,9 @@ Unit-test:
       --color=yes
       --show-capture=stdout
       --cov=mora
+      --group $CI_NODE_INDEX
+      --splits $CI_NODE_TOTAL
+  parallel: 4
   cache:
     paths:
       - ${PIP_CACHE_DIR}
@@ -335,7 +338,7 @@ Integration-test:
       alias: keycloak-db
     - name: $KEYCLOAK_IMAGE_SHA
       alias: keycloak
-  parallel: 8
+  parallel: 16
   script:
     - pytest backend/tests
       -m "integration_test"
