@@ -13,7 +13,6 @@ import mock
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import infer
 from hypothesis import strategies as st
 from more_itertools import one
 from hypothesis import strategies as st
@@ -29,7 +28,6 @@ from .strategies import graph_data_uuids_strat
 from mora import exceptions
 from mora import lora
 from mora import mapping
-from mora import util
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -938,6 +936,16 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
         ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
     )
 
+    # TODO: Find a way to implement this, when figuring out how employees behave after
+    #  senority have been updated
+    # seniority = data.draw(
+    #     st.datetimes(
+    #         min_value=datetime.datetime(1930, 1, 1),
+    #         max_value=datetime.datetime(yesterday.year, yesterday.month, yesterday.day),
+    #     )
+    #     | st.none()
+    # )
+
     test_data = data.draw(
         st.builds(
             EmployeeUpdate,
@@ -949,12 +957,28 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
             nickname=st.just(given_nickname),
             nickname_given_name=st.just(given_nickname_given_name),
             nickname_surname=st.just(given_nickname_surname),
-            # seniority=infer,
-            # cpr_no=infer,
+            # TODO: Make the integration test able to verify these two attrbiutes.
+            #  I have had issues with getting success from update-mutator, but then
+            #  we cant for some reason get the employee afterwards.. both the old
+            #  and the new query method don't work here.. but it seems to occur after a
+            #  couple of interation.. so i am afraid that a specific update causes a
+            #  weird state for the customer, which i am not sure how to handle.
+            # seniority=st.just(seniority),
             # cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
         ).filter(lambda model: not model.no_values())
     )
 
+    payload = jsonable_encoder(test_data)
+
+    # TODO: Remove this, when a proper way of testing CPR-NO have been implemented.
+    # if payload.get('cpr_no'):
+    #     # Convert from-date since i am having issues getting employees with certain
+    #     # dates, when using CPR No.
+    #     payload['from'] = datetime.datetime.combine(
+    #         yesterday.date(), datetime.datetime.min.time()
+    #     ).isoformat()
+
+    # Execute the mutation query
     mutate_query = """
         mutation($input: EmployeeUpdateInput!) {
             employee_update(input: $input) {
@@ -962,10 +986,10 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
             }
         }
     """
-    payload = jsonable_encoder(test_data)
     mutation_response = await execute_graphql(
         query=mutate_query, variable_values={"input": payload}
     )
+
     assert mutation_response.errors is None
 
     # Query the updated user and assert values have been updated
@@ -993,6 +1017,7 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     verify_response: GQLResponse = graphapi_post(
         verify_query, {"uuid": str(test_data.uuid)}
     )
+
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
@@ -1003,8 +1028,9 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
         employee_data = one(employee_objects)
     else:
         for e_obj in employee_objects:
-            if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
+            if not e_obj.get("validity", {}).get("to"):
                 employee_data = e_obj
+
     assert employee_data is not None
 
     mutator_keys = test_data.__fields__.keys()
@@ -1038,95 +1064,8 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
         employee_data_value = _get_employee_data_from_mutator_key(
             employee_data, key, new_value
         )
-        if new_value != employee_data_value:
-            tap = "test"
 
         assert new_value == employee_data_value
-
-
-@pytest.mark.serial
-@pytest.mark.usefixtures("sample_structures")
-async def test_update_integration_manual(graphapi_post):
-    test_data = EmployeeUpdate(
-        uuid=UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
-        from_date=datetime.datetime.now(),
-        surname="ȁ",
-        nickname_surname="ƨǽǻȴǰѽs",
-    )
-
-    mutate_query = """
-            mutation($input: EmployeeUpdateInput!) {
-                employee_update(input: $input) {
-                    uuid
-                }
-            }
-        """
-    # payload = jsonable_encoder(test_data)
-    payload = {
-        # 'from': '2003-10-09T01:39:34.672383+02:00',
-        "from": "2023-10-09T01:39:34.672383+02:00",
-        "to": None,
-        "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
-        # "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-        "name": None,
-        "given_name": None,
-        "surname": None,
-        # "nickname": "ȝŕɯĕňb𖹬ƺȝ",
-        "nickname": "hej der",
-        "nickname_given_name": None,
-        "nickname_surname": None,
-        "seniority": None,
-        "cpr_no": None,
-    }
-    payload_2 = {
-        "from": "5474-09-15T17:19:12.259954+02:00",
-        "to": None,
-        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-        "name": None,
-        "given_name": "",
-        "surname": None,
-        "nickname": None,
-        # 'nickname_given_name': 'ǧ',
-        "nickname_given_name": "hej jens",
-        "nickname_surname": None,
-        "seniority": None,
-        "cpr_no": None,
-    }
-    # mutation_response = await execute_graphql(
-    #     query=mutate_query, variable_values={"input": payload}
-    # )
-
-    print("--------------------------")
-    # print(mutation_response)
-
-    verify_query = """
-            query VerifyQuery($uuid: UUID!){
-                employees(uuids: [$uuid], from_date: null, to_date: null) {
-                    uuid
-                    objects {
-                        uuid
-                        givenname
-                        surname
-                        nickname_givenname
-                        nickname_surname
-                        seniority
-                        cpr_no
-                        validity {
-                            from
-                            to
-                        }
-                    }
-                }
-            }
-        """
-    verify_response: GQLResponse = graphapi_post(
-        verify_query, {"uuid": payload.get("uuid")}
-    )
-    print(verify_response)
-
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    original = await c.bruger.get(uuid=payload.get("uuid"))
-    tap = "test"
 
 
 # --------------------------------------------------------------------------------------

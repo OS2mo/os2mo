@@ -11,7 +11,6 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
 from pydantic import Field
-from pydantic import root_validator
 
 from mora import common
 from mora import exceptions
@@ -481,7 +480,9 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
     )
 
     seniority: Optional[datetime.date] = Field(
-        None, description="New seniority value of the employee."
+        # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
+        None,
+        description="New seniority value of the employee.",
     )
 
     cpr_no: Optional[CprNo] = Field(
