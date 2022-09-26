@@ -469,7 +469,7 @@ class Scope(BaseScope):
         param_keys = tuple(params.keys())  # dict keys must be hashable
         loader = self.loaders.setdefault(
             param_keys,
-            DataLoader(load_fn=partial(self._load_loads, param_keys), cache=False),
+            DataLoader(load_fn=partial(self._load_loads, param_keys)),
         )
 
         # Convert all parameter values to sets for uniform processing. We pass it on to
