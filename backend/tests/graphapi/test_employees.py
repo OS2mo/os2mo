@@ -716,38 +716,41 @@ async def test_update_mutator(
 
 
 @pytest.mark.parametrize(
-    "given_expected_err_str,given_mutator_args",
+    "given_expected_err_str,given_mutator_args,exception_type",
     [
         (
             EmployeeUpdate._ERR_INVALID_NAME,
             {
                 "name": "TestMan Duke",
-                "givenName": "TestMan",
-                "surName": "Duke",
+                "given_name": "TestMan",
+                "surname": "Duke",
             },
+            ValueError,
         ),
         (
             EmployeeUpdate._ERR_INVALID_NICKNAME,
             {
                 "nickname": "Test Lord",
-                "nicknameGivenName": "Test",
-                "nicknameSurName": "Lord",
+                "nickname_given_name": "Test",
+                "nickname_surname": "Lord",
             },
+            ValueError,
         ),
-        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": ""}),
-        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "00112233445"}),
-        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001122334"}),
-        (EmployeeUpdate._ERR_INVALID_CPR, {"cprNo": "001"}),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cpr_no": ""}, ValidationError),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cpr_no": "00112233445"}, ValidationError),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cpr_no": "001122334"}, ValidationError),
+        (EmployeeUpdate._ERR_INVALID_CPR, {"cpr_no": "001"}, ValidationError),
     ],
 )
-async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
+async def test_update_mutator_fails(
+    given_expected_err_str, given_mutator_args, exception_type
+):
     """Test which verifies that certain mutator inputs, cause a validation error."""
 
     # Configure mutator variables
-    given_from = datetime.datetime.now()
     var_values = {
         "uuid": "00000000-0000-0000-0000-000000000000",
-        "from": given_from.date().isoformat(),
+        "from": now_beginning.date().isoformat(),
         **given_mutator_args,
     }
 
@@ -759,11 +762,11 @@ async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
 
     # Mock & Run
     with patch(
-        "mora.graphapi.versions.latest.mutators.employee_update"
-    ) as mock_employee_update:
-        # Run the query
-        mutation_func = "employee_update"
-        query = _get_employee_update_mutation_query(mutation_func)
+        "mora.graphapi.versions.latest.employee.handle_requests"
+    ) as mock_handle_requests:
+        mock_handle_requests.return_value = var_values["uuid"]
+
+        query = _get_employee_update_mutation_query("employee_update")
         response = await LatestGraphQLSchema.get().execute(
             query, variable_values=var_values
         )
@@ -774,15 +777,21 @@ async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
             response_exception = response.errors[0].original_error
 
         if response_exception:
-            with pytest.raises(ValidationError) as e_info:
+            # with pytest.raises(ValidationError) as e_info:
+            with pytest.raises(exception_type) as e_info:
                 raise response_exception
 
             response_exception_type = e_info.type
-            response_exception_msg_str = str(e_info.value.args[0][0].exc)
+
+            if exception_type == ValidationError:
+                response_exception_msg_str = str(e_info.value.args[0][0].exc)
+            else:
+                response_exception_msg_str = e_info.value.args[0]
 
         # Assert
-        mock_employee_update.assert_not_called()
-        assert response_exception_type is ValidationError
+        mock_handle_requests.assert_not_called()
+
+        assert response_exception_type is exception_type
         assert response_exception_msg_str == given_expected_err_str
 
 
