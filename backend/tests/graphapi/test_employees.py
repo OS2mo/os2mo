@@ -791,12 +791,12 @@ async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
         (
             "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             datetime.datetime.now(),
-            {"givenName": "Test Given Name"},
+            {"given_name": "Test Given Name"},
         ),
         (
             "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             datetime.datetime.now(),
-            {"surName": "Duke"},
+            {"surname": "Duke"},
         ),
         (
             "6ee24785-ee9a-4502-81c2-7697009c9053",
@@ -806,22 +806,22 @@ async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
         (
             "6ee24785-ee9a-4502-81c2-7697009c9053",
             datetime.datetime.now(),
-            {"nicknameGivenName": "Fancy Nickname Given Name"},
+            {"nickname_given_name": "Fancy Nickname Given Name"},
         ),
         (
             "6ee24785-ee9a-4502-81c2-7697009c9053",
             datetime.datetime.now(),
-            {"nicknameSurName": "Lord Nick"},
+            {"nickname_surname": "Lord Nick"},
         ),
         (
             "7626ad64-327d-481f-8b32-36c78eb12f8c",
             datetime.datetime.now(),
-            {"seniority": "blah?"},
+            {"seniority": datetime.datetime.now().date().isoformat()},
         ),
         (
             "236e0a78-11a0-4ed9-8545-6286bb8611c7",
             datetime.datetime.now(),
-            {"cprNo": "0000000000"},
+            {"cpr_no": "0000000000"},
         ),
         (
             "236e0a78-11a0-4ed9-8545-6286bb8611c7",
@@ -829,20 +829,20 @@ async def test_update_mutator_fails(given_expected_err_str, given_mutator_args):
             {
                 "name": "YeeHaaa man",
                 "nickname": "Fancy Nickname",
-                "seniority": "blah?",
-                "cprNo": "0000000000",
+                "seniority": datetime.datetime.now().date().isoformat(),
+                "cpr_no": "0000000000",
             },
         ),
         (
             "236e0a78-11a0-4ed9-8545-6286bb8611c7",
             datetime.datetime.now(),
             {
-                "givenName": "TestMan",
-                "surName": "Duke",
-                "nicknameGivenName": "Test",
-                "nicknameSurName": "Lord",
-                "seniority": "blah?",
-                "cprNo": "0101872144",
+                "given_name": "TestMan",
+                "surname": "Duke",
+                "nickname_given_name": "Test",
+                "nickname_surname": "Lord",
+                "seniority": datetime.datetime.now().date().isoformat(),
+                "cpr_no": "0101872144",
             },
         ),
     ],
@@ -1076,13 +1076,15 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
 def _get_employee_update_mutation_query(mutation_func: str):
     return (
         "mutation($uuid: UUID!, $from: DateTime!, $to: DateTime, $name: String, "
-        "$givenName: String, $surName: String, $nickname: String, "
-        "$nicknameGivenName: String, $nicknameSurName: String, $seniority: String, "
-        "$cprNo: String) {"
+        # "$givenName: String, $surName: String, $nickname: String, "
+        "$given_name: String, $surname: String, $nickname: String, "
+        # "$nicknameGivenName: String, $nicknameSurName: String, $seniority: Date, "
+        "$nickname_given_name: String, $nickname_surname: String, $seniority: Date, "
+        "$cpr_no: String) {"
         f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
-        "given_name: $givenName, surname: $surName, nickname: $nickname, "
-        "nickname_given_name: $nicknameGivenName, "
-        "nickname_surname: $nicknameSurName, seniority: $seniority, cpr_no: $cprNo}) "
+        "given_name: $given_name, surname: $surname, nickname: $nickname, "
+        "nickname_given_name: $nickname_given_name, "
+        "nickname_surname: $nickname_surname, seniority: $seniority, cpr_no: $cpr_no}) "
         "{ uuid }"
         "}"
     )
