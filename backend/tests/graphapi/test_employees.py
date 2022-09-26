@@ -862,7 +862,7 @@ async def test_update_mutator_fails(
         ),
     ],
 )
-@pytest.mark.usefixtures("sample_structures_minimal_method_fixture")
+@pytest.mark.usefixtures("sample_structures")
 @pytest.mark.serial
 async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Configure mutator variables
