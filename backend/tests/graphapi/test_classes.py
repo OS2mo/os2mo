@@ -8,7 +8,6 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import settings
 from hypothesis import strategies as st
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
@@ -164,7 +163,6 @@ def prepare_query_data(test_data, query_response):
     return test_data, query
 
 
-@settings(max_examples=20)
 @given(test_data=write_strat())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")

@@ -59,6 +59,13 @@ class AddressTerminateInput:
 
 # Classes
 # -------
+@strawberry.experimental.pydantic.input(
+    model=ClassCreate,
+    all_fields=True,
+)
+class ClassCreateInput:
+    """Input model for creating a mo-class."""
+
 
 # Employees
 # ---------
@@ -153,13 +160,3 @@ class OrganizationUnitCreateInput:
 
 # Files
 # -----
-
-
-@strawberry.experimental.pydantic.input(
-    model=ClassCreate,
-    all_fields=True,
-)
-class ClassCreateInput:
-    """Input model for creating a mo-class."""
-
-    pass

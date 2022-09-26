@@ -13,8 +13,9 @@ from mora import mapping
 from mora.graphapi.versions.latest.models import ClassCreate
 from mora.service.facet import ClassRequestHandler
 
+
 # --------------------------------------------------------------------------------------
-# Mo-class create function for graphQL
+# Supporting functions for Graphapi mo-classes
 # --------------------------------------------------------------------------------------
 
 
