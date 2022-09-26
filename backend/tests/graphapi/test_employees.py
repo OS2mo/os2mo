@@ -856,7 +856,7 @@ async def test_update_mutator_fails(
         ),
     ],
 )
-@pytest.mark.serial
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
 async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Configure mutator variables
@@ -891,7 +891,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 
 
 @given(data=st.data())
-@pytest.mark.serial
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
 async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     valid_employee_uuids = [
