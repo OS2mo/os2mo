@@ -36,8 +36,8 @@ from .types import AddressTerminateType
 from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
-from .types import ITUserType
 from .types import FacetType
+from .types import ITUserType
 from .types import OrganizationUnit
 
 logger = logging.getLogger(__name__)
@@ -116,6 +116,12 @@ class Mutation:
 
     # Facets
     # ------
+    @strawberry.mutation(
+        description="Create new facet", permission_classes=[admin_permission_class]
+    )
+    async def facet_create(self, input: FacetCreateInput) -> FacetType:
+
+        return await create_facet(input.to_pydantic())  # type: ignore
 
     # ITSystems
     # ---------
@@ -193,14 +199,3 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
-
-    @strawberry.mutation(
-        description="Trigger refresh for an organisation unit",
-        permission_classes=[admin_permission_class],
-    )
-
-    @strawberry.mutation(description="Create new facet")
-    async def facet_create(self, input: FacetCreateInput) -> FacetType:
-
-        return await create_facet(input.to_pydantic())  # type: ignore
-        

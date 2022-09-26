@@ -395,16 +395,15 @@ class FacetCreate(UUIDBase):
 
     """Inherets uuid from UUIDBase"""
 
-    user_key: PrintableStr = Field(description="Facet name.")
+    user_key: str = Field(description="Facet name.")
     type_: str = Field(
         "facet", alias="type", description="The object type"
     )  # type is always "facet"
 
     org_uuid: UUID = Field(description="UUID of the related organisation.")
     parent_uuid: UUID | None = Field(description="UUID of the parent facet.")
-    published: PrintableStr | None = Field(
-        description="Published state of the facet object."
-    )
+    published: str | None = Field(description="Published state of the facet object.")
+
 
 # ITSystems
 # ---------
