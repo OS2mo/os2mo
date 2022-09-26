@@ -14,6 +14,7 @@ from .models import FileStore
 from .models import HealthRead
 from .permissions import gen_read_permission
 from .resolvers import EmployeeResolver
+from .resolvers import OrganisationUnitResolver
 from .resolvers import Resolver
 from .resolvers import StaticResolver
 from .schema import Address
@@ -162,7 +163,7 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
-        resolver=Resolver("org_unit_getter", "org_unit_loader").resolve,
+        resolver=OrganisationUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("org_units")],
     )

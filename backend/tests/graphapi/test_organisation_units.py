@@ -283,3 +283,56 @@ async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) 
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_no_reset")
+async def test_org_unit_parent_filter(graphapi_post) -> None:
+    """Test parent filter on organisation units."""
+
+    org_unit_query = """
+        query OrgUnit {
+            org_units {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(org_unit_query)
+    assert response.errors is None
+    assert len(response.data["org_units"]) == 9
+
+    parent_query = """
+        query ParentOrgUnit {
+            org_units(parents: null) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_query)
+    assert response.errors is None
+    assert len(response.data["org_units"]) == 2
+
+    parent_query = """
+        query ParentOrgUnit {
+            org_units(parents: "2874e1dc-85e6-4269-823a-e1125484dfd3") {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_query)
+    assert response.errors is None
+    assert len(response.data["org_units"]) == 4
+
+    parent_query = """
+        query ParentOrgUnit {
+            org_units(parents: [
+                "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+            ]) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_query)
+    assert response.errors is None
+    assert len(response.data["org_units"]) == 5

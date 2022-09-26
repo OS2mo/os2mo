@@ -169,6 +169,40 @@ class EmployeeResolver(Resolver):
         )
 
 
+class OrganisationUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("org_unit_getter", "org_unit_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        parents: list[UUID] | None = UNSET,
+    ):
+        """Resolve an employee query, optionally filtering on CPR numbers."""
+        kwargs = {}
+
+        if parents is UNSET:
+            pass
+        elif parents is None:
+            org = await info.context["org_loader"].load(0)
+            kwargs["overordnet"] = org.uuid
+        elif parents is not None:
+            kwargs["overordnet"] = parents
+
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
+
 def get_date_interval(
     from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
 ) -> OpenValidityModel:
