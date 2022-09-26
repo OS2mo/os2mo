@@ -16,6 +16,7 @@ from .permissions import gen_read_permission
 from .resolvers import AddressResolver
 from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
+from .resolvers import FacetResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import Resolver
 from .resolvers import StaticResolver
@@ -105,7 +106,7 @@ class Query:
     # Facets
     # ------
     facets: list[Facet] = strawberry.field(
-        resolver=StaticResolver("facet_getter", "facet_loader").resolve,
+        resolver=FacetResolver().resolve,
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[gen_read_permission("facets")],
     )

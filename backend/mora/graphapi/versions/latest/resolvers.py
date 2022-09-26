@@ -141,9 +141,46 @@ class Resolver(StaticResolver):
         return [response for response in responses if response.objects != []]
 
 
+class FacetResolver(StaticResolver):
+    def __init__(self) -> None:
+        super().__init__("facet_getter", "facet_loader")
+
+
 class ClassResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__("class_getter", "class_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        facets: list[UUID] | None = None,
+        facet_user_keys: list[str] | None = None,
+    ):
+        """Resolve classes."""
+        if facet_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            facet_objects = await FacetResolver().resolve(
+                info, user_keys=facet_user_keys
+            )
+            facet_uuids = list(map(attrgetter("uuid"), facet_objects))
+            if facets is None:
+                facets = []
+            facets.extend(facet_uuids)
+
+        kwargs = {}
+        if facets is not None:
+            kwargs["facet"] = facets
+
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=None,  # from -inf
+            to_date=None,  # to inf
+            **kwargs,
+        )
 
 
 class AddressResolver(Resolver):

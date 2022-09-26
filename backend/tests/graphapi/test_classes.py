@@ -258,3 +258,48 @@ async def test_unit_create_class(
 
     assert response.errors is None
     assert response.data == {"class_create": {"uuid": str(created_uuid)}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.parametrize(
+    "filter_snippet,expected",
+    [
+        ("", 35),
+        ('(facet_user_keys: "employee_address_type")', 3),
+        ('(facets: "baddc4eb-406e-4c6b-8229-17e4a21d3550")', 3),
+        ('(facet_user_keys: "org_unit_address_type")', 5),
+        ('(facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49")', 5),
+        ('(facet_user_keys: ["employee_address_type", "org_unit_address_type"])', 8),
+        (
+            """
+            (facets: [
+                "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
+            ])
+        """,
+            8,
+        ),
+        (
+            """
+            (
+                facet_user_keys: "employee_address_type"
+                facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
+            )
+        """,
+            8,
+        ),
+    ],
+)
+async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> None:
+    """Test facet filters on classes."""
+    class_query = f"""
+        query Classes {{
+            classes{filter_snippet} {{
+                uuid
+            }}
+        }}
+    """
+    response: GQLResponse = graphapi_post(class_query)
+    assert response.errors is None
+    assert len(response.data["classes"]) == expected
