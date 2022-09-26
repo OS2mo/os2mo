@@ -439,18 +439,6 @@ class OrganisationUnitTerminate(OrganisationUnit, ValidityTerminate, Triggerless
 class OrganisationUnitUpdate(UUIDBase, ValidityFromRequired):
     """Model representing updating an organisation unit."""
 
-    from_date: Optional[datetime.datetime] = Field(
-        util.POSITIVE_INFINITY,
-        alias="from",
-        description="When the validity of the organisation unit should start."
-    )
-
-    to_date: Optional[datetime.datetime] = Field(
-        util.NEGATIVE_INFINITY,
-        alias="to",
-        description="When the validity of the organisation unit should end."
-    )
-
     name: Optional[str] = Field(description="Name of the updated organisation unit.")
 
     org_unit_type_uuid: Optional[UUID] = Field(
