@@ -455,7 +455,18 @@ def valid_cprs(draw) -> str:
 @patch(
     "mora.service.employee.does_employee_with_cpr_already_exist", new_callable=AsyncMock
 )
-@given(test_data=st.builds(EmployeeCreate, cpr_number=st.none() | valid_cprs()))
+@given(
+    test_data=st.builds(
+        EmployeeCreate,
+        givenname=st.text(
+            alphabet=st.characters(whitelist_categories=("L",)), min_size=1
+        ),
+        surname=st.text(
+            alphabet=st.characters(whitelist_categories=("L",)), min_size=1
+        ),
+        cpr_number=st.none() | valid_cprs(),
+    )
+)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_employee_integration_test(
