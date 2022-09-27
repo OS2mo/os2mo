@@ -19,6 +19,7 @@ from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
+from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -545,6 +546,69 @@ class ITUserTerminate(ValidityTerminate, Triggerless):
 
 # Managers
 # --------
+
+
+class Manager(UUIDBase):
+    """Model representing a manager."""
+
+
+class ManagerCreate(UUIDBase):
+    """Model for creating an employee of manager type."""
+
+    responsibility: list[UUID] | None = Field(
+        description="UUID of the managers responsibilities."
+    )
+
+    org_unit: UUID | None = Field(description="UUID of the managers organisation unit.")
+
+    org_unit_level: UUID | None = Field(
+        description="UUID of the managers organisation unit level."
+    )
+
+    org_unit_type: UUID | None = Field(
+        description="UUID of the managers organisation unit type."
+    )
+
+    time_planning: UUID | None = Field(
+        description="UUID of the managers time planning.."
+    )
+
+    org: UUID | None = Field(
+        description="UUID of the organisation the manager will be created under.",
+    )
+
+    manager_type: UUID | None = Field(description="UUID of the managers type..")
+
+    manager_level: UUID | None = Field(description="UUID of the managers level.")
+
+    validity: RAValidity = Field(description="Validity range for the manager.")
+
+    user_key: str | None = Field(description="Extra info or UUID.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        return {
+            "responsibility": [gen_uuid(self.responsibility)],
+            "org_unit": gen_uuid(self.org_unit),
+            "org_unit_level": gen_uuid(self.org_unit_level),
+            "org_unit_type": gen_uuid(self.org_unit_type),
+            "time_planning": gen_uuid(self.time_planning),
+            "org": gen_uuid(self.org),
+            "manager_type": gen_uuid(self.manager_type),
+            "manager_level": gen_uuid(self.manager_level),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+            "user_key": self.user_key,
+        }
+
 
 # Organisational Units
 # --------------------

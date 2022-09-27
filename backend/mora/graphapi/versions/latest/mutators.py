@@ -27,10 +27,12 @@ from .inputs import EngagementTerminateInput
 from .inputs import FacetCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
+from .inputs import ManagerCreateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
+from .manager import create_manager
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
@@ -46,6 +48,7 @@ from .types import EngagementTerminateType
 from .types import EngagementType
 from .types import FacetType
 from .types import ITUserType
+from .types import ManagerType
 from .types import OrganizationUnit
 
 logger = logging.getLogger(__name__)
@@ -176,6 +179,12 @@ class Mutation:
 
     # Managers
     # --------
+    @strawberry.mutation(
+        description="Creates a manager for a specific organisation.",
+        permission_classes=[admin_permission_class],
+    )
+    async def manager_create(self, input: ManagerCreateInput) -> ManagerType:
+        return await create_manager(input.to_pydantic())  # type: ignore
 
     # Root Organisation
     # -----------------
