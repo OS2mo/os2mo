@@ -3,6 +3,7 @@
 import datetime
 from unittest import mock
 
+import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
@@ -173,3 +174,73 @@ async def test_terminate_response(given_uuid, triggerless, given_validity_dts):
         assert terminate_result_uuid == test_data.uuid
     else:
         assert caught_exception is not None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.parametrize(
+    "filter_snippet,expected",
+    [
+        ("", 3),
+        # Employee filters
+        ('(employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7")', 2),
+        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
+        (
+            """
+            (employees: [
+                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "6ee24785-ee9a-4502-81c2-7697009c9053"
+            ])
+        """,
+            1,
+        ),
+        # Organisation Unit filter
+        ('(org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")', 3),
+        ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
+        (
+            """
+            (org_units: [
+                "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+            ])
+        """,
+            3,
+        ),
+        # Mixed filters
+        (
+            """
+            (
+                employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
+            )
+        """,
+            0,
+        ),
+        (
+            """
+            (
+                employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+            )
+        """,
+            2,
+        ),
+    ],
+)
+async def test_engagement_filters(graphapi_post, filter_snippet, expected) -> None:
+    """Test filters on engagements."""
+    engagement_query = f"""
+        query Managers {{
+            engagements{filter_snippet} {{
+                uuid
+                objects {{
+                    org_unit_uuid
+                    employee_uuid
+                }}
+            }}
+        }}
+    """
+    response: GQLResponse = graphapi_post(engagement_query)
+    print(response.data)
+    assert response.errors is None
+    assert len(response.data["engagements"]) == expected

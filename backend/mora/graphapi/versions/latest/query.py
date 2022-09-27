@@ -16,6 +16,7 @@ from .permissions import gen_read_permission
 from .resolvers import AddressResolver
 from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
+from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
@@ -89,7 +90,7 @@ class Query:
     # Engagements
     # -----------
     engagements: list[Response[Engagement]] = strawberry.field(
-        resolver=Resolver("engagement_getter", "engagement_loader").resolve,
+        resolver=EngagementResolver().resolve,
         description="Get a list of all engagements, optionally by uuid(s)",
         permission_classes=[gen_read_permission("engagements")],
     )
