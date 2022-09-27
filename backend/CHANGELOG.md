@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.12.0 - 2022-09-27
+--------------------
+
+[#52316] Added `address_type` filter to `addresses` in GraphQL
+
 11.11.0 - 2022-09-27
 --------------------
 
