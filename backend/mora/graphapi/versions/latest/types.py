@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from .models import AddressCreateResponse
+from .models import AddressTerminateResponse
 from .models import Address as AddressModel
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
@@ -25,7 +27,15 @@ CPRType = strawberry.scalar(
 # Addresses
 # ---------
 @strawberry.experimental.pydantic.type(
-    model=AddressModel,
+    model=AddressCreateResponse,
+    all_fields=True,
+)
+class AddressCreateType:
+    """GraphQL type for/of an address (detail)."""
+
+
+@strawberry.experimental.pydantic.type(
+    model=AddressTerminateResponse,
     all_fields=True,
 )
 class AddressTerminateType:

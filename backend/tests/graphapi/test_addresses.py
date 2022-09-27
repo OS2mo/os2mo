@@ -3,19 +3,26 @@
 import asyncio
 import datetime
 from unittest.mock import patch
+from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import infer
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
+from mora import mapping
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.address import terminate as terminate_addr
+from mora.graphapi.versions.latest.models import AddressCreate
+from mora.graphapi.versions.latest.models import AddressRelation
 from mora.graphapi.versions.latest.models import AddressTerminate
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
@@ -133,6 +140,72 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
         assert terminate_result_uuid == at.uuid
     else:
         assert caught_exception is not None
+
+
+# @given(
+#     test_data=st.builds(AddressCreate)
+# )
+@given(data=st.data())
+async def test_create_mutator(data):
+    # Create test data
+    tz: ZoneInfo = data.draw(st.sampled_from([ZoneInfo("Europe/Copenhagen")]))
+
+    dt_options = {
+        "min_value": datetime.datetime(1930, 1, 1, 1),
+        "timezones": st.just(tz),
+    }
+    validity_tuple = data.draw(
+        st.tuples(
+            st.datetimes(**dt_options),
+            st.datetimes(**dt_options) | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_from, test_data_to = validity_tuple
+
+    test_data_relation = data.draw(
+        st.builds(
+            AddressRelation,
+            type=st.sampled_from(
+                [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+            ),
+        )
+    )
+
+    test_data = data.draw(
+        st.builds(
+            AddressCreate,
+            from_date=st.just(test_data_from),
+            to_date=st.just(test_data_to),
+            relation=st.just(test_data_relation),
+            org=infer,
+        )
+    )
+    payload = jsonable_encoder(test_data.dict(by_alias=True))
+
+    # Execute the mutation query
+    with patch(
+        "mora.graphapi.versions.latest.address.handlers.generate_requests"
+    ), patch(
+        "mora.graphapi.versions.latest.address.handlers.submit_requests"
+    ) as mock_submit_requests:
+        mock_submit_requests.return_value = [uuid4()]
+
+        mutate_query = """
+            mutation($input: AddressCreateInput!) {
+                address_create(input: $input) {
+                    uuid
+                }
+            }
+        """
+        mutation_response = await execute_graphql(
+            query=mutate_query, variable_values={"input": payload}
+        )
+        assert mutation_response.errors is None
+
+        mutation_response_uuid = mutation_response.data.get("address_create", {}).get(
+            "uuid", None
+        )
+        assert str(mock_submit_requests.return_value[0]) == mutation_response_uuid
 
 
 @pytest.mark.integration_test

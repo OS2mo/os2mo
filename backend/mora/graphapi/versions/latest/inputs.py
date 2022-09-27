@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from .models import AddressCreate
+from .models import AddressRelation
 from .models import AddressTerminate
 from .models import AssociationCreate
 from .models import ClassCreate
@@ -52,6 +54,22 @@ class OrganizationInput:
 
 # Addresses
 # ---------
+@strawberry.experimental.pydantic.input(
+    model=AddressRelation,
+    all_fields=True,
+)
+class AddressRelationInput:
+    """input model for creating addresses."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=AddressCreate,
+    all_fields=True,
+)
+class AddressCreateInput:
+    """input model for creating addresses."""
+
+
 @strawberry.experimental.pydantic.input(
     model=AddressTerminate,
     all_fields=True,

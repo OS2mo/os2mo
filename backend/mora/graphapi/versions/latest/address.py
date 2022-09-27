@@ -3,15 +3,28 @@
 import datetime
 from uuid import UUID
 
+from ....mapping import RequestType
+from .models import AddressCreate
 from .models import AddressTerminate
+from .types import AddressCreateType
 from .types import AddressTerminateType
 from mora import exceptions
 from mora import lora
 from mora import mapping
+from mora.service import handlers
 from mora.triggers import Trigger
 
 
-async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
+async def create(address_create: AddressCreate) -> AddressCreateType:
+    requests = await handlers.generate_requests(
+        [address_create.get_legacy_request()], RequestType.CREATE
+    )
+    uuids = await handlers.submit_requests(requests)
+
+    return AddressCreateType(uuid=uuids[0])
+
+
+async def terminate(address_terminate: AddressTerminate) -> AddressTerminateType:
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )

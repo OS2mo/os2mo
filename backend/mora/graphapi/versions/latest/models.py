@@ -10,6 +10,7 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
 from pydantic import Field
+from pydantic import validator
 
 from mora import common
 from mora import exceptions
@@ -194,8 +195,12 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class Address(UUIDBase):
-    """Address (detail) model."""
+class AddressCreateResponse(UUIDBase):
+    """Response from GraphQL when creating addresses."""
+
+
+class AddressTerminateResponse(UUIDBase):
+    """Response from GraphQL when terminating addresses."""
 
 
 class AddressTerminate(ValidityTerminate, Triggerless):
@@ -229,6 +234,66 @@ class AddressTerminate(ValidityTerminate, Triggerless):
             },
             "note": "Afsluttet",
         }
+
+
+class AddressType(MOBase):
+    name: str = Field("", description="Name of the address type, ex. 'Email'.")
+
+    scope: str = Field("", description="Scopeof the address type, ex. 'EMAIL'.")
+
+    example: str | None = Field(None, description="Example value for the address.")
+
+    owner: UUID | None = Field(None, description="UUID of the owner")
+
+
+class AddressVisibility(MOBase):
+    name: str = Field(
+        "", description="Name for the visibility, ex. 'M\\u00e5 vises eksternt'."
+    )
+
+    scope: str = Field("", description="Scopeof the address type, ex. 'EMAIL'.")
+
+    example: str | None = Field(None, description="Example value for the address.")
+
+    owner: UUID | None = Field(None, description="UUID of the owner")
+
+
+class AddressRelation(UUIDBase):
+    type: str = Field(
+        description="The type of the address relation, ex 'org_unit' or 'person'."
+    )
+
+    @validator("type")
+    def validate_type(cls, value: str) -> str:
+        if len(value) < 1:
+            raise ValueError("AddressRelation.type, must have a value longer than 0.")
+
+        supported_types = [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+
+        if value not in supported_types:
+            raise ValueError(
+                f"AddressRelation.type only supports: {', '.join(supported_types)}"
+            )
+
+        return value
+
+
+class AddressCreate(Validity):
+    """Model representing an address creation."""
+
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
+    visibility: UUID = Field(description="Visibility for the address.")
+    relation: AddressRelation = Field(
+        description="Field representing the relation the address belongs to."
+    )
+
+    org: UUID | None = Field(
+        None, description="Main Organization the address belongs to."
+    )
+
+    def get_legacy_request(self) -> dict:
+        return {}
 
 
 # Associations
