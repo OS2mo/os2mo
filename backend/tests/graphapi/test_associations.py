@@ -107,9 +107,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         """,
             1,
         ),
-        # Association type ilter
-        ('(association_types: "62ec821f-4179-4758-bfdf-134529d186e9")', 0),
-        ('(association_type_user_keys: "medl")', 0),
+        # Association type filter
+        ('(association_types: "62ec821f-4179-4758-bfdf-134529d186e9")', 1),
+        ('(association_type_user_keys: "medl")', 1),
         ('(association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e")', 0),
         ('(association_type_user_keys: "projektleder")', 0),
         ('(association_types: "45751985-321f-4d4f-ae16-847f0a633360")', 0),
@@ -121,16 +121,16 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
             ])
         """,
-            0,
+            1,
         ),
         (
             """
             (
-                association_types: "62ec821f-4179-4758-bfdf-134529d186e9",
-                association_type_user_keys: "projektleder"
+                association_type_user_keys: "medl",
+                association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
             )
         """,
-            0,
+            1,
         ),
         # Mixed filters
         (
@@ -150,6 +150,26 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
             )
         """,
             1,
+        ),
+        (
+            """
+            (
+                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                association_type_user_keys: "medl",
+            )
+        """,
+            1,
+        ),
+        (
+            """
+            (
+                employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
+            )
+        """,
+            0,
         ),
     ],
 )
