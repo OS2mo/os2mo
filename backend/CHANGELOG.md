@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.16.0 - 2022-09-27
+--------------------
+
+[#52316] Added `employees` and `org_units` filter to `engagements` in GraphQL
+
 11.15.0 - 2022-09-27
 --------------------
 
