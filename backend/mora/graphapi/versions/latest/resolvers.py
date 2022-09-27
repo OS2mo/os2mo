@@ -224,6 +224,36 @@ class AddressResolver(Resolver):
         )
 
 
+class AssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("association_getter", "association_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve associations."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
+
 class EmployeeResolver(Resolver):
     def __init__(self) -> None:
         super().__init__("employee_getter", "employee_loader")

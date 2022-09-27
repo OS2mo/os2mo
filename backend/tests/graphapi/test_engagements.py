@@ -184,6 +184,7 @@ async def test_terminate_response(given_uuid, triggerless, given_validity_dts):
         ("", 3),
         # Employee filters
         ('(employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7")', 2),
+        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
         ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
         (
             """
@@ -233,14 +234,9 @@ async def test_engagement_filters(graphapi_post, filter_snippet, expected) -> No
         query Managers {{
             engagements{filter_snippet} {{
                 uuid
-                objects {{
-                    org_unit_uuid
-                    employee_uuid
-                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(engagement_query)
-    print(response.data)
     assert response.errors is None
     assert len(response.data["engagements"]) == expected

@@ -14,6 +14,7 @@ from .models import FileStore
 from .models import HealthRead
 from .permissions import gen_read_permission
 from .resolvers import AddressResolver
+from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementResolver
@@ -66,7 +67,7 @@ class Query:
     # Associations
     # ------------
     associations: list[Response[Association]] = strawberry.field(
-        resolver=Resolver("association_getter", "association_loader").resolve,
+        resolver=AssociationResolver().resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
         permission_classes=[gen_read_permission("associations")],
     )
