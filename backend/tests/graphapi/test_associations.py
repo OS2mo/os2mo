@@ -1,14 +1,28 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+from uuid import UUID
+from uuid import uuid4
+
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
+from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from .utils import fetch_class_uuids
+from .utils import fetch_org_unit_validity
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.models import AssociationCreate
+from mora.graphapi.versions.latest.types import AssociationType
+from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
 
@@ -185,3 +199,120 @@ async def test_association_filters(graphapi_post, filter_snippet, expected) -> N
     response: GQLResponse = graphapi_post(association_query)
     assert response.errors is None
     assert len(response.data["associations"]) == expected
+
+
+@given(test_data=...)
+@patch(
+    "mora.graphapi.versions.latest.mutators.create_association", new_callable=AsyncMock
+)
+async def test_create_association(
+    create_association: AsyncMock, test_data: AssociationCreate
+) -> None:
+    """Test that pydantic jsons are passed through to association_create."""
+
+    mutate_query = """
+        mutation CreateAssociation($input: AssociationCreateInput!) {
+            association_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    created_uuid = uuid4()
+    create_association.return_value = AssociationType(uuid=created_uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    assert response.data == {"association_create": {"uuid": str(created_uuid)}}
+
+    create_association.assert_called_with(test_data)
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_association_integration_test(
+    data, graphapi_post, org_uuids, employee_uuids
+) -> None:
+    """Test that associations can be created in LoRa via GraphQL."""
+
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    association_type_uuids = fetch_class_uuids(graphapi_post, "association_type")
+
+    test_data = data.draw(
+        st.builds(
+            AssociationCreate,
+            org_unit=st.just(org_uuid),
+            employee=st.sampled_from(employee_uuids),
+            association_type=st.sampled_from(association_type_uuids),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
+        )
+    )
+
+    mutate_query = """
+        mutation CreateAssociation($input: AssociationCreateInput!) {
+            association_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuid = UUID(response.data["association_create"]["uuid"])
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            associations(uuids: [$uuid], from_date: null, to_date: null) {
+                objects {
+                    user_key
+                    org_unit: org_unit_uuid
+                    employee: employee_uuid
+                    association_type: association_type_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+    obj = one(one(response.data["associations"])["objects"])
+    assert obj["user_key"] == test_data.user_key or str(uuid)
+    assert UUID(obj["org_unit"]) == test_data.org_unit
+    assert UUID(obj["employee"]) == test_data.employee
+    assert UUID(obj["association_type"]) == test_data.association_type
+    assert (
+        datetime.fromisoformat(obj["validity"]["from"]).date()
+        == test_data.validity.from_date.date()
+    )
+    if obj["validity"]["to"] is not None:
+        assert (
+            datetime.fromisoformat(obj["validity"]["to"]).date()
+            == test_data.validity.to_date.date()
+        )
+    else:
+        assert test_data.validity.to_date is None
