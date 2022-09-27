@@ -107,6 +107,31 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         """,
             1,
         ),
+        # Association type ilter
+        ('(association_types: "62ec821f-4179-4758-bfdf-134529d186e9")', 0),
+        ('(association_type_user_keys: "medl")', 0),
+        ('(association_types: "8eea787c-c2c7-46ca-bd84-2dd50f47801e")', 0),
+        ('(association_type_user_keys: "projektleder")', 0),
+        ('(association_types: "45751985-321f-4d4f-ae16-847f0a633360")', 0),
+        ('(association_type_user_keys: "teammedarbejder")', 0),
+        (
+            """
+            (association_types: [
+                "62ec821f-4179-4758-bfdf-134529d186e9",
+                "8eea787c-c2c7-46ca-bd84-2dd50f47801e"
+            ])
+        """,
+            0,
+        ),
+        (
+            """
+            (
+                association_types: "62ec821f-4179-4758-bfdf-134529d186e9",
+                association_type_user_keys: "projektleder"
+            )
+        """,
+            0,
+        ),
         # Mixed filters
         (
             """
