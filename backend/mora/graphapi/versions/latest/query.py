@@ -17,6 +17,7 @@ from .resolvers import AddressResolver
 from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
 from .resolvers import FacetResolver
+from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import Resolver
 from .resolvers import StaticResolver
@@ -146,7 +147,7 @@ class Query:
     # Managers
     # --------
     managers: list[Response[Manager]] = strawberry.field(
-        resolver=Resolver("manager_getter", "manager_loader").resolve,
+        resolver=ManagerResolver().resolve,
         description="Get a list of all managers, optionally by uuid(s)",
         permission_classes=[gen_read_permission("managers")],
     )
