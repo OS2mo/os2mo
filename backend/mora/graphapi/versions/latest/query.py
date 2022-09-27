@@ -13,6 +13,8 @@ from .models import FileRead
 from .models import FileStore
 from .models import HealthRead
 from .permissions import gen_read_permission
+from .resolvers import AddressResolver
+from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import Resolver
@@ -53,7 +55,7 @@ class Query:
     # Addresses
     # ---------
     addresses: list[Response[Address]] = strawberry.field(
-        resolver=Resolver("address_getter", "address_loader").resolve,
+        resolver=AddressResolver().resolve,
         description="Get a list of all addresses, optionally by uuid(s)",
         permission_classes=[gen_read_permission("addresses")],
     )
@@ -69,7 +71,7 @@ class Query:
     # Classes
     # -------
     classes: list[Class] = strawberry.field(
-        resolver=StaticResolver("class_getter", "class_loader").resolve,
+        resolver=ClassResolver().resolve,
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[gen_read_permission("classes")],
     )

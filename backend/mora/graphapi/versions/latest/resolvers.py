@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from operator import attrgetter
 from typing import Any
 from uuid import UUID
 
@@ -138,6 +139,49 @@ class Resolver(StaticResolver):
         responses = await dataloader.load_many(list(set(uuids)))
         # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
         return [response for response in responses if response.objects != []]
+
+
+class ClassResolver(StaticResolver):
+    def __init__(self) -> None:
+        super().__init__("class_getter", "class_loader")
+
+
+class AddressResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("address_getter", "address_loader")
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        address_types: list[UUID] | None = None,
+        address_type_user_keys: list[str] | None = None,
+    ):
+        """Resolve addresses."""
+        if address_type_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            address_type_objects = await ClassResolver().resolve(
+                info, user_keys=address_type_user_keys
+            )
+            address_type_uuids = list(map(attrgetter("uuid"), address_type_objects))
+            if address_types is None:
+                address_types = []
+            address_types.extend(address_type_uuids)
+
+        kwargs = {}
+        if address_types is not None:
+            kwargs["organisatoriskfunktionstype"] = address_types
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 class EmployeeResolver(Resolver):
