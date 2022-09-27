@@ -182,7 +182,7 @@ class OrganisationUnitResolver(Resolver):
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
     ):
-        """Resolve an employee query, optionally filtering on CPR numbers."""
+        """Resolve organisation units."""
         kwargs = {}
 
         if parents is UNSET:
