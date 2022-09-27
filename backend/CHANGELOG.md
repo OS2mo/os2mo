@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.14.0 - 2022-09-27
+--------------------
+
+[#52316] Added `employees` and `org_units` filter to `managers` in GraphQL
+
 11.13.0 - 2022-09-27
 --------------------
 
