@@ -11,8 +11,6 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import HealthCheck
-from hypothesis import settings
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -176,12 +174,10 @@ def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     return class_uuids
 
 
-# We can suppress this as we use subtests
-@settings(suppress_health_check=[HealthCheck.function_scoped_fixture])
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> None:
+def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> None:
     """Test that organisation units can be created in LoRa via GraphQL."""
     # org_uuids = fetch_org_uuids(graphapi_post)
 
@@ -234,9 +230,7 @@ async def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) 
             }
         }
     """
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
+    response: GQLResponse = graphapi_post(mutate_query, {"input": payload})
     assert response.errors is None
     uuid = UUID(response.data["org_unit_create"]["uuid"])
 

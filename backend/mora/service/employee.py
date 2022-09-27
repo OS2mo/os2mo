@@ -37,7 +37,7 @@ from .. import util
 from ..graphapi.middleware import is_graphql
 from ..lora import LoraObjectType
 from ..triggers import Trigger
-from .validation import validator
+from .validation.validator import does_employee_with_cpr_already_exist
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from ramodels.base import tz_isodate
@@ -107,7 +107,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         valid_to = util.POSITIVE_INFINITY
 
         if cpr:
-            await validator.does_employee_with_cpr_already_exist(
+            await does_employee_with_cpr_already_exist(
                 cpr, valid_from, valid_to, org_uuid, userid
             )
 

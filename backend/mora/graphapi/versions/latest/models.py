@@ -8,6 +8,7 @@ from uuid import UUID
 
 import strawberry
 from pydantic import BaseModel
+from pydantic import ConstrainedStr
 from pydantic import Field
 
 from mora import common
@@ -24,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 # Various
 # -------
+
+
+class NonEmptyString(ConstrainedStr):
+    min_length: int = 1
+
 
 # --------------------------------------------------------------------------------------
 # Models
@@ -254,16 +260,26 @@ class Employee(UUIDBase):
     """OS2Mo employee model."""
 
 
-class EmployeeCreate(BaseModel):
+class EmployeeCreate(Employee):
     """Model representing an employee creation."""
 
-    name: str = Field(description="Full name of the employee.")
-
-    cpr_no: str = Field(description="Danish CPR number of the employee.")
-    org: Organisation = Field(
-        Organisation(),
-        description="The organization the new employee will be created under.",
+    user_key: str | None = Field(description="Extra info or uuid.")
+    givenname: NonEmptyString = Field(
+        description="Givenname (firstname) of the employee."
     )
+    surname: NonEmptyString = Field(description="Surname (lastname) of the employee.")
+
+    cpr_number: str | None = Field(
+        None, description="Danish CPR number of the employee."
+    )
+
+    def to_handler_dict(self) -> dict:
+        return {
+            "user_key": self.user_key,
+            "givenname": self.givenname,
+            "surname": self.surname,
+            "cpr_no": self.cpr_number,
+        }
 
 
 class EmployeeTerminate(ValidityTerminate, Triggerless):

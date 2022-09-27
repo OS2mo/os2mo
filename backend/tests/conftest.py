@@ -26,6 +26,7 @@ from mora import lora
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
+from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
@@ -295,3 +296,6 @@ def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
         "http://localhost/lora/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
     yield organisation["id"]
+
+
+st.register_type_strategy(NonEmptyString, st.text(min_size=1))

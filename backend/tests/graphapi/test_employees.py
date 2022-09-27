@@ -4,21 +4,26 @@ import datetime
 from itertools import product
 from unittest.mock import AsyncMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
+import pytest
+from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
+from more_itertools import one
 from parameterized import parameterized
 from pytest import MonkeyPatch
 
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora import exceptions
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.service.util import handle_gql_error
+from mora.graphapi.versions.latest.models import EmployeeCreate
+from mora.graphapi.versions.latest.types import EmployeeType
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
@@ -85,203 +90,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
-
-
-class TestEmployeeCreate(tests.cases.AsyncLoRATestCase):
-    @parameterized.expand(
-        [
-            (
-                "Laura Christensen",
-                "0103882148",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                True,
-            ),
-            (
-                "Laura Christensen",
-                "0000000000",
-                "00000000-0000-0000-0000-000000000000",
-                True,
-            ),
-            (None, "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
-            (None, "0103882148", None, False),
-            (None, None, "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
-            (None, None, None, False),
-            ("Laura Christensen", None, "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
-            ("Laura Christensen", "0103882148", None, False),
-        ]
-    )
-    async def test_mutator(
-        self, given_name, given_cprno, given_org_uuid, expected_result
-    ):
-        with patch("mora.service.handlers.RequestHandler.construct") as mock_construct:
-            mock_new_uuid = str(uuid4())
-            mock_submit = AsyncMock(return_value=mock_new_uuid)
-            mock_construct.return_value = AsyncMock(submit=mock_submit)
-
-            # GraphQL
-            mutation_func = "employee_create"
-            query = (
-                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
-                f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
-                f"{{ uuid }}"
-                f"}}"
-            )
-
-            var_values = {}
-            if given_name:
-                var_values["name"] = given_name
-
-            if given_cprno:
-                var_values["cpr_no"] = given_cprno
-
-            if given_org_uuid:
-                var_values["org"] = {mapping.UUID: given_org_uuid}
-
-            response = await execute_graphql(query, variable_values=var_values)
-
-            # Asserts
-            if expected_result:
-                mock_construct.assert_called()
-                mock_submit.assert_called()
-
-                assert (
-                    response.data.get(mutation_func, {}).get("uuid", None)
-                    == mock_new_uuid
-                )
-            else:
-                mock_construct.assert_not_called()
-                mock_submit.assert_not_called()
-
-    @parameterized.expand(
-        [
-            # Empty values
-            (
-                "Laura Christensen",
-                "0103882148",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                True,
-            ),
-            ("Laura Christensen", "", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
-            ("Laura Christensen", "0103882148", "", False),
-            ("Laura Christensen", "", "", False),
-            ("", "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", False),
-            ("", "", "", False),
-            # Formats
-            (
-                "Laura Christensen",
-                "0000000000",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                True,
-            ),
-            (
-                "Laura Christensen",
-                "0103882148",
-                "00000000-0000-0000-0000-000000000000",
-                True,
-            ),
-            ("Laura", "0103882148", "3b866d97-0b1f-48e0-8078-686d96f430b3", True),
-        ]
-    )
-    async def test_pydantic_dataclass(
-        self, given_name, given_cprno, given_org_uuid, expected_result
-    ):
-        with patch(
-            "mora.graphapi.versions.latest.mutators.employee_create"
-        ) as mock_employee_create:
-            mutation_func = "employee_create"
-            query = (
-                f"mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {{"
-                f"{mutation_func}(input: {{name: $name, cpr_no: $cpr_no, org: $org}}) "
-                f"{{ uuid }}"
-                f"}}"
-            )
-
-            var_values = {}
-            if given_name:
-                var_values["name"] = given_name
-
-            if given_cprno:
-                var_values["cpr_no"] = given_cprno
-
-            if given_org_uuid:
-                var_values["org"] = {mapping.UUID: given_org_uuid}
-
-            _ = await execute_graphql(query, variable_values=var_values)
-
-            # Asserts
-            if expected_result:
-                mock_employee_create.assert_called()
-            else:
-                mock_employee_create.assert_not_called()
-
-    @parameterized.expand(
-        [
-            (
-                "Laura Christensen",
-                "0000000000",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                exceptions.ErrorCodes.V_CPR_NOT_VALID.name,
-            ),
-            (
-                "Laura Christensen",
-                "0101701234",
-                "00000000-0000-0000-0000-000000000000",
-                exceptions.ErrorCodes.E_ORG_UNCONFIGURED.name,
-            ),
-            (
-                "",
-                "0000000000",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name,
-            ),
-            (
-                "",
-                "",
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE.name,
-            ),
-        ]
-    )
-    async def test_fails(
-        self, given_name, given_cprno, given_org_uuid, expected_result
-    ):
-        with patch("mora.service.org.get_valid_organisations") as mock_get_valid_orgs:
-            mock_get_valid_orgs.return_value = (
-                [{mapping.UUID: given_org_uuid}]
-                if given_org_uuid != "00000000-0000-0000-0000-000000000000"
-                else []
-            )
-
-            with patch("mora.lora.Scope.create") as mock_create:
-                mock_create.side_effect = lambda *args: args[-1]
-
-                result = None
-                try:
-                    query = (
-                        "mutation($name: String!, $cpr_no: String!, $org: OrganizationInput!) {"
-                        "employee_create(input: {name: $name, cpr_no: $cpr_no, org: $org}) "
-                        "{ uuid }"
-                        "}"
-                    )
-                    response = await execute_graphql(
-                        query,
-                        variable_values={
-                            "name": given_name,
-                            "cpr_no": given_cprno,
-                            "org": {mapping.UUID: given_org_uuid},
-                        },
-                    )
-                    handle_gql_error(response)
-                except Exception as e:
-                    result = (
-                        e.key.name
-                        if hasattr(e, "key") and hasattr(e.key, "name")
-                        else result
-                    )
-
-                # Assert
-                mock_create.assert_not_called()
-                assert result == expected_result
 
 
 class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
@@ -592,3 +400,102 @@ class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
                 mock_employee_update.assert_called()
             else:
                 mock_employee_update.assert_not_called()
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.employee_create", new_callable=AsyncMock)
+async def test_create_employee(
+    create_employee: AsyncMock, test_data: EmployeeCreate
+) -> None:
+    """Test that pydantic jsons are passed through to employee_create."""
+
+    mutate_query = """
+        mutation CreateOrgUnit($input: EmployeeCreateInput!) {
+            employee_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    created_uuid = uuid4()
+    create_employee.return_value = EmployeeType(uuid=created_uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    assert response.data == {"employee_create": {"uuid": str(created_uuid)}}
+
+    create_employee.assert_called_with(test_data)
+
+
+@st.composite
+def valid_cprs(draw) -> str:
+    # TODO: Add minimum and maximum birthyears as parameters
+    valid_date = draw(
+        st.dates(
+            min_value=datetime.date(1970, 1, 1),  # Should really start at 1857
+            max_value=datetime.date(2057, 1, 1),
+        )
+    )
+    if valid_date.year < 1900:
+        # TODO: Add mixed region 5000->9000
+        code = draw(st.integers(min_value=5000, max_value=9000))
+    elif valid_date.year < 2000:
+        # TODO: Add mixed regions 4000->5000, 5000->9000 and 9000+
+        code = draw(st.integers(min_value=0, max_value=4000))
+    else:
+        # TODO: Add mixed regions 4000->5000 and 9000+
+        code = draw(st.integers(min_value=9000, max_value=9999))
+    valid_code = str(code).zfill(4)
+    cpr_number = valid_date.strftime("%d%m%y") + valid_code
+    return cpr_number
+
+
+@patch(
+    "mora.service.employee.does_employee_with_cpr_already_exist", new_callable=AsyncMock
+)
+@given(test_data=st.builds(EmployeeCreate, cpr_number=st.none() | valid_cprs()))
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_employee_integration_test(
+    does_employee_with_cpr_already_exist: AsyncMock,
+    test_data: EmployeeCreate,
+    graphapi_post,
+) -> None:
+    """Test that employees can be created in LoRa via GraphQL."""
+
+    does_employee_with_cpr_already_exist.return_value = None
+
+    mutate_query = """
+        mutation CreateEmployee($input: EmployeeCreateInput!) {
+            employee_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuid = UUID(response.data["employee_create"]["uuid"])
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            employees(uuids: [$uuid], from_date: null, to_date: null) {
+                objects {
+                    user_key
+                    givenname
+                    surname
+                    cpr_no
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+    obj = one(one(response.data["employees"])["objects"])
+    assert obj["givenname"] == test_data.givenname
+    assert obj["surname"] == test_data.surname
+    assert obj["user_key"] == test_data.user_key or str(uuid)
+    assert obj["cpr_no"] == test_data.cpr_number
