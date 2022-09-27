@@ -141,6 +141,7 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
     "filter_snippet,expected",
     [
         ("", 7),
+        # Address Type filters
         ('(address_type_user_keys: "BrugerPostadresse")', 1),
         ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 1),
         ('(address_type_user_keys: "BrugerEmail")', 2),
@@ -164,12 +165,41 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
         """,
             3,
         ),
+        # Employee filters
+        ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
+        ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 2),
+        (
+            """
+            (employees: [
+                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "6ee24785-ee9a-4502-81c2-7697009c9053"
+            ])
+        """,
+            3,
+        ),
+        # Mixed filters
+        (
+            """
+            (
+                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
+                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+            )
+        """,
+            1,
+        ),
+        (
+            """
+            (
+                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
+                address_type_user_keys: "BrugerEmail"
+            )
+        """,
+            1,
+        ),
     ],
 )
-async def test_address_address_type_filter(
-    graphapi_post, filter_snippet, expected
-) -> None:
-    """Test address_type filters on addresses."""
+async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
+    """Test filters on addresses."""
     address_query = f"""
         query Addresses {{
             addresses{filter_snippet} {{
