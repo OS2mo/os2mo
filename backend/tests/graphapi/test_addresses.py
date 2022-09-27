@@ -3,6 +3,7 @@
 import asyncio
 import datetime
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -206,6 +207,62 @@ async def test_create_mutator(data):
             "uuid", None
         )
         assert str(mock_submit_requests.return_value[0]) == mutation_response_uuid
+
+
+@pytest.mark.parametrize(
+    "given_from,given_mutator_args",
+    [
+        (
+            datetime.datetime.now(),
+            {
+                "value": "YeeHaaa@magenta.dk",
+                # "bruger_email"
+                "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+                # "Public"
+                "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+                "relation": {
+                    "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+                    "type": mapping.PERSON,
+                },
+                "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62")
+                # "address_type": UUID("00000000-0000-0000-0000-000000000000"),
+                # "visibility": UUID("00000000-0000-0000-0000-000000000000"),
+            },
+        ),
+    ],
+)
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures")
+async def test_create_integration(graphapi_post, given_from, given_mutator_args):
+    zoneinfo = ZoneInfo("Europe/Copenhagen")
+
+    validity_from = datetime.datetime.combine(
+        datetime.datetime.now().date(), datetime.datetime.min.time()
+    ).replace(tzinfo=zoneinfo)
+
+    test_data = AddressCreate(
+        from_date=validity_from,
+        value=given_mutator_args.get("value"),
+        address_type=given_mutator_args.get("address_type"),
+        visibility=given_mutator_args.get("visibility"),
+        relation=AddressRelation(
+            uuid=given_mutator_args.get("relation").get("uuid"),
+            type=given_mutator_args.get("relation").get("type"),
+        ),
+        org=given_mutator_args.get("org", None),
+    )
+    payload = jsonable_encoder(test_data.dict(by_alias=True))
+
+    # Execute the mutation query
+    mutation_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(mutation_query, {"input": payload})
+    assert mutation_response.errors is None
 
 
 @pytest.mark.integration_test
