@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.10.0 - 2022-09-27
+--------------------
+
+[#xxxxx] Added `parents` filter to `org_units` in GraphQL
+
 11.9.0 - 2022-09-26
 -------------------
 
