@@ -347,7 +347,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_association, actual_association)
 
         expected = {
-            "association_type": {"uuid": "32547559-cfc1-4d97-94c6-70b192eff825"},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
             "dynamic_classes": [],
             "org_unit": {"uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"},
             "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
