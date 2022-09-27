@@ -1,8 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections.abc import Callable
 from datetime import datetime
-from operator import itemgetter
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -17,6 +15,8 @@ from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from .utils import fetch_class_uuids
+from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -112,66 +112,6 @@ async def test_create_org_unit(
     assert response.data == {"org_unit_create": {"uuid": str(created_uuid)}}
 
     create_org_unit.assert_called_with(test_data)
-
-
-@pytest.fixture(scope="class", name="org_uuids")
-def fetch_org_uuids(sample_structures_no_reset, graphapi_post: Callable) -> list[UUID]:
-    parent_uuids_query = """
-        query FetchOrgUUIDs {
-            org_units {
-                uuid
-            }
-        }
-    """
-    response: GQLResponse = graphapi_post(parent_uuids_query)
-    assert response.errors is None
-    org_uuids = list(map(UUID, map(itemgetter("uuid"), response.data["org_units"])))
-    return org_uuids
-
-
-def fetch_org_unit_validity(
-    graphapi_post: Callable, org_uuid: UUID
-) -> tuple[datetime, datetime | None]:
-    validity_query = """
-        query FetchValidity($uuid: UUID!) {
-            org_units(uuids: [$uuid]) {
-                objects {
-                    uuid
-                    validity {
-                        from
-                        to
-                    }
-                }
-            }
-        }
-    """
-    response: GQLResponse = graphapi_post(validity_query, {"uuid": str(org_uuid)})
-    assert response.errors is None
-    validity = one(one(response.data["org_units"])["objects"])["validity"]
-    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
-    to_time = (
-        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
-        if validity["to"]
-        else None
-    )
-    return from_time, to_time
-
-
-def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
-    class_query = """
-        query FetchClassUUIDs($user_key: String!) {
-            facets(user_keys: [$user_key]) {
-                classes {
-                    uuid
-                }
-            }
-        }
-    """
-    response: GQLResponse = graphapi_post(class_query, {"user_key": facet_name})
-    assert response.errors is None
-    facet = one(response.data["facets"])
-    class_uuids = list(map(UUID, map(itemgetter("uuid"), facet["classes"])))
-    return class_uuids
 
 
 @given(data=st.data())
