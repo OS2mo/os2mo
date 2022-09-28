@@ -8,12 +8,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-import mock
-import pytest
-from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import strategies as st
-from more_itertools import one
 from hypothesis import strategies as st
 from hypothesis.strategies import characters
 from more_itertools import one
@@ -24,17 +19,15 @@ from pytest import MonkeyPatch
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora import exceptions
 from mora import lora
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.models import EmployeeUpdate
-from mora.graphapi.versions.latest.types import EmployeeUpdateResponseType
-from mora.service.util import handle_gql_error
 from mora.graphapi.versions.latest.models import EmployeeCreate
+from mora.graphapi.versions.latest.models import EmployeeUpdate
 from mora.graphapi.versions.latest.types import EmployeeType
+from mora.graphapi.versions.latest.types import EmployeeUpdateResponseType
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
@@ -261,161 +254,6 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         return query, var_values
 
 
-# Create lists of possible values
-test_mutator_success_uuids = [
-    "00000000-0000-0000-0000-000000000000",
-    "720d3063-9649-4371-9c38-5a8af04b96dd",
-]
-test_mutator_fail_uuids = [None]
-test_mutator_names = [None, "Jens Jensen"]
-test_mutator_nickname_firsts = [None, "Jens"]
-test_mutator_nickname_lasts = [None, "Lyn"]
-
-test_pydantic_dataclass_uuids_success = test_mutator_success_uuids
-test_pydantic_dataclass_uuids_fail = ["", "something-darkside"]
-test_pydantic_dataclass_names = ["", "Jens Jensen"]
-test_pydantic_dataclass_nickname_firsts = ["", "Jens"]
-test_pydantic_dataclass_nickname_lasts = ["", "Lyn"]
-
-# Create parm lists
-test_mutator_success_params = list(
-    product(
-        test_mutator_success_uuids,
-        test_mutator_names,
-        test_mutator_nickname_firsts,
-        test_mutator_nickname_lasts,
-    )
-)
-test_mutator_fail_params = list(
-    product(
-        test_mutator_fail_uuids,
-        test_mutator_names,
-        test_mutator_nickname_firsts,
-        test_mutator_nickname_lasts,
-    )
-)
-
-test_pydantic_dataclass_success_params = list(
-    product(
-        test_pydantic_dataclass_uuids_success,
-        test_pydantic_dataclass_names,
-        test_pydantic_dataclass_nickname_firsts,
-        test_pydantic_dataclass_nickname_lasts,
-    )
-)
-test_pydantic_dataclass_fail_params = list(
-    product(
-        test_pydantic_dataclass_uuids_fail,
-        test_pydantic_dataclass_names,
-        test_pydantic_dataclass_nickname_firsts,
-        test_pydantic_dataclass_nickname_lasts,
-    )
-)
-
-params_test_mutator = [param + (True,) for param in test_mutator_success_params]
-params_test_mutator += [param + (False,) for param in test_mutator_fail_params]
-
-params_test_pydantic_dataclass = [
-    param + (True,) for param in test_pydantic_dataclass_success_params
-]
-params_test_pydantic_dataclass += [
-    param + (False,) for param in test_pydantic_dataclass_fail_params
-]
-
-
-class TestEmployeeUpdate(tests.cases.AsyncLoRATestCase):
-    @parameterized.expand(params_test_mutator)
-    async def _test_mutator(
-        self,
-        given_uuid,
-        given_name,
-        given_nickname_first,
-        given_nickname_last,
-        expected_result,
-    ):
-        with patch(
-            "mora.graphapi.versions.latest.employee.handle_requests"
-        ) as mock_handle_requests:
-            mock_handle_requests.return_value = given_uuid
-
-            # GraphQL
-            mutation_func = "employee_update"
-            query = (
-                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
-                "$nicknameLast: String) {"
-                f"{mutation_func}(input: {{uuid: $uuid, name: $name, "
-                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
-                "{ uuid }"
-                "}"
-            )
-
-            var_values = {}
-            if given_uuid:
-                var_values["uuid"] = given_uuid
-
-            if given_name:
-                var_values["name"] = given_name
-
-            if given_nickname_first:
-                var_values["nicknameFirst"] = given_nickname_first
-
-            if given_nickname_last:
-                var_values["nicknameLast"] = given_nickname_last
-
-            response = await execute_graphql(query, variable_values=var_values)
-
-            # Asserts
-            if expected_result:
-                mock_handle_requests.assert_called()
-
-                assert (
-                    response.data.get(mutation_func, {}).get("uuid", None) == given_uuid
-                )
-            else:
-                mock_handle_requests.assert_not_called()
-
-    @parameterized.expand(params_test_pydantic_dataclass)
-    async def _test_pydantic_dataclass(
-        self,
-        given_uuid,
-        given_name,
-        given_nickname_first,
-        given_nickname_last,
-        expected_result,
-    ):
-        with patch(
-            "mora.graphapi.versions.latest.mutators.employee_update"
-        ) as mock_employee_update:
-            query = (
-                "mutation($uuid: UUID!, $name: String = null, $nicknameFirst: String, "
-                "$nicknameLast: String) {"
-                "employee_update(input: {uuid: $uuid, name: $name, "
-                "nickname_givenname: $nicknameFirst, nickname_surname: $nicknameLast}) "
-                "{ uuid }"
-                "}"
-            )
-
-            var_values = {}
-            if given_uuid:
-                var_values["uuid"] = given_uuid
-
-            if given_name:
-                var_values["name"] = given_name
-
-            if given_nickname_first:
-                var_values["nicknameFirst"] = given_nickname_first
-
-            if given_nickname_last:
-                var_values["nicknameLast"] = given_nickname_last
-
-            _ = await execute_graphql(query, variable_values=var_values)
-
-            if expected_result:
-                mock_employee_update.assert_called()
-            else:
-                mock_employee_update.assert_not_called()
-
-
 @given(test_data=...)
 @patch("mora.graphapi.versions.latest.mutators.employee_create", new_callable=AsyncMock)
 async def test_create_employee(
@@ -527,89 +365,9 @@ async def test_create_employee_integration_test(
     assert obj["cpr_no"] == test_data.cpr_number
 
 
-async def test_update():
 # --------------------------------------------------------------------------------------
 # Update tests
 # --------------------------------------------------------------------------------------
-
-
-@given(
-    st.uuids(),
-    # from & to
-    st.tuples(st.datetimes(), st.datetimes() | st.none()).filter(
-        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
-    ),
-    # name, given_name, sur_name
-    st.tuples(
-        st.text() | st.none(),
-        st.text() | st.none(),
-        st.text() | st.none(),
-    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
-    # nickname, nickname_givenname, nickname_surname,
-    st.tuples(
-        st.text() | st.none(),
-        st.text() | st.none(),
-        st.text() | st.none(),
-    ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
-    # given_seniority
-    st.text() | st.none(),
-    # cpr_no
-    st.from_regex(r"^\d{10}$") | st.none(),
-)
-async def test_update_pydantic_model(
-    given_uuid,
-    given_validity_dts,
-    given_name_tuple,
-    given_nickname_tuple,
-    given_seniority,
-    given_cpr_no,
-):
-    # Unpack tuples
-    given_uuid_str = str(given_uuid)
-    given_validity_from, given_validity_to = given_validity_dts
-    given_name, given_givenname, given_surname = given_name_tuple
-    (
-        given_nickname,
-        given_nickname_givenname,
-        given_nickname_surname,
-    ) = given_nickname_tuple
-
-    # Create model params
-    model_params = {
-        "uuid": given_uuid_str,
-        "from": given_validity_from.date().isoformat(),
-    }
-
-    if given_validity_to:
-        model_params["to"] = given_validity_to.date().isoformat()
-
-    if given_name:
-        model_params["name"] = given_name
-    if given_givenname:
-        model_params["given_name"] = given_givenname
-    if given_surname:
-        model_params["surname"] = given_surname
-
-    if given_nickname:
-        model_params["nickname"] = given_nickname
-    if given_nickname_givenname:
-        model_params["nickname_given_name"] = given_nickname_givenname
-    if given_nickname_surname:
-        model_params["nickname_surname"] = given_nickname_surname
-
-    if given_seniority:
-        model_params["seniority"] = given_seniority
-    if given_cpr_no:
-        model_params["cpr_no"] = given_cpr_no
-
-    # Try and create the model
-    raised_exception = None
-    try:
-        _ = EmployeeUpdate(**model_params)
-    except Exception as e:
-        raised_exception = e
-
-    assert not raised_exception
 
 
 @given(
