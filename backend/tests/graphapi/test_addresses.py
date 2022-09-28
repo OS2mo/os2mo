@@ -188,8 +188,16 @@ async def test_create_mutator(data):
         "mora.graphapi.versions.latest.address.handlers.generate_requests"
     ), patch(
         "mora.graphapi.versions.latest.address.handlers.submit_requests"
-    ) as mock_submit_requests:
+    ) as mock_submit_requests, patch(
+        "mora.graphapi.versions.latest.models.lora.Scope.get"
+    ), patch(
+        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
+    ) as mock_get_lora_validity:
         mock_submit_requests.return_value = [uuid4()]
+        mock_get_lora_validity.return_value = {
+            mapping.FROM: test_data_from,
+            mapping.TO: None,
+        }
 
         mutate_query = """
             mutation($input: AddressCreateInput!) {
