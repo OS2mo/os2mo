@@ -4,7 +4,6 @@ import strawberry
 
 from .models import AddressCreateResponse
 from .models import AddressTerminateResponse
-from .models import Address as AddressModel
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import Engagement as EngagementModel

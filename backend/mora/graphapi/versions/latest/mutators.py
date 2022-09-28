@@ -7,10 +7,9 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from .address import terminate_addr
-from .association import create_association
 from .address import create as create_addr
 from .address import terminate as terminate_addr
+from .association import create_association
 from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
