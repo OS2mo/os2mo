@@ -788,7 +788,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
@@ -887,7 +887,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         expected = [
             {
                 "association_type": {
-                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                 },
                 "dynamic_classes": [],
                 "org_unit": {
@@ -951,7 +951,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "relationer": {
                 "organisatoriskfunktionstype": [
                     {
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
                         "virkning": {
                             "from_included": True,
                             "to_included": False,
