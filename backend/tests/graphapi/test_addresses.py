@@ -143,9 +143,9 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
         assert caught_exception is not None
 
 
-# @given(
-#     test_data=st.builds(AddressCreate)
-# )
+visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
+
+
 @given(data=st.data())
 async def test_create_mutator(data):
     # Create test data
@@ -214,10 +214,30 @@ async def test_create_mutator(data):
     [
         {
             # address_type="bruger_email"
-            # visibility="Public"
             "value": "YeeHaaa@magenta.dk",
             "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
-            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            # Addr: Nordre Ringgade 1, 8000 Aarhus C
+            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            "value": "11223344",
+            "address_type": UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d"),
+            "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.PERSON,
                 "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -226,18 +246,8 @@ async def test_create_mutator(data):
         },
         {
             "value": "YeeHaaa@magenta.dk",
-            "address_type": UUID("73360db1-bad3-4167-ac73-8d827c0c8751"),
-            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
-            "relation": {
-                "type": mapping.ORG_UNIT,
-                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
-            },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
-        },
-        {
-            "value": "YeeHaaa@magenta.dk",
             "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
-            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "visibility": visibility_uuid_public,
             "relation": {
                 # engagement_type="ansat"
                 # which is why above addr type is a "bruger_email"
@@ -249,21 +259,53 @@ async def test_create_mutator(data):
         {
             # Addr: Nordre Ringgade 1, 8000 Aarhus C
             "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed"),
-            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "address_type": UUID("28d71012-2919-4b67-a2f0-7b59ed52561e"),
+            "visibility": visibility_uuid_public,
             "relation": {
-                "type": mapping.PERSON,
-                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
-            "value": "11223344",
-            "address_type": UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d"),
-            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": UUID("73360db1-bad3-4167-ac73-8d827c0c8751"),
+            "visibility": visibility_uuid_public,
             "relation": {
-                "type": mapping.PERSON,
-                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            # address_type = EAN (validator-regex: ^\d{13}$)
+            "value": "8008580085000",
+            "address_type": UUID("e34d4426-9845-4c72-b31e-709be85d6fa2"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            "value": "55667788",
+            "address_type": UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            # address_type = contact-open-hours
+            "value": "8-17",
+            "address_type": UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
