@@ -5,7 +5,7 @@ import strawberry
 from .models import Address as AddressModel
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
-from .models import EngagementModel
+from .models import Engagement as EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
@@ -69,6 +69,14 @@ class EmployeeType:
     all_fields=True,
 )
 class EngagementTerminateType:
+    """GraphQL type for an engagement."""
+
+
+@strawberry.experimental.pydantic.type(
+    model=EngagementModel,
+    all_fields=True,
+)
+class EngagementType:
     """GraphQL type for an engagement."""
 
 

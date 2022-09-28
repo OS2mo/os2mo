@@ -3,10 +3,13 @@
 """GraphQL engagement related helper functions."""
 from uuid import UUID
 
+from .models import EngagementCreate
 from .models import EngagementTerminate
 from .types import EngagementTerminateType
+from .types import EngagementType
 from mora import lora
 from mora import mapping
+from mora.service.engagement import EngagementRequestHandler
 from mora.triggers import Trigger
 
 
@@ -36,3 +39,14 @@ async def terminate_engagement(input: EngagementTerminate) -> EngagementTerminat
         _ = await Trigger.run(trigger_dict)
 
     return EngagementTerminateType(uuid=UUID(lora_result))
+
+
+async def create_engagement(input: EngagementCreate) -> EngagementType:
+    input_dict = input.to_handler_dict()
+
+    handler = await EngagementRequestHandler.construct(
+        input_dict, mapping.RequestType.CREATE
+    )
+    uuid = await handler.submit()
+
+    return EngagementType(uuid=UUID(uuid))
