@@ -9,7 +9,6 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import reproduce_failure
 from hypothesis import strategies as st
 from hypothesis.strategies import characters
 from more_itertools import one
@@ -649,7 +648,6 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         assert newest_update_value == value
 
 
-@reproduce_failure("6.54.5", b"AXicY2BAAEYgBJIgAAAAOgAI")
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")

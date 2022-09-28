@@ -10,6 +10,7 @@ from .models import Engagement as EngagementModel
 from .models import ITUser as ITUserModel
 from .models import Manager as ManagerModel
 from .models import EmployeeUpdateResponse
+from .models import Engagement as EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
