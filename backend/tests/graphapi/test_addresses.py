@@ -224,6 +224,49 @@ async def test_create_mutator(data):
             },
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": UUID("73360db1-bad3-4167-ac73-8d827c0c8751"),
+            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "relation": {
+                "type": mapping.ORG_UNIT,
+                "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "relation": {
+                # engagement_type="ansat"
+                # which is why above addr type is a "bruger_email"
+                "type": mapping.ENGAGEMENT,
+                "uuid": UUID("06f95678-166a-455a-a2ab-121a8d92ea23"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            # Addr: Nordre Ringgade 1, 8000 Aarhus C
+            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+            "address_type": UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed"),
+            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
+        {
+            "value": "11223344",
+            "address_type": UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d"),
+            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
     ],
 )
 @pytest.mark.integration_test

@@ -83,7 +83,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             await validator.is_date_range_in_employee_range(
                 req[mapping.PERSON], valid_from, valid_to
             )
-
         lora_addr = handler.get_lora_address()
         addresses = ensure_list(lora_addr)
 
