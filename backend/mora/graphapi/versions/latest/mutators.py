@@ -13,6 +13,7 @@ from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
+from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .facets import create_facet
 from .inputs import AddressTerminateInput
@@ -21,6 +22,7 @@ from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
+from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import FacetCreateInput
 from .inputs import ITUserTerminateInput
@@ -39,6 +41,7 @@ from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
+from .types import EngagementType
 from .types import FacetType
 from .types import ITUserType
 from .types import OrganizationUnit
@@ -115,6 +118,14 @@ class Mutation:
 
     # Engagements
     # -----------
+    @strawberry.mutation(
+        description="Create an engagement", permission_classes=[admin_permission_class]
+    )
+    async def engagement_create(self, input: EngagementCreateInput) -> EngagementType:
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
+        return await create_engagement(input.to_pydantic())  # type: ignore
+
     @strawberry.mutation(
         description="Terminates an engagement by UUID",
         permission_classes=[admin_permission_class],

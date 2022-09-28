@@ -384,7 +384,7 @@ class EngagementTrigger(OrgFuncTrigger):
     """
 
 
-class EngagementModel(UUIDBase):
+class Engagement(UUIDBase):
     """Model representing an Engagement."""
 
 
@@ -416,6 +416,35 @@ class EngagementTerminate(ValidityTerminate, Triggerless):
                 validity=Validity(from_date=self.from_date, to_date=self.to_date),
             ),
         )
+
+
+class EngagementCreate(Engagement):
+    user_key: str | None = Field(description="Name or UUID of the related engagement.")
+    org_unit: UUID = Field(description="The related org-unit object.")
+    employee: UUID = Field(description="UUID of the related employee.")
+    engagement_type: UUID
+    job_function: UUID
+    validity: RAValidity = Field(description="Validity of the engagement object.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        return {
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.employee),
+            "engagement_type": gen_uuid(self.engagement_type),
+            "job_function": gen_uuid(self.job_function),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
 
 
 # EngagementsAssociations
