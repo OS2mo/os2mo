@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.19.0 - 2022-09-28
+--------------------
+
+[#52316] Added `association_type` filter to `associations` in GraphQL
+
 11.18.0 - 2022-09-28
 --------------------
 
