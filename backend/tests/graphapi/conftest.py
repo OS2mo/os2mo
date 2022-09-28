@@ -134,3 +134,20 @@ def fetch_employee_uuids(
     assert response.errors is None
     uuids = list(map(UUID, map(itemgetter("uuid"), response.data["employees"])))
     return uuids
+
+
+@pytest.fixture(scope="class", name="itsystem_uuids")
+def fetch_itsystem_uuids(
+    sample_structures_no_reset, graphapi_post: Callable
+) -> list[UUID]:
+    itsystem_uuids_query = """
+        query FetchITSystemUUIDs {
+            itsystems {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(itsystem_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["itsystems"])))
+    return uuids

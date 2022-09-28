@@ -39,6 +39,34 @@ def fetch_org_unit_validity(
     return from_time, to_time
 
 
+def fetch_employee_validity(
+    graphapi_post: Callable, employee_uuid: UUID
+) -> tuple[datetime, datetime | None]:
+    validity_query = """
+        query FetchValidity($uuid: UUID!) {
+            employees(uuids: [$uuid]) {
+                objects {
+                    uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(validity_query, {"uuid": str(employee_uuid)})
+    assert response.errors is None
+    validity = one(one(response.data["employees"])["objects"])["validity"]
+    from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
+    to_time = (
+        datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
+        if validity["to"]
+        else None
+    )
+    return from_time, to_time
+
+
 def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     class_query = """
         query FetchClassUUIDs($user_key: String!) {
