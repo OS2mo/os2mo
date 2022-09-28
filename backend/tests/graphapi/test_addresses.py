@@ -210,35 +210,28 @@ async def test_create_mutator(data):
 
 
 @pytest.mark.parametrize(
-    "given_from,given_mutator_args",
+    "given_mutator_args",
     [
-        (
-            datetime.datetime.now(),
-            {
-                "value": "YeeHaaa@magenta.dk",
-                # "bruger_email"
-                "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
-                # "Public"
-                "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
-                "relation": {
-                    "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
-                    "type": mapping.PERSON,
-                },
-                "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62")
-                # "address_type": UUID("00000000-0000-0000-0000-000000000000"),
-                # "visibility": UUID("00000000-0000-0000-0000-000000000000"),
+        {
+            # address_type="bruger_email"
+            # visibility="Public"
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+            "visibility": UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7"),
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             },
-        ),
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
     ],
 )
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
-async def test_create_integration(graphapi_post, given_from, given_mutator_args):
-    zoneinfo = ZoneInfo("Europe/Copenhagen")
-
+async def test_create_integration(graphapi_post, given_mutator_args):
     validity_from = datetime.datetime.combine(
         datetime.datetime.now().date(), datetime.datetime.min.time()
-    ).replace(tzinfo=zoneinfo)
+    ).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
 
     test_data = AddressCreate(
         from_date=validity_from,
@@ -263,6 +256,34 @@ async def test_create_integration(graphapi_post, given_from, given_mutator_args)
     """
     mutation_response: GQLResponse = graphapi_post(mutation_query, {"input": payload})
     assert mutation_response.errors is None
+
+    # Verify/assert the new address was created
+    verify_query = _get_address_query()
+    verify_response: GQLResponse = graphapi_post(
+        verify_query,
+        {"uuid": mutation_response.data.get("address_create", {}).get("uuid", None)},
+    )
+    assert verify_response.errors is None
+
+    try:
+        new_addr = verify_response.data.get("addresses", [])[0].get("objects", [])[0]
+    except Exception:
+        new_addr = None
+
+    assert new_addr is not None
+    assert new_addr[mapping.UUID] is not None
+    assert new_addr[mapping.VALUE] == test_data.value
+    assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
+    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+
+    rel_uuid_str = str(test_data.relation.uuid)
+    if test_data.relation.type == mapping.PERSON:
+        assert new_addr[mapping.EMPLOYEE][0][mapping.UUID] == rel_uuid_str
+    elif test_data.relation.type == mapping.ORG_UNIT:
+        assert new_addr[mapping.ORG_UNIT][0][mapping.UUID] == rel_uuid_str
+    elif test_data.relation.type == mapping.ENGAGEMENT:
+        assert new_addr["engagement_uuid"] == rel_uuid_str
 
 
 @pytest.mark.integration_test
@@ -340,3 +361,41 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
     response: GQLResponse = graphapi_post(address_query)
     assert response.errors is None
     assert len(response.data["addresses"]) == expected
+
+
+def _get_address_query():
+    return """
+        query VerifyQuery($uuid: UUID!) {
+          addresses(uuids: [$uuid], from_date: null, to_date: null) {
+            uuid
+            objects {
+              uuid
+
+              validity {
+                from
+                to
+              }
+
+              type
+              value
+              address_type {
+                uuid
+              }
+
+              visibility {
+                uuid
+              }
+
+              employee {
+                uuid
+              }
+
+              org_unit {
+                uuid
+              }
+
+              engagement_uuid
+            }
+          }
+        }
+    """
