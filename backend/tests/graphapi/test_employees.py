@@ -9,6 +9,7 @@ from uuid import uuid4
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import reproduce_failure
 from hypothesis import strategies as st
 from hypothesis.strategies import characters
 from more_itertools import one
@@ -648,6 +649,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         assert newest_update_value == value
 
 
+@reproduce_failure("6.54.5", b"AXicY2BAAEYgBJIgAAAAOgAI")
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures")
@@ -736,6 +738,12 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     )
 
     payload = jsonable_encoder(test_data)
+    pre_verify_response: GQLResponse = graphapi_post(
+        _get_employee_verify_query(), {"uuid": str(test_data.uuid)}
+    )
+    print("-----------------------------")
+    print(pre_verify_response)
+    print("-----------------------------")
 
     # TODO: Remove this, when a proper way of testing CPR-NO have been implemented.
     # if payload.get('cpr_no'):
@@ -760,37 +768,11 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     assert mutation_response.errors is None
 
     # Query the updated user and assert values have been updated
-    verify_query = """
-        query VerifyQuery($uuid: UUID!){
-          employees(uuids: [$uuid], from_date: null, to_date: null)
-              {
-                uuid,
-                objects {
-                  uuid
-                  givenname
-                  surname
-                  nickname_givenname
-                  nickname_surname
-                  seniority
-                  cpr_no
-                  validity {
-                      from
-                      to
-                  }
-                }
-              }
-        }
-    """
     verify_response: GQLResponse = graphapi_post(
-        verify_query, {"uuid": str(test_data.uuid)}
+        _get_employee_verify_query(), {"uuid": str(test_data.uuid)}
     )
 
     assert verify_response.errors is None
-
-    if len(verify_response.data["employees"]) < 1:
-        print("-----------------------------")
-        print(verify_response)
-        print("-----------------------------")
     assert len(verify_response.data["employees"]) > 0
 
     # Assert the new update values have been assigned to the employee
@@ -975,3 +957,27 @@ def _get_employee_data_from_mutator_key(
         return employee_data.get("nickname_givenname", None)
 
     return employee_data.get(mutator_key, None)
+
+
+def _get_employee_verify_query():
+    return """
+        query VerifyQuery($uuid: UUID!){
+          employees(uuids: [$uuid], from_date: null, to_date: null)
+              {
+                uuid,
+                objects {
+                  uuid
+                  givenname
+                  surname
+                  nickname_givenname
+                  nickname_surname
+                  seniority
+                  cpr_no
+                  validity {
+                      from
+                      to
+                  }
+                }
+              }
+        }
+    """
