@@ -17,12 +17,13 @@ from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
+from ramodels.mo import Responsibility
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
-from ramodels.mo._shared import Responsibility
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
+
 
 # Various
 # -------
@@ -552,14 +553,14 @@ class Manager(UUIDBase):
     """Model representing a manager."""
 
 
-class ManagerCreate(UUIDBase):
+class ManagerCreate(UUIDBase, Responsibility):
     """Model for creating an employee of manager type."""
 
-    responsibility: list[UUID] | None = Field(
+    responsibility: list[Responsibility] = Field(
         description="UUID of the managers responsibilities."
     )
 
-    org_unit: UUID | None = Field(description="UUID of the managers organisation unit.")
+    org_unit: UUID = Field(description="UUID of the managers organisation unit.")
 
     org_unit_level: UUID | None = Field(
         description="UUID of the managers organisation unit level."
@@ -583,17 +584,22 @@ class ManagerCreate(UUIDBase):
 
     validity: RAValidity = Field(description="Validity range for the manager.")
 
-    user_key: str | None = Field(description="Extra info or UUID.")
-
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
 
+        responsibilities = []
+        if self.responsibility:
+            for responsibility in self.responsibility:
+                response = responsibility.dict(by_alias=True)
+                response[mapping.UUID] = str(response[mapping.UUID])
+                responsibilities.append(response)
+
         return {
-            "responsibility": [gen_uuid(self.responsibility)],
-            "org_unit": gen_uuid(self.org_unit),
+            "responsibility": responsibilities,
+            "org_unit": {mapping.UUID: str(self.uuid)},
             "org_unit_level": gen_uuid(self.org_unit_level),
             "org_unit_type": gen_uuid(self.org_unit_type),
             "time_planning": gen_uuid(self.time_planning),
@@ -606,7 +612,6 @@ class ManagerCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            "user_key": self.user_key,
         }
 
 

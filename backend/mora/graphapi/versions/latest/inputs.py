@@ -18,6 +18,7 @@ from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import Validity
+from ramodels.mo import Responsibility
 from ramodels.mo import Validity as RAValidity
 
 
@@ -28,6 +29,11 @@ from ramodels.mo import Validity as RAValidity
     all_fields=True,
 )
 class ValidityInput:
+    pass
+
+
+@strawberry.experimental.pydantic.input(model=Responsibility, all_fields=True)
+class ResponsibilityInput:
     pass
 
 
