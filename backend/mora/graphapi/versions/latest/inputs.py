@@ -8,6 +8,7 @@ from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 from .models import EngagementTerminate
+from .models import FacetCreate
 from .models import ITUserTerminate
 from .models import Organisation
 from .models import OrganisationUnitCreate
@@ -108,6 +109,13 @@ class EngagementTerminateInput:
 
 # Facets
 # ------
+@strawberry.experimental.pydantic.input(
+    model=FacetCreate,
+    all_fields=True,
+)
+class FacetCreateInput:
+    """Input model for creating a facet."""
+
 
 # ITSystems
 # ---------

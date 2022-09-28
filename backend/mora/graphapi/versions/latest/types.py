@@ -69,6 +69,13 @@ class EngagementTerminateType:
 
 # Facets
 # ------
+@strawberry.experimental.pydantic.type(
+    model=UUIDBase,
+    all_fields=True,
+)
+class FacetType:
+    """GraphQL type for an creating facets."""
+
 
 # ITSystems
 # ---------
