@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
+import dateutil
 import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
@@ -396,7 +397,7 @@ class AddressCreate(Validity):
             elif from_date_current_value == "-infinity":
                 from_date = NEGATIVE_INFINITY
             else:
-                from_date = datetime.datetime.fromisoformat(from_date_current_value)
+                from_date = dateutil.parser.isoparse(from_date_current_value)
 
         if "tiltidspunkt" in lora_object.keys():
             to_date_current_value = lora_object.get("tiltidspunkt", {}).get(
