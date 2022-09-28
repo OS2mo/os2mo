@@ -267,6 +267,39 @@ class AssociationCreate(Association):
         }
 
 
+class AssociationUpdate(Association):
+    """Model representing an association update."""
+
+    uuid: UUID = Field(description="UUID of the association we want to update.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID | None = Field(description="org-unit uuid.")
+    employee: UUID | None = Field(description="Employee uuid.")
+    association_type: UUID | None = Field(description="Association type uuid.")
+
+    validity: RAValidity = Field(description="Validity range for the org-unit.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict = {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.employee),
+            "association_type": gen_uuid(self.association_type),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
+
+
 # Classes
 # -------
 class ClassCreate(MOBase):

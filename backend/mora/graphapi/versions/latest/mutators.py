@@ -9,6 +9,7 @@ from strawberry.types import Info
 
 from .address import terminate_addr
 from .association import create_association
+from .association import update_association
 from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
@@ -19,6 +20,7 @@ from .engagements import update_engagement
 from .facets import create_facet
 from .inputs import AddressTerminateInput
 from .inputs import AssociationCreateInput
+from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -89,6 +91,17 @@ class Mutation:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await create_association(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Updates an association.",
+        permission_classes=[admin_permission_class],
+    )
+    async def association_update(
+        self, input: AssociationUpdateInput
+    ) -> AssociationType:
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
+        return await update_association(input.to_pydantic())  # type: ignore
 
     # Classes
     # -------
