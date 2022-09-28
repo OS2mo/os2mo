@@ -6,6 +6,10 @@ This file specifies different pytest fixtures and settings shared throughout the
 GraphAPI test suite. Some are autoused for each test invocation, while others are made
 available for use as needed.
 """
+from collections.abc import Callable
+from operator import itemgetter
+from uuid import UUID
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -16,6 +20,7 @@ from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from tests.conftest import fake_auth
+from tests.conftest import GQLResponse
 
 
 @pytest.fixture(scope="class")
@@ -97,3 +102,35 @@ def execute():
         return result
 
     yield _execute
+
+
+@pytest.fixture(scope="class", name="org_uuids")
+def fetch_org_uuids(sample_structures_no_reset, graphapi_post: Callable) -> list[UUID]:
+    parent_uuids_query = """
+        query FetchOrgUUIDs {
+            org_units {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["org_units"])))
+    return uuids
+
+
+@pytest.fixture(scope="class", name="employee_uuids")
+def fetch_employee_uuids(
+    sample_structures_no_reset, graphapi_post: Callable
+) -> list[UUID]:
+    parent_uuids_query = """
+        query FetchEmployeeUUIDs {
+            employees {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["employees"])))
+    return uuids

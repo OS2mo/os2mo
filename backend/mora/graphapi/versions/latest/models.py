@@ -232,6 +232,39 @@ class AddressTerminate(ValidityTerminate, Triggerless):
 
 # Associations
 # ------------
+class Association(UUIDBase):
+    """OS2mo association model."""
+
+
+class AssociationCreate(Association):
+    """Model representing an association creation."""
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID
+    employee: UUID
+    association_type: UUID
+
+    validity: RAValidity = Field(description="Validity range for the org-unit.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        return {
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.employee),
+            "association_type": gen_uuid(self.association_type),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
 
 # Classes
 # -------

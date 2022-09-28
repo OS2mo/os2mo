@@ -8,6 +8,7 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from .address import terminate_addr
+from .association import create_association
 from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
@@ -15,6 +16,7 @@ from .employee import update as employee_update
 from .engagements import terminate_engagement
 from .facets import create_facet
 from .inputs import AddressTerminateInput
+from .inputs import AssociationCreateInput
 from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
@@ -33,6 +35,7 @@ from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
+from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EngagementTerminateType
@@ -64,6 +67,16 @@ class Mutation:
 
     # Associations
     # ------------
+    @strawberry.mutation(
+        description="Creates an association.",
+        permission_classes=[admin_permission_class],
+    )
+    async def association_create(
+        self, input: AssociationCreateInput
+    ) -> AssociationType:
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
+        return await create_association(input.to_pydantic())  # type: ignore
 
     # Classes
     # -------

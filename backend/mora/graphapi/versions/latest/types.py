@@ -3,6 +3,7 @@
 import strawberry
 
 from .models import Address as AddressModel
+from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
@@ -31,6 +32,13 @@ class AddressTerminateType:
 
 # Associations
 # ------------
+@strawberry.experimental.pydantic.type(
+    model=AssociationModel,
+    all_fields=True,
+)
+class AssociationType:
+    """GraphQL type for an association."""
+
 
 # Classes
 # -------
