@@ -237,9 +237,25 @@ class AssociationResolver(Resolver):
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
+        association_types: list[UUID] | None = None,
+        association_type_user_keys: list[str] | None = None,
     ):
         """Resolve associations."""
+        if association_type_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            association_type_objects = await ClassResolver().resolve(
+                info, user_keys=association_type_user_keys
+            )
+            association_type_uuids = list(
+                map(attrgetter("uuid"), association_type_objects)
+            )
+            if association_types is None:
+                association_types = []
+            association_types.extend(association_type_uuids)
+
         kwargs = {}
+        if association_types is not None:
+            kwargs["organisatoriskfunktionstype"] = association_types
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
         if org_units is not None:
