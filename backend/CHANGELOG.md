@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.20.0 - 2022-09-29
+--------------------
+
+[#52822] Remove validation which wouldn't allow moving root org-units.
+
 11.19.0 - 2022-09-28
 --------------------
 
