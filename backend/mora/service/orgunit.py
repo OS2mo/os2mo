@@ -265,7 +265,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                 parent_uuid = (await org.get_configured_organisation())["uuid"]
 
             # Validate consequences of changing the parent
-            await validator.is_movable_org_unit(unitid)
             await validator.is_candidate_parent_valid(unitid, parent_uuid, new_from)
 
             update_fields.append((mapping.PARENT_FIELD, {"uuid": parent_uuid}))

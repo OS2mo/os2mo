@@ -282,20 +282,6 @@ def is_contained_in_range(
 
 
 @forceable
-async def is_movable_org_unit(unitid):
-    # Do not allow moving of the root org unit
-    c = lora.Connector()
-
-    unit = await c.organisationenhed.get(unitid)
-
-    orgid = mapping.BELONGS_TO_FIELD.get_uuid(unit)
-    parentid = mapping.PARENT_FIELD.get_uuid(unit)
-
-    if parentid == orgid:
-        exceptions.ErrorCodes.V_CANNOT_MOVE_ROOT_ORG_UNIT()
-
-
-@forceable
 async def is_candidate_parent_valid(
     unitid: str, parent: str, from_date: datetime.datetime
 ) -> None:

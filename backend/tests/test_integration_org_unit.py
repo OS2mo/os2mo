@@ -2520,34 +2520,6 @@ class Tests(tests.cases.LoRATestCase):
             json=req,
         )
 
-    def test_move_org_unit_should_fail_when_moving_root_unit(self):
-        """Should fail validation when trying to move the root org unit"""
-
-        org_unit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
-
-        req = {
-            "type": "org_unit",
-            "data": {
-                "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
-                "uuid": org_unit_uuid,
-                "validity": {
-                    "from": "2017-07-01",
-                },
-            },
-        }
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            {
-                "description": "Moving the root org unit is not allowed",
-                "error": True,
-                "error_key": "V_CANNOT_MOVE_ROOT_ORG_UNIT",
-                "status": 400,
-            },
-            status_code=400,
-            json=req,
-        )
-
     def test_move_org_autoparent(self):
         "Verify that we cannot create cycles when moving organisational units"
 
