@@ -148,11 +148,9 @@ visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 @given(data=st.data())
 async def test_create_mutator(data):
     # Create test data
-    tz: ZoneInfo = data.draw(st.sampled_from([ZoneInfo("Europe/Copenhagen")]))
-
     dt_options = {
         "min_value": datetime.datetime(1930, 1, 1, 1),
-        "timezones": st.just(tz),
+        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
     }
     validity_tuple = data.draw(
         st.tuples(
@@ -326,12 +324,12 @@ async def test_create_integration(graphapi_post, given_mutator_args):
 
     test_data = AddressCreate(
         from_date=validity_from,
-        value=given_mutator_args.get("value"),
-        address_type=given_mutator_args.get("address_type"),
-        visibility=given_mutator_args.get("visibility"),
+        value=given_mutator_args["value"],
+        address_type=given_mutator_args["address_type"],
+        visibility=given_mutator_args["visibility"],
         relation=AddressRelation(
-            uuid=given_mutator_args.get("relation").get("uuid"),
-            type=given_mutator_args.get("relation").get("type"),
+            uuid=given_mutator_args["relation"]["uuid"],
+            type=given_mutator_args["relation"]["type"],
         ),
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))
@@ -347,24 +345,24 @@ async def test_create_integration(graphapi_post, given_mutator_args):
     mutation_response: GQLResponse = graphapi_post(mutation_query, {"input": payload})
     assert mutation_response.errors is None
 
+    mutation_response_uuid = mutation_response.data.get("address_create", {}).get(
+        "uuid", None
+    )
+    assert mutation_response_uuid is not None
+
     # Verify/assert the new address was created
     verify_query = _get_address_query()
     verify_response: GQLResponse = graphapi_post(
         verify_query,
-        {"uuid": mutation_response.data.get("address_create", {}).get("uuid", None)},
+        {mapping.UUID: mutation_response_uuid},
     )
     assert verify_response.errors is None
 
-    try:
-        new_addr = verify_response.data.get("addresses", [])[0].get("objects", [])[0]
-    except Exception:
-        new_addr = None
-
+    new_addr = verify_response.data["addresses"][0]["objects"][0]
     assert new_addr is not None
     assert new_addr[mapping.UUID] is not None
     assert new_addr[mapping.VALUE] == test_data.value
     assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
-    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
     assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
 
     rel_uuid_str = str(test_data.relation.uuid)
