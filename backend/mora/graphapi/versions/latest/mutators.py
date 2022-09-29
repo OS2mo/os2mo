@@ -74,6 +74,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
+        # We use "type: ignore" to prevent mypy+strawberry pre-commit fails
         return await create_addr(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
