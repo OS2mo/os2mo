@@ -188,11 +188,16 @@ async def test_create_mutator(data):
         "mora.graphapi.versions.latest.models.lora.Scope.get"
     ), patch(
         "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
-    ) as mock_get_lora_validity:
+    ) as mock_get_lora_validity, patch(
+        "mora.graphapi.versions.latest.models.get_configured_organisation"
+    ) as mock_get_configured_organisation:
         mock_submit_requests.return_value = [uuid4()]
         mock_get_lora_validity.return_value = {
             mapping.FROM: test_data_from,
             mapping.TO: None,
+        }
+        mock_get_configured_organisation.return_value = {
+            mapping.UUID: "456362c4-0ee4-4e5e-a72c-751239745e62"
         }
 
         mutate_query = """
