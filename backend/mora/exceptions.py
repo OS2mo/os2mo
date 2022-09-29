@@ -67,7 +67,6 @@ class ErrorCodes(Enum):
         400,
         "Date range exceeds validity range of associated employee.",
     )
-    V_CANNOT_MOVE_ROOT_ORG_UNIT = 400, "Moving the root org unit is not allowed"
     V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL = (
         400,
         "Moving an org unit to the root level is not allowed",

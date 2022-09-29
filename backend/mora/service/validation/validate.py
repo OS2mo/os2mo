@@ -223,17 +223,6 @@ async def employee_existing_associations(req: dict = Body(...)):
 
 
 @_router.post(
-    "/movable-org-unit/", responses={"400": {"description": "Missing org unit"}}
-)
-async def movable_org_unit(req: dict = Body(...)):
-    org_unit_uuid = util.get_mapping_uuid(req, mapping.ORG_UNIT, required=True)
-
-    await validator.is_movable_org_unit(org_unit_uuid)
-
-    return {"success": True}
-
-
-@_router.post(
     "/candidate-parent-org-unit/",
     responses={"400": {"description": "Missing org unit"}},
 )
