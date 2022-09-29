@@ -70,7 +70,7 @@ class Mutation:
     # Addresses
     # ---------
     @strawberry.mutation(
-        description="Terminates an address by UUID",
+        description="Create an address",
         permission_classes=[admin_permission_class],
     )
     async def address_create(self, input: AddressCreateInput) -> AddressCreateType:

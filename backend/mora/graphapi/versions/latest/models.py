@@ -17,6 +17,7 @@ from mora import common
 from mora import exceptions
 from mora import lora
 from mora import mapping
+from mora.service.org import get_configured_organisation
 from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
@@ -291,18 +292,13 @@ class AddressCreate(Validity):
         description="Field representing the relation the address belongs to."
     )
 
-    org: UUID | None = Field(
-        None, description="Main Organization the address belongs to."
-    )
-
-    # def get_legacy_request(self) -> dict:
-    #     return {}
-    async def get_legacy_request(self) -> dict:
+    async def to_handler_dict(self) -> dict:
         legacy_dict = {
             mapping.TYPE: mapping.ADDRESS,
             mapping.VALUE: self.value,
             mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
             mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
+            mapping.ORG: await get_configured_organisation(),
         }
 
         validity = {}
@@ -331,9 +327,16 @@ class AddressCreate(Validity):
             case mapping.ENGAGEMENT:
                 engagement_dict = {mapping.UUID: str(self.relation.uuid)}
                 legacy_dict[mapping.ENGAGEMENT] = engagement_dict
+            case _:
+                supported_types = ", ".join(
+                    [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+                )
+                raise ValueError(
+                    f"Invalid address relation type, we only support: {supported_types}"
+                )
 
         # Set the organisation
-        legacy_dict[mapping.ORG] = {mapping.UUID: str(self.org)}
+        # legacy_dict[mapping.ORG] = {mapping.UUID: str(self.org)}
 
         return {
             **legacy_dict,

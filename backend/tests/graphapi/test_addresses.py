@@ -10,7 +10,6 @@ from zoneinfo import ZoneInfo
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
-from hypothesis import infer
 from hypothesis import strategies as st
 from pytest import MonkeyPatch
 
@@ -178,7 +177,6 @@ async def test_create_mutator(data):
             from_date=st.just(test_data_from),
             to_date=st.just(test_data_to),
             relation=st.just(test_data_relation),
-            org=infer,
         )
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))
@@ -335,7 +333,6 @@ async def test_create_integration(graphapi_post, given_mutator_args):
             uuid=given_mutator_args.get("relation").get("uuid"),
             type=given_mutator_args.get("relation").get("type"),
         ),
-        org=given_mutator_args.get("org", None),
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))
 

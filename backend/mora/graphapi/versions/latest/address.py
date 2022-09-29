@@ -16,7 +16,7 @@ from mora.triggers import Trigger
 
 
 async def create(address_create: AddressCreate) -> AddressCreateType:
-    legacy_dict = await address_create.get_legacy_request()
+    legacy_dict = await address_create.to_handler_dict()
     requests = await handlers.generate_requests([legacy_dict], RequestType.CREATE)
     uuids = await handlers.submit_requests(requests)
 
