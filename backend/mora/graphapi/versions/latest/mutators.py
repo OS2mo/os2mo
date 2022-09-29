@@ -25,9 +25,11 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import FacetCreateInput
+from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
+from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
@@ -152,6 +154,13 @@ class Mutation:
 
     # ITUsers
     # -------
+    @strawberry.mutation(
+        description="Creates an IT-User.",
+        permission_classes=[admin_permission_class],
+    )
+    async def ituser_create(self, input: ITUserCreateInput) -> ITUserType:
+        return await create_ituser(input.to_pydantic())  # type: ignore
+
     @strawberry.mutation(
         description="Terminates IT-user by UUID",
         permission_classes=[admin_permission_class],

@@ -10,7 +10,7 @@ from tests.util import sample_structures_minimal_cls_fixture
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWriting(tests.cases.AsyncLoRATestCase):
+class AsyncWritingITSystem(tests.cases.AsyncLoRATestCase):
     async def test_create_employee_itsystem(self):
         # Check the POST request
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")

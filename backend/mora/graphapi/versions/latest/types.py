@@ -6,6 +6,7 @@ from .models import Address as AddressModel
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import Engagement as EngagementModel
+from .models import ITUser as ITUserModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
@@ -99,11 +100,11 @@ class FacetType:
 # ITUsers
 # -------
 @strawberry.experimental.pydantic.type(
-    model=UUIDBase,
+    model=ITUserModel,
     all_fields=True,
 )
 class ITUserType:
-    """Generic UUID model for return types."""
+    """GraphQL type for an IT-user."""
 
 
 # KLEs
