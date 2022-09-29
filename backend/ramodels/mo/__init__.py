@@ -3,7 +3,6 @@
 from ._shared import MOBase
 from ._shared import MORef
 from ._shared import OpenValidity
-from ._shared import Responsibility
 from ._shared import Validity
 from .class_ import ClassRead
 from .class_ import ClassWrite
@@ -33,5 +32,4 @@ __all__ = [
     "OrganisationUnitRead",
     "OrganisationUnitWrite",
     "Validity",
-    "Responsibility",
 ]

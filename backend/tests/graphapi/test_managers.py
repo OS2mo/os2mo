@@ -7,20 +7,21 @@ from uuid import UUID
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-
 from hypothesis import given
-from hypothesis import infer
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from .utils import fetch_class_uuids
+from .utils import fetch_employee_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ManagerCreate
 from mora.graphapi.versions.latest.types import ManagerType
+from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
 from tests.conftest import GQLResponse
 
@@ -179,23 +180,44 @@ async def test_create_manager_mutation(
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_manager_integration_test(
-    data,
-    graphapi_post,
+    data, graphapi_post, employee_uuids, org_uuids
 ) -> None:
     """Test that managers can be created in LoRa via GraphQL."""
+
+    # This must be done as to not receive validation errors of the employee upon
+    # creating the employee conflicting the dates.
+    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+    parent_from, parent_to = fetch_employee_validity(graphapi_post, employee_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
+    )
+    if parent_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=parent_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    manager_level_uuids = fetch_class_uuids(graphapi_post, "manager_level")
+    manager_type_uuids = fetch_class_uuids(graphapi_post, "manager_type")
+    responsibility_uuids = fetch_class_uuids(graphapi_post, "responsibility")
 
     test_data = data.draw(
         st.builds(
             ManagerCreate,
-            responsibility=infer,
-            org_unit=st.just(UUID("68c5d78e-ae26-441f-a143-0103eca8b62a")),
-            org_unit_level=infer,
-            org_unit_type=infer,
-            time_planning=infer,
-            org=st.just(UUID("456362c4-0ee4-4e5e-a72c-751239745e62")),
-            manager_type=st.just(UUID("a22f8575-89b4-480b-a7ba-b3f1372e25a4")),
-            manager_level=st.just(UUID("d56f174d-c45d-4b55-bdc6-c57bf68238b9")),
-            validity=infer,
+            person=st.just(employee_uuid),
+            responsibility=st.just(responsibility_uuids),
+            org_unit=st.sampled_from(org_uuids),
+            manager_type=st.sampled_from(manager_type_uuids),
+            manager_level=st.sampled_from(manager_level_uuids),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
         )
     )
 
@@ -214,9 +236,12 @@ async def test_create_manager_integration_test(
 
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
-            managers(uuids: [$uuid]) {
+            managers(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    responsibilities: responsibility_uuids
+                    user_key
+                    type
+                    employee: employee_uuid
+                    responsibility: responsibility_uuids
                     org_unit: org_unit_uuid
                     manager_type: manager_type_uuid
                     manager_level: manager_level_uuid
@@ -233,8 +258,17 @@ async def test_create_manager_integration_test(
     assert response.errors is None
     obj = one(one(response.data["managers"])["objects"])
 
+    assert obj["type"] == test_data.type_
+    responsibility_list = [
+        UUID(responsibility) for responsibility in obj["responsibility"]
+    ]
+
+    assert responsibility_list == test_data.responsibility
+    assert UUID(obj["org_unit"]) == test_data.org_unit
+    assert UUID(obj["employee"]) == test_data.person
     assert UUID(obj["manager_type"]) == test_data.manager_type
     assert UUID(obj["manager_level"]) == test_data.manager_level
+    assert obj["user_key"] == test_data.user_key or str(uuid)
 
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()

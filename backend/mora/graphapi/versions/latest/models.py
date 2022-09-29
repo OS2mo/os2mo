@@ -17,7 +17,6 @@ from mora import mapping
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
-from ramodels.mo import Responsibility
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
@@ -553,34 +552,24 @@ class Manager(UUIDBase):
     """Model representing a manager."""
 
 
-class ManagerCreate(UUIDBase, Responsibility):
+class ManagerCreate(Manager):
     """Model for creating an employee of manager type."""
 
-    responsibility: list[Responsibility] = Field(
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    type_: str = Field("manager", alias="type", description="The object type.")
+
+    person: UUID = Field(description="UUID of the manager as person.")
+
+    responsibility: list[UUID] = Field(
         description="UUID of the managers responsibilities."
     )
 
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
 
-    org_unit_level: UUID | None = Field(
-        description="UUID of the managers organisation unit level."
-    )
+    manager_type: UUID = Field(description="UUID of the managers type..")
 
-    org_unit_type: UUID | None = Field(
-        description="UUID of the managers organisation unit type."
-    )
-
-    time_planning: UUID | None = Field(
-        description="UUID of the managers time planning.."
-    )
-
-    org: UUID | None = Field(
-        description="UUID of the organisation the manager will be created under.",
-    )
-
-    manager_type: UUID | None = Field(description="UUID of the managers type..")
-
-    manager_level: UUID | None = Field(description="UUID of the managers level.")
+    manager_level: UUID = Field(description="UUID of the managers level.")
 
     validity: RAValidity = Field(description="Validity range for the manager.")
 
@@ -590,20 +579,16 @@ class ManagerCreate(UUIDBase, Responsibility):
                 return None
             return {"uuid": str(uuid)}
 
-        responsibilities = []
-        if self.responsibility:
-            for responsibility in self.responsibility:
-                response = responsibility.dict(by_alias=True)
-                response[mapping.UUID] = str(response[mapping.UUID])
-                responsibilities.append(response)
+        responsibilities = [
+            {"uuid": str(responsib)} for responsib in self.responsibility
+        ]
 
         return {
+            "user_key": self.user_key,
+            "type": self.type_,
+            "person": gen_uuid(self.person),
             "responsibility": responsibilities,
-            "org_unit": {mapping.UUID: str(self.uuid)},
-            "org_unit_level": gen_uuid(self.org_unit_level),
-            "org_unit_type": gen_uuid(self.org_unit_type),
-            "time_planning": gen_uuid(self.time_planning),
-            "org": gen_uuid(self.org),
+            "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
             "validity": {
