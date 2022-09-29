@@ -2539,7 +2539,7 @@ class Tests(tests.cases.LoRATestCase):
         self.assertRequestResponse(
             "/service/details/edit",
             {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
-            status_code=200,
+            status_code=400,
             json=req,
         )
 
