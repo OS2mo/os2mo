@@ -22,7 +22,6 @@
     "CONFIRM_EMPLOYEE_TERMINATE": "Jeg bekræfter, at medarbejderen {employeeName} opsiges pr. {endDate}",
     "COMPARE_ORG_RENAME_NAMES": "Det nye navn skal være anderledes",
     "E_FORBIDDEN": "Du har ikke rettigheder til at foretage denne operation",
-    "V_CANNOT_MOVE_ROOT_ORG_UNIT": "Flytning af overenhed er ikke tilladt",
     "V_CPR_NOT_VALID": "Ugyldigt CPR-nummer; indtast ti cifre svarende til fødselsdato og løbenummer, evt. med bindestreg",
     "V_DATE_OUTSIDE_EMPL_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende medarbejder som er fra {valid_from} til {valid_to}",
     "V_DATE_OUTSIDE_ORG_UNIT_RANGE": "Datointervallet overskrider gyldighedsperioden for tilhørende enhed som er fra {valid_from} til {valid_to}",

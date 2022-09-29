@@ -2520,7 +2520,7 @@ class Tests(tests.cases.LoRATestCase):
             json=req,
         )
 
-    def test_move_org_unit_should_fail_when_moving_root_unit(self):
+    def test_move_org_unit_should_not_fail_when_moving_root_unit(self):
         """Should fail validation when trying to move the root org unit"""
 
         org_unit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
@@ -2538,13 +2538,8 @@ class Tests(tests.cases.LoRATestCase):
 
         self.assertRequestResponse(
             "/service/details/edit",
-            {
-                "description": "Moving the root org unit is not allowed",
-                "error": True,
-                "error_key": "V_CANNOT_MOVE_ROOT_ORG_UNIT",
-                "status": 400,
-            },
-            status_code=400,
+            {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
+            status_code=200,
             json=req,
         )
 
