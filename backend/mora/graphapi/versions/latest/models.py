@@ -247,8 +247,6 @@ class AddressType(MOBase):
 
     example: str | None = Field(None, description="Example value for the address.")
 
-    # owner: UUID | None = Field(None, description="UUID of the owner")
-
 
 class AddressVisibility(MOBase):
     name: str = Field(
@@ -258,8 +256,6 @@ class AddressVisibility(MOBase):
     scope: str = Field("", description="Scopeof the address type, ex. 'EMAIL'.")
 
     example: str | None = Field(None, description="Example value for the address.")
-
-    # owner: UUID | None = Field(None, description="UUID of the owner")
 
 
 class AddressRelation(UUIDBase):
