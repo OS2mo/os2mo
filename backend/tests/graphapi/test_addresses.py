@@ -142,6 +142,24 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
         assert caught_exception is not None
 
 
+# --------------------------------------------------------------------------------------
+# CREATE tests
+# --------------------------------------------------------------------------------------
+
+# Address UUID: Nordre Ringgade 1, 8000 Aarhus C
+addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+
+addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
+addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
+addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
+addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
+addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
+addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")  # regex: ^\d{13}$
+addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
+addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
+
+engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
+
 visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 
 
@@ -222,9 +240,98 @@ async def test_create_mutator(data):
     "given_mutator_args",
     [
         {
-            # address_type="bruger_email"
-            "value": "YeeHaaa@magenta.dk",
+            "from_date": datetime.datetime.combine(
+                datetime.datetime.now().date(), datetime.datetime.min.time()
+            ).replace(tzinfo=ZoneInfo("Europe/Copenhagen")),
+            "to_date": datetime.datetime.combine(
+                datetime.datetime.now().date(), datetime.datetime.min.time()
+            ).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
+            - datetime.timedelta(days=1),
+            "value": "YeeHaaamagenta.dk",
             "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+        },
+        {
+            "from_date": datetime.datetime.combine(
+                datetime.datetime.now().date(), datetime.datetime.min.time()
+            ).replace(tzinfo=ZoneInfo("Europe/Copenhagen")),
+            "to_date": None,
+            "value": "YeeHaaamagenta.dk",
+            "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+            "visibility": visibility_uuid_public,
+            "relation": {
+                "type": "some-random-type",
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+        },
+    ],
+)
+async def test_create_mutator_fails(given_mutator_args):
+    validity_from = datetime.datetime.combine(
+        datetime.datetime.now().date(), datetime.datetime.min.time()
+    ).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
+
+    payload = {
+        "from": given_mutator_args["from_date"].isoformat(),
+        "to": given_mutator_args["to_date"].isoformat()
+        if given_mutator_args.get("to_date", None)
+        else None,
+        "value": given_mutator_args["value"],
+        "address_type": str(given_mutator_args["address_type"]),
+        "visibility": str(given_mutator_args["visibility"]),
+        "relation": {
+            "type": str(given_mutator_args["relation"]["type"]),
+            "uuid": str(given_mutator_args["relation"]["uuid"]),
+        },
+    }
+    # Execute the tests with the generated data
+    with patch(
+        "mora.graphapi.versions.latest.address.handlers.generate_requests"
+    ) as mock_generate_requests, patch(
+        "mora.graphapi.versions.latest.address.handlers.submit_requests"
+    ) as mock_submit_requests, patch(
+        "mora.graphapi.versions.latest.models.lora.Scope.get"
+    ), patch(
+        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
+    ) as mock_get_lora_validity, patch(
+        "mora.graphapi.versions.latest.models.get_configured_organisation"
+    ) as mock_get_configured_organisation:
+        mock_submit_requests.return_value = [uuid4()]
+        mock_get_lora_validity.return_value = {
+            mapping.FROM: validity_from,
+            mapping.TO: None,
+        }
+        mock_get_configured_organisation.return_value = {
+            mapping.UUID: "456362c4-0ee4-4e5e-a72c-751239745e62"
+        }
+
+        mutate_query = """
+                    mutation($input: AddressCreateInput!) {
+                        address_create(input: $input) {
+                            uuid
+                        }
+                    }
+                """
+
+        _ = await execute_graphql(
+            query=mutate_query, variable_values={"input": payload}
+        )
+
+        # Asserts
+        mock_generate_requests.assert_not_called()
+        mock_submit_requests.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "given_mutator_args",
+    [
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.PERSON,
@@ -233,9 +340,8 @@ async def test_create_mutator(data):
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
-            # Addr: Nordre Ringgade 1, 8000 Aarhus C
-            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed"),
+            "value": addr_uuid_nordre_ring,
+            "address_type": addr_type_user_address,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.PERSON,
@@ -245,7 +351,7 @@ async def test_create_mutator(data):
         },
         {
             "value": "11223344",
-            "address_type": UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d"),
+            "address_type": addr_type_user_phone,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.PERSON,
@@ -255,20 +361,17 @@ async def test_create_mutator(data):
         },
         {
             "value": "YeeHaaa@magenta.dk",
-            "address_type": UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"),
+            "address_type": addr_type_user_email,
             "visibility": visibility_uuid_public,
             "relation": {
-                # engagement_type="ansat"
-                # which is why above addr type is a "bruger_email"
                 "type": mapping.ENGAGEMENT,
-                "uuid": UUID("06f95678-166a-455a-a2ab-121a8d92ea23"),
+                "uuid": engagement_type_employee,
             },
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
-            # Addr: Nordre Ringgade 1, 8000 Aarhus C
-            "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
-            "address_type": UUID("28d71012-2919-4b67-a2f0-7b59ed52561e"),
+            "value": addr_uuid_nordre_ring,
+            "address_type": addr_type_orgunit_address,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.ORG_UNIT,
@@ -278,7 +381,7 @@ async def test_create_mutator(data):
         },
         {
             "value": "YeeHaaa@magenta.dk",
-            "address_type": UUID("73360db1-bad3-4167-ac73-8d827c0c8751"),
+            "address_type": addr_type_orgunit_email,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.ORG_UNIT,
@@ -287,9 +390,8 @@ async def test_create_mutator(data):
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
-            # address_type = EAN (validator-regex: ^\d{13}$)
             "value": "8008580085000",
-            "address_type": UUID("e34d4426-9845-4c72-b31e-709be85d6fa2"),
+            "address_type": addr_type_orgunit_ean,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.ORG_UNIT,
@@ -299,7 +401,7 @@ async def test_create_mutator(data):
         },
         {
             "value": "55667788",
-            "address_type": UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec"),
+            "address_type": addr_type_orgunit_phone,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.ORG_UNIT,
@@ -308,9 +410,8 @@ async def test_create_mutator(data):
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
-            # address_type = contact-open-hours
             "value": "8-17",
-            "address_type": UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b"),
+            "address_type": addr_type_orgunit_openhours,
             "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.ORG_UNIT,
