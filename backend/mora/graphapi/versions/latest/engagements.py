@@ -5,6 +5,7 @@ from uuid import UUID
 
 from .models import EngagementCreate
 from .models import EngagementTerminate
+from .models import EngagementUpdate
 from .types import EngagementTerminateType
 from .types import EngagementType
 from mora import lora
@@ -48,5 +49,20 @@ async def create_engagement(input: EngagementCreate) -> EngagementType:
         input_dict, mapping.RequestType.CREATE
     )
     uuid = await handler.submit()
+
+    return EngagementType(uuid=UUID(uuid))
+
+
+async def update_engagement(input: EngagementUpdate) -> EngagementType:
+    input_dict = input.to_handler_dict()
+
+    req = {
+        mapping.TYPE: mapping.ENGAGEMENT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await EngagementRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
 
     return EngagementType(uuid=UUID(uuid))

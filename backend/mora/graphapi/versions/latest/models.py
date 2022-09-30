@@ -448,6 +448,37 @@ class EngagementCreate(Engagement):
         }
 
 
+class EngagementUpdate(Engagement):
+    uuid: UUID = Field(description="UUID of the Engagement you want to update.")
+    user_key: str | None = Field(description="Name or UUID of the related engagement.")
+    org_unit: UUID | None = Field(description="The related org-unit object.")
+    employee: UUID | None = Field(description="UUID of the related employee.")
+    engagement_type: UUID | None = Field(description="UUID of the engagement type.")
+    job_function: UUID | None = Field(description="UUID of the job function.")
+    validity: RAValidity = Field(description="Validity of the engagement object.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict = {
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.employee),
+            "engagement_type": gen_uuid(self.engagement_type),
+            "job_function": gen_uuid(self.job_function),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
+
+
 # EngagementsAssociations
 # -----------------------
 

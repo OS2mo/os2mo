@@ -10,6 +10,7 @@ from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 from .models import EngagementCreate
 from .models import EngagementTerminate
+from .models import EngagementUpdate
 from .models import FacetCreate
 from .models import ITUserCreate
 from .models import ITUserTerminate
@@ -122,6 +123,14 @@ class EngagementTerminateInput:
 )
 class EngagementCreateInput:
     """input model for creating engagements."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=EngagementUpdate,
+    all_fields=True,
+)
+class EngagementUpdateInput:
+    """input model for updating Engagements."""
 
 
 # EngagementsAssociations

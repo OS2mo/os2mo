@@ -26,6 +26,7 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.engagements import terminate_engagement
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementTerminate
+from mora.graphapi.versions.latest.models import EngagementUpdate
 from mora.graphapi.versions.latest.types import EngagementType
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import EngagementRead
@@ -372,3 +373,154 @@ async def test_create_engagement_integration_test(
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@given(test_data=...)
+@patch(
+    "mora.graphapi.versions.latest.mutators.update_engagement", new_callable=AsyncMock
+)
+async def test_update_engagement_unit_test(
+    update_engagement: AsyncMock, test_data: EngagementUpdate
+) -> None:
+    """Test that pydantic jsons are passed through to engagement_update."""
+
+    mutate_query = """
+        mutation UpdateEngagement($input: EngagementUpdateInput!) {
+            engagement_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    engagement_uuid_to_update = uuid4()
+    update_engagement.return_value = EngagementType(uuid=engagement_uuid_to_update)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+
+    assert response.errors is None
+    assert response.data == {
+        "engagement_update": {"uuid": str(engagement_uuid_to_update)}
+    }
+
+    update_engagement.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+            "user_key": "-",
+            "job_function": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "org_unit": None,
+            "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+            "user_key": None,
+            "job_function": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+            "user_key": "-",
+            "job_function": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "employee": None,
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+            "user_key": None,
+            "job_function": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "employee": None,
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+    ],
+)
+async def test_update_engagement_integration_test(graphapi_post, test_data) -> None:
+
+    uuid = test_data["uuid"]
+
+    query = """
+        query MyQuery($uuid: UUID!) {
+            engagements(uuids: [$uuid]) {
+                objects {
+                    user_key
+                    job_function: job_function_uuid
+                    org_unit: org_unit_uuid
+                    employee: employee_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+
+    pre_update_engagement = one(one(response.data["engagements"])["objects"])
+
+    mutate_query = """
+        mutation UpdateEngagement($input: EngagementUpdateInput!) {
+            engagement_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert mutation_response.errors is None
+
+    """Query data to check that it actually gets written to database"""
+    verify_query = """
+        query VerifyQuery($uuid: [UUID!]!) {
+            engagements(uuids: $uuid){
+                objects {
+                    uuid
+                    user_key
+                    job_function: job_function_uuid
+                    org_unit: org_unit_uuid
+                    employee: employee_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(
+        query=verify_query, variables={"uuid": uuid}
+    )
+
+    assert verify_response.errors is None
+
+    post_update_engagement = one(one(verify_response.data["engagements"])["objects"])
+
+    # If value is None, we use data from our original query
+    # to ensure that the field has not been updated
+    expected_updated_engagement = {
+        k: v or pre_update_engagement[k] for k, v in test_data.items()
+    }
+
+    assert post_update_engagement == expected_updated_engagement
