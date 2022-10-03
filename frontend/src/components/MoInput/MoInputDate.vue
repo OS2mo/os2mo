@@ -110,7 +110,9 @@ export default {
      * disregard timezones and the time-of-day.
      */
     internalValue(newVal) {
-      let modifiedValue = newVal ? moment(new Date(newVal)).format("YYYY-MM-DD") : null
+      let modifiedValue = newVal
+        ? moment.utc(new Date(newVal)).format("YYYY-MM-DD")
+        : null
       this.$emit("input", modifiedValue)
     },
   },
