@@ -291,13 +291,13 @@ Unit-test:
     - .mo-variables
   variables:
     HYPOTHESIS_PROFILE: "ci"
-
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
+    POETRY_LOCK: ${CI_PROJECT_DIR}/backend/poetry.lock
+    PYPROJECT_TOML: ${CI_PROJECT_DIR}/backend/pyproject.toml
   script:
     - pip install poetry
     - poetry config virtualenvs.in-project true
     - cd backend
-    - ls -lah
     - poetry install
     - poetry run pytest tests
       -p no:cacheprovider
@@ -306,9 +306,15 @@ Unit-test:
       --show-capture=stdout
       --cov=mora
   cache:
+    key:
+      files:
+        - ${POETRY_LOCK}
+        - ${PYPROJECT_TOML}
     paths:
-      - ${PIP_CACHE_DIR}
-      - ${CI_PROJECT_DIR}/backend/.venv
+        - ${POETRY_LOCK}
+        - ${PYPROJECT_TOML}
+        - ${PIP_CACHE_DIR}
+        - ${CI_PROJECT_DIR}/backend/.venv
   artifacts:
     when: always
     paths:
