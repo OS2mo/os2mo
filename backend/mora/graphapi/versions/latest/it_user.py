@@ -4,6 +4,7 @@ from uuid import UUID
 
 from .models import ITUserCreate
 from .models import ITUserTerminate
+from .models import ITUserUpdate
 from .types import ITUserType
 from mora import lora
 from mora import mapping
@@ -48,3 +49,18 @@ async def terminate(input: ITUserTerminate) -> ITUserType:
         _ = await Trigger.run(trigger_dict)
 
     return ITUserType(uuid=UUID(lora_result))
+
+
+async def update(input: ITUserUpdate) -> ITUserType:
+    input_dict = input.to_handler_dict()
+
+    req = {
+        mapping.TYPE: mapping.IT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
+
+    return ITUserType(uuid=UUID(uuid))
