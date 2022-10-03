@@ -16,7 +16,6 @@ from .organisation_unit import OrganisationUnit
 from .organisation_unit import OrganisationUnitRead
 from .organisation_unit import OrganisationUnitWrite
 
-
 __all__ = [
     "ClassRead",
     "ClassWrite",
