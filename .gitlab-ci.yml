@@ -297,6 +297,7 @@ Unit-test:
     - pip install poetry
     - poetry config virtualenvs.in-project true
     - cd backend
+    - ls -lah
     - poetry install
     - poetry run pytest tests
       -p no:cacheprovider
