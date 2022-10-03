@@ -4,10 +4,13 @@ import datetime
 from uuid import UUID
 
 from .models import AddressTerminate
+from .models import AddressUpdate
 from .types import AddressTerminateType
+from .types import AddressType
 from mora import exceptions
 from mora import lora
 from mora import mapping
+from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
 
@@ -56,3 +59,19 @@ async def _get_original_addr(
     )
 
     return original
+
+
+async def update_address(input: AddressUpdate) -> AddressType:
+    """Helper function for updating associations."""
+    input_dict = input.to_handler_dict()
+
+    req = {
+        mapping.TYPE: mapping.ADDRESS,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+
+    request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
+    uuid = await request.submit()
+
+    return AddressType(uuid=UUID(uuid))

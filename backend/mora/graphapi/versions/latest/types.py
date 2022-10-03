@@ -28,6 +28,14 @@ CPRType = strawberry.scalar(
     model=AddressModel,
     all_fields=True,
 )
+class AddressType:
+    """GraphQL type for/of an address (detail)."""
+
+
+@strawberry.experimental.pydantic.type(
+    model=AddressModel,
+    all_fields=True,
+)
 class AddressTerminateType:
     """GraphQL type for/of an address (detail)."""
 

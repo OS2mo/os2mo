@@ -8,6 +8,7 @@ from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
 from .address import terminate_addr
+from .address import update_address
 from .association import create_association
 from .association import update_association
 from .classes import create_class
@@ -19,6 +20,7 @@ from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
 from .inputs import AddressTerminateInput
+from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
 from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
@@ -47,6 +49,7 @@ from .org_unit import trigger_org_unit_refresh
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
+from .types import AddressType
 from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
@@ -78,6 +81,15 @@ class Mutation:
         self, at: AddressTerminateInput
     ) -> AddressTerminateType:
         return await terminate_addr(at.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Updates an address.",
+        permission_classes=[admin_permission_class],
+    )
+    async def address_update(self, input: AddressUpdateInput) -> AddressType:
+        # Have to use type:ignore for now due to:
+        # * https://github.com/strawberry-graphql/strawberry/pull/2017
+        return await update_address(input.to_pydantic())  # type: ignore
 
     # Associations
     # ------------

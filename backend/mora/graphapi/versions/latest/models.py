@@ -231,6 +231,45 @@ class AddressTerminate(ValidityTerminate, Triggerless):
         }
 
 
+class AddressUpdate(Address):
+    """Model representing an association update."""
+
+    uuid: UUID = Field(description="UUID of the association we want to update.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID | None = Field(description="Org-unit uuid.")
+    employee: UUID | None = Field(description="Employee uuid.")
+    address_type: UUID | None = Field(description="Address type uuid.")
+    engagement: UUID | None = Field(description="Engagement uuid.")
+    value: str | None = Field(description="Info related to the specific addresstype.")
+    visibility: UUID | None = Field(description="UUID for visibility of the address.")
+
+    validity: RAValidity = Field(description="Validity range for the address.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict = {
+            "uuid": self.uuid,
+            "user_key": self.user_key,
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.employee),
+            "address_type": gen_uuid(self.address_type),
+            "engagement": gen_uuid(self.engagement),
+            "value": self.value,
+            "visibility": gen_uuid(self.visibility),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
+
+
 # Associations
 # ------------
 class Association(UUIDBase):
