@@ -459,9 +459,9 @@ async def test_create_integration(graphapi_post, given_mutator_args):
 
     rel_uuid_str = str(test_data.relation_uuid)
     if test_data.type == mapping.PERSON:
-        assert new_addr[mapping.EMPLOYEE][0][mapping.UUID] == rel_uuid_str
+        assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == rel_uuid_str
     elif test_data.type == mapping.ORG_UNIT:
-        assert new_addr[mapping.ORG_UNIT][0][mapping.UUID] == rel_uuid_str
+        assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == rel_uuid_str
     elif test_data.type == mapping.ENGAGEMENT:
         assert new_addr["engagement_uuid"] == rel_uuid_str
 
