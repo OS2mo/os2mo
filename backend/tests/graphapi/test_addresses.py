@@ -22,7 +22,6 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.address import terminate as terminate_addr
 from mora.graphapi.versions.latest.models import AddressCreate
-from mora.graphapi.versions.latest.models import AddressRelation
 from mora.graphapi.versions.latest.models import AddressTerminate
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
@@ -178,21 +177,14 @@ async def test_create_mutator(data):
     )
     test_data_from, test_data_to = validity_tuple
 
-    test_data_relation = data.draw(
-        st.builds(
-            AddressRelation,
-            type=st.sampled_from(
-                [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
-            ),
-        )
-    )
-
     test_data = data.draw(
         st.builds(
             AddressCreate,
             from_date=st.just(test_data_from),
             to_date=st.just(test_data_to),
-            relation=st.just(test_data_relation),
+            type=st.sampled_from(
+                [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+            ),
         )
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))
@@ -271,10 +263,6 @@ async def test_create_mutator(data):
     ],
 )
 async def test_create_mutator_fails(given_mutator_args):
-    validity_from = datetime.datetime.combine(
-        datetime.datetime.now().date(), datetime.datetime.min.time()
-    ).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
-
     payload = {
         "from": given_mutator_args["from_date"].isoformat(),
         "to": given_mutator_args["to_date"].isoformat()
@@ -283,10 +271,8 @@ async def test_create_mutator_fails(given_mutator_args):
         "value": given_mutator_args["value"],
         "address_type": str(given_mutator_args["address_type"]),
         "visibility": str(given_mutator_args["visibility"]),
-        "relation": {
-            "type": str(given_mutator_args["relation"]["type"]),
-            "uuid": str(given_mutator_args["relation"]["uuid"]),
-        },
+        "type": given_mutator_args["relation"]["type"],
+        "relation_uuid": str(given_mutator_args["relation"]["uuid"]),
     }
     # Execute the tests with the generated data
     with patch(
@@ -302,7 +288,7 @@ async def test_create_mutator_fails(given_mutator_args):
     ) as mock_get_configured_organisation:
         mock_submit_requests.return_value = [uuid4()]
         mock_get_lora_validity.return_value = {
-            mapping.FROM: validity_from,
+            mapping.FROM: given_mutator_args["from_date"],
             mapping.TO: None,
         }
         mock_get_configured_organisation.return_value = {
@@ -433,10 +419,8 @@ async def test_create_integration(graphapi_post, given_mutator_args):
         value=given_mutator_args["value"],
         address_type=given_mutator_args["address_type"],
         visibility=given_mutator_args["visibility"],
-        relation=AddressRelation(
-            uuid=given_mutator_args["relation"]["uuid"],
-            type=given_mutator_args["relation"]["type"],
-        ),
+        type=given_mutator_args["relation"]["type"],
+        relation_uuid=given_mutator_args["relation"]["uuid"],
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))
 
@@ -471,12 +455,12 @@ async def test_create_integration(graphapi_post, given_mutator_args):
     assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
     assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
 
-    rel_uuid_str = str(test_data.relation.uuid)
-    if test_data.relation.type == mapping.PERSON:
+    rel_uuid_str = str(test_data.relation_uuid)
+    if test_data.type == mapping.PERSON:
         assert new_addr[mapping.EMPLOYEE][0][mapping.UUID] == rel_uuid_str
-    elif test_data.relation.type == mapping.ORG_UNIT:
+    elif test_data.type == mapping.ORG_UNIT:
         assert new_addr[mapping.ORG_UNIT][0][mapping.UUID] == rel_uuid_str
-    elif test_data.relation.type == mapping.ENGAGEMENT:
+    elif test_data.type == mapping.ENGAGEMENT:
         assert new_addr["engagement_uuid"] == rel_uuid_str
 
 
