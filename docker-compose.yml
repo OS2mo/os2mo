@@ -67,6 +67,9 @@ services:
       - "127.0.0.1:5002:80"
     env_file: dev-environment/os2mo.env
     restart: unless-stopped
+    depends_on:
+      fixture-loader:
+        condition: service_completed_successfully
 
   mox:
     image: nginx:1
