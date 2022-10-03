@@ -1,13 +1,27 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from _datetime import datetime
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+from uuid import UUID
+
 import pytest
+from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
+from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from .utils import fetch_class_uuids
+from .utils import fetch_employee_validity
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.models import ManagerCreate
+from mora.graphapi.versions.latest.types import ManagerType
+from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
 from tests.conftest import GQLResponse
 
@@ -134,3 +148,136 @@ async def test_manager_employees_filters(
     response: GQLResponse = graphapi_post(manager_query)
     assert response.errors is None
     assert len(response.data["managers"]) == expected
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.create_manager", new_callable=AsyncMock)
+async def test_create_manager_mutation(
+    create_manager: AsyncMock, test_data: ManagerCreate
+) -> None:
+    """Tests that the mutator function for creating a manager passes through, with the
+    defined pydantic model."""
+
+    mutation = """
+        mutation CreateManager($input: ManagerCreateInput!) {
+            manager_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    create_manager.return_value = ManagerType(uuid=test_data.uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"manager_create": {"uuid": str(test_data.uuid)}}
+
+    create_manager.assert_called_with(test_data)
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_manager_integration_test(
+    data, graphapi_post, employee_uuids, org_uuids
+) -> None:
+    """Test that managers can be created in LoRa via GraphQL."""
+
+    # This must be done as to not receive validation errors of the employee upon
+    # creating the employee conflicting the dates.
+    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+    parent_from, parent_to = fetch_employee_validity(graphapi_post, employee_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
+    )
+    if parent_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=parent_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    manager_level_uuids = fetch_class_uuids(graphapi_post, "manager_level")
+    manager_type_uuids = fetch_class_uuids(graphapi_post, "manager_type")
+    responsibility_uuids = fetch_class_uuids(graphapi_post, "responsibility")
+
+    test_data = data.draw(
+        st.builds(
+            ManagerCreate,
+            person=st.just(employee_uuid),
+            responsibility=st.just(responsibility_uuids),
+            org_unit=st.sampled_from(org_uuids),
+            manager_type=st.sampled_from(manager_type_uuids),
+            manager_level=st.sampled_from(manager_level_uuids),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
+        )
+    )
+
+    mutation = """
+        mutation CreateManager($input: ManagerCreateInput!) {
+            manager_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuid = UUID(response.data["manager_create"]["uuid"])
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            managers(uuids: [$uuid], from_date: null, to_date: null) {
+                objects {
+                    user_key
+                    type
+                    employee: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+    obj = one(one(response.data["managers"])["objects"])
+
+    assert obj["type"] == test_data.type_
+    responsibility_list = [
+        UUID(responsibility) for responsibility in obj["responsibility"]
+    ]
+
+    assert responsibility_list == test_data.responsibility
+    assert UUID(obj["org_unit"]) == test_data.org_unit
+    assert UUID(obj["employee"]) == test_data.person
+    assert UUID(obj["manager_type"]) == test_data.manager_type
+    assert UUID(obj["manager_level"]) == test_data.manager_level
+    assert obj["user_key"] == test_data.user_key or str(uuid)
+
+    assert (
+        datetime.fromisoformat(obj["validity"]["from"]).date()
+        == test_data.validity.from_date.date()
+    )
+    if obj["validity"]["to"] is not None:
+        assert (
+            datetime.fromisoformat(obj["validity"]["to"]).date()
+            == test_data.validity.to_date.date()
+        )
+    else:
+        assert test_data.validity.to_date is None

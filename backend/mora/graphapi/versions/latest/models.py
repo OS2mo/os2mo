@@ -23,6 +23,7 @@ from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
 
+
 # Various
 # -------
 
@@ -545,6 +546,59 @@ class ITUserTerminate(ValidityTerminate, Triggerless):
 
 # Managers
 # --------
+
+
+class Manager(UUIDBase):
+    """Model representing a manager."""
+
+
+class ManagerCreate(Manager):
+    """Model for creating an employee of manager type."""
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    type_: str = Field("manager", alias="type", description="The object type.")
+
+    person: UUID = Field(description="UUID of the manager as person.")
+
+    responsibility: list[UUID] = Field(
+        description="UUID of the managers responsibilities."
+    )
+
+    org_unit: UUID = Field(description="UUID of the managers organisation unit.")
+
+    manager_type: UUID = Field(description="UUID of the managers type..")
+
+    manager_level: UUID = Field(description="UUID of the managers level.")
+
+    validity: RAValidity = Field(description="Validity range for the manager.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        responsibilities = [
+            {"uuid": str(responsib)} for responsib in self.responsibility
+        ]
+
+        return {
+            "user_key": self.user_key,
+            "type": self.type_,
+            "person": gen_uuid(self.person),
+            "responsibility": responsibilities,
+            "org_unit": gen_uuid(self.org_unit),
+            "manager_type": gen_uuid(self.manager_type),
+            "manager_level": gen_uuid(self.manager_level),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
 
 # Organisational Units
 # --------------------

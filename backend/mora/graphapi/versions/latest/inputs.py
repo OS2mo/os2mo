@@ -13,6 +13,7 @@ from .models import EngagementTerminate
 from .models import FacetCreate
 from .models import ITUserCreate
 from .models import ITUserTerminate
+from .models import ManagerCreate
 from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
@@ -164,6 +165,15 @@ class ITUserTerminateInput:
 
 # Managers
 # --------
+
+
+@strawberry.experimental.pydantic.input(
+    model=ManagerCreate,
+    all_fields=True,
+)
+class ManagerCreateInput:
+    """Input model for creating a manager."""
+
 
 # Organisational Units
 # --------------------
