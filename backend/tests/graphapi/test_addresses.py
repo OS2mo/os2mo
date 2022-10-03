@@ -12,6 +12,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
+from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
@@ -449,7 +450,7 @@ async def test_create_integration(graphapi_post, given_mutator_args):
     )
     assert verify_response.errors is None
 
-    new_addr = verify_response.data["addresses"][0]["objects"][0]
+    new_addr = one(one(verify_response.data["addresses"])["objects"])
     assert new_addr is not None
     assert new_addr[mapping.UUID] is not None
     assert new_addr[mapping.VALUE] == test_data.value
