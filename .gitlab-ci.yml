@@ -298,7 +298,9 @@ Unit-test:
     - poetry config virtualenvs.in-project true
     - cd backend
     - poetry install
-    - poetry run pytest tests
+    - poetry run python
+      -m cProfile -o output.profile
+      -m pytest tests
       -p no:cacheprovider
       -m "not integration_test"
       --color=yes
@@ -311,7 +313,7 @@ Unit-test:
   artifacts:
     when: always
     paths:
-      - $COVERAGE_FILE
+      - backend/output.profile
 
 Integration-test:
   extends:
