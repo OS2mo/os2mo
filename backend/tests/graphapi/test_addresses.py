@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
+from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -191,17 +192,17 @@ async def test_create_mutator(data):
 
     # Execute the mutation query
     with patch(
-        "mora.graphapi.versions.latest.address.handlers.generate_requests"
-    ), patch(
-        "mora.graphapi.versions.latest.address.handlers.submit_requests"
-    ) as mock_submit_requests, patch(
+        "mora.graphapi.versions.latest.address.AddressRequestHandler.construct"
+    ) as mock_construct, patch(
         "mora.graphapi.versions.latest.models.lora.Scope.get"
     ), patch(
         "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
     ) as mock_get_lora_validity, patch(
         "mora.graphapi.versions.latest.models.get_configured_organisation"
     ) as mock_get_configured_organisation:
-        mock_submit_requests.return_value = [uuid4()]
+        new_uuid = uuid4()
+        mock_construct.return_value = AsyncMock(submit=AsyncMock(return_value=new_uuid))
+
         mock_get_lora_validity.return_value = {
             mapping.FROM: test_data_from,
             mapping.TO: None,
@@ -225,7 +226,7 @@ async def test_create_mutator(data):
         mutation_response_uuid = mutation_response.data.get("address_create", {}).get(
             "uuid", None
         )
-        assert str(mock_submit_requests.return_value[0]) == mutation_response_uuid
+        assert str(new_uuid) == mutation_response_uuid
 
 
 @pytest.mark.parametrize(
@@ -263,6 +264,8 @@ async def test_create_mutator(data):
     ],
 )
 async def test_create_mutator_fails(given_mutator_args):
+    # Create payload directly, instead of newing the model,
+    # Oterwise the model will come with validation errors on instantiations.
     payload = {
         "from": given_mutator_args["from_date"].isoformat(),
         "to": given_mutator_args["to_date"].isoformat()
@@ -274,19 +277,19 @@ async def test_create_mutator_fails(given_mutator_args):
         "type": given_mutator_args["relation"]["type"],
         "relation_uuid": str(given_mutator_args["relation"]["uuid"]),
     }
-    # Execute the tests with the generated data
+
     with patch(
-        "mora.graphapi.versions.latest.address.handlers.generate_requests"
-    ) as mock_generate_requests, patch(
-        "mora.graphapi.versions.latest.address.handlers.submit_requests"
-    ) as mock_submit_requests, patch(
+        "mora.graphapi.versions.latest.address.AddressRequestHandler.construct"
+    ) as mock_construct, patch(
         "mora.graphapi.versions.latest.models.lora.Scope.get"
     ), patch(
         "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
     ) as mock_get_lora_validity, patch(
         "mora.graphapi.versions.latest.models.get_configured_organisation"
     ) as mock_get_configured_organisation:
-        mock_submit_requests.return_value = [uuid4()]
+        new_uuid = uuid4()
+        mock_construct.return_value = AsyncMock(submit=AsyncMock(return_value=new_uuid))
+
         mock_get_lora_validity.return_value = {
             mapping.FROM: given_mutator_args["from_date"],
             mapping.TO: None,
@@ -307,9 +310,7 @@ async def test_create_mutator_fails(given_mutator_args):
             query=mutate_query, variable_values={"input": payload}
         )
 
-        # Asserts
-        mock_generate_requests.assert_not_called()
-        mock_submit_requests.assert_not_called()
+        mock_construct.assert_not_called()
 
 
 @pytest.mark.parametrize(

@@ -11,16 +11,18 @@ from .types import AddressTerminateType
 from mora import exceptions
 from mora import lora
 from mora import mapping
-from mora.service import handlers
+from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
 
 async def create(address_create: AddressCreate) -> AddressCreateType:
     legacy_dict = await address_create.to_handler_dict()
-    requests = await handlers.generate_requests([legacy_dict], RequestType.CREATE)
-    uuids = await handlers.submit_requests(requests)
+    request_handler = await AddressRequestHandler.construct(
+        legacy_dict, RequestType.CREATE
+    )
+    new_uuid = await request_handler.submit()
 
-    return AddressCreateType(uuid=uuids[0])
+    return AddressCreateType(uuid=new_uuid)
 
 
 async def terminate(address_terminate: AddressTerminate) -> AddressTerminateType:
