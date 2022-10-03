@@ -739,6 +739,62 @@ class ManagerCreate(Manager):
         }
 
 
+
+class ManagerUpdate(Manager):
+    """Model for updating a manager."""
+
+    uuid: UUID = Field(description="UUID of the manager to be updated.")
+    user_key: str | None = Field(description="Extra info or uuid.")
+    responsibility: list[UUID] | None = Field(
+        description="UUID of the managers responsibilities to be updated."
+    )
+
+    org_unit: UUID | None = Field(
+        description="UUID of the managers organisation unit to be updated."
+    )
+
+    manager_type: UUID | None = Field(
+        description="UUID of the managers type to be updated."
+    )
+
+    manager_level: UUID | None = Field(
+        description="UUID of the managers level to be updated."
+    )
+
+    validity: RAValidity | None = Field(
+        description="Validity range for the manager to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        responsibilities = [
+            {"uuid": str(responsib)} for responsib in self.responsibility
+        ]
+
+        return {
+            "uuid": self.uuid,
+            "user_key": self.user_key if self.user_key else None,
+            "responsibility": responsibilities if self.responsibility else None,
+            "org_unit": gen_uuid(self.org_unit) if self.org_unit else None,
+            "manager_type": gen_uuid(self.manager_type) if self.manager_type else None,
+            "manager_level": gen_uuid(self.manager_level)
+            if self.manager_level
+            else None,
+            "validity": {
+                "from": self.validity.from_date.date().isoformat()
+                if self.validity.from_date
+                else None,
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
 # Organisational Units
 # --------------------
 class OrganisationUnitRefreshRead(BaseModel):

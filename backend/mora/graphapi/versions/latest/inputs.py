@@ -211,6 +211,15 @@ class ManagerCreateInput:
     """Input model for creating a manager."""
 
 
+
+@strawberry.experimental.pydantic.input(
+    model=ManagerUpdate,
+    all_fields=True,
+)
+class ManagerUpdateInput:
+    """Input model for updating a manager."""
+
+
 # Organisational Units
 # --------------------
 @strawberry.experimental.pydantic.input(
