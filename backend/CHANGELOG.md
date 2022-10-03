@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.21.1 - 2022-10-03
+--------------------
+
+[#52930] Fix frontend not working for any negative timezone offset
+
 11.21.0 - 2022-09-29
 --------------------
 
