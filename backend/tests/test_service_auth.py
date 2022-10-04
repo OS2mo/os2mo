@@ -96,12 +96,9 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     )
 
 
-class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
-    app_settings_overrides = {
-        "graphql_enable": True,
-        "graphiql_enable": True,
-    }
-
+class AsyncTestAuthEndpointsReturn401(
+    tests.cases._AsyncBaseTestCase, tests.cases.GraphApiTestApp
+):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         # Enable the real OIDC auth function
@@ -195,16 +192,13 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
         )
 
 
-class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
+class TestAuthEndpointsReturn2xx(
+    tests.cases.AsyncLoRATestCase, tests.cases.GraphApiTestApp
+):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
     and one from the /graphql endpoints)
     """
-
-    app_settings_overrides = {
-        "graphql_enable": True,
-        "graphiql_enable": True,
-    }
 
     async def asyncSetUp(self):
         await super().asyncSetUp()

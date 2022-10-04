@@ -22,6 +22,10 @@ from tests.conftest import fake_auth
 
 logger = get_logger()
 
+# Global variables for test optimizations
+base_test_app = False
+graph_app_test_app = False
+
 
 class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
     """
@@ -56,12 +60,12 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         await self.lifespanmanager.__aexit__()
 
     def create_app(self, overrides=None):
-        # make sure the configured organisation is always reset
-        # every before test
-        service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app(self.app_settings_overrides)
+        global base_test_app
+        if not base_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            base_test_app = app.create_app(self.app_settings_overrides)
 
-        return app_
+        return base_test_app
 
     @property
     def lora_url(self):
@@ -288,6 +292,22 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         return self.assertEqual(expected, actual, message)
 
 
+class GraphApiTestApp:
+
+    app_settings_overrides = {
+        "graphql_enable": True,
+        "graphiql_enable": True,
+    }
+
+    def create_app(self, overrides=None):
+        global graph_app_test_app
+        if not graph_app_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            graph_app_test_app = app.create_app(self.app_settings_overrides)
+
+        return graph_app_test_app
+
+
 class _BaseTestCase(TestCase):
     """
     Base class for MO testcases w/o LoRA access.
@@ -309,12 +329,12 @@ class _BaseTestCase(TestCase):
         self.app.dependency_overrides[auth] = fake_auth
 
     def create_app(self, overrides=None):
-        # make sure the configured organisation is always reset
-        # every before test
-        service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app(self.app_settings_overrides)
+        global base_test_app
+        if not base_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            base_test_app = app.create_app(self.app_settings_overrides)
 
-        return app_
+        return base_test_app
 
     @property
     def lora_url(self):
