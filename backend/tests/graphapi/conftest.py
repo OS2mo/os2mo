@@ -58,10 +58,15 @@ async def admin_auth():
     return Token(**auth)
 
 
+graph_app = False
+
+
 def test_app():
-    app = create_app(settings_overrides={"graphql_enable": True})
-    app.dependency_overrides[auth] = admin_auth
-    return app
+    global graph_app
+    if not graph_app:
+        graph_app = create_app(settings_overrides={"graphql_enable": True})
+        graph_app.dependency_overrides[auth] = admin_auth
+    return graph_app
 
 
 @pytest.fixture(scope="class")
