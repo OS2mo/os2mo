@@ -24,7 +24,7 @@ logger = get_logger()
 
 # Global variables for test optimizations
 base_test_app = False
-graph_app_test_app = False
+graph_api_test_app = False
 
 
 class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
@@ -300,12 +300,20 @@ class GraphApiTestApp:
     }
 
     def create_app(self, overrides=None):
-        global graph_app_test_app
-        if not graph_app_test_app:
+        global graph_api_test_app
+        if not graph_api_test_app:
             service.org.ConfiguredOrganisation.valid = False
-            graph_app_test_app = app.create_app(self.app_settings_overrides)
+            graph_api_test_app = app.create_app(self.app_settings_overrides)
 
-        return graph_app_test_app
+        return graph_api_test_app
+
+
+class NewTestApp:
+    def create_app(self, overrides=None):
+        service.org.ConfiguredOrganisation.valid = False
+        _app = app.create_app(self.app_settings_overrides)
+        print("NEW TEST APP")
+        return _app
 
 
 class _BaseTestCase(TestCase):
