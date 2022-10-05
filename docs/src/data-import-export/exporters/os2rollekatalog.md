@@ -49,9 +49,10 @@ indeholder følgende data:
 
 -   UUID
 -   Navn
+-   Kaldenavn (optionelt)
 -   Email
 -   AD brugernavn
--   Engagementer (Stillingsbetegnelse og Enheds_uuid)
+-   Engagementer (Stillingsbetegnelse (optionelt) og Enheds_uuid)
 
 Der gives en advarsel i loggen ved mere end én email adresse på en
 bruger.
