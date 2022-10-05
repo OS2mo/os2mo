@@ -230,8 +230,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
 
         new_from, new_to = util.get_validities(data)
 
-        payload = dict()
-        payload["note"] = f"Rediger {self.role_type}"
+        payload = {"note": f"Rediger {self.role_type}"}
 
         original_data = req.get("original")
         if original_data:
@@ -246,7 +245,7 @@ class OwnerRequestHandler(handlers.OrgFunkRequestHandler):
                 ("tilstande", "organisationfunktiongyldighed"),
             )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))

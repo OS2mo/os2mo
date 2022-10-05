@@ -105,7 +105,7 @@ class AsyncTestAuthEndpointsReturn401(tests.cases.AsyncTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
         # Enable the real OIDC auth function
-        self.app.dependency_overrides = dict()
+        self.app.dependency_overrides = {}
 
     async def test_auth_service_address(self):
         await self.assertRequestFails(
@@ -210,7 +210,7 @@ class TestAuthEndpointsReturn2xx(tests.cases.AsyncLoRATestCase):
         await super().asyncSetUp()
         # Enable the real Keycloak auth mechanism in order to perform Keycloak
         # integration tests
-        self.app.dependency_overrides = dict()
+        self.app.dependency_overrides = {}
 
     @pytest.mark.usefixtures("sample_structures_minimal")
     async def test_auth_service_org(self):

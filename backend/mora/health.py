@@ -22,7 +22,6 @@ async def liveness():
     """
     Endpoint to be used as a liveness probe for Kubernetes
     """
-    return
 
 
 @router.get(

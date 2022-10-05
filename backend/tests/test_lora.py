@@ -44,7 +44,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                                                         "to_included": False,
                                                     },
                                                 }
-                                                for t1, t2, v in [
+                                                for t1, t2, v in (
                                                     (
                                                         "01-01-1950",
                                                         "01-01-2100",
@@ -80,7 +80,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                                                         "01-01-3300",
                                                         "Aktiv",
                                                     ),
-                                                ]
+                                                )
                                             ]
                                         },
                                     }
@@ -371,7 +371,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                                                         "to_included": False,
                                                     },
                                                 }
-                                                for t1, t2, v in [
+                                                for t1, t2, v in (
                                                     (
                                                         "01-01-1950",
                                                         "01-01-2100",
@@ -407,7 +407,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                                                         "01-01-3300",
                                                         "Aktiv",
                                                     ),
-                                                ]
+                                                )
                                             ]
                                         },
                                     }

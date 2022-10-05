@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import json
-import pprint
+from contextlib import suppress
 from unittest import IsolatedAsyncioTestCase
 from unittest.case import TestCase
 from unittest.mock import patch
@@ -126,7 +126,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
-            kwargs.setdefault("headers", dict()).update(
+            kwargs.setdefault("headers", {}).update(
                 {"Authorization": "bearer " + self.get_token()}
             )
 
@@ -135,7 +135,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         if r.headers.get("content-type") == "application/json":
             actual = r.json()
         else:
-            print(r.headers, r.content)  # TODO: Find r.raw alternative
             actual = r.text
 
         if status_code is None:
@@ -146,8 +145,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
                 )
 
             if not 200 <= r.status_code < 300:
-                pprint.pprint(actual)
-
                 self.fail(message)
 
         else:
@@ -159,16 +156,11 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
                 )
 
             if r.status_code != status_code:
-                ppa = pprint.pformat(actual)
-                print(f"actual response:\n{ppa}")
-
                 self.fail(message)
 
         for k in drop_keys:
-            try:
+            with suppress((IndexError, KeyError, TypeError)):
                 actual.pop(k)
-            except (IndexError, KeyError, TypeError):
-                pass
 
         return actual
 
@@ -236,7 +228,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
             # kwargs['method'] = 'POST'
             kwargs["content"] = json.dumps(kwargs.pop("json"), indent=2)
-            kwargs.setdefault("headers", dict()).update(
+            kwargs.setdefault("headers", {}).update(
                 {"Content-Type": "application/json"}
             )
 
@@ -260,8 +252,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
                 map(AsyncTestCase.__sort_inner_lists, obj),
                 key=(lambda p: json.dumps(p, sort_keys=True)),
             )
-        else:
-            return obj
+        return obj
 
     def assertRegistrationsEqual(self, expected, actual, message=None):
 
@@ -272,9 +263,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
         actual = self.__sort_inner_lists(actual)
         expected = self.__sort_inner_lists(expected)
-
-        if actual != expected:
-            pprint.pprint(actual)
 
         # Sort all inner lists and compare
         return self.assertEqual(expected, actual, message)
@@ -391,7 +379,7 @@ class _BaseTestCase(TestCase):
 
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
-            kwargs.setdefault("headers", dict()).update(
+            kwargs.setdefault("headers", {}).update(
                 {"Authorization": "bearer " + self.get_token()}
             )
 
@@ -400,7 +388,6 @@ class _BaseTestCase(TestCase):
         if r.headers.get("content-type") == "application/json":
             actual = r.json()
         else:
-            print(r.headers, r.content, r.raw)
             actual = r.text
 
         # actual = (
@@ -417,8 +404,6 @@ class _BaseTestCase(TestCase):
                 )
 
             if not 200 <= r.status_code < 300:
-                pprint.pprint(actual)
-
                 self.fail(message)
 
         else:
@@ -430,16 +415,11 @@ class _BaseTestCase(TestCase):
                 )
 
             if r.status_code != status_code:
-                ppa = pprint.pformat(actual)
-                print(f"actual response:\n{ppa}")
-
                 self.fail(message)
 
         for k in drop_keys:
-            try:
+            with suppress((IndexError, KeyError, TypeError)):
                 actual.pop(k)
-            except (IndexError, KeyError, TypeError):
-                pass
 
         return actual
 
@@ -508,7 +488,7 @@ class _BaseTestCase(TestCase):
 
                 # kwargs['method'] = 'POST'
                 kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
-                kwargs.setdefault("headers", dict()).update(
+                kwargs.setdefault("headers", {}).update(
                     {"Content-Type": "application/json"}
                 )
                 return client.post(path, **kwargs)
@@ -531,8 +511,7 @@ class _BaseTestCase(TestCase):
                 map(TestCase.__sort_inner_lists, obj),
                 key=(lambda p: json.dumps(p, sort_keys=True)),
             )
-        else:
-            return obj
+        return obj
 
     def assertRegistrationsEqual(self, expected, actual, message=None):
 
@@ -543,9 +522,6 @@ class _BaseTestCase(TestCase):
 
         actual = self.__sort_inner_lists(actual)
         expected = self.__sort_inner_lists(expected)
-
-        if actual != expected:
-            pprint.pprint(actual)
 
         # Sort all inner lists and compare
         return self.assertEqual(expected, actual, message)

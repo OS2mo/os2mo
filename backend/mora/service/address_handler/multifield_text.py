@@ -77,8 +77,8 @@ class MultifieldTextAddressHandler(base.AddressHandler):
                 "objekttype": self.scope,
                 "urn": prefix + util.urnquote(value),
             }
-            for (prefix, value) in [
+            for (prefix, value) in (
                 (self.prefix, self._value),
                 (self.prefix2, self._value2),
-            ]
+            )
         ]

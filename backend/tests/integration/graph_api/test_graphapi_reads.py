@@ -23,7 +23,7 @@ async def sample_structures(fastapi_test_app, testing_db):
     We only do reads in this integration test, so there is no reason for us to
     load data before and db_reset after every function.
     """
-    await load_sample_structures(minimal=False)
+    await load_sample_structures()
     yield
     _mox_testing_api("db-reset")
 

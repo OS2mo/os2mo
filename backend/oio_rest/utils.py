@@ -97,8 +97,7 @@ def dict_from_dot_notation(notation, value):
     element = path.pop(0)
     if len(path) == 0:
         return {element: value}
-    else:
-        return {element: dict_from_dot_notation(".".join(path), value)}
+    return {element: dict_from_dot_notation(".".join(path), value)}
 
 
 def add_journal_post_relation_fields(param, values, relation):

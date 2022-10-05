@@ -447,7 +447,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         assert len(associations) == 2
         for associationid in associations:
             # assert we got back one of the newly created associations (ie. exists)
-            assert associationid in [association_uuid, association_uuid2]
+            assert associationid in (association_uuid, association_uuid2)
 
             # check that the content is also as expected
             actual_association = await c.organisationfunktion.get(associationid)

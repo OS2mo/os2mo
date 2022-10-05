@@ -17,6 +17,7 @@ import re
 import typing
 import urllib.parse
 import uuid
+from contextlib import suppress
 from functools import reduce
 
 import dateutil.parser
@@ -80,10 +81,8 @@ def parsedatetime(
         # we get it as a space
         s = re.sub(r" (?=\d\d:\d\d$)", "+", s)
 
-    try:
+    with suppress(ValueError):
         return from_iso_time(s)
-    except ValueError:
-        pass
 
     try:
         dt = dateutil.parser.parse(s, dayfirst=True, tzinfos=_tzinfos)
@@ -112,8 +111,7 @@ def to_lora_time(s: str | datetime.date | datetime.datetime) -> str:
         return "infinity"
     elif dt == NEGATIVE_INFINITY:
         return "-infinity"
-    else:
-        return dt.isoformat()
+    return dt.isoformat()
 
 
 def to_iso_date(s, is_end: bool = False):
@@ -390,7 +388,7 @@ def checked_get(
 
         if fallback is not None:
             try:
-                return checked_get(fallback, key, default, None, required)
+                return checked_get(fallback, key, default, required=required)
             except exceptions.HTTPException:
                 # ensure that we raise an exception describing the
                 # current object, even if a fallback was specified
@@ -398,8 +396,7 @@ def checked_get(
 
         elif required:
             raise exc
-        else:
-            return default
+        return default
 
     if not isinstance(v, type(default)):
         if v is None:
@@ -472,8 +469,7 @@ def get_mapping_uuid(mapping, key, *, fallback=None, required=False):
 
     if obj:
         return get_uuid(obj)
-    else:
-        return None
+    return None
 
 
 def set_obj_value(obj: dict, path: tuple, val: list[dict]):
@@ -511,8 +507,7 @@ def get_obj_value(
 
     if filter_fn:
         return list(filter(filter_fn, props))
-    else:
-        return props
+    return props
 
 
 def get_obj_uuid(obj, path: tuple):
@@ -688,8 +683,7 @@ def is_substitute_allowed(association_type_uuid: str) -> bool:
     if association_type_uuid in substitute_roles.split(","):
         # chosen role does need substitute
         return True
-    else:
-        return False
+    return False
 
 
 def get_query_args():
@@ -709,8 +703,7 @@ def get_args_flag(name: str):
 
     if v.lower() in ("", "0", "no", "n", "false"):
         return False
-    else:
-        return bool(v)
+    return bool(v)
 
 
 # class StrUUIDConverter(werkzeug.routing.UUIDConverter):

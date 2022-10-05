@@ -99,7 +99,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         start = get_valid_from(obj).timestamp()
 
         # Finally, break ties with UUID, ALWAYS works
-        uuid = get_uuid(obj, required=True)
+        uuid = get_uuid(obj)
         return scope_priority, start, uuid
 
     @staticmethod

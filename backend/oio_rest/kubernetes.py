@@ -17,7 +17,6 @@ async def liveness():
     """
     Endpoint to be used as a liveness probe for Kubernetes
     """
-    return
 
 
 @kubernetes_router.get("/ready", status_code=HTTP_204_NO_CONTENT)

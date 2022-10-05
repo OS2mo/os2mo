@@ -140,9 +140,9 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         self.trigger_dict[Trigger.EMPLOYEE_UUID] = userid
 
     def _handle_nickname(self, obj: dict[str | Any, Any]):
-        nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME, None)
-        nickname_surname = obj.get(mapping.NICKNAME_SURNAME, None)
-        nickname = obj.get(mapping.NICKNAME, None)
+        nickname_givenname = obj.get(mapping.NICKNAME_GIVENNAME)
+        nickname_surname = obj.get(mapping.NICKNAME_SURNAME)
+        nickname = obj.get(mapping.NICKNAME)
 
         if nickname and (nickname_surname or nickname_givenname):
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
@@ -166,7 +166,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         original = await c.bruger.get(uuid=userid)
         new_from, new_to = util.get_validities(data)
 
-        payload = dict()
+        payload = {}
         if original_data:
             # We are performing an update
             old_from, old_to = util.get_validities(original_data)
@@ -186,7 +186,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                     "cannot change employee uuid!",
                 )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.EMPLOYEE_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
@@ -216,7 +216,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         nickname_givenname, nickname_surname = self._handle_nickname(data)
 
-        seniority = data.get(mapping.SENIORITY, None)
+        seniority = data.get(mapping.SENIORITY)
 
         # clear rather than skip if exists, but value is None
         if seniority is None and mapping.SENIORITY in data:

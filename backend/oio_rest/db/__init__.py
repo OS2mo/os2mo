@@ -784,9 +784,7 @@ def transform_relations(o):
     functions.
     """
     if isinstance(o, dict):
-        if "relationer" in o and (
-            isinstance(o["relationer"], list) or isinstance(o["relationer"], tuple)
-        ):
+        if "relationer" in o and isinstance(o["relationer"], (list, tuple)):
             relations = o["relationer"]
             rel_dict = {}
             for rel in relations:
@@ -825,7 +823,7 @@ def _consolidate_and_trim_object_virkninger(
 
     for result in new_obj[0]:
         registration = result["registreringer"][0]
-        for category_key in ["attributter", "relationer", "tilstande"]:
+        for category_key in ("attributter", "relationer", "tilstande"):
             category = registration.get(category_key)
             if not category:
                 continue

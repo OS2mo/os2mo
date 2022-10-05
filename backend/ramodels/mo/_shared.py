@@ -220,8 +220,8 @@ class OpenValidity(RABase):
         # Note: the values of from_date & to_date are not changed here
         # just leq compared.
         _from_dt, _to_dt = values.get("from_date"), values.get("to_date")
-        cmp_from_dt = _from_dt if _from_dt else datetime.min.replace(tzinfo=UTC)
-        cmp_to_dt = _to_dt if _to_dt else datetime.max.replace(tzinfo=UTC)
+        cmp_from_dt = _from_dt or datetime.min.replace(tzinfo=UTC)
+        cmp_to_dt = _to_dt or datetime.max.replace(tzinfo=UTC)
         if all([cmp_from_dt, cmp_to_dt]) and not (cmp_from_dt <= cmp_to_dt):
             raise ValueError(
                 f"from_date {cmp_from_dt} must be less than "

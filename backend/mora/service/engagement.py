@@ -126,8 +126,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
         except (TypeError, LookupError):
             exts = {}
 
-        payload = dict()
-        payload["note"] = "Rediger engagement"
+        payload = {"note": "Rediger engagement"}
 
         original_data = req.get("original")
         if original_data:
@@ -142,7 +141,7 @@ class EngagementRequestHandler(handlers.OrgFunkRequestHandler):
                 ("tilstande", "organisationfunktiongyldighed"),
             )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))

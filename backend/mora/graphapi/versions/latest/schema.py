@@ -209,8 +209,7 @@ class Association:
         loader: DataLoader = info.context["class_loader"]
         if root.association_type_uuid:
             return await loader.load(root.association_type_uuid)
-        else:
-            return None
+        return None
 
     @strawberry.field(
         description="dynamic class",
@@ -222,8 +221,7 @@ class Association:
         loader: DataLoader = info.context["class_loader"]
         if root.dynamic_class_uuid:
             return await loader.load(root.dynamic_class_uuid)
-        else:
-            return None
+        return None
 
     @strawberry.field(
         description="Primary status",
@@ -261,8 +259,7 @@ class Association:
         loader: DataLoader = info.context["employee_loader"]
         if root.substitute_uuid:
             return (await loader.load(root.substitute_uuid)).objects
-        else:
-            return []
+        return []
 
     @strawberry.field(
         description="Connected job function",
@@ -274,8 +271,7 @@ class Association:
         loader: DataLoader = info.context["class_loader"]
         if root.job_function_uuid:
             return await loader.load(root.job_function_uuid)
-        else:
-            return None
+        return None
 
     @strawberry.field(
         description="Connected IT user",
@@ -285,8 +281,7 @@ class Association:
         loader: DataLoader = info.context["ituser_loader"]
         if root.it_user_uuid:
             return (await loader.load(root.it_user_uuid)).objects
-        else:
-            return []
+        return []
 
 
 # Class

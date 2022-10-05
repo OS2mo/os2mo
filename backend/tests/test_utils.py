@@ -387,8 +387,8 @@ def test_checked_get_py(key, default, required, expected_raise):
         "string": "1337",
         "int": 1337,
         "null": None,
-        "empty_list": list(),
-        "empty_dict": dict(),
+        "empty_list": [],
+        "empty_dict": {},
         "empty_str": "",
     }
     with expected_raise:

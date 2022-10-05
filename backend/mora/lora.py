@@ -184,8 +184,7 @@ def uuid_to_str(value):
         return list(map(uuid_to_str, value))
     elif isinstance(value, set):
         return set(map(uuid_to_str, value))
-    else:
-        return value
+    return value
 
 
 def exotics_to_str(value):
@@ -194,14 +193,13 @@ def exotics_to_str(value):
     @param value:
     @return:
     """
-    if isinstance(value, bool) or isinstance(value, uuid.UUID):
+    if isinstance(value, (bool, uuid.UUID)):
         return str(value)
-    elif isinstance(value, list) or isinstance(value, set):
+    elif isinstance(value, (list, set)):
         return list(map(exotics_to_str, value))
-    elif isinstance(value, int) or isinstance(value, str):
+    elif isinstance(value, (int, str)):
         return value
-    else:
-        raise TypeError("Unknown type in exotics_to_str", type(value))
+    raise TypeError("Unknown type in exotics_to_str", type(value))
 
 
 def param_exotics_to_strings(
@@ -281,8 +279,7 @@ class Connector:
     def is_range_relevant(self, start, end, effect):
         if self.validity == "present":
             return util.do_ranges_overlap(self.start, self.end, start, end)
-        else:
-            return start > self.start and end <= self.end
+        return start > self.start and end <= self.end
 
     def scope(self, type_: LoraObjectType) -> "Scope":
         if type_ in self.__scopes:
@@ -730,7 +727,7 @@ class Scope(BaseScope):
         effects = list(lora_utils.get_effects(reg, relevant, also))
 
         return filter(
-            lambda a: self.connector.is_range_relevant(*a),
+            lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
             effects,
         )
 

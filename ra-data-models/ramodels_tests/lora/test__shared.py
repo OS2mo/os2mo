@@ -191,7 +191,7 @@ class TestInfiniteDatetime:
 
         # But fail values should raise validation errors
         with pytest.raises(ValidationError):
-            for err_dt in [ht_str, ht_int]:
+            for err_dt in (ht_str, ht_int):
                 DTModel(dt=err_dt)
 
     @given(

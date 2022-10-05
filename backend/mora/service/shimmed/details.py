@@ -35,7 +35,7 @@ async def terminate(
     if isinstance(reqs, list):
         return results
 
-    if len(results) == 0:
+    if not results:
         return ""
 
     return results if len(results) > 1 else results[0]

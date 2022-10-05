@@ -36,7 +36,7 @@ class InfiniteDatetime:
         :param value:
         :return:
         """
-        if value in [NINFINITY, INFINITY]:
+        if value in (NINFINITY, INFINITY):
             return cls(value=value)
 
         # ensure valid and consistent format
@@ -137,8 +137,8 @@ class SearchQueryBuilder:
         :param end: (candidate) end of range
         :return:
         """
-        for tmp in [start, end]:
-            if not (isinstance(tmp, datetime) or isinstance(tmp, str)):
+        for tmp in (start, end):
+            if not isinstance(tmp, (datetime, str)):
                 raise TypeError(
                     f"expected {datetime} or str, got type={type(tmp)} of value={tmp}"
                 )

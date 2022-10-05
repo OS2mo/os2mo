@@ -116,8 +116,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
         data = req.get("data")
         new_from, new_to = util.get_validities(data)
 
-        payload = dict()
-        payload["note"] = f"Rediger {mapping.ENGAGEMENT_ASSOCIATION_KEY}"
+        payload = {"note": f"Rediger {mapping.ENGAGEMENT_ASSOCIATION_KEY}"}
 
         original_data = req.get("original")
         if original_data:
@@ -132,7 +131,7 @@ class EngagementAssociationRequestHandler(handlers.OrgFunkRequestHandler):
                 ("tilstande", "organisationfunktiongyldighed"),
             )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))

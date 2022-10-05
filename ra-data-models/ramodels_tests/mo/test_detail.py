@@ -41,9 +41,7 @@ class TestDetailTerminate:
 
         # Assert validity
         dict_validity = details_terminate_dict.get("validity", {})
-        model_validity = (
-            details_terminate.validity if details_terminate.validity else {}
-        )
+        model_validity = details_terminate.validity or {}
 
         assert dict_validity.get("from", None) == model_validity.get("from", None)
         assert dict_validity.get("to", None) == model_validity.get("to", None)

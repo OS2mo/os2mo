@@ -72,7 +72,7 @@ async def get_employee(
                 "org": data["org"],
             }
 
-    dates = dict()
+    dates = {}
     if at is not None:
         dates["from_date"] = at
     variables = {"uuid": id, **dates}

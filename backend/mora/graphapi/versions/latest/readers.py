@@ -49,7 +49,6 @@ async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]
                 **kwargs,  # type: ignore
             }
         ),
-        changed_since=None,
     )
 
 
@@ -63,5 +62,4 @@ async def get_role_type_by_uuid(
         search_fields=_extract_search_params(
             query_args={"at": None, "validity": None, "uuid": uuid}
         ),
-        changed_since=None,
     )

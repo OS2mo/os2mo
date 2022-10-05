@@ -7,6 +7,7 @@ import pprint
 import types
 import unittest
 import uuid
+from contextlib import suppress
 from unittest import mock
 
 import pytest
@@ -69,10 +70,10 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         stack = contextlib.ExitStack()
         self.addCleanup(stack.close)
 
-        for p in [
+        for p in (
             mock.patch("oio_rest.settings.FILE_UPLOAD_FOLDER", "./mox-upload"),
             mock.patch("oio_rest.settings.LOG_AMQP_SERVER", None),
-        ]:
+        ):
             stack.enter_context(p)
 
     def assertRequestResponse(
@@ -94,10 +95,8 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             actual = json.loads(actual)
 
         for k in drop_keys:
-            try:
+            with suppress((IndexError, KeyError, TypeError)):
                 actual.pop(k)
-            except (IndexError, KeyError, TypeError):
-                pass
 
         if not message:
             status_message = "request {!r} failed with status {}".format(
@@ -165,8 +164,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
                     map(sort_inner_lists, obj),
                     key=(lambda p: json.dumps(p, sort_keys=True)),
                 )
-            else:
-                return obj
+            return obj
 
         # drop lora-generated timestamps & users
         if isinstance(expected, dict):

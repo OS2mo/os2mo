@@ -95,8 +95,7 @@ def _create_graphql_connector(**loraparams) -> lora.Connector:
 def _create_connector(**loraparams) -> lora.Connector:
     if is_graphql():
         return _create_graphql_connector(**loraparams)
-    else:
-        return _create_service_connector(**loraparams)
+    return _create_service_connector(**loraparams)
 
 
 class cache(collections.defaultdict):

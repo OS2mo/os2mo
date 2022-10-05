@@ -99,7 +99,8 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     uuid_map = group_by_uuid(parsed_results)
     return list(
         starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects), uuid_map.items()
+            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
+            uuid_map.items(),
         )
     )
 
@@ -120,7 +121,8 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     uuid_map = group_by_uuid(parsed_results, uuids)
     return list(
         starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects), uuid_map.items()
+            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
+            uuid_map.items(),
         )
     )
 
