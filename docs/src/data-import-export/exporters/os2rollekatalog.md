@@ -52,7 +52,7 @@ indeholder følgende data:
 -   Kaldenavn (optionelt)
 -   Email
 -   AD brugernavn
--   Engagementer (Stillingsbetegnelse (optionelt) og Enheds_uuid)
+-   Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
 
 Der gives en advarsel i loggen ved mere end én email adresse på en
 bruger.
