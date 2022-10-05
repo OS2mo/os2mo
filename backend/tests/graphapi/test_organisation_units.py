@@ -220,7 +220,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [

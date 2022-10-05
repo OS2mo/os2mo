@@ -105,7 +105,9 @@ def execute():
 
 
 @pytest.fixture(scope="class", name="org_uuids")
-def fetch_org_uuids(sample_structures_no_reset, graphapi_post: Callable) -> list[UUID]:
+def fetch_org_uuids(
+    load_fixture_data_with_class_reset, graphapi_post: Callable
+) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
@@ -121,7 +123,7 @@ def fetch_org_uuids(sample_structures_no_reset, graphapi_post: Callable) -> list
 
 @pytest.fixture(scope="class", name="employee_uuids")
 def fetch_employee_uuids(
-    sample_structures_no_reset, graphapi_post: Callable
+    load_fixture_data_with_class_reset, graphapi_post: Callable
 ) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
@@ -138,7 +140,7 @@ def fetch_employee_uuids(
 
 @pytest.fixture(scope="class", name="itsystem_uuids")
 def fetch_itsystem_uuids(
-    sample_structures_no_reset, graphapi_post: Callable
+    load_fixture_data_with_class_reset, graphapi_post: Callable
 ) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {

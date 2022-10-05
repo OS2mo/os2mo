@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestOrganisationEndpoints:
     def test_list_organisation(self, service_client: TestClient):
         response = service_client.get("/service/o/")

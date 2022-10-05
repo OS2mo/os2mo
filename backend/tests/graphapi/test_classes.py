@@ -165,7 +165,7 @@ def prepare_query_data(test_data, query_response):
 
 @given(test_data=write_strat())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_integration_create_class(test_data, graphapi_post):
     """Integrationtest for create class mutator."""
 
@@ -261,7 +261,7 @@ async def test_unit_create_class(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
