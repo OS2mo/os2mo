@@ -12,7 +12,7 @@ from tests import util
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-class AsyncTestAddressLookup(tests.cases.AsyncTestCase):
+class AsyncTestAddressLookup(tests.cases.NewTestApp, tests.cases.AsyncTestCase):
     @freezegun.freeze_time("2016-06-06")
     @respx.mock
     async def test_autocomplete_no_municipality(self):

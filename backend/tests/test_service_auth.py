@@ -97,7 +97,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
 
 
 class AsyncTestAuthEndpointsReturn401(
-    tests.cases._AsyncBaseTestCase, tests.cases.GraphApiTestApp
+    tests.cases.GraphApiTestApp, tests.cases._AsyncBaseTestCase
 ):
     async def asyncSetUp(self):
         await super().asyncSetUp()

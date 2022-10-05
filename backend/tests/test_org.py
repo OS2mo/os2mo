@@ -13,7 +13,7 @@ async def async_helper2():
     return [{}, {}]
 
 
-class AsyncTests(tests.cases.AsyncTestCase):
+class AsyncTests(tests.cases.NewTestApp, tests.cases.AsyncTestCase):
     maxDiff = None
 
     @patch("mora.service.org.get_valid_organisations", new=async_helper1)
