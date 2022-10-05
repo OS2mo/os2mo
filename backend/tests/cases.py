@@ -27,22 +27,6 @@ base_test_app = False
 graph_api_test_app = False
 
 
-class GraphApiTestApp:
-
-    app_settings_overrides = {
-        "graphql_enable": True,
-        "graphiql_enable": True,
-    }
-
-    def create_app(self, overrides=None):
-        global graph_api_test_app
-        if not graph_api_test_app:
-            service.org.ConfiguredOrganisation.valid = False
-            graph_api_test_app = app.create_app(self.app_settings_overrides)
-
-        return graph_api_test_app
-
-
 class NewGraphApiTestApp:
 
     app_settings_overrides = {
