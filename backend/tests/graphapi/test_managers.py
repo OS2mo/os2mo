@@ -20,6 +20,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ManagerCreate
+from mora.graphapi.versions.latest.models import ManagerUpdate
 from mora.graphapi.versions.latest.types import ManagerType
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
@@ -152,7 +153,7 @@ async def test_manager_employees_filters(
 
 @given(test_data=...)
 @patch("mora.graphapi.versions.latest.mutators.create_manager", new_callable=AsyncMock)
-async def test_create_manager_mutation(
+async def test_create_manager_mutation_unit_test(
     create_manager: AsyncMock, test_data: ManagerCreate
 ) -> None:
     """Tests that the mutator function for creating a manager passes through, with the
@@ -281,3 +282,187 @@ async def test_create_manager_integration_test(
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
+            "user_key": None,
+            "person": None,
+            # responsibility = 452e1dd0-658b-477a-8dd8-efba105c06d6
+            # or 4311e351-6a3c-4e7e-ae60-8a3b2938fbd6 ?
+            "responsibility": ["452e1dd0-658b-477a-8dd8-efba105c06d6"],
+            "org_unit": None,
+            "manager_type": None,
+            # ca76a441-6226-404f-88a9-31e02e420e52
+            "manager_level": None,  # "ca76a441-6226-404f-88a9-31e02e420e52",
+            # None,  # "ca76a441-6226-404f-88a9-31e02e420e52",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        # {
+        #     "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
+        #     "user_key": "-",
+        #     "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        #     # responsibility = 452e1dd0-658b-477a-8dd8-efba105c06d6
+        #     # or 4311e351-6a3c-4e7e-ae60-8a3b2938fbd6 ?
+        #     "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6"],
+        #     "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+        #     "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+        #     "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+        #     "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        # },
+        #
+        # {
+        #     "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
+        #     "user_key": "-",
+        #     "person": None,
+        #     # responsibility = 452e1dd0-658b-477a-8dd8-efba105c06d6
+        #     # or 4311e351-6a3c-4e7e-ae60-8a3b2938fbd6 ?
+        #     "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        #                        "452e1dd0-658b-477a-8dd8-efba105c06d6",
+        #                        "93ea44f9-127c-4465-a34c-77d149e3e928"],
+        #     "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+        #     "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+        #     "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+        #     "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        # },
+        #
+        # {
+        #     "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
+        #     "user_key": "-",
+        #     "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        #     # responsibility = 452e1dd0-658b-477a-8dd8-efba105c06d6
+        #     # or 4311e351-6a3c-4e7e-ae60-8a3b2938fbd6 ?
+        #     "responsibility": ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+        #                        "452e1dd0-658b-477a-8dd8-efba105c06d6",
+        #                        "93ea44f9-127c-4465-a34c-77d149e3e928"],
+        #     "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+        #     "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+        #     "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+        #     "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        # },
+    ],
+)
+async def test_update_manager_integration_test(test_data, graphapi_post) -> None:
+    """Test that managers can be updated in LoRa via GraphQL."""
+
+    uuid = test_data["uuid"]
+    # print("6666666666666666666666666666666", uuid, "nr 2", test_data["person"], "nr 3",
+    #       test_data["responsibility"])
+    # print("/////////////////////////////////", test_data)
+
+    # Writing a query to retrieve objects containing data on the desired uuids from
+    # within LoRa. This is the data that's inside the LoRa test DB.
+    query = """
+        query MyQuery($uuid: UUID!) {
+            managers(uuids: [$uuid]) {
+                objects {
+                    user_key
+                    person: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+
+    pre_update_manager_update = one(one(response.data["managers"])["objects"])
+
+    # print("------------------------", response.data)
+    print("++++++++++++++++++++++++", pre_update_manager_update)
+
+    mutation = """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    print("88888888**8888********88*****", mutation_response)
+
+    assert mutation_response.errors is None
+
+    # Verifying query sent to LoRa with the test data to match the input with what's in
+    # the test DB.
+    verify_query = """
+        query VerifyQuery($uuid: [UUID!]!) {
+            managers(uuids: $uuid){
+                objects {
+                    uuid
+                    user_key
+                    person: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(
+        query=verify_query, variables={"uuid": uuid}
+    )
+    print("88888888888888888888888888", verify_response)
+
+    assert verify_response.errors is None
+
+    post_update_manager = one(one(verify_response.data["managers"])["objects"])
+
+    # If value is None, we use data from our original query
+    # to ensure that the field has not been updated
+    expected_updated_manager = {
+        k: v if v else pre_update_manager_update[k] for k, v in test_data.items()
+    }
+    print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", expected_updated_manager)
+
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", post_update_manager)
+
+    assert post_update_manager == expected_updated_manager
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.update_manager", new_callable=AsyncMock)
+async def test_update_manager_mutation_unit_test(
+    update_manager: AsyncMock, test_data: ManagerUpdate
+) -> None:
+    """Tests that the mutator function for updating a manager passes through, with the
+    defined pydantic model."""
+
+    mutation = """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    update_manager.return_value = ManagerType(uuid=test_data.uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
+
+    update_manager.assert_called_with(test_data)

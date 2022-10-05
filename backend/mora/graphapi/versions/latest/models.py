@@ -706,9 +706,9 @@ class ManagerCreate(Manager):
 
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
 
-    manager_type: UUID = Field(description="UUID of the managers type..")
-
     manager_level: UUID = Field(description="UUID of the managers level.")
+
+    manager_type: UUID = Field(description="UUID of the managers type..")
 
     validity: RAValidity = Field(description="Validity range for the manager.")
 
@@ -728,8 +728,8 @@ class ManagerCreate(Manager):
             "person": gen_uuid(self.person),
             "responsibility": responsibilities,
             "org_unit": gen_uuid(self.org_unit),
-            "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
+            "manager_type": gen_uuid(self.manager_type),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -739,12 +739,17 @@ class ManagerCreate(Manager):
         }
 
 
-
 class ManagerUpdate(Manager):
     """Model for updating a manager."""
 
     uuid: UUID = Field(description="UUID of the manager to be updated.")
+
     user_key: str | None = Field(description="Extra info or uuid.")
+
+    person: UUID | None = Field(
+        description="UUID of the manager as person to be updated."
+    )
+
     responsibility: list[UUID] | None = Field(
         description="UUID of the managers responsibilities to be updated."
     )
@@ -752,7 +757,6 @@ class ManagerUpdate(Manager):
     org_unit: UUID | None = Field(
         description="UUID of the managers organisation unit to be updated."
     )
-
     manager_type: UUID | None = Field(
         description="UUID of the managers type to be updated."
     )
@@ -775,24 +779,22 @@ class ManagerUpdate(Manager):
             {"uuid": str(responsib)} for responsib in self.responsibility
         ]
 
-        return {
+        data_dict = {
             "uuid": self.uuid,
-            "user_key": self.user_key if self.user_key else None,
-            "responsibility": responsibilities if self.responsibility else None,
-            "org_unit": gen_uuid(self.org_unit) if self.org_unit else None,
-            "manager_type": gen_uuid(self.manager_type) if self.manager_type else None,
-            "manager_level": gen_uuid(self.manager_level)
-            if self.manager_level
-            else None,
+            "user_key": self.user_key,
+            "person": gen_uuid(self.person),
+            "responsibility": responsibilities,
+            "org_unit": gen_uuid(self.org_unit),
+            "manager_type": gen_uuid(self.manager_type),
+            "manager_level": gen_uuid(self.manager_level),
             "validity": {
-                "from": self.validity.from_date.date().isoformat()
-                if self.validity.from_date
-                else None,
+                "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
                 if self.validity.to_date
                 else None,
             },
         }
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Organisational Units
