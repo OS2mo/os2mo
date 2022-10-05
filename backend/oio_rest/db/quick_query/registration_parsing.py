@@ -71,7 +71,7 @@ class Attribute:
         if len(attr) != 2:
             raise ValueError(f"unexpected number of keys in attribute spec: {attr}")
 
-        if VIRKNING not in attr.keys():
+        if VIRKNING not in attr:
             raise ValueError(f"unexpected keys in attribute spec: {attr}")
 
         if attr[VIRKNING] is not None:
@@ -82,7 +82,7 @@ class Attribute:
         if not isinstance(key, str):
             raise TypeError(f"expected str, got type={type(val)} of obj={val}")
 
-        for tmp in [key, val]:
+        for tmp in (key, val):
             if not isinstance(tmp, str):
                 raise TypeError(
                     f"expected str, got type={type(tmp)} of obj={tmp}, from {attr}"
@@ -172,7 +172,7 @@ class State:
         if len(state) != 2:
             raise ValueError(f"unexpected number of keys in state spec: {state}")
 
-        if VIRKNING not in state.keys():
+        if VIRKNING not in state:
             raise ValueError(f"unexpected keys in state spec: {state}")
 
         if state[VIRKNING] is not None:
@@ -180,13 +180,13 @@ class State:
 
         state.pop(VIRKNING)
         key, val = list(state.items())[0]  # MUST be only 1 key left
-        if key not in valid_states.keys():
+        if key not in valid_states:
             raise ValueError(f"unexpected key={key} in attribute spec: {state}")
 
         if val not in valid_states[key]:
             raise ValueError(f"unexpected value={val} in attribute spec: {state}")
 
-        for tmp in [key, val]:
+        for tmp in (key, val):
             if not isinstance(tmp, str):
                 raise TypeError(
                     f"expected str, got type={type(tmp)} of obj={tmp}, from {state}"
@@ -237,7 +237,7 @@ class Relation:  # OVERLY defensive, on purpose
 
         ret = []
         for relation in relation_values:
-            if VIRKNING not in relation.keys():
+            if VIRKNING not in relation:
                 raise ValueError(f"unexpected keys in relation spec: {relation}")
 
             if relation[VIRKNING] is not None:
@@ -250,7 +250,7 @@ class Relation:  # OVERLY defensive, on purpose
 
             relation.pop(VIRKNING)
 
-            if OBJECKTTYPE not in relation.keys():
+            if OBJECKTTYPE not in relation:
                 raise ValueError(f"unexpected keys in relation spec: {relation}")
 
             current_objekttype = relation.pop(OBJECKTTYPE)

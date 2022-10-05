@@ -4,6 +4,7 @@ import enum
 import functools
 import operator
 import typing
+from contextlib import suppress
 
 from os2mo_http_trigger_protocol import EventType  # noqa
 from os2mo_http_trigger_protocol import RequestType  # noqa
@@ -226,10 +227,8 @@ class FieldTuple:
 
     def _get_elems(self, obj, key):
         for item in self.get(obj):
-            try:
+            with suppress(KeyError):
                 yield item[key]
-            except KeyError:
-                pass
 
     def get_uuids(self, obj):
         return self._get_elems(obj, "uuid")

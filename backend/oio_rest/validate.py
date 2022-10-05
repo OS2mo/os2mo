@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import copy
+from contextlib import suppress
 
 import jsonschema
 
@@ -409,10 +410,8 @@ SCHEMAS = {}
 
 
 def get_schema(obj_type, do_create=True):
-    try:
+    with suppress(KeyError):
         return SCHEMAS[do_create, obj_type]
-    except KeyError:
-        pass
     schema = SCHEMAS[do_create, obj_type] = copy.deepcopy(
         generate_json_schema(obj_type, do_create)
     )

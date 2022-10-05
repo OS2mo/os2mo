@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import binascii
 from base64 import b64decode
+from contextlib import suppress
 from typing import Any
 from uuid import UUID
 
@@ -30,10 +31,8 @@ class KeycloakToken(BaseToken):
     def parse_base64_uuid(uuid):
         """Attempt to parse incoming UUID as base64"""
         if uuid is not None:
-            try:
+            with suppress((ValueError, binascii.Error)):
                 uuid = UUID(bytes_le=b64decode(uuid))
-            except (ValueError, binascii.Error):
-                pass
         return uuid
 
     class Config:

@@ -70,8 +70,7 @@ def get_state_names(class_name):
 
     if isinstance(states, list):
         return [state[0] for state in states]
-    else:
-        return list(states)
+    return list(states)
 
 
 _relation_names = {}
@@ -79,7 +78,7 @@ _relation_names = {}
 
 def get_relation_names(class_name):
     "Return the list of all recognized relations for this class."
-    if len(_relation_names) == 0:
+    if not _relation_names:
         for c, fs in db_structure.REAL_DB_STRUCTURE.items():
             _relation_names[c] = (
                 fs["relationer_nul_til_en"] + fs["relationer_nul_til_mange"]
@@ -116,8 +115,7 @@ def input_list(_type, input, key):
     values = input.get(key, None)
     if values is None:
         return None
-    else:
-        return [_type.input(v) for v in values]
+    return [_type.input(v) for v in values]
 
 
 def input_dict_list(_type, input):
@@ -129,8 +127,7 @@ def input_dict_list(_type, input):
     key. If the input is None, then None is returned."""
     if input is None:
         return None
-    else:
-        return [_type.input(k, v) for k in input for v in input[k]]
+    return [_type.input(k, v) for k in input for v in input[k]]
 
 
 def to_bool(s):
@@ -139,12 +136,11 @@ def to_bool(s):
         return s
     elif s is None:
         return None
-    else:
-        if s in ("True", "true", "1"):
-            return True
-        elif s in ("False", "false", "0"):
-            return False
-        raise ValueError("%s is not a valid boolean value" % s)
+    elif s in ("True", "true", "1"):
+        return True
+    elif s in ("False", "false", "0"):
+        return False
+    raise ValueError("%s is not a valid boolean value" % s)
 
 
 class Searchable:
@@ -157,8 +153,7 @@ class Searchable:
         """Return tuple of searchable fields."""
         if "virkning" in cls._fields:
             return tuple(set(cls._fields) - set(cls.non_searchable_fields))
-        else:
-            return cls._fields
+        return cls._fields
 
 
 class DokumentVariantType(

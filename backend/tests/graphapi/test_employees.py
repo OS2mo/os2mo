@@ -232,15 +232,15 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         )
 
         var_values = {}
-        uuid = kwargs.get("uuid", None)
+        uuid = kwargs.get("uuid")
         if uuid:
             var_values["uuid"] = uuid
 
-        from_date = kwargs.get("from_date", None)
+        from_date = kwargs.get("from_date")
         if from_date:
             var_values["from"] = from_date.isoformat()
 
-        to_date = kwargs.get("to_date", None)
+        to_date = kwargs.get("to_date")
         if to_date:
             var_values["to"] = to_date.isoformat()
 

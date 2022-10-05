@@ -107,7 +107,7 @@ def init(log_level: str, json: bool = True):
     root_logger.addHandler(handler)
     root_logger.setLevel(log_level.upper())
 
-    for _log in ["uvicorn", "uvicorn.error"]:
+    for _log in ("uvicorn", "uvicorn.error"):
         # Clear the log handlers for uvicorn loggers, and enable propagation so
         # the messages are caught by our root logger and formatted correctly by
         # structlog

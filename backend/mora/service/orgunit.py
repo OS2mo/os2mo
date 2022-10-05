@@ -176,8 +176,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             )
 
         # Get org unit uuid for validation purposes
-        payload = dict()
-        payload["note"] = "Rediger organisationsenhed"
+        payload = {"note": "Rediger organisationsenhed"}
 
         if original_data:
             # We are performing an update
@@ -198,7 +197,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
                     "cannot change unit uuid!",
                 )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
@@ -293,7 +292,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
             "virkning": virkning,
         }
 
-        payload = util.set_obj_value(dict(), obj_path, [val_inactive])
+        payload = util.set_obj_value({}, obj_path, [val_inactive])
         payload["note"] = "Afslut enhed"
 
         self.payload = payload
@@ -769,8 +768,7 @@ def get_details_from_query_args(args):
 
     if "details" in args and args["details"] in arg_map:
         return arg_map[args["details"]]
-    else:
-        return UnitDetails.MINIMAL
+    return UnitDetails.MINIMAL
 
 
 @router.get("/o/{orgid}/ou/")

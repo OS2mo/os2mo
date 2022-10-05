@@ -230,12 +230,12 @@ async def get_org_children(
         unit |= (
             {"engagement_count": len(unit.pop("engagements", []))}
             if "engagement" in count
-            else dict()
+            else {}
         )
         unit |= (
             {"association_count": len(unit.pop("associations", []))}
             if "association" in count
-            else dict()
+            else {}
         )
 
     return org_units

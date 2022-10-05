@@ -79,8 +79,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
         # Get org unit uuid for validation purposes
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD(original)[0]
 
-        payload = dict()
-        payload["note"] = "Rediger rolle"
+        payload = {"note": "Rediger rolle"}
 
         original_data = req.get("original")
         if original_data:
@@ -95,7 +94,7 @@ class RoleRequestHandler(handlers.OrgFunkRequestHandler):
                 ("tilstande", "organisationfunktiongyldighed"),
             )
 
-        update_fields = list()
+        update_fields = []
 
         # Always update gyldighed
         update_fields.append((mapping.ORG_FUNK_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))

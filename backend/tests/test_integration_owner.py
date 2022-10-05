@@ -240,7 +240,6 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
                 uuid=func_uuid,
                 owner=person1,
                 org_unit=top_level_ou,
-                from_date="2017-01-01",
             ),
             create_status_code=201,
             verifying_response=[
@@ -282,7 +281,6 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
                 owner=person1,
                 org_unit=top_level_ou,
                 owner_inference_priority=OwnerInferencePriority.engagement,
-                from_date="2017-01-01",
             ),
             create_status_code=400,
         )
@@ -304,7 +302,6 @@ class OrgUnitInheritTests(OwnerOrgUnitTestCase):
                 uuid=func_uuid,
                 owner=person1,
                 org_unit=top_level_ou,
-                from_date="2017-01-01",
             ),
             create_status_code=201,
             verifying_org_unit=level2_ou,
@@ -506,7 +503,6 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
             json=simplified_owner(
                 owner=person1,
                 org_unit=top_level_ou,
-                from_date="2017-01-01",
             ),
             status_code=201,
         )
@@ -517,7 +513,6 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
             json=simplified_owner(
                 owner=person3,
                 org_unit=level2_ou,
-                from_date="2017-01-01",
             ),
             status_code=201,
         )
@@ -654,7 +649,6 @@ class OwnerEditCase(OwnerPersonTestCase):
             json=simplified_owner(
                 owner=person1,
                 org_unit=top_level_ou,
-                from_date="2017-01-01",
             ),
             status_code=201,
         )
@@ -665,7 +659,6 @@ class OwnerEditCase(OwnerPersonTestCase):
             json=simplified_owner(
                 owner=person3,
                 org_unit=level2_ou,
-                from_date="2017-01-01",
             ),
             status_code=201,
         )

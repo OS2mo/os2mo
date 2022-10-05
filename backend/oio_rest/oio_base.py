@@ -636,9 +636,9 @@ class OIORestObject:
         deleted_or_passive = False
         if exists:
             livscyklus = db.get_life_cycle_code(cls.__name__, uuid)
-            if (
-                livscyklus == db.Livscyklus.PASSIVERET.value
-                or livscyklus == db.Livscyklus.SLETTET.value
+            if livscyklus in (
+                db.Livscyklus.PASSIVERET.value,
+                db.Livscyklus.SLETTET.value,
             ):
                 deleted_or_passive = True
 

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
+from contextlib import suppress
 from itertools import starmap
 from uuid import UUID
 
@@ -44,11 +45,9 @@ async def get_results(
 
     def convert_attrs(class_uuid, value):
         title = None
-        try:
+        with suppress((KeyError, TypeError)):
             class_data = class_map[UUID(class_uuid)]
             title = class_data["attributter"]["klasseegenskaber"][0]["titel"]
-        except (KeyError, TypeError):
-            pass
         return {
             "uuid": class_uuid,
             "value": value,

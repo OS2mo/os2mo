@@ -407,9 +407,7 @@ async def get_sorted_primary_class_list(c: lora.Connector) -> list[tuple[str, in
 
     classes = await gather(
         *[
-            create_task(
-                get_one_class_full(c, class_id, class_obj, only_primary_uuid=False)
-            )
+            create_task(get_one_class_full(c, class_id, class_obj))
             for class_id, class_obj in (await c.klasse.get_all(facet=facet_id))
         ]
     )

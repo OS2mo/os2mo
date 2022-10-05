@@ -177,7 +177,7 @@ async def load_fixture_data():
     if not are_fixtures_loaded:
         ensure_testing_database_exists()
         conn = get_connection()
-        await load_sample_structures(minimal=False)
+        await load_sample_structures()
         conn.commit()  # commit the initial sample structures
         are_fixtures_loaded = True
 
@@ -209,14 +209,14 @@ def event_loop():
 @pytest.fixture(scope="class")
 async def sample_structures_no_reset(testing_db):
     """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=False)
+    await load_sample_structures()
     yield
 
 
 @pytest.fixture
 async def sample_structures(testing_db):
     """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=False)
+    await load_sample_structures()
     yield
     _mox_testing_api("db-reset")
 

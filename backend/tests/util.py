@@ -78,10 +78,9 @@ def jsonfile_to_dict(path):
 def get_fixture(fixture_name, **kwargs):
     if not kwargs:
         return jsonfile_to_dict(os.path.join(FIXTURE_DIR, fixture_name))
-    else:
-        return json.loads(
-            jinja_env.get_template(fixture_name).render(**kwargs),
-        )
+    return json.loads(
+        jinja_env.get_template(fixture_name).render(**kwargs),
+    )
 
 
 def get_mock_data(mock_name):
@@ -338,7 +337,7 @@ def setup_test_routing():
         _mox_testing_api("db-setup")
         await load_sample_structures()
 
-        config.get_settings = lambda: get_testcafe_config()
+        config.get_settings = get_testcafe_config
 
         return jsonable_encoder({"testcafe-db-setup": True})
 
@@ -383,7 +382,7 @@ def patch_is_graphql(is_graphql=False):
 @contextlib.contextmanager
 def patch_query_args(query_args=None):
     if not query_args:
-        query_args = dict()
+        query_args = {}
     with patch("mora.util.context", new={"query_args": query_args}):
         yield
 
