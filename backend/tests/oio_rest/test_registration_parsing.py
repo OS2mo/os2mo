@@ -228,19 +228,6 @@ class TestParseRelation(TestCase):
         valid_relations = Relation.get_valid_relations(class_name)
         key = "tilknyttedebrugere"
 
-        # interface
-        relation_cand = {
-            "virkning": None,
-            "objekttype": "lederniveau",
-            "urn": "urn:Direktion",
-        }
-        with pytest.raises(AttributeError):
-            Relation.from_relation_list(
-                relation_type=key,
-                relation_values=relation_cand,
-                valid_relations=valid_relations,
-            )
-
         # interface - additional information
         relation_cand = [
             {
