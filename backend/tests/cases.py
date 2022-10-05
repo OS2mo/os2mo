@@ -37,7 +37,6 @@ class NewGraphApiTestApp:
     def create_app(self, overrides=None):
         service.org.ConfiguredOrganisation.valid = False
         _app = app.create_app(self.app_settings_overrides)
-        print("NEW TEST APP")
         return _app
 
 
@@ -45,7 +44,6 @@ class NewTestApp:
     def create_app(self, overrides=None):
         service.org.ConfiguredOrganisation.valid = False
         _app = app.create_app(self.app_settings_overrides)
-        print("NEW TEST APP")
         return _app
 
 

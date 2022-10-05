@@ -340,7 +340,6 @@ Integration-test:
     - pytest backend/tests
       -m "integration_test"
       -p no:cacheprovider
-      --durations 50
       --color=yes
       --show-capture=no
       --cov=mora
