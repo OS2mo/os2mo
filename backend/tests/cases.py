@@ -44,6 +44,12 @@ class GraphApiTestApp:
 
 
 class NewGraphApiTestApp:
+
+    app_settings_overrides = {
+        "graphql_enable": True,
+        "graphiql_enable": True,
+    }
+
     def create_app(self, overrides=None):
         service.org.ConfiguredOrganisation.valid = False
         _app = app.create_app(self.app_settings_overrides)
