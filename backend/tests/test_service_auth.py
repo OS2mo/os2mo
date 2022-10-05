@@ -97,7 +97,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
 
 
 class AsyncTestAuthEndpointsReturn401(
-    tests.cases.GraphApiTestApp, tests.cases._AsyncBaseTestCase
+    tests.cases.NewGraphApiTestApp, tests.cases._AsyncBaseTestCase
 ):
     async def asyncSetUp(self):
         await super().asyncSetUp()
@@ -193,7 +193,7 @@ class AsyncTestAuthEndpointsReturn401(
 
 
 class TestAuthEndpointsReturn2xx(
-    tests.cases.AsyncLoRATestCase, tests.cases.GraphApiTestApp
+    tests.cases.NewGraphApiTestApp, tests.cases.AsyncLoRATestCase
 ):
     """
     Keycloak integration tests of a few endpoints (one from /service endpoints
