@@ -92,18 +92,7 @@ class EmployeeRequestHandler(handlers.RequestHandler):
         if seniority is not None:
             seniority = tz_isodate(seniority).strftime("%Y-%m-%d")
 
-        if cpr:
-            try:
-                valid_from = util.get_cpr_birthdate(cpr)
-            except ValueError as exc:
-                settings = config.get_settings()
-                if settings.cpr_validate_birthdate:
-                    exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr, cause=exc)
-                else:
-                    valid_from = util.NEGATIVE_INFINITY
-        else:
-            valid_from = util.NEGATIVE_INFINITY
-
+        valid_from = util.NEGATIVE_INFINITY
         valid_to = util.POSITIVE_INFINITY
 
         if cpr:
