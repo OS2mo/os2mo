@@ -69,6 +69,8 @@ class TestGraphAPI:
     )
     @pytest.mark.parametrize("field", FIELDS)
     @given(data=st.data())
+    @pytest.mark.slow
+    @pytest.mark.slow_setup
     def test_queries(self, data, field, graphapi_post_integration):
         """Test queries generated from the entire schema.
 
@@ -109,6 +111,8 @@ class TestManagerInheritance:
         }
     """
 
+    @pytest.mark.slow
+    @pytest.mark.slow_setup
     def test_manager_no_inheritance(self, graphapi_post_integration):
         """No inheritance - no manager for filins."""
         variables = {"uuids": [self.filins], "inherit": False}
@@ -132,6 +136,8 @@ class TestManagerInheritance:
         assert all_equal(managers)
 
 
+@pytest.mark.slow
+@pytest.mark.integration_test
 @pytest.mark.integration_test
 def test_regression_51523_1(graphapi_post_integration):
     query = """
@@ -148,6 +154,8 @@ def test_regression_51523_1(graphapi_post_integration):
     assert response.data["org_units"] == []
 
 
+@pytest.mark.slow
+@pytest.mark.integration_test
 @pytest.mark.integration_test
 def test_regression_51523_2(graphapi_post_integration):
     query = """
@@ -166,6 +174,7 @@ def test_regression_51523_2(graphapi_post_integration):
     assert response.data["org_units"] == []
 
 
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.parametrize("field", UUID_SEARCHABLE_FIELDS)
 def test_regression_51523_generalised(graphapi_post_integration, field):

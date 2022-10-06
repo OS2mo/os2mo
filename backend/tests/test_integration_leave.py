@@ -11,6 +11,7 @@ from mora import lora
 mock_uuid = "1eb680cd-d8ec-4fd2-8ca0-dce2d03f59a5"
 
 
+@pytest.mark.slow
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2018-01-01", tz_offset=1)
 @patch("uuid.uuid4", new=lambda: mock_uuid)

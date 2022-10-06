@@ -49,6 +49,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             ("0101501234"),
         ]
     )
+    @pytest.mark.slow
     async def test_no_changes_persisted(self, cpr: str):
         """This test ensures that the db is written to twice, across two test.
         Which will make the test_fixture fail the test if the changes are not rolled back.

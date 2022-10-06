@@ -286,6 +286,7 @@ async def test_create_engagement(
 
 
 @given(data=st.data())
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_engagement_integration_test(

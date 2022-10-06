@@ -715,6 +715,8 @@ class TestTerminateDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
+    @pytest.mark.slow_setup
+    @pytest.mark.slow
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_terminate_employment(self, role: str, userid: str, status_code: int):
         """
@@ -805,6 +807,7 @@ class TestEmployeeLeave(TestCommon):
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
         ]
     )
+    @pytest.mark.slow
     @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_employee_leave(self, role: str, userid: str, status_code: int):
         """

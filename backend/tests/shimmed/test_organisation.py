@@ -20,6 +20,7 @@ class TestOrganisationEndpoints:
             }
         ]
 
+    @pytest.mark.slow
     def test_get_organisation(self, service_client: TestClient):
         response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
@@ -39,6 +40,7 @@ class TestOrganisationEndpoints:
             "child_count": 2,
         }
 
+    @pytest.mark.slow
     def test_get_children(self, service_client: TestClient):
         response = service_client.get(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",

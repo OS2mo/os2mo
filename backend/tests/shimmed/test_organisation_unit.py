@@ -150,6 +150,7 @@ class TestOrganisationUnitRead:
             },
         ]
 
+    @pytest.mark.slow
     def test_get_children_with_counts(self, service_client: TestClient):
         response = service_client.get(
             "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",

@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import pytest
+
 from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
@@ -7,6 +9,7 @@ class TestCreateBruger(TestCreateObject):
     def setUp(self):
         super().setUp()
 
+    @pytest.mark.slow_setup
     def test_bruger(self):
 
         # test create
