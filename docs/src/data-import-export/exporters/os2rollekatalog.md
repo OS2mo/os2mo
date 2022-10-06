@@ -49,7 +49,7 @@ indeholder følgende data:
 
 -   UUID
 -   Navn
--   Kaldenavn (optionelt)
+-   Kaldenavn (optionelt). Hvis Kaldenavn er sat i MO, vil det stå i stedet for navn i rollekataloget.
 -   Email
 -   AD brugernavn
 -   Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
