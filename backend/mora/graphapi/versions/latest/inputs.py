@@ -13,6 +13,7 @@ from .models import EngagementTerminate
 from .models import FacetCreate
 from .models import ITUserCreate
 from .models import ITUserTerminate
+from .models import ITUserUpdate
 from .models import ManagerCreate
 from .models import Organisation
 from .models import OrganisationUnitCreate
@@ -146,6 +147,14 @@ class FacetCreateInput:
     all_fields=True,
 )
 class ITUserCreateInput:
+    """input model for creating IT-Users."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=ITUserUpdate,
+    all_fields=True,
+)
+class ITUserUpdateInput:
     """input model for creating IT-Users."""
 
 

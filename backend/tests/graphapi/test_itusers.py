@@ -20,6 +20,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ITUserCreate
+from mora.graphapi.versions.latest.models import ITUserUpdate
 from mora.graphapi.versions.latest.types import ITUserType
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ITUserRead
@@ -225,6 +226,146 @@ async def test_create_ituser_integration_test(
             )
         else:
             assert test_data.validity.to_date is None
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.update_ituser", new_callable=AsyncMock)
+async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) -> None:
+    """Test that pydantic jsons are passed through to update_ituser."""
+
+    mutate_query = """
+        mutation UpdateITUser($input: ITUserUpdateInput!){
+            ituser_update(input: $input){
+                uuid
+            }
+        }
+    """
+    updated_uuid = uuid4()
+    update_ituser.return_value = ITUserType(uuid=updated_uuid)
+
+    payload = jsonable_encoder(test_data)
+
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+
+    assert response.errors is None
+    assert response.data == {"ituser_update": {"uuid": str(updated_uuid)}}
+
+    update_ituser.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "user_key": "UserKey",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "itsystem": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+        {
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "user_key": None,
+            "primary": None,
+            "itsystem": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "user_key": "UserKey",
+            "primary": None,
+            "itsystem": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "user_key": None,
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "itsystem": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {
+                "from": "2017-01-01T00:00:00+01:00",
+                "to": "2025-01-01T00:00:00+01:00",
+            },
+        },
+    ],
+)
+async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
+
+    uuid = test_data["uuid"]
+
+    query = """
+        query MyQuery {
+            itusers {
+                objects {
+                    uuid
+                    user_key
+                    primary: primary_uuid
+                    itsystem: itsystem_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+
+    pre_update_ituser = one(one(response.data["itusers"])["objects"])
+
+    mutate_query = """
+        mutation UpdateITUser($input: ITUserUpdateInput!) {
+            ituser_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert mutation_response.errors is None
+
+    """Query data to check that it actually gets written to database"""
+    verify_query = """
+        query VerifyQuery($uuid: [UUID!]!) {
+            itusers(uuids: $uuid){
+                objects {
+                    uuid
+                    user_key
+                    primary: primary_uuid
+                    itsystem: itsystem_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(
+        query=verify_query, variables={"uuid": uuid}
+    )
+
+    assert verify_response.errors is None
+
+    post_update_ituser = one(one(verify_response.data["itusers"])["objects"])
+
+    # If value is None, we use data from our original query
+    # to ensure that the field has not been updated
+    expected_updated_ituser = {
+        k: v or pre_update_ituser[k] for k, v in test_data.items()
+    }
+
+    assert post_update_ituser == expected_updated_ituser
 
 
 # TODO: Fix failing terminate test #51672

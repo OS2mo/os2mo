@@ -480,8 +480,12 @@ class ITUser(UUIDBase):
 class ITUserCreate(ITUser):
     """Model representing a IT-user creation."""
 
+    # org_unit removed since it's never used and the usecase doesn't seem to be there.
+    # Instead `person` is now required.
+
     type_: str = Field("it", alias="type", description="The object type.")
     user_key: str = Field(description="The IT user account name.")
+    primary: UUID | None = Field(description="Primary field of the IT user object")
     itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
     person: UUID = Field(description="Reference to the employee for the IT user.")
     validity: RAValidity = Field(description="Validity of the created IT user object.")
@@ -495,6 +499,7 @@ class ITUserCreate(ITUser):
         return {
             "type": self.type_,
             "user_key": self.user_key,
+            "primary": gen_uuid(self.primary),
             "itsystem": gen_uuid(self.itsystem),
             "person": gen_uuid(self.person),
             "validity": {
@@ -504,6 +509,37 @@ class ITUserCreate(ITUser):
                 else None,
             },
         }
+
+
+class ITUserUpdate(ITUser):
+    """Model representing a IT-user creation."""
+
+    uuid: UUID = Field(description="UUID of the IT-user you want to update.")
+    user_key: str | None = Field(description="The IT user account name.")
+    primary: UUID | None = Field(description="Primary field of the IT user object")
+    itsystem: UUID | None = Field(
+        description="Reference to the IT system for the IT user."
+    )
+    validity: RAValidity = Field(description="Validity of the created IT user object.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict = {
+            "user_key": self.user_key,
+            "primary": gen_uuid(self.primary),
+            "itsystem": gen_uuid(self.itsystem),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        return {k: v for k, v in data_dict.items() if v}
 
 
 class ITUserTerminate(ValidityTerminate, Triggerless):
