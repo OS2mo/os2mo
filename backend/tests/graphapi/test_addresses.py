@@ -325,7 +325,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.PERSON,
                 "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": addr_uuid_nordre_ring,
@@ -335,7 +334,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.PERSON,
                 "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "11223344",
@@ -345,7 +343,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.PERSON,
                 "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "YeeHaaa@magenta.dk",
@@ -355,7 +352,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ENGAGEMENT,
                 "uuid": engagement_type_employee,
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": addr_uuid_nordre_ring,
@@ -365,7 +361,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ORG_UNIT,
                 "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "YeeHaaa@magenta.dk",
@@ -375,7 +370,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ORG_UNIT,
                 "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "8008580085000",
@@ -385,7 +379,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ORG_UNIT,
                 "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "55667788",
@@ -395,7 +388,6 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ORG_UNIT,
                 "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "8-17",
@@ -405,22 +397,19 @@ async def test_create_mutator_fails(given_mutator_args):
                 "type": mapping.ORG_UNIT,
                 "uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
         {
             "value": "YeeHaaa@magenta.dk",
             "address_type": addr_type_user_email,
-            # "visibility": visibility_uuid_public,
             "relation": {
                 "type": mapping.PERSON,
                 "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             },
-            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
     ],
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_integration(graphapi_post, given_mutator_args):
     validity_from = datetime.datetime.combine(
         datetime.datetime.now().date(), datetime.datetime.min.time()
