@@ -22,6 +22,30 @@ from tests.conftest import fake_auth
 
 logger = get_logger()
 
+# Global variables for test optimizations
+base_test_app = None
+graph_api_test_app = None
+
+
+class NewGraphApiTestApp:
+
+    app_settings_overrides = {
+        "graphql_enable": True,
+        "graphiql_enable": True,
+    }
+
+    def create_app(self, overrides=None):
+        service.org.ConfiguredOrganisation.valid = False
+        _app = app.create_app(self.app_settings_overrides)
+        return _app
+
+
+class NewTestApp:
+    def create_app(self, overrides=None):
+        service.org.ConfiguredOrganisation.valid = False
+        _app = app.create_app(self.app_settings_overrides)
+        return _app
+
 
 class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
     """
@@ -56,12 +80,12 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         await self.lifespanmanager.__aexit__()
 
     def create_app(self, overrides=None):
-        # make sure the configured organisation is always reset
-        # every before test
-        service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app(self.app_settings_overrides)
+        global base_test_app
+        if not base_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            base_test_app = app.create_app(self.app_settings_overrides)
 
-        return app_
+        return base_test_app
 
     @property
     def lora_url(self):
@@ -92,6 +116,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         r = httpx.post(
             "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
             data=data,
+            timeout=config.get_settings().httpx_timeout,
         )
 
         logger.debug("Keycloak token: " + json.dumps(r.json()))
@@ -309,12 +334,12 @@ class _BaseTestCase(TestCase):
         self.app.dependency_overrides[auth] = fake_auth
 
     def create_app(self, overrides=None):
-        # make sure the configured organisation is always reset
-        # every before test
-        service.org.ConfiguredOrganisation.valid = False
-        app_ = app.create_app(self.app_settings_overrides)
+        global base_test_app
+        if not base_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            base_test_app = app.create_app(self.app_settings_overrides)
 
-        return app_
+        return base_test_app
 
     @property
     def lora_url(self):
