@@ -801,9 +801,7 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
 
         try:
             new_value = getattr(test_data, key)
-            if isinstance(new_value, datetime.date) or isinstance(
-                new_value, datetime.datetime
-            ):
+            if isinstance(new_value, (datetime.date, datetime.datetime)):
                 new_value = new_value.isoformat()
         except AttributeError:
             print(f"ERROR: Unable to find new_value for mutator key: {key}")
@@ -949,12 +947,13 @@ def _get_employee_data_from_mutator_key(
         )
 
     if mutator_key == "given_name":
-        return employee_data.get("givenname", None)
+        return employee_data["givenname"]
 
     if mutator_key == "nickname_given_name":
-        return employee_data.get("nickname_givenname", None)
+        return employee_data["nickname_givenname"]
 
-    return employee_data.get(mutator_key, None)
+    return employee_data[mutator_key]
+    # return employee_data.get(mutator_key, None)
 
 
 def _get_employee_verify_query():
