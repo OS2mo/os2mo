@@ -6,7 +6,6 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
-import dateutil
 import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
@@ -15,10 +14,8 @@ from pydantic import validator
 
 from mora import common
 from mora import exceptions
-from mora import lora
 from mora import mapping
 from mora.service.org import get_configured_organisation
-from mora.util import NEGATIVE_INFINITY
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.base import RABase
@@ -313,16 +310,10 @@ class AddressCreate(Validity, AddressRelation):
             case mapping.ORG_UNIT:
                 legacy_dict[mapping.ORG_UNIT] = {
                     mapping.UUID: str(self.relation_uuid),
-                    mapping.VALIDITY: await self._get_org_unit_validity(
-                        self.relation_uuid
-                    ),
                 }
             case mapping.PERSON:
                 legacy_dict[mapping.PERSON] = {
                     mapping.UUID: str(self.relation_uuid),
-                    mapping.VALIDITY: await self._get_person_validity(
-                        self.relation_uuid
-                    ),
                 }
             case mapping.ENGAGEMENT:
                 engagement_dict = {mapping.UUID: str(self.relation_uuid)}
@@ -338,85 +329,6 @@ class AddressCreate(Validity, AddressRelation):
         return {
             **legacy_dict,
             mapping.VALIDITY: validity,
-        }
-
-    @staticmethod
-    async def _get_org_unit_validity(org_unit_uuid: UUID) -> dict | None:
-        validity_dict = AddressCreate._get_lora_validity(
-            await lora.Connector().organisationenhed.get(uuid=org_unit_uuid)
-        )
-
-        if not validity_dict:
-            return None
-
-        validity_from = validity_dict.get(mapping.FROM, None)
-        validity_to = validity_dict.get(mapping.TO, None)
-
-        return {
-            mapping.FROM: validity_from.date().isoformat() if validity_from else None,
-            mapping.TO: validity_to.date().isoformat() if validity_to else None,
-        }
-
-    @staticmethod
-    async def _get_person_validity(person_uuid: UUID) -> dict | None:
-        validity_dict = AddressCreate._get_lora_validity(
-            await lora.Connector(
-                virkningfra="-infinity", virkningtil="infinity"
-            ).bruger.get(uuid=person_uuid)
-        )
-
-        if not validity_dict:
-            return None
-
-        validity_from = validity_dict.get(mapping.FROM, None)
-        validity_to = validity_dict.get(mapping.TO, None)
-
-        if not validity_dict:
-            return None
-
-        return {
-            mapping.FROM: validity_from.date().isoformat() if validity_from else None,
-            mapping.TO: validity_to.date().isoformat() if validity_to else None,
-        }
-
-    @staticmethod
-    def _get_lora_validity(lora_object: dict | None) -> dict | None:
-        if not isinstance(lora_object, dict):
-            return None
-
-        from_date: datetime.datetime | None = None
-        to_date: datetime.datetime | None = None
-
-        if "fratidspunkt" in lora_object.keys():
-            from_date_current_value = lora_object.get("fratidspunkt", {}).get(
-                "tidsstempeldatotid"
-            )
-
-            if from_date_current_value == "infinity":
-                from_date = POSITIVE_INFINITY
-            elif from_date_current_value == "-infinity":
-                from_date = NEGATIVE_INFINITY
-            else:
-                from_date = dateutil.parser.isoparse(from_date_current_value)
-
-        if "tiltidspunkt" in lora_object.keys():
-            to_date_current_value = lora_object.get("tiltidspunkt", {}).get(
-                "tidsstempeldatotid"
-            )
-
-            if to_date_current_value == "infinity":
-                to_date = POSITIVE_INFINITY
-            elif to_date_current_value == "-infinity":
-                to_date = NEGATIVE_INFINITY
-            else:
-                to_date = datetime.datetime.fromisoformat(to_date_current_value)
-
-        if not from_date and not to_date:
-            return None
-
-        return {
-            mapping.FROM: from_date,
-            mapping.TO: to_date,
         }
 
 
