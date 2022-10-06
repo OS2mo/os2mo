@@ -505,8 +505,8 @@ async def test_create_to_handle_dict(given_mutator_args):
     ) as mock_get_lora_validity, patch(
         "mora.graphapi.versions.latest.models.get_configured_organisation"
     ) as mock_get_configured_organisation:
-        # Mocking - to handler dicts looks for validity of the relation in LoRa
-        #           + fetches the globally configured organisation from LoRa as well.
+        # Mocking - to_handler_dict  looks for validity of the relation in LoRa
+        #           + fetches the configured organisation from LoRa as well.
         mock_get_lora_validity.return_value = {
             mapping.FROM: test_data_from_date,
             mapping.TO: None,
