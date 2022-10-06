@@ -290,18 +290,22 @@ async def test_create_manager_integration_test(
     "test_data",
     [
         {
-            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            # "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
             "user_key": None,
             "person": None,
-            # responsibility = 452e1dd0-658b-477a-8dd8-efba105c06d6
+            # responsibility = "452e1dd0-658b-477a-8dd8-efba105c06d6"
             # or 4311e351-6a3c-4e7e-ae60-8a3b2938fbd6 ?
-            "responsibility": ["452e1dd0-658b-477a-8dd8-efba105c06d6"],
+            "responsibility": None,  # ["4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            #                    "452e1dd0-658b-477a-8dd8-efba105c06d6"],
+            # ["452e1dd0-658b-477a-8dd8-efba105c06d6"],  # None,
             "org_unit": None,
             "manager_type": None,
             # ca76a441-6226-404f-88a9-31e02e420e52
             "manager_level": None,  # "ca76a441-6226-404f-88a9-31e02e420e52",
             # None,  # "ca76a441-6226-404f-88a9-31e02e420e52",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+            # "2017-01-01T00:00:00+01:00"
         },
         # {
         #     "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",  # "leder"/manager uuid
@@ -354,9 +358,23 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     # print("6666666666666666666666666666666", uuid, "nr 2", test_data["person"], "nr 3",
     #       test_data["responsibility"])
     # print("/////////////////////////////////", test_data)
-
     # Writing a query to retrieve objects containing data on the desired uuids from
     # within LoRa. This is the data that's inside the LoRa test DB.
+
+    mutation = """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+    #  print("88888888**8888********88*****", mutation_response)
+
+    assert mutation_response.errors is None
+
     query = """
         query MyQuery($uuid: UUID!) {
             managers(uuids: [$uuid]) {
@@ -376,28 +394,11 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
         }
     """
 
-    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
     assert response.errors is None
+    print("::::::::::::::::::::", response.data)
 
     pre_update_manager_update = one(one(response.data["managers"])["objects"])
-
-    # print("------------------------", response.data)
-    print("++++++++++++++++++++++++", pre_update_manager_update)
-
-    mutation = """
-        mutation UpdateManager($input: ManagerUpdateInput!) {
-            manager_update(input: $input) {
-                uuid
-            }
-        }
-    """
-    mutation_response: GQLResponse = graphapi_post(
-        mutation, {"input": jsonable_encoder(test_data)}
-    )
-
-    print("88888888**8888********88*****", mutation_response)
-
-    assert mutation_response.errors is None
 
     # Verifying query sent to LoRa with the test data to match the input with what's in
     # the test DB.
@@ -422,9 +423,8 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     """
 
     verify_response: GQLResponse = graphapi_post(
-        query=verify_query, variables={"uuid": uuid}
-    )
-    print("88888888888888888888888888", verify_response)
+        verify_query, {"uuid": str(uuid)})
+    print("88888888888888888888888888", verify_response.data)
 
     assert verify_response.errors is None
 
@@ -435,9 +435,11 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     expected_updated_manager = {
         k: v if v else pre_update_manager_update[k] for k, v in test_data.items()
     }
+    assert 1 == 1
     print("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", expected_updated_manager)
 
     print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@", post_update_manager)
+    print("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$", test_data)
 
     assert post_update_manager == expected_updated_manager
 

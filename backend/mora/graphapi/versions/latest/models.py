@@ -62,7 +62,7 @@ class Validity(OpenValidity):
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organization Unit must be set with either 'to' or both 'from' "
-            "and 'to'",
+                "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
                 "to": self.to_date.isoformat() if self.to_date else None,
@@ -106,7 +106,7 @@ class MoraTriggerRequest(BaseModel):
 
     uuid: UUID = Field(
         description="UUID for the entity accessed in the request. "
-        "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
+                    "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
     )
 
     validity: Validity = Field(description="Type of the request, ex. 'org_unit'.")
@@ -117,7 +117,7 @@ class MoraTrigger(BaseModel):
 
     request_type: str = Field(
         description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-        "Ref: mora.mapping.RequestType"
+                    "Ref: mora.mapping.RequestType"
     )
 
     request: MoraTriggerRequest = Field(description="The Request for the trigger.")
@@ -130,7 +130,7 @@ class MoraTrigger(BaseModel):
 
     uuid: UUID = Field(
         description="UUID of the entity being handled in the trigger. "
-        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
+                    "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
     result: Any = Field(description="Result of the trigger", default=None)
@@ -429,7 +429,7 @@ class EmployeeUpdate(UUIDBase):
     validity: Validity | None = Field(
         None,
         description="Validity range for the employee, "
-        "for when the employee is accessible",
+                    "for when the employee is accessible",
     )
 
     # user_key
@@ -744,6 +744,10 @@ class ManagerUpdate(Manager):
 
     uuid: UUID = Field(description="UUID of the manager to be updated.")
 
+    validity: RAValidity = Field(
+        description="Validity range for the manager to be updated."
+    )
+
     user_key: str | None = Field(description="Extra info or uuid.")
 
     person: UUID | None = Field(
@@ -765,39 +769,38 @@ class ManagerUpdate(Manager):
         description="UUID of the managers level to be updated."
     )
 
-    validity: RAValidity | None = Field(
-        description="Validity range for the manager to be updated."
-    )
-
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
 
-        responsibilities = [
-            {"uuid": str(responsib)} for responsib in self.responsibility
-        ]
-
         data_dict = {
-            "uuid": self.uuid,
-            "user_key": self.user_key,
-            "person": gen_uuid(self.person),
-            "responsibility": responsibilities,
-            "org_unit": gen_uuid(self.org_unit),
-            "manager_type": gen_uuid(self.manager_type),
-            "manager_level": gen_uuid(self.manager_level),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
                 if self.validity.to_date
                 else None,
             },
+            "user_key": self.user_key,
+            "person": gen_uuid(self.person),
+            # "responsibility": [],
+            "org_unit": gen_uuid(self.org_unit),
+            "manager_type": gen_uuid(self.manager_type),
+            "manager_level": gen_uuid(self.manager_level),
         }
-        return {k: v for k, v in data_dict.items() if v}
+        if self.responsibility:
+            data_dict["responsibility"] = [
+                {"uuid": str(responsib)} for responsib in self.responsibility
+            ]
+
+        k = {k: v for k, v in data_dict.items() if v}
+        print("THIS IS THE DATA DICT LULULUUL", data_dict, "this is the key", k)
+        return k
+
+    # Organisational Units
 
 
-# Organisational Units
 # --------------------
 class OrganisationUnitRefreshRead(BaseModel):
     """Payload model for organisation unit refresh mutation."""
