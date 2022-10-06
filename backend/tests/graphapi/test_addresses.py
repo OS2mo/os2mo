@@ -136,7 +136,7 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_no_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [

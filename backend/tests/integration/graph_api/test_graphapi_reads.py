@@ -12,20 +12,16 @@ from more_itertools import all_equal
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from tests.conftest import GQLResponse
-from tests.util import _mox_testing_api
-from tests.util import load_sample_structures
 
 
 @pytest.fixture(autouse=True)
-async def sample_structures(fastapi_test_app, testing_db):
+async def load_fixture_data(load_fixture_data_with_reset):
     """Class scoped sample structure.
 
     We only do reads in this integration test, so there is no reason for us to
     load data before and db_reset after every function.
     """
-    await load_sample_structures()
     yield
-    _mox_testing_api("db-reset")
 
 
 SCHEMA = str(LatestGraphQLSchema.get())

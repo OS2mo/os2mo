@@ -8,7 +8,7 @@ from tests.util import set_get_configuration
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestOrganisationUnitRead:
     org_unit_type_facet = {
         "description": "",
@@ -266,7 +266,7 @@ class TestOrganisationUnitRead:
 
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestOrganisationUnitWrite:
     def test_create_root_unit_without_org_id(self, service_client: TestClient):
         unitid = "00000000-0000-0000-0000-000000000000"

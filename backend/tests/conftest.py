@@ -182,6 +182,23 @@ async def load_fixture_data():
         are_fixtures_loaded = True
 
 
+@pytest.fixture(scope="class")
+async def load_fixture_data_with_class_reset():
+
+    await load_fixture_data()
+
+    conn = get_connection()
+    try:
+        conn.set_session(autocommit=False)
+    except psycopg2.ProgrammingError:
+        conn.rollback()  # If a transaction is already in progress roll it back
+        conn.set_session(autocommit=False)
+
+    yield
+
+    conn.rollback()
+
+
 @pytest.fixture(scope="function")
 async def load_fixture_data_with_reset():
 
@@ -204,21 +221,6 @@ def event_loop():
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
-
-
-@pytest.fixture(scope="class")
-async def sample_structures_no_reset(testing_db):
-    """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures()
-    yield
-
-
-@pytest.fixture
-async def sample_structures(testing_db):
-    """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures()
-    yield
-    _mox_testing_api("db-reset")
 
 
 @pytest.fixture
