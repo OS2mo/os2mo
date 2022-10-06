@@ -116,6 +116,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         r = httpx.post(
             "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
             data=data,
+            timeout=config.get_settings().httpx_timeout,
         )
 
         logger.debug("Keycloak token: " + json.dumps(r.json()))
