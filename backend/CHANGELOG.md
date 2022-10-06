@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.22.0 - 2022-10-06
+--------------------
+
+[#51670] ITUserUpdate mutator + added "primary" field to ITUserCreate
+
 11.21.1 - 2022-10-03
 --------------------
 
