@@ -407,6 +407,16 @@ async def test_create_mutator_fails(given_mutator_args):
             },
             "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
         },
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            # "visibility": visibility_uuid_public,
+            "relation": {
+                "type": mapping.PERSON,
+                "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            },
+            "org": UUID("456362c4-0ee4-4e5e-a72c-751239745e62"),
+        },
     ],
 )
 @pytest.mark.integration_test
@@ -420,7 +430,7 @@ async def test_create_integration(graphapi_post, given_mutator_args):
         from_date=validity_from,
         value=given_mutator_args["value"],
         address_type=given_mutator_args["address_type"],
-        visibility=given_mutator_args["visibility"],
+        visibility=given_mutator_args.get("visibility", None),
         type=given_mutator_args["relation"]["type"],
         relation_uuid=given_mutator_args["relation"]["uuid"],
     )
@@ -455,7 +465,16 @@ async def test_create_integration(graphapi_post, given_mutator_args):
     assert new_addr[mapping.UUID] is not None
     assert new_addr[mapping.VALUE] == test_data.value
     assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
-    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+
+    new_addr_visibility = (
+        new_addr[mapping.VISIBILITY][mapping.UUID]
+        if new_addr[mapping.VISIBILITY]
+        else None
+    )
+    test_addr_visibility_uuid_str = (
+        str(test_data.visibility) if test_data.visibility else None
+    )
+    assert new_addr_visibility == test_addr_visibility_uuid_str
 
     rel_uuid_str = str(test_data.relation_uuid)
     if test_data.type == mapping.PERSON:

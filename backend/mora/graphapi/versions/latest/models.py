@@ -288,16 +288,18 @@ class AddressCreate(Validity, AddressRelation):
 
     value: str = Field(description="The actual address value.")
     address_type: UUID = Field(description="Type of the address.")
-    visibility: UUID = Field(description="Visibility for the address.")
+    visibility: UUID | None = Field(description="Visibility for the address.")
 
     async def to_handler_dict(self) -> dict:
         legacy_dict = {
             mapping.TYPE: mapping.ADDRESS,
             mapping.VALUE: self.value,
             mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
-            mapping.VISIBILITY: {mapping.UUID: str(self.visibility)},
             mapping.ORG: await get_configured_organisation(),
         }
+
+        if self.visibility:
+            legacy_dict[mapping.VISIBILITY] = {mapping.UUID: str(self.visibility)}
 
         validity = {}
         if self.from_date:
