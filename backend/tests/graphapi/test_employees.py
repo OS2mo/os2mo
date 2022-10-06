@@ -615,7 +615,7 @@ async def test_update_mutator_fails(
     ],
 )
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_integration(given_uuid, given_from, given_mutator_args):
     # Configure mutator variables
     var_values = {
@@ -650,7 +650,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     valid_employee_uuids = [
         UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -953,7 +953,6 @@ def _get_employee_data_from_mutator_key(
         return employee_data["nickname_givenname"]
 
     return employee_data[mutator_key]
-    # return employee_data.get(mutator_key, None)
 
 
 def _get_employee_verify_query():
