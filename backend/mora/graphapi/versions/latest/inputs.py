@@ -19,6 +19,7 @@ from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
 from .models import ManagerCreate
+from .models import ManagerTerminate
 from .models import ManagerUpdate
 from .models import Organisation
 from .models import OrganisationUnitCreate
@@ -227,6 +228,14 @@ class ManagerCreateInput:
 )
 class ManagerUpdateInput:
     """Input model for updating a manager."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=ManagerTerminate,
+    all_fields=True,
+)
+class ManagerTerminateInput:
+    """Input model for terminating a manager."""
 
 
 # Organisational Units

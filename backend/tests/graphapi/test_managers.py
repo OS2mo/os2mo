@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import datetime as dt
 from _datetime import datetime
+from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -16,10 +18,13 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_class_uuids
 from .utils import fetch_employee_validity
+from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.manager import terminate_manager
 from mora.graphapi.versions.latest.models import ManagerCreate
+from mora.graphapi.versions.latest.models import ManagerTerminate
 from mora.graphapi.versions.latest.models import ManagerUpdate
 from mora.graphapi.versions.latest.types import ManagerType
 from ramodels.mo import Validity as RAValidity
@@ -449,3 +454,48 @@ async def test_update_manager_mutation_unit_test(
     assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
 
     update_manager.assert_called_with(test_data)
+
+
+@given(
+    given_uuid=st.uuids(),
+    triggerless=st.booleans(),
+    given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+)
+async def test_manager_terminate(given_uuid, triggerless, given_validity_dts):
+    from_date, to_date = given_validity_dts
+
+    # The terminate logic have a check that verifies we don't use times other than:
+    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
+    # expect an exception.
+    expect_exception = False
+    if to_date.time() != dt.time.min:
+        expect_exception = True
+
+    test_data = ManagerTerminate(
+        uuid=given_uuid,
+        triggerless=triggerless,
+        from_date=from_date,
+        to_date=to_date,
+    )
+
+    # Patching / Mocking
+    async def mock_update(*args):
+        return args[-1]
+
+    terminate_result_uuid = None
+    caught_exception = None
+
+    with mock.patch.object(lora.Scope, "update", new=mock_update):
+        try:
+            tr = await terminate_manager(input=test_data)
+            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+        except Exception as e:
+            caught_exception = e
+
+    # Assert
+    if not expect_exception:
+        assert terminate_result_uuid == test_data.uuid
+    else:
+        assert caught_exception is not None
