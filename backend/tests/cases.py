@@ -23,8 +23,8 @@ from tests.conftest import fake_auth
 logger = get_logger()
 
 # Global variables for test optimizations
-base_test_app = False
-graph_api_test_app = False
+base_test_app = None
+graph_api_test_app = None
 
 
 class NewGraphApiTestApp:

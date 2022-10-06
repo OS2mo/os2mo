@@ -58,7 +58,7 @@ async def admin_auth():
     return Token(**auth)
 
 
-graph_app = False
+graph_app = None
 
 
 def test_app():
