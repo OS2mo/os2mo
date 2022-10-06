@@ -49,9 +49,10 @@ indeholder følgende data:
 
 -   UUID
 -   Navn
+-   Kaldenavn (optionelt). Hvis Kaldenavn er sat i MO, vil det stå i stedet for navn i rollekataloget.
 -   Email
 -   AD brugernavn
--   Engagementer (Stillingsbetegnelse og Enheds_uuid)
+-   Engagementer (Stillingsbetegnelse og Enheds uuid. Optionelt: uuid for stillingsbetegnelse-klassen.)
 
 Der gives en advarsel i loggen ved mere end én email adresse på en
 bruger.
