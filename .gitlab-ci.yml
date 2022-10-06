@@ -289,6 +289,8 @@ Unit-test:
   extends:
     - .test-base
     - .mo-variables
+  tags:
+    - high-mem
   variables:
     HYPOTHESIS_PROFILE: "ci"
 
