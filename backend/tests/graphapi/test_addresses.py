@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import datetime
-from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -25,6 +24,7 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.address import terminate as terminate_addr
 from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
+from mora.graphapi.versions.latest.types import AddressCreateType
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
 
@@ -155,7 +155,9 @@ addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
 addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
 addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
 addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
-addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")  # regex: ^\d{13}$
+addr_type_orgunit_ean = UUID(
+    "e34d4426-9845-4c72-b31e-709be85d6fa2"
+)  # FYI: regex: ^\d{13}$
 addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
 addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
 
@@ -193,24 +195,9 @@ async def test_create_mutator(data):
 
     # Execute the mutation query
     with patch(
-        "mora.graphapi.versions.latest.address.AddressRequestHandler.construct"
-    ) as mock_construct, patch(
-        "mora.graphapi.versions.latest.models.lora.Scope.get"
-    ), patch(
-        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
-    ) as mock_get_lora_validity, patch(
-        "mora.graphapi.versions.latest.models.get_configured_organisation"
-    ) as mock_get_configured_organisation:
-        new_uuid = uuid4()
-        mock_construct.return_value = AsyncMock(submit=AsyncMock(return_value=new_uuid))
-
-        mock_get_lora_validity.return_value = {
-            mapping.FROM: test_data_from,
-            mapping.TO: None,
-        }
-        mock_get_configured_organisation.return_value = {
-            mapping.UUID: "456362c4-0ee4-4e5e-a72c-751239745e62"
-        }
+        "mora.graphapi.versions.latest.mutators.create_addr"
+    ) as mock_create_addr:
+        mock_create_addr.return_value = AddressCreateType(uuid=uuid4())
 
         mutate_query = """
             mutation($input: AddressCreateInput!) {
@@ -224,10 +211,14 @@ async def test_create_mutator(data):
         )
         assert mutation_response.errors is None
 
-        mutation_response_uuid = mutation_response.data.get("address_create", {}).get(
-            "uuid", None
+        mutation_response_addr_create = mutation_response.data.get(
+            "address_create", None
         )
-        assert str(new_uuid) == mutation_response_uuid
+        assert mutation_response_addr_create is not None
+        assert mutation_response_addr_create[mapping.UUID] is not None
+        assert mutation_response_addr_create[mapping.UUID] == str(
+            mock_create_addr.return_value.uuid
+        )
 
 
 @pytest.mark.parametrize(
@@ -266,7 +257,7 @@ async def test_create_mutator(data):
 )
 async def test_create_mutator_fails(given_mutator_args):
     # Create payload directly, instead of newing the model,
-    # Oterwise the model will come with validation errors on instantiations.
+    # Oterwise the model will come with validation exceptions on instantiations.
     payload = {
         "from": given_mutator_args["from_date"].isoformat(),
         "to": given_mutator_args["to_date"].isoformat()
@@ -280,24 +271,9 @@ async def test_create_mutator_fails(given_mutator_args):
     }
 
     with patch(
-        "mora.graphapi.versions.latest.address.AddressRequestHandler.construct"
-    ) as mock_construct, patch(
-        "mora.graphapi.versions.latest.models.lora.Scope.get"
-    ), patch(
-        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
-    ) as mock_get_lora_validity, patch(
-        "mora.graphapi.versions.latest.models.get_configured_organisation"
-    ) as mock_get_configured_organisation:
-        new_uuid = uuid4()
-        mock_construct.return_value = AsyncMock(submit=AsyncMock(return_value=new_uuid))
-
-        mock_get_lora_validity.return_value = {
-            mapping.FROM: given_mutator_args["from_date"],
-            mapping.TO: None,
-        }
-        mock_get_configured_organisation.return_value = {
-            mapping.UUID: "456362c4-0ee4-4e5e-a72c-751239745e62"
-        }
+        "mora.graphapi.versions.latest.mutators.create_addr"
+    ) as mock_create_addr:
+        mock_create_addr.return_value = AddressCreateType(uuid=uuid4())
 
         mutate_query = """
                     mutation($input: AddressCreateInput!) {
@@ -311,7 +287,7 @@ async def test_create_mutator_fails(given_mutator_args):
             query=mutate_query, variable_values={"input": payload}
         )
 
-        mock_construct.assert_not_called()
+        mock_create_addr.assert_not_called()
 
 
 @pytest.mark.parametrize(
