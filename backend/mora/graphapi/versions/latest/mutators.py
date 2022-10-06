@@ -15,6 +15,7 @@ from .employee import terminate as terminate_employee
 from .employee import update as employee_update
 from .engagements import create_engagement
 from .engagements import terminate_engagement
+from .engagements import update_engagement
 from .facets import create_facet
 from .inputs import AddressTerminateInput
 from .inputs import AssociationCreateInput
@@ -24,6 +25,7 @@ from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
+from .inputs import EngagementUpdateInput
 from .inputs import FacetCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
@@ -134,13 +136,20 @@ class Mutation:
         return await create_engagement(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
+        description="Updates an engagement by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def engagement_update(self, input: EngagementUpdateInput) -> EngagementType:
+        return await update_engagement(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
         description="Terminates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
     async def engagement_terminate(
-        self, unit: EngagementTerminateInput
+        self, input: EngagementTerminateInput
     ) -> EngagementTerminateType:
-        return await terminate_engagement(unit.to_pydantic())  # type: ignore
+        return await terminate_engagement(input.to_pydantic())  # type: ignore
 
     # EngagementsAssociations
     # -----------------------
