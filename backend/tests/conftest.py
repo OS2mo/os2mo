@@ -53,8 +53,16 @@ def seed_lora_client():
     lora.client = asyncio.run(lora.create_lora_client(create_app()))
 
 
-def pytest_runtest_setup(item):
+def pytest_runtest_protocol(item):
     os.environ["PYTEST_RUNNING"] = "True"
+    if item.get_closest_marker("integration_test"):
+        item.add_marker(pytest.mark.execution_timeout(1.5))
+
+        # Using 'are_fixtures_loaded' ensures that the timout is not applied
+        # when creating the first instance of the sample_structures
+        global are_fixtures_loaded
+        if are_fixtures_loaded:
+            item.add_marker(pytest.mark.setup_timeout(1.0))
 
 
 st.register_type_strategy(Validity, validity_model_strat())
