@@ -5,12 +5,10 @@ import strawberry
 from .models import Address as AddressModel
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
-from .models import EmployeeUpdate
+from .models import EmployeeUpdateResponse
 from .models import Engagement as EngagementModel
 from .models import ITUser as ITUserModel
 from .models import Manager as ManagerModel
-from .models import EmployeeUpdateResponse
-from .models import Engagement as EngagementModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 from ramodels.mo._shared import UUIDBase
