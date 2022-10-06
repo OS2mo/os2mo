@@ -58,7 +58,7 @@ Test ramodels:
   stage: test
   variables:
     HYPOTHESIS_PROFILE: ci
-  parallel: 8
+  parallel: 4
   script:
     - pytest
       --cov=ramodels
