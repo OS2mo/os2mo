@@ -62,7 +62,7 @@ class Validity(OpenValidity):
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
             key="Organization Unit must be set with either 'to' or both 'from' "
-                "and 'to'",
+            "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
                 "to": self.to_date.isoformat() if self.to_date else None,
@@ -106,7 +106,7 @@ class MoraTriggerRequest(BaseModel):
 
     uuid: UUID = Field(
         description="UUID for the entity accessed in the request. "
-                    "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
+        "Ex type=ORG_UNIT, then this UUID will be the UUID of the ORG_UNIT"
     )
 
     validity: Validity = Field(description="Type of the request, ex. 'org_unit'.")
@@ -117,7 +117,7 @@ class MoraTrigger(BaseModel):
 
     request_type: str = Field(
         description="Request type to do, ex CREATE, EDIT, TERMINATE or REFRESH. "
-                    "Ref: mora.mapping.RequestType"
+        "Ref: mora.mapping.RequestType"
     )
 
     request: MoraTriggerRequest = Field(description="The Request for the trigger.")
@@ -130,7 +130,7 @@ class MoraTrigger(BaseModel):
 
     uuid: UUID = Field(
         description="UUID of the entity being handled in the trigger. "
-                    "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
+        "Ex. type=ORG_UNIT, this this is the org-unit-uuid."
     )
 
     result: Any = Field(description="Result of the trigger", default=None)
@@ -429,7 +429,7 @@ class EmployeeUpdate(UUIDBase):
     validity: Validity | None = Field(
         None,
         description="Validity range for the employee, "
-                    "for when the employee is accessible",
+        "for when the employee is accessible",
     )
 
     # user_key
@@ -784,7 +784,7 @@ class ManagerUpdate(Manager):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
-            # "responsibility": [],
+            "responsibility": [],
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
@@ -794,13 +794,13 @@ class ManagerUpdate(Manager):
                 {"uuid": str(responsib)} for responsib in self.responsibility
             ]
 
+        # By returning k only, we receive the affected keys with values, rather than
+        # every key, including keys with values set to None.
         k = {k: v for k, v in data_dict.items() if v}
-        print("THIS IS THE DATA DICT LULULUUL", data_dict, "this is the key", k)
         return k
 
-    # Organisational Units
 
-
+# Organisational Units
 # --------------------
 class OrganisationUnitRefreshRead(BaseModel):
     """Payload model for organisation unit refresh mutation."""
