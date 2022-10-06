@@ -4,10 +4,13 @@
 from uuid import UUID
 
 from .models import AssociationCreate
+from .models import AssociationTerminate
 from .models import AssociationUpdate
 from .types import AssociationType
+from mora import lora
 from mora import mapping
 from mora.service.association import AssociationRequestHandler
+from mora.triggers import Trigger
 
 
 async def create_association(input: AssociationCreate) -> AssociationType:
@@ -35,3 +38,34 @@ async def update_association(input: AssociationUpdate) -> AssociationType:
     uuid = await request.submit()
 
     return AssociationType(uuid=UUID(uuid))
+
+
+async def terminate_association(
+    input: AssociationTerminate,
+) -> AssociationType:
+    """Helper function for terminating associations."""
+    trigger = input.get_association_trigger()
+    trigger_dict = trigger.to_trigger_dict()
+
+    # ON_BEFORE
+    if not input.triggerless:
+        _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationfunktion.update(
+        input.get_lora_payload(), str(input.uuid)
+    )
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+
+    if not input.triggerless:
+        _ = await Trigger.run(trigger_dict)
+
+    return AssociationType(uuid=UUID(lora_result))
