@@ -292,7 +292,7 @@ class AddressCreate(Validity, AddressRelation):
 
     async def to_handler_dict(self) -> dict:
         legacy_dict = {
-            mapping.TYPE: mapping.ADDRESS,
+            mapping.TYPE: self.type,
             mapping.VALUE: self.value,
             mapping.ADDRESS_TYPE: {mapping.UUID: str(self.address_type)},
             mapping.ORG: await get_configured_organisation(),

@@ -485,6 +485,102 @@ async def test_create_integration(graphapi_post, given_mutator_args):
         assert new_addr["engagement_uuid"] == rel_uuid_str
 
 
+@pytest.mark.parametrize(
+    "given_mutator_args",
+    [
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "type": mapping.PERSON,
+            "relation_uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+        },
+        {
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "type": mapping.ENGAGEMENT,
+            "relation_uuid": engagement_type_employee,
+        },
+        {
+            "value": addr_uuid_nordre_ring,
+            "address_type": addr_type_orgunit_address,
+            "visibility": visibility_uuid_public,
+            "type": mapping.ORG_UNIT,
+            "relation_uuid": UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+        },
+    ],
+)
+async def test_create_to_handle_dict(given_mutator_args):
+    """Test to verify the AddressCreate.to_handler_dict method.
+
+    This test was once done in test_create_mutator(), but to prevent that test from
+    interacting with old logic, this test was created.
+    When the old logic is not used by the mutator handler method, this entire test
+    can be removed, since "to_handler_dict()" will/should be removed as well.
+    """
+
+    # Init
+    test_data_from_date = datetime.datetime.combine(
+        datetime.datetime.now().date(), datetime.datetime.min.time()
+    ).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
+
+    test_data = AddressCreate(
+        from_date=test_data_from_date,
+        value=given_mutator_args["value"],
+        type=given_mutator_args["type"],
+        relation_uuid=given_mutator_args["relation_uuid"],
+        address_type=given_mutator_args["address_type"],
+        visibility=given_mutator_args.get("visibility", None),
+    )
+
+    # Mock, invoke and assert
+    with patch("mora.graphapi.versions.latest.models.lora.Scope.get"), patch(
+        "mora.graphapi.versions.latest.models.AddressCreate._get_lora_validity"
+    ) as mock_get_lora_validity, patch(
+        "mora.graphapi.versions.latest.models.get_configured_organisation"
+    ) as mock_get_configured_organisation:
+        # Mocking - to handler dicts looks for validity of the relation in LoRa
+        #           + fetches the globally configured organisation from LoRa as well.
+        mock_get_lora_validity.return_value = {
+            mapping.FROM: test_data_from_date,
+            mapping.TO: None,
+        }
+        mock_get_configured_organisation.return_value = {
+            mapping.UUID: "456362c4-0ee4-4e5e-a72c-751239745e62"
+        }
+
+        # Invoke
+        handler_dict = await test_data.to_handler_dict()
+
+        # Assert
+        # assert handler_dict[mapping.ORG] is not None
+        assert (
+            handler_dict[mapping.ORG] == mock_get_configured_organisation.return_value
+        )
+        assert handler_dict[mapping.VALUE] == given_mutator_args[mapping.VALUE]
+        assert handler_dict[mapping.TYPE] == given_mutator_args[mapping.TYPE]
+
+        assert handler_dict[mapping.ADDRESS_TYPE] == {
+            mapping.UUID: str(given_mutator_args[mapping.ADDRESS_TYPE])
+        }
+
+        assert handler_dict[mapping.VALIDITY] == {
+            "from": test_data_from_date.date().isoformat()
+        }
+
+        if test_data.visibility:
+            assert handler_dict[mapping.VISIBILITY] == {
+                mapping.UUID: str(test_data.visibility)
+            }
+
+        relation_object = {mapping.UUID: str(given_mutator_args["relation_uuid"])}
+        assert (
+            handler_dict[given_mutator_args[mapping.TYPE]][mapping.UUID]
+            == relation_object[mapping.UUID]
+        )
+
+
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_class_reset")
 @pytest.mark.parametrize(
