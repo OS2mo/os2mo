@@ -775,7 +775,7 @@ class ManagerUpdate(Manager):
                 return None
             return {"uuid": str(uuid)}
 
-        data_dict = {
+        data_dict: dict = {
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -784,7 +784,7 @@ class ManagerUpdate(Manager):
             },
             "user_key": self.user_key,
             "person": gen_uuid(self.person),
-            "responsibility": [],
+            "responsibility": self.responsibility,
             "org_unit": gen_uuid(self.org_unit),
             "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
@@ -796,8 +796,7 @@ class ManagerUpdate(Manager):
 
         # By returning k only, we receive the affected keys with values, rather than
         # every key, including keys with values set to None.
-        k = {k: v for k, v in data_dict.items() if v}
-        return k
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Organisational Units

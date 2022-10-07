@@ -285,7 +285,7 @@ async def test_create_manager_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "test_data",
     [
@@ -306,24 +306,22 @@ async def test_create_manager_integration_test(
             "responsibility": None,
             "org_unit": None,
             "manager_type": None,
-            # This is a known issue: if manager_level is updated, the "responsibility"
-            # field may NOT be set to None. Responsibilities will not update, and
-            # somehow an empty array is returned from the GraphQL queries. However, if
-            # manager_level is set to "None", whether responsibilities are set to be
-            # updated or not, responsibilities will return an array with correct set of
-            # relevant uuids. Any combination of updates will return correct set of
-            # uuids as long as "responsibility" is not set to None, when "manager_level"
-            # is set to be updated.
+            # This is a known issue: if "manager_level" is set to None, the
+            # "responsibility" field may NOT be updated. If manager_level is set to be
+            # updated, the "responsibility" field may NOT be set to None. In other
+            # words: if "manager_level" is to be updated, then "responsibility" is also
+            # expected to be updated, and if "manager_level" is not set to be updated,
+            # then neither may "responsibility" be updated.
             "manager_level": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
             "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
-            "user_key": "-",
-            "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "user_key": None,
+            "person": None,
             "responsibility": ["93ea44f9-127c-4465-a34c-77d149e3e928"],
             "org_unit": None,
-            "manager_level": None,
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
             "manager_type": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
@@ -331,10 +329,7 @@ async def test_create_manager_integration_test(
             "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
             "user_key": "-",
             "person": None,
-            "responsibility": [
-                "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                "452e1dd0-658b-477a-8dd8-efba105c06d6",
-            ],
+            "responsibility": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
             "manager_level": None,
             "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
@@ -360,6 +355,30 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     """Test that managers can be updated in LoRa via GraphQL."""
 
     uuid = test_data["uuid"]
+
+    query = """
+        query MyQuery($uuid: UUID!) {
+            managers(uuids: [$uuid]) {
+                objects {
+                    uuid
+                    user_key
+                    person: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+    assert response.errors is None
+
+    pre_update_manager = one(one(response.data["managers"])["objects"])
 
     mutation = """
         mutation UpdateManager($input: ManagerUpdateInput!) {
@@ -395,16 +414,15 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
         }
     """
 
-    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
-    assert response.errors is None
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
 
-    manager_objects_from_query = one(one(response.data["managers"])["objects"])
+    manager_objects_post_update = one(one(verify_response.data["managers"])["objects"])
 
     expected_updated_manager = {
-        k: v if v else manager_objects_from_query[k] for k, v in test_data.items()
+        k: v or pre_update_manager[k] for k, v in test_data.items()
     }
-
-    assert manager_objects_from_query == expected_updated_manager
+    assert manager_objects_post_update == expected_updated_manager
 
 
 @given(test_data=...)
