@@ -236,6 +236,10 @@ class AddressCreate(RAValidity):
         }
 
 
+class AddressCreateResponse(UUIDBase):
+    """Response from GraphQL when creating addresses."""
+
+
 class AddressTerminate(ValidityTerminate, Triggerless):
     """Model representing an address-termination."""
 

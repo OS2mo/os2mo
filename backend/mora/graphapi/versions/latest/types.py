@@ -3,6 +3,7 @@
 import strawberry
 
 from .models import Address as AddressModel
+from .models import AddressCreateResponse
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import Engagement as EngagementModel
@@ -33,11 +34,19 @@ class AddressType:
 
 
 @strawberry.experimental.pydantic.type(
+    model=AddressCreateResponse,
+    all_fields=True,
+)
+class AddressCreateType:
+    """GraphQL response type for address creation."""
+
+
+@strawberry.experimental.pydantic.type(
     model=AddressModel,
     all_fields=True,
 )
 class AddressTerminateType:
-    """GraphQL type for/of an address (detail)."""
+    """GraphQL response type for address termination."""
 
 
 # Associations
