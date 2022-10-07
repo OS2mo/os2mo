@@ -337,7 +337,7 @@ Integration-test:
       alias: keycloak-db
     - name: $KEYCLOAK_IMAGE_SHA
       alias: keycloak
-  parallel: 20
+  parallel: 12
   script:
     - pytest backend/tests
       -m "integration_test"
