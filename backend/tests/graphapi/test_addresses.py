@@ -5,10 +5,12 @@ import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import infer
 from hypothesis import strategies as st
 from more_itertools import one
 from pytest import MonkeyPatch
@@ -20,8 +22,10 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
 from mora.graphapi.versions.latest.models import AddressUpdate
+from mora.graphapi.versions.latest.types import AddressCreateType
 from mora.graphapi.versions.latest.types import AddressType
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
@@ -97,6 +101,59 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [addr.get("uuid") for addr in response.data["addresses"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
+
+
+# @given(test_data=...)
+@given(data=st.data())
+@patch("mora.graphapi.versions.latest.mutators.address_create", new_callable=AsyncMock)
+async def test_create_mutator(address_create: AsyncMock, data):
+    # Mocking
+    address_create.return_value = AddressCreateType(uuid=uuid4())
+
+    # Prepare test_data
+    dt_options = {
+        "min_value": datetime.datetime(1930, 1, 1, 1),
+        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
+    }
+
+    test_datavalidity_tuple = data.draw(
+        st.tuples(
+            st.datetimes(**dt_options),
+            st.datetimes(**dt_options) | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_from, test_data_to = test_datavalidity_tuple
+
+    test_data = data.draw(
+        st.builds(
+            AddressCreate,
+            from_date=st.just(test_data_from),
+            to_date=st.just(test_data_to),
+            # OBS: if we don't use infer, org_unit relations objects will always be set to None
+            org_unit=infer,
+            person=infer,
+            engagement=infer,
+        )
+    )
+    payload = jsonable_encoder(test_data)
+
+    # Invoke the mutator
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    assert response.data == {
+        "address_create": {"uuid": str(address_create.return_value.uuid)}
+    }
+
+    address_create.assert_called_with(test_data)
 
 
 @given(
