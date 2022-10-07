@@ -16,6 +16,7 @@ from mora import common
 from mora import exceptions
 from mora import mapping
 from mora.util import CPR
+from mora.service.org import get_configured_organisation
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
@@ -202,6 +203,43 @@ class AddressTrigger(OrgFuncTrigger):
 
 class Address(UUIDBase):
     """Address (detail) model."""
+
+
+class AddressCreate(RAValidity):
+    """Model representing an address creation.
+
+    OBS: RAValidity is the validity where "from_date" is required.
+    """
+
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
+    visibility: UUID | None = Field(description="Visibility for the address.")
+
+    # OBS: Only one of the 3 UUIDs are allowed to be set for the old logic to work
+    org_unit: UUID | None = Field(description="UUID for the related org unit.")
+    person: UUID | None = Field(description="UUID for the related person.")
+    engagement: UUID | None = Field(description="UUID for the related engagement.")
+
+    async def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+
+            return {"uuid": str(uuid)}
+
+        return {
+            mapping.VALUE: self.value,
+            mapping.ADDRESS_TYPE: gen_uuid(self.address_type),
+            mapping.VISIBILITY: gen_uuid(self.visibility),
+            mapping.VALIDITY: {
+                mapping.FROM: self.from_date.date().isoformat(),
+                mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
+            },
+            mapping.ORG_UNIT: gen_uuid(self.org_unit),
+            mapping.PERSON: gen_uuid(self.person),
+            mapping.ENGAGEMENT: gen_uuid(self.engagement),
+            mapping.ORG: await get_configured_organisation(),
+        }
 
 
 class AddressTerminate(ValidityTerminate, Triggerless):
