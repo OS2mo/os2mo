@@ -35,12 +35,14 @@ from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
+from .inputs import ManagerUpdateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .manager import create_manager
+from .manager import update_manager
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
@@ -122,7 +124,6 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
-
         return await create_class(input.to_pydantic())  # type: ignore
 
     # Employees
@@ -228,6 +229,13 @@ class Mutation:
     )
     async def manager_create(self, input: ManagerCreateInput) -> ManagerType:
         return await create_manager(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Updates a manager for a specific organisation by UUID.",
+        permission_classes=[admin_permission_class],
+    )
+    async def manager_update(self, input: ManagerUpdateInput) -> ManagerType:
+        return await update_manager(input.to_pydantic())  # type: ignore
 
     # Root Organisation
     # -----------------

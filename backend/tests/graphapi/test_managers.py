@@ -20,6 +20,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ManagerCreate
+from mora.graphapi.versions.latest.models import ManagerUpdate
 from mora.graphapi.versions.latest.types import ManagerType
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
@@ -152,7 +153,7 @@ async def test_manager_employees_filters(
 
 @given(test_data=...)
 @patch("mora.graphapi.versions.latest.mutators.create_manager", new_callable=AsyncMock)
-async def test_create_manager_mutation(
+async def test_create_manager_mutation_unit_test(
     create_manager: AsyncMock, test_data: ManagerCreate
 ) -> None:
     """Tests that the mutator function for creating a manager passes through, with the
@@ -281,3 +282,170 @@ async def test_create_manager_integration_test(
         )
     else:
         assert test_data.validity.to_date is None
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "test_data",
+    [
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "user_key": None,
+            "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "responsibility": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "manager_level": None,
+            "manager_type": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "user_key": None,
+            "person": None,
+            "responsibility": None,
+            "org_unit": None,
+            "manager_type": None,
+            # This is a known issue: if "manager_level" is set to None, the
+            # "responsibility" field may NOT be updated. If manager_level is set to be
+            # updated, the "responsibility" field may NOT be set to None. In other
+            # words: if "manager_level" is to be updated, then "responsibility" is also
+            # expected to be updated, and if "manager_level" is not set to be updated,
+            # then neither may "responsibility" be updated.
+            "manager_level": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "user_key": None,
+            "person": None,
+            "responsibility": ["93ea44f9-127c-4465-a34c-77d149e3e928"],
+            "org_unit": None,
+            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "manager_type": None,
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "user_key": "-",
+            "person": None,
+            "responsibility": None,
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "manager_level": None,
+            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+        {
+            "uuid": "05609702-977f-4869-9fb4-50ad74c6999a",
+            "user_key": "-",
+            "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            "responsibility": [
+                "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                "452e1dd0-658b-477a-8dd8-efba105c06d6",
+                "93ea44f9-127c-4465-a34c-77d149e3e928",
+            ],
+            "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+            "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+        },
+    ],
+)
+async def test_update_manager_integration_test(test_data, graphapi_post) -> None:
+    """Test that managers can be updated in LoRa via GraphQL."""
+
+    uuid = test_data["uuid"]
+
+    query = """
+        query MyQuery($uuid: UUID!) {
+            managers(uuids: [$uuid]) {
+                objects {
+                    uuid
+                    user_key
+                    person: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
+    assert response.errors is None
+
+    pre_update_manager = one(one(response.data["managers"])["objects"])
+
+    mutation = """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+
+    # Writing verify query to retrieve objects containing data on the desired uuids.
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            managers(uuids: [$uuid]){
+                objects {
+                    uuid
+                    user_key
+                    person: employee_uuid
+                    responsibility: responsibility_uuids
+                    org_unit: org_unit_uuid
+                    manager_type: manager_type_uuid
+                    manager_level: manager_level_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+
+    verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert verify_response.errors is None
+
+    manager_objects_post_update = one(one(verify_response.data["managers"])["objects"])
+
+    expected_updated_manager = {
+        k: v or pre_update_manager[k] for k, v in test_data.items()
+    }
+    assert manager_objects_post_update == expected_updated_manager
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.update_manager", new_callable=AsyncMock)
+async def test_update_manager_mutation_unit_test(
+    update_manager: AsyncMock, test_data: ManagerUpdate
+) -> None:
+    """Tests that the mutator function for updating a manager passes through, with the
+    defined pydantic model."""
+
+    mutation = """
+        mutation UpdateManager($input: ManagerUpdateInput!) {
+            manager_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    update_manager.return_value = ManagerType(uuid=test_data.uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"manager_update": {"uuid": str(test_data.uuid)}}
+
+    update_manager.assert_called_with(test_data)
