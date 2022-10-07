@@ -181,14 +181,18 @@ async def test_create_mutator(data):
     )
     test_data_from, test_data_to = validity_tuple
 
+    # test_data_type = data.draw(
+    #     st.sampled_from([mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT])
+    # )
+
     test_data = data.draw(
         st.builds(
             AddressCreate,
             from_date=st.just(test_data_from),
             to_date=st.just(test_data_to),
-            type=st.sampled_from(
-                [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
-            ),
+            # type=st.sampled_from(
+            #     [mapping.ORG_UNIT, mapping.PERSON, mapping.ENGAGEMENT]
+            # ),
         )
     )
     payload = jsonable_encoder(test_data.dict(by_alias=True))

@@ -280,7 +280,40 @@ class AddressRelation(RABase):
         return value
 
 
-class AddressCreate(Validity, AddressRelation):
+class AddressCreate(Validity):
+    """Model representing an address creation."""
+
+    value: str = Field(description="The actual address value.")
+    address_type: UUID = Field(description="Type of the address.")
+    visibility: UUID | None = Field(description="Visibility for the address.")
+
+    org_unit: UUID | None
+    person: UUID | None
+    engagement: UUID | None
+
+    async def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+
+            return {"uuid": str(uuid)}
+
+        return {
+            mapping.VALUE: self.value,
+            mapping.ADDRESS_TYPE: gen_uuid(self.visibility),
+            mapping.VISIBILITY: gen_uuid(self.visibility),
+            mapping.ORG: await get_configured_organisation(),
+            mapping.VALIDITY: {
+                mapping.FROM: self.from_date.date().isoformat(),
+                mapping.TO: self.to_date.date().isoformat(),
+            },
+            mapping.ORG_UNIT: gen_uuid(self.org_unit),
+            mapping.PERSON: gen_uuid(self.person),
+            mapping.ENGAGEMENT: gen_uuid(self.engagement),
+        }
+
+
+class AddressCreatePrev(Validity, AddressRelation):
     """Model representing an address creation."""
 
     value: str = Field(description="The actual address value.")
