@@ -706,9 +706,9 @@ class ManagerCreate(Manager):
 
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
 
-    manager_type: UUID = Field(description="UUID of the managers type..")
-
     manager_level: UUID = Field(description="UUID of the managers level.")
+
+    manager_type: UUID = Field(description="UUID of the managers type..")
 
     validity: RAValidity = Field(description="Validity range for the manager.")
 
@@ -728,8 +728,8 @@ class ManagerCreate(Manager):
             "person": gen_uuid(self.person),
             "responsibility": responsibilities,
             "org_unit": gen_uuid(self.org_unit),
-            "manager_type": gen_uuid(self.manager_type),
             "manager_level": gen_uuid(self.manager_level),
+            "manager_type": gen_uuid(self.manager_type),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -737,6 +737,66 @@ class ManagerCreate(Manager):
                 else None,
             },
         }
+
+
+class ManagerUpdate(Manager):
+    """Model for updating a manager."""
+
+    uuid: UUID = Field(description="UUID of the manager to be updated.")
+
+    validity: RAValidity = Field(
+        description="Validity range for the manager to be updated."
+    )
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    person: UUID | None = Field(
+        description="UUID of the manager as person to be updated."
+    )
+
+    responsibility: list[UUID] | None = Field(
+        description="UUID of the managers responsibilities to be updated."
+    )
+
+    org_unit: UUID | None = Field(
+        description="UUID of the managers organisation unit to be updated."
+    )
+    manager_type: UUID | None = Field(
+        description="UUID of the managers type to be updated."
+    )
+
+    manager_level: UUID | None = Field(
+        description="UUID of the managers level to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict: dict = {
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+            "user_key": self.user_key,
+            "person": gen_uuid(self.person),
+            "responsibility": self.responsibility,
+            "org_unit": gen_uuid(self.org_unit),
+            "manager_type": gen_uuid(self.manager_type),
+            "manager_level": gen_uuid(self.manager_level),
+        }
+        if self.responsibility:
+            data_dict["responsibility"] = [
+                {"uuid": str(responsib)} for responsib in self.responsibility
+            ]
+
+        # By returning k only, we receive the affected keys with values, rather than
+        # every key, including keys with values set to None.
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Organisational Units
