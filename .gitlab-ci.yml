@@ -349,6 +349,7 @@ Integration-test:
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
       --store-duration
+    - slowest-tests
   artifacts:
     when: always
     paths:
