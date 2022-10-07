@@ -348,7 +348,7 @@ Integration-test:
       --cov=oio_rest
       --group $CI_NODE_INDEX
       --splits $CI_NODE_TOTAL
-      --store-duration
+      --store-durations
     - slowest-tests
   artifacts:
     when: always
