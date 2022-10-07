@@ -3,6 +3,7 @@
 import datetime
 from uuid import UUID
 
+from ....mapping import RequestType
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -17,7 +18,13 @@ from mora.triggers import Trigger
 
 
 async def create(address_create: AddressCreate) -> AddressCreateType:
-    return AddressCreateType()
+    request_handler_dict = await address_create.to_handler_dict()
+    request_handler = await AddressRequestHandler.construct(
+        request_handler_dict, RequestType.CREATE
+    )
+    new_uuid = await request_handler.submit()
+
+    return AddressCreateType(uuid=new_uuid)
 
 
 async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
