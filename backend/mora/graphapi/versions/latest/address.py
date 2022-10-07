@@ -3,8 +3,10 @@
 import datetime
 from uuid import UUID
 
+from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
+from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
 from mora import exceptions
@@ -12,6 +14,10 @@ from mora import lora
 from mora import mapping
 from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
+
+
+async def create(address_create: AddressCreate) -> AddressCreateType:
+    return AddressCreateType()
 
 
 async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
