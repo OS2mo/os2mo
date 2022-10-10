@@ -339,6 +339,36 @@ class AssociationUpdate(Association):
         return {k: v for k, v in data_dict.items() if v}
 
 
+class AssociationTerminate(ValidityTerminate, Triggerless):
+    """Model representing an association termination(or rather end-date update)."""
+
+    uuid: UUID = Field(description="UUID for the association we want to terminate.")
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_association_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.ASSOCIATION,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.ASSOCIATION,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
+
+
 # Classes
 # -------
 class ClassCreate(MOBase):

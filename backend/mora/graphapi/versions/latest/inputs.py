@@ -5,6 +5,7 @@ import strawberry
 from .models import AddressTerminate
 from .models import AddressUpdate
 from .models import AssociationCreate
+from .models import AssociationTerminate
 from .models import AssociationUpdate
 from .models import ClassCreate
 from .models import EmployeeCreate
@@ -88,6 +89,14 @@ class AssociationCreateInput:
 )
 class AssociationUpdateInput:
     """input model for updating associations."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=AssociationTerminate,
+    all_fields=True,
+)
+class AssociationTerminateInput:
+    """input model for terminating associations."""
 
 
 # Classes

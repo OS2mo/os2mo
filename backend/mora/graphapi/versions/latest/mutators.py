@@ -10,6 +10,7 @@ from strawberry.types import Info
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
+from .association import terminate_association
 from .association import update_association
 from .classes import create_class
 from .employee import create as employee_create
@@ -22,6 +23,7 @@ from .facets import create_facet
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
+from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
 from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
@@ -116,6 +118,15 @@ class Mutation:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await update_association(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Terminates an association by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def association_terminate(
+        self, input: AssociationTerminateInput
+    ) -> AssociationType:
+        return await terminate_association(input.to_pydantic())  # type: ignore
 
     # Classes
     # -------
