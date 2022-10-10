@@ -32,7 +32,7 @@ class AssociationRead(AssociationBase):
     org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the association."
     )
-    employee_uuid: UUID = Field(
+    employee_uuid: UUID | None = Field(
         description="UUID of the employee related to the association."
     )
     association_type_uuid: UUID | None = Field(
