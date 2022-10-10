@@ -4,6 +4,7 @@ import asyncio
 import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 from zoneinfo import ZoneInfo
 
@@ -31,6 +32,32 @@ from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
 
 
+# Helpers
+
+# Address UUID: Nordre Ringgade 1, 8000 Aarhus C
+addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+
+addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
+addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
+addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
+addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
+addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
+
+# FYI: regex: ^\d{13}$
+addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
+
+addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
+addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
+
+engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
+
+visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
+
+now_min_cph = datetime.datetime.combine(
+    datetime.datetime.now().date(), datetime.datetime.min.time()
+).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
+
+
 def async_lora_return(*args):
     """Returns last positional argument using asyncio.Future.
 
@@ -39,6 +66,9 @@ def async_lora_return(*args):
     f = asyncio.Future()
     f.set_result(args[-1])
     return f
+
+
+# TESTS
 
 
 @given(test_data=graph_data_strat(AddressRead))
@@ -103,7 +133,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
-# @given(test_data=...)
 @given(data=st.data())
 @patch("mora.graphapi.versions.latest.mutators.address_create", new_callable=AsyncMock)
 async def test_create_mutator(address_create: AsyncMock, data):
@@ -154,6 +183,54 @@ async def test_create_mutator(address_create: AsyncMock, data):
     }
 
     address_create.assert_called_with(test_data)
+
+
+@pytest.mark.parametrize(
+    "given_mutator_args",
+    [
+        # Desc: Invalid dates
+        # {
+        #     "from_date": now_min_cph,
+        #     "to_date": now_min_cph - datetime.timedelta(days=1),
+        #     "value": "YeeHaaamagenta.dk",
+        #     "address_type": addr_type_user_email,
+        #     "visibility": visibility_uuid_public,
+        #     "person": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
+        # },
+        # Desc: No relation supplied
+        {
+            "from_date": now_min_cph,
+            "to_date": None,
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+        },
+    ],
+)
+@patch("mora.graphapi.versions.latest.mutators.address_create", new_callable=AsyncMock)
+async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_args):
+    payload = {
+        "from": given_mutator_args["from_date"].isoformat(),
+        "to": given_mutator_args["to_date"].isoformat()
+        if given_mutator_args.get("to_date", None)
+        else None,
+        "value": given_mutator_args["value"],
+        "address_type": str(given_mutator_args["address_type"]),
+        "visibility": str(given_mutator_args["visibility"]),
+        # "type": given_mutator_args["relation"]["type"],
+        # "relation_uuid": str(given_mutator_args["relation"]["uuid"]),
+    }
+
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    _ = await execute_graphql(query=mutate_query, variable_values={"input": payload})
+
+    address_create.assert_not_called()
 
 
 @given(
