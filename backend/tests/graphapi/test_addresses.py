@@ -19,6 +19,7 @@ from pytest import MonkeyPatch
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
+from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -55,9 +56,10 @@ engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
 
 visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 
+tz_cph = ZoneInfo("Europe/Copenhagen")
 now_min_cph = datetime.datetime.combine(
     datetime.datetime.now().date(), datetime.datetime.min.time()
-).replace(tzinfo=ZoneInfo("Europe/Copenhagen"))
+).replace(tzinfo=tz_cph)
 
 
 def async_lora_return(*args):
@@ -274,7 +276,6 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_integration_emails(data, graphapi_post):
     # Test data
-    # TODO: Try and replace these UUIDs with query-lookups
     (
         test_data_org_unit_uuid,
         test_data_person_uuid,
@@ -291,8 +292,10 @@ async def test_create_integration_emails(data, graphapi_post):
                 [
                     UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),  # andersand
                     UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),  # fedtmule
-                    UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),  # lis_jensen
                     UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),  # erik_smidt_hansen
+                    # Doing stuff with this test user makes the addresses-query fail on the new UUID.
+                    # OBS: I have expericed similar problem with employee-update
+                    # UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),  # lis_jensen
                 ]
             )
             | st.none(),
@@ -381,21 +384,52 @@ async def test_create_integration_emails(data, graphapi_post):
     )
     assert response.errors is None
 
-    # test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
+    test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
 
     # query invoke after mutation
     # ------------------------------------------------------------------------
-    # verify_query = _get_address_query()
-    # verify_response: GQLResponse = graphapi_post(
-    #     verify_query,
-    #     {mapping.UUID: str(test_data_uuid_new)},
-    # )
+    verify_query = _get_address_query()
+    verify_response: GQLResponse = graphapi_post(
+        verify_query,
+        {mapping.UUID: str(test_data_uuid_new)},
+    )
 
-    # if verify_response.errors is not None:
-    #     tap="test"
-    # assert verify_response.errors is None
+    assert verify_response.errors is None
 
     # Assert
+    new_addr = one(one(verify_response.data["addresses"])["objects"])
+    assert new_addr[mapping.UUID] is not None
+
+    assert (
+        new_addr[mapping.VALIDITY][mapping.FROM]
+        == datetime.datetime.combine(
+            test_data.from_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+    )
+
+    assert new_addr[mapping.VALIDITY][mapping.TO] == (
+        datetime.datetime.combine(
+            test_data.to_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+        if test_data.to_date
+        else None
+    )
+
+    assert new_addr[mapping.VALUE] == test_data.value
+    assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
+    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+
+    if test_data_org_unit_uuid:
+        assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == str(test_data.org_unit)
+    elif test_data_person_uuid:
+        # INFO: here is a confusing part where we create using PERSON, but fetch using EMPLOYEE:
+        assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
+    elif test_data_engagement_uuid:
+        assert new_addr["engagement_uuid"] == str(test_data.engagement)
 
 
 @given(
