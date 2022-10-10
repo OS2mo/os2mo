@@ -137,7 +137,7 @@ class TestManagerInheritance:
 
 
 @pytest.mark.slow
-@pytest.mark.integration_test
+@pytest.mark.slow_setup
 @pytest.mark.integration_test
 def test_regression_51523_1(graphapi_post_integration):
     query = """
@@ -155,7 +155,7 @@ def test_regression_51523_1(graphapi_post_integration):
 
 
 @pytest.mark.slow
-@pytest.mark.integration_test
+@pytest.mark.slow_setup
 @pytest.mark.integration_test
 def test_regression_51523_2(graphapi_post_integration):
     query = """
@@ -175,6 +175,7 @@ def test_regression_51523_2(graphapi_post_integration):
 
 
 @pytest.mark.slow
+@pytest.mark.slow_setup
 @pytest.mark.integration_test
 @pytest.mark.parametrize("field", UUID_SEARCHABLE_FIELDS)
 def test_regression_51523_generalised(graphapi_post_integration, field):

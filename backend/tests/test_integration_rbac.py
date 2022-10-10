@@ -639,6 +639,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_association_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -653,6 +654,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_manager_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -667,6 +669,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_org_unit_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
