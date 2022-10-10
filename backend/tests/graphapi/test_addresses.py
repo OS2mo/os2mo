@@ -30,6 +30,8 @@ from mora.graphapi.versions.latest.types import AddressCreateType
 from mora.graphapi.versions.latest.types import AddressType
 from ramodels.mo.details import AddressRead
 from tests.conftest import GQLResponse
+from tests.graphapi.utils import fetch_employee_validity
+from tests.graphapi.utils import fetch_org_unit_validity
 
 
 # Helpers
@@ -66,6 +68,44 @@ def async_lora_return(*args):
     f = asyncio.Future()
     f.set_result(args[-1])
     return f
+
+
+def _get_address_query():
+    return """
+        query VerifyQuery($uuid: UUID!) {
+          addresses(uuids: [$uuid], from_date: null, to_date: null) {
+            uuid
+            objects {
+              uuid
+
+              validity {
+                from
+                to
+              }
+
+              type
+              value
+              address_type {
+                uuid
+              }
+
+              visibility {
+                uuid
+              }
+
+              employee {
+                uuid
+              }
+
+              org_unit {
+                uuid
+              }
+
+              engagement_uuid
+            }
+          }
+        }
+    """
 
 
 # TESTS
@@ -227,6 +267,135 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
     _ = await execute_graphql(query=mutate_query, variable_values={"input": payload})
 
     address_create.assert_not_called()
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_integration_emails(data, graphapi_post):
+    # Test data
+    # TODO: Try and replace these UUIDs with query-lookups
+    (
+        test_data_org_unit_uuid,
+        test_data_person_uuid,
+        test_data_engagement_uuid,
+    ) = data.draw(
+        st.tuples(
+            st.sampled_from(
+                [
+                    UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),  # L1
+                ]
+            )
+            | st.none(),
+            st.sampled_from(
+                [
+                    UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),  # andersand
+                    UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),  # fedtmule
+                    UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),  # lis_jensen
+                    UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),  # erik_smidt_hansen
+                ]
+            )
+            | st.none(),
+            st.sampled_from(
+                [
+                    UUID(
+                        "d000591f-8705-4324-897a-075e3623f37b"
+                    ),  # engagement_andersand
+                    UUID(
+                        "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"
+                    ),  # engagement_eriksmidthansen
+                    UUID(
+                        "301a906b-ef51-4d5c-9c77-386fb8410459"
+                    ),  # engagement_eriksmidthansen_sekundaer
+                ]
+            )
+            | st.none(),
+        )
+        .filter(
+            lambda rels: False if not rels[0] and not rels[1] and not rels[2] else True
+        )
+        .filter(lambda rels: False if rels[0] and (rels[1] or rels[2]) else True)
+        .filter(lambda rels: False if rels[1] and (rels[0] or rels[2]) else True)
+        .filter(lambda rels: False if rels[2] and (rels[0] or rels[1]) else True)
+    )
+
+    address_type = None
+    dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
+    if test_data_org_unit_uuid:
+        address_type = addr_type_orgunit_email
+
+        org_unit_validity_from, _ = fetch_org_unit_validity(
+            graphapi_post, test_data_org_unit_uuid
+        )
+        dt_options_min_from = org_unit_validity_from
+    elif test_data_person_uuid:
+        address_type = addr_type_user_email
+
+        person_validity_from, _ = fetch_employee_validity(
+            graphapi_post, test_data_person_uuid
+        )
+        dt_options_min_from = person_validity_from
+    elif test_data_engagement_uuid:
+        # TODO: Figure out a proper UUID here - I currently cant find
+        # an engagement_addr_type in the sample_structure.
+        address_type = addr_type_user_email
+
+    dt_options = {
+        "min_value": dt_options_min_from,
+        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
+    }
+    test_datavalidity_tuple = data.draw(
+        st.tuples(
+            st.datetimes(**dt_options),
+            st.datetimes(**dt_options) | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_from, test_data_to = test_datavalidity_tuple
+
+    test_data = data.draw(
+        st.builds(
+            AddressCreate,
+            value=st.emails(),
+            from_date=st.just(test_data_from),
+            to_date=st.just(test_data_to),
+            address_type=st.just(address_type),
+            visibility=st.just(visibility_uuid_public),
+            org_unit=st.just(test_data_org_unit_uuid),
+            person=st.just(test_data_person_uuid),
+            engagement=st.just(test_data_engagement_uuid),
+        )
+    )
+    payload = jsonable_encoder(test_data)
+
+    # mutation invoke
+    # ------------------------------------------------------------------------
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+
+    # test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
+
+    # query invoke after mutation
+    # ------------------------------------------------------------------------
+    # verify_query = _get_address_query()
+    # verify_response: GQLResponse = graphapi_post(
+    #     verify_query,
+    #     {mapping.UUID: str(test_data_uuid_new)},
+    # )
+
+    # if verify_response.errors is not None:
+    #     tap="test"
+    # assert verify_response.errors is None
+
+    # Assert
 
 
 @given(
