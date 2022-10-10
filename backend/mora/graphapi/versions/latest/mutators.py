@@ -37,6 +37,7 @@ from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
+from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
@@ -44,6 +45,7 @@ from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .manager import create_manager
+from .manager import terminate_manager
 from .manager import update_manager
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
@@ -247,6 +249,13 @@ class Mutation:
     )
     async def manager_update(self, input: ManagerUpdateInput) -> ManagerType:
         return await update_manager(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Terminates a manager unit by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def manager_terminate(self, input: ManagerTerminateInput) -> ManagerType:
+        return await terminate_manager(input.to_pydantic())  # type: ignore
 
     # Root Organisation
     # -----------------

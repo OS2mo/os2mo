@@ -3,10 +3,13 @@
 from uuid import UUID
 
 from .models import ManagerCreate
+from .models import ManagerTerminate
 from .models import ManagerUpdate
 from .types import ManagerType
+from mora import lora
 from mora import mapping
 from mora.service.manager import ManagerRequestHandler
+from mora.triggers import Trigger
 
 
 async def create_manager(input: ManagerCreate) -> ManagerType:
@@ -35,3 +38,32 @@ async def update_manager(input: ManagerUpdate) -> ManagerType:
     uuid = await request.submit()
 
     return ManagerType(uuid=UUID(uuid))
+
+
+async def terminate_manager(input: ManagerTerminate) -> ManagerType:
+
+    trigger = input.get_manager_trigger()
+    trigger_dict = trigger.to_trigger_dict()
+
+    # ON_BEFORE
+    if not input.triggerless:
+        _ = await Trigger.run(trigger_dict)
+
+    # Do LoRa update
+    lora_conn = lora.Connector()
+    lora_result = await lora_conn.organisationfunktion.update(
+        input.get_lora_payload(), str(input.uuid)
+    )
+
+    # ON_AFTER
+    trigger_dict.update(
+        {
+            Trigger.RESULT: lora_result,
+            Trigger.EVENT_TYPE: mapping.EventType.ON_AFTER,
+        }
+    )
+
+    if not input.triggerless:
+        _ = await Trigger.run(trigger_dict)
+
+    return ManagerType(uuid=UUID(lora_result))
