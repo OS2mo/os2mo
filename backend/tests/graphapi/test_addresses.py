@@ -188,17 +188,15 @@ async def test_create_mutator(address_create: AsyncMock, data):
 @pytest.mark.parametrize(
     "given_mutator_args",
     [
-        # Desc: Invalid dates
-        # {
-        #     "from_date": now_min_cph,
-        #     "to_date": now_min_cph - datetime.timedelta(days=1),
-        #     "value": "YeeHaaamagenta.dk",
-        #     "address_type": addr_type_user_email,
-        #     "visibility": visibility_uuid_public,
-        #     "person": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")
-        # },
-        # Desc: No relation supplied
-        {
+        {  # Desc: verify fails, when dates are invalid.
+            "from_date": now_min_cph,
+            "to_date": now_min_cph - datetime.timedelta(days=1),
+            "value": "YeeHaaamagenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "person": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+        },
+        {  # Desc: verify fails when No relation was supplied
             "from_date": now_min_cph,
             "to_date": None,
             "value": "YeeHaaa@magenta.dk",
@@ -217,8 +215,6 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
         "value": given_mutator_args["value"],
         "address_type": str(given_mutator_args["address_type"]),
         "visibility": str(given_mutator_args["visibility"]),
-        # "type": given_mutator_args["relation"]["type"],
-        # "relation_uuid": str(given_mutator_args["relation"]["uuid"]),
     }
 
     mutate_query = """
