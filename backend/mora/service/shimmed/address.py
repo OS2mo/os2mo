@@ -115,11 +115,12 @@ async def address_autocomplete(
         params["kommunekode"] = code
 
     async def get_access_addreses() -> list[dict]:
-        r = await client.get(
+        _ = await client.get(
             "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
             params={**params, "per_side": 5},
         )
-        return r.json()
+        # return r.json()
+        return []
 
     async def get_addresses() -> list[dict]:
         r = await client.get(
