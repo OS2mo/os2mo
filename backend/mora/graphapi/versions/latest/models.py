@@ -220,6 +220,18 @@ class AddressCreate(RAValidity):
     person: UUID | None = Field(description="UUID for the related person.")
     engagement: UUID | None = Field(description="UUID for the related engagement.")
 
+    @root_validator
+    def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Verifies that at least one of the address relation fields have been set."""
+        if not cls.org_unit and not cls.person and not cls.engagement:
+            raise exceptions.ErrorCodes.E_INVALID_INPUT(
+                f"Must supply exactly one {mapping.ORG_UNIT} UUID, "
+                f"{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID",
+                obj=cls,
+            )
+
+        return values
+
     async def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
