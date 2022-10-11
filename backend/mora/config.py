@@ -240,7 +240,7 @@ class Settings(BaseSettings):
     show_it_associations_tab: bool = False
 
     # MO displays access address in organiasation-address-autocomplete-endpoint.
-    dar_address_autocomplete_includes_access_addresses: bool = False
+    dar_address_autocomplete_includes_access_addresses: bool = True
 
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
