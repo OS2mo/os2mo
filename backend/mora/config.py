@@ -239,6 +239,9 @@ class Settings(BaseSettings):
     # MO UI displays an "IT associations" tab for employees, if this is set to True
     show_it_associations_tab: bool = False
 
+    # MO displays access address in organiasation-address-autocomplete-endpoint.
+    dar_address_autocomplete_includes_access_addresses: bool = False
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
