@@ -22,6 +22,7 @@ nav:
         - Tests: guides/tests.md
         - Conventions: guides/conventions.md
         - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
+        - MED-organisation i OS2mo: guides/MED-organisationen.md
         - ADFS:
           - guides/adfs-setup.md
           - guides/adfs-rbac-setup.md
