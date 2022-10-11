@@ -132,12 +132,6 @@ export default {
       }
     },
 
-    unitValidations() {
-      return {
-        movable_org_unit: [this.original],
-      }
-    },
-
     parentValidations() {
       return {
         candidate_parent_org_unit: [
