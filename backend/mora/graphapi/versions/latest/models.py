@@ -824,8 +824,6 @@ class ManagerUpdate(Manager):
                 {"uuid": str(responsib)} for responsib in self.responsibility
             ]
 
-        # By returning k only, we receive the affected keys with values, rather than
-        # every key, including keys with values set to None.
         return {k: v for k, v in data_dict.items() if v}
 
 
@@ -925,6 +923,59 @@ class OrganisationUnitCreate(OrganisationUnit):
                 else None,
             },
         }
+
+
+class OrganisationUnitUpdate(OrganisationUnit):
+    """Model for updating an organisation unit."""
+
+    uuid: UUID = Field(description="UUID of the organisation unit to be updated.")
+
+    validity: RAValidity = Field(
+        description="Validity range for the organisation unit to be updated."
+    )
+
+    name: str | None = Field(description="Name of the organisation unit to be updated.")
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    parent: UUID | None = Field(
+        description="UUID of the organisation units related parent to be updated."
+    )
+
+    org_unit_type: UUID | None = Field(
+        description="UUID of the organisation units type to be updated."
+    )
+
+    org_unit_level: UUID | None = Field(
+        description="UUID of organisation units level to be updated."
+    )
+
+    time_planning: UUID | None = Field(
+        description="UUID of organisation units time planning to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict: dict = {
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+            "name": self.name,
+            "user_key": self.user_key,
+            "parent": gen_uuid(self.parent),
+            "org_unit_type": gen_uuid(self.org_unit_type),
+            "org_unit_level": gen_uuid(self.org_unit_level),
+            "time_planning": gen_uuid(self.time_planning),
+        }
+
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Related Units

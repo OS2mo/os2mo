@@ -53,7 +53,6 @@ logger = get_logger()
 def parsedatetime(
     s: str | datetime.date | datetime.datetime, default=_sentinel
 ) -> datetime.datetime:
-
     if isinstance(s, datetime.date):
         dt = s
 
@@ -378,6 +377,18 @@ def checked_get(
     """
     try:
         v = mapping[key]
+        print(
+            "///////////////////////////////////////////////",
+            v,
+            "------------",
+            mapping[key],
+            "KEEEEEEEEEY",
+            key,
+            "DEFAUUUUUUUULT",
+            default,
+            "MAPPPPPPPPPPING",
+            mapping,
+        )
     except (LookupError, TypeError):
         exc = exceptions.HTTPException(
             exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE,

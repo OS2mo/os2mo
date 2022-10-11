@@ -21,6 +21,7 @@ from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import OrganisationUnitCreate
+from mora.graphapi.versions.latest.models import OrganisationUnitUpdate
 from mora.graphapi.versions.latest.types import OrganizationUnit
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo import Validity as RAValidity
@@ -253,3 +254,29 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
     response: GQLResponse = graphapi_post(org_unit_query)
     assert response.errors is None
     assert len(response.data["org_units"]) == expected
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.update_org_unit", new_callable=AsyncMock)
+async def test_update_org_unit_mutation_unit_test(
+    update_org_unit: AsyncMock, test_data: OrganisationUnitUpdate
+) -> None:
+    """Tests that the mutator function for updating an organisation unit passes through,
+    with the defined pydantic model."""
+
+    mutation = """
+        mutation UpdateOrganisationUnit($input: OrganisationUnitUpdateInput!) {
+            org_unit_update(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    update_org_unit.return_value = OrganizationUnit(uuid=test_data.uuid)
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"org_unit_update": {"uuid": str(test_data.uuid)}}
+
+    update_org_unit.assert_called_with(test_data)

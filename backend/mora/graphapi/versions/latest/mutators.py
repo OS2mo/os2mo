@@ -39,6 +39,7 @@ from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
+from .inputs import OrganisationUnitUpdateInput
 from .inputs import OrganizationUnitCreateInput
 from .inputs import OrganizationUnitTerminateInput
 from .it_user import create as create_ituser
@@ -52,6 +53,7 @@ from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
+from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
@@ -290,6 +292,15 @@ class Mutation:
         self, unit: OrganizationUnitTerminateInput
     ) -> OrganizationUnit:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Updates an organisation unit for a specific organisation by UUID.",
+        permission_classes=[admin_permission_class],
+    )
+    async def org_unit_update(
+        self, input: OrganisationUnitUpdateInput
+    ) -> OrganizationUnit:
+        return await update_org_unit(input.to_pydantic())  # type:ignore
 
     # Related Units
     # -------------

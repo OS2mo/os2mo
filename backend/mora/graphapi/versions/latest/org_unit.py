@@ -11,6 +11,7 @@ from .dataloaders import get_loaders
 from .models import MoraTriggerRequest
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
+from .models import OrganisationUnitUpdate
 from .models import OrgUnitTrigger
 from .models import Validity
 from .schema import Response
@@ -192,5 +193,26 @@ async def create_org_unit(input: OrganisationUnitCreate) -> OrganizationUnit:
         input_dict, mapping.RequestType.CREATE
     )
     uuid = await handler.submit()
+
+    return OrganizationUnit(uuid=UUID(uuid))
+
+
+async def update_org_unit(input: OrganisationUnitUpdate) -> OrganizationUnit:
+    """Updating an organisation unit."""
+    input_dict = input.to_handler_dict()
+
+    req = {
+        mapping.TYPE: mapping.ORG_UNIT,
+        mapping.UUID: str(input.uuid),
+        mapping.DATA: input_dict,
+    }
+    print("@@@@@@@@@@@@@@@@@@@@@@", input.uuid)
+    print("======================", input)
+
+    try:
+        request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
+    except BaseException as e:
+        raise e
+    uuid = await request.submit()
 
     return OrganizationUnit(uuid=UUID(uuid))
