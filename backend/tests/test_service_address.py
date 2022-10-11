@@ -431,6 +431,7 @@ class AsyncTestAddressLookup(tests.cases.NewTestApp, tests.cases.AsyncTestCase):
             "address_autocomplete/?q=Strandlodsvej+25M&global=1"
         )
 
+        respx.get(mo_url1).pass_through()
         with util.set_settings_contextmanager(
             dar_address_autocomplete_includes_access_addresses="False"
         ):
