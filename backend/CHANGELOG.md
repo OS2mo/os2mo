@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.28.1 - 2022-10-11
+--------------------
+
+[#52971] Made employee_uuid optional for associations, meaning we allow an association to be vacant.
+
 11.28.0 - 2022-10-10
 --------------------
 
