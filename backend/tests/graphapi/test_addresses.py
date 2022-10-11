@@ -37,21 +37,21 @@ from tests.graphapi.utils import fetch_org_unit_validity
 # HELPERS
 
 # Address UUID: Nordre Ringgade 1, 8000 Aarhus C
-addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
+# addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
 
 addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
-addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
-addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
-addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
+# addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
+# addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
+# addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
 addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
 
 # FYI: regex: ^\d{13}$
-addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
+# addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
 
-addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
-addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
+# addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
+# addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
 
-engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
+# engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
 
 visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 
@@ -109,6 +109,38 @@ def _get_address_query():
     """
 
 
+def _get_orgunit_addr_type(value_type):
+    if value_type == "email":
+        return addr_type_orgunit_email
+
+    return None
+
+def _get_person_addr_type(value_type):
+    if value_type == "email":
+        return addr_type_user_email
+
+    return None
+
+def _get_engagement_addr_type(value_type):
+    if value_type == "email":
+        # TODO: Figure out a proper UUID here - I currently cant find
+        # an engagement_addr_type in the sample_structure.
+        return addr_type_user_email
+
+    return None
+
+def _get_create_addresss_addr_type(create_address_value_type, test_data_org_unit_uuid, test_data_person_uuid, test_data_engagement_uuid):
+    if test_data_org_unit_uuid:
+        # return addr_type_orgunit_email
+        return _get_orgunit_addr_type(create_address_value_type)
+    elif test_data_person_uuid:
+        # return addr_type_user_email
+        return _get_person_addr_type(create_address_value_type)
+    elif test_data_engagement_uuid:
+        return _get_engagement_addr_type(create_address_value_type)
+    
+    return None
+
 def _create_address_create_hypothesis_test_data(data, graphapi_post):
     (
         test_data_org_unit_uuid,
@@ -128,7 +160,7 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post):
                     UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),  # fedtmule
                     UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),  # erik_smidt_hansen
                     # Doing stuff with this test user makes the addresses-query fail on the new UUID.
-                    # OBS: I have expericed similar problem with employee-update
+                    # OBS: I have expericed similar issues with employee-update
                     # UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),  # lis_jensen
                 ]
             )
@@ -156,6 +188,7 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post):
         .filter(lambda rels: False if rels[2] and (rels[0] or rels[1]) else True)
     )
 
+    # address_type = _get_create_addresss_addr_type("email", test_data_org_unit_uuid, test_data_person_uuid, test_data_engagement_uuid)
     address_type = None
     dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
     if test_data_org_unit_uuid:
