@@ -448,6 +448,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected, actual)
 
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
+    @pytest.mark.slow
     async def test_create_org_unit(self, m):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
