@@ -346,6 +346,7 @@ async def test_autocomplete_access_addr_feature_flag(
         "https://api.dataforsyningen.dk/adresser/autocomplete?"
         f"noformat=1&q={search_text_parsed}&per_side=10"
     ).respond(json=get_addrs_mock_resp)
+
     respx_mock.get(
         "https://api.dataforsyningen.dk/adgangsadresser/autocomplete?"
         f"noformat=1&q={search_text_parsed}&per_side=5"

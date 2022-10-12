@@ -50,22 +50,6 @@ class AddressAutoCompleteReturn(BaseModel):
     )
 
 
-async def _get_access_addreses(params) -> list[dict]:
-    r = await client.get(
-        "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
-        params={**params, "per_side": 5},
-    )
-    return r.json()
-
-
-async def _get_addresses(params) -> list[dict]:
-    r = await client.get(
-        "https://api.dataforsyningen.dk/adresser/autocomplete",
-        params={**params, "per_side": 10},
-    )
-    return r.json()
-
-
 @address_router.get(
     "/o/{orgid}/address_autocomplete/",
     response_model=list[AddressAutoCompleteReturn],
@@ -130,9 +114,23 @@ async def address_autocomplete(
     if code is not None:
         params["kommunekode"] = code
 
-    addrs = await _get_addresses(params)
+    async def get_access_addreses() -> list[dict]:
+        r = await client.get(
+            "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
+            params={**params, "per_side": 5},
+        )
+        return r.json()
+
+    async def get_addresses() -> list[dict]:
+        r = await client.get(
+            "https://api.dataforsyningen.dk/adresser/autocomplete",
+            params={**params, "per_side": 10},
+        )
+        return r.json()
+
+    addrs = await get_addresses()
     access_addrs = (
-        await _get_access_addreses(params)
+        await get_access_addreses()
         if settings.dar_address_autocomplete_includes_access_addresses
         else []
     )
