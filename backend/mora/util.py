@@ -53,7 +53,6 @@ logger = get_logger()
 def parsedatetime(
     s: str | datetime.date | datetime.datetime, default=_sentinel
 ) -> datetime.datetime:
-
     if isinstance(s, datetime.date):
         dt = s
 
