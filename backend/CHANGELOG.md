@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.29.0 - 2022-10-12
+--------------------
+
+[#49089] Added new feature flag "dar_address_autocomplete_includes_access_addresses", which will enable/disable access address lookup in DAWA in organisation-addr-autocomplete endpoint.
+
 11.28.1 - 2022-10-11
 --------------------
 
