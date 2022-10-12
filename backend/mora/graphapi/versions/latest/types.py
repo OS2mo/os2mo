@@ -141,8 +141,8 @@ class ManagerType:
     model=OrganisationUnitModel,
     all_fields=True,
 )
-class OrganizationUnit:
-    """GraphQL type for/of a organization unit."""
+class OrganisationUnitType:
+    """GraphQL type for/of an organisation unit."""
 
 
 # Related Units

@@ -61,7 +61,7 @@ class Validity(OpenValidity):
                 self.get_terminate_effect_to_date(), "infinity"
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organization Unit must be set with either 'to' or both 'from' "
+            key="Organisation unit must be set with either 'to' or both 'from' "
             "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
@@ -824,8 +824,6 @@ class ManagerUpdate(Manager):
                 {"uuid": str(responsib)} for responsib in self.responsibility
             ]
 
-        # By returning k only, we receive the affected keys with values, rather than
-        # every key, including keys with values set to None.
         return {k: v for k, v in data_dict.items() if v}
 
 
@@ -868,15 +866,15 @@ class OrganisationUnitRefreshRead(BaseModel):
 
 
 class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organization-units."""
+    """Model representing a mora-trigger, specific for organisation units."""
 
 
 class OrganisationUnit(UUIDBase):
-    """Model representing a Organization-Unit."""
+    """Model representing an organisation unit."""
 
 
 class OrganisationUnitTerminate(ValidityTerminate, Triggerless):
-    """Model representing a organization-unit termination."""
+    """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
 
@@ -925,6 +923,65 @@ class OrganisationUnitCreate(OrganisationUnit):
                 else None,
             },
         }
+
+
+class OrganisationUnitUpdate(OrganisationUnit):
+    """Model for updating an organisation unit."""
+
+    uuid: UUID = Field(description="UUID of the organisation unit to be updated.")
+
+    validity: RAValidity = Field(
+        description="Validity range for the organisation unit to be updated."
+    )
+
+    name: str | None = Field(description="Name of the organisation unit to be updated.")
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    parent: UUID | None = Field(
+        description="UUID of the organisation units related parent to be updated."
+    )
+
+    org_unit_type: UUID | None = Field(
+        description="UUID of the organisation units type to be updated."
+    )
+
+    org_unit_level: UUID | None = Field(
+        description="UUID of the organisation units level to be updated."
+    )
+
+    org_unit_hierarchy: UUID | None = Field(
+        description="UUID of organisation units hierarchy to be updated."
+    )
+
+    time_planning: UUID | None = Field(
+        description="UUID of organisation units time planning to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict: dict = {
+            "uuid": str(self.uuid),
+            "name": self.name,
+            "user_key": self.user_key,
+            "parent": gen_uuid(self.parent),
+            "org_unit_type": gen_uuid(self.org_unit_type),
+            "org_unit_level": gen_uuid(self.org_unit_level),
+            "org_unit_hierarchy": gen_uuid(self.org_unit_hierarchy),
+            "time_planning": gen_uuid(self.time_planning),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+        return {k: v for k, v in data_dict.items() if v}
 
 
 # Related Units

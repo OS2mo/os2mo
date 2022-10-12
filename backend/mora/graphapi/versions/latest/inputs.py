@@ -24,6 +24,7 @@ from .models import ManagerUpdate
 from .models import Organisation
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
+from .models import OrganisationUnitUpdate
 from .models import Validity
 from ramodels.mo import Validity as RAValidity
 
@@ -52,8 +53,8 @@ class RAValidityInput:
     model=Organisation,
     all_fields=True,
 )
-class OrganizationInput:
-    """input model for terminating organizations units."""
+class OrganisationInput:
+    """input model for terminating organisation units."""
 
 
 # Addresses
@@ -244,16 +245,24 @@ class ManagerTerminateInput:
     model=OrganisationUnitTerminate,
     all_fields=True,
 )
-class OrganizationUnitTerminateInput:
-    """input model for terminating organizations units."""
+class OrganisationUnitTerminateInput:
+    """Input model for terminating organisation units."""
 
 
 @strawberry.experimental.pydantic.input(
     model=OrganisationUnitCreate,
     all_fields=True,
 )
-class OrganizationUnitCreateInput:
-    """input model for creating org-units."""
+class OrganisationUnitCreateInput:
+    """Input model for creating organisation units."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationUnitUpdate,
+    all_fields=True,
+)
+class OrganisationUnitUpdateInput:
+    """Input model for updating organisation units."""
 
 
 # Related Units

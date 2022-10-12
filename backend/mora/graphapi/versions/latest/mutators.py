@@ -39,8 +39,9 @@ from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
-from .inputs import OrganizationUnitCreateInput
-from .inputs import OrganizationUnitTerminateInput
+from .inputs import OrganisationUnitCreateInput
+from .inputs import OrganisationUnitTerminateInput
+from .inputs import OrganisationUnitUpdateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
@@ -52,6 +53,7 @@ from .models import OrganisationUnitRefreshRead
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
+from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import AddressTerminateType
@@ -64,7 +66,7 @@ from .types import EngagementType
 from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
-from .types import OrganizationUnit
+from .types import OrganisationUnitType
 
 logger = logging.getLogger(__name__)
 
@@ -276,8 +278,8 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def org_unit_create(
-        self, input: OrganizationUnitCreateInput
-    ) -> OrganizationUnit:
+        self, input: OrganisationUnitCreateInput
+    ) -> OrganisationUnitType:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await create_org_unit(input.to_pydantic())  # type: ignore
@@ -287,9 +289,18 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def org_unit_terminate(
-        self, unit: OrganizationUnitTerminateInput
-    ) -> OrganizationUnit:
+        self, unit: OrganisationUnitTerminateInput
+    ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Updates an organisation unit for a specific organisation by UUID.",
+        permission_classes=[admin_permission_class],
+    )
+    async def org_unit_update(
+        self, input: OrganisationUnitUpdateInput
+    ) -> OrganisationUnitType:
+        return await update_org_unit(input.to_pydantic())  # type:ignore
 
     # Related Units
     # -------------
