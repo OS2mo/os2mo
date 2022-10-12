@@ -61,7 +61,7 @@ class Validity(OpenValidity):
                 self.get_terminate_effect_to_date(), "infinity"
             )
         raise exceptions.ErrorCodes.V_MISSING_REQUIRED_VALUE(
-            key="Organization Unit must be set with either 'to' or both 'from' "
+            key="Organisation unit must be set with either 'to' or both 'from' "
             "and 'to'",
             unit={
                 "from": self.from_date.isoformat() if self.from_date else None,
@@ -866,15 +866,15 @@ class OrganisationUnitRefreshRead(BaseModel):
 
 
 class OrgUnitTrigger(OrgFuncTrigger):
-    """Model representing a mora-trigger, specific for organization-units."""
+    """Model representing a mora-trigger, specific for organisation units."""
 
 
 class OrganisationUnit(UUIDBase):
-    """Model representing a Organization-Unit."""
+    """Model representing an organisation unit."""
 
 
 class OrganisationUnitTerminate(ValidityTerminate, Triggerless):
-    """Model representing a organization-unit termination."""
+    """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
 
@@ -980,7 +980,6 @@ class OrganisationUnitUpdate(OrganisationUnit):
                 else None,
             },
         }
-        print(" THIS IS THE DATA DICT", data_dict)
 
         return {k: v for k, v in data_dict.items() if v}
 

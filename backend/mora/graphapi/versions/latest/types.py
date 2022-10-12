@@ -142,7 +142,7 @@ class ManagerType:
     all_fields=True,
 )
 class OrganisationUnitType:
-    """GraphQL type for/of a organization unit."""
+    """GraphQL type for/of an organisation unit."""
 
 
 # Related Units

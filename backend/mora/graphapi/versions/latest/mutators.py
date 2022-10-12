@@ -39,9 +39,9 @@ from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
+from .inputs import OrganisationUnitCreateInput
+from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
-from .inputs import OrganizationUnitCreateInput
-from .inputs import OrganizationUnitTerminateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
@@ -278,7 +278,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def org_unit_create(
-        self, input: OrganizationUnitCreateInput
+        self, input: OrganisationUnitCreateInput
     ) -> OrganisationUnitType:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
@@ -289,7 +289,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def org_unit_terminate(
-        self, unit: OrganizationUnitTerminateInput
+        self, unit: OrganisationUnitTerminateInput
     ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
 

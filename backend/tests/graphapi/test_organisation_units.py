@@ -95,7 +95,7 @@ async def test_create_org_unit(
     """Test that pydantic jsons are passed through to create_org_unit."""
 
     mutate_query = """
-        mutation CreateOrgUnit($input: OrganizationUnitCreateInput!) {
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
             org_unit_create(input: $input) {
                 uuid
             }
@@ -165,7 +165,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
     payload = jsonable_encoder(test_data)
 
     mutate_query = """
-        mutation CreateOrgUnit($input: OrganizationUnitCreateInput!) {
+        mutation CreateOrgUnit($input: OrganisationUnitCreateInput!) {
             org_unit_create(input: $input) {
                 uuid
             }
@@ -335,7 +335,6 @@ async def test_update_org_unit_mutation_integration_test(
     """
 
     response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
-    print("THIS IS THE RESPONSE DATA FROM THE QUERY:", response.data)
     assert response.errors is None
 
     pre_update_org_unit = one(one(response.data["org_units"])["objects"])
@@ -350,7 +349,6 @@ async def test_update_org_unit_mutation_integration_test(
     mutation_response: GQLResponse = graphapi_post(
         mutate_query, {"input": jsonable_encoder(test_data)}
     )
-    print("THIS IS THE MUTATIONS RESPONSE", mutation_response.data)
     assert mutation_response.errors is None
 
     verify_query = """
@@ -375,9 +373,6 @@ async def test_update_org_unit_mutation_integration_test(
     """
 
     verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
-    print(
-        "THIS IS THE VERIFY RESPONSE DATA FROM THE VERIFY QUERY", verify_response.data
-    )
     assert verify_response.errors is None
 
     post_update_org_unit = one(one(verify_response.data["org_units"])["objects"])
@@ -385,13 +380,6 @@ async def test_update_org_unit_mutation_integration_test(
     expected_updated_org_unit = {
         k: v or pre_update_org_unit[k] for k, v in test_data.items()
     }
-
-    print(
-        "\nTHIS IS THE POST UPDATE ORG UNIT\n",
-        post_update_org_unit,
-        "\nTHIS IS THE EXPECTED UPDATED ORG UNIT\n",
-        expected_updated_org_unit,
-    )
 
     assert post_update_org_unit == expected_updated_org_unit
 
