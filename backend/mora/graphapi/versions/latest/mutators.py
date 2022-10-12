@@ -66,7 +66,7 @@ from .types import EngagementType
 from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
-from .types import OrganizationUnit
+from .types import OrganisationUnitType
 
 logger = logging.getLogger(__name__)
 
@@ -279,7 +279,7 @@ class Mutation:
     )
     async def org_unit_create(
         self, input: OrganizationUnitCreateInput
-    ) -> OrganizationUnit:
+    ) -> OrganisationUnitType:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await create_org_unit(input.to_pydantic())  # type: ignore
@@ -290,7 +290,7 @@ class Mutation:
     )
     async def org_unit_terminate(
         self, unit: OrganizationUnitTerminateInput
-    ) -> OrganizationUnit:
+    ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
@@ -299,7 +299,7 @@ class Mutation:
     )
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
-    ) -> OrganizationUnit:
+    ) -> OrganisationUnitType:
         return await update_org_unit(input.to_pydantic())  # type:ignore
 
     # Related Units

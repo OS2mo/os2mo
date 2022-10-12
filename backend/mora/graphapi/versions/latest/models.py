@@ -947,7 +947,11 @@ class OrganisationUnitUpdate(OrganisationUnit):
     )
 
     org_unit_level: UUID | None = Field(
-        description="UUID of organisation units level to be updated."
+        description="UUID of the organisation units level to be updated."
+    )
+
+    org_unit_hierarchy: UUID | None = Field(
+        description="UUID of organisation units hierarchy to be updated."
     )
 
     time_planning: UUID | None = Field(
@@ -961,19 +965,22 @@ class OrganisationUnitUpdate(OrganisationUnit):
             return {"uuid": str(uuid)}
 
         data_dict: dict = {
+            "uuid": str(self.uuid),
+            "name": self.name,
+            "user_key": self.user_key,
+            "parent": gen_uuid(self.parent),
+            "org_unit_type": gen_uuid(self.org_unit_type),
+            "org_unit_level": gen_uuid(self.org_unit_level),
+            "org_unit_hierarchy": gen_uuid(self.org_unit_hierarchy),
+            "time_planning": gen_uuid(self.time_planning),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
                 if self.validity.to_date
                 else None,
             },
-            "name": self.name,
-            "user_key": self.user_key,
-            "parent": gen_uuid(self.parent),
-            "org_unit_type": gen_uuid(self.org_unit_type),
-            "org_unit_level": gen_uuid(self.org_unit_level),
-            "time_planning": gen_uuid(self.time_planning),
         }
+        print(" THIS IS THE DATA DICT", data_dict)
 
         return {k: v for k, v in data_dict.items() if v}
 
