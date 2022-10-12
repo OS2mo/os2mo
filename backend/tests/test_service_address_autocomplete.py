@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from unittest.mock import patch
+import urllib.parse
 
 import pytest
 
 from tests import util
-
 
 get_addrs_mock_resp = [
     {
@@ -331,25 +330,31 @@ get_access_addrs_mock_resp = [
     ],
 )
 async def test_autocomplete_access_addr_feature_flag(
-    serviceapi_post, feature_flag_value, expected_result
+    serviceapi_post, respx_mock, feature_flag_value, expected_result
 ):
+    search_text = "Strandlodsvej 25M"
+    search_text_parsed = urllib.parse.quote(search_text)
+
+    # OBS: "global=1" is used in order to avoid "ErrorCodes.E_NO_LOCAL_MUNICIPALITY" errors
+    # when using an unknown organisation (might exist, but we dont init the test DB)
     mo_url1 = (
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
-        "address_autocomplete/?q=Strandlodsvej+25M&global=1"
+        f"address_autocomplete/?q={search_text_parsed}&global=1"
     )
 
-    with patch(
-        "mora.service.shimmed.address._get_addresses"
-    ) as mock_get_addresses, patch(
-        "mora.service.shimmed.address._get_access_addreses"
-    ) as mock_get_access_addreses, util.set_settings_contextmanager(
+    respx_mock.get(
+        "https://api.dataforsyningen.dk/adresser/autocomplete?"
+        f"noformat=1&q={search_text_parsed}&per_side=10"
+    ).respond(json=get_addrs_mock_resp)
+    respx_mock.get(
+        "https://api.dataforsyningen.dk/adgangsadresser/autocomplete?"
+        f"noformat=1&q={search_text_parsed}&per_side=5"
+    ).respond(json=get_access_addrs_mock_resp)
+
+    with util.set_settings_contextmanager(
         dar_address_autocomplete_includes_access_addresses=feature_flag_value
     ):
-        mock_get_addresses.return_value = get_addrs_mock_resp
-        mock_get_access_addreses.return_value = get_access_addrs_mock_resp
-
         response = serviceapi_post(url=mo_url1)
-
         assert response.errors is None
         assert response.status_code == 200
         assert response.data == expected_result
