@@ -115,11 +115,13 @@ def _get_orgunit_addr_type(value_type):
 
     return None
 
+
 def _get_person_addr_type(value_type):
     if value_type == "email":
         return addr_type_user_email
 
     return None
+
 
 def _get_engagement_addr_type(value_type):
     if value_type == "email":
@@ -129,7 +131,13 @@ def _get_engagement_addr_type(value_type):
 
     return None
 
-def _get_create_addresss_addr_type(create_address_value_type, test_data_org_unit_uuid, test_data_person_uuid, test_data_engagement_uuid):
+
+def _get_create_addresss_addr_type(
+    create_address_value_type,
+    test_data_org_unit_uuid,
+    test_data_person_uuid,
+    test_data_engagement_uuid,
+):
     if test_data_org_unit_uuid:
         # return addr_type_orgunit_email
         return _get_orgunit_addr_type(create_address_value_type)
@@ -138,8 +146,9 @@ def _get_create_addresss_addr_type(create_address_value_type, test_data_org_unit
         return _get_person_addr_type(create_address_value_type)
     elif test_data_engagement_uuid:
         return _get_engagement_addr_type(create_address_value_type)
-    
+
     return None
+
 
 def _create_address_create_hypothesis_test_data(data, graphapi_post):
     (
@@ -188,7 +197,6 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post):
         .filter(lambda rels: False if rels[2] and (rels[0] or rels[1]) else True)
     )
 
-    # address_type = _get_create_addresss_addr_type("email", test_data_org_unit_uuid, test_data_person_uuid, test_data_engagement_uuid)
     address_type = None
     dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
     if test_data_org_unit_uuid:
