@@ -281,7 +281,6 @@ def serviceapi_test():
 @pytest.fixture(scope="class")
 def serviceapi_post(serviceapi_test: TestClient):
     def _post(
-        # query: str, variables: dict[str, Any] | None = None, url: str = "/service/o"
         url: str,
         variables: dict[str, Any] | None = None,
         method: str = "get",
