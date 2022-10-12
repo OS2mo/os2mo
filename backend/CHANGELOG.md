@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.30.0 - 2022-10-12
+--------------------
+
+[#51154] Created mutator OrganisationUnitUpdate, wrote tests, refactored various spellings of "organisation"
+
 11.29.0 - 2022-10-12
 --------------------
 
