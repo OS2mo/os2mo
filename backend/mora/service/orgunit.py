@@ -157,9 +157,6 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         # Get the current org-unit which the user wants to change
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
         original = await c.organisationenhed.get(uuid=unitid)
-        del original["attributter"]["organisationenhedegenskaber"][0][
-            "integrationsdata"
-        ]
 
         if not original:
             exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)

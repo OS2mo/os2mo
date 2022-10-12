@@ -206,8 +206,7 @@ async def update_org_unit(input: OrganisationUnitUpdate) -> OrganisationUnitType
         mapping.UUID: str(input.uuid),
         mapping.DATA: input_dict,
     }
-    print("@@@@@@@@@@@@@@@@@@@@@@", input.uuid)
-    print("======================", input)
+
     request = await OrgUnitRequestHandler.construct(req, mapping.RequestType.EDIT)
 
     uuid = await request.submit()
