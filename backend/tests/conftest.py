@@ -262,6 +262,52 @@ def graphapi_post(graphapi_test: TestClient):
     yield _post
 
 
+@dataclass
+class ServiceAPIResponse:
+    data: dict | None
+    status_code: int | None
+    errors: list[Any] | None
+
+
+@pytest.fixture(scope="class")
+def serviceapi_test():
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    yield TestClient(test_app())
+
+
+@pytest.fixture(scope="class")
+def serviceapi_post(serviceapi_test: TestClient):
+    def _post(
+        # query: str, variables: dict[str, Any] | None = None, url: str = "/service/o"
+        url: str,
+        variables: dict[str, Any] | None = None,
+        method: str = "get",
+    ) -> ServiceAPIResponse:
+        try:
+            with serviceapi_test as client:
+                match (method.lower()):
+                    case "get":
+                        response = client.get(url, json=variables)
+                    case "post":
+                        response = client.post(url, json=variables)
+                    case _:
+                        response = None
+
+            if not response:
+                return None
+
+            return ServiceAPIResponse(
+                status_code=response.status_code, data=response.json(), errors=None
+            )
+        except Exception as e:
+            return ServiceAPIResponse(status_code=None, data=None, errors=[e])
+
+    yield _post
+
+
 def gen_organisation(
     uuid: UUID | None = None,
     name: str = "name",
