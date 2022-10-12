@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import gather
 from uuid import UUID
 
 import httpx
@@ -79,7 +78,8 @@ async def address_autocomplete(
     Address resolution is run against both ``adgangsadresse`` and ``adresse``.
     """
 
-    if not config.get_settings().enable_dar:
+    settings = config.get_settings()
+    if not settings.enable_dar:
         return []
 
     code: int | None = None
@@ -128,7 +128,12 @@ async def address_autocomplete(
         )
         return r.json()
 
-    access_addrs, addrs = await gather(get_access_addreses(), get_addresses())
+    addrs = await get_addresses()
+    access_addrs = (
+        await get_access_addreses()
+        if settings.dar_address_autocomplete_includes_access_addresses
+        else []
+    )
 
     result_addrs = {
         addr["tekst"]: addr["adgangsadresse"]["id"] for addr in access_addrs
