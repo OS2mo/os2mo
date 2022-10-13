@@ -223,11 +223,20 @@ class AddressCreate(RAValidity):
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
         """Verifies that at least one of the address relation fields have been set."""
-        if (
-            not values.get("org_unit")
-            and not values.get("person")
-            and not values.get("engagement")
-        ):
+        number_of_uuids = len(
+            list(
+                filter(
+                    lambda x: x is not None,
+                    [
+                        values.get("org_unit"),
+                        values.get("person"),
+                        values.get("engagement"),
+                    ],
+                )
+            )
+        )
+
+        if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
                 f"Must supply exactly one {mapping.ORG_UNIT} UUID, "
                 f"{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID",

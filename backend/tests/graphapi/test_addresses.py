@@ -346,7 +346,7 @@ async def test_create_mutator(address_create: AsyncMock, data):
             "value": "YeeHaaamagenta.dk",
             "address_type": addr_type_user_email,
             "visibility": visibility_uuid_public,
-            "person": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            "person": user_andersand,
         },
         {  # Desc: verify fails when No relation was supplied
             "from_date": now_min_cph,
@@ -354,6 +354,15 @@ async def test_create_mutator(address_create: AsyncMock, data):
             "value": "YeeHaaa@magenta.dk",
             "address_type": addr_type_user_email,
             "visibility": visibility_uuid_public,
+        },
+        {  # Desc: verify fails when more than one relation was supplied
+            "from_date": now_min_cph,
+            "to_date": None,
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "person": user_andersand,
+            "org_unit": org_unit_l1,
         },
     ],
 )
