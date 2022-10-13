@@ -53,10 +53,12 @@ addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
 addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
 addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
 addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
-# addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2") # FYI: regex: ^\d{13}$
-# addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
 
-# engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
+addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
+addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
+
+engagement_andersand = UUID("d000591f-8705-4324-897a-075e3623f37b")
+engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
 
 visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
 
@@ -306,6 +308,8 @@ def _create_address_create_hypothesis_test_data_new(
         test_data_value = data.draw(st.emails())
     elif address_type in (addr_type_user_phone, addr_type_orgunit_phone):
         test_data_value = data.draw(st.from_regex(r"^\+?\d+$"))
+    elif address_type in (addr_type_orgunit_ean,):
+        test_data_value = data.draw(st.from_regex(r"^\d{13}$"))
     else:
         test_data_value = data.draw(st.text())
     #
@@ -620,8 +624,40 @@ async def test_create_integration_address(data, graphapi_post):
         ),
     ]
 
+    test_data_samples_ean = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_ean,
+        ),
+    ]
+
+    test_data_samples_openhours = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_openhours,
+        ),
+    ]
+
+    # TODO: Figure out how engagement test_data relate to eachother
+    # test_data_samples_engagement = [
+    #     (
+    #         None,
+    #         None,
+    #         engagement_andersand,
+    #         engagement_type_employee,
+    #     ),
+    # ]
+
     test_data_samples = (
-        test_data_samples_addrs + test_data_samples_emails + test_data_samples_phone
+        test_data_samples_addrs
+        + test_data_samples_emails
+        + test_data_samples_phone
+        + test_data_samples_ean
+        + test_data_samples_openhours
     )
 
     test_data = _create_address_create_hypothesis_test_data_new(
