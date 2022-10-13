@@ -540,6 +540,11 @@ async def test_create_integration_emails(data, graphapi_post):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_integration_address(data, graphapi_post):
+    """Integration test for create address.
+
+    OBS: Does currently not test address-relation to engagements.
+    """
+
     # Configre test data samples
     test_data_samples_addrs = [
         # Org units
@@ -641,16 +646,6 @@ async def test_create_integration_address(data, graphapi_post):
             addr_type_orgunit_openhours,
         ),
     ]
-
-    # TODO: Figure out how engagement test_data relate to eachother
-    # test_data_samples_engagement = [
-    #     (
-    #         None,
-    #         None,
-    #         engagement_andersand,
-    #         engagement_type_employee,
-    #     ),
-    # ]
 
     test_data_samples = (
         test_data_samples_addrs
