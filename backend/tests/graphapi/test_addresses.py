@@ -43,9 +43,6 @@ user_andersand = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")  # andersand
 user_fedtmule = UUID("6ee24785-ee9a-4502-81c2-7697009c9053")  # fedtmule
 user_erik = UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7")  # erik_smidt_hansen
 
-# Address UUID: Nordre Ringgade 1, 8000 Aarhus C
-# addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
-
 addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
 addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
 addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
