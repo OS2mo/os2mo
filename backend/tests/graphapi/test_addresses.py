@@ -38,6 +38,11 @@ from tests.util import dar_loader
 
 # HELPERS
 
+org_unit_l1 = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+user_andersand = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")  # andersand
+user_fedtmule = UUID("6ee24785-ee9a-4502-81c2-7697009c9053")  # fedtmule
+user_erik = UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7")  # erik_smidt_hansen
+
 # Address UUID: Nordre Ringgade 1, 8000 Aarhus C
 # addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
 
@@ -530,7 +535,7 @@ async def test_create_integration_emails(data, graphapi_post):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_integration_address(data, graphapi_post):
     # Configre test data samples
-    addr_tests_data = [
+    test_data_samples_addrs = [
         # Org units
         (
             UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
@@ -559,8 +564,37 @@ async def test_create_integration_address(data, graphapi_post):
         ),
     ]
 
+    test_data_samples_emails = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_email,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_fedtmule,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_erik,
+            None,
+            addr_type_user_email,
+        ),
+    ]
+
+    test_data_samples = test_data_samples_addrs + test_data_samples_emails
+
     test_data = _create_address_create_hypothesis_test_data_new(
-        data, graphapi_post, addr_tests_data
+        data, graphapi_post, test_data_samples
     )
 
     payload = jsonable_encoder(test_data)
