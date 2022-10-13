@@ -39,15 +39,13 @@ from tests.graphapi.utils import fetch_org_unit_validity
 # Address UUID: Nordre Ringgade 1, 8000 Aarhus C
 # addr_uuid_nordre_ring = "b1f1817d-5f02-4331-b8b3-97330a5d3197"
 
+addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
 addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
-# addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
 # addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
-# addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
+
+addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
 addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
-
-# FYI: regex: ^\d{13}$
-# addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
-
+# addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2") # FYI: regex: ^\d{13}$
 # addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
 # addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
 
@@ -236,6 +234,62 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post):
         st.builds(
             AddressCreate,
             value=st.emails(),
+            from_date=st.just(test_data_from),
+            to_date=st.just(test_data_to),
+            address_type=st.just(address_type),
+            visibility=st.just(visibility_uuid_public),
+            org_unit=st.just(test_data_org_unit_uuid),
+            person=st.just(test_data_person_uuid),
+            engagement=st.just(test_data_engagement_uuid),
+        )
+    )
+
+
+def _create_address_create_hypothesis_test_data_new(
+    data, graphapi_post, test_data_samples
+):
+    (
+        test_data_org_unit_uuid,
+        test_data_person_uuid,
+        test_data_engagement_uuid,
+        address_type,
+    ) = data.draw(st.sampled_from(test_data_samples))
+
+    dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
+    if test_data_org_unit_uuid and graphapi_post:
+        org_unit_validity_from, _ = fetch_org_unit_validity(
+            graphapi_post, test_data_org_unit_uuid
+        )
+        dt_options_min_from = org_unit_validity_from
+    elif test_data_person_uuid and graphapi_post:
+        person_validity_from, _ = fetch_employee_validity(
+            graphapi_post, test_data_person_uuid
+        )
+        dt_options_min_from = person_validity_from
+
+    dt_options = {
+        "min_value": dt_options_min_from,
+        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
+    }
+    test_datavalidity_tuple = data.draw(
+        st.tuples(
+            st.datetimes(**dt_options),
+            st.datetimes(**dt_options) | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_from, test_data_to = test_datavalidity_tuple
+
+    if address_type in [addr_type_orgunit_address, addr_type_user_address]:
+        test_data_value = st.text()
+    elif address_type in [addr_type_user_email, addr_type_orgunit_email]:
+        test_data_value = data.draw(st.emails())
+    else:
+        test_data_value = st.text()
+
+    return data.draw(
+        st.builds(
+            AddressCreate,
+            value=st.just(test_data_value),
             from_date=st.just(test_data_from),
             to_date=st.just(test_data_to),
             address_type=st.just(address_type),
@@ -453,6 +507,97 @@ async def test_create_integration_emails(data, graphapi_post):
         assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
     elif test_data.engagement:
         assert new_addr["engagement_uuid"] == str(test_data.engagement)
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_integration_address(data, graphapi_post):
+    # Configre test data
+    addr_tests_data = [
+        # Org units
+        (
+            UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            None,
+            None,
+            addr_type_orgunit_address,
+        ),
+        # Users
+        (
+            None,
+            UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+            None,
+            addr_type_user_address,
+        ),
+    ]
+    test_data = _create_address_create_hypothesis_test_data_new(
+        data, graphapi_post, addr_tests_data
+    )
+
+    # (
+    #     test_data_org_unit_uuid,
+    #     test_data_person_uuid,
+    #     test_data_engagement_uuid,
+    #     address_type
+    # ) = data.draw(st.sampled_from(addr_tests_data))
+
+    # dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
+    # if test_data_org_unit_uuid and graphapi_post:
+    #     org_unit_validity_from, _ = fetch_org_unit_validity(
+    #         graphapi_post, test_data_org_unit_uuid
+    #     )
+    #     dt_options_min_from = org_unit_validity_from
+    # elif test_data_person_uuid and graphapi_post:
+    #     person_validity_from, _ = fetch_employee_validity(
+    #         graphapi_post, test_data_person_uuid
+    #     )
+    #     dt_options_min_from = person_validity_from
+
+    # dt_options = {
+    #     "min_value": dt_options_min_from,
+    #     "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
+    # }
+    # test_datavalidity_tuple = data.draw(
+    #     st.tuples(
+    #         st.datetimes(**dt_options),
+    #         st.datetimes(**dt_options) | st.none(),
+    #     ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    # )
+    # test_data_from, test_data_to = test_datavalidity_tuple
+
+    # test_data = data.draw(
+    #     st.builds(
+    #         AddressCreate,
+    #         value=st.emails(),
+    #         from_date=st.just(test_data_from),
+    #         to_date=st.just(test_data_to),
+    #         address_type=st.just(address_type),
+    #         visibility=st.just(visibility_uuid_public),
+    #         org_unit=st.just(test_data_org_unit_uuid),
+    #         person=st.just(test_data_person_uuid),
+    #         engagement=st.just(test_data_engagement_uuid),
+    #     )
+    # )
+    tap = "test"
+
+
+# address
+# email
+# ean
+# phone
+# openhours
 
 
 @given(
