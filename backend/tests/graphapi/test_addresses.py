@@ -612,6 +612,18 @@ async def test_create_integration_address(data, graphapi_post):
         else None
     )
 
+    assert new_addr[mapping.VALUE] == test_data.value
+    assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
+    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+
+    if test_data.org_unit:
+        assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == str(test_data.org_unit)
+    elif test_data.person:
+        # INFO: here is a confusing part where we create using PERSON, but fetch using EMPLOYEE:
+        assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
+    elif test_data.engagement:
+        assert new_addr["engagement_uuid"] == str(test_data.engagement)
+
 
 # address
 # email
