@@ -116,147 +116,7 @@ def _get_address_query():
     """
 
 
-def _get_orgunit_addr_type(value_type):
-    if value_type == "email":
-        return addr_type_orgunit_email
-
-    return None
-
-
-def _get_person_addr_type(value_type):
-    if value_type == "email":
-        return addr_type_user_email
-
-    return None
-
-
-def _get_engagement_addr_type(value_type):
-    if value_type == "email":
-        # TODO: Figure out a proper UUID here - I currently cant find
-        # an engagement_addr_type in the sample_structure.
-        return addr_type_user_email
-
-    return None
-
-
-def _get_create_addresss_addr_type(
-    create_address_value_type,
-    test_data_org_unit_uuid,
-    test_data_person_uuid,
-    test_data_engagement_uuid,
-):
-    if test_data_org_unit_uuid:
-        # return addr_type_orgunit_email
-        return _get_orgunit_addr_type(create_address_value_type)
-    elif test_data_person_uuid:
-        # return addr_type_user_email
-        return _get_person_addr_type(create_address_value_type)
-    elif test_data_engagement_uuid:
-        return _get_engagement_addr_type(create_address_value_type)
-
-    return None
-
-
-def _create_address_create_hypothesis_test_data(data, graphapi_post):
-    (
-        test_data_org_unit_uuid,
-        test_data_person_uuid,
-        test_data_engagement_uuid,
-    ) = data.draw(
-        st.tuples(
-            st.sampled_from(
-                [
-                    UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),  # L1
-                ]
-            )
-            | st.none(),
-            st.sampled_from(
-                [
-                    UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),  # andersand
-                    UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),  # fedtmule
-                    UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),  # erik_smidt_hansen
-                    # Doing stuff with this test user makes the addresses-query fail on the new UUID.
-                    # OBS: I have expericed similar issues with employee-update
-                    # UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),  # lis_jensen
-                ]
-            )
-            | st.none(),
-            st.sampled_from(
-                [
-                    UUID(
-                        "d000591f-8705-4324-897a-075e3623f37b"
-                    ),  # engagement_andersand
-                    UUID(
-                        "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab"
-                    ),  # engagement_eriksmidthansen
-                    UUID(
-                        "301a906b-ef51-4d5c-9c77-386fb8410459"
-                    ),  # engagement_eriksmidthansen_sekundaer
-                ]
-            )
-            | st.none(),
-        )
-        .filter(
-            lambda rels: False if not rels[0] and not rels[1] and not rels[2] else True
-        )
-        .filter(lambda rels: False if rels[0] and (rels[1] or rels[2]) else True)
-        .filter(lambda rels: False if rels[1] and (rels[0] or rels[2]) else True)
-        .filter(lambda rels: False if rels[2] and (rels[0] or rels[1]) else True)
-    )
-
-    address_type = None
-    dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
-    if test_data_org_unit_uuid:
-        address_type = addr_type_orgunit_email
-
-        if graphapi_post:
-            org_unit_validity_from, _ = fetch_org_unit_validity(
-                graphapi_post, test_data_org_unit_uuid
-            )
-            dt_options_min_from = org_unit_validity_from
-    elif test_data_person_uuid:
-        address_type = addr_type_user_email
-
-        if graphapi_post:
-            person_validity_from, _ = fetch_employee_validity(
-                graphapi_post, test_data_person_uuid
-            )
-            dt_options_min_from = person_validity_from
-    elif test_data_engagement_uuid:
-        # TODO: Figure out a proper UUID here - I currently cant find
-        # an engagement_addr_type in the sample_structure.
-        address_type = addr_type_user_email
-
-    dt_options = {
-        "min_value": dt_options_min_from,
-        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
-    }
-    test_datavalidity_tuple = data.draw(
-        st.tuples(
-            st.datetimes(**dt_options),
-            st.datetimes(**dt_options) | st.none(),
-        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
-    )
-    test_data_from, test_data_to = test_datavalidity_tuple
-
-    return data.draw(
-        st.builds(
-            AddressCreate,
-            value=st.emails(),
-            from_date=st.just(test_data_from),
-            to_date=st.just(test_data_to),
-            address_type=st.just(address_type),
-            visibility=st.just(visibility_uuid_public),
-            org_unit=st.just(test_data_org_unit_uuid),
-            person=st.just(test_data_person_uuid),
-            engagement=st.just(test_data_engagement_uuid),
-        )
-    )
-
-
-def _create_address_create_hypothesis_test_data_new(
-    data, graphapi_post, test_data_samples
-):
+def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_samples):
     (
         test_data_org_unit_uuid,
         test_data_person_uuid,
@@ -289,8 +149,8 @@ def _create_address_create_hypothesis_test_data_new(
     test_data_from, test_data_to = test_datavalidity_tuple
 
     if address_type in (addr_type_orgunit_address, addr_type_user_address):
-        # FYI: The UUIDs we sample from, are the ones found
-        # in: backend\tests\mocking\dawa-addresses.json
+        # FYI: The UUIDs we sample from, are the ones found in:
+        # backend\tests\mocking\dawa-addresses.json
         test_data_value = data.draw(
             st.sampled_from(
                 [
@@ -400,7 +260,62 @@ async def test_create_mutator(address_create: AsyncMock, data):
     address_create.return_value = AddressCreateType(uuid=uuid4())
 
     # Prepare test_data
-    test_data = _create_address_create_hypothesis_test_data(data, graphapi_post=None)
+    test_data_samples = [
+        # org units
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_address,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_email,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_phone,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_ean,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_openhours,
+        ),
+        # Users
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_phone,
+        ),
+    ]
+
+    test_data = _create_address_create_hypothesis_test_data(
+        data, None, test_data_samples
+    )
     payload = jsonable_encoder(test_data)
 
     # Invoke the mutator
@@ -469,77 +384,7 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_integration_emails(data, graphapi_post):
-    # Test data
-    test_data = _create_address_create_hypothesis_test_data(
-        data, graphapi_post=graphapi_post
-    )
-    payload = jsonable_encoder(test_data)
-
-    # mutation invoke
-    mutate_query = """
-        mutation($input: AddressCreateInput!) {
-            address_create(input: $input) {
-                uuid
-            }
-        }
-    """
-    response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
-    )
-    assert response.errors is None
-
-    test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
-
-    # query invoke after mutation
-    verify_query = _get_address_query()
-    verify_response: GQLResponse = graphapi_post(
-        verify_query,
-        {mapping.UUID: str(test_data_uuid_new)},
-    )
-
-    assert verify_response.errors is None
-
-    # Asserts
-    new_addr = one(one(verify_response.data["addresses"])["objects"])
-    assert new_addr[mapping.UUID] is not None
-
-    assert (
-        new_addr[mapping.VALIDITY][mapping.FROM]
-        == datetime.datetime.combine(
-            test_data.from_date.date(), datetime.datetime.min.time()
-        )
-        .replace(tzinfo=tz_cph)
-        .isoformat()
-    )
-
-    assert new_addr[mapping.VALIDITY][mapping.TO] == (
-        datetime.datetime.combine(
-            test_data.to_date.date(), datetime.datetime.min.time()
-        )
-        .replace(tzinfo=tz_cph)
-        .isoformat()
-        if test_data.to_date
-        else None
-    )
-
-    assert new_addr[mapping.VALUE] == test_data.value
-    assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
-    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
-
-    if test_data.org_unit:
-        assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == str(test_data.org_unit)
-    elif test_data.person:
-        # INFO: here is a confusing part where we create using PERSON, but fetch using EMPLOYEE:
-        assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
-    elif test_data.engagement:
-        assert new_addr["engagement_uuid"] == str(test_data.engagement)
-
-
-@given(data=st.data())
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_integration_address(data, graphapi_post):
+async def test_create_integration(data, graphapi_post):
     """Integration test for create address.
 
     OBS: Does currently not test address-relation to engagements.
@@ -655,7 +500,7 @@ async def test_create_integration_address(data, graphapi_post):
         + test_data_samples_openhours
     )
 
-    test_data = _create_address_create_hypothesis_test_data_new(
+    test_data = _create_address_create_hypothesis_test_data(
         data, graphapi_post, test_data_samples
     )
 
@@ -719,13 +564,6 @@ async def test_create_integration_address(data, graphapi_post):
         assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
     elif test_data.engagement:
         assert new_addr["engagement_uuid"] == str(test_data.engagement)
-
-
-# address
-# email
-# ean
-# phone
-# openhours
 
 
 @given(
