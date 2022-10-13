@@ -29,9 +29,11 @@ from mora.graphapi.versions.latest.models import AddressUpdate
 from mora.graphapi.versions.latest.types import AddressCreateType
 from mora.graphapi.versions.latest.types import AddressType
 from ramodels.mo.details import AddressRead
+from tests import util
 from tests.conftest import GQLResponse
 from tests.graphapi.utils import fetch_employee_validity
 from tests.graphapi.utils import fetch_org_unit_validity
+from tests.util import dar_loader
 
 
 # HELPERS
@@ -279,12 +281,26 @@ def _create_address_create_hypothesis_test_data_new(
     )
     test_data_from, test_data_to = test_datavalidity_tuple
 
-    if address_type in [addr_type_orgunit_address, addr_type_user_address]:
-        test_data_value = st.text()
-    elif address_type in [addr_type_user_email, addr_type_orgunit_email]:
+    if address_type in (addr_type_orgunit_address, addr_type_user_address):
+        # FYI: The UUIDs we sample from, are the ones found
+        # in: backend\tests\mocking\dawa-addresses.json
+        test_data_value = data.draw(
+            st.sampled_from(
+                [
+                    "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                    "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "606cf42e-9dc2-4477-bf70-594830fcbdec",
+                    "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "bae093df-3b06-4f23-90a8-92eabedb3622",
+                    "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                ]
+            )
+        )
+    elif address_type in (addr_type_user_email, addr_type_orgunit_email):
         test_data_value = data.draw(st.emails())
     else:
-        test_data_value = st.text()
+        test_data_value = data.draw(st.text())
 
     return data.draw(
         st.builds(
@@ -513,7 +529,7 @@ async def test_create_integration_emails(data, graphapi_post):
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_integration_address(data, graphapi_post):
-    # Configre test data
+    # Configre test data samples
     addr_tests_data = [
         # Org units
         (
@@ -542,55 +558,38 @@ async def test_create_integration_address(data, graphapi_post):
             addr_type_user_address,
         ),
     ]
+
     test_data = _create_address_create_hypothesis_test_data_new(
         data, graphapi_post, addr_tests_data
     )
 
-    # (
-    #     test_data_org_unit_uuid,
-    #     test_data_person_uuid,
-    #     test_data_engagement_uuid,
-    #     address_type
-    # ) = data.draw(st.sampled_from(addr_tests_data))
+    payload = jsonable_encoder(test_data)
 
-    # dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
-    # if test_data_org_unit_uuid and graphapi_post:
-    #     org_unit_validity_from, _ = fetch_org_unit_validity(
-    #         graphapi_post, test_data_org_unit_uuid
-    #     )
-    #     dt_options_min_from = org_unit_validity_from
-    # elif test_data_person_uuid and graphapi_post:
-    #     person_validity_from, _ = fetch_employee_validity(
-    #         graphapi_post, test_data_person_uuid
-    #     )
-    #     dt_options_min_from = person_validity_from
+    # mutation invoke
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
 
-    # dt_options = {
-    #     "min_value": dt_options_min_from,
-    #     "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
-    # }
-    # test_datavalidity_tuple = data.draw(
-    #     st.tuples(
-    #         st.datetimes(**dt_options),
-    #         st.datetimes(**dt_options) | st.none(),
-    #     ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
-    # )
-    # test_data_from, test_data_to = test_datavalidity_tuple
+    with util.darmock("dawa-addresses.json", real_http=True), dar_loader():
+        response = await execute_graphql(
+            query=mutate_query, variable_values={"input": payload}
+        )
 
-    # test_data = data.draw(
-    #     st.builds(
-    #         AddressCreate,
-    #         value=st.emails(),
-    #         from_date=st.just(test_data_from),
-    #         to_date=st.just(test_data_to),
-    #         address_type=st.just(address_type),
-    #         visibility=st.just(visibility_uuid_public),
-    #         org_unit=st.just(test_data_org_unit_uuid),
-    #         person=st.just(test_data_person_uuid),
-    #         engagement=st.just(test_data_engagement_uuid),
-    #     )
-    # )
-    tap = "test"
+    assert response.errors is None
+    test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
+
+    # query invoke after mutation
+    verify_query = _get_address_query()
+    verify_response: GQLResponse = graphapi_post(
+        verify_query,
+        {mapping.UUID: str(test_data_uuid_new)},
+    )
+
+    assert verify_response.errors is None
 
 
 # address
