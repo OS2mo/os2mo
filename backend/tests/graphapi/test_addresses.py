@@ -48,12 +48,12 @@ user_erik = UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7")  # erik_smidt_hansen
 
 addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
 addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
-# addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
+addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
 
 addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
 addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
+addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
 # addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2") # FYI: regex: ^\d{13}$
-# addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
 # addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
 
 # engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
@@ -304,9 +304,11 @@ def _create_address_create_hypothesis_test_data_new(
         )
     elif address_type in (addr_type_user_email, addr_type_orgunit_email):
         test_data_value = data.draw(st.emails())
+    elif address_type in (addr_type_user_phone, addr_type_orgunit_phone):
+        test_data_value = data.draw(st.from_regex(r"^\+?\d+$"))
     else:
         test_data_value = data.draw(st.text())
-
+    #
     return data.draw(
         st.builds(
             AddressCreate,
@@ -591,7 +593,36 @@ async def test_create_integration_address(data, graphapi_post):
         ),
     ]
 
-    test_data_samples = test_data_samples_addrs + test_data_samples_emails
+    test_data_samples_phone = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_phone,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_phone,
+        ),
+        (
+            None,
+            user_fedtmule,
+            None,
+            addr_type_user_phone,
+        ),
+        (
+            None,
+            user_erik,
+            None,
+            addr_type_user_phone,
+        ),
+    ]
+
+    test_data_samples = (
+        test_data_samples_addrs + test_data_samples_emails + test_data_samples_phone
+    )
 
     test_data = _create_address_create_hypothesis_test_data_new(
         data, graphapi_post, test_data_samples
