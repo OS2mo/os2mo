@@ -169,7 +169,7 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
         test_data_value = data.draw(st.from_regex(r"^\d{13}$"))
     else:
         test_data_value = data.draw(st.text())
-    #
+
     return data.draw(
         st.builds(
             AddressCreate,
@@ -398,14 +398,12 @@ async def test_create_integration(data, graphapi_post):
 
     # Configre test data samples
     test_data_samples_addrs = [
-        # Org units
         (
             UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
             None,
             None,
             addr_type_orgunit_address,
         ),
-        # Users
         (
             None,
             UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
