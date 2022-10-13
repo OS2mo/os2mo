@@ -45,6 +45,7 @@ uvicorn = "^0.18.3"
 strawberry-graphql = {extras = ["fastapi"], version = "^0.131.1"}
 jsonschema = "^4.16.0"
 psycopg2-binary = "~2.8"
+pytest-timeouts = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 requests-mock = "^1.10.0"
@@ -72,7 +73,9 @@ git-email = "info@magenta.dk"
 
 [tool.pytest.ini_options]
 markers = [
-    "integration_test: mark test as an integration test"
+  "integration_test: mark test as an integration test",
+  "slow: mark test as being very slow",
+  "slow_setup: mark a test as having an exceptionally slow setup time, and prevent errors from timeout",
 ]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"

@@ -116,6 +116,7 @@ async def test_create_org_unit(
 
 
 @given(data=st.data())
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> None:

@@ -4,6 +4,7 @@ import os
 import pathlib
 import unittest
 
+import pytest
 import tap.parser
 
 from oio_rest import config
@@ -35,6 +36,7 @@ class SQLTests(DBTestCase):
             curs.execute("DROP SCHEMA test CASCADE")
             curs.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
 
+    @pytest.mark.slow
     def test_pgsql(self):
         with get_connection() as conn, conn.cursor() as curs:
             curs.execute("SELECT * FROM runtests ('test'::name)")

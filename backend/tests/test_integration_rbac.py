@@ -235,6 +235,7 @@ class TestCreateOrgUnit(TestCommon):
             self.url_create, json=self.create_org_unit_payload, status_code=status_code
         )
 
+    @pytest.mark.slow
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
     def test_201_when_creating_unit_as_owner_of_parent_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -254,6 +255,7 @@ class TestCreateOrgUnit(TestCommon):
         ]
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_create_top_level_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -284,6 +286,7 @@ class TestRenameOrgUnit(TestCommon):
         ]
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_rename_org_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -636,6 +639,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_association_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -650,6 +654,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_manager_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -664,6 +669,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
         )
 
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_terminate_org_unit_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 

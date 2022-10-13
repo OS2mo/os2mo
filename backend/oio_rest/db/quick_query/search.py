@@ -456,14 +456,14 @@ def quick_search(
 
     # Parse input
     class_name = class_name.lower()
-    if class_name not in [
+    if class_name not in (
         "organisationfunktion",
         "organisationenhed",
         "facet",
         "bruger",
         "klasse",
         "itsystem",
-    ]:
+    ):
         raise NotImplementedError(f"not implemented for {class_name}")
 
     # Non-implemented search parameters
