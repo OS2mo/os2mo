@@ -4,6 +4,8 @@ import copy
 import json
 import unittest
 
+import pytest
+
 from tests.oio_rest.test_integration_helper import TestCreateObject
 
 
@@ -28,6 +30,7 @@ class TestCreateOrganisation(TestCreateObject):
         }
         self.URL = "/organisation/organisation"
 
+    @pytest.mark.slow
     def test_no_note_valid_bvn_no_org_name_no_relations(self):
         """
         Equivalence classes covered: [2][6][9][13][21][24][29][38]
@@ -350,6 +353,7 @@ class TestCreateOrganisation(TestCreateObject):
         )
         self.assertRequestFails(self.URL, 400, json=self.org)
 
+    @pytest.mark.slow
     def test_empty_list_of_relations(self):
         """
         Equivalence classes covered: [31]

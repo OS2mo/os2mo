@@ -183,6 +183,7 @@ async def test_create_manager_mutation_unit_test(
 
 
 @given(data=st.data())
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_manager_integration_test(
