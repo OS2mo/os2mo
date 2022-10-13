@@ -59,7 +59,7 @@ def pytest_runtest_protocol(item):
         if item.get_closest_marker("slow"):
             item.add_marker(pytest.mark.execution_timeout(80))
         else:
-            item.add_marker(pytest.mark.execution_timeout(3))
+            item.add_marker(pytest.mark.execution_timeout(5))
         # Using 'are_fixtures_loaded' ensures that the timout is not applied
         # when creating the first instance of the sample_structures
         global are_fixtures_loaded
