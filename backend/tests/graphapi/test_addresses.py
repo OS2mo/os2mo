@@ -590,6 +590,27 @@ async def test_create_integration_address(data, graphapi_post):
     )
 
     assert verify_response.errors is None
+    new_addr = one(one(verify_response.data["addresses"])["objects"])
+
+    # Asserts
+    assert new_addr[mapping.UUID] is not None
+    assert (
+        new_addr[mapping.VALIDITY][mapping.FROM]
+        == datetime.datetime.combine(
+            test_data.from_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+    )
+    assert new_addr[mapping.VALIDITY][mapping.TO] == (
+        datetime.datetime.combine(
+            test_data.to_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+        if test_data.to_date
+        else None
+    )
 
 
 # address
