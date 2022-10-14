@@ -807,6 +807,10 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
             employee_data, key, new_value
         )
 
+        print("-----------------------------------------------")
+        print(payload)
+        print(employee_data)
+        print("-----------------------------------------------")
         assert new_value == employee_data_value
 
 
