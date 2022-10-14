@@ -22,6 +22,7 @@ from respx.mocks import HTTPCoreMocker
 from starlette_context import _request_scope_context_storage
 from starlette_context.ctx import _Context
 
+from mora import app
 from mora import lora
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
@@ -31,9 +32,11 @@ from mora.service.org import ConfiguredOrganisation
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
 from ramodels.mo import Validity
+from tests.graphapi import conftest
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
+
 
 # Configs + fixtures
 h_db = InMemoryExampleDatabase()
@@ -65,6 +68,15 @@ def pytest_runtest_protocol(item):
         global are_fixtures_loaded
         if are_fixtures_loaded and not item.get_closest_marker("slow_setup"):
             item.add_marker(pytest.mark.setup_timeout(2.0))
+
+        # HACK: if the base mora app is not created already
+        # create a new one
+        global base_test_app
+        global graph_app
+        if not base_test_app:
+            base_test_app = app.create_app()
+        if not graph_app:
+            graph_app = conftest.test_app()
 
 
 st.register_type_strategy(Validity, validity_model_strat())

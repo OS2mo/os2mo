@@ -24,9 +24,9 @@ logger = get_logger()
 
 # Global variables for test optimizations
 base_test_app = None
-graph_api_test_app = None
 
 
+@pytest.mark.slow_setup
 class NewGraphApiTestApp:
 
     app_settings_overrides = {
@@ -40,6 +40,7 @@ class NewGraphApiTestApp:
         return _app
 
 
+@pytest.mark.slow_setup
 class NewTestApp:
     def create_app(self, overrides=None):
         service.org.ConfiguredOrganisation.valid = False
