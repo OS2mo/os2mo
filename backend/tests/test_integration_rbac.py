@@ -218,6 +218,7 @@ class TestCreateOrgUnit(TestCommon):
         ]
     )
     @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @pytest.mark.slow
     def test_create_org_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
