@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.30.2 - 2022-10-14
+--------------------
+
+[#51146] Added @pytest.mark.slow to tests failing in pipelines with 'Timeout >5.0s'.
+
 11.30.1 - 2022-10-13
 --------------------
 
