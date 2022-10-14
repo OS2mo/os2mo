@@ -387,6 +387,7 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
     address_create.assert_not_called()
 
 
+@pytest.mark.slow
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -689,7 +690,6 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
     assert len(response.data["addresses"]) == expected
 
 
-@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
