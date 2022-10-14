@@ -689,6 +689,7 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
     assert len(response.data["addresses"]) == expected
 
 
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
