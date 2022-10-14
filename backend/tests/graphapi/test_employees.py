@@ -649,6 +649,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 
 
 @given(data=st.data())
+@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_integration_hypothesis(data, graphapi_post) -> None:
