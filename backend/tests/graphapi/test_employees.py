@@ -734,14 +734,7 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
             # cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
         ).filter(lambda model: not model.no_values())
     )
-
     payload = jsonable_encoder(test_data)
-    pre_verify_response: GQLResponse = graphapi_post(
-        _get_employee_verify_query(), {"uuid": str(test_data.uuid)}
-    )
-    print("-----------------------------")
-    print(pre_verify_response)
-    print("-----------------------------")
 
     # TODO: Remove this, when a proper way of testing CPR-NO have been implemented.
     # if payload.get('cpr_no'):
@@ -776,16 +769,15 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     # Assert the new update values have been assigned to the employee
     employee_data = None
     employee_objects = one(verify_response.data["employees"]).get("objects", [])
-    if len(employee_objects) < 2:
-        employee_data = one(employee_objects)
-    else:
-        for e_obj in employee_objects:
-            if not e_obj.get("validity", {}).get("to"):
-                employee_data = e_obj
+
+    # Find the first employee object where to_date=None
+    for e_obj in employee_objects:
+        if not e_obj.get("validity", {}).get("to"):
+            employee_data = e_obj
 
     assert employee_data is not None
 
-    mutator_keys = test_data.__fields__.keys()
+    mutator_keys = payload.keys()
     for key in mutator_keys:
         if key not in [
             "name",
@@ -799,18 +791,17 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
         ]:
             continue
 
-        try:
-            new_value = getattr(test_data, key)
-            if isinstance(new_value, (datetime.date, datetime.datetime)):
-                new_value = new_value.isoformat()
-        except AttributeError:
-            print(f"ERROR: Unable to find new_value for mutator key: {key}")
-            new_value = None
+        new_value = getattr(test_data, key)
 
-        # OBS: No updates are made on empty strings
-        if new_value is None or new_value == "":
+        # Skip all mutator keys where the new value is None
+        if not new_value:
             continue
 
+        # Handle new dates + datetimes
+        if isinstance(new_value, (datetime.date, datetime.datetime)):
+            new_value = new_value.isoformat()
+
+        # Fetch the mutator_key equivilent from the employee_data for assert
         employee_data_value = _get_employee_data_from_mutator_key(
             employee_data, key, new_value
         )
