@@ -33,6 +33,7 @@ class TestOrgFunkReadingHandler(tests.cases.AsyncLoRATestCase):
             {"rod <-> fil", "rod <-> hum"},
         )
 
+    @pytest.mark.slow
     async def test_get_count(self):
         # This counts the 2 org funcs of type "tilknyttedeenheder"
         # ("rod <-> fil", "rod <-> hum")
