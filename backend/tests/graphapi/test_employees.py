@@ -15,6 +15,7 @@ from more_itertools import one
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
+from structlog import get_logger
 
 import tests.cases
 from .strategies import graph_data_strat
@@ -31,6 +32,8 @@ from mora.graphapi.versions.latest.types import EmployeeUpdateResponseType
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
+
+logger = get_logger()
 
 # Helpers
 # from ..util import sample_structures_minimal_decorator, foo
@@ -898,6 +901,10 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     )
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
+
+    logger.info("----------------------------------------------------------")
+    logger.info(verify_response.data)
+    logger.info("----------------------------------------------------------")
 
     verify_data = None
     for e_obj in one(verify_response.data["employees"]).get("objects", []):
