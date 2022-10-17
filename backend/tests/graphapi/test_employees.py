@@ -839,8 +839,8 @@ async def test_update_integration_hypothesis(data, graphapi_post):
         st.sampled_from(
             [
                 UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
-                UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
-                UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+                # UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
+                # UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
             ]
         )
     )
@@ -864,13 +864,16 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     )
 
     names_whitelist_cats = ("Ll", "Lo", "Lu")
-
     test_data = data.draw(
         st.builds(
             EmployeeUpdate,
             uuid=st.just(employee_uuid),
             from_date=st.just(test_data_validity_from),
-            name=st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            # name=st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            # | st.none(),
+            given_name=st.text(
+                alphabet=characters(whitelist_categories=names_whitelist_cats)
+            )
             | st.none(),
         ).filter(lambda model: not model.no_values())
     )
@@ -902,7 +905,12 @@ async def test_update_integration_hypothesis(data, graphapi_post):
             verify_data = e_obj
 
     assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
-    assert verify_data.get("givenname") == test_data.name
+
+    # if test_data.name:
+    #     assert verify_data.get("givenname") == test_data.name
+
+    if test_data.given_name:
+        assert verify_data.get("givenname") == test_data.given_name
 
 
 # --------------------------------------------------------------------------------------
