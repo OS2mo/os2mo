@@ -908,8 +908,11 @@ async def test_update_integration_hypothesis(data, graphapi_post):
 
     verify_data = None
     for e_obj in one(verify_response.data["employees"]).get("objects", []):
-        if not e_obj.get("validity", {}).get("to"):
+        # if not e_obj.get("validity", {}).get("to"):
+        #     verify_data = e_obj
+        if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
             verify_data = e_obj
+            break
 
     assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
 
