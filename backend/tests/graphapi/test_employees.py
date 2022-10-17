@@ -15,7 +15,6 @@ from more_itertools import one
 from parameterized import parameterized
 from pydantic import ValidationError
 from pytest import MonkeyPatch
-from structlog import get_logger
 
 import tests.cases
 from .strategies import graph_data_strat
@@ -33,7 +32,6 @@ from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
-logger = get_logger()
 
 # Helpers
 # from ..util import sample_structures_minimal_decorator, foo
@@ -833,8 +831,8 @@ async def _test_update_integration_hypothesis(data, graphapi_post) -> None:
         assert test_data.cpr_no == updated_employee_data.get("cpr_no")
 
 
-@given(data=st.data())
 @pytest.mark.slow
+@given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_integration_hypothesis(data, graphapi_post):
@@ -899,6 +897,11 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     verify_response: GQLResponse = graphapi_post(
         _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
+
+    print("----------------------------------------------------------")
+    print(verify_response.data)
+    print("----------------------------------------------------------")
+
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
@@ -911,22 +914,11 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     assert test_data.given_name == _get_lora_mutator_arg("given_name", lora_employee)
     assert len(verify_data_employee_objs) > 1
 
-    logger.info("----------------------------------------------------------")
-    logger.info(verify_response.data)
-    logger.info("----------------------------------------------------------")
-    print("----------------------------------------------------------")
-    print(verify_response.data)
-    print("----------------------------------------------------------")
-
     verify_data = None
     for e_obj in verify_data_employee_objs:
         if not e_obj.get("validity", {}).get("to"):
             verify_data = e_obj
             break
-
-        # if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
-        #     verify_data = e_obj
-        #     break
 
     assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
 
