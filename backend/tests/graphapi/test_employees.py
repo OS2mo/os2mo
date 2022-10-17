@@ -652,7 +652,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 @pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_integration_hypothesis(data, graphapi_post) -> None:
+async def _test_update_integration_hypothesis(data, graphapi_post) -> None:
     valid_employee_uuids = [
         UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
         UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
@@ -765,7 +765,6 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     verify_response: GQLResponse = graphapi_post(
         _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
-
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
@@ -829,6 +828,80 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
 
     if test_data.cpr_no:
         assert test_data.cpr_no == updated_employee_data.get("cpr_no")
+
+
+@given(data=st.data())
+@pytest.mark.slow
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_update_integration_hypothesis(data, graphapi_post):
+    employee_uuid = data.draw(
+        st.sampled_from(
+            [
+                UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+                UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
+                UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+            ]
+        )
+    )
+
+    now = datetime.datetime.utcnow()
+    yesterday = now - datetime.timedelta(days=1)
+    validity = data.draw(
+        st.tuples(
+            st.datetimes(
+                min_value=datetime.datetime(1930, 1, 1),
+                max_value=datetime.datetime(
+                    yesterday.year, yesterday.month, yesterday.day
+                ),
+            ),
+            st.datetimes() | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_validity_from, _ = validity
+    test_data_validity_from = datetime.datetime.combine(
+        test_data_validity_from.date(), datetime.datetime.min.time()
+    )
+
+    names_whitelist_cats = ("Ll", "Lo", "Lu")
+    test_data = data.draw(
+        st.builds(
+            EmployeeUpdate,
+            uuid=st.just(employee_uuid),
+            from_date=st.just(test_data_validity_from),
+            name=st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
+            | st.none(),
+            # given_name=st.just(given_given_name),
+            # surname=st.just(given_surname),
+            # nickname=st.just(given_nickname),
+            # nickname_given_name=st.just(given_nickname_given_name),
+            # nickname_surname=st.just(given_nickname_surname),
+        ).filter(lambda model: not model.no_values())
+    )
+    payload = jsonable_encoder(test_data)
+
+    mutation_response: GQLResponse = graphapi_post(
+        """
+        mutation($input: EmployeeUpdateInput!) {
+            employee_update(input: $input) {
+                uuid
+            }
+        }
+        """,
+        {"input": payload},
+    )
+    assert mutation_response.errors is None
+    test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
+
+    # Fetch employee and verify the employee have been updated
+    verify_response: GQLResponse = graphapi_post(
+        _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
+    )
+    assert verify_response.errors is None
+    assert len(verify_response.data["employees"]) > 0
+    assert one(verify_response.data["employees"])[mapping.UUID] == str(
+        test_data_uuid_updated
+    )
 
 
 # --------------------------------------------------------------------------------------
