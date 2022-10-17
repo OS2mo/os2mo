@@ -902,17 +902,26 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
+    verify_data_employee = one(verify_response.data["employees"])
+    verify_data_employee_objs = verify_data_employee.get("objects", [])
+    assert len(verify_data_employee_objs) > 1
+
     logger.info("----------------------------------------------------------")
     logger.info(verify_response.data)
     logger.info("----------------------------------------------------------")
+    print("----------------------------------------------------------")
+    print(verify_response.data)
+    print("----------------------------------------------------------")
 
     verify_data = None
-    for e_obj in one(verify_response.data["employees"]).get("objects", []):
-        # if not e_obj.get("validity", {}).get("to"):
-        #     verify_data = e_obj
-        if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
+    for e_obj in verify_data_employee_objs:
+        if not e_obj.get("validity", {}).get("to"):
             verify_data = e_obj
             break
+
+        # if e_obj.get("validity", {}).get("from") == test_data.from_date.isoformat():
+        #     verify_data = e_obj
+        #     break
 
     assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
 
