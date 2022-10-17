@@ -864,6 +864,7 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     )
 
     names_whitelist_cats = ("Ll", "Lo", "Lu")
+
     test_data = data.draw(
         st.builds(
             EmployeeUpdate,
@@ -871,11 +872,6 @@ async def test_update_integration_hypothesis(data, graphapi_post):
             from_date=st.just(test_data_validity_from),
             name=st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
             | st.none(),
-            # given_name=st.just(given_given_name),
-            # surname=st.just(given_surname),
-            # nickname=st.just(given_nickname),
-            # nickname_given_name=st.just(given_nickname_given_name),
-            # nickname_surname=st.just(given_nickname_surname),
         ).filter(lambda model: not model.no_values())
     )
     payload = jsonable_encoder(test_data)
@@ -899,9 +895,14 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     )
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
-    assert one(verify_response.data["employees"])[mapping.UUID] == str(
-        test_data_uuid_updated
-    )
+
+    verify_data = None
+    for e_obj in one(verify_response.data["employees"]).get("objects", []):
+        if not e_obj.get("validity", {}).get("to"):
+            verify_data = e_obj
+
+    assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
+    assert verify_data.get("givenname") == test_data.name
 
 
 # --------------------------------------------------------------------------------------
