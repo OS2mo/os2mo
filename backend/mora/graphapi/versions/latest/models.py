@@ -498,7 +498,7 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
 
         return True
 
-    def get_legacy_dict(self) -> dict:
+    def to_handler_dict(self) -> dict:
         # Validate name-vars and nickname-vars before going further
         if self.name and (self.given_name or self.surname):
             raise ValueError(self._ERR_INVALID_NAME)
