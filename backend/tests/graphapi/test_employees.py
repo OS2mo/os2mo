@@ -911,6 +911,7 @@ async def test_update_integration_hypothesis(data, graphapi_post):
     c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
     lora_employee = await c.bruger.get(uuid=str(test_data_uuid_updated))
 
+    assert test_data.given_name == verify_response
     assert test_data.given_name == _get_lora_mutator_arg("given_name", lora_employee)
     assert len(verify_data_employee_objs) > 1
 
