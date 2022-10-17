@@ -767,51 +767,66 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
-    # Assert the new update values have been assigned to the employee
-    employee_data = None
-    employee_objects = one(verify_response.data["employees"]).get("objects", [])
-
-    # Find the first employee object where to_date=None
-    for e_obj in employee_objects:
+    updated_employee_data = None
+    for e_obj in one(verify_response.data["employees"]).get("objects", []):
         if not e_obj.get("validity", {}).get("to"):
-            employee_data = e_obj
+            updated_employee_data = e_obj
 
-    assert employee_data is not None
+    assert updated_employee_data is not None
 
-    mutator_keys = payload.keys()
-    for key in mutator_keys:
-        if key not in [
-            "name",
-            "given_name",
-            "surname",
-            "nickname",
-            "nickname_given_name",
-            "nickname_surname",
-            "seniority",
-            "cpr_no",
-        ]:
-            continue
+    # New Asserts
+    if test_data.name:
+        if len(test_data.name.split(" ")) > 1:
+            employee_data_givenname = updated_employee_data.get("givenname")
+            employee_data_surname = updated_employee_data.get("surname")
+            employee_data_name = (
+                f"{employee_data_givenname} {employee_data_surname}"
+                if employee_data_surname and len(employee_data_surname) > 0
+                else employee_data_givenname
+            )
+            assert test_data.name == employee_data_name
+        else:
+            assert test_data.name == updated_employee_data.get("givenname")
 
-        new_value = getattr(test_data, key)
+    if test_data.given_name:
+        assert test_data.given_name == updated_employee_data.get("givenname")
 
-        # Skip all mutator keys where the new value is None
-        if not new_value:
-            continue
+    if test_data.surname:
+        assert test_data.surname == updated_employee_data.get("surname")
 
-        # Handle new dates + datetimes
-        if isinstance(new_value, (datetime.date, datetime.datetime)):
-            new_value = new_value.isoformat()
+    if test_data.nickname:
+        if len(test_data.nickname.split(" ")) > 1:
+            employee_data_nickname_givenname = updated_employee_data.get(
+                "nickname_givenname"
+            )
+            employee_data_nickname_surname = updated_employee_data.get(
+                "nickname_surname"
+            )
+            employee_data_nickname = (
+                f"{employee_data_nickname_givenname} {employee_data_nickname_surname}"
+                if employee_data_nickname_surname
+                and len(employee_data_nickname_surname) > 0
+                else employee_data_nickname_givenname
+            )
+            assert test_data.name == employee_data_nickname
+        else:
+            assert test_data.nickname == updated_employee_data.get("nickname_givenname")
 
-        # Fetch the mutator_key equivilent from the employee_data for assert
-        employee_data_value = _get_employee_data_from_mutator_key(
-            employee_data, key, new_value
+    if test_data.nickname_given_name:
+        assert test_data.nickname_given_name == updated_employee_data.get(
+            "nickname_givenname"
         )
 
-        print("-----------------------------------------------")
-        print(payload)
-        print(employee_data)
-        print("-----------------------------------------------")
-        assert new_value == employee_data_value
+    if test_data.nickname_surname:
+        assert test_data.nickname_surname == updated_employee_data.get(
+            "nickname_surname"
+        )
+
+    if test_data.seniority:
+        assert test_data.seniority == updated_employee_data.get("seniority")
+
+    if test_data.cpr_no:
+        assert test_data.cpr_no == updated_employee_data.get("cpr_no")
 
 
 # --------------------------------------------------------------------------------------
