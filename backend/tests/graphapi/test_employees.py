@@ -746,22 +746,24 @@ async def test_update_integration_hypothesis(data, graphapi_post) -> None:
     #     ).isoformat()
 
     # Execute the mutation query
-    mutate_query = """
+    mutation_response: GQLResponse = graphapi_post(
+        """
         mutation($input: EmployeeUpdateInput!) {
             employee_update(input: $input) {
                 uuid
             }
         }
-    """
-    mutation_response = await execute_graphql(
-        query=mutate_query, variable_values={"input": payload}
+        """,
+        {"input": payload},
     )
-
     assert mutation_response.errors is None
+
+    # OBS: We run it through the UUID() constructor to verify its a valid UUID.
+    test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
 
     # Query the updated user and assert values have been updated
     verify_response: GQLResponse = graphapi_post(
-        _get_employee_verify_query(), {"uuid": str(test_data.uuid)}
+        _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
 
     assert verify_response.errors is None
