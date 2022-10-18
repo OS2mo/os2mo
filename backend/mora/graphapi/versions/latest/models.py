@@ -10,6 +10,7 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
 from pydantic import Field
+from pydantic import root_validator
 
 from mora import common
 from mora import exceptions
@@ -483,6 +484,18 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         None, description="New danish CPR No. of the employee."
     )
 
+    @root_validator
+    def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("name") and (values.get("given_name") or values.get("surname")):
+            raise ValueError(cls._ERR_INVALID_NAME)
+
+        if values.get("nickname") and (
+            values.get("nickname_given_name") or values.get("nickname_surname")
+        ):
+            raise ValueError(cls._ERR_INVALID_NICKNAME)
+
+        return values
+
     def no_values(self) -> bool:
         if self.to_date:
             return False
@@ -499,13 +512,6 @@ class EmployeeUpdate(UUIDBase, ValidityFromRequired):
         return True
 
     def to_handler_dict(self) -> dict:
-        # Validate name-vars and nickname-vars before going further
-        if self.name and (self.given_name or self.surname):
-            raise ValueError(self._ERR_INVALID_NAME)
-
-        if self.nickname and (self.nickname_given_name or self.nickname_surname):
-            raise ValueError(self._ERR_INVALID_NICKNAME)
-
         # Create validity dict
         validity_dict = {}
         if self.from_date:
