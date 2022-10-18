@@ -98,10 +98,15 @@ async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
     request_handler = await EmployeeRequestHandler.construct(
         request_handler_dict, RequestType.EDIT
     )
-
     new_uuid = await request_handler.submit()
+    
+    # Based on the logic at: backend/mora/lora.py:159
+    # If there is no data changed, it looks like we wont get a UUID  back.
+    updated_uuid = UUID(new_uuid) if new_uuid else employee_update.uuid
 
-    return EmployeeUpdateResponseType(uuid=UUID(new_uuid))
+    return EmployeeUpdateResponseType(uuid=updated_uuid)
+
+    # return EmployeeUpdateResponseType(uuid=UUID(new_uuid))
 
 
 # async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
