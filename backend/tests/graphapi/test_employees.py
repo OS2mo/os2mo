@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import datetime
 import re
-import dateutil
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -11,9 +10,8 @@ from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given, reproduce_failure
+from hypothesis import given
 from hypothesis import strategies as st
-from hypothesis.strategies import characters
 from more_itertools import one
 from parameterized import parameterized
 from pytest import MonkeyPatch
@@ -44,9 +42,7 @@ tz_cph = ZoneInfo("Europe/Copenhagen")
 now_min_cph = datetime.datetime.combine(
     datetime.datetime.now().date(), datetime.datetime.min.time()
 ).replace(tzinfo=tz_cph)
-invalid_uuids = [
-    UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")
-]
+invalid_uuids = [UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")]
 
 
 @given(test_data=graph_data_strat(EmployeeRead))
@@ -676,397 +672,43 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         assert newest_update_value == value
 
 
-@given(data=st.data())
-@pytest.mark.slow
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def _test_update_integration_hypothesis(data, graphapi_post) -> None:
-    valid_employee_uuids = [
-        UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
-        UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
-        # UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
-        # FAILS when making a lookup before doing anything
-        # UUID("7626ad64-327d-481f-8b32-36c78eb12f8c"),
-    ]
-
-    # Generate data using hypothesis'es draw functionality
-    employee_uuid = data.draw(st.sampled_from(valid_employee_uuids))
-    now = datetime.datetime.utcnow()
-    yesterday = now - datetime.timedelta(days=1)
-    validity = data.draw(
-        st.tuples(
-            st.datetimes(
-                min_value=datetime.datetime(1930, 1, 1),
-                max_value=datetime.datetime(
-                    yesterday.year, yesterday.month, yesterday.day
-                ),
-            ),
-            st.datetimes() | st.none(),
-        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
-    )
-    test_data_validity_from, test_data_validity_to = validity
-    test_data_validity_from = datetime.datetime.combine(
-        test_data_validity_from.date(), datetime.datetime.min.time()
-    )
-
-    names_whitelist_cats = ("Ll", "Lo", "Lu")
-    given_name, given_given_name, given_surname = data.draw(
-        st.tuples(
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-        ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
-    )
-
-    given_nickname, given_nickname_given_name, given_nickname_surname = data.draw(
-        st.tuples(
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-        ).filter(lambda names: not (names[0] and (names[1] or names[2]))),
-    )
-
-    # TODO: Find a way to implement this, when figuring out how employees behave after
-    #  senority have been updated
-    # seniority = data.draw(
-    #     st.datetimes(
-    #         min_value=datetime.datetime(1930, 1, 1),
-    #         max_value=datetime.datetime(yesterday.year, yesterday.month, yesterday.day),
-    #     )
-    #     | st.none()
-    # )
-
-    test_data = data.draw(
-        st.builds(
-            EmployeeUpdate,
-            uuid=st.just(employee_uuid),
-            from_date=st.just(test_data_validity_from),
-            name=st.just(given_name),
-            given_name=st.just(given_given_name),
-            surname=st.just(given_surname),
-            nickname=st.just(given_nickname),
-            nickname_given_name=st.just(given_nickname_given_name),
-            nickname_surname=st.just(given_nickname_surname),
-            # TODO: Make the integration test able to verify these two attrbiutes.
-            #  I have had issues with getting success from update-mutator, but then
-            #  we cant for some reason get the employee afterwards.. both the old
-            #  and the new query method don't work here.. but it seems to occur after a
-            #  couple of interation.. so i am afraid that a specific update causes a
-            #  weird state for the customer, which i am not sure how to handle.
-            # seniority=st.just(seniority),
-            # cpr_no=st.from_regex(r"^\d{10}$") | st.none(),
-        ).filter(lambda model: not model.no_values())
-    )
-    payload = jsonable_encoder(test_data)
-
-    # TODO: Remove this, when a proper way of testing CPR-NO have been implemented.
-    # if payload.get('cpr_no'):
-    #     # Convert from-date since i am having issues getting employees with certain
-    #     # dates, when using CPR No.
-    #     payload['from'] = datetime.datetime.combine(
-    #         yesterday.date(), datetime.datetime.min.time()
-    #     ).isoformat()
-
-    # Execute the mutation query
-    mutation_response: GQLResponse = graphapi_post(
-        """
-        mutation($input: EmployeeUpdateInput!) {
-            employee_update(input: $input) {
-                uuid
-            }
-        }
-        """,
-        {"input": payload},
-    )
-    assert mutation_response.errors is None
-
-    # OBS: We run it through the UUID() constructor to verify its a valid UUID.
-    test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
-
-    # Query the updated user and assert values have been updated
-    verify_response: GQLResponse = graphapi_post(
-        _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
-    )
-    assert verify_response.errors is None
-    assert len(verify_response.data["employees"]) > 0
-
-    updated_employee_data = None
-    for e_obj in one(verify_response.data["employees"]).get("objects", []):
-        if not e_obj.get("validity", {}).get("to"):
-            updated_employee_data = e_obj
-
-    assert updated_employee_data is not None
-
-    # New Asserts
-    if test_data.name:
-        if len(test_data.name.split(" ")) > 1:
-            employee_data_givenname = updated_employee_data.get("givenname")
-            employee_data_surname = updated_employee_data.get("surname")
-            employee_data_name = (
-                f"{employee_data_givenname} {employee_data_surname}"
-                if employee_data_surname and len(employee_data_surname) > 0
-                else employee_data_givenname
-            )
-            assert test_data.name == employee_data_name
-        else:
-            assert test_data.name == updated_employee_data.get("givenname")
-
-    if test_data.given_name:
-        assert test_data.given_name == updated_employee_data.get("givenname")
-
-    if test_data.surname:
-        assert test_data.surname == updated_employee_data.get("surname")
-
-    if test_data.nickname:
-        if len(test_data.nickname.split(" ")) > 1:
-            employee_data_nickname_givenname = updated_employee_data.get(
-                "nickname_givenname"
-            )
-            employee_data_nickname_surname = updated_employee_data.get(
-                "nickname_surname"
-            )
-            employee_data_nickname = (
-                f"{employee_data_nickname_givenname} {employee_data_nickname_surname}"
-                if employee_data_nickname_surname
-                and len(employee_data_nickname_surname) > 0
-                else employee_data_nickname_givenname
-            )
-            assert test_data.name == employee_data_nickname
-        else:
-            assert test_data.nickname == updated_employee_data.get("nickname_givenname")
-
-    if test_data.nickname_given_name:
-        assert test_data.nickname_given_name == updated_employee_data.get(
-            "nickname_givenname"
-        )
-
-    if test_data.nickname_surname:
-        assert test_data.nickname_surname == updated_employee_data.get(
-            "nickname_surname"
-        )
-
-    if test_data.seniority:
-        assert test_data.seniority == updated_employee_data.get("seniority")
-
-    if test_data.cpr_no:
-        assert test_data.cpr_no == updated_employee_data.get("cpr_no")
-
-
-@given(data=st.data())
-@pytest.mark.slow
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def _test_update_integration_hypothesis2(data, graphapi_post, employee_uuids):
-    # employee_uuid = data.draw(
-    #     st.sampled_from(
-    #         [
-    #             UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
-    #             # UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
-    #             # UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
-    #         ]
-    #     )
-    # )
-    employee_uuid = data.draw(st.sampled_from(employee_uuids).filter(lambda uuid: uuid not in invalid_uuids))
-    original = _get_original_employee(employee_uuid, graphapi_post)
-    tap = "test"
-
-    # Create datetimes
-    # test_data_current_from, test_data_current_to = _get_original_employee_validity(employee_uuid, graphapi_post)
-    # test_data_validity_from = data.draw(
-    #     st.datetimes(
-    #         min_value=test_data_current_from,
-    #         max_value=test_data_current_to or datetime.datetime.max
-    #     )
-    # )
-    # if test_data_current_to:
-    #     test_data_validity_to = st.datetimes(
-    #         min_value=test_data_validity_from, max_value=test_data_current_to
-    #     )
-    # else:
-    #     test_data_validity_to = st.none() | st.datetimes(
-    #         min_value=test_data_validity_from,
-    #     )
-
-    # original_employee = _get_original_employee(employee_uuid, graphapi_post)
-    # assert original_employee is not None
-    # original_from = original_employee.get('validity', {}).get('from')
-    # original_from_dt = dateutil.parser.isoparse(original_from).replace(tzinfo=None)
-
-    # now = datetime.datetime.utcnow()
-    # yesterday = now - datetime.timedelta(days=1)
-
-    test_data_validity = data.draw(
-        st.tuples(
-            st.datetimes(
-                min_value=datetime.datetime(1930, 1, 1),
-            ),
-            st.datetimes() | st.none(),
-        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
-    )
-
-    test_data_validity_from, _ = test_data_validity
-    test_data_validity_from = datetime.datetime.combine(
-        test_data_validity_from.date(), datetime.datetime.min.time()
-    )
-
-    names_whitelist_cats = ("Ll", "Lo", "Lu")
-    given_name, given_given_name, given_surname = data.draw(
-        st.tuples(
-            st.text(min_size=1, alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(min_size=1, alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-            st.text(min_size=1, alphabet=characters(whitelist_categories=names_whitelist_cats))
-            | st.none(),
-        )
-        .filter(lambda names: not (names[0] and (names[1] or names[2])))
-    )
-
-    test_data = data.draw(
-        st.builds(
-            EmployeeUpdate,
-            uuid=st.just(employee_uuid),
-            from_date=st.just(test_data_validity_from),
-            # to_date=test_data_validity_to,
-
-            name=st.just(given_name),
-            given_name=st.just(given_given_name),
-            surname=st.just(given_surname),
-
-            # nickname=st.just(given_nickname),
-            # nickname_given_name=st.just(given_nickname_given_name),
-            # nickname_surname=st.just(given_nickname_surname),
-
-
-            # name=st.text(alphabet=characters(whitelist_categories=names_whitelist_cats))
-            # | st.none(),
-            # given_name=st.text(
-            #     alphabet=characters(whitelist_categories=names_whitelist_cats),
-            #     min_size=1
-            # )
-            # | st.none(),
-        )
-        .filter(lambda model: model.given_name != original.get("givenname"))
-        .filter(lambda model: not model.no_values())
-        # .filter(
-        #     lambda model: not (
-        #         model.name and
-        #         model.given_name and
-        #         model.surname and
-        #         model.nickname and
-        #         model.nickname_given_name and
-        #         model.nickname_surname
-        #     )
-        # )
-        # .filter(lambda model: not model.no_values())
-    )
-    payload = jsonable_encoder(test_data)
-
-    mutation_response: GQLResponse = graphapi_post(
-        """
-        mutation($input: EmployeeUpdateInput!) {
-            employee_update(input: $input) {
-                uuid
-            }
-        }
-        """,
-        {"input": payload},
-    )
-    assert mutation_response.errors is None
-    test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
-
-    # Fetch employee and verify the employee have been updated
-    verify_response: GQLResponse = graphapi_post(
-        _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
-    )
-
-    assert verify_response.errors is None
-    assert len(verify_response.data["employees"]) > 0
-
-    verify_data_employee = one(verify_response.data["employees"])
-    verify_data_employee_objs = verify_data_employee.get("objects", [])
-
-    if len(verify_data_employee_objs) > 1:
-        tap = "test1"
-    else:
-        tap = "test2"
-
-        # mutation_response2: GQLResponse = graphapi_post(
-        #     """
-        #     mutation($input: EmployeeUpdateInput!) {
-        #         employee_update(input: $input) {
-        #             uuid
-        #         }
-        #     }
-        #     """,
-        #     {"input": payload},
-        # )
-        tap = "test"
-        verify_response2: GQLResponse = graphapi_post(
-            _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
-        )
-        tap = "test"
-
-    assert len(verify_data_employee_objs) > 1
-
-    verify_data = None
-    for e_obj in verify_data_employee_objs:
-        if not e_obj.get("validity", {}).get("to"):
-            verify_data = e_obj
-            break
-
-    assert verify_data[mapping.UUID] == str(test_data_uuid_updated)
-
-    # if test_data.name:
-    #     assert verify_data.get("givenname") == test_data.name
-
-    if test_data.given_name:
-        assert verify_data.get("givenname") == test_data.given_name
-
-
 @pytest.mark.parametrize(
     "given_data",
     [
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "name": "YeeHaaa man"
+            "name": "YeeHaaa man",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "given_name": "Test Given Name"
+            "given_name": "Test Given Name",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "surname": "Duke"
+            "surname": "Duke",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "nickname": "Fancy Nickname"
+            "nickname": "Fancy Nickname",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "nickname_given_name": "Fancy Nickname Given Name"
+            "nickname_given_name": "Fancy Nickname Given Name",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "nickname_surname": "Lord Nick"
+            "nickname_surname": "Lord Nick",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "seniority": now_min_cph.date().isoformat()
+            "seniority": now_min_cph.date().isoformat(),
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -1077,9 +719,9 @@ async def _test_update_integration_hypothesis2(data, graphapi_post, employee_uui
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
             "name": "YeeHaaa man",
-                "nickname": "Fancy Nickname",
-                "seniority": now_min_cph.date().isoformat(),
-                "cpr_no": "0000000000",
+            "nickname": "Fancy Nickname",
+            "seniority": now_min_cph.date().isoformat(),
+            "cpr_no": "0000000000",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -1091,34 +733,26 @@ async def _test_update_integration_hypothesis2(data, graphapi_post, employee_uui
             "seniority": now_min_cph.date().isoformat(),
             "cpr_no": "0101872144",
         },
-    ]
+    ],
 )
 @pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_integration_new(given_data, graphapi_post, employee_uuids):
-    try:
-        test_data = EmployeeUpdate(
-            uuid=given_data.get("uuid"),
-            from_date=given_data.get("from_date"),
-
-            name=given_data.get("name"),
-            given_name=given_data.get("given_name"),
-            surname=given_data.get("surname"),
-
-            nickname=given_data.get("nickname"),
-            nickname_given_name=given_data.get("nickname_given_name"),
-            nickname_surname=given_data.get("nickname_surname")
-        )
-    except Exception as e:
-        tap="test"
-        raise e
-    
+async def test_update_integration_new(given_data, graphapi_post):
+    # Create test data
+    test_data = EmployeeUpdate(
+        uuid=given_data.get("uuid"),
+        from_date=given_data.get("from_date"),
+        name=given_data.get("name"),
+        given_name=given_data.get("given_name"),
+        surname=given_data.get("surname"),
+        nickname=given_data.get("nickname"),
+        nickname_given_name=given_data.get("nickname_given_name"),
+        nickname_surname=given_data.get("nickname_surname"),
+    )
     payload = jsonable_encoder(test_data)
 
-    original = _get_original_employee(test_data.uuid, graphapi_post)
-    tap="test"
-
+    # Invoke mutation & and get updated employee UUID
     mutation_response: GQLResponse = graphapi_post(
         """
         mutation($input: EmployeeUpdateInput!) {
@@ -1129,28 +763,56 @@ async def test_update_integration_new(given_data, graphapi_post, employee_uuids)
         """,
         {"input": payload},
     )
-
-    if mutation_response.errors is not None:
-        tap="test"
-
     assert mutation_response.errors is None
     test_data_uuid_updated = UUID(mutation_response.data["employee_update"]["uuid"])
 
-    # Fetch employee and verify the employee have been updated
+    # Fetch employee and verify and updated version of the employee can be found
     verify_response: GQLResponse = graphapi_post(
         _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
-
-    if verify_response.errors is not None:
-        tap="test"
-
     assert verify_response.errors is None
     assert len(verify_response.data["employees"]) > 0
 
     verify_data_employee = one(verify_response.data["employees"])
     verify_data_employee_objs = verify_data_employee.get("objects", [])
-    
-    tap="test"
+    assert len(verify_data_employee_objs) > 1
+
+    verify_data = None
+    for e_obj in verify_data_employee_objs:
+        if not e_obj.get("validity", {}).get("to"):
+            verify_data = e_obj
+            break
+    assert verify_data is not None
+
+    # Assert the employee have been updated with the specified test data
+    if test_data.name:
+        test_data_name_split = test_data.name.split(" ")
+        if len(test_data_name_split) > 1:
+            assert verify_data.get("givenname") == test_data_name_split[0]
+            assert verify_data.get("surname") == test_data_name_split[1]
+        else:
+            assert verify_data.get("givenname") == test_data.name
+
+    if test_data.given_name:
+        assert verify_data.get("givenname") == test_data.given_name
+
+    if test_data.surname:
+        assert verify_data.get("surname") == test_data.surname
+
+    if test_data.nickname:
+        test_data_nickname_split = test_data.nickname.split(" ")
+        if len(test_data_nickname_split) > 1:
+            assert verify_data.get("nickname_givenname") == test_data_nickname_split[0]
+            assert verify_data.get("nickname_surname") == test_data_nickname_split[1]
+        else:
+            assert verify_data.get("nickname_givenname") == test_data.nickname
+
+    if test_data.seniority:
+        assert verify_data.get("seniority") == test_data.seniority
+
+    if test_data.cpr_no:
+        assert verify_data.get("cpr_no") == test_data.cpr_no
+
 
 # --------------------------------------------------------------------------------------
 # Helper methods
@@ -1248,47 +910,6 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
     return None
 
 
-def _get_employee_data_from_mutator_key(
-    employee_data: dict, mutator_key: str, new_value: str | None
-):
-    if mutator_key == "name":
-        givenname = employee_data.get("givenname", "")
-        surname = employee_data.get("surname", "")
-
-        # ignore the surname, if the new value don't include one
-        # Ex. if an employee already have a surname and we only update the givenname -
-        # using the "name"-attribute (yes we only update "what was found" in "name")
-        if new_value:
-            new_value_split = new_value.split(" ")
-            if len(new_value_split) < 2:
-                surname = ""
-
-        return f"{givenname} {surname}" if surname else givenname
-
-    if mutator_key == "nickname":
-        nickname_givenname = employee_data.get("nickname_givenname", "")
-        nickname_surname = employee_data.get("nickname_surname", "")
-
-        if new_value:
-            new_value_split = new_value.split(" ")
-            if len(new_value_split) < 2:
-                nickname_surname = ""
-
-        return (
-            f"{nickname_givenname} {nickname_surname}"
-            if nickname_surname
-            else nickname_givenname
-        )
-
-    if mutator_key == "given_name":
-        return employee_data["givenname"]
-
-    if mutator_key == "nickname_given_name":
-        return employee_data["nickname_givenname"]
-
-    return employee_data[mutator_key]
-
-
 def _get_employee_verify_query():
     return """
         query VerifyQuery($uuid: UUID!){
@@ -1311,37 +932,3 @@ def _get_employee_verify_query():
               }
         }
     """
-
-
-def _get_original_employee(uuid: UUID, graphapi_post) -> dict | None:
-    response: GQLResponse = graphapi_post(
-        _get_employee_verify_query(), {mapping.UUID: str(uuid)}
-    )
-
-    if response.errors is not None:
-        tap = "test"
-
-    assert response.errors is None
-
-    employee_obj = None
-    for e_obj in one(response.data["employees"]).get("objects", []):
-        if not e_obj.get("validity", {}).get("to"):
-            employee_obj = e_obj
-            break
-
-    return employee_obj
-
-
-def _get_original_employee_validity(uuid: UUID, graphapi_post):
-    employee_obj = _get_original_employee(uuid, graphapi_post)
-
-    validity = employee_obj["validity"]
-    # from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
-    from_time = dateutil.parser.isoparse(validity["from"]).replace(tzinfo=None)
-    to_time = (
-        dateutil.parser.isoparse(validity["to"]).replace(tzinfo=None)
-        if validity["to"]
-        else None
-    )
-
-    return from_time, to_time
