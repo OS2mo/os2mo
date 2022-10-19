@@ -15,13 +15,15 @@ from pydantic import root_validator
 from mora import common
 from mora import exceptions
 from mora import mapping
-from mora.graphapi.versions.latest.graphql_utils import CprNo
+from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
+
+# from mora.graphapi.versions.latest.graphql_utils import CprNo
 
 
 logger = logging.getLogger(__name__)
@@ -485,9 +487,8 @@ class EmployeeUpdate(RAValidity):
         description="New seniority value of the employee.",
     )
 
-    cpr_no: CprNo | None = Field(
-        None, description="New danish CPR No. of the employee."
-    )
+    # cpr_no: CprNo | None = Field(
+    cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
 
     @root_validator
     def validation(cls, values: dict[str, Any]) -> dict[str, Any]:

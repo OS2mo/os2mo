@@ -19,7 +19,6 @@ from pytest import MonkeyPatch
 import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
-from mora import lora
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
@@ -401,7 +400,8 @@ async def test_create_employee_integration_test(
     )
     | st.none(),
     # cpr_no
-    st.from_regex(r"^\d{10}$") | st.none(),
+    # st.from_regex(r"^\d{10}$") | st.none(),
+    st.sampled_from(["0101871234", "0102881235"]) | st.none(),
 )
 async def test_update_mutator(
     given_uuid,
@@ -530,18 +530,22 @@ async def test_update_mutator(
             ["nickname_given_name", "nickname_surname"],
         ),
         # CPR-No
-        ({"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": ""}, [r"d\{10\}"]),
+        # ({"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": ""}, [r"d\{10\}"]),
+        (
+            {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": ""},
+            ["Expected type 'CPR'"],
+        ),
         (
             {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "00112233445"},
-            [r"d\{10\}"],
+            ["Expected type 'CPR'"],
         ),
         (
             {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "001122334"},
-            [r"d\{10\}"],
+            ["Expected type 'CPR'"],
         ),
         (
             {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "001"},
-            [r"d\{10\}"],
+            ["Expected type 'CPR'"],
         ),
     ],
 )
@@ -585,107 +589,6 @@ async def test_update_mutator_fails(
         assert re.search(error_msg_check, err_message)
 
     employee_update.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    "given_uuid,given_from,given_mutator_args",
-    [
-        (
-            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            datetime.datetime.now(),
-            {"name": "YeeHaaa man"},
-        ),
-        (
-            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            datetime.datetime.now(),
-            {"given_name": "Test Given Name"},
-        ),
-        (
-            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-            datetime.datetime.now(),
-            {"surname": "Duke"},
-        ),
-        (
-            "6ee24785-ee9a-4502-81c2-7697009c9053",
-            datetime.datetime.now(),
-            {"nickname": "Fancy Nickname"},
-        ),
-        (
-            "6ee24785-ee9a-4502-81c2-7697009c9053",
-            datetime.datetime.now(),
-            {"nickname_given_name": "Fancy Nickname Given Name"},
-        ),
-        (
-            "6ee24785-ee9a-4502-81c2-7697009c9053",
-            datetime.datetime.now(),
-            {"nickname_surname": "Lord Nick"},
-        ),
-        (
-            "7626ad64-327d-481f-8b32-36c78eb12f8c",
-            datetime.datetime.now(),
-            {"seniority": datetime.datetime.now().date().isoformat()},
-        ),
-        (
-            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-            datetime.datetime.now(),
-            {"cpr_no": "0000000000"},
-        ),
-        (
-            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-            datetime.datetime.now(),
-            {
-                "name": "YeeHaaa man",
-                "nickname": "Fancy Nickname",
-                "seniority": datetime.datetime.now().date().isoformat(),
-                "cpr_no": "0000000000",
-            },
-        ),
-        (
-            "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-            datetime.datetime.now(),
-            {
-                "given_name": "TestMan",
-                "surname": "Duke",
-                "nickname_given_name": "Test",
-                "nickname_surname": "Lord",
-                "seniority": datetime.datetime.now().date().isoformat(),
-                "cpr_no": "0101872144",
-            },
-        ),
-    ],
-)
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_integration(given_uuid, given_from, given_mutator_args):
-    # Configure mutator variables
-    var_values = {
-        "uuid": given_uuid,
-        "from": given_from.date().isoformat(),
-        **given_mutator_args,
-    }
-
-    for key, value in given_mutator_args.items():
-        if value is None:
-            continue
-
-        var_values[key] = value
-
-    # Run the query
-    mutation_func = "employee_update"
-    query = _get_employee_update_mutation_query(mutation_func)
-    _ = await execute_graphql(query=query, variable_values=var_values)
-
-    # Fetch employee from LoRa
-    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-    lora_employee = await c.bruger.get(uuid=given_uuid)
-
-    # Assert all the update values have been assigned
-    for key, value in given_mutator_args.items():
-        if value is None:
-            continue
-
-        newest_update_value = _get_lora_mutator_arg(key, lora_employee)
-        assert newest_update_value == value
 
 
 @pytest.mark.parametrize(
@@ -734,7 +637,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
-            "cpr_no": "0000000000",
+            "cpr_no": "0101892147",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -742,7 +645,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
             "name": "YeeHaaa man",
             "nickname": "Fancy Nickname",
             "seniority": now_min_cph.date().isoformat(),
-            "cpr_no": "0000000000",
+            "cpr_no": "0102882146",
         },
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
@@ -759,7 +662,7 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
 @pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_update_integration_new(given_data, graphapi_post):
+async def test_update_integration(given_data, graphapi_post):
     # Create test data
     test_data = EmployeeUpdate(
         uuid=given_data.get("uuid"),
@@ -853,7 +756,7 @@ def _get_employee_update_mutation_query(mutation_func: str):
         "$given_name: String, $surname: String, $nickname: String, "
         # "$nicknameGivenName: String, $nicknameSurName: String, $seniority: Date, "
         "$nickname_given_name: String, $nickname_surname: String, $seniority: Date, "
-        "$cpr_no: String) {"
+        "$cpr_no: CPR) {"
         f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, name: $name, "
         "given_name: $given_name, surname: $surname, nickname: $nickname, "
         "nickname_given_name: $nickname_given_name, "
