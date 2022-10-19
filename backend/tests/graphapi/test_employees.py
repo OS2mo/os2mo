@@ -480,6 +480,7 @@ async def test_update_mutator(
         # Name
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "name": "TestMan Duke",
                 "given_name": "TestMan",
                 "surname": "Duke",
@@ -488,6 +489,7 @@ async def test_update_mutator(
         ),
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "name": "TestMan Duke",
                 "given_name": "TestMan",
             },
@@ -495,6 +497,7 @@ async def test_update_mutator(
         ),
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "name": "TestMan Duke",
                 "surname": "Duke",
             },
@@ -503,6 +506,7 @@ async def test_update_mutator(
         # Nickname
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "nickname": "Test Lord",
                 "nickname_given_name": "Test",
                 "nickname_surname": "Lord",
@@ -511,6 +515,7 @@ async def test_update_mutator(
         ),
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "nickname": "Test Lord",
                 "nickname_given_name": "Test",
             },
@@ -518,16 +523,26 @@ async def test_update_mutator(
         ),
         (
             {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                 "nickname": "Test Lord",
                 "nickname_surname": "Lord",
             },
             ["nickname_given_name", "nickname_surname"],
         ),
         # CPR-No
-        ({"cpr_no": ""}, [r"d\{10\}"]),
-        ({"cpr_no": "00112233445"}, [r"d\{10\}"]),
-        ({"cpr_no": "001122334"}, [r"d\{10\}"]),
-        ({"cpr_no": "001"}, [r"d\{10\}"]),
+        ({"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": ""}, [r"d\{10\}"]),
+        (
+            {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "00112233445"},
+            [r"d\{10\}"],
+        ),
+        (
+            {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "001122334"},
+            [r"d\{10\}"],
+        ),
+        (
+            {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a", "cpr_no": "001"},
+            [r"d\{10\}"],
+        ),
     ],
 )
 @patch("mora.graphapi.versions.latest.mutators.employee_update", new_callable=AsyncMock)
@@ -540,6 +555,7 @@ async def test_update_mutator_fails(
     """Test which verifies that certain mutator inputs, cause a validation error."""
 
     payload = {
+        "uuid": given_mutator_args.get("uuid"),
         "from": now_min_cph.isoformat(),
         "name": given_mutator_args.get("name"),
         "given_name": given_mutator_args.get("given_name"),

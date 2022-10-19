@@ -430,7 +430,7 @@ class EmployeeTerminate(ValidityTerminate, Triggerless):
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
-class EmployeeUpdate(UUIDBase, RAValidity):
+class EmployeeUpdate(RAValidity):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
@@ -445,6 +445,8 @@ class EmployeeUpdate(UUIDBase, RAValidity):
         # generates, if the value is invalid.
         'string does not match regex "^\\d{10}$"'
     )
+
+    uuid: UUID = Field(description="UUID of the employee to be updated.")
 
     name: str | None = Field(None, description="New value for the name of the employee")
 
