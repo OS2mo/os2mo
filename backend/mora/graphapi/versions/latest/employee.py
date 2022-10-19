@@ -100,24 +100,3 @@ async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
     _ = await request_handler.submit()
 
     return EmployeeUpdateResponseType(uuid=employee_update.uuid)
-
-
-# Helper methods
-def _is_update_changeset_empty(employee_update: EmployeeUpdate) -> bool:
-    if employee_update.to_date:
-        return False
-
-    if employee_update.name or employee_update.given_name or employee_update.surname:
-        return False
-
-    if (
-        employee_update.nickname
-        or employee_update.nickname_given_name
-        or employee_update.nickname_surname
-    ):
-        return False
-
-    if employee_update.seniority or employee_update.cpr_no:
-        return False
-
-    return True
