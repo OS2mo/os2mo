@@ -168,11 +168,7 @@ class Mutation:
     async def employee_update(
         self, input: EmployeeUpdateInput
     ) -> EmployeeUpdateResponseType:
-        # return await employee_update(input.to_pydantic())  # type: ignore
-        try:
-            return await employee_update(input.to_pydantic())  # type: ignore
-        except Exception as e:
-            return EmployeeUpdateResponseType()
+        return await employee_update(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
