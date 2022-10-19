@@ -20,7 +20,6 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo import Validity as ValidityFromRequired
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
@@ -431,7 +430,7 @@ class EmployeeTerminate(ValidityTerminate, Triggerless):
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
-class EmployeeUpdate(UUIDBase, ValidityFromRequired):
+class EmployeeUpdate(UUIDBase, RAValidity):
     # Error messages returned by the @root_validator
     _ERR_INVALID_NAME = (
         "EmployeeUpdate.name is only allowed to be set, if "
