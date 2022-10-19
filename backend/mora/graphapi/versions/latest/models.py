@@ -448,6 +448,10 @@ class EmployeeUpdate(RAValidity):
 
     uuid: UUID = Field(description="UUID of the employee to be updated.")
 
+    user_key: str | None = Field(
+        description="Short, unique key for the employee (defaults to object UUID on creation)."
+    )
+
     name: str | None = Field(None, description="New value for the name of the employee")
 
     given_name: str | None = Field(
@@ -516,7 +520,7 @@ class EmployeeUpdate(RAValidity):
         uuid_str = str(self.uuid)
         data_dict = {
             mapping.UUID: uuid_str,
-            mapping.USER_KEY: self.get_user_key(),
+            mapping.USER_KEY: self.user_key,
             mapping.VALIDITY: {
                 mapping.FROM: self.from_date.date().isoformat(),
                 mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
@@ -530,26 +534,12 @@ class EmployeeUpdate(RAValidity):
             mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
             mapping.CPR_NO: self.cpr_no,
         }
+
         return {
             mapping.TYPE: mapping.EMPLOYEE,
             mapping.UUID: uuid_str,
             mapping.DATA: {k: v for k, v in data_dict.items() if v},
         }
-
-    def get_user_key(self) -> str:
-        user_key = str(self.uuid)
-        if self.given_name:
-            user_key = (
-                f"{self.given_name}{self.surname}" if self.surname else self.given_name
-            )
-            user_key = user_key.lower()
-
-            if self.surname:
-                user_key = f"{self.given_name}{self.surname}".lower()
-            else:
-                user_key = self.given_name.lower()
-
-        return user_key
 
 
 class EmployeeUpdateResponse(UUIDBase):
