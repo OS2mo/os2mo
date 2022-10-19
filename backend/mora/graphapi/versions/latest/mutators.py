@@ -7,7 +7,7 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from .address import create as address_create
+from .address import create as create_address
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
@@ -91,7 +91,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
-        return await address_create(input.to_pydantic())  # type: ignore
+        return await create_address(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an address by UUID",
