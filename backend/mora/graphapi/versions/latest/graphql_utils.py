@@ -23,6 +23,16 @@ class PrintableStr(ConstrainedStr):
     regex = re.compile(rf"^[{string.printable}\n]+$")
 
 
+class CprNo(ConstrainedStr):
+    """Danish CPR No. restricted string type.
+
+    Only allow strings which contain 10 digits from beginning to end
+    of the string.
+    """
+
+    regex = re.compile(r"^\d{10}$")
+
+
 async def get_uuids(obj: str, graphapi_post: Callable) -> UUID:
     """Queries for uuids for a given object type. Eg. Employees."""
     query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])
