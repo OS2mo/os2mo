@@ -94,34 +94,12 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
 
 
 async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
-    request_handler_dict = employee_update.to_handler_dict()
     request_handler = await EmployeeRequestHandler.construct(
-        request_handler_dict, RequestType.EDIT
+        employee_update.to_handler_dict(), RequestType.EDIT
     )
-    new_uuid = await request_handler.submit()
-    
-    # Based on the logic at: backend/mora/lora.py:159
-    # If there is no data changed, it looks like we wont get a UUID  back.
-    updated_uuid = UUID(new_uuid) if new_uuid else employee_update.uuid
+    _ = await request_handler.submit()
 
-    return EmployeeUpdateResponseType(uuid=updated_uuid)
-
-    # return EmployeeUpdateResponseType(uuid=UUID(new_uuid))
-
-
-# async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
-#     if employee_update.no_values():
-#         return EmployeeUpdateResponseType(uuid=employee_update.uuid)
-
-#     result = await handle_requests(
-#         employee_update.get_legacy_dict(), mapping.RequestType.EDIT
-#     )
-
-#     # Based on the logic at: backend/mora/lora.py:159
-#     # If there is no data changed, it looks like we wont get a UUID  back.
-#     updated_uuid = UUID(result) if result else employee_update.uuid
-
-#     return EmployeeUpdateResponseType(uuid=updated_uuid)
+    return EmployeeUpdateResponseType(uuid=employee_update.uuid)
 
 
 # Helper methods
