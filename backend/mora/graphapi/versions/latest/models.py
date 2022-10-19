@@ -222,7 +222,7 @@ class AddressCreate(RAValidity):
 
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
-        """Verifies that at least one of the address relation fields have been set."""
+        """Verifies that at exactly one address relation field has been set."""
         number_of_uuids = len(
             list(
                 filter(
