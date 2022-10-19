@@ -513,18 +513,33 @@ class EmployeeUpdate(RAValidity):
         return True
 
     def to_handler_dict(self) -> dict:
-        # Create validity dict
-        validity_dict = {}
-        if self.from_date:
-            validity_dict[mapping.FROM] = self.from_date.date().isoformat()
-
-        if self.to_date:
-            validity_dict[mapping.FROM] = self.to_date.date().isoformat()
-
         uuid_str = str(self.uuid)
+        data_dict = {
+            mapping.UUID: uuid_str,
+            mapping.USER_KEY: self.get_user_key(),
+            mapping.VALIDITY: {
+                mapping.FROM: self.from_date.date().isoformat(),
+                mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
+            },
+            mapping.NAME: self.name,
+            mapping.GIVENNAME: self.given_name,
+            mapping.SURNAME: self.surname,
+            mapping.NICKNAME: self.nickname,
+            mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
+            mapping.NICKNAME_SURNAME: self.nickname_surname,
+            mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
+            mapping.CPR_NO: self.cpr_no,
+        }
+        handler_dict = {
+            mapping.TYPE: mapping.EMPLOYEE,
+            mapping.UUID: uuid_str,
+            mapping.DATA: {k: v for k, v in data_dict.items() if v},
+        }
 
-        # Configure user-key
-        user_key = uuid_str
+        return {k: v for k, v in handler_dict.items() if v}
+
+    def get_user_key(self) -> str:
+        user_key = str(self.uuid)
         if self.given_name:
             user_key = (
                 f"{self.given_name}{self.surname}" if self.surname else self.given_name
@@ -536,38 +551,7 @@ class EmployeeUpdate(RAValidity):
             else:
                 user_key = self.given_name.lower()
 
-        # Create data dict
-        data_dict = {
-            mapping.UUID: uuid_str,
-            mapping.USER_KEY: user_key,
-            mapping.VALIDITY: validity_dict,
-        }
-
-        if self.name:
-            data_dict[mapping.NAME] = self.name
-        if self.given_name:
-            data_dict[mapping.GIVENNAME] = self.given_name
-        if self.surname:
-            data_dict[mapping.SURNAME] = self.surname
-
-        if self.nickname:
-            data_dict[mapping.NICKNAME] = self.nickname
-        if self.nickname_given_name:
-            data_dict[mapping.NICKNAME_GIVENNAME] = self.nickname_given_name
-        if self.nickname_surname:
-            data_dict[mapping.NICKNAME_SURNAME] = self.nickname_surname
-
-        if self.seniority:
-            data_dict[mapping.SENIORITY] = self.seniority.isoformat()
-
-        if self.cpr_no:
-            data_dict[mapping.CPR_NO] = self.cpr_no
-
-        return {
-            mapping.TYPE: mapping.EMPLOYEE,
-            mapping.UUID: str(self.uuid),
-            mapping.DATA: data_dict,
-        }
+        return user_key
 
 
 class EmployeeUpdateResponse(UUIDBase):

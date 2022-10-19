@@ -98,5 +98,4 @@ async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
         employee_update.to_handler_dict(), RequestType.EDIT
     )
     _ = await request_handler.submit()
-
     return EmployeeUpdateResponseType(uuid=employee_update.uuid)
