@@ -694,6 +694,11 @@ async def test_update_integration(given_uuid, given_from, given_mutator_args):
         {
             "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
             "from_date": now_min_cph,
+            "user_key": "a-new-test-userkey",
+        },
+        {
+            "uuid": UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            "from_date": now_min_cph,
             "name": "YeeHaaa man",
         },
         {
@@ -758,6 +763,7 @@ async def test_update_integration_new(given_data, graphapi_post):
     # Create test data
     test_data = EmployeeUpdate(
         uuid=given_data.get("uuid"),
+        user_key=given_data.get("user_key"),
         from_date=given_data.get("from_date"),
         name=given_data.get("name"),
         given_name=given_data.get("given_name"),
@@ -765,6 +771,8 @@ async def test_update_integration_new(given_data, graphapi_post):
         nickname=given_data.get("nickname"),
         nickname_given_name=given_data.get("nickname_given_name"),
         nickname_surname=given_data.get("nickname_surname"),
+        seniority=given_data.get("seniority"),
+        cpr_no=given_data.get("cpr_no"),
     )
     payload = jsonable_encoder(test_data)
 
@@ -801,6 +809,9 @@ async def test_update_integration_new(given_data, graphapi_post):
     assert verify_data is not None
 
     # Assert the employee have been updated with the specified test data
+    if test_data.user_key:
+        assert verify_data.get("user_key") == test_data.user_key
+
     if test_data.name:
         test_data_name_split = test_data.name.split(" ")
         if len(test_data_name_split) > 1:
@@ -824,7 +835,7 @@ async def test_update_integration_new(given_data, graphapi_post):
             assert verify_data.get("nickname_givenname") == test_data.nickname
 
     if test_data.seniority:
-        assert verify_data.get("seniority") == test_data.seniority
+        assert verify_data.get("seniority") == test_data.seniority.isoformat()
 
     if test_data.cpr_no:
         assert verify_data.get("cpr_no") == test_data.cpr_no
@@ -934,6 +945,7 @@ def _get_employee_verify_query():
                 uuid,
                 objects {
                   uuid
+                  user_key
                   givenname
                   surname
                   nickname_givenname
