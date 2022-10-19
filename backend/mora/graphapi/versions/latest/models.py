@@ -530,13 +530,11 @@ class EmployeeUpdate(RAValidity):
             mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
             mapping.CPR_NO: self.cpr_no,
         }
-        handler_dict = {
+        return {
             mapping.TYPE: mapping.EMPLOYEE,
             mapping.UUID: uuid_str,
             mapping.DATA: {k: v for k, v in data_dict.items() if v},
         }
-
-        return {k: v for k, v in handler_dict.items() if v}
 
     def get_user_key(self) -> str:
         user_key = str(self.uuid)
