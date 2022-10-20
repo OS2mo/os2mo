@@ -7,6 +7,8 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
+from .address import AddressDeleteResponse
+from .address import delete_address
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
@@ -98,6 +100,13 @@ class Mutation:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await update_address(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Delete an address.",
+        permission_classes=[admin_permission_class],
+    )
+    async def address_delete(self, uuid: UUID) -> AddressDeleteResponse:
+        return await delete_address(uuid)
 
     # Associations
     # ------------
