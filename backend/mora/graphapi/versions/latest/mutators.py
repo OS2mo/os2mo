@@ -245,6 +245,13 @@ class Mutation:
     async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
         return await update_ituser(input.to_pydantic())  # type: ignore
 
+    @strawberry.mutation(
+        description="Delete an IT-User.",
+        permission_classes=[admin_permission_class],
+    )
+    async def ituser_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
+
     # KLEs
     # ----
 

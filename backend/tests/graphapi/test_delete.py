@@ -17,6 +17,7 @@ from tests.conftest import GQLResponse
     [
         "address_delete",
         "engagement_delete",
+        "ituser_delete",
     ],
 )
 async def test_delete_organisationfunktion(
@@ -47,6 +48,7 @@ async def test_delete_organisationfunktion(
     [
         ("addresses", "address_delete"),
         ("engagements", "engagement_delete"),
+        ("itusers", "ituser_delete"),
     ],
 )
 async def test_delete_organisationfunktion_integration_test(
