@@ -7,8 +7,6 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
-from .address import AddressDeleteResponse
-from .address import delete_address
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
@@ -69,6 +67,7 @@ from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
 from .types import OrganisationUnitType
+from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
 
@@ -105,8 +104,8 @@ class Mutation:
         description="Delete an address.",
         permission_classes=[admin_permission_class],
     )
-    async def address_delete(self, uuid: UUID) -> AddressDeleteResponse:
-        return await delete_address(uuid)
+    async def address_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
 
     # Associations
     # ------------
@@ -332,3 +331,15 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
+
+
+@strawberry.type
+class DeleteResponse:
+    uuid: UUID
+
+
+async def delete_organisationfunktion(uuid: UUID) -> DeleteResponse:
+    """Delete an organisationfunktion by creating a "Slettet" (deleted) registration."""
+    c = get_connector()
+    lora_response = await c.organisationfunktion.delete(uuid)
+    return DeleteResponse(uuid=lora_response)

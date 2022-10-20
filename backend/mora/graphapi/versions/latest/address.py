@@ -3,8 +3,6 @@
 import datetime
 from uuid import UUID
 
-import strawberry
-
 from .models import AddressTerminate
 from .models import AddressUpdate
 from .types import AddressTerminateType
@@ -12,7 +10,6 @@ from .types import AddressType
 from mora import exceptions
 from mora import lora
 from mora import mapping
-from mora.common import get_connector
 from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
@@ -78,15 +75,3 @@ async def update_address(input: AddressUpdate) -> AddressType:
     uuid = await request.submit()
 
     return AddressType(uuid=UUID(uuid))
-
-
-@strawberry.type
-class AddressDeleteResponse:
-    uuid: UUID
-
-
-async def delete_address(uuid: UUID) -> AddressDeleteResponse:
-    """Deletes an address by creating a "Slettet" (deleted) registration."""
-    c = get_connector()
-    lora_response = await c.organisationfunktion.delete(uuid)
-    return AddressDeleteResponse(uuid=lora_response)
