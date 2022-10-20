@@ -10,7 +10,6 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
-from more_itertools import first
 from more_itertools import one
 from pytest import MonkeyPatch
 
@@ -355,58 +354,3 @@ async def test_update_address_unit_test(
     assert response.data == {"address_update": {"uuid": str(address_uuid_to_update)}}
 
     update_address.assert_called_with(test_data)
-
-
-@patch("mora.lora.Scope.delete", new_callable=AsyncMock)
-async def test_delete_address(delete_mock: AsyncMock, graphapi_post) -> None:
-    uuid = uuid4()
-    delete_mock.return_value = uuid
-    mutate_query = """
-        mutation DeleteAddress($uuid: UUID!) {
-          address_delete(uuid: $uuid) {
-            uuid
-          }
-        }
-    """
-    response: GQLResponse = graphapi_post(
-        mutate_query,
-        variables=jsonable_encoder({"uuid": uuid}),
-    )
-    assert response.errors is None
-    assert response.data["address_delete"]["uuid"] == str(uuid)
-    delete_mock.assert_awaited_once_with(uuid)
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
-async def test_delete_address_integration_test(graphapi_post) -> None:
-    # Read current addresses
-    read_query = """
-        query MyQuery {
-          addresses {
-            uuid
-          }
-        }
-    """
-    response: GQLResponse = graphapi_post(read_query)
-    first_address = first(response.data["addresses"])
-    assert first_address in response.data["addresses"]
-
-    # Delete the first one
-    mutate_query = """
-        mutation DeleteAddress($uuid: UUID!) {
-          address_delete(uuid: $uuid) {
-            uuid
-          }
-        }
-    """
-    response: GQLResponse = graphapi_post(
-        mutate_query,
-        variables={"uuid": first_address["uuid"]},
-    )
-    assert response.errors is None
-    assert response.data["address_delete"]["uuid"] == first_address["uuid"]
-
-    # Check that it got deleted
-    response: GQLResponse = graphapi_post(read_query)
-    assert first_address not in response.data["addresses"]
