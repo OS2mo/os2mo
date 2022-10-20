@@ -23,7 +23,7 @@ class LatestGraphQLSchema(BaseGraphQLSchema):
     mutation = Mutation
 
     scalar_overrides = {
-        CPR: CPRType,  # type: ignore
+        CPR: CPRType,
     }
 
 

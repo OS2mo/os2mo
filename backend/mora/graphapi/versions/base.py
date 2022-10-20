@@ -44,7 +44,9 @@ class BaseGraphQLSchema:
     # Additionally, it preserves the naming of the underlying Python functions.
     config: StrawberryConfig | None = StrawberryConfig(auto_camel_case=False)
 
-    scalar_overrides: dict[object, ScalarWrapper | ScalarDefinition] | None = None
+    scalar_overrides: dict[
+        object, ScalarWrapper | ScalarDefinition | type
+    ] | None = None
 
     @classmethod
     def get(cls) -> Schema:
