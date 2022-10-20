@@ -200,6 +200,13 @@ class Mutation:
     ) -> EngagementTerminateType:
         return await terminate_engagement(input.to_pydantic())  # type: ignore
 
+    @strawberry.mutation(
+        description="Delete an engagement.",
+        permission_classes=[admin_permission_class],
+    )
+    async def engagement_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
+
     # EngagementsAssociations
     # -----------------------
 
