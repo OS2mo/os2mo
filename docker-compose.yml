@@ -3,10 +3,25 @@ version: "3"
 services:
 
   mo_ldap_import_export:
+    container_name: mo_ldap_ie
     build: .
-    command: "poetry run python -m mo_ldap_import_export.ldap_agent next-events-to-queue"
+    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+
     environment:
-      amqp_url: amqp://guest:guest@msg_broker
+      amqp_url: "amqp://guest:guest@msg_broker"
+
+      AD_CONTROLLERS: '[{"host": "100.110.188.107"}]'
+      AD_DOMAIN: "AD"
+      AD_USER: "nj"
+      AD_PASSWORD: "Torsdag123"
+      AD_SEARCH_BASE: "DC=ad,DC=addev"
+
+      AUTH_SERVER: "http://keycloak:8080/auth"
+
+      MO_URL: "http://mo"
+      CLIENT_ID: "dipex"
+      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+
     volumes:
       - ./mo_ldap_import_export:/opt/app/
     networks:
@@ -15,3 +30,4 @@ services:
 networks:
   os2mo_default:
     external: true
+
