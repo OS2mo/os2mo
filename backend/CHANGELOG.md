@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+11.31.0 - 2022-10-21
+--------------------
+
+[#53184] Add ituser_delete mutator
+[#53184] Add engagement_delete mutator
+[#53184] Add address_delete mutator
+
 11.30.2 - 2022-10-14
 --------------------
 
