@@ -156,6 +156,8 @@ def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
         exceptions.ErrorCodes.E_UNAUTHORIZED(message=msg, cause=cause)
     elif status_code == 403:
         exceptions.ErrorCodes.E_FORBIDDEN(message=msg, cause=cause)
+    elif status_code == 404:
+        exceptions.ErrorCodes.E_NOT_FOUND(message=msg, cause=cause)
     else:
         exceptions.ErrorCodes.E_UNKNOWN(message=msg, cause=cause)
 
@@ -702,10 +704,11 @@ class Scope(BaseScope):
             await _check_response(response)
             return response.json()["uuid"]
 
-    async def delete(self, uuid):
+    async def delete(self, uuid: uuid.UUID) -> uuid.UUID:
         url = f"{self.path}/{uuid}"
         response = await client.delete(url)
         await _check_response(response)
+        return response.json().get("uuid", uuid)
 
     async def update(self, obj, uuid):
         url = f"{self.path}/{uuid}"

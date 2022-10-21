@@ -67,6 +67,7 @@ from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
 from .types import OrganisationUnitType
+from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,13 @@ class Mutation:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await update_address(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Delete an address.",
+        permission_classes=[admin_permission_class],
+    )
+    async def address_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
 
     # Associations
     # ------------
@@ -192,6 +200,13 @@ class Mutation:
     ) -> EngagementTerminateType:
         return await terminate_engagement(input.to_pydantic())  # type: ignore
 
+    @strawberry.mutation(
+        description="Delete an engagement.",
+        permission_classes=[admin_permission_class],
+    )
+    async def engagement_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
+
     # EngagementsAssociations
     # -----------------------
 
@@ -229,6 +244,13 @@ class Mutation:
     )
     async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
         return await update_ituser(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Delete an IT-User.",
+        permission_classes=[admin_permission_class],
+    )
+    async def ituser_delete(self, uuid: UUID) -> "DeleteResponse":
+        return await delete_organisationfunktion(uuid)
 
     # KLEs
     # ----
@@ -323,3 +345,15 @@ class Mutation:
         file_bytes = await file.read()
         filestorage.save_file(file_store, file_name, file_bytes, force)
         return "OK"
+
+
+@strawberry.type
+class DeleteResponse:
+    uuid: UUID
+
+
+async def delete_organisationfunktion(uuid: UUID) -> DeleteResponse:
+    """Delete an organisationfunktion by creating a "Slettet" (deleted) registration."""
+    c = get_connector()
+    lora_response = await c.organisationfunktion.delete(uuid)
+    return DeleteResponse(uuid=lora_response)
