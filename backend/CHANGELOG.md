@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+11.31.1 - 2022-10-24
+--------------------
+
+[#51884] Fix bug in graphql to allow an association to be vacant.
+
 11.31.0 - 2022-10-21
 --------------------
 
