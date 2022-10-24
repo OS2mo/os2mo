@@ -251,10 +251,10 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 
 @given(data=st.data())
-@patch("mora.graphapi.versions.latest.mutators.address_create", new_callable=AsyncMock)
-async def test_create_mutator(address_create: AsyncMock, data):
+@patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
+async def test_create_mutator(create_address: AsyncMock, data):
     # Mocking
-    address_create.return_value = AddressCreateType(uuid=uuid4())
+    create_address.return_value = AddressCreateType(uuid=uuid4())
 
     # Prepare test_data
     test_data_samples = [
@@ -328,10 +328,10 @@ async def test_create_mutator(address_create: AsyncMock, data):
     )
     assert response.errors is None
     assert response.data == {
-        "address_create": {"uuid": str(address_create.return_value.uuid)}
+        "address_create": {"uuid": str(create_address.return_value.uuid)}
     }
 
-    address_create.assert_called_with(test_data)
+    create_address.assert_called_with(test_data)
 
 
 @pytest.mark.parametrize(
@@ -363,8 +363,8 @@ async def test_create_mutator(address_create: AsyncMock, data):
         },
     ],
 )
-@patch("mora.graphapi.versions.latest.mutators.address_create", new_callable=AsyncMock)
-async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_args):
+@patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
+async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_args):
     payload = {
         "from": given_mutator_args["from_date"].isoformat(),
         "to": given_mutator_args["to_date"].isoformat()
@@ -384,7 +384,7 @@ async def test_create_mutator_fails(address_create: AsyncMock, given_mutator_arg
     """
     _ = await execute_graphql(query=mutate_query, variable_values={"input": payload})
 
-    address_create.assert_not_called()
+    create_address.assert_not_called()
 
 
 @pytest.mark.slow
