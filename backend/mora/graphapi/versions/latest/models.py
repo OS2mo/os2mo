@@ -512,7 +512,6 @@ class EmployeeUpdate(RAValidity):
     def to_handler_dict(self) -> dict:
         uuid_str = str(self.uuid)
         data_dict = {
-            mapping.UUID: uuid_str,
             mapping.USER_KEY: self.user_key,
             mapping.VALIDITY: {
                 mapping.FROM: self.from_date.date().isoformat(),
