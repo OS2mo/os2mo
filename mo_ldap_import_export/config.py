@@ -3,15 +3,14 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
-
 from fastramqpi.config import Settings as FastRAMQPISettings
+from pydantic import AmqpDsn
 from pydantic import BaseModel
 from pydantic import BaseSettings
 from pydantic import ConstrainedList
 from pydantic import Field
-from pydantic import SecretStr
-from pydantic import AmqpDsn
 from pydantic import parse_obj_as
+from pydantic import SecretStr
 
 
 class ServerConfig(BaseModel):

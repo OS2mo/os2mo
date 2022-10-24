@@ -6,9 +6,11 @@
 from typing import Any
 from typing import Callable
 from typing import Generator
+
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
 from mo_ldap_import_export.main import create_app
 
 
