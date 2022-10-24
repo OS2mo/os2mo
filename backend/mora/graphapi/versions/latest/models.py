@@ -440,11 +440,6 @@ class EmployeeUpdate(RAValidity):
         "EmployeeUpdate.nickname is only allowed to be set, if "
         '"nickname_given_name" & "nickname_surname" are None.'
     )
-    _ERR_INVALID_CPR = (
-        # OBS: This have been created based on the GraphQLError the type "CprNo"
-        # generates, if the value is invalid.
-        'string does not match regex "^\\d{10}$"'
-    )
 
     uuid: UUID = Field(description="UUID of the employee to be updated.")
 
@@ -485,7 +480,6 @@ class EmployeeUpdate(RAValidity):
         description="New seniority value of the employee.",
     )
 
-    # cpr_no: CprNo | None = Field(
     cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
 
     @root_validator
