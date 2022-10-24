@@ -12,20 +12,21 @@ title: Testsuite
 |----------| :-------------:|:------:|----:|
 | Unit | Assert that an action i completed correctly within a single module | No db, no network, no other system dependencies, should be able to be run without a container | 100 ms|
 | Integration - narrow | Test how a single module interacts with one other module | A max of one dependency (ie. a database OR a webserver ) | ~500 ms |
-| Integration - broad | Asserts that an action behaves correctly thorugh multiple modules | No limits, except it should not communicate with other services outside the local network | 5 s |
-| System-test | User flows, ie. simulating how a user would interact with the system |  no limitations. Is allowed to comunicate with services outside the network | 30 s |
+| Integration - broad | Asserts that an action behaves correctly through multiple modules | No limits, except it should not communicate with other services outside the local network | 5 s |
+| System-test | User flows, ie. simulating how a user would interact with the system |  no limitations. Is allowed to communicate with services outside the network | 30 s |
 
-Currently we dont use e2e (though they do exists) tests, many of our integration test are very broad in scope and could count as system or end to end tests.
+Currently we don't use e2e (though they do exists) tests, many of our integration test are very broad in scope and could count as system or end to end tests.
 
 How we currently classify tests:
 
 | Category | Scope | Limitations | Speed  |
 |----------| :-------------:|:------:|----:|
-| Unit | very small| only tests a single method |  <100 ms|
-| (Integration narrow) Unit | same scope as narrow integration test | Often only one dependency, and never the lora db | generally fast ~50 - 200 ms|
-| Integration | Generally a broader scope that tests how data flow though the api and to the db, and back agains.  | Currently no real limitations  | ~ 200 ms - 5000 ms, with a few being 30s or more|
-| (System tests) Integration | A few broad test that gets data from other external services | no limations | |
-\* Tests in parentheses indicates that the test is classiefied as one type but is actually another type.
+| Unit | very small| only tests a single method |  100 ms|
+| (Integration narrow) Unit | same scope as narrow integration test | Often only one dependency, and never the lora db | generally fast 50 - 200 ms|
+| Integration | Generally a broader scope that tests how data flow though the api and to the db, and back again.  | Currently no real limitations  | 200 ms - 5000 ms, with a few being 30s or more|
+| (System tests) Integration | A few broad test that gets data from other external services | no limitations |
+
+\* Tests in parentheses indicates that the test is classified as one type but is actually another type.
 
 ### Test organization
 ! Currently this is not how the folder structure is organized.
@@ -84,7 +85,7 @@ These fixtures are automatically loaded when running a test.
 
 | Fixture | Effect |
 |----------|-------------|
-| mocked_context | TBD |
+| mocked_context | Mocks the starlette context object to return an empty dict rather than an error, when failing |
 | seed_lora_client | Creates an async lora client  |
 
 ### Marks
@@ -95,7 +96,6 @@ A test can be marked as being a certain type, most default marks dont do anythin
 | pytest.mark.slow | Sets max timoout on the tests call phase to 80 sec. |
 | pytest.mark.slow_setup | Removes max timeout on a tests setup phase. |
 | pytest.mark.integration_test | Marks the test as being an integration test, meaning that time limits apply to it. |
-
 
 ## Testclasses (Deprecated)
 
