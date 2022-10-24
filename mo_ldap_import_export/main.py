@@ -5,11 +5,13 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
+
 import structlog
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
+
 from .config import Settings
 from .dataloaders import configure_dataloaders
 from .ldap import ad_healthcheck
@@ -81,7 +83,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     @app.post("/trigger/all", status_code=202)
-    async def load_all_org_persons() -> dict[str, str]:
+    async def load_all_org_persons() -> Any:
         """Request all organizational persons"""
         logger.info("Manually triggered request of all organizational persons")
 

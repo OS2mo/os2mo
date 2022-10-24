@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
+import typing
+from functools import partial
 
+import structlog
 from fastramqpi.context import Context
 from ldap3 import Connection
 from pydantic import BaseModel
 from strawberry.dataloader import DataLoader
-from functools import partial
-import structlog
 
 
 # pylint: disable=too-few-public-methods
@@ -33,7 +34,7 @@ async def load_organizationalPersons(
     key: int,
     ad_connection: Connection,
     search_base: str,
-) -> list[dict]:
+) -> list[list[dict[str, typing.Any]]]:
     """
     Returns list with all organizationalPersons
     """
