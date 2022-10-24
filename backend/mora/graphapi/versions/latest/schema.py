@@ -239,6 +239,8 @@ class Association:
     )
     async def employee(self, root: AssociationRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
+        if root.employee_uuid is None:
+            return []
         return (await loader.load(root.employee_uuid)).objects
 
     @strawberry.field(
