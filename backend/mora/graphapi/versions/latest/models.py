@@ -510,7 +510,6 @@ class EmployeeUpdate(RAValidity):
         return True
 
     def to_handler_dict(self) -> dict:
-        uuid_str = str(self.uuid)
         data_dict = {
             mapping.USER_KEY: self.user_key,
             mapping.VALIDITY: {
@@ -529,7 +528,7 @@ class EmployeeUpdate(RAValidity):
 
         return {
             mapping.TYPE: mapping.EMPLOYEE,
-            mapping.UUID: uuid_str,
+            mapping.UUID: str(self.uuid),
             mapping.DATA: {k: v for k, v in data_dict.items() if v},
         }
 
