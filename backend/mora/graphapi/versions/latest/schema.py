@@ -95,7 +95,7 @@ class OpenValidity:
 class Address:
     @strawberry.field(
         description="Address type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def address_type(self, root: AddressRead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -103,7 +103,7 @@ class Address:
 
     @strawberry.field(
         description="Address visibility",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def visibility(self, root: AddressRead, info: Info) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -114,7 +114,7 @@ class Address:
     @strawberry.field(
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: AddressRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
@@ -125,7 +125,7 @@ class Address:
     @strawberry.field(
         description="Connected organisation unit. "
         "Note that this is mutually exclusive with the employee field",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: AddressRead, info: Info
@@ -201,7 +201,7 @@ async def filter_address_types(
 class Association:
     @strawberry.field(
         description="Association type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def association_type(
         self, root: AssociationRead, info: Info
@@ -213,7 +213,7 @@ class Association:
 
     @strawberry.field(
         description="dynamic class",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def dynamic_class(
         self, root: AssociationRead, info: Info
@@ -225,7 +225,7 @@ class Association:
 
     @strawberry.field(
         description="Primary status",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def primary(self, root: AssociationRead, info: Info) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -235,7 +235,7 @@ class Association:
 
     @strawberry.field(
         description="Connected employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: AssociationRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
@@ -245,7 +245,7 @@ class Association:
 
     @strawberry.field(
         description="Connected organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: AssociationRead, info: Info
@@ -255,7 +255,7 @@ class Association:
 
     @strawberry.field(
         description="Connected substitute employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def substitute(self, root: AssociationRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
@@ -265,7 +265,7 @@ class Association:
 
     @strawberry.field(
         description="Connected job function",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def job_function(
         self, root: AssociationRead, info: Info
@@ -277,7 +277,7 @@ class Association:
 
     @strawberry.field(
         description="Connected IT user",
-        permission_classes=[gen_read_permission("itusers")],
+        permission_classes=[gen_read_permission("ituser")],
     )
     async def it_user(self, root: AssociationRead, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["ituser_loader"]
@@ -298,7 +298,7 @@ class Association:
 class Class:
     @strawberry.field(
         description="Immediate parent class",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def parent(self, root: ClassRead, info: Info) -> Optional["Class"]:
         """Get the immediate parent class.
@@ -314,7 +314,7 @@ class Class:
 
     @strawberry.field(
         description="Immediate descendants of the class",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def children(self, root: ClassRead, info: Info) -> list["Class"]:
         """Get the immediate descendants of the class.
@@ -329,7 +329,7 @@ class Class:
 
     @strawberry.field(
         description="Associated facet",
-        permission_classes=[gen_read_permission("facets")],
+        permission_classes=[gen_read_permission("facet")],
     )
     async def facet(self, root: ClassRead, info: Info) -> "Facet":
         """Get the associated facet.
@@ -342,7 +342,7 @@ class Class:
 
     @strawberry.field(
         description="Associated top-level facet",
-        permission_classes=[gen_read_permission("facets")],
+        permission_classes=[gen_read_permission("facet")],
     )
     async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
         parent: ClassRead = root
@@ -379,7 +379,7 @@ class Employee:
 
     @strawberry.field(
         description="Engagements for the employee",
-        permission_classes=[gen_read_permission("engagements")],
+        permission_classes=[gen_read_permission("engagement")],
     )
     async def engagements(self, root: EmployeeRead, info: Info) -> list["Engagement"]:
         loader: DataLoader = info.context["employee_engagement_loader"]
@@ -387,7 +387,7 @@ class Employee:
 
     @strawberry.field(
         description="Manager roles for the employee",
-        permission_classes=[gen_read_permission("managers")],
+        permission_classes=[gen_read_permission("manager")],
     )
     async def manager_roles(self, root: EmployeeRead, info: Info) -> list["Manager"]:
         loader: DataLoader = info.context["employee_manager_role_loader"]
@@ -395,7 +395,7 @@ class Employee:
 
     @strawberry.field(
         description="Addresses for the employee",
-        permission_classes=[gen_read_permission("addresses")],
+        permission_classes=[gen_read_permission("address")],
     )
     async def addresses(
         self,
@@ -410,7 +410,7 @@ class Employee:
 
     @strawberry.field(
         description="Leaves for the employee",
-        permission_classes=[gen_read_permission("leaves")],
+        permission_classes=[gen_read_permission("leave")],
     )
     async def leaves(self, root: EmployeeRead, info: Info) -> list["Leave"]:
         loader: DataLoader = info.context["employee_leave_loader"]
@@ -418,7 +418,7 @@ class Employee:
 
     @strawberry.field(
         description="Associations for the employee",
-        permission_classes=[gen_read_permission("associations")],
+        permission_classes=[gen_read_permission("association")],
     )
     async def associations(self, root: EmployeeRead, info: Info) -> list["Association"]:
         loader: DataLoader = info.context["employee_association_loader"]
@@ -426,7 +426,7 @@ class Employee:
 
     @strawberry.field(
         description="Roles for the employee",
-        permission_classes=[gen_read_permission("roles")],
+        permission_classes=[gen_read_permission("role")],
     )
     async def roles(self, root: EmployeeRead, info: Info) -> list["Role"]:
         loader: DataLoader = info.context["employee_role_loader"]
@@ -434,7 +434,7 @@ class Employee:
 
     @strawberry.field(
         description="IT users for the employee",
-        permission_classes=[gen_read_permission("itusers")],
+        permission_classes=[gen_read_permission("ituser")],
     )
     async def itusers(self, root: EmployeeRead, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["employee_ituser_loader"]
@@ -442,7 +442,7 @@ class Employee:
 
     @strawberry.field(
         description="Engagement associations",
-        permission_classes=[gen_read_permission("engagement_associations")],
+        permission_classes=[gen_read_permission("engagement_association")],
     )
     async def engagement_associations(
         self, root: EmployeeRead, info: Info
@@ -463,7 +463,7 @@ class Employee:
 class Engagement:
     @strawberry.field(
         description="Engagement type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def engagement_type(self, root: EngagementRead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -471,7 +471,7 @@ class Engagement:
 
     @strawberry.field(
         description="Job function",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def job_function(self, root: EngagementRead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -479,7 +479,7 @@ class Engagement:
 
     @strawberry.field(
         description="The primary status",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def primary(self, root: EngagementRead, info: Info) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -495,7 +495,7 @@ class Engagement:
 
     @strawberry.field(
         description="Related leave",
-        permission_classes=[gen_read_permission("leaves")],
+        permission_classes=[gen_read_permission("leave")],
     )
     async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
         loader: DataLoader = info.context["leave_loader"]
@@ -505,7 +505,7 @@ class Engagement:
 
     @strawberry.field(
         description="Related employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: EngagementRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
@@ -513,7 +513,7 @@ class Engagement:
 
     @strawberry.field(
         description="Related organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: EngagementRead, info: Info
@@ -523,7 +523,7 @@ class Engagement:
 
     @strawberry.field(
         description="Engagement associations",
-        permission_classes=[gen_read_permission("engagement_associations")],
+        permission_classes=[gen_read_permission("engagement_association")],
     )
     async def engagement_associations(
         self, root: EngagementRead, info: Info
@@ -544,7 +544,7 @@ class Engagement:
 class EngagementAssociation:
     @strawberry.field(
         description="Related organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: EngagementAssociationRead, info: Info
@@ -554,7 +554,7 @@ class EngagementAssociation:
 
     @strawberry.field(
         description="Related engagement",
-        permission_classes=[gen_read_permission("engagements")],
+        permission_classes=[gen_read_permission("engagement")],
     )
     async def engagement(
         self, root: EngagementAssociationRead, info: Info
@@ -564,7 +564,7 @@ class EngagementAssociation:
 
     @strawberry.field(
         description="Related engagement association type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def engagement_association_type(
         self, root: EngagementAssociationRead, info: Info
@@ -585,7 +585,7 @@ class EngagementAssociation:
 class Facet:
     @strawberry.field(
         description="Associated classes",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def classes(self, root: FacetRead, info: Info) -> list["Class"]:
         """Get the associated classes.
@@ -618,7 +618,7 @@ class ITSystem:
 class ITUser:
     @strawberry.field(
         description="Connected employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: ITUserRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
@@ -628,7 +628,7 @@ class ITUser:
 
     @strawberry.field(
         description="Connected organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: ITUserRead, info: Info
@@ -640,7 +640,7 @@ class ITUser:
 
     @strawberry.field(
         description="Connected itsystem",
-        permission_classes=[gen_read_permission("itsystems")],
+        permission_classes=[gen_read_permission("itsystem")],
     )
     async def itsystem(self, root: ITUserRead, info: Info) -> ITSystem:
         loader: DataLoader = info.context["itsystem_loader"]
@@ -659,7 +659,7 @@ class ITUser:
 class KLE:
     @strawberry.field(
         description="KLE number",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def kle_number(self, root: KLERead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -667,7 +667,7 @@ class KLE:
 
     @strawberry.field(
         description="KLE Aspects",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def kle_aspects(self, root: KLERead, info: Info) -> list["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -675,7 +675,7 @@ class KLE:
 
     @strawberry.field(
         description="Associated organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(
         self, root: KLERead, info: Info
@@ -698,7 +698,7 @@ class KLE:
 class Leave:
     @strawberry.field(
         description="Leave type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def leave_type(self, root: LeaveRead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -706,7 +706,7 @@ class Leave:
 
     @strawberry.field(
         description="Related employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: LeaveRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
@@ -714,7 +714,7 @@ class Leave:
 
     @strawberry.field(
         description="Related engagement",
-        permission_classes=[gen_read_permission("engagements")],
+        permission_classes=[gen_read_permission("engagement")],
     )
     async def engagement(self, root: LeaveRead, info: Info) -> Optional["Engagement"]:
         loader: DataLoader = info.context["engagement_loader"]
@@ -736,7 +736,7 @@ class Leave:
 class Manager:
     @strawberry.field(
         description="Manager type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def manager_type(self, root: ManagerRead, info: Info) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -746,7 +746,7 @@ class Manager:
 
     @strawberry.field(
         description="Manager level",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def manager_level(self, root: ManagerRead, info: Info) -> Optional["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -756,7 +756,7 @@ class Manager:
 
     @strawberry.field(
         description="Manager responsibilities",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def responsibilities(self, root: ManagerRead, info: Info) -> list["Class"]:
         loader: DataLoader = info.context["class_loader"]
@@ -766,7 +766,7 @@ class Manager:
 
     @strawberry.field(
         description="Manager identity details",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: ManagerRead, info: Info) -> list["Employee"] | None:
         loader: DataLoader = info.context["employee_loader"]
@@ -776,7 +776,7 @@ class Manager:
 
     @strawberry.field(
         description="Managed organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(self, root: ManagerRead, info: Info) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
@@ -827,7 +827,7 @@ class Organisation:
 class OrganisationUnit:
     @strawberry.field(
         description="The immediate ancestor in the organisation tree",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def parent(
         self, root: OrganisationUnitRead, info: Info
@@ -844,7 +844,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="The immediate descendants in the organisation tree",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def children(
         self, root: OrganisationUnitRead, info: Info
@@ -865,7 +865,7 @@ class OrganisationUnit:
     # TODO: Add UUID to RAModel and remove model prefix here
     @strawberry.field(
         description="Organisation unit hierarchy",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def org_unit_hierarchy_model(
         self, root: OrganisationUnitRead, info: Info
@@ -877,7 +877,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Organisation unit type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def unit_type(
         self, root: OrganisationUnitRead, info: Info
@@ -890,7 +890,7 @@ class OrganisationUnit:
     # TODO: Remove org prefix from RAModel and remove it here too
     @strawberry.field(
         description="Organisation unit level",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def org_unit_level(
         self, root: OrganisationUnitRead, info: Info
@@ -902,7 +902,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Time planning strategy",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def time_planning(
         self, root: OrganisationUnitRead, info: Info
@@ -914,7 +914,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related engagements",
-        permission_classes=[gen_read_permission("engagements")],
+        permission_classes=[gen_read_permission("engagement")],
     )
     async def engagements(
         self, root: OrganisationUnitRead, info: Info
@@ -924,7 +924,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Managers of the organisation unit",
-        permission_classes=[gen_read_permission("managers")],
+        permission_classes=[gen_read_permission("manager")],
     )
     async def managers(
         self, root: OrganisationUnitRead, info: Info, inherit: bool = False
@@ -946,7 +946,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related addresses",
-        permission_classes=[gen_read_permission("addresses")],
+        permission_classes=[gen_read_permission("address")],
     )
     async def addresses(
         self,
@@ -961,7 +961,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related leaves",
-        permission_classes=[gen_read_permission("leaves")],
+        permission_classes=[gen_read_permission("leave")],
     )
     async def leaves(self, root: OrganisationUnitRead, info: Info) -> list["Leave"]:
         loader: DataLoader = info.context["org_unit_leave_loader"]
@@ -969,7 +969,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related associations",
-        permission_classes=[gen_read_permission("associations")],
+        permission_classes=[gen_read_permission("association")],
     )
     async def associations(
         self, root: OrganisationUnitRead, info: Info
@@ -979,7 +979,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related roles",
-        permission_classes=[gen_read_permission("roles")],
+        permission_classes=[gen_read_permission("role")],
     )
     async def roles(self, root: OrganisationUnitRead, info: Info) -> list["Role"]:
         loader: DataLoader = info.context["org_unit_role_loader"]
@@ -987,7 +987,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related IT users",
-        permission_classes=[gen_read_permission("itusers")],
+        permission_classes=[gen_read_permission("ituser")],
     )
     async def itusers(self, root: OrganisationUnitRead, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["org_unit_ituser_loader"]
@@ -995,7 +995,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="KLE responsibilites for the organisation unit",
-        permission_classes=[gen_read_permission("kles")],
+        permission_classes=[gen_read_permission("kle")],
     )
     async def kles(self, root: OrganisationUnitRead, info: Info) -> list["KLE"]:
         loader: DataLoader = info.context["org_unit_kle_loader"]
@@ -1003,7 +1003,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Related units for the organisational unit",
-        permission_classes=[gen_read_permission("related_units")],
+        permission_classes=[gen_read_permission("related_unit")],
     )
     async def related_units(
         self, root: OrganisationUnitRead, info: Info
@@ -1013,7 +1013,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description="Engagement associations for the organisational unit",
-        permission_classes=[gen_read_permission("engagement_associations")],
+        permission_classes=[gen_read_permission("engagement_association")],
     )
     async def engagement_associations(
         self, root: OrganisationUnitRead, info: Info
@@ -1034,7 +1034,7 @@ class OrganisationUnit:
 class RelatedUnit:
     @strawberry.field(
         description="Related organisation units",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_units(
         self, root: RelatedUnitRead, info: Info
@@ -1054,7 +1054,7 @@ class RelatedUnit:
 class Role:
     @strawberry.field(
         description="Role type",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
     async def role_type(self, root: RoleRead, info: Info) -> "Class":
         loader: DataLoader = info.context["class_loader"]
@@ -1062,7 +1062,7 @@ class Role:
 
     @strawberry.field(
         description="Connected employee",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: RoleRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
@@ -1070,7 +1070,7 @@ class Role:
 
     @strawberry.field(
         description="Connected organisation unit",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def org_unit(self, root: RoleRead, info: Info) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]

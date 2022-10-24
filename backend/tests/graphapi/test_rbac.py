@@ -72,31 +72,31 @@ async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
         (ORG_QUERY, set(), {"User does not have read-access to org"}),
         (ORG_QUERY, {"read_org"}, set()),
         # Query all org-units
-        (ORG_UNIT_QUERY, set(), {"User does not have read-access to org_units"}),
-        (ORG_UNIT_QUERY, {"read_org"}, {"User does not have read-access to org_units"}),
-        (ORG_UNIT_QUERY, {"read_org_units"}, set()),
+        (ORG_UNIT_QUERY, set(), {"User does not have read-access to org_unit"}),
+        (ORG_UNIT_QUERY, {"read_org"}, {"User does not have read-access to org_unit"}),
+        (ORG_UNIT_QUERY, {"read_org_unit"}, set()),
         # Query all addresses
-        (ADDRESS_QUERY, set(), {"User does not have read-access to addresses"}),
-        (ADDRESS_QUERY, {"read_org"}, {"User does not have read-access to addresses"}),
-        (ADDRESS_QUERY, {"read_addresses"}, set()),
+        (ADDRESS_QUERY, set(), {"User does not have read-access to address"}),
+        (ADDRESS_QUERY, {"read_org"}, {"User does not have read-access to address"}),
+        (ADDRESS_QUERY, {"read_address"}, set()),
         # Query all org-units and their addresses
         (
             ORG_UNIT_ADDRESS_QUERY,
             set(),
-            {"User does not have read-access to org_units"},
+            {"User does not have read-access to org_unit"},
         ),
         (
             ORG_UNIT_ADDRESS_QUERY,
             {"read_org"},
-            {"User does not have read-access to org_units"},
+            {"User does not have read-access to org_unit"},
         ),
         # Address permission is first checked here, as we actually have org-unit data
         (
             ORG_UNIT_ADDRESS_QUERY,
-            {"read_org_units"},
-            {"User does not have read-access to addresses"},
+            {"read_org_unit"},
+            {"User does not have read-access to address"},
         ),
-        (ORG_UNIT_ADDRESS_QUERY, {"read_org_units", "read_addresses"}, set()),
+        (ORG_UNIT_ADDRESS_QUERY, {"read_org_unit", "read_address"}, set()),
     ],
 )
 async def test_graphql_rbac(

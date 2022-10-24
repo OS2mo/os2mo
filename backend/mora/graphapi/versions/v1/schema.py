@@ -22,7 +22,7 @@ from ramodels.mo import OrganisationUnitRead
 class OrganisationUnit(LatestOrganisationUnit):
     @strawberry.field(
         description="The immediate ancestor in the organisation tree",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
     async def parent(
         self, root: OrganisationUnitRead, info: Info
