@@ -82,7 +82,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
 
-    @app.post("/trigger/all", status_code=202)
+    @app.get("/all", status_code=202)
     async def load_all_org_persons() -> Any:
         """Request all organizational persons"""
         logger.info("Manually triggered request of all organizational persons")

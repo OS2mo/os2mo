@@ -26,6 +26,8 @@ services:
       - ./mo_ldap_import_export:/opt/app/
     networks:
       - os2mo_default
+    ports:
+      - "8000:8000"
 
 networks:
   os2mo_default:
