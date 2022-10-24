@@ -23,8 +23,6 @@ from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
-# from mora.graphapi.versions.latest.graphql_utils import CprNo
-
 
 logger = logging.getLogger(__name__)
 
