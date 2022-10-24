@@ -1,31 +1,95 @@
 ---
-title: Testsuiten
+title: Testsuite
 ---
 
-Der arbejdes i projektet med fire typer af tests:
+## How to write tests
 
-1.  Backend unit tests
-2.  Backend integration tests
-3.  Frontend unit tests
-4.  Frontend end-to-end tests
+### Test categories
 
-## Backend unit tests og integration tests
+! *Not all tests currently adhere to this standard. However this should be the standard*
+
+| Category | Scope | Limitations | Speed  |
+|----------| :-------------:|:------:|----:|
+| Unit | Assert that an action i completed correctly within a single module | No db, No network, no other system dependencies, should be able to be run without a container | very fast 50-100 ms|
+| Integration - narrow | Test how a single module interacts with one other module | a max of one dependency (ie. a database OR a webserver ) | ~500 ms |
+| Integration - broad | Asserts that an action behaves correctly thorugh multiple modules | Can use one machine, but not communicate with other services | 5000 ms |
+| System-test | User flows, ie. simulating how a user would interact with the system |
+
+Currently we dont use e2e tests, many of our integration test are very broad in scope and could count as system or end to end tests.
+
+How we currently classify tests:
+| Category | Scope | Limitations | Speed  |
+|----------| :-------------:|:------:|----:|
+| Unit | very small| only tests a single method |  <100 ms|
+| ~~Unit~~ Integration  | same scope as narrow integration test | Often only one dependency, and never the lora db | generally fast ~50 - 200 ms|
+| Integration | Generally a broader  | Currently no real limitations  | ~ 200 ms - 5000 ms, with a few being 30s or more|
+| ~~System tests~~ Integration | A few broad test that gets data from other external services | no limations | |
 
 
-Backend\'en har en testsuite bestående af unit tests og integration
-tests. Disse findes i `backend/tests/`{.interpreted-text role="file"}.
+### Test organization
+! Currently this is not how the folder structure is organized.
+The folder structure should be organized like this
 
-Hver test case køres op imod en LoRa-instans. Der ryddes mellem hver
-test case, så testene effektivt set køres isoleret. LoRa-instansen
-kopierer eventuelle data i databasen til en backup-database, og
-gendanner disse efter test-kørslen.
+- os2mo/
+	- backend/
+		- tests/
+			- conftest.py
+			- unit/
+			- integration/
+				- conftest.py
+				- graphql/
+				- mora/
+			- lora/
+			- etc.
 
-Efter at udviklingsmiljøet er startet med `docker-compose up -d`, kan
-backend unit tests og integration tests køres med kommandoen:
+There exists a frontend testsuite, however it's unused.
 
-``` {.bash}
-docker-compose exec mo pytest
-```
+
+### Best practices
+
+Test should be named test_testname (should not include whether they are integration and unit test in the filename)
+
+#### Integration tests
+
+Keep them narrow in scope.
+Use fixtures to set state.
+
+## Pytest
+
+### Conftest.py
+We use pytest to run our tests. Pytest partitions each test into multiple stages.
+
+- Collection phase (collects all the tests that should be run)
+- Testcycle phase
+	- Setup phase (runs before each test)
+	- Call phase ( runs the test code)
+	- Teardown phase ( runs after each test)
+- Report phase (generates a report for each test)
+
+How these phases are being conducted is determined by the conftest.py in each test folder. This file applies to the current and nested folders. This means that we can have a general conftest in `tests/` and one in `tests/integration/`, the results is the things we define in `tests/conftest.py` is applied to all tests, while the things defined in `tests/integration/` is only applied to integration tests.
+
+### Fixtures
+
+We use fixtures to define behavior and state for how each test should be run.
+
+Commenly used fixtures:
+| Fixture | Effect |
+|----------| -------------|
+| XXX_test_app |  A fixture that instantiates a mora fast api app. |
+| load_fixture_data_with_reset | Ensures that the 'sample structures' has been loaded. And rollbacks all changes made during a test from the db. |
+| graphapi_post | Allows the test to make a grapapi post request to the mocked  |
+
+Autoused fixture:
+These fixtures are automatically loaded when running a test.
+
+| Fixture | Effect |
+|----------| -------------|
+| mocked_context |  |
+| seed_lora_client | Creates an async lora client  |
+
+### Marks
+A test can be marked as being a certain type, most default marks dont do anything. However, the following marks do have actual effects on tests, as described below.
+
 
 ## Frontend unit tests
 
