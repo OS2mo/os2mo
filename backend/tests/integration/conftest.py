@@ -20,10 +20,14 @@ def graphapi_test():
 
 
 @pytest.fixture
-def graphapi_post_integration(graphapi_test: TestClient):
-    def _post(query: str, variables: dict[str, Any] | None = None) -> GQLResponse:
+def graphapi_post_integration(graphapi_test: TestClient, latest_graphql_url: str):
+    def _post(
+        query: str,
+        variables: dict[str, Any] | None = None,
+        url: str = latest_graphql_url,
+    ) -> GQLResponse:
         response = graphapi_test.post(
-            "/graphql", json={"query": query, "variables": variables}
+            url, json={"query": query, "variables": variables}
         )
         data, errors = response.json().get("data"), response.json().get("errors")
         status_code = response.status_code

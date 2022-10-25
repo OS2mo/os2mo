@@ -1009,17 +1009,6 @@ dotenv = ["python-dotenv (>=0.10.4)"]
 email = ["email-validator (>=1.0.3)"]
 
 [[package]]
-name = "Pygments"
-version = "2.13.0"
-description = "Pygments is a syntax highlighting package written in Python."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.extras]
-plugins = ["importlib-metadata"]
-
-[[package]]
 name = "PyJWT"
 version = "2.6.0"
 description = "JSON Web Token implementation in Python"
@@ -1390,29 +1379,26 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.131.5"
+version = "0.137.1"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-click = ">=7.0,<9.0"
-fastapi = {version = ">=0.65.2", optional = true, markers = "extra == \"fastapi\""}
 graphql-core = ">=3.2.0,<3.3.0"
-pygments = ">=2.3,<3.0"
 python-dateutil = ">=2.7.0,<3.0.0"
-python-multipart = ">=0.0.5,<0.0.6"
 typing_extensions = ">=3.7.4,<5.0.0"
 
 [package.extras]
 aiohttp = ["aiohttp (>=3.7.4.post0,<4.0.0)"]
-asgi = ["starlette (>=0.13.6)"]
+asgi = ["python-multipart (>=0.0.5,<0.0.6)", "starlette (>=0.13.6)"]
 chalice = ["chalice (>=1.22,<2.0)"]
 channels = ["asgiref (>=3.2,<4.0)", "channels (>=3.0.5)"]
-debug-server = ["starlette (>=0.13.6)", "uvicorn (>=0.11.6,<0.19.0)"]
+cli = ["click (>=7.0,<9.0)", "pygments (>=2.3,<3.0)"]
+debug-server = ["click (>=7.0,<9.0)", "pygments (>=2.3,<3.0)", "python-multipart (>=0.0.5,<0.0.6)", "starlette (>=0.13.6)", "uvicorn (>=0.11.6,<0.20.0)"]
 django = ["Django (>=3.2)", "asgiref (>=3.2,<4.0)"]
-fastapi = ["fastapi (>=0.65.2)"]
+fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.5,<0.0.6)"]
 flask = ["flask (>=1.1)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
 pydantic = ["pydantic (<2)"]
@@ -1572,7 +1558,7 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "956ab504d5fbd779fb76142650dbe0b858110a9f5dee08b88b5f76a38fbd3022"
+content-hash = "a3f561c66a22e7ac535ea7150a05ed454b043c258ce0d6a059738dbf1326c2fe"
 
 [metadata.files]
 aio-pika = [
@@ -2442,10 +2428,6 @@ pydantic = [
     {file = "pydantic-1.10.2-py3-none-any.whl", hash = "sha256:1b6ee725bd6e83ec78b1aa32c5b1fa67a3a65badddde3976bca5fe4568f27709"},
     {file = "pydantic-1.10.2.tar.gz", hash = "sha256:91b8e218852ef6007c2b98cd861601c6a09f1aa32bbbb74fab5b1c33d4a1e410"},
 ]
-Pygments = [
-    {file = "Pygments-2.13.0-py3-none-any.whl", hash = "sha256:f643f331ab57ba3c9d89212ee4a2dabc6e94f117cf4eefde99a0574720d14c42"},
-    {file = "Pygments-2.13.0.tar.gz", hash = "sha256:56a8508ae95f98e2b9bdf93a6be5ae3f7d8af858b43e02c5a2ff083726be40c1"},
-]
 PyJWT = [
     {file = "PyJWT-2.6.0-py3-none-any.whl", hash = "sha256:d83c3d892a77bbb74d3e1a2cfa90afaadb60945205d1095d9221f04466f64c14"},
     {file = "PyJWT-2.6.0.tar.gz", hash = "sha256:69285c7e31fc44f68a1feb309e948e0df53259d579295e6cfe2b1792329f05fd"},
@@ -2642,8 +2624,8 @@ starlette-context = [
     {file = "starlette_context-0.3.4.tar.gz", hash = "sha256:2d28e1838302fb5d5adacadc10fb73fb2d5cca1f0aa1e279698701cc96f1567c"},
 ]
 strawberry-graphql = [
-    {file = "strawberry-graphql-0.131.5.tar.gz", hash = "sha256:0be5c191a974fc934ad9a62e07d522075236979082ad7e916cfa61185f94fb5d"},
-    {file = "strawberry_graphql-0.131.5-py3-none-any.whl", hash = "sha256:3de41929826e3de705519803b5f224206600a65ebdaf178d30337a5c82d17f28"},
+    {file = "strawberry_graphql-0.137.1-py3-none-any.whl", hash = "sha256:b6ba148a71752218dc2d19d686a45fb650676b9d90f1331802542ef9e5d79ae2"},
+    {file = "strawberry_graphql-0.137.1.tar.gz", hash = "sha256:4b36ef85654d70c22208d99577b287d805bbd9626d93906aa9021967c3d502a9"},
 ]
 structlog = [
     {file = "structlog-22.1.0-py3-none-any.whl", hash = "sha256:760d37b8839bd4fe1747bed7b80f7f4de160078405f4b6a1db9270ccbfce6c30"},

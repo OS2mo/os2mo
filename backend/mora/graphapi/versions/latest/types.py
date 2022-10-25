@@ -1,5 +1,10 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import json
+from base64 import b64decode
+from base64 import b64encode
+from typing import NewType
+
 import strawberry
 
 from .models import Address as AddressModel
@@ -21,6 +26,12 @@ CPRType = strawberry.scalar(
     CPR,
     serialize=str,
     parse_value=CPR.validate,
+)
+
+Cursor = strawberry.scalar(
+    NewType("Cursor", str),
+    serialize=lambda v: b64encode(json.dumps(v).encode("ascii")).decode("ascii"),
+    parse_value=lambda v: int(b64decode(v)),
 )
 
 
