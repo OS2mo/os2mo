@@ -39,7 +39,10 @@ class StarletteContextExtension(Extension):
         context["query_args"] = {}
         # Store reference counter, instead of simple boolean, to ensure we do not set
         # is_graphql=False as soon as the first nested schema execution exits.
+
         context["is_graphql"] = context.get("is_graphql", 0) + 1
+        print(f"+++++++++++++++++++++++++++ CONTEXT: ---- {context}")
+        assert context["is_graphql"]
 
     def on_request_end(self) -> None:
         context["is_graphql"] = context.get("is_graphql", 0) - 1
