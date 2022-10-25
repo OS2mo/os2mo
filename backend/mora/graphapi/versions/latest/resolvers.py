@@ -45,8 +45,6 @@ class StaticResolver:
             info=info,
             uuids=uuids,
             user_keys=user_keys,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
         )
 
     async def _resolve(  # type: ignore[no-untyped-def]
@@ -54,13 +52,14 @@ class StaticResolver:
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
+
         if uuids is not None:
             return await self.get_by_uuid(info.context[self.loader], uuids)
         if user_keys is not None:
@@ -104,8 +103,8 @@ class Resolver(StaticResolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
     ):
         """Resolve a query using the specified arguments.
 
@@ -192,8 +191,8 @@ class AddressResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         address_types: list[UUID] | None = None,
         address_type_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
@@ -233,8 +232,8 @@ class AssociationResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
         association_types: list[UUID] | None = None,
@@ -279,8 +278,8 @@ class EmployeeResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         cpr_numbers: list[CPR] | None = None,
     ):
         """Resolve employees."""
@@ -308,8 +307,8 @@ class EngagementResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
     ):
@@ -338,8 +337,8 @@ class ManagerResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
     ):
@@ -368,8 +367,8 @@ class OrganisationUnitResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        from_date: str | None = None,
+        to_date: str | None = None,
         parents: list[UUID] | None = UNSET,
     ):
         """Resolve organisation units."""
@@ -393,7 +392,7 @@ class OrganisationUnitResolver(Resolver):
 
 
 def get_date_interval(
-    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
+    from_date: str | None = None, to_date: str | None = None
 ) -> OpenValidityModel:
     """Get the date interval for GraphQL queries to support bitemporal lookups.
 
@@ -405,14 +404,14 @@ def get_date_interval(
         ValueError: If lower bound is none and upper bound is unset
         ValueError: If the interval is invalid, e.g. lower > upper
     """
-    if from_date is UNSET:
-        from_date = datetime.now(tz=timezone.utc)
-    if to_date is UNSET:
-        if from_date is None:
-            raise ValueError(
-                "Cannot infer UNSET to_date from interval starting at -infinity"
-            )
-        to_date = from_date + timedelta(milliseconds=1)
+    if from_date is not None and from_date.lower() == "now":
+        from_date = datetime.now(tz=timezone.utc).isoformat()
+
+    if to_date is not None and to_date.lower() == "now":
+        to_date = (
+            datetime.now(tz=timezone.utc) + timedelta(milliseconds=1)
+        ).isoformat()
+
     try:
         interval = OpenValidityModel(from_date=from_date, to_date=to_date)
     except ValidationError as v_error:
