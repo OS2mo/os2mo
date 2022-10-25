@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+12.0.0 - 2022-10-25
+-------------------
+
+[#52421] Fix RBAC
+
+We had discrepancies between the role names in keycloak and MO. Now, all role
+names are as configured in keycloak.
+
 11.31.1 - 2022-10-24
 --------------------
 
