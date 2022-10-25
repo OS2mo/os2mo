@@ -133,6 +133,7 @@ async def load_sample_structures(minimal=False):
         "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
         "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
         "org_unit_address_type": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+        "org_unit_hierarchy": "403eb28f-e21e-bdd6-3612-33771b098a12",
         "org_unit_level": "77c39616-dd98-4cf5-87fb-cdb9f3a0e455",
         "org_unit_type": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
         "primary_type": "1f6f34d8-d065-4bb7-9af0-738d25dc0fbf",

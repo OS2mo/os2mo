@@ -1187,6 +1187,13 @@ class Tests(tests.cases.LoRATestCase):
                 {
                     "description": "",
                     "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_hierarchy/",
+                    "user_key": "org_unit_hierarchy",
+                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
+                },
+                {
+                    "description": "",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
                     "/f/engagement_type/",
                     "user_key": "engagement_type",
                     "uuid": "3e702dd1-4103-4116-bb2d-b150aebe807d",
