@@ -61,7 +61,7 @@ class Query:
     addresses: list[Response[Address]] = strawberry.field(
         resolver=AddressResolver().resolve,
         description="Get a list of all addresses, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("addresses")],
+        permission_classes=[gen_read_permission("address")],
     )
 
     # Associations
@@ -69,7 +69,7 @@ class Query:
     associations: list[Response[Association]] = strawberry.field(
         resolver=AssociationResolver().resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("associations")],
+        permission_classes=[gen_read_permission("association")],
     )
 
     # Classes
@@ -77,7 +77,7 @@ class Query:
     classes: list[Class] = strawberry.field(
         resolver=ClassResolver().resolve,
         description="Get a list of all classes, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("classes")],
+        permission_classes=[gen_read_permission("class")],
     )
 
     # Employees
@@ -85,7 +85,7 @@ class Query:
     employees: list[Response[Employee]] = strawberry.field(
         resolver=EmployeeResolver().resolve,
         description="Get a list of all employees, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("employees")],
+        permission_classes=[gen_read_permission("employee")],
     )
 
     # Engagements
@@ -93,7 +93,7 @@ class Query:
     engagements: list[Response[Engagement]] = strawberry.field(
         resolver=EngagementResolver().resolve,
         description="Get a list of all engagements, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("engagements")],
+        permission_classes=[gen_read_permission("engagement")],
     )
 
     # EngagementsAssociations
@@ -103,7 +103,7 @@ class Query:
             "engagement_association_getter", "engagement_association_loader"
         ).resolve,
         description="Get a list of engagement associations",
-        permission_classes=[gen_read_permission("engagement_associations")],
+        permission_classes=[gen_read_permission("engagement_association")],
     )
 
     # Facets
@@ -111,7 +111,7 @@ class Query:
     facets: list[Facet] = strawberry.field(
         resolver=FacetResolver().resolve,
         description="Get a list of all facets, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("facets")],
+        permission_classes=[gen_read_permission("facet")],
     )
 
     # ITSystems
@@ -119,7 +119,7 @@ class Query:
     itsystems: list[ITSystem] = strawberry.field(
         resolver=StaticResolver("itsystem_getter", "itsystem_loader").resolve,
         description="Get a list of all ITSystems, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("itsystems")],
+        permission_classes=[gen_read_permission("itsystem")],
     )
 
     # ITUsers
@@ -127,7 +127,7 @@ class Query:
     itusers: list[Response[ITUser]] = strawberry.field(
         resolver=Resolver("ituser_getter", "ituser_loader").resolve,
         description="Get a list of all ITUsers, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("itusers")],
+        permission_classes=[gen_read_permission("ituser")],
     )
 
     # KLEs
@@ -135,7 +135,7 @@ class Query:
     kles: list[Response[KLE]] = strawberry.field(
         resolver=Resolver("kle_getter", "kle_loader").resolve,
         description="Get a list of all KLE's, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("kles")],
+        permission_classes=[gen_read_permission("kle")],
     )
 
     # Leave
@@ -143,7 +143,7 @@ class Query:
     leaves: list[Response[Leave]] = strawberry.field(
         resolver=Resolver("leave_getter", "leave_loader").resolve,
         description="Get a list of all leaves, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("leaves")],
+        permission_classes=[gen_read_permission("leave")],
     )
 
     # Managers
@@ -151,7 +151,7 @@ class Query:
     managers: list[Response[Manager]] = strawberry.field(
         resolver=ManagerResolver().resolve,
         description="Get a list of all managers, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("managers")],
+        permission_classes=[gen_read_permission("manager")],
     )
 
     # Root Organisation
@@ -171,7 +171,7 @@ class Query:
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
         resolver=OrganisationUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("org_units")],
+        permission_classes=[gen_read_permission("org_unit")],
     )
 
     # Related Units
@@ -179,7 +179,7 @@ class Query:
     related_units: list[Response[RelatedUnit]] = strawberry.field(
         resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
         description="Get a list of related organisation units, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("related_units")],
+        permission_classes=[gen_read_permission("related_unit")],
     )
 
     # Roles
@@ -187,7 +187,7 @@ class Query:
     roles: list[Response[Role]] = strawberry.field(
         resolver=Resolver("role_getter", "role_loader").resolve,
         description="Get a list of all roles, optionally by uuid(s)",
-        permission_classes=[gen_read_permission("roles")],
+        permission_classes=[gen_read_permission("role")],
     )
 
     # Version
@@ -203,7 +203,7 @@ class Query:
     # ------
     @strawberry.field(
         description="Get a list of all health checks, optionally by identifier(s)",
-        permission_classes=[gen_read_permission("healths")],
+        permission_classes=[gen_read_permission("health")],
     )
     async def healths(self, identifiers: list[str] | None = None) -> list[Health]:
         healthchecks = set(health_map.keys())
@@ -221,7 +221,7 @@ class Query:
     # -----
     @strawberry.field(
         description="Get a list of all files, optionally by filename(s)",
-        permission_classes=[gen_read_permission("files")],
+        permission_classes=[gen_read_permission("file")],
     )
     async def files(
         self, info: Info, file_store: FileStore, file_names: list[str] | None = None
