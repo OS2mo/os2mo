@@ -229,7 +229,7 @@ async def get_org_unit_children(
     query = """
     query OrganisationUnitChildrenQuery(
         $uuid: UUID!, $from_date: DateTime,
-        $engagements: Boolean!, $associations: Boolean!, $hierarchy: Boolean!
+        $engagements: Boolean!, $associations: Boolean!
     )
     {
         org_units(uuids: [$uuid], from_date: $from_date) {
@@ -237,7 +237,6 @@ async def get_org_unit_children(
                 children {
                     uuid
                     child_count
-                    org_unit_hierarchy @include(if: $hierarchy)
                     name
                     user_key
                     associations @include(if: $associations) {
@@ -260,7 +259,6 @@ async def get_org_unit_children(
         "uuid": parentid,
         "engagements": "engagement" in count,
         "associations": "association" in count,
-        "hierarchy": bool(org_unit_hierarchy),
     }
     if at is not None:
         variables["from_date"] = at
@@ -277,10 +275,6 @@ async def get_org_unit_children(
         raise ValueError("Wrong number of parent units returned, expected one.")
 
     ou_children = org_unit["children"]
-    if org_unit_hierarchy is not None:
-        ou_children = list(
-            filter_data(ou_children, "org_unit_hierarchy", str(org_unit_hierarchy))
-        )
     for child in ou_children:
         if "engagements" in child:
             child["engagement_count"] = len(child.pop("engagements"))
