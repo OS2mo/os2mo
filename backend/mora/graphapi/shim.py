@@ -48,8 +48,8 @@ class UUIDObject(BaseModel):
 class ValidityDates(BaseModel):
     """Validity with (imprecise) `date` types."""
 
-    from_date: date | None = Field(alias="from")
-    to_date: date | None = Field(alias="to")
+    from_date: str | None = Field(alias="from")
+    to_date: str | None = Field(alias="to")
 
     @validator("from_date", pre=True, always=True)
     def parse_from_date(cls, v: Any) -> date | None:

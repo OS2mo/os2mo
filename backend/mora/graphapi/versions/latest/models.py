@@ -64,8 +64,8 @@ class Validity(OpenValidity):
             key="Organisation unit must be set with either 'to' or both 'from' "
             "and 'to'",
             unit={
-                "from": self.from_date.isoformat() if self.from_date else None,
-                "to": self.to_date.isoformat() if self.to_date else None,
+                "from": self.from_date if self.from_date else None,
+                "to": self.to_date if self.to_date else None,
             },
         )
 
