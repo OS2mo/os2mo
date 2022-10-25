@@ -175,7 +175,7 @@ async def get_org_children(
     query = """
     query OrganisationChildrenQuery(
         $uuids: [UUID!]
-        $from_date: DateTime,
+        $from_date: String,
         $engagements: Boolean!,
         $associations: Boolean!,
         $hierarchy: Boolean!) {

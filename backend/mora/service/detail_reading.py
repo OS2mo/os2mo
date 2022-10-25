@@ -137,7 +137,7 @@ async def list_addresses_employee(
     """GraphQL shim"""
     if only_primary_uuid:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+            query GetAddress($uuid: UUID!, $from_date: String, $to_date: String) {
               employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
                   addresses {
@@ -160,7 +160,7 @@ async def list_addresses_employee(
         """
     else:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+            query GetAddress($uuid: UUID!, $from_date: String, $to_date: String) {
               employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
                   addresses {
@@ -263,7 +263,7 @@ async def list_addresses_ou(
     """GraphQL shim"""
     if only_primary_uuid:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+            query GetAddress($uuid: UUID!, $from_date: String, $to_date: String) {
               org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
                   addresses {
@@ -286,7 +286,7 @@ async def list_addresses_ou(
         """
     else:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
+            query GetAddress($uuid: UUID!, $from_date: String, $to_date: String) {
               org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
                   addresses {

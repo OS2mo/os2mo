@@ -86,7 +86,7 @@ def test_graphql_dates_default(graphapi_test):
 def test_graphql_dates_explicit(graphapi_test, dates):
     """Test explicit GraphQL date arguments."""
     query = """
-            query TestQuery($from_date: DateTime, $to_date: DateTime) {
+            query TestQuery($from_date: String, $to_date: String) {
                 employees(from_date: $from_date, to_date: $to_date) {
                     uuid
                 }
@@ -117,7 +117,7 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates):
     check GraphQL's error response.
     """
     query = """
-            query TestQuery($from_date: DateTime, $to_date: DateTime) {
+            query TestQuery($from_date: String, $to_date: String) {
                 employees(from_date: $from_date, to_date: $to_date) {
                     uuid
                 }

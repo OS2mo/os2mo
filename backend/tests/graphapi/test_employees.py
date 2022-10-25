@@ -224,7 +224,7 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
         mutation_func: str = "employee_terminate", **kwargs
     ):
         query = (
-            f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, "
+            f"mutation($uuid: UUID!, $from: String, $to: String!, "
             f"$triggerless: Boolean) {{"
             f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, "
             f"triggerless: $triggerless}}) "

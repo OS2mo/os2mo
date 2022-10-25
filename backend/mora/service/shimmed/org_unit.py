@@ -80,7 +80,7 @@ async def get_orgunit(
         query = """
         query OrganisationUnitQuery(
             $uuid: UUID!,
-            $from_date: DateTime,
+            $from_date: String,
             $engagements: Boolean!,
             $associations: Boolean!,
         ) {
@@ -228,7 +228,7 @@ async def get_org_unit_children(
     """Obtain the list of nested units within an organisational unit."""
     query = """
     query OrganisationUnitChildrenQuery(
-        $uuid: UUID!, $from_date: DateTime,
+        $uuid: UUID!, $from_date: String,
         $engagements: Boolean!, $associations: Boolean!, $hierarchy: Boolean!
     )
     {
@@ -330,7 +330,7 @@ async def terminate_org_unit(
 ):
     mutation_func = "org_unit_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, $triggerless: Boolean) "
+        f"mutation($uuid: UUID!, $from: String, $to: String!, $triggerless: Boolean) "
         f"{{ {mutation_func}"
         f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
         f"{{ uuid }} }}"

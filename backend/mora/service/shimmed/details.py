@@ -71,7 +71,7 @@ async def _address_terminate_graphql_handler(
 ) -> str:
     mutation_func = "address_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
+        f"mutation($uuid: UUID!, $from: String, $to: String, $triggerless: Boolean) "
         f"{{ {mutation_func}"
         f"(at: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
         f"{{ uuid }} }}"

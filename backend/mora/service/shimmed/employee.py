@@ -35,7 +35,7 @@ async def get_employee(
     """Retrieve an employee."""
     if only_primary_uuid:
         query = """
-            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
+            query GetEmployee($uuid: UUID!, $from_date: String) {
               employees(uuids: [$uuid], from_date: $from_date) {
             objects { uuid }
           }
@@ -49,7 +49,7 @@ async def get_employee(
 
     else:
         query = """
-            query GetEmployee($uuid: UUID!, $from_date: DateTime) {
+            query GetEmployee($uuid: UUID!, $from_date: String) {
                 employees(uuids: [$uuid], from_date: $from_date) {
             objects {
               uuid, user_key, cpr_no
