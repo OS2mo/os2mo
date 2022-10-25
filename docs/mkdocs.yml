@@ -37,6 +37,7 @@ nav:
         - api-dokumentation/amqp.md
         - api-dokumentation/triggers.md
         - api-dokumentation/user-configuration.md
+        - api-dokumentation/it-associations.md
     - GraphQL:
         - graphql/intro.md
         - graphql/reads.md
