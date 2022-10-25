@@ -19,8 +19,8 @@ from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from respx.mocks import HTTPCoreMocker
-from starlette_context import _request_scope_context_storage
-from starlette_context.ctx import _Context
+from starlette_context import context
+from starlette_context import request_cycle_context
 
 from mora import lora
 from mora.app import create_app
@@ -99,25 +99,14 @@ def set_settings(
 
 
 @pytest.fixture(autouse=True)
-def mocked_context(monkeypatch) -> _Context:
+def mocked_context() -> None:
     """
     Testing code that relies on context vars without a full test client / app.
-    Originally inspired by this solution from the author of starlette-context:
-    https://github.com/tomwojcik/starlette-context/issues/46#issuecomment-867148272.
+    https://starlette-context.readthedocs.io/en/latest/testing.html
     """
-
-    @property
-    def data(self) -> dict:
-        """
-        The original _Context.data method, but returns an empty dict on error.
-        """
-        try:
-            return _request_scope_context_storage.get()
-        except LookupError:
-            return {}
-
-    monkeypatch.setattr(_Context, "data", data)
-    return _Context()
+    context_store = {}
+    with request_cycle_context(context_store):
+        yield context
 
 
 async def fake_auth():
