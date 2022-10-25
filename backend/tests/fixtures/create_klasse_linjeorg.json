@@ -1,0 +1,57 @@
+{
+    "note": "Oprettet i MO",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "linjeorg",
+                "omfang": "TEXT",
+                "titel": "Linjeorganisation",
+                "virkning": {
+                    "from": "1970-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "objekttype": "organisation",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "facet": [
+            {
+                "objekttype": "facet",
+                "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "publiceret": "Publiceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}

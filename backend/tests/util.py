@@ -222,6 +222,10 @@ async def load_sample_structures(minimal=False):
                 "org_unit_email": "73360db1-bad3-4167-ac73-8d827c0c8751",
                 "org_unit_telefon": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                 "org_unit_contactopenhours": "e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b",
+                # org_unit_hierarchy
+                "linjeorg": "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
+                "hide": "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+                "selvejet": "69de6410-bfe7-bea5-e6cc-376b3302189c",
                 # org_unit_level
                 "org_unit_level_10": "0f015b67-f250-43bb-9160-043ec19fad48",
                 # visibility
