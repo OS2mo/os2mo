@@ -54,9 +54,12 @@ async def load_organizationalPersons(
         page += 1
         ad_connection.search(**searchParameters)
         output.extend(ad_connection.entries)
+
+        # TODO: Skal 1.2.... være Configurerbar?
         cookie = ad_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
             "cookie"
         ]
+
         if cookie:
             searchParameters["paged_cookie"] = cookie
         else:
