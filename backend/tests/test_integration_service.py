@@ -518,7 +518,7 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
                     "user_key": "hum",
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                     "validity": {
-                        "from": "2016-01-01",
+                        "from": "2016-12-31",
                         "to": None,
                     },
                     "child_count": 2,

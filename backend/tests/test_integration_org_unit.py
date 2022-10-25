@@ -1201,6 +1201,17 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         },
                     }
                 ],
+                "opmærkning": [
+                    {
+                        "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
+                        "virkning": {
+                            "from": "2016-12-31 23:00:00+01",
+                            "from_included": True,
+                            "to": "infinity",
+                            "to_included": False,
+                        },
+                    }
+                ],
             },
             "livscykluskode": "Rettet",
         }
