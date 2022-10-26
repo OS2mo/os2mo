@@ -85,9 +85,12 @@ def mock_ad_entry(guid: str, name: str, department: Union[str, None]) -> object:
     return Entry()
 
 
-async def test_load_adguid(ad_connection: MagicMock, dataloaders: Dataloaders) -> None:
-    """Test that load_adguid works as expected."""
+async def test_load_organizationalPersons(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+    """Test that load_organizationalPersons works as expected."""
 
+    # Mock data
     guid = "{b55be9e3-4ca6-45f4-8bd3-3c3c9e15edb1}"
     name = "Nick Janssen"
     department = None
@@ -102,13 +105,25 @@ async def test_load_adguid(ad_connection: MagicMock, dataloaders: Dataloaders) -
 
     # Mock AD connection
     ad_connection.entries = [mock_ad_entry(guid, name, department)]
-    ad_connection.result = {
-        "controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": None}}}
-    }
+
+    # Simulate three pages
+    cookies = ["first page", "second page", None]
+    results = iter(
+        [
+            {"controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}}}
+            for cookie in cookies
+        ]
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ad_connection.result = next(results)
+
+    # Every time a search is performed, point to the next page.
+    ad_connection.search.side_effect = set_new_result
 
     # Get result from dataloader
-    results = await asyncio.gather(
+    output = await asyncio.gather(
         dataloaders.org_persons_loader.load(0),
     )
 
-    assert results == [expected_results]
+    assert output == [expected_results * len(cookies)]
