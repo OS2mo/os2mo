@@ -404,32 +404,6 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     return [OrganisationRead.parse_obj(obj)] * len(keys)
 
 
-async def get_org_unit_children(parent_uuid: UUID) -> list[MOModel]:
-    """Non-bulk loader for organisation unit children."""
-    c = get_connector()
-    cls = get_handler_for_type(OrganisationUnitRead.__fields__["type_"].default)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "overordnet": str(parent_uuid),
-                "gyldighed": "Aktiv",
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_org_units_children(keys: list[UUID]) -> list[list[MOModel]]:
-    """Non-bulk loader for organisation unit children with bulk interface."""
-    # TODO: This function should be replaced with a bulk version
-    tasks = map(get_org_unit_children, keys)
-    return await gather(*tasks)
-
-
 async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
@@ -438,7 +412,6 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": get_org_units,
-        "org_unit_children_loader": DataLoader(load_fn=load_org_units_children),
         "org_unit_manager_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=ManagerRead)
         ),
