@@ -221,7 +221,7 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
 
-        assert expected == actual, message
+        self.assertEqual(expected, actual, msg=message)
 
     async def assertRequestFails(
         self, path, code, message=None, set_auth_header=False, **kwargs
