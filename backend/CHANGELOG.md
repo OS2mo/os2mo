@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+12.0.1 - 2022-10-28
+-------------------
+
+[#52822] Let RBAC code use ancestor tree with validity from -infinity to +infinity
+
 12.0.0 - 2022-10-25
 -------------------
 
