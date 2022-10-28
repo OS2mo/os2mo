@@ -6,7 +6,9 @@ from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import cast
 from typing import ContextManager
+from typing import Union
 
+import structlog
 from fastramqpi.context import Context
 from ldap3 import Connection
 from ldap3 import NTLM
@@ -32,6 +34,9 @@ def construct_server(server_config: ServerConfig) -> Server:
     tls_configuration = Tls(
         validate=CERT_NONE if server_config.insecure else CERT_REQUIRED
     )
+
+    logger = structlog.get_logger()
+    logger.info("Setting up server to %s" % server_config.host)
     return Server(
         host=server_config.host,
         port=server_config.port,
@@ -39,6 +44,10 @@ def construct_server(server_config: ServerConfig) -> Server:
         tls=tls_configuration,
         connect_timeout=server_config.timeout,
     )
+
+
+def get_client_strategy():
+    return RESTARTABLE
 
 
 def configure_ad_connection(settings: Settings) -> ContextManager:
@@ -51,25 +60,27 @@ def configure_ad_connection(settings: Settings) -> ContextManager:
         ContextManager that can be opened to establish an AD connection.
     """
     servers = list(map(construct_server, settings.ad_controllers))
+
     # Pick the next server to use at random, discard non-active servers
     server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
 
+    logger = structlog.get_logger()
+    logger.info("Connecting to %s" % server_pool)
+    logger.info("Client strategy: %s" % get_client_strategy())
     connection = Connection(
         server=server_pool,
-        # server=Server("100.110.188.107", get_info=ALL),
-        # We always authenticate via NTLM
         user=settings.ad_domain + "\\" + settings.ad_user,
         password=settings.ad_password.get_secret_value(),
         authentication=NTLM,
-        client_strategy=RESTARTABLE,
-        # client_strategy=ASYNC_STREAM,
+        client_strategy=get_client_strategy(),
+        auto_bind=True,
     )
-    connection.bind()
+    # connection.bind()
 
     return cast(ContextManager, connection)
 
 
-async def ad_healthcheck(context: Context) -> bool:
+async def ad_healthcheck(context: Union[dict, Context]) -> bool:
     """AD connection Healthcheck.
 
     Args:

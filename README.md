@@ -13,3 +13,7 @@ and even use filtering with `-k`
 `poetry run pytest -k "Manager"`
 
 You can use the flags `-vx` where `v` prints the test & `x` makes the test stop if any tests fails (Verbose, X-fail)
+
+You can get the coverage report like this:
+
+`poetry run pytest -s --cov --cov-report term-missing`

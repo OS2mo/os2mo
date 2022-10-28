@@ -2,62 +2,189 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=redefined-outer-name
-# pylint: disable=too-many-arguments
-from typing import Any
-from typing import Callable
-from typing import Generator
+# pylint: disable=unused-argument
+# pylint: disable=protected-access
+"""Test ensure_adguid_itsystem."""
+import os
+from collections.abc import Iterator
+from contextlib import contextmanager
+from unittest.mock import MagicMock
+from unittest.mock import patch
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastramqpi.main import FastRAMQPI
 
+from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.main import create_app
+from mo_ldap_import_export.main import create_fastramqpi
+from mo_ldap_import_export.main import open_ad_connection
+from mo_ldap_import_export.main import seed_dataloaders
 
 
 @pytest.fixture
-def fastapi_app_builder(
-    monkeypatch: pytest.MonkeyPatch,
-) -> Generator[Callable[..., FastAPI], None, None]:
-    """Fixture for the FastAPI app builder."""
+def settings_overrides() -> Iterator[dict[str, str]]:
+    """Fixture to construct dictionary of minimal overrides for valid settings.
 
-    monkeypatch.setenv("CLIENT_ID", "dipex")
-    monkeypatch.setenv("client_secret", "603f1c82-d012-4d04-9382-dbe659c533fb")
-    monkeypatch.setenv("AD_CONTROLLERS", '[{"host": "100.110.188.107"}]')
-    monkeypatch.setenv("AD_DOMAIN", "AD")
-    monkeypatch.setenv("AD_USER", "nj")
-    monkeypatch.setenv("AD_PASSWORD", "Torsdag123")
-    monkeypatch.setenv("AD_SEARCH_BASE", "DC=ad,DC=addev")
-
-    def builder(*args: Any, **kwargs: Any) -> FastAPI:
-
-        return create_app(*args, **kwargs)
-
-    yield builder
+    Yields:
+        Minimal set of overrides.
+    """
+    overrides = {
+        "CLIENT_ID": "Foo",
+        "CLIENT_SECRET": "bar",
+        "AD_CONTROLLERS": '[{"host": "localhost"}]',
+        "AD_DOMAIN": "AD",
+        "AD_USER": "foo",
+        "AD_PASSWORD": "foo",
+        "AD_SEARCH_BASE": "DC=ad,DC=addev",
+    }
+    yield overrides
 
 
 @pytest.fixture
-def test_client_builder(
-    fastapi_app_builder: Callable[..., FastAPI]
-) -> Generator[Callable[..., TestClient], None, None]:
-    """Fixture for the FastAPI test client builder."""
+def load_settings_overrides(
+    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> Iterator[dict[str, str]]:
+    """Fixture to set happy-path settings overrides as environmental variables.
 
-    def builder(*args: Any, **kwargs: Any) -> TestClient:
-        return TestClient(fastapi_app_builder(*args, **kwargs))
+    Note:
+        Only loads environmental variables, if variables are not already set.
 
-    yield builder
+    Args:
+        settings_overrides: The list of settings to load in.
+        monkeypatch: Pytest MonkeyPatch instance to set environmental variables.
+
+    Yields:
+        Minimal set of overrides.
+    """
+    for key, value in settings_overrides.items():
+        if os.environ.get(key) is not None:
+            continue
+        monkeypatch.setenv(key, value)
+    yield settings_overrides
 
 
-async def test_trigger_all_endpoint(
-    test_client_builder: Callable[..., TestClient],
+@pytest.fixture
+def disable_metrics(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Fixture to set the ENABLE_METRICS environmental variable to False.
+
+    Yields:
+        None
+    """
+    monkeypatch.setenv("ENABLE_METRICS", "False")
+    yield
+
+
+@pytest.fixture
+def fastramqpi(
+    disable_metrics: None, load_settings_overrides: dict[str, str]
+) -> Iterator[FastRAMQPI]:
+    """Fixture to construct a FastRAMQPI system.
+
+    Yields:
+        FastRAMQPI system.
+    """
+    with patch(
+        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+    ):
+        yield create_fastramqpi()
+
+
+@pytest.fixture
+def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
+    """Fixture to construct a FastAPI application.
+
+    Yields:
+        FastAPI application.
+    """
+    yield create_app()
+
+
+@pytest.fixture
+def test_client(app: FastAPI) -> Iterator[TestClient]:
+    """Fixture to construct a FastAPI test-client.
+
+    Note:
+        The app does not do lifecycle management.
+
+    Yields:
+        TestClient for the FastAPI application.
+    """
+    yield TestClient(app)
+
+
+@pytest.fixture
+def ad_connection() -> Iterator[MagicMock]:
+    """Fixture to construct a mock ad_connection.
+
+    Yields:
+        A mock for ad_connection.
+    """
+    yield MagicMock()
+
+
+def test_create_app(
+    load_settings_overrides: dict[str, str],
 ) -> None:
-    """Test the trigger all endpoint on our app."""
-    # test_client = test_client_builder()
+    """Test that we can construct our FastAPI application."""
 
-    # response = test_client.get("/all")
-    # assert response.status_code == 202
-    # print("=" * 50)
-    # print("This is the output of the request:")
-    # for p in response.json()[-10:]:
-    #     print(p)
-    # print("=" * 50)
-    pass
+    with patch(
+        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+    ):
+        app = create_app()
+    assert isinstance(app, FastAPI)
+
+
+def test_create_fastramqpi(
+    load_settings_overrides: dict[str, str], disable_metrics: None
+) -> None:
+    """Test that we can construct our FastRAMQPI system."""
+
+    with patch(
+        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+    ):
+        fastramqpi = create_fastramqpi()
+    assert isinstance(fastramqpi, FastRAMQPI)
+
+
+async def test_open_ad_connection() -> None:
+    """Test the open_ad_connection."""
+    state = []
+
+    @contextmanager
+    def manager() -> Iterator[None]:
+        state.append(1)
+        yield
+        state.append(2)
+
+    ad_connection = manager()
+
+    assert not state
+    async with open_ad_connection(ad_connection):
+        assert state == [1]
+    assert state == [1, 2]
+
+
+async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
+    """Test the seed_dataloaders asynccontextmanager."""
+
+    fastramqpi.add_context(ad_connection=MagicMock)
+
+    user_context = fastramqpi.get_context()["user_context"]
+    assert user_context.get("dataloaders") is not None
+
+    async with seed_dataloaders(fastramqpi):
+        dataloaders = user_context.get("dataloaders")
+
+    assert dataloaders is not None
+    assert isinstance(dataloaders, Dataloaders)
+
+
+def test_get_all_endpoint(test_client: TestClient, fastramqpi: FastRAMQPI) -> None:
+    """Test the get-all endpoint on our app."""
+
+    fastramqpi._context["user_context"]["dataloaders"]
+    response = test_client.get("/all")
+
+    assert response.status_code == 202

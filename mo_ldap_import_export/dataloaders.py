@@ -60,7 +60,7 @@ async def load_organizationalPersons(
             "cookie"
         ]
 
-        if cookie:
+        if cookie and type(cookie) is bytes:
             searchParameters["paged_cookie"] = cookie
         else:
             break

@@ -53,10 +53,14 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     Returns:
         FastRAMQPI system.
     """
+    logger.info("Retrieving settings")
     settings = Settings(**kwargs)
+
+    logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)
     fastramqpi.add_context(settings=settings)
 
+    logger.info("Configuring AD connection")
     ad_connection = configure_ad_connection(settings)
     fastramqpi.add_context(ad_connection=ad_connection)
     fastramqpi.add_healthcheck(name="ADConnection", healthcheck=ad_healthcheck)
@@ -64,6 +68,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     fastramqpi.add_lifespan_manager(seed_dataloaders(fastramqpi), 2000)
 
+    logger.info("Configuring Dataloaders")
     context = fastramqpi.get_context()
     dataloaders = configure_dataloaders(context)
     fastramqpi.add_context(dataloaders=dataloaders)

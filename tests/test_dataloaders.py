@@ -4,7 +4,7 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-"""Test ensure_adguid_itsystem."""
+"""Test dataloaders."""
 import asyncio
 from collections.abc import Iterator
 from typing import Union
@@ -51,12 +51,10 @@ def dataloaders(
     """
     dataloaders = configure_dataloaders(
         {
-            # "graphql_session": graphql_session,
             "user_context": {
                 "settings": settings,
                 "ad_connection": ad_connection,
             },
-            # "model_client": model_client,
         }
     )
     yield dataloaders
@@ -107,7 +105,7 @@ async def test_load_organizationalPersons(
     ad_connection.entries = [mock_ad_entry(guid, name, department)]
 
     # Simulate three pages
-    cookies = ["first page", "second page", None]
+    cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
     results = iter(
         [
             {"controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}}}
