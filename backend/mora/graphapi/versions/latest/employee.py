@@ -2,16 +2,17 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+from ....mapping import RequestType
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
 from .types import EmployeeType
+from .types import EmployeeUpdateResponseType
 from mora import common
 from mora import lora
 from mora import mapping
 from mora import util
 from mora.service import handlers
-from mora.service.detail_writing import handle_requests
 from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
@@ -92,15 +93,9 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     return EmployeeType(uuid=UUID(result))
 
 
-async def update(employee_update: EmployeeUpdate) -> EmployeeType:
-    # Convert pydantic model to request-dict, to match legacy implementation.
-    update_dict = employee_update.dict(by_alias=True)
-    req = {
-        mapping.TYPE: mapping.EMPLOYEE,
-        mapping.UUID: employee_update.uuid,
-        mapping.DATA: update_dict,
-    }
-
-    # Invoke existing update-logic
-    result = await handle_requests(req, mapping.RequestType.EDIT)
-    return EmployeeType(uuid=UUID(result))
+async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
+    request_handler = await EmployeeRequestHandler.construct(
+        employee_update.to_handler_dict(), RequestType.EDIT
+    )
+    _ = await request_handler.submit()
+    return EmployeeUpdateResponseType(uuid=employee_update.uuid)

@@ -10,16 +10,19 @@ import strawberry
 from pydantic import BaseModel
 from pydantic import ConstrainedStr
 from pydantic import Field
+from pydantic import root_validator
 
 from mora import common
 from mora import exceptions
 from mora import mapping
+from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +41,10 @@ class NonEmptyString(ConstrainedStr):
 
 
 class Validity(OpenValidity):
-    """Model representing an entities validity range."""
+    """Model representing an entities validity range.
+
+    Where both from and to dates can be optional.
+    """
 
     class Config:
         allow_population_by_field_name = True
@@ -424,45 +430,111 @@ class EmployeeTerminate(ValidityTerminate, Triggerless):
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
 
 
-class EmployeeUpdate(UUIDBase):
-    # name
+class EmployeeUpdate(RAValidity):
+    # Error messages returned by the @root_validator
+    _ERR_INVALID_NAME = (
+        "EmployeeUpdate.name is only allowed to be set, if "
+        '"given_name" & "surname" are None.'
+    )
+    _ERR_INVALID_NICKNAME = (
+        "EmployeeUpdate.nickname is only allowed to be set, if "
+        '"nickname_given_name" & "nickname_surname" are None.'
+    )
+
+    uuid: UUID = Field(description="UUID of the employee to be updated.")
+
+    user_key: str | None = Field(
+        description="Short, unique key for the employee (defaults to object UUID on creation)."
+    )
+
     name: str | None = Field(None, description="New value for the name of the employee")
 
-    # nickname_givenname
-    nickname_firstname: str | None = Field(
+    given_name: str | None = Field(
         None,
-        alias="nickname_givenname",
         description="New first-name value of the employee nickname.",
     )
 
-    # nickname_surname
-    nickname_lastname: str | None = Field(
+    surname: str | None = Field(
         None,
-        alias="nickname_surname",
         description="New last-name value of the employee nickname.",
     )
 
-    # seniority
-    seniority: str | None = Field(
-        None, description="New seniority value of the employee."
-    )
-
-    # cpr_no
-    cpr_no: str | None = Field(None, description="New seniority value of the employee.")
-
-    # org
-    org: Organisation | None = Field(
-        None, description="Organization the employee belongs to."
-    )
-
-    # validity
-    validity: Validity | None = Field(
+    nickname: str | None = Field(
         None,
-        description="Validity range for the employee, "
-        "for when the employee is accessible",
+        description="New nickname value of the employee nickname.",
     )
 
-    # user_key
+    nickname_given_name: str | None = Field(
+        None,
+        description="New nickname given-name value of the employee nickname.",
+    )
+
+    nickname_surname: str | None = Field(
+        None,
+        description="New nickname sur-name value of the employee nickname.",
+    )
+
+    seniority: datetime.date | None = Field(
+        # OBS: backend/mora/service/employee.py:96 for why type is datetime.date
+        None,
+        description="New seniority value of the employee.",
+    )
+
+    cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
+
+    @root_validator
+    def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
+        if values.get("name") and (values.get("given_name") or values.get("surname")):
+            raise ValueError(cls._ERR_INVALID_NAME)
+
+        if values.get("nickname") and (
+            values.get("nickname_given_name") or values.get("nickname_surname")
+        ):
+            raise ValueError(cls._ERR_INVALID_NICKNAME)
+
+        return values
+
+    def no_values(self) -> bool:
+        if self.to_date:
+            return False
+
+        if self.name or self.given_name or self.surname:
+            return False
+
+        if self.nickname or self.nickname_given_name or self.nickname_surname:
+            return False
+
+        if self.seniority or self.cpr_no:
+            return False
+
+        return True
+
+    def to_handler_dict(self) -> dict:
+        data_dict = {
+            mapping.USER_KEY: self.user_key,
+            mapping.VALIDITY: {
+                mapping.FROM: self.from_date.date().isoformat(),
+                mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
+            },
+            mapping.NAME: self.name,
+            mapping.GIVENNAME: self.given_name,
+            mapping.SURNAME: self.surname,
+            mapping.NICKNAME: self.nickname,
+            mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
+            mapping.NICKNAME_SURNAME: self.nickname_surname,
+            mapping.SENIORITY: self.seniority.isoformat() if self.seniority else None,
+            mapping.CPR_NO: self.cpr_no,
+        }
+
+        return {
+            mapping.TYPE: mapping.EMPLOYEE,
+            mapping.UUID: str(self.uuid),
+            mapping.DATA: {k: v for k, v in data_dict.items() if v},
+        }
+
+
+class EmployeeUpdateResponse(UUIDBase):
+    pass
 
 
 # Engagements
