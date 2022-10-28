@@ -61,6 +61,7 @@ from .types import AddressType
 from .types import AssociationType
 from .types import ClassCreateType
 from .types import EmployeeType
+from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
 from .types import FacetType
@@ -164,8 +165,10 @@ class Mutation:
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_update(self, input: EmployeeUpdateInput) -> EmployeeType:
-        return await employee_update(input.to_pydantic())
+    async def employee_update(
+        self, input: EmployeeUpdateInput
+    ) -> EmployeeUpdateResponseType:
+        return await employee_update(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
@@ -212,6 +215,12 @@ class Mutation:
 
     # Facets
     # ------
+
+    # ITSystems
+    # ---------
+
+    # Facets
+    # ------
     @strawberry.mutation(
         description="Create new facet object",
         permission_classes=[admin_permission_class],
@@ -238,6 +247,20 @@ class Mutation:
     async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
         return await terminate_ituser(input.to_pydantic())  # type: ignore
 
+    # KLEs
+    # ----
+
+    # Leave
+    # -----
+
+    # Managers
+    # --------
+
+    # Root Organisation
+    # -----------------
+
+    # Organisational Units
+    # --------------------
     @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
@@ -315,6 +338,14 @@ class Mutation:
     ) -> OrganisationUnitType:
         return await terminate_org_unit(unit.to_pydantic())  # type: ignore
 
+    # Related Units
+    # -------------
+
+    # Roles
+    # -----
+
+    # Files
+    # -----
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
