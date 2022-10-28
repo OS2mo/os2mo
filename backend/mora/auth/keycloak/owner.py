@@ -95,7 +95,7 @@ async def _get_ancestors(uuid: UUID) -> list[dict]:
         ]
 
     """
-    c = common.get_connector()
+    c = common.get_connector(virkningfra="-infinity", virkningtil="infinity")
     return await mora.service.orgunit.get_unit_tree(c, [str(uuid)], with_siblings=False)
 
 
