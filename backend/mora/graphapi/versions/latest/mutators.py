@@ -7,6 +7,7 @@ import strawberry
 from strawberry.file_uploads import Upload
 from strawberry.types import Info
 
+from .address import create as create_address
 from .address import terminate_addr
 from .address import update_address
 from .association import create_association
@@ -20,6 +21,7 @@ from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
+from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
@@ -56,6 +58,7 @@ from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
+from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
 from .types import AssociationType
@@ -83,6 +86,13 @@ admin_permission_class = gen_role_permission("admin", force_permission_check=Tru
 class Mutation:
     # Addresses
     # ---------
+    @strawberry.mutation(
+        description="Create an address.",
+        permission_classes=[admin_permission_class],
+    )
+    async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
+        return await create_address(input.to_pydantic())  # type: ignore
+
     @strawberry.mutation(
         description="Terminates an address by UUID",
         permission_classes=[admin_permission_class],

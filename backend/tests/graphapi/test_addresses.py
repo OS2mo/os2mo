@@ -4,7 +4,9 @@ import asyncio
 import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
+from zoneinfo import ZoneInfo
 
 import pytest
 from fastapi.encoders import jsonable_encoder
@@ -16,15 +18,51 @@ from pytest import MonkeyPatch
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import lora
+from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.address import terminate_addr
+from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
 from mora.graphapi.versions.latest.models import AddressUpdate
+from mora.graphapi.versions.latest.types import AddressCreateType
 from mora.graphapi.versions.latest.types import AddressType
 from ramodels.mo.details import AddressRead
+from tests import util
 from tests.conftest import GQLResponse
+from tests.graphapi.utils import fetch_employee_validity
+from tests.graphapi.utils import fetch_org_unit_validity
+from tests.util import dar_loader
+
+
+# HELPERS
+
+org_unit_l1 = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+user_andersand = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")  # andersand
+user_fedtmule = UUID("6ee24785-ee9a-4502-81c2-7697009c9053")  # fedtmule
+user_erik = UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7")  # erik_smidt_hansen
+
+addr_type_user_address = UUID("4e337d8e-1fd2-4449-8110-e0c8a22958ed")
+addr_type_user_email = UUID("c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")
+addr_type_user_phone = UUID("cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d")
+
+addr_type_orgunit_address = UUID("28d71012-2919-4b67-a2f0-7b59ed52561e")
+addr_type_orgunit_email = UUID("73360db1-bad3-4167-ac73-8d827c0c8751")
+addr_type_orgunit_phone = UUID("1d1d3711-5af4-4084-99b3-df2b8752fdec")
+
+addr_type_orgunit_ean = UUID("e34d4426-9845-4c72-b31e-709be85d6fa2")
+addr_type_orgunit_openhours = UUID("e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b")
+
+engagement_andersand = UUID("d000591f-8705-4324-897a-075e3623f37b")
+engagement_type_employee = UUID("06f95678-166a-455a-a2ab-121a8d92ea23")
+
+visibility_uuid_public = UUID("f63ad763-0e53-4972-a6a9-63b42a0f8cb7")
+
+tz_cph = ZoneInfo("Europe/Copenhagen")
+now_min_cph = datetime.datetime.combine(
+    datetime.datetime.now().date(), datetime.datetime.min.time()
+).replace(tzinfo=tz_cph)
 
 
 def async_lora_return(*args):
@@ -35,6 +73,119 @@ def async_lora_return(*args):
     f = asyncio.Future()
     f.set_result(args[-1])
     return f
+
+
+def _get_address_query():
+    return """
+        query VerifyQuery($uuid: UUID!) {
+          addresses(uuids: [$uuid], from_date: null, to_date: null) {
+            uuid
+            objects {
+              uuid
+
+              validity {
+                from
+                to
+              }
+
+              type
+              value
+              address_type {
+                uuid
+              }
+
+              visibility {
+                uuid
+              }
+
+              employee {
+                uuid
+              }
+
+              org_unit {
+                uuid
+              }
+
+              engagement_uuid
+            }
+          }
+        }
+    """
+
+
+def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_samples):
+    (
+        test_data_org_unit_uuid,
+        test_data_person_uuid,
+        test_data_engagement_uuid,
+        address_type,
+    ) = data.draw(st.sampled_from(test_data_samples))
+
+    dt_options_min_from = datetime.datetime(1930, 1, 1, 1)
+    if test_data_org_unit_uuid and graphapi_post:
+        org_unit_validity_from, _ = fetch_org_unit_validity(
+            graphapi_post, test_data_org_unit_uuid
+        )
+        dt_options_min_from = org_unit_validity_from
+    elif test_data_person_uuid and graphapi_post:
+        person_validity_from, _ = fetch_employee_validity(
+            graphapi_post, test_data_person_uuid
+        )
+        dt_options_min_from = person_validity_from
+
+    dt_options = {
+        "min_value": dt_options_min_from,
+        "timezones": st.just(ZoneInfo("Europe/Copenhagen")),
+    }
+    test_datavalidity_tuple = data.draw(
+        st.tuples(
+            st.datetimes(**dt_options),
+            st.datetimes(**dt_options) | st.none(),
+        ).filter(lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True)
+    )
+    test_data_from, test_data_to = test_datavalidity_tuple
+
+    if address_type in (addr_type_orgunit_address, addr_type_user_address):
+        # FYI: The UUIDs we sample from, are the ones found in:
+        # backend\tests\mocking\dawa-addresses.json
+        test_data_value = data.draw(
+            st.sampled_from(
+                [
+                    "0a3f50a0-23c9-32b8-e044-0003ba298018",
+                    "44c532e1-f617-4174-b144-d37ce9fda2bd",
+                    "606cf42e-9dc2-4477-bf70-594830fcbdec",
+                    "ae95777c-7ec1-4039-8025-e2ecce5099fb",
+                    "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "bae093df-3b06-4f23-90a8-92eabedb3622",
+                    "d901ff7e-8ad9-4581-84c7-5759aaa82f7b",
+                ]
+            )
+        )
+    elif address_type in (addr_type_user_email, addr_type_orgunit_email):
+        test_data_value = data.draw(st.emails())
+    elif address_type in (addr_type_user_phone, addr_type_orgunit_phone):
+        test_data_value = data.draw(st.from_regex(r"^\+?\d+$"))
+    elif address_type in (addr_type_orgunit_ean,):
+        test_data_value = data.draw(st.from_regex(r"^\d{13}$"))
+    else:
+        test_data_value = data.draw(st.text())
+
+    return data.draw(
+        st.builds(
+            AddressCreate,
+            value=st.just(test_data_value),
+            from_date=st.just(test_data_from),
+            to_date=st.just(test_data_to),
+            address_type=st.just(address_type),
+            visibility=st.just(visibility_uuid_public),
+            org_unit=st.just(test_data_org_unit_uuid),
+            person=st.just(test_data_person_uuid),
+            engagement=st.just(test_data_engagement_uuid),
+        )
+    )
+
+
+# TESTS
 
 
 @given(test_data=graph_data_strat(AddressRead))
@@ -97,6 +248,327 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [addr.get("uuid") for addr in response.data["addresses"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
+
+
+@given(data=st.data())
+@patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
+async def test_create_mutator(create_address: AsyncMock, data):
+    # Mocking
+    create_address.return_value = AddressCreateType(uuid=uuid4())
+
+    # Prepare test_data
+    test_data_samples = [
+        # org units
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_address,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_email,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_phone,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_ean,
+        ),
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_openhours,
+        ),
+        # Users
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_phone,
+        ),
+    ]
+
+    test_data = _create_address_create_hypothesis_test_data(
+        data, None, test_data_samples
+    )
+    payload = jsonable_encoder(test_data)
+
+    # Invoke the mutator
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=mutate_query, variable_values={"input": payload}
+    )
+    assert response.errors is None
+    assert response.data == {
+        "address_create": {"uuid": str(create_address.return_value.uuid)}
+    }
+
+    create_address.assert_called_with(test_data)
+
+
+@pytest.mark.parametrize(
+    "given_mutator_args",
+    [
+        {  # Desc: verify fails, when dates are invalid.
+            "from_date": now_min_cph,
+            "to_date": now_min_cph - datetime.timedelta(days=1),
+            "value": "YeeHaaamagenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "person": user_andersand,
+        },
+        {  # Desc: verify fails when No relation was supplied
+            "from_date": now_min_cph,
+            "to_date": None,
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+        },
+        {  # Desc: verify fails when more than one relation was supplied
+            "from_date": now_min_cph,
+            "to_date": None,
+            "value": "YeeHaaa@magenta.dk",
+            "address_type": addr_type_user_email,
+            "visibility": visibility_uuid_public,
+            "person": user_andersand,
+            "org_unit": org_unit_l1,
+        },
+    ],
+)
+@patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
+async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_args):
+    payload = {
+        "from": given_mutator_args["from_date"].isoformat(),
+        "to": given_mutator_args["to_date"].isoformat()
+        if given_mutator_args.get("to_date", None)
+        else None,
+        "value": given_mutator_args["value"],
+        "address_type": str(given_mutator_args["address_type"]),
+        "visibility": str(given_mutator_args["visibility"]),
+    }
+
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    _ = await execute_graphql(query=mutate_query, variable_values={"input": payload})
+
+    create_address.assert_not_called()
+
+
+@pytest.mark.slow
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_integration(data, graphapi_post):
+    """Integration test for create address.
+
+    OBS: Does currently not test address-relation to engagements.
+    """
+
+    # Configre test data samples
+    test_data_samples_addrs = [
+        (
+            UUID("2874e1dc-85e6-4269-823a-e1125484dfd3"),
+            None,
+            None,
+            addr_type_orgunit_address,
+        ),
+        (
+            None,
+            UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"),
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            UUID("6ee24785-ee9a-4502-81c2-7697009c9053"),
+            None,
+            addr_type_user_address,
+        ),
+        (
+            None,
+            UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7"),
+            None,
+            addr_type_user_address,
+        ),
+    ]
+
+    test_data_samples_emails = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_email,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_fedtmule,
+            None,
+            addr_type_user_email,
+        ),
+        (
+            None,
+            user_erik,
+            None,
+            addr_type_user_email,
+        ),
+    ]
+
+    test_data_samples_phone = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_phone,
+        ),
+        (
+            None,
+            user_andersand,
+            None,
+            addr_type_user_phone,
+        ),
+        (
+            None,
+            user_fedtmule,
+            None,
+            addr_type_user_phone,
+        ),
+        (
+            None,
+            user_erik,
+            None,
+            addr_type_user_phone,
+        ),
+    ]
+
+    test_data_samples_ean = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_ean,
+        ),
+    ]
+
+    test_data_samples_openhours = [
+        (
+            org_unit_l1,
+            None,
+            None,
+            addr_type_orgunit_openhours,
+        ),
+    ]
+
+    test_data_samples = (
+        test_data_samples_addrs
+        + test_data_samples_emails
+        + test_data_samples_phone
+        + test_data_samples_ean
+        + test_data_samples_openhours
+    )
+
+    test_data = _create_address_create_hypothesis_test_data(
+        data, graphapi_post, test_data_samples
+    )
+
+    payload = jsonable_encoder(test_data)
+
+    # mutation invoke
+    mutate_query = """
+        mutation($input: AddressCreateInput!) {
+            address_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    with util.darmock("dawa-addresses.json", real_http=True), dar_loader():
+        response = await execute_graphql(
+            query=mutate_query, variable_values={"input": payload}
+        )
+
+    assert response.errors is None
+    test_data_uuid_new = UUID(response.data["address_create"]["uuid"])
+
+    # query invoke after mutation
+    verify_query = _get_address_query()
+    verify_response: GQLResponse = graphapi_post(
+        verify_query,
+        {mapping.UUID: str(test_data_uuid_new)},
+    )
+
+    assert verify_response.errors is None
+    new_addr = one(one(verify_response.data["addresses"])["objects"])
+
+    # Asserts
+    assert new_addr[mapping.UUID] is not None
+    assert (
+        new_addr[mapping.VALIDITY][mapping.FROM]
+        == datetime.datetime.combine(
+            test_data.from_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+    )
+    assert new_addr[mapping.VALIDITY][mapping.TO] == (
+        datetime.datetime.combine(
+            test_data.to_date.date(), datetime.datetime.min.time()
+        )
+        .replace(tzinfo=tz_cph)
+        .isoformat()
+        if test_data.to_date
+        else None
+    )
+
+    assert new_addr[mapping.VALUE] == test_data.value
+    assert new_addr[mapping.ADDRESS_TYPE][mapping.UUID] == str(test_data.address_type)
+    assert new_addr[mapping.VISIBILITY][mapping.UUID] == str(test_data.visibility)
+
+    if test_data.org_unit:
+        assert one(new_addr[mapping.ORG_UNIT])[mapping.UUID] == str(test_data.org_unit)
+    elif test_data.person:
+        # INFO: here is a confusing part where we create using PERSON, but fetch using EMPLOYEE:
+        assert one(new_addr[mapping.EMPLOYEE])[mapping.UUID] == str(test_data.person)
+    elif test_data.engagement:
+        assert new_addr["engagement_uuid"] == str(test_data.engagement)
 
 
 @given(
