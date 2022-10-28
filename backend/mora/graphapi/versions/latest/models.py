@@ -15,8 +15,8 @@ from pydantic import root_validator
 from mora import common
 from mora import exceptions
 from mora import mapping
-from mora.util import CPR
 from mora.service.org import get_configured_organisation
+from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
