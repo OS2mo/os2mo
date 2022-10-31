@@ -26,6 +26,7 @@ from .models import FileRead
 from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
+from .types import Cursor
 from mora import common
 from mora import config
 from mora import lora
@@ -1118,6 +1119,20 @@ class Health:
     @strawberry.field(description="Healthcheck status")
     async def status(self, root: HealthRead) -> bool | None:
         return await health_map[root.identifier]()
+
+
+T = TypeVar("T")
+
+
+@strawberry.type
+class PageInfo:
+    next_cursor: Cursor | None = None
+
+
+@strawberry.type
+class Paged(Generic[T]):
+    objects: list[T]
+    page_info: PageInfo
 
 
 # File

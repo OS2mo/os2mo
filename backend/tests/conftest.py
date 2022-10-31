@@ -18,6 +18,7 @@ from hypothesis import settings as h_settings
 from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
+from more_itertools import last
 from respx.mocks import HTTPCoreMocker
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -26,6 +27,7 @@ from mora import lora
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.config import get_settings
+from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.db import get_connection
@@ -141,6 +143,12 @@ def test_app(**overrides: Any):
 @pytest.fixture(scope="class")
 def fastapi_test_app():
     yield test_app()
+
+
+@pytest.fixture
+def latest_graphql_url() -> str:
+    latest = last(graphql_versions)
+    return f"/graphql/v{latest.version}"
 
 
 @pytest.fixture

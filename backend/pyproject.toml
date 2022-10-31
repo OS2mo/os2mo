@@ -42,7 +42,7 @@ os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 ramqp = "^6.6.2"
 uvicorn = "^0.18.3"
-strawberry-graphql = {extras = ["fastapi"], version = "^0.131.1"}
+strawberry-graphql = "^0.137.1"
 jsonschema = "^4.16.0"
 psycopg2-binary = "~2.8"
 pytest-timeouts = "^1.2.1"

@@ -40,10 +40,13 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import Paged
+from .schema import PageInfo
 from .schema import RelatedUnit
 from .schema import Response
 from .schema import Role
 from .schema import Version
+from .types import Cursor
 from mora.config import get_public_settings
 
 
@@ -205,7 +208,15 @@ class Query:
         description="Get a list of all health checks, optionally by identifier(s)",
         permission_classes=[gen_read_permission("health")],
     )
-    async def healths(self, identifiers: list[str] | None = None) -> list[Health]:
+    async def healths(
+        self,
+        limit: int | None = None,
+        # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
+        # and returned again as a Base64 encoded string.
+        # This way we can use it for indexing and calculations
+        cursor: Cursor | None = None,
+        identifiers: list[str] | None = None,
+    ) -> Paged[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
@@ -214,8 +225,14 @@ class Query:
             return {"identifier": identifier}
 
         healths = list(map(construct, healthchecks))
+
+        healths = healths[cursor:][:limit]
+
+        end_cursor: int = (cursor or 0) + len(healths)
+
         parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return list(map(Health.from_pydantic, parsed_healths))
+        health_objects = list(map(Health.from_pydantic, parsed_healths))
+        return Paged(objects=health_objects, page_info=PageInfo(next_cursor=end_cursor))
 
     # Files
     # -----
