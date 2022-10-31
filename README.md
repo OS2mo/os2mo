@@ -17,3 +17,13 @@ You can use the flags `-vx` where `v` prints the test & `x` makes the test stop 
 You can get the coverage report like this:
 
 `poetry run pytest -s --cov --cov-report term-missing`
+
+### Using the app
+
+You can use the app like this:
+
+```
+import requests
+r = requests.get("http://0.0.0.0:8000/AD/all")
+print(r.json()[-2])
+```

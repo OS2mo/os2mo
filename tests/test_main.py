@@ -8,6 +8,7 @@
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 
@@ -77,8 +78,15 @@ def disable_metrics(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
 
 
 @pytest.fixture
+def gql_client() -> Iterator[AsyncMock]:
+    yield AsyncMock()
+
+
+@pytest.fixture
 def fastramqpi(
-    disable_metrics: None, load_settings_overrides: dict[str, str]
+    disable_metrics: None,
+    load_settings_overrides: dict[str, str],
+    gql_client: AsyncMock,
 ) -> Iterator[FastRAMQPI]:
     """Fixture to construct a FastRAMQPI system.
 
@@ -88,7 +96,10 @@ def fastramqpi(
     with patch(
         "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
     ):
-        yield create_fastramqpi()
+        with patch(
+            "mo_ldap_import_export.main.construct_gql_client", return_value=gql_client
+        ):
+            yield create_fastramqpi()
 
 
 @pytest.fixture
@@ -181,10 +192,15 @@ async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
     assert isinstance(dataloaders, Dataloaders)
 
 
-def test_get_all_endpoint(test_client: TestClient, fastramqpi: FastRAMQPI) -> None:
-    """Test the get-all endpoint on our app."""
+def test_ad_get_all_endpoint(test_client: TestClient) -> None:
+    """Test the AD get-all endpoint on our app."""
 
-    fastramqpi._context["user_context"]["dataloaders"]
-    response = test_client.get("/all")
+    response = test_client.get("/AD/all")
+    assert response.status_code == 202
 
+
+def test_mo_get_all_endpoint(test_client: TestClient) -> None:
+    """Test the MO get-all endpoint on our app."""
+
+    response = test_client.get("/MO/all")
     assert response.status_code == 202

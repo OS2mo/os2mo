@@ -5,6 +5,7 @@
 """Settings handling."""
 from fastramqpi.config import Settings as FastRAMQPISettings
 from pydantic import AmqpDsn
+from pydantic import AnyHttpUrl
 from pydantic import BaseModel
 from pydantic import BaseSettings
 from pydantic import ConstrainedList
@@ -73,3 +74,18 @@ class Settings(BaseSettings):
     ad_search_base: str = Field(
         ..., description="Search base to utilize for all AD requests"
     )
+
+    mo_url: AnyHttpUrl = Field(
+        parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
+        description="Base URL for OS2mo.",
+    )
+
+    client_id: str = Field("bruce", description="Client ID for OIDC client.")
+    client_secret: SecretStr = Field(..., description="Client Secret for OIDC client.")
+    auth_server: AnyHttpUrl = Field(
+        parse_obj_as(AnyHttpUrl, "http://keycloak-service:8080/auth"),
+        description="Base URL for OIDC server (Keycloak).",
+    )
+    auth_realm: str = Field("mo", description="Realm to authenticate against")
+
+    graphql_timeout: int = 120

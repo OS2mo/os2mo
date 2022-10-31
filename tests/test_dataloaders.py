@@ -8,6 +8,7 @@
 import asyncio
 from collections.abc import Iterator
 from typing import Union
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 
 import pytest
@@ -28,6 +29,11 @@ def ad_connection() -> Iterator[MagicMock]:
 
 
 @pytest.fixture
+def gql_client() -> Iterator[AsyncMock]:
+    yield AsyncMock()
+
+
+@pytest.fixture
 def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("CLIENT_ID", "foo")
     monkeypatch.setenv("client_secret", "bar")
@@ -42,6 +48,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
 @pytest.fixture
 def dataloaders(
     ad_connection: MagicMock,
+    gql_client: AsyncMock,
     settings: Settings,
 ) -> Iterator[Dataloaders]:
     """Fixture to construct a dataloaders object using fixture mocks.
@@ -54,6 +61,7 @@ def dataloaders(
             "user_context": {
                 "settings": settings,
                 "ad_connection": ad_connection,
+                "gql_client": gql_client,
             },
         }
     )
@@ -121,7 +129,62 @@ async def test_load_organizationalPersons(
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.org_persons_loader.load(0),
+        dataloaders.ad_org_persons_loader.load(0),
     )
 
     assert output == [expected_results * len(cookies)]
+
+
+async def test_load_mo_users(dataloaders: Dataloaders, gql_client: AsyncMock) -> None:
+
+    cpr_nos = ["1407711900", "0910443755", "1904433310"]
+    givennames = ["Hans Oreby", "Jens Pedersen Munch", "Bente Schmidt"]
+    names = [
+        "Hans Oreby Hansen",
+        "Jens Pedersen Munch Bisgaard",
+        "Bente Schmidt Karatas",
+    ]
+
+    gql_client.execute.return_value = {
+        "employees": [
+            {
+                "objects": [
+                    {
+                        "cpr_no": cpr_nos[0],
+                        "givenname": givennames[0],
+                        "name": names[0],
+                    }
+                ]
+            },
+            {
+                "objects": [
+                    {
+                        "cpr_no": cpr_nos[1],
+                        "givenname": givennames[1],
+                        "name": names[1],
+                    },
+                    {
+                        "cpr_no": cpr_nos[2],
+                        "givenname": givennames[2],
+                        "name": names[2],
+                    },
+                ]
+            },
+        ]
+    }
+
+    expected_results = []
+    for cpr_no, givenname, name in zip(cpr_nos, givennames, names):
+        expected_results.append(
+            {
+                "cpr_no": cpr_no,
+                "givenname": givenname,
+                "name": name,
+            },
+        )
+
+    output = await asyncio.gather(
+        dataloaders.mo_users_loader.load(0),
+    )
+
+    assert output == [expected_results]

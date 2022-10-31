@@ -5,12 +5,15 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
+from typing import Tuple
 
 import structlog
 from fastapi import APIRouter
 from fastapi import FastAPI
 from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
+from raclients.graph.client import PersistentGraphQLClient
+from raclients.modelclient.mo import ModelClient
 
 from .config import Settings
 from .dataloaders import configure_dataloaders
@@ -47,6 +50,44 @@ async def seed_dataloaders(fastramqpi: FastRAMQPI) -> AsyncIterator[None]:
     yield
 
 
+def construct_gql_client(settings: Settings):
+    return PersistentGraphQLClient(
+        url=settings.mo_url + "/graphql/v2",
+        client_id=settings.client_id,
+        client_secret=settings.client_secret.get_secret_value(),
+        auth_server=settings.auth_server,
+        auth_realm=settings.auth_realm,
+        execute_timeout=settings.graphql_timeout,
+        httpx_client_kwargs={"timeout": settings.graphql_timeout},
+    )
+
+
+def construct_model_client(settings: Settings):
+    return ModelClient(
+        base_url=settings.mo_url,
+        client_id=settings.client_id,
+        client_secret=settings.client_secret.get_secret_value(),
+        auth_server=settings.auth_server,
+        auth_realm=settings.auth_realm,
+    )
+
+
+def construct_clients(
+    settings: Settings,
+) -> Tuple[PersistentGraphQLClient, ModelClient]:
+    """Construct clients froms settings.
+
+    Args:
+        settings: Integration settings module.
+
+    Returns:
+        Tuple with PersistentGraphQLClient and ModelClient.
+    """
+    gql_client = construct_gql_client(settings)
+    model_client = construct_model_client(settings)
+    return gql_client, model_client
+
+
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     """FastRAMQPI factory.
 
@@ -59,6 +100,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)
     fastramqpi.add_context(settings=settings)
+
+    logger.info("Setting up clients")
+    gql_client, model_client = construct_clients(settings)
+
+    fastramqpi.add_context(model_client=model_client)
+    fastramqpi.add_context(gql_client=gql_client)
 
     logger.info("Configuring AD connection")
     ad_connection = configure_ad_connection(settings)
@@ -87,14 +134,24 @@ def create_app(**kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
 
-    @app.get("/all", status_code=202)
-    async def load_all_org_persons() -> Any:
+    @app.get("/AD/all", status_code=202)
+    async def load_all_org_persons_from_AD() -> Any:
         """Request all organizational persons"""
-        logger.info("Manually triggered request of all organizational persons")
+        logger.info("Manually triggered AD request of all organizational persons")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].org_persons_loader.load(1)
+        ].ad_org_persons_loader.load(1)
+        return result
+
+    @app.get("/MO/all", status_code=202)
+    async def load_all_org_persons_from_MO() -> Any:
+        """Request all persons from MO"""
+        logger.info("Manually triggered MO request of all organizational persons")
+
+        result = await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].mo_users_loader.load(1)
         return result
 
     return app

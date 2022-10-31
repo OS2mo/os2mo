@@ -7,30 +7,28 @@ from functools import partial
 
 import structlog
 from fastramqpi.context import Context
+from gql import gql
+from gql.client import AsyncClientSession
 from ldap3 import Connection
+from more_itertools import flatten
 from pydantic import BaseModel
 from strawberry.dataloader import DataLoader
 
 
 # pylint: disable=too-few-public-methods
 class Dataloaders(BaseModel):
-    """Collection of program dataloaders.
-
-    Args:
-        users_loader: Loads User models from UUIDs.
-        itsystems_loader: Loads ITSystem UUIDs from user-keys.
-        adguid_loader: Loads AD GUIDs (UUIDs) from CPR numbers.
-    """
+    """Collection of program dataloaders."""
 
     class Config:
         """Arbitrary types need to be allowed to have DataLoader members."""
 
         arbitrary_types_allowed = True
 
-    org_persons_loader: DataLoader
+    ad_org_persons_loader: DataLoader
+    mo_users_loader: DataLoader
 
 
-async def load_organizationalPersons(
+async def load_ad_organizationalPersons(
     key: int,
     ad_connection: Connection,
     search_base: str,
@@ -77,6 +75,54 @@ async def load_organizationalPersons(
     return [output_dict]
 
 
+# # pylint: disable=too-few-public-methods
+# class ITUser(BaseModel):
+#     """Submodel for the GraphQL response from load_mo_users."""
+
+#     itsystem_uuid: UUID
+#     user_key: str
+
+
+# # pylint: disable=too-few-public-methods
+# class User(BaseModel):
+#     """Model for the GraphQL response from load_mo_users."""
+
+#     itusers: list[ITUser]
+#     uuid: UUID
+
+
+async def load_mo_users(
+    key: int, graphql_session: AsyncClientSession
+) -> list[list[dict[str, str]]]:
+    """Loads User models from UUIDs.
+
+    Args:
+        keys: List of user UUIDs.
+        graphql_session: The GraphQL session to run queries on.
+
+    Return:
+        List of User models.
+    """
+    query = gql(
+        """
+        query AllEmployees {
+          employees {
+            objects {
+              cpr_no
+              givenname
+              name
+            }
+          }
+        }
+        """
+    )
+
+    result = await graphql_session.execute(query)
+    output = list(flatten([r["objects"] for r in result["employees"]]))
+
+    return [output]
+
+
 def configure_dataloaders(context: Context) -> Dataloaders:
     """Construct our dataloaders from the FastRAMQPI context.
 
@@ -87,11 +133,23 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         Dataloaders required for ensure_adguid_itsystem.
     """
 
+    graphql_loader_functions = {
+        "mo_users_loader": load_mo_users,
+    }
+
+    graphql_session = context["user_context"]["gql_client"]
+    graphql_dataloaders = {
+        key: DataLoader(
+            load_fn=partial(value, graphql_session=graphql_session), cache=False
+        )
+        for key, value in graphql_loader_functions.items()
+    }
+
     settings = context["user_context"]["settings"]
     ad_connection = context["user_context"]["ad_connection"]
-    org_persons_loader = DataLoader(
+    ad_org_persons_loader = DataLoader(
         load_fn=partial(
-            load_organizationalPersons,
+            load_ad_organizationalPersons,
             ad_connection=ad_connection,
             search_base=settings.ad_search_base,
         ),
@@ -99,5 +157,6 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     )
 
     return Dataloaders(
-        org_persons_loader=org_persons_loader,
+        **graphql_dataloaders,
+        ad_org_persons_loader=ad_org_persons_loader,
     )
