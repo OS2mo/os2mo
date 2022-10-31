@@ -107,34 +107,9 @@ class TestOrganisationEndpoints:
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/children",
             params={"org_unit_hierarchy": uuid4()},
         )
-        # This was not tested previously and we only use it in Aarhus
-        # Unsure whether we acutally have fixture data for this?
-        # Tested locally and it works as expected
-        # Random UUID gives child count = 0 because no children belong to the
-        # hierarchy
+        # Random UUID gives child count = 0 because no children belongs to the hierarchy
         assert response.status_code == 200
-        assert response.json() == [
-            {
-                "child_count": 0,
-                "name": "Overordnet Enhed",
-                "user_key": "root",
-                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "validity": {
-                    "from": "2016-01-01",
-                    "to": None,
-                },
-            },
-            {
-                "child_count": 0,
-                "name": "Lønorganisation",
-                "user_key": "løn",
-                "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
-                "validity": {
-                    "from": "2017-01-01",
-                    "to": None,
-                },
-            },
-        ]
+        assert response.json() == []
 
     def test_get_children_invalid(self, service_client: TestClient):
         # Doesn't exist
