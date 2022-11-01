@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
-import typing
 from functools import partial
+from typing import Union
 
 import structlog
 from fastramqpi.context import Context
@@ -25,14 +25,23 @@ class Dataloaders(BaseModel):
         arbitrary_types_allowed = True
 
     ad_org_persons_loader: DataLoader
+    ad_org_persons_uploader: DataLoader
     mo_users_loader: DataLoader
+
+
+class OrganizationalPerson(BaseModel):
+    """Model for an AD organizationalperson"""
+
+    dn: str
+    Name: str  # TODO: This field cannot be modified in AD. Add a 'protected' flag?
+    Department: Union[str, None]
 
 
 async def load_ad_organizationalPersons(
     key: int,
     ad_connection: Connection,
     search_base: str,
-) -> list[list[dict[str, typing.Any]]]:
+) -> list[list[OrganizationalPerson]]:
     """
     Returns list with all organizationalPersons
     """
@@ -42,7 +51,7 @@ async def load_ad_organizationalPersons(
     searchParameters = {
         "search_base": search_base,
         "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": ["Name", "Department", "objectGUID"],
+        "attributes": ["Name", "Department"],
         "paged_size": 500,  # TODO: Find this number from AD rather than hard-code it?
     }
 
@@ -53,7 +62,7 @@ async def load_ad_organizationalPersons(
         ad_connection.search(**searchParameters)
         output.extend(ad_connection.entries)
 
-        # TODO: Skal 1.2.... være Configurerbar?
+        # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
         cookie = ad_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
             "cookie"
         ]
@@ -63,32 +72,51 @@ async def load_ad_organizationalPersons(
         else:
             break
 
-    output_dict = [
-        {
-            "guid": o.objectGUID.value,
-            "name": o.Name.value,
-            "department": o.Department.value,
-        }
+    output_list = [
+        OrganizationalPerson(
+            dn=o.entry_dn,
+            Name=o.Name.value,
+            Department=o.Department.value,
+        )
         for o in output
     ]
 
-    return [output_dict]
+    return [output_list]
 
 
-# # pylint: disable=too-few-public-methods
-# class ITUser(BaseModel):
-#     """Submodel for the GraphQL response from load_mo_users."""
+async def upload_ad_organizationalPerson(
+    keys: list[OrganizationalPerson], ad_connection: Connection
+):
+    logger = structlog.get_logger()
+    output = []
+    success = 0
+    failed = 0
+    for key in keys:
+        dn = key.dn
+        parameters_to_upload = [k for k in key.dict().keys() if k != "dn"]
+        results = []
+        for parameter_to_upload in parameters_to_upload:
+            value = key.dict()[parameter_to_upload]
+            value_to_upload = [] if value is None else [value]
+            changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
 
-#     itsystem_uuid: UUID
-#     user_key: str
+            logger.info("Uploading the following changes: %s" % changes)
+            ad_connection.modify(dn, changes)
+            response = ad_connection.result
 
+            if response["description"] == "success":
+                success += 1
+            else:
+                failed += 1
+            logger.info("Response: %s" % response)
 
-# # pylint: disable=too-few-public-methods
-# class User(BaseModel):
-#     """Model for the GraphQL response from load_mo_users."""
+            results.append(response)
 
-#     itusers: list[ITUser]
-#     uuid: UUID
+        output.append(results)
+
+    logger.info("Succeeded MODIFY_REPLACE operations: %d" % success)
+    logger.info("Failed MODIFY_REPLACE operations: %d" % failed)
+    return output
 
 
 async def load_mo_users(
@@ -156,7 +184,13 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         cache=False,
     )
 
+    ad_org_persons_uploader = DataLoader(
+        load_fn=partial(upload_ad_organizationalPerson, ad_connection=ad_connection),
+        cache=False,
+    )
+
     return Dataloaders(
         **graphql_dataloaders,
         ad_org_persons_loader=ad_org_persons_loader,
+        ad_org_persons_uploader=ad_org_persons_uploader
     )

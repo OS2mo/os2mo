@@ -17,9 +17,9 @@ from raclients.modelclient.mo import ModelClient
 
 from .config import Settings
 from .dataloaders import configure_dataloaders
+from .dataloaders import OrganizationalPerson
 from .ldap import ad_healthcheck
 from .ldap import configure_ad_connection
-
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -143,6 +143,14 @@ def create_app(**kwargs: Any) -> FastAPI:
             "dataloaders"
         ].ad_org_persons_loader.load(1)
         return result
+
+    @app.post("/AD/organizationalperson")
+    async def post_org_person_to_AD(org_person: OrganizationalPerson) -> Any:
+        logger.info("Posting %s to AD" % org_person)
+
+        await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].ad_org_persons_uploader.load(org_person)
 
     @app.get("/MO/all", status_code=202)
     async def load_all_org_persons_from_MO() -> Any:

@@ -199,6 +199,18 @@ def test_ad_get_all_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
+def test_ad_post_organizationalperson_endpoint(test_client: TestClient) -> None:
+    """Test the AD get-all endpoint on our app."""
+
+    ad_person_to_post = {
+        "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        "Name": "Lars Peter Thomsen",
+        "Department": None,
+    }
+    response = test_client.post("/AD/organizationalperson", json=ad_person_to_post)
+    assert response.status_code == 200
+
+
 def test_mo_get_all_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 

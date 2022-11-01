@@ -16,6 +16,7 @@ import pytest
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
+from mo_ldap_import_export.dataloaders import OrganizationalPerson
 
 
 @pytest.fixture
@@ -68,23 +69,20 @@ def dataloaders(
     yield dataloaders
 
 
-def mock_ad_entry(guid: str, name: str, department: Union[str, None]) -> object:
+def mock_ad_entry(Name: str, Department: Union[str, None], dn: str) -> object:
 
     # Mock AD entry
     class Entry:
-        class objectGUIDClass:
-            def __init__(self) -> None:
-                self.value: str = guid
-
         class NameClass:
             def __init__(self) -> None:
-                self.value: str = name
+                self.value: str = Name
 
         class DepartmentClass:
             def __init__(self) -> None:
-                self.value: Union[str, None] = department
+                self.value: Union[str, None] = Department
 
-        objectGUID: objectGUIDClass = objectGUIDClass()
+        # objectGUID: objectGUIDClass = objectGUIDClass()
+        entry_dn: str = dn
         Name: NameClass = NameClass()
         Department: DepartmentClass = DepartmentClass()
 
@@ -97,20 +95,14 @@ async def test_load_organizationalPersons(
     """Test that load_organizationalPersons works as expected."""
 
     # Mock data
-    guid = "{b55be9e3-4ca6-45f4-8bd3-3c3c9e15edb1}"
-    name = "Nick Janssen"
-    department = None
+    Name = "Nick Janssen"
+    Department = None
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_results = [
-        {
-            "guid": guid,
-            "name": name,
-            "department": department,
-        }
-    ]
+    expected_results = [{"Name": Name, "Department": Department, "dn": dn}]
 
     # Mock AD connection
-    ad_connection.entries = [mock_ad_entry(guid, name, department)]
+    ad_connection.entries = [mock_ad_entry(Name, Department, dn)]
 
     # Simulate three pages
     cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
@@ -133,6 +125,52 @@ async def test_load_organizationalPersons(
     )
 
     assert output == [expected_results * len(cookies)]
+
+
+async def test_upload_organizationalPerson(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+
+    org_person = OrganizationalPerson(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        Name="Nick Janssen",
+        Department="GL",
+    )
+
+    bad_response = {
+        "result": 67,
+        "description": "notAllowedOnRDN",
+        "dn": "",
+        "message": (
+            "000020B1: UpdErr: DSID-030F1357,"
+            " problem 6004 (CANT_ON_RDN), data 0\n\x00"
+        ),
+        "referrals": None,
+        "type": "modifyResponse",
+    }
+    good_response = {
+        "result": 0,
+        "description": "success",
+        "dn": "",
+        "message": "",
+        "referrals": None,
+        "type": "modifyResponse",
+    }
+
+    results = iter([good_response, bad_response])
+
+    def set_new_result(*args, **kwargs) -> None:
+        ad_connection.result = next(results)
+
+    # Every time a search is performed, point to the next page.
+    ad_connection.modify.side_effect = set_new_result
+
+    # Get result from dataloader
+    output = await asyncio.gather(
+        dataloaders.ad_org_persons_uploader.load(org_person),
+    )
+
+    assert output == [[good_response, bad_response]]
 
 
 async def test_load_mo_users(dataloaders: Dataloaders, gql_client: AsyncMock) -> None:
