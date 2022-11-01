@@ -258,6 +258,48 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
 
 
 @pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.parametrize(
+    "filter_snippet,expected",
+    [
+        # Filter none
+        ("", 9),
+        ("(hierarchies: null)", 9),
+        # Filter 'linjeorg'
+        ('(hierarchies: "f805eb80-fdfe-8f24-9367-68ea955b9b9b")', 2),
+        # Filter 'hidden'
+        ('(hierarchies: "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef")', 1),
+        # Filter 'selvejet'
+        ('(hierarchies: "69de6410-bfe7-bea5-e6cc-376b3302189c")', 1),
+        # Filter 'linjeorg' + 'hidden'
+        (
+            """
+            (hierarchies: [
+                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
+                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+            ])
+            """,
+            3,
+        ),
+    ],
+)
+async def test_org_unit_hierarchy_filter(
+    graphapi_post, filter_snippet, expected
+) -> None:
+    """Test hierarchies filter on organisation units."""
+    org_unit_query = f"""
+        query OrgUnit {{
+            org_units{filter_snippet} {{
+                uuid
+            }}
+        }}
+    """
+    response: GQLResponse = graphapi_post(org_unit_query)
+    assert response.errors is None
+    assert len(response.data["org_units"]) == expected
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "test_data",

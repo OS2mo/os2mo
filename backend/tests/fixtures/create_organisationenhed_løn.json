@@ -49,6 +49,15 @@
           "to": "infinity"
         }
       }
+    ],
+    "opmærkning": [
+      {
+        "uuid": "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
+        "virkning": {
+          "from": "2017-01-01 00:00:00+02",
+          "to": "infinity"
+        }
+      }
     ]
   },
   "note": "Automatisk indl\u00e6sning"

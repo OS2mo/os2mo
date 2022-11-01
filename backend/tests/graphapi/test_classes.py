@@ -266,7 +266,7 @@ async def test_unit_create_class(
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 35),
+        ("", 38),
         ('(facet_user_keys: "employee_address_type")', 3),
         ('(facets: "baddc4eb-406e-4c6b-8229-17e4a21d3550")', 3),
         ('(facet_user_keys: "org_unit_address_type")', 5),

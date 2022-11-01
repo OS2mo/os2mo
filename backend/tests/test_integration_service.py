@@ -518,7 +518,7 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
                     "user_key": "hum",
                     "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                     "validity": {
-                        "from": "2016-01-01",
+                        "from": "2016-12-31",
                         "to": None,
                     },
                     "child_count": 2,
@@ -1183,6 +1183,13 @@ class Tests(tests.cases.LoRATestCase):
                     "/f/org_unit_address_type/",
                     "user_key": "org_unit_address_type",
                     "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
+                },
+                {
+                    "description": "",
+                    "path": "/o/456362c4-0ee4-4e5e-a72c-751239745e62"
+                    "/f/org_unit_hierarchy/",
+                    "user_key": "org_unit_hierarchy",
+                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
                 },
                 {
                     "description": "",

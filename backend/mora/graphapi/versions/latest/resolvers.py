@@ -371,17 +371,20 @@ class OrganisationUnitResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
+        hierarchies: list[UUID] | None = None,
     ):
         """Resolve organisation units."""
         kwargs = {}
-
-        if parents is UNSET:
-            pass
-        elif parents is None:
+        # Parents
+        if parents is None:
             org = await info.context["org_loader"].load(0)
             kwargs["overordnet"] = org.uuid
-        elif parents is not None:
+        elif parents is not UNSET:
             kwargs["overordnet"] = parents
+        # Hierarchy
+        if hierarchies is not None:
+            kwargs["opmærkning"] = hierarchies
+
         return await super()._resolve(
             info=info,
             uuids=uuids,

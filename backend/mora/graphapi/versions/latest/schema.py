@@ -5,6 +5,8 @@ import asyncio
 import json
 import re
 from base64 import b64encode
+from datetime import datetime
+from itertools import chain
 from typing import Any
 from typing import cast
 from typing import Generic
@@ -17,6 +19,7 @@ from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
 from starlette_context import context
+from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
@@ -848,20 +851,58 @@ class OrganisationUnit:
         permission_classes=[gen_read_permission("org_unit")],
     )
     async def children(
-        self, root: OrganisationUnitRead, info: Info
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        hierarchies: list[UUID] | None = None,
     ) -> list["OrganisationUnit"]:
         """Get the immediate descendants of the organistion unit.
 
         Returns:
             list[OrganisationUnit]: list of descendants, if any.
         """
-        loader: DataLoader = info.context["org_unit_children_loader"]
-        return await loader.load(root.uuid)
+        # TODO: Please don't look at this code for inspiration. The GraphQL API should
+        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
+        # same function call in the same function over and over.
+        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
+
+        responses = await OrganisationUnitResolver().resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+            parents=[root.uuid],
+            hierarchies=hierarchies,
+        )
+        return list(chain.from_iterable(r.objects for r in responses))
 
     @strawberry.field(description="Children count of the organisation unit.")
-    async def child_count(self, root: OrganisationUnitRead, info: Info) -> int:
-        loader: DataLoader = info.context["org_unit_children_loader"]
-        return len(await loader.load(root.uuid))
+    async def child_count(
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        hierarchies: list[UUID] | None = None,
+    ) -> int:
+        # TODO: Please don't look at this code for inspiration. The GraphQL API should
+        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
+        # same function call in the same function over and over.
+        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
+
+        responses = await OrganisationUnitResolver().resolve(
+            info=info,
+            from_date=from_date,
+            to_date=to_date,
+            parents=[root.uuid],
+            hierarchies=hierarchies,
+        )
+        return len(responses)
 
     # TODO: Add UUID to RAModel and remove model prefix here
     @strawberry.field(

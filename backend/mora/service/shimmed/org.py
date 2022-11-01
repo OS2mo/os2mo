@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
 from datetime import datetime
-from datetime import timedelta
 from typing import Literal
 from uuid import UUID
 
@@ -15,14 +14,11 @@ from more_itertools import one
 from .errors import handle_gql_error
 from .util import filter_data
 from mora import exceptions
-from mora.common import _create_graphql_connector
-from mora.graphapi.middleware import set_graphql_dates
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import OrganisationLevelRead
 from mora.graphapi.shim import OrganisationUnitCount
 from mora.service.org import router as org_router
-from ramodels.mo import OpenValidity
 from ramodels.mo import OrganisationRead
 
 
@@ -159,27 +155,18 @@ async def get_org_children(
     if response.data["org"]["uuid"] != str(parentid):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
-    # This sucks! We should port this parent functionality to our
-    # GraphQL loaders instead
-    if at is not None:
-        if isinstance(at, date):
-            at = datetime.combine(at, datetime.min.time())
-        set_graphql_dates(
-            OpenValidity(from_date=at, to_date=at + timedelta(milliseconds=1))
-        )
-    connector = _create_graphql_connector()
-    children = await connector.organisationenhed.load_uuids(
-        overordnet=parentid,
-        gyldighed="Aktiv",
-    )
     query = """
     query OrganisationChildrenQuery(
-        $uuids: [UUID!]
+        $parents: [UUID!]
         $from_date: DateTime,
         $engagements: Boolean!,
         $associations: Boolean!,
-        $hierarchy: Boolean!) {
-            org_units(uuids: $uuids, from_date: $from_date) {
+        $hierarchies: [UUID!]) {
+            org_units(
+                parents: $parents,
+                hierarchies: $hierarchies,
+                from_date: $from_date
+            ) {
                 objects {
                     name
                     user_key
@@ -188,10 +175,7 @@ async def get_org_children(
                         from
                         to
                     }
-                    children {
-                        uuid
-                        org_unit_hierarchy @include(if: $hierarchy)
-                    }
+                    child_count(hierarchies: $hierarchies)
                     associations @include(if: $associations) {
                         uuid
                     }
@@ -203,10 +187,10 @@ async def get_org_children(
         }
     """
     variables = {
-        "uuids": children,
+        "parents": parentid,
         "engagements": "engagement" in count,
         "associations": "association" in count,
-        "hierarchy": bool(org_unit_hierarchy),
+        "hierarchies": org_unit_hierarchy,
     }
     if at is not None:
         variables["from_date"] = at
@@ -217,16 +201,7 @@ async def get_org_children(
     handle_gql_error(response)
 
     org_units = flatten_data(response.data["org_units"])
-    if not org_units:
-        exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(parentid))
-
     for unit in org_units:
-        ou_children = unit.pop("children")
-        if org_unit_hierarchy is not None:
-            ou_children = list(
-                filter_data(ou_children, "org_unit_hierarchy", str(org_unit_hierarchy))
-            )
-        unit |= {"child_count": len(ou_children)}
         unit |= (
             {"engagement_count": len(unit.pop("engagements", []))}
             if "engagement" in count

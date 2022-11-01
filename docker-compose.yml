@@ -93,6 +93,25 @@ services:
       GRACEFUL: si
     restart: on-failure
 
+  mo-init:
+    image: magentaaps/os2mo-init:1.0
+    environment:
+      MO_URL: "http://mo"
+      LORA_URL: "http://mox"
+      CLIENT_ID: "dipex"
+      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
+      AUTH_SERVER: "http://keycloak:8080/auth"
+      AUTH_REALM: "mo"
+    #volumes:
+    #  - type: bind
+    #    source: ./init.config.yml
+    #    target: /config/config.yml
+    #    read_only: true
+    restart: on-failure
+    depends_on:
+      fixture-loader:
+        condition: service_completed_successfully
+
   mox-db:
     image: postgres:11
     environment:

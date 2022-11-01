@@ -132,7 +132,7 @@ class TestOrganisationUnitRead:
                 "name": "Humanistisk fakultet",
                 "user_key": "hum",
                 "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                "validity": {"from": "2016-01-01", "to": None},
+                "validity": {"from": "2016-12-31", "to": None},
             },
             {
                 "child_count": 0,
@@ -174,7 +174,7 @@ class TestOrganisationUnitRead:
                 "name": "Humanistisk fakultet",
                 "user_key": "hum",
                 "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                "validity": {"from": "2016-01-01", "to": None},
+                "validity": {"from": "2016-12-31", "to": None},
             },
             {
                 "association_count": 0,

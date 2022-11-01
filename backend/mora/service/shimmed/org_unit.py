@@ -15,7 +15,6 @@ from more_itertools import one
 
 from ...auth.keycloak import oidc
 from .errors import handle_gql_error
-from .util import filter_data
 from mora import exceptions
 from mora import util
 from mora.graphapi.shim import execute_graphql
@@ -228,16 +227,17 @@ async def get_org_unit_children(
     """Obtain the list of nested units within an organisational unit."""
     query = """
     query OrganisationUnitChildrenQuery(
-        $uuid: UUID!, $from_date: DateTime,
-        $engagements: Boolean!, $associations: Boolean!, $hierarchy: Boolean!
-    )
-    {
-        org_units(uuids: [$uuid], from_date: $from_date) {
+        $uuid: UUID!,
+        $from_date: DateTime,
+        $engagements: Boolean!,
+        $associations: Boolean!,
+        $hierarchies: [UUID!]
+    ) {
+        org_units(uuids: [$uuid], from_date: $from_date, hierarchies: $hierarchies) {
             objects {
-                children {
+                children(hierarchies: $hierarchies) {
                     uuid
-                    child_count
-                    org_unit_hierarchy @include(if: $hierarchy)
+                    child_count(hierarchies: $hierarchies)
                     name
                     user_key
                     associations @include(if: $associations) {
@@ -254,13 +254,12 @@ async def get_org_unit_children(
             }
         }
     }
-
     """
     variables = {
         "uuid": parentid,
         "engagements": "engagement" in count,
         "associations": "association" in count,
-        "hierarchy": bool(org_unit_hierarchy),
+        "hierarchies": org_unit_hierarchy,
     }
     if at is not None:
         variables["from_date"] = at
@@ -277,10 +276,6 @@ async def get_org_unit_children(
         raise ValueError("Wrong number of parent units returned, expected one.")
 
     ou_children = org_unit["children"]
-    if org_unit_hierarchy is not None:
-        ou_children = list(
-            filter_data(ou_children, "org_unit_hierarchy", str(org_unit_hierarchy))
-        )
     for child in ou_children:
         if "engagements" in child:
             child["engagement_count"] = len(child.pop("engagements"))
