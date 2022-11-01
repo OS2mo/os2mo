@@ -94,15 +94,6 @@ class Mutation:
         return await create_address(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
-        description="Terminates an address by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def address_terminate(
-        self, at: AddressTerminateInput
-    ) -> AddressTerminateType:
-        return await terminate_addr(at.to_pydantic())  # type: ignore
-
-    @strawberry.mutation(
         description="Updates an address.",
         permission_classes=[admin_permission_class],
     )
@@ -110,6 +101,15 @@ class Mutation:
         # Have to use type:ignore for now due to:
         # * https://github.com/strawberry-graphql/strawberry/pull/2017
         return await update_address(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Terminates an address by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def address_terminate(
+        self, at: AddressTerminateInput
+    ) -> AddressTerminateType:
+        return await terminate_addr(at.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Delete an address.",
@@ -151,6 +151,8 @@ class Mutation:
     ) -> AssociationType:
         return await terminate_association(input.to_pydantic())  # type: ignore
 
+    # TODO: association_delete
+
     # Classes
     # -------
     @strawberry.mutation(
@@ -159,6 +161,10 @@ class Mutation:
     )
     async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
         return await create_class(input.to_pydantic())  # type: ignore
+
+    # TODO: class_update
+    # TODO: class_terminate
+    # TODO: class_delete
 
     # Employees
     # ---------
@@ -186,6 +192,8 @@ class Mutation:
     )
     async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
         return await terminate_employee(input.to_pydantic())  # type: ignore
+
+    # TODO: employee_delete
 
     # Engagements
     # -----------
@@ -223,11 +231,10 @@ class Mutation:
     # EngagementsAssociations
     # -----------------------
 
-    # Facets
-    # ------
-
-    # ITSystems
-    # ---------
+    # TODO: engagement_association_create
+    # TODO: engagement_association_update
+    # TODO: engagement_association_terminate
+    # TODO: engagement_association_delete
 
     # Facets
     # ------
@@ -238,8 +245,17 @@ class Mutation:
     async def facet_create(self, input: FacetCreateInput) -> FacetType:
         return await create_facet(input.to_pydantic())  # type: ignore
 
+    # TODO: facet_update
+    # TODO: facet_terminate
+    # TODO: facet_delete
+
     # ITSystems
     # ---------
+
+    # TODO: itsystem_create
+    # TODO: itsystem_update
+    # TODO: itsystem_terminate
+    # TODO: itsystem_delete
 
     # ITUsers
     # -------
@@ -251,32 +267,18 @@ class Mutation:
         return await create_ituser(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
-        description="Terminates IT-user by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
-        return await terminate_ituser(input.to_pydantic())  # type: ignore
-
-    # KLEs
-    # ----
-
-    # Leave
-    # -----
-
-    # Managers
-    # --------
-
-    # Root Organisation
-    # -----------------
-
-    # Organisational Units
-    # --------------------
-    @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
     )
     async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
         return await update_ituser(input.to_pydantic())  # type: ignore
+
+    @strawberry.mutation(
+        description="Terminates IT-user by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
+        return await terminate_ituser(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
         description="Delete an IT-User.",
@@ -288,11 +290,22 @@ class Mutation:
     # KLEs
     # ----
 
+    # TODO: kle_create
+    # TODO: kle_update
+    # TODO: kle_terminate
+    # TODO: kle_delete
+
     # Leave
     # -----
 
+    # TODO: leave_create
+    # TODO: leave_update
+    # TODO: leave_terminate
+    # TODO: leave_delete
+
     # Managers
     # --------
+
     @strawberry.mutation(
         description="Creates a manager for a specific organisation.",
         permission_classes=[admin_permission_class],
@@ -314,8 +327,15 @@ class Mutation:
     async def manager_terminate(self, input: ManagerTerminateInput) -> ManagerType:
         return await terminate_manager(input.to_pydantic())  # type: ignore
 
+    # TODO: manager_delete
+
     # Root Organisation
     # -----------------
+
+    # TODO: org_create
+    # TODO: org_update
+    # TODO: org_terminate
+    # TODO: org_delete
 
     # Organisational Units
     # --------------------
@@ -340,23 +360,6 @@ class Mutation:
         return await create_org_unit(input.to_pydantic())  # type: ignore
 
     @strawberry.mutation(
-        description="Terminates an organization unit by UUID",
-        permission_classes=[admin_permission_class],
-    )
-    async def org_unit_terminate(
-        self, unit: OrganisationUnitTerminateInput
-    ) -> OrganisationUnitType:
-        return await terminate_org_unit(unit.to_pydantic())  # type: ignore
-
-    # Related Units
-    # -------------
-
-    # Roles
-    # -----
-
-    # Files
-    # -----
-    @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
@@ -365,11 +368,32 @@ class Mutation:
     ) -> OrganisationUnitType:
         return await update_org_unit(input.to_pydantic())  # type:ignore
 
+    @strawberry.mutation(
+        description="Terminates an organization unit by UUID",
+        permission_classes=[admin_permission_class],
+    )
+    async def org_unit_terminate(
+        self, unit: OrganisationUnitTerminateInput
+    ) -> OrganisationUnitType:
+        return await terminate_org_unit(unit.to_pydantic())  # type: ignore
+
+    # TODO: org_unit_delete
+
     # Related Units
     # -------------
 
+    # TODO: related_create
+    # TODO: related_update
+    # TODO: related_terminate
+    # TODO: related_delete
+
     # Roles
     # -----
+
+    # TODO: roles_create
+    # TODO: roles_update
+    # TODO: roles_terminate
+    # TODO: roles_delete
 
     # Files
     # -----
