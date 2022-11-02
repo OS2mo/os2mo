@@ -271,7 +271,7 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         bvn = util.checked_get(data, mapping.USER_KEY, default="", required=False)
 
         # Validation
-        if employee_uuid and systemid and is_class_uuid_primary(primary):
+        if employee_uuid and systemid and (await is_class_uuid_primary(primary)):
             validation = await ITUserPrimaryGroupValidation.from_mo_objects(
                 dict(tilknyttedebrugere=employee_uuid),
             )
