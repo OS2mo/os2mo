@@ -89,6 +89,64 @@ def mock_ad_entry(Name: str, Department: Union[str, None], dn: str) -> object:
     return Entry()
 
 
+async def test_load_organizationalPerson(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+    # Mock data
+    Name = "Nick Janssen"
+    Department = None
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    expected_result = [OrganizationalPerson(Name=Name, Department=Department, dn=dn)]
+
+    ad_connection.response = [
+        {"dn": dn, "attributes": {"name": Name, "department": Department}}
+    ]
+
+    output = await asyncio.gather(
+        dataloaders.ad_org_person_loader.load(dn),
+    )
+
+    assert output == expected_result
+
+
+async def test_load_organizationalPerson_multiple_results(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+    # Mock data
+    Name = "Nick Janssen"
+    Department = None
+    dn = "DC=ad,DC=addev"
+
+    ad_connection.response = [
+        {"dn": dn, "attributes": {"name": Name, "department": Department}}
+    ] * 20
+
+    try:
+        await asyncio.gather(
+            dataloaders.ad_org_person_loader.load(dn),
+        )
+    except Exception as e:
+        assert str(e) == "Found multiple entries for dn=%s" % dn
+        pass
+
+
+async def test_load_organizationalPerson_no_results(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+
+    ad_connection.response = []
+    dn = "foo"
+
+    try:
+        await asyncio.gather(
+            dataloaders.ad_org_person_loader.load(dn),
+        )
+    except Exception as e:
+        assert str(e) == "Found no entries for dn=%s" % dn
+        pass
+
+
 async def test_load_organizationalPersons(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:

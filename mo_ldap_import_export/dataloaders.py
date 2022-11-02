@@ -25,6 +25,7 @@ class Dataloaders(BaseModel):
         arbitrary_types_allowed = True
 
     ad_org_persons_loader: DataLoader
+    ad_org_person_loader: DataLoader
     ad_org_persons_uploader: DataLoader
     mo_users_loader: DataLoader
 
@@ -35,6 +36,44 @@ class OrganizationalPerson(BaseModel):
     dn: str
     Name: str  # TODO: This field cannot be modified in AD. Add a 'protected' flag?
     Department: Union[str, None]
+
+
+def get_ad_attributes() -> list[str]:
+    return [a for a in OrganizationalPerson.schema()["properties"].keys() if a != "dn"]
+
+
+async def load_ad_organizationalPerson(
+    keys: list[str], ad_connection: Connection
+) -> list[OrganizationalPerson]:
+
+    logger = structlog.get_logger()
+    output = []
+
+    for dn in keys:
+        searchParameters = {
+            "search_base": dn,
+            "search_filter": "(objectclass=organizationalPerson)",
+            "attributes": get_ad_attributes(),
+        }
+
+        ad_connection.search(**searchParameters)
+        response = ad_connection.response
+
+        if len(response) > 1:
+            raise Exception("Found multiple entries for dn=%s" % dn)
+        elif len(response) == 0:
+            raise Exception("Found no entries for dn=%s" % dn)
+
+        organizationalPerson = OrganizationalPerson(
+            dn=response[0]["dn"],
+            Name=response[0]["attributes"]["name"],
+            Department=response[0]["attributes"]["department"],
+        )
+
+        logger.info("Found %s" % organizationalPerson)
+        output.append(organizationalPerson)
+
+    return output
 
 
 async def load_ad_organizationalPersons(
@@ -51,7 +90,7 @@ async def load_ad_organizationalPersons(
     searchParameters = {
         "search_base": search_base,
         "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": ["Name", "Department"],
+        "attributes": get_ad_attributes(),
         "paged_size": 500,  # TODO: Find this number from AD rather than hard-code it?
     }
 
@@ -119,7 +158,7 @@ async def upload_ad_organizationalPerson(
     return output
 
 
-async def load_mo_users(
+async def load_mo_employees(
     key: int, graphql_session: AsyncClientSession
 ) -> list[list[dict[str, str]]]:
     """Loads User models from UUIDs.
@@ -162,7 +201,7 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     """
 
     graphql_loader_functions = {
-        "mo_users_loader": load_mo_users,
+        "mo_users_loader": load_mo_employees,
     }
 
     graphql_session = context["user_context"]["gql_client"]
@@ -184,6 +223,11 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         cache=False,
     )
 
+    ad_org_person_loader = DataLoader(
+        load_fn=partial(load_ad_organizationalPerson, ad_connection=ad_connection),
+        cache=False,
+    )
+
     ad_org_persons_uploader = DataLoader(
         load_fn=partial(upload_ad_organizationalPerson, ad_connection=ad_connection),
         cache=False,
@@ -192,5 +236,6 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     return Dataloaders(
         **graphql_dataloaders,
         ad_org_persons_loader=ad_org_persons_loader,
+        ad_org_person_loader=ad_org_person_loader,
         ad_org_persons_uploader=ad_org_persons_uploader
     )

@@ -10,6 +10,7 @@ from typing import Tuple
 import structlog
 from fastapi import APIRouter
 from fastapi import FastAPI
+from fastapi import Request
 from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
 from raclients.graph.client import PersistentGraphQLClient
@@ -134,7 +135,19 @@ def create_app(**kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
 
-    @app.get("/AD/all", status_code=202)
+    # Get a speficic person from AD
+    @app.get("/AD/organizationalperson/{dn}", status_code=202)
+    async def load_org_person_from_AD(dn: str, request: Request) -> Any:
+        """Request single organizational person"""
+        logger.info("Manually triggered AD request of %s" % dn)
+
+        result = await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].ad_org_person_loader.load(dn)
+        return result
+
+    # Get all persons from AD
+    @app.get("/AD/organizationalperson", status_code=202)
     async def load_all_org_persons_from_AD() -> Any:
         """Request all organizational persons"""
         logger.info("Manually triggered AD request of all organizational persons")
@@ -144,6 +157,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         ].ad_org_persons_loader.load(1)
         return result
 
+    # Modify a person in AD
     @app.post("/AD/organizationalperson")
     async def post_org_person_to_AD(org_person: OrganizationalPerson) -> Any:
         logger.info("Posting %s to AD" % org_person)
@@ -152,6 +166,7 @@ def create_app(**kwargs: Any) -> FastAPI:
             "dataloaders"
         ].ad_org_persons_uploader.load(org_person)
 
+    # Get all persons from MO
     @app.get("/MO/all", status_code=202)
     async def load_all_org_persons_from_MO() -> Any:
         """Request all persons from MO"""

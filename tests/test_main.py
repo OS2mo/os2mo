@@ -16,6 +16,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
+from strawberry.dataloader import DataLoader
 
 from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.main import create_app
@@ -83,10 +84,23 @@ def gql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
+def empty_dataloaders() -> Dataloaders:
+    async def empty_fn(key):
+        return [key]
+
+    dlDict = {}
+    for dl in Dataloaders.schema()["required"]:
+        dlDict[dl] = DataLoader(load_fn=empty_fn, cache=False)
+
+    return Dataloaders(**dlDict)
+
+
+@pytest.fixture
 def fastramqpi(
     disable_metrics: None,
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
+    empty_dataloaders: Dataloaders,
 ) -> Iterator[FastRAMQPI]:
     """Fixture to construct a FastRAMQPI system.
 
@@ -94,12 +108,17 @@ def fastramqpi(
         FastRAMQPI system.
     """
     with patch(
-        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+        "mo_ldap_import_export.main.configure_dataloaders",
+        return_value=empty_dataloaders,
     ):
         with patch(
-            "mo_ldap_import_export.main.construct_gql_client", return_value=gql_client
+            "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
         ):
-            yield create_fastramqpi()
+            with patch(
+                "mo_ldap_import_export.main.construct_gql_client",
+                return_value=gql_client,
+            ):
+                yield create_fastramqpi()
 
 
 @pytest.fixture
@@ -195,7 +214,7 @@ async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
 def test_ad_get_all_endpoint(test_client: TestClient) -> None:
     """Test the AD get-all endpoint on our app."""
 
-    response = test_client.get("/AD/all")
+    response = test_client.get("/AD/organizationalperson")
     assert response.status_code == 202
 
 
@@ -215,4 +234,11 @@ def test_mo_get_all_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
     response = test_client.get("/MO/all")
+    assert response.status_code == 202
+
+
+def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:
+    """Test the AD get endpoint on our app."""
+
+    response = test_client.get("/AD/organizationalperson/foo")
     assert response.status_code == 202
