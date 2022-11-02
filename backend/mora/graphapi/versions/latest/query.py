@@ -43,7 +43,6 @@ from .schema import OrganisationUnit
 from .schema import Paged
 from .schema import PageInfo
 from .schema import RelatedUnit
-from .schema import Response
 from .schema import Role
 from .schema import Version
 from .types import Cursor
@@ -61,7 +60,7 @@ class Query:
 
     # Addresses
     # ---------
-    addresses: list[Response[Address]] = strawberry.field(
+    addresses: Paged[Address] = strawberry.field(
         resolver=AddressResolver().resolve,
         description="Get a list of all addresses, optionally by uuid(s)",
         permission_classes=[gen_read_permission("address")],
@@ -69,7 +68,7 @@ class Query:
 
     # Associations
     # ------------
-    associations: list[Response[Association]] = strawberry.field(
+    associations: Paged[Association] = strawberry.field(
         resolver=AssociationResolver().resolve,
         description="Get a list of all Associations, optionally by uuid(s)",
         permission_classes=[gen_read_permission("association")],
@@ -85,7 +84,7 @@ class Query:
 
     # Employees
     # ---------
-    employees: list[Response[Employee]] = strawberry.field(
+    employees: Paged[Employee] = strawberry.field(
         resolver=EmployeeResolver().resolve,
         description="Get a list of all employees, optionally by uuid(s)",
         permission_classes=[gen_read_permission("employee")],
@@ -93,7 +92,7 @@ class Query:
 
     # Engagements
     # -----------
-    engagements: list[Response[Engagement]] = strawberry.field(
+    engagements: Paged[Engagement] = strawberry.field(
         resolver=EngagementResolver().resolve,
         description="Get a list of all engagements, optionally by uuid(s)",
         permission_classes=[gen_read_permission("engagement")],
@@ -101,7 +100,7 @@ class Query:
 
     # EngagementsAssociations
     # -----------
-    engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
+    engagement_associations: Paged[EngagementAssociation] = strawberry.field(
         resolver=Resolver(
             "engagement_association_getter", "engagement_association_loader"
         ).resolve,
@@ -127,7 +126,7 @@ class Query:
 
     # ITUsers
     # -------
-    itusers: list[Response[ITUser]] = strawberry.field(
+    itusers: Paged[ITUser] = strawberry.field(
         resolver=Resolver("ituser_getter", "ituser_loader").resolve,
         description="Get a list of all ITUsers, optionally by uuid(s)",
         permission_classes=[gen_read_permission("ituser")],
@@ -135,7 +134,7 @@ class Query:
 
     # KLEs
     # ----
-    kles: list[Response[KLE]] = strawberry.field(
+    kles: Paged[KLE] = strawberry.field(
         resolver=Resolver("kle_getter", "kle_loader").resolve,
         description="Get a list of all KLE's, optionally by uuid(s)",
         permission_classes=[gen_read_permission("kle")],
@@ -143,7 +142,7 @@ class Query:
 
     # Leave
     # -----
-    leaves: list[Response[Leave]] = strawberry.field(
+    leaves: Paged[Leave] = strawberry.field(
         resolver=Resolver("leave_getter", "leave_loader").resolve,
         description="Get a list of all leaves, optionally by uuid(s)",
         permission_classes=[gen_read_permission("leave")],
@@ -151,7 +150,7 @@ class Query:
 
     # Managers
     # --------
-    managers: list[Response[Manager]] = strawberry.field(
+    managers: Paged[Manager] = strawberry.field(
         resolver=ManagerResolver().resolve,
         description="Get a list of all managers, optionally by uuid(s)",
         permission_classes=[gen_read_permission("manager")],
@@ -171,7 +170,7 @@ class Query:
 
     # Organisational Units
     # --------------------
-    org_units: list[Response[OrganisationUnit]] = strawberry.field(
+    org_units: Paged[OrganisationUnit] = strawberry.field(
         resolver=OrganisationUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("org_unit")],
@@ -179,7 +178,7 @@ class Query:
 
     # Related Units
     # -------------
-    related_units: list[Response[RelatedUnit]] = strawberry.field(
+    related_units: Paged[RelatedUnit] = strawberry.field(
         resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
         description="Get a list of related organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("related_unit")],
@@ -187,7 +186,7 @@ class Query:
 
     # Roles
     # -----
-    roles: list[Response[Role]] = strawberry.field(
+    roles: Paged[Role] = strawberry.field(
         resolver=Resolver("role_getter", "role_loader").resolve,
         description="Get a list of all roles, optionally by uuid(s)",
         permission_classes=[gen_read_permission("role")],

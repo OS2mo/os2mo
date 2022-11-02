@@ -198,6 +198,8 @@ class AddressResolver(Resolver):
         address_types: list[UUID] | None = None,
         address_type_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve addresses."""
         if address_type_user_keys is not None:
@@ -221,6 +223,8 @@ class AddressResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 
@@ -240,6 +244,8 @@ class AssociationResolver(Resolver):
         org_units: list[UUID] | None = None,
         association_types: list[UUID] | None = None,
         association_type_user_keys: list[str] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve associations."""
         if association_type_user_keys is not None:
@@ -267,6 +273,8 @@ class AssociationResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 
@@ -317,6 +325,8 @@ class EngagementResolver(Resolver):
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve engagements."""
         kwargs = {}
@@ -330,6 +340,8 @@ class EngagementResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 
@@ -347,6 +359,8 @@ class ManagerResolver(Resolver):
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve managers."""
         kwargs = {}
@@ -360,6 +374,8 @@ class ManagerResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 
@@ -376,6 +392,8 @@ class OrganisationUnitResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve organisation units."""
         kwargs = {}
@@ -393,6 +411,8 @@ class OrganisationUnitResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 

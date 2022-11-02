@@ -33,6 +33,8 @@ from .schema import LeaveRead
 from .schema import ManagerRead
 from .schema import OrganisationRead
 from .schema import OrganisationUnitRead
+from .schema import Paged
+from .schema import PageInfo
 from .schema import RelatedUnitRead
 from .schema import Response
 from .schema import RoleRead
@@ -83,7 +85,7 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
+async def get_mo(model: MOModel, **kwargs: Any) -> Paged[MOModel]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
@@ -96,13 +98,9 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results)
-    return list(
-        starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
-            uuid_map.items(),
-        )
-    )
+    # I assume this will break every other model
+    end_cursor: int = (kwargs["cursor"] or 0) + len(parsed_results)
+    return Paged(objects=parsed_results, page_info=PageInfo(next_cursor=end_cursor))
 
 
 async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
