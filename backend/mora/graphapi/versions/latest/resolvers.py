@@ -15,6 +15,7 @@ from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
 from .dataloaders import MOModel
+from .schema import Cursor
 from .schema import OpenValidityModel
 from .schema import Response
 from mora.util import CPR
@@ -282,6 +283,8 @@ class EmployeeResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         cpr_numbers: list[CPR] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve employees."""
         kwargs = {}
@@ -295,6 +298,8 @@ class EmployeeResolver(Resolver):
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 

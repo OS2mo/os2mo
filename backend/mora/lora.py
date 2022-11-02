@@ -590,7 +590,13 @@ class Scope(BaseScope):
         except IndexError:
             return []
 
-    async def get_all(self, changed_since: datetime | None = None, **params):
+    async def get_all(
+        self,
+        changed_since: datetime | None = None,
+        limit: int | None = None,
+        cursor: int | None = None,
+        **params,
+    ):
         """Perform a search on given params and return the result.
 
         As we perform a search in LoRa, using 'uuid' as a parameter is not supported,
@@ -604,8 +610,8 @@ class Scope(BaseScope):
         ass_msg = "'{}' is not a supported parameter for 'get_all'{}."
         assert "list" not in params, ass_msg.format("list", ", implicitly set")
         assert "uuid" not in params, ass_msg.format("uuid", ", use 'get_all_by_uuid'")
-        assert "start" not in params, ass_msg.format("start", ", use 'paged_get'")
-        assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
+        params["foersteresultat"] = cursor
+        params["maximalantalresultater"] = limit
 
         response = await self.load(**params)
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
