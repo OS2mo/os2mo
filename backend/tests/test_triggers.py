@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import freezegun
 import pytest
 
 import tests.cases
@@ -168,49 +167,4 @@ class AsyncTests(tests.cases.AsyncMockRequestContextTestCase):
             } == trigger_dict
 
         await (await MockHandler.construct({}, RequestType.TERMINATE)).submit()
-        assert self.trigger_called
-
-
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-@freezegun.freeze_time("2016-01-01")
-class TriggerlessTests(tests.cases.LoRATestCase):
-    """Trigger functionality (and there by also amqp as that is triggered)
-    can be disabled by the 'triggerless' flag
-    This test is supposed to test/show the the difference
-    """
-
-    async def trigger(self, trigger_dict):
-        self.trigger_called = True
-
-    def setUp(self):
-        super().setUp()
-        self.trigger_called = False
-        self.trigger_before = Trigger.on(
-            "org_unit", RequestType.TERMINATE, EventType.ON_AFTER
-        )(self.trigger)
-
-    def tearDown(self):
-        super().tearDown()
-        del self.trigger_before
-
-    def test_flag_on(self):
-        unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
-        payload = {"validity": {"to": "2016-10-21"}}
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/terminate?triggerless=1",
-            unitid,
-            json=payload,
-            amqp_topics={},
-        )
-        assert not self.trigger_called
-
-    def test_flag_off(self):
-        unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
-        payload = {"validity": {"to": "2016-10-21"}}
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/terminate",
-            unitid,
-            json=payload,
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
         assert self.trigger_called
