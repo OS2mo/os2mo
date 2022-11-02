@@ -271,7 +271,7 @@ class AddressCreateResponse(UUIDBase):
     """Response from GraphQL when creating addresses."""
 
 
-class AddressTerminate(ValidityTerminate, Triggerless):
+class AddressTerminate(ValidityTerminate):
     """Model representing an address-termination."""
 
     uuid: UUID = Field(description="UUID for the address we want to terminate.")
