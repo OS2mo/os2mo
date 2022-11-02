@@ -30,7 +30,7 @@ class Dataloaders(BaseModel):
     mo_users_loader: DataLoader
 
 
-class OrganizationalPerson(BaseModel):
+class ADOrganizationalPerson(BaseModel):
     """Model for an AD organizationalperson"""
 
     dn: str
@@ -38,13 +38,23 @@ class OrganizationalPerson(BaseModel):
     Department: Union[str, None]
 
 
+class MOOrganizationalPerson(BaseModel):
+    """Model for an AD organizationalperson"""
+
+    cpr_no: str
+    name: str
+    givenname: str
+
+
 def get_ad_attributes() -> list[str]:
-    return [a for a in OrganizationalPerson.schema()["properties"].keys() if a != "dn"]
+    return [
+        a for a in ADOrganizationalPerson.schema()["properties"].keys() if a != "dn"
+    ]
 
 
 async def load_ad_organizationalPerson(
     keys: list[str], ad_connection: Connection
-) -> list[OrganizationalPerson]:
+) -> list[ADOrganizationalPerson]:
 
     logger = structlog.get_logger()
     output = []
@@ -64,7 +74,7 @@ async def load_ad_organizationalPerson(
         elif len(response) == 0:
             raise Exception("Found no entries for dn=%s" % dn)
 
-        organizationalPerson = OrganizationalPerson(
+        organizationalPerson = ADOrganizationalPerson(
             dn=response[0]["dn"],
             Name=response[0]["attributes"]["name"],
             Department=response[0]["attributes"]["department"],
@@ -80,7 +90,7 @@ async def load_ad_organizationalPersons(
     key: int,
     ad_connection: Connection,
     search_base: str,
-) -> list[list[OrganizationalPerson]]:
+) -> list[list[ADOrganizationalPerson]]:
     """
     Returns list with all organizationalPersons
     """
@@ -112,7 +122,7 @@ async def load_ad_organizationalPersons(
             break
 
     output_list = [
-        OrganizationalPerson(
+        ADOrganizationalPerson(
             dn=o.entry_dn,
             Name=o.Name.value,
             Department=o.Department.value,
@@ -124,7 +134,7 @@ async def load_ad_organizationalPersons(
 
 
 async def upload_ad_organizationalPerson(
-    keys: list[OrganizationalPerson], ad_connection: Connection
+    keys: list[ADOrganizationalPerson], ad_connection: Connection
 ):
     logger = structlog.get_logger()
     output = []
@@ -160,16 +170,8 @@ async def upload_ad_organizationalPerson(
 
 async def load_mo_employees(
     key: int, graphql_session: AsyncClientSession
-) -> list[list[dict[str, str]]]:
-    """Loads User models from UUIDs.
-
-    Args:
-        keys: List of user UUIDs.
-        graphql_session: The GraphQL session to run queries on.
-
-    Return:
-        List of User models.
-    """
+) -> list[list[MOOrganizationalPerson]]:
+    attributes = MOOrganizationalPerson.schema()["properties"].keys()
     query = gql(
         """
         query AllEmployees {
@@ -185,9 +187,15 @@ async def load_mo_employees(
     )
 
     result = await graphql_session.execute(query)
-    output = list(flatten([r["objects"] for r in result["employees"]]))
+    output = []
+    for entry in list(flatten([r["objects"] for r in result["employees"]])):
+        output.append(MOOrganizationalPerson(**{a: entry[a] for a in attributes}))
 
     return [output]
+
+
+# async def upload_mo_employee(keys: list[dict[str, str]]):
+#     return await model_client.upload(keys)
 
 
 def configure_dataloaders(context: Context) -> Dataloaders:

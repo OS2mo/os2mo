@@ -14,9 +14,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.dataloaders import ADOrganizationalPerson
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
-from mo_ldap_import_export.dataloaders import OrganizationalPerson
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ async def test_load_organizationalPerson(
     Department = None
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_result = [OrganizationalPerson(Name=Name, Department=Department, dn=dn)]
+    expected_result = [ADOrganizationalPerson(Name=Name, Department=Department, dn=dn)]
 
     ad_connection.response = [
         {"dn": dn, "attributes": {"name": Name, "department": Department}}
@@ -189,7 +189,7 @@ async def test_upload_organizationalPerson(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
-    org_person = OrganizationalPerson(
+    org_person = ADOrganizationalPerson(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         Name="Nick Janssen",
         Department="GL",

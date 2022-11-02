@@ -17,8 +17,8 @@ from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
 
 from .config import Settings
+from .dataloaders import ADOrganizationalPerson
 from .dataloaders import configure_dataloaders
-from .dataloaders import OrganizationalPerson
 from .ldap import ad_healthcheck
 from .ldap import configure_ad_connection
 
@@ -159,7 +159,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Modify a person in AD
     @app.post("/AD/organizationalperson")
-    async def post_org_person_to_AD(org_person: OrganizationalPerson) -> Any:
+    async def post_org_person_to_AD(org_person: ADOrganizationalPerson) -> Any:
         logger.info("Posting %s to AD" % org_person)
 
         await fastramqpi._context["user_context"][
