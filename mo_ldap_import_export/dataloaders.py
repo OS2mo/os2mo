@@ -12,10 +12,10 @@ from gql.client import AsyncClientSession
 from ldap3 import Connection
 from more_itertools import flatten
 from pydantic import BaseModel
+from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
 
-# pylint: disable=too-few-public-methods
 class Dataloaders(BaseModel):
     """Collection of program dataloaders."""
 
@@ -36,14 +36,6 @@ class ADOrganizationalPerson(BaseModel):
     dn: str
     Name: str  # TODO: This field cannot be modified in AD. Add a 'protected' flag?
     Department: Union[str, None]
-
-
-class MOOrganizationalPerson(BaseModel):
-    """Model for an AD organizationalperson"""
-
-    cpr_no: str
-    name: str
-    givenname: str
 
 
 def get_ad_attributes() -> list[str]:
@@ -170,16 +162,17 @@ async def upload_ad_organizationalPerson(
 
 async def load_mo_employees(
     key: int, graphql_session: AsyncClientSession
-) -> list[list[MOOrganizationalPerson]]:
-    attributes = MOOrganizationalPerson.schema()["properties"].keys()
+) -> list[list[Employee]]:
+    # attributes = Employee.schema()["properties"].keys()
     query = gql(
         """
         query AllEmployees {
           employees {
             objects {
+              uuid
               cpr_no
               givenname
-              name
+              surname
             }
           }
         }
@@ -189,12 +182,12 @@ async def load_mo_employees(
     result = await graphql_session.execute(query)
     output = []
     for entry in list(flatten([r["objects"] for r in result["employees"]])):
-        output.append(MOOrganizationalPerson(**{a: entry[a] for a in attributes}))
+        output.append(Employee(**entry))
 
     return [output]
 
 
-# async def upload_mo_employee(keys: list[dict[str, str]]):
+# async def upload_mo_employee(keys: list[MOOrganizationalPerson]):
 #     return await model_client.upload(keys)
 
 

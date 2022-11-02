@@ -10,8 +10,10 @@ from collections.abc import Iterator
 from typing import Union
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
+from ramodels.mo.employee import Employee
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import ADOrganizationalPerson
@@ -234,50 +236,23 @@ async def test_upload_organizationalPerson(
 async def test_load_mo_users(dataloaders: Dataloaders, gql_client: AsyncMock) -> None:
 
     cpr_nos = ["1407711900", "0910443755", "1904433310"]
-    givennames = ["Hans Oreby", "Jens Pedersen Munch", "Bente Schmidt"]
-    names = [
-        "Hans Oreby Hansen",
-        "Jens Pedersen Munch Bisgaard",
-        "Bente Schmidt Karatas",
-    ]
+    uuids = [uuid4() for i in range(3)]
 
     gql_client.execute.return_value = {
         "employees": [
+            {"objects": [{"cpr_no": cpr_nos[0], "uuid": uuids[0]}]},
             {
                 "objects": [
-                    {
-                        "cpr_no": cpr_nos[0],
-                        "givenname": givennames[0],
-                        "name": names[0],
-                    }
-                ]
-            },
-            {
-                "objects": [
-                    {
-                        "cpr_no": cpr_nos[1],
-                        "givenname": givennames[1],
-                        "name": names[1],
-                    },
-                    {
-                        "cpr_no": cpr_nos[2],
-                        "givenname": givennames[2],
-                        "name": names[2],
-                    },
+                    {"cpr_no": cpr_nos[1], "uuid": uuids[1]},
+                    {"cpr_no": cpr_nos[2], "uuid": uuids[2]},
                 ]
             },
         ]
     }
 
     expected_results = []
-    for cpr_no, givenname, name in zip(cpr_nos, givennames, names):
-        expected_results.append(
-            {
-                "cpr_no": cpr_no,
-                "givenname": givenname,
-                "name": name,
-            },
-        )
+    for cpr_no, uuid in zip(cpr_nos, uuids):
+        expected_results.append(Employee(**{"cpr_no": cpr_no, "uuid": uuid}))
 
     output = await asyncio.gather(
         dataloaders.mo_users_loader.load(0),
