@@ -524,7 +524,6 @@ async def list_employees(
         "400": {"description": "Invalid input"},
     },
 )
-# @util.restrictargs('force', 'triggerless')
 async def terminate_employee(
     uuid: UUID, request: dict = Body(...), permissions=Depends(oidc.rbac_owner)
 ):
@@ -591,8 +590,7 @@ async def terminate_employee(
         Trigger.UUID: uuid,
     }
 
-    if not util.get_args_flag("triggerless"):
-        await Trigger.run(trigger_dict)
+    await Trigger.run(trigger_dict)
 
     for handler in request_handlers:
         await handler.submit()
@@ -602,8 +600,7 @@ async def terminate_employee(
     trigger_dict[Trigger.EVENT_TYPE] = mapping.EventType.ON_AFTER
     trigger_dict[Trigger.RESULT] = result
 
-    if not util.get_args_flag("triggerless"):
-        await Trigger.run(trigger_dict)
+    await Trigger.run(trigger_dict)
 
     # Write a noop entry to the user, to be used for the history
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
