@@ -1012,7 +1012,7 @@ class OrganisationUnit(UUIDBase):
     """Model representing an organisation unit."""
 
 
-class OrganisationUnitTerminate(ValidityTerminate, Triggerless):
+class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")
