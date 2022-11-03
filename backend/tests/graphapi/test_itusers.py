@@ -374,12 +374,11 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
 
 # @given(
 #     st.uuids(),
-#     st.booleans(),
 #     st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
 #         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
 #     ),
 # )
-# async def test_terminate_response(given_uuid, triggerless, given_validity_dts):
+# async def test_terminate_response(given_uuid, given_validity_dts):
 #     # Init
 #     from_date, to_date = given_validity_dts
 
@@ -393,7 +392,6 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
 #     # Configure the addr-terminate we want to perform
 #     test_data = ITUserTerminate(
 #         uuid=given_uuid,
-#         triggerless=triggerless,
 #         from_date=from_date,
 #         to_date=to_date,
 #     )

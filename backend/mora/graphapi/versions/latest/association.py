@@ -48,8 +48,7 @@ async def terminate_association(
     trigger_dict = trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
@@ -65,7 +64,6 @@ async def terminate_association(
         }
     )
 
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     return AssociationType(uuid=UUID(lora_result))

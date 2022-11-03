@@ -459,12 +459,11 @@ async def test_update_manager_mutation_unit_test(
 
 @given(
     given_uuid=st.uuids(),
-    triggerless=st.booleans(),
     given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
 )
-async def test_manager_terminate(given_uuid, triggerless, given_validity_dts):
+async def test_manager_terminate(given_uuid, given_validity_dts):
     from_date, to_date = given_validity_dts
 
     # The terminate logic have a check that verifies we don't use times other than:
@@ -476,7 +475,6 @@ async def test_manager_terminate(given_uuid, triggerless, given_validity_dts):
 
     test_data = ManagerTerminate(
         uuid=given_uuid,
-        triggerless=triggerless,
         from_date=from_date,
         to_date=to_date,
     )

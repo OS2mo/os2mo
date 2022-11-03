@@ -166,13 +166,6 @@ class MoraTrigger(BaseModel):
         return trigger_dict
 
 
-class Triggerless(BaseModel):
-    triggerless: bool | None = Field(
-        description="Flag specifying if triggers should not be invoked, if true.",
-        default=False,
-    )
-
-
 class GenericUUIDModel(UUIDBase):
     """Generic UUID model for return types."""
 
@@ -271,7 +264,7 @@ class AddressCreateResponse(UUIDBase):
     """Response from GraphQL when creating addresses."""
 
 
-class AddressTerminate(ValidityTerminate, Triggerless):
+class AddressTerminate(ValidityTerminate):
     """Model representing an address-termination."""
 
     uuid: UUID = Field(description="UUID for the address we want to terminate.")
@@ -412,7 +405,7 @@ class AssociationUpdate(Association):
         return {k: v for k, v in data_dict.items() if v}
 
 
-class AssociationTerminate(ValidityTerminate, Triggerless):
+class AssociationTerminate(ValidityTerminate):
     """Model representing an association termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the association we want to terminate.")
@@ -491,7 +484,7 @@ class EmployeeCreate(Employee):
         }
 
 
-class EmployeeTerminate(ValidityTerminate, Triggerless):
+class EmployeeTerminate(ValidityTerminate):
     """Model representing an employee termination."""
 
     uuid: UUID = Field(description="UUID for the employee we want to terminate.")
@@ -630,7 +623,7 @@ class Engagement(UUIDBase):
     """Model representing an Engagement."""
 
 
-class EngagementTerminate(ValidityTerminate, Triggerless):
+class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
     uuid: UUID = Field(description="UUID for the engagement we want to terminate.")
@@ -814,7 +807,7 @@ class ITUserUpdate(ITUser):
         return {k: v for k, v in data_dict.items() if v}
 
 
-class ITUserTerminate(ValidityTerminate, Triggerless):
+class ITUserTerminate(ValidityTerminate):
     """Model representing termination of it-user."""
 
     """(or rather end-date update for access to IT-system)."""
@@ -966,7 +959,7 @@ class ManagerUpdate(Manager):
         return {k: v for k, v in data_dict.items() if v}
 
 
-class ManagerTerminate(ValidityTerminate, Triggerless):
+class ManagerTerminate(ValidityTerminate):
     """Model representing a manager termination."""
 
     uuid: UUID = Field(description="UUID of the manager we want to terminate.")
@@ -1012,7 +1005,7 @@ class OrganisationUnit(UUIDBase):
     """Model representing an organisation unit."""
 
 
-class OrganisationUnitTerminate(ValidityTerminate, Triggerless):
+class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
     uuid: UUID = Field(description="UUID for the org-unit we want to terminate.")

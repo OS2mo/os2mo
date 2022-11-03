@@ -28,8 +28,7 @@ async def terminate(input: ITUserTerminate) -> ITUserType:
     trigger_dict = trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
@@ -45,8 +44,7 @@ async def terminate(input: ITUserTerminate) -> ITUserType:
         }
     )
 
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     return ITUserType(uuid=UUID(lora_result))
 

@@ -16,7 +16,6 @@ from more_itertools import one
 from ...auth.keycloak import oidc
 from .errors import handle_gql_error
 from mora import exceptions
-from mora import util
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.shim import MOOrgUnit
@@ -325,9 +324,9 @@ async def terminate_org_unit(
 ):
     mutation_func = "org_unit_terminate"
     query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!, $triggerless: Boolean) "
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) "
         f"{{ {mutation_func}"
-        f"(unit: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
+        f"(unit: {{uuid: $uuid, from: $from, to: $to}}) "
         f"{{ uuid }} }}"
     )
 
@@ -341,7 +340,6 @@ async def terminate_org_unit(
             "to": request.validity.to_date.isoformat()
             if request.validity.to_date
             else None,
-            "triggerless": util.get_args_flag("triggerless"),
         },
     )
     handle_gql_error(response)

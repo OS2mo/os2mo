@@ -573,14 +573,13 @@ async def test_create_integration(data, graphapi_post):
 
 @given(
     given_uuid=st.uuids(),
-    triggerless=st.booleans(),
     given_validity_dts=st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
 )
 @patch.object(lora.Scope, "update", async_lora_return)
 @patch.object(lora.Scope, "get", async_lora_return)
-async def test_terminate(given_uuid, triggerless, given_validity_dts):
+async def test_terminate(given_uuid, given_validity_dts):
     from_date, to_date = given_validity_dts
 
     # The terminate logic have a check that verifies we don't use times other than:
@@ -593,7 +592,6 @@ async def test_terminate(given_uuid, triggerless, given_validity_dts):
     # Configure the addr-terminate we want to perform
     at = AddressTerminate(
         uuid=given_uuid,
-        triggerless=triggerless,
         from_date=from_date,
         to_date=to_date,
     )
