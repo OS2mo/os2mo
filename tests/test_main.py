@@ -230,11 +230,41 @@ def test_ad_post_organizationalperson_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 200
 
 
-def test_mo_get_all_endpoint(test_client: TestClient) -> None:
+def test_mo_get_all_employees_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
-    response = test_client.get("/MO/all")
+    response = test_client.get("/MO/employee")
     assert response.status_code == 202
+
+
+def test_mo_get_employee_endpoint(test_client: TestClient) -> None:
+    """Test the MO get-all endpoint on our app."""
+
+    response = test_client.get("/MO/employee/foo")
+    assert response.status_code == 202
+
+
+def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
+    """Test the MO get-all endpoint on our app."""
+
+    employee_to_post = {
+        "uuid": "ff5bfef4-6459-4ba2-9571-10366ead6f5f",
+        "user_key": "ff5bfef4-6459-4ba2-9571-10366ead6f5f",
+        "type": "employee",
+        "givenname": "Jens Pedersen Munch",
+        "surname": "Bisgaard",
+        "name": None,
+        "cpr_no": "0910443755",
+        "seniority": None,
+        "org": None,
+        "nickname_givenname": "Man who can do 6571 push ups",
+        "nickname_surname": "Superman",
+        "nickname": None,
+        "details": None,
+    }
+
+    response = test_client.post("/MO/employee", json=employee_to_post)
+    assert response.status_code == 200
 
 
 def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:

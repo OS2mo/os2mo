@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
 from functools import partial
+from typing import Any
+from typing import Callable
+from typing import cast
 from typing import Union
 
 import structlog
@@ -12,6 +15,7 @@ from gql.client import AsyncClientSession
 from ldap3 import Connection
 from more_itertools import flatten
 from pydantic import BaseModel
+from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
@@ -27,7 +31,9 @@ class Dataloaders(BaseModel):
     ad_org_persons_loader: DataLoader
     ad_org_person_loader: DataLoader
     ad_org_persons_uploader: DataLoader
-    mo_users_loader: DataLoader
+    mo_employees_loader: DataLoader
+    mo_employee_uploader: DataLoader
+    mo_employee_loader: DataLoader
 
 
 class ADOrganizationalPerson(BaseModel):
@@ -160,35 +166,80 @@ async def upload_ad_organizationalPerson(
     return output
 
 
+def get_mo_employee_objects_str():
+    """
+    Returns object-names-of-interest for the MO employee object
+    """
+    objects = [
+        "uuid",
+        "cpr_no",
+        "givenname",
+        "surname",
+        "nickname_givenname",
+        "nickname_surname",
+    ]
+    objects_str = ", ".join(objects)
+    return objects_str
+
+
+def format_employee_output(result):
+    output = []
+    for entry in list(flatten([r["objects"] for r in result["employees"]])):
+        output.append(Employee(**entry))
+    return output
+
+
 async def load_mo_employees(
     key: int, graphql_session: AsyncClientSession
 ) -> list[list[Employee]]:
-    # attributes = Employee.schema()["properties"].keys()
+
     query = gql(
         """
         query AllEmployees {
           employees {
             objects {
-              uuid
-              cpr_no
-              givenname
-              surname
+              %s
             }
           }
         }
         """
+        % get_mo_employee_objects_str()
     )
 
     result = await graphql_session.execute(query)
+    return [format_employee_output(result)]
+
+
+async def load_mo_employee(
+    keys: list[str], graphql_session: AsyncClientSession
+) -> list[Employee]:
     output = []
-    for entry in list(flatten([r["objects"] for r in result["employees"]])):
-        output.append(Employee(**entry))
+    for uuid in keys:
+        query = gql(
+            """
+            query SinlgeEmployee {
+              employees(uuids:"{%s}") {
+                objects {
+                  %s
+                }
+              }
+            }
+            """
+            % (uuid, get_mo_employee_objects_str())
+        )
 
-    return [output]
+        result = await graphql_session.execute(query)
+        output.extend(format_employee_output(result))
+
+    return output
 
 
-# async def upload_mo_employee(keys: list[MOOrganizationalPerson]):
-#     return await model_client.upload(keys)
+async def upload_mo_employee(
+    keys: list[Employee],
+    model_client: ModelClient,
+):
+    # return await model_client.upload(keys)
+    return cast(list[Any | None], await model_client.upload(keys))
 
 
 def configure_dataloaders(context: Context) -> Dataloaders:
@@ -201,17 +252,24 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         Dataloaders required for ensure_adguid_itsystem.
     """
 
-    graphql_loader_functions = {
-        "mo_users_loader": load_mo_employees,
+    graphql_loader_functions: dict[str, Callable] = {
+        "mo_employees_loader": load_mo_employees,
+        "mo_employee_loader": load_mo_employee,
     }
 
     graphql_session = context["user_context"]["gql_client"]
-    graphql_dataloaders = {
+    graphql_dataloaders: dict[str, DataLoader] = {
         key: DataLoader(
             load_fn=partial(value, graphql_session=graphql_session), cache=False
         )
         for key, value in graphql_loader_functions.items()
     }
+
+    model_client = context["user_context"]["model_client"]
+    mo_employee_uploader = DataLoader(
+        load_fn=partial(upload_mo_employee, model_client=model_client),
+        cache=False,
+    )
 
     settings = context["user_context"]["settings"]
     ad_connection = context["user_context"]["ad_connection"]
@@ -238,5 +296,6 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         **graphql_dataloaders,
         ad_org_persons_loader=ad_org_persons_loader,
         ad_org_person_loader=ad_org_person_loader,
-        ad_org_persons_uploader=ad_org_persons_uploader
+        ad_org_persons_uploader=ad_org_persons_uploader,
+        mo_employee_uploader=mo_employee_uploader,
     )

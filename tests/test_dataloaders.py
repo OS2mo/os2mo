@@ -37,6 +37,11 @@ def gql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
+def model_client() -> Iterator[AsyncMock]:
+    yield AsyncMock()
+
+
+@pytest.fixture
 def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("CLIENT_ID", "foo")
     monkeypatch.setenv("client_secret", "bar")
@@ -52,6 +57,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
 def dataloaders(
     ad_connection: MagicMock,
     gql_client: AsyncMock,
+    model_client: AsyncMock,
     settings: Settings,
 ) -> Iterator[Dataloaders]:
     """Fixture to construct a dataloaders object using fixture mocks.
@@ -65,6 +71,7 @@ def dataloaders(
                 "settings": settings,
                 "ad_connection": ad_connection,
                 "gql_client": gql_client,
+                "model_client": model_client,
             },
         }
     )
@@ -233,7 +240,9 @@ async def test_upload_organizationalPerson(
     assert output == [[good_response, bad_response]]
 
 
-async def test_load_mo_users(dataloaders: Dataloaders, gql_client: AsyncMock) -> None:
+async def test_load_mo_employees(
+    dataloaders: Dataloaders, gql_client: AsyncMock
+) -> None:
 
     cpr_nos = ["1407711900", "0910443755", "1904433310"]
     uuids = [uuid4() for i in range(3)]
@@ -255,7 +264,44 @@ async def test_load_mo_users(dataloaders: Dataloaders, gql_client: AsyncMock) ->
         expected_results.append(Employee(**{"cpr_no": cpr_no, "uuid": uuid}))
 
     output = await asyncio.gather(
-        dataloaders.mo_users_loader.load(0),
+        dataloaders.mo_employees_loader.load(0),
     )
 
     assert output == [expected_results]
+
+
+async def test_load_mo_employee(
+    dataloaders: Dataloaders, gql_client: AsyncMock
+) -> None:
+
+    cpr_no = "1407711900"
+    uuid = uuid4()
+
+    gql_client.execute.return_value = {
+        "employees": [
+            {"objects": [{"cpr_no": cpr_no, "uuid": uuid}]},
+        ]
+    }
+
+    expected_result = [Employee(**{"cpr_no": cpr_no, "uuid": uuid})]
+
+    output = await asyncio.gather(
+        dataloaders.mo_employee_loader.load(uuid),
+    )
+
+    assert output == expected_result
+
+
+async def test_upload_mo_employee(
+    model_client: AsyncMock, dataloaders: Dataloaders
+) -> None:
+    """Test that test_upload_mo_employee works as expected."""
+    model_client.upload.return_value = ["1", None, "3"]
+
+    results = await asyncio.gather(
+        dataloaders.mo_employee_uploader.load(1),
+        dataloaders.mo_employee_uploader.load(2),
+        dataloaders.mo_employee_uploader.load(3),
+    )
+    assert results == ["1", None, "3"]
+    model_client.upload.assert_called_with([1, 2, 3])

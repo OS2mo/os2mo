@@ -15,6 +15,7 @@ from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
+from ramodels.mo.employee import Employee
 
 from .config import Settings
 from .dataloaders import ADOrganizationalPerson
@@ -167,14 +168,34 @@ def create_app(**kwargs: Any) -> FastAPI:
         ].ad_org_persons_uploader.load(org_person)
 
     # Get all persons from MO
-    @app.get("/MO/all", status_code=202)
-    async def load_all_org_persons_from_MO() -> Any:
+    @app.get("/MO/employee", status_code=202)
+    async def load_all_employees_from_MO() -> Any:
         """Request all persons from MO"""
         logger.info("Manually triggered MO request of all organizational persons")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].mo_users_loader.load(1)
+        ].mo_employees_loader.load(1)
+        return result
+
+    # Post a person to MO
+    @app.post("/MO/employee")
+    async def post_employee_to_MO(employee: Employee) -> Any:
+        logger.info("Posting %s to MO" % employee)
+
+        await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].mo_employee_uploader.load(employee)
+
+    # Get a speficic person from MO
+    @app.get("/MO/employee/{uuid}", status_code=202)
+    async def load_employee_from_MO(uuid: str, request: Request) -> Any:
+        """Request single organizational person"""
+        logger.info("Manually triggered MO request of %s" % uuid)
+
+        result = await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].mo_employee_loader.load(uuid)
         return result
 
     return app
