@@ -135,9 +135,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
         obj.trigger_dict.update(
             {Trigger.UUID: obj.trigger_dict.get(Trigger.UUID, "") or obj.uuid}
         )
-        obj.trigger_results_before = None
-        if not util.get_args_flag("triggerless"):
-            obj.trigger_results_before = await Trigger.run(obj.trigger_dict)
+        obj.trigger_results_before = await Trigger.run(obj.trigger_dict)
 
         return obj
 
@@ -192,9 +190,7 @@ class RequestHandler(metaclass=_RequestHandlerMeta):
                 Trigger.UUID: self.trigger_dict.get(Trigger.UUID, "") or self.uuid,
             }
         )
-        self.trigger_results_after = None
-        if not util.get_args_flag("triggerless"):
-            self.trigger_results_after = await Trigger.run(self.trigger_dict)
+        self.trigger_results_after = await Trigger.run(self.trigger_dict)
 
         return getattr(self, Trigger.RESULT, None)
 
