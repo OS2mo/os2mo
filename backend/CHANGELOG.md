@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+12.5.0 - 2022-11-03
+-------------------
+
+[#51707] Removed triggerless attribute from GraphQL models.
+
 12.4.0 - 2022-11-01
 -------------------
 
