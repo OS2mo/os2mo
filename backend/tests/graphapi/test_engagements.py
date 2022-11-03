@@ -146,12 +146,11 @@ def test_query_is_primary(test_data, graphapi_post, patch_loader):
 
 @given(
     st.uuids(),
-    st.booleans(),
     st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
     ),
 )
-async def test_terminate_response(given_uuid, triggerless, given_validity_dts):
+async def test_terminate_response(given_uuid, given_validity_dts):
     # Init
     from_date, to_date = given_validity_dts
 
@@ -165,7 +164,6 @@ async def test_terminate_response(given_uuid, triggerless, given_validity_dts):
     # Configure the addr-terminate we want to perform
     test_data = EngagementTerminate(
         uuid=given_uuid,
-        triggerless=triggerless,
         from_date=from_date,
         to_date=to_date,
     )

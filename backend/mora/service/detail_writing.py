@@ -50,7 +50,6 @@ async def handle_requests(
     status_code=HTTP_201_CREATED,
     responses={"400": {"description": "Unknown role type"}},
 )
-# @util.restrictargs('force', 'triggerless')
 async def create(
     reqs: list[dict] | dict = Body(...),
     permissions=Depends(oidc.rbac_owner),
@@ -428,7 +427,6 @@ async def create(
 
 
 @router.post("/details/edit", responses={"400": {"description": "Unknown role type"}})
-# @util.restrictargs('force', 'triggerless')
 async def edit(
     reqs: list[dict] | dict = Body(...),
     permissions=Depends(oidc.rbac_owner),

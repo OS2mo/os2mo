@@ -19,8 +19,7 @@ async def terminate_engagement(input: EngagementTerminate) -> EngagementTerminat
     trigger_dict = trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
@@ -36,8 +35,7 @@ async def terminate_engagement(input: EngagementTerminate) -> EngagementTerminat
         }
     )
 
-    if not input.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     return EngagementTerminateType(uuid=UUID(lora_result))
 

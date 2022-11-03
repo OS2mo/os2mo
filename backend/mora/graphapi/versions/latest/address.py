@@ -41,8 +41,7 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
     trigger_dict = address_trigger.to_trigger_dict()
 
     # ON_BEFORE
-    if not address_terminate.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     # Do LoRa update
     lora_conn = lora.Connector()
@@ -58,8 +57,7 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
         }
     )
 
-    if not address_terminate.triggerless:
-        _ = await Trigger.run(trigger_dict)
+    _ = await Trigger.run(trigger_dict)
 
     return AddressTerminateType(uuid=UUID(lora_result))
 
