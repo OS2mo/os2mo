@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+12.6.0 - 2022-11-03
+-------------------
+
+[#51707] Removed triggerless attribute from mora.service.
+
 12.5.0 - 2022-11-03
 -------------------
 
