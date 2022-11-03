@@ -4,12 +4,9 @@ from fastapi import Body
 from fastapi import Depends
 
 from mora import mapping
-from mora import util
 from mora.auth.keycloak import oidc
-from mora.graphapi.shim import execute_graphql
 from mora.service import handlers
 from mora.service.detail_writing import router as details_router
-from mora.service.util import handle_gql_error
 from ramodels.mo.detail import DetailTermination
 
 # Handlers of ramodels.mo.detail.Detail-types we have GraphQL mutators for
@@ -64,36 +61,3 @@ async def _termination_request_handler(detail_termination: DetailTermination) ->
     # Find the GraphQL mutation handler and return it for the request
     handler = grapql_terminate_handlers.get(detail_termination.type)
     return await handler(detail_termination)
-
-
-async def _address_terminate_graphql_handler(
-    addr_termination: DetailTermination,
-) -> str:
-    mutation_func = "address_terminate"
-    query = (
-        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime, $triggerless: Boolean) "
-        f"{{ {mutation_func}"
-        f"(at: {{uuid: $uuid, from: $from, to: $to, triggerless: $triggerless}}) "
-        f"{{ uuid }} }}"
-    )
-
-    response = await execute_graphql(
-        query,
-        variable_values={
-            "uuid": str(addr_termination.uuid),
-            "from": addr_termination.validity.from_date.isoformat()
-            if addr_termination.validity.from_date
-            else None,
-            "to": addr_termination.validity.to_date.isoformat()
-            if addr_termination.validity.to_date
-            else None,
-            "triggerless": util.get_args_flag("triggerless"),
-        },
-    )
-    handle_gql_error(response)
-
-    result_uuid = response.data.get(mutation_func, {}).get("uuid", None)
-    if not result_uuid:
-        raise Exception("Did not get a valid UUID from GraphQL response")
-
-    return result_uuid
