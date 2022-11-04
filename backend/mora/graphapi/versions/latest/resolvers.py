@@ -17,7 +17,8 @@ from ...middleware import set_graphql_dates
 from .dataloaders import MOModel
 from .schema import Cursor
 from .schema import OpenValidityModel
-from .schema import Response
+from .schema import Paged
+from .schema import PageInfo
 from mora.util import CPR
 
 
@@ -63,7 +64,7 @@ class StaticResolver:
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
         if uuids is not None:
-            return await self.get_by_uuid(info.context[self.loader], uuids)
+            return await self.get_by_uuid(info.context[self.loader], uuids, **kwargs)
         if user_keys is not None:
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
@@ -135,11 +136,12 @@ class Resolver(StaticResolver):
 
     @staticmethod
     async def get_by_uuid(
-        dataloader: DataLoader, uuids: list[UUID]
-    ) -> list[Response[MOModel]]:
-        responses = await dataloader.load_many(list(set(uuids)))
-        # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
-        return [response for response in responses if response.objects != []]
+        dataloader: DataLoader, uuids: list[UUID], **kwargs: Any
+    ) -> Paged[MOModel]:
+        MOModels = await dataloader.load_many(list(set(uuids)))
+        models = [model for model in MOModels if model]
+        end_cursor: int = (kwargs["cursor"] or 0) + len(models)
+        return Paged(objects=models, page_info=PageInfo(next_cursor=end_cursor))
 
 
 class FacetResolver(StaticResolver):

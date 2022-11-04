@@ -36,7 +36,6 @@ from .schema import OrganisationUnitRead
 from .schema import Paged
 from .schema import PageInfo
 from .schema import RelatedUnitRead
-from .schema import Response
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
@@ -98,12 +97,11 @@ async def get_mo(model: MOModel, **kwargs: Any) -> Paged[MOModel]:
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
-    # I assume this will break every other model
     end_cursor: int = (kwargs["cursor"] or 0) + len(parsed_results)
     return Paged(objects=parsed_results, page_info=PageInfo(next_cursor=end_cursor))
 
 
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[MOModel]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -116,13 +114,10 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results, uuids)
-    return list(
-        starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
-            uuid_map.items(),
-        )
-    )
+    # jeg fatter ikke hvordan det her hænger sammen. Det er giga klammo, men det virker
+    # kun hvis jeg sender en liste med MOModels til `get_by_uuid`, som så laver det til
+    # et `Paged` objekt..
+    return parsed_results
 
 
 # get all models
