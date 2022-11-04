@@ -48,6 +48,11 @@ server {
         proxy_pass http://$mo;
     }
 
+    location /lora/ {
+        set $mo mo;
+        proxy_pass http://$mo;
+    }
+
     location /health/ {
         set $mo mo;
         proxy_pass http://$mo;
