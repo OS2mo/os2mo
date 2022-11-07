@@ -11,7 +11,7 @@ Created on Mon Oct 24 09:37:25 2022
 """
 import random
 
-import requests
+import requests  # type: ignore
 
 # Get all users from AD
 r = requests.get("http://0.0.0.0:8000/AD/organizationalperson")
