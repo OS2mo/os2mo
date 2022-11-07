@@ -242,6 +242,9 @@ class Settings(BaseSettings):
     # MO displays access address in organiasation-address-autocomplete-endpoint.
     dar_address_autocomplete_includes_access_addresses: bool = True
 
+    # MO disables/enables IT System Entry form-fields when in edit mode.
+    confdb_it_system_entry_edit_fields_disabled: bool = False
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
