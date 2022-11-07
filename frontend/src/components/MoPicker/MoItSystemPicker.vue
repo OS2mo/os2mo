@@ -11,6 +11,7 @@ SPDX-FileCopyrightText: 2018-2020 Magenta ApS SPDX-License-Identifier: MPL-2.0
       v-model="selected"
       @change="updateSelectedItSystem()"
       v-validate="{ required: true }"
+      :disabled="disabled"
     >
       <option disabled>{{ $tc("shared.it_system", 2) }}</option>
       <option v-for="it in orderedListOptions" v-bind:key="it.uuid" :value="it.uuid">
@@ -46,6 +47,14 @@ export default {
      * Defines a preselected value.
      */
     preselected: String,
+
+    /**
+     * Specifies if the picker should be enabled or not
+     */
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
   },
 
   /**
