@@ -48,6 +48,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "AD_USER": "foo",
         "AD_PASSWORD": "foo",
         "AD_SEARCH_BASE": "DC=ad,DC=addev",
+        "AD_ORGANIZATIONAL_UNIT": "OU=Magenta",
     }
     yield overrides
 

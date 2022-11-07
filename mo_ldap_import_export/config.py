@@ -74,6 +74,9 @@ class Settings(BaseSettings):
     ad_search_base: str = Field(
         ..., description="Search base to utilize for all AD requests"
     )
+    ad_organizational_unit: str = Field(
+        ..., description="Organizational unit to utilize for all AD requests"
+    )
 
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),

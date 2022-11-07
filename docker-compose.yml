@@ -15,6 +15,7 @@ services:
       AD_USER: ""
       AD_PASSWORD: ""
       AD_SEARCH_BASE: "DC=ad,DC=addev"
+      AD_ORGANIZATIONAL_UNIT: "OU=Magenta"
 
       AUTH_SERVER: "http://keycloak:8080/auth"
 

@@ -16,7 +16,7 @@ import pytest
 from ramodels.mo.employee import Employee
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.dataloaders import ADOrganizationalPerson
+from mo_ldap_import_export.dataloaders import AdEmployee
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
 
@@ -50,6 +50,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("AD_USER", "foo")
     monkeypatch.setenv("AD_PASSWORD", "bar")
     monkeypatch.setenv("AD_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("AD_ORGANIZATIONAL_UNIT", "OU=Magenta")
     return Settings()
 
 
@@ -88,7 +89,7 @@ def mock_ad_entry(Name: str, Department: Union[str, None], dn: str) -> object:
 
         class DepartmentClass:
             def __init__(self) -> None:
-                self.value: Union[str, None] = Department
+                self.value: Union[str, None, list] = Department
 
         # objectGUID: objectGUIDClass = objectGUIDClass()
         entry_dn: str = dn
@@ -106,14 +107,35 @@ async def test_load_organizationalPerson(
     Department = None
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_result = [ADOrganizationalPerson(Name=Name, Department=Department, dn=dn)]
+    expected_result = [AdEmployee(Name=Name, Department=Department, dn=dn)]
 
     ad_connection.response = [
         {"dn": dn, "attributes": {"name": Name, "department": Department}}
     ]
 
     output = await asyncio.gather(
-        dataloaders.ad_org_person_loader.load(dn),
+        dataloaders.ad_employee_loader.load(dn),
+    )
+
+    assert output == expected_result
+
+
+async def test_load_organizationalPerson_empty_list(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+    # Mock data
+    Name = "Nick Janssen"
+    Department = None
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    expected_result = [AdEmployee(Name=Name, Department=Department, dn=dn)]
+
+    ad_connection.response = [
+        {"dn": dn, "attributes": {"name": Name, "department": []}}
+    ]
+
+    output = await asyncio.gather(
+        dataloaders.ad_employee_loader.load(dn),
     )
 
     assert output == expected_result
@@ -133,7 +155,7 @@ async def test_load_organizationalPerson_multiple_results(
 
     try:
         await asyncio.gather(
-            dataloaders.ad_org_person_loader.load(dn),
+            dataloaders.ad_employee_loader.load(dn),
         )
     except Exception as e:
         assert str(e) == "Found multiple entries for dn=%s" % dn
@@ -149,14 +171,14 @@ async def test_load_organizationalPerson_no_results(
 
     try:
         await asyncio.gather(
-            dataloaders.ad_org_person_loader.load(dn),
+            dataloaders.ad_employee_loader.load(dn),
         )
     except Exception as e:
         assert str(e) == "Found no entries for dn=%s" % dn
         pass
 
 
-async def test_load_organizationalPersons(
+async def test_load_ad_employee(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     """Test that load_organizationalPersons works as expected."""
@@ -188,17 +210,17 @@ async def test_load_organizationalPersons(
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ad_org_persons_loader.load(0),
+        dataloaders.ad_employees_loader.load(0),
     )
 
     assert output == [expected_results * len(cookies)]
 
 
-async def test_upload_organizationalPerson(
+async def test_upload_ad_employee(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
-    org_person = ADOrganizationalPerson(
+    employee = AdEmployee(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         Name="Nick Janssen",
         Department="GL",
@@ -224,7 +246,20 @@ async def test_upload_organizationalPerson(
         "type": "modifyResponse",
     }
 
-    results = iter([good_response, bad_response])
+    # LDAP does not allow one to change the 'Name' attribute and throws a bad response
+    not_allowed_on_RDN = ["Name"]
+    parameters_to_upload = [k for k in employee.dict().keys() if k != "dn"]
+    allowed_parameters_to_upload = [
+        p for p in parameters_to_upload if p not in not_allowed_on_RDN
+    ]
+    disallowed_parameters_to_upload = [
+        p for p in parameters_to_upload if p not in allowed_parameters_to_upload
+    ]
+
+    results = iter(
+        [good_response] * len(allowed_parameters_to_upload)
+        + [bad_response] * len(disallowed_parameters_to_upload)
+    )
 
     def set_new_result(*args, **kwargs) -> None:
         ad_connection.result = next(results)
@@ -234,10 +269,56 @@ async def test_upload_organizationalPerson(
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ad_org_persons_uploader.load(org_person),
+        dataloaders.ad_employees_uploader.load(employee),
     )
 
     assert output == [[good_response, bad_response]]
+
+
+async def test_create_ad_employee(
+    ad_connection: MagicMock, dataloaders: Dataloaders
+) -> None:
+
+    employee = AdEmployee(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        Name="Nick Janssen",
+        Department="GL",
+    )
+
+    non_existing_object_response = {
+        "result": 0,
+        "description": "noSuchObject",
+        "dn": "",
+        "message": "",
+        "referrals": None,
+        "type": "modifyResponse",
+    }
+
+    good_response = {
+        "result": 0,
+        "description": "success",
+        "dn": "",
+        "message": "",
+        "referrals": None,
+        "type": "modifyResponse",
+    }
+
+    parameters_to_upload = [k for k in employee.dict().keys() if k != "dn"]
+    results = iter(
+        [non_existing_object_response] + [good_response] * len(parameters_to_upload)
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ad_connection.result = next(results)
+
+    ad_connection.modify.side_effect = set_new_result
+
+    # Get result from dataloader
+    output = await asyncio.gather(
+        dataloaders.ad_employees_uploader.load(employee),
+    )
+
+    assert output == [[good_response, good_response]]
 
 
 async def test_load_mo_employees(

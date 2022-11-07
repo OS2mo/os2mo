@@ -16,15 +16,54 @@ from ldap3 import Connection
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
+from ramqp.mo import MORouter
+from ramqp.mo.models import PayloadType
 
 from .config import Settings
-from .dataloaders import ADOrganizationalPerson
+from .dataloaders import AdEmployee
 from .dataloaders import configure_dataloaders
 from .ldap import ad_healthcheck
 from .ldap import configure_ad_connection
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
+amqp_router = MORouter()
+
+"""
+Employee.schema()
+help(MORouter)
+help(ServiceType)
+help(ObjectType)
+help(RequestType)
+"""
+
+
+@amqp_router.register("employee.employee.*")
+async def listen_to_changes_in_employees(
+    context: dict, payload: PayloadType, **kwargs: Any
+) -> None:
+    logger.info("[MO] Change registered in the employee model")
+    logger.info("Payload: %s" % payload)
+
+    changed_employee: Employee = await context["user_context"][
+        "dataloaders"
+    ].mo_employee_loader.load(payload.uuid)
+
+    logger.info("Found Employee in MO: %s" % changed_employee)
+
+    logger.info("Converting MO Employee object to AD object")
+    # ad_employee: AdEmployee = convert_employee_from_mo_to_ad(changed_employee)
+
+    cn = "CN=%s," % (changed_employee.givenname + " " + changed_employee.surname)
+    ou = "OU=Users,%s," % context["user_context"]["app_settings"].ad_organizational_unit
+    dc = context["user_context"]["app_settings"].ad_search_base
+    dn = cn + ou + dc
+    ad_employee = AdEmployee(
+        dn=dn, Name=changed_employee.givenname, Department=changed_employee.org
+    )
+
+    logger.info("Uploading %s to AD" % ad_employee)
+    await context["user_context"]["dataloaders"].ad_employees_uploader.load(ad_employee)
 
 
 @asynccontextmanager
@@ -103,6 +142,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)
     fastramqpi.add_context(settings=settings)
 
+    logger.info("AMQP router setup")
+    amqpsystem = fastramqpi.get_amqpsystem()
+    amqpsystem.router.registry.update(amqp_router.registry)
+
     logger.info("Setting up clients")
     gql_client, model_client = construct_clients(settings)
 
@@ -122,6 +165,8 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     dataloaders = configure_dataloaders(context)
     fastramqpi.add_context(dataloaders=dataloaders)
 
+    fastramqpi.add_context(app_settings=settings)
+
     return fastramqpi
 
 
@@ -138,34 +183,34 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a speficic person from AD
     @app.get("/AD/organizationalperson/{dn}", status_code=202)
-    async def load_org_person_from_AD(dn: str, request: Request) -> Any:
+    async def load_employee_from_AD(dn: str, request: Request) -> Any:
         """Request single organizational person"""
         logger.info("Manually triggered AD request of %s" % dn)
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_org_person_loader.load(dn)
+        ].ad_employee_loader.load(dn)
         return result
 
     # Get all persons from AD
     @app.get("/AD/organizationalperson", status_code=202)
-    async def load_all_org_persons_from_AD() -> Any:
+    async def load_all_employees_from_AD() -> Any:
         """Request all organizational persons"""
         logger.info("Manually triggered AD request of all organizational persons")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_org_persons_loader.load(1)
+        ].ad_employees_loader.load(1)
         return result
 
     # Modify a person in AD
     @app.post("/AD/organizationalperson")
-    async def post_org_person_to_AD(org_person: ADOrganizationalPerson) -> Any:
-        logger.info("Posting %s to AD" % org_person)
+    async def post_employee_to_AD(employee: AdEmployee) -> Any:
+        logger.info("Posting %s to AD" % employee)
 
         await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_org_persons_uploader.load(org_person)
+        ].ad_employees_uploader.load(employee)
 
     # Get all persons from MO
     @app.get("/MO/employee", status_code=202)

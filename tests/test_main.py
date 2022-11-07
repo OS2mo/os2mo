@@ -5,22 +5,26 @@
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
 """Test ensure_adguid_itsystem."""
+import asyncio
 import os
 from collections.abc import Iterator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
+from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
 from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
+from mo_ldap_import_export.main import listen_to_changes_in_employees
 from mo_ldap_import_export.main import open_ad_connection
 from mo_ldap_import_export.main import seed_dataloaders
 
@@ -40,6 +44,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "AD_USER": "foo",
         "AD_PASSWORD": "foo",
         "AD_SEARCH_BASE": "DC=ad,DC=addev",
+        "AD_ORGANIZATIONAL_UNIT": "OU=Magenta",
     }
     yield overrides
 
@@ -85,8 +90,8 @@ def gql_client() -> Iterator[AsyncMock]:
 
 @pytest.fixture
 def empty_dataloaders() -> Dataloaders:
-    async def empty_fn(key):
-        return [key]
+    async def empty_fn(keys):
+        return ["foo"] * len(keys)
 
     dlDict = {}
     for dl in Dataloaders.schema()["required"]:
@@ -272,3 +277,36 @@ def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:
 
     response = test_client.get("/AD/organizationalperson/foo")
     assert response.status_code == 202
+
+
+async def test_listen_to_changes_in_employees(empty_dataloaders: Dataloaders) -> None:
+    async def employee_fn(keys):
+        return [Employee(uuid=uuid4(), givenname="Clark", surname="Kent")]
+
+    async def empty_fn(keys):
+        return ["foo"] * len(keys)
+
+    dataloader_mock = MagicMock
+    dataloader_mock.mo_employee_loader = DataLoader(load_fn=employee_fn, cache=False)
+
+    dataloader_mock.ad_employees_uploader = DataLoader(load_fn=empty_fn, cache=False)
+
+    settings_mock = MagicMock
+    settings_mock.ad_organizational_unit = "foo"
+    settings_mock.ad_search_base = "bar"
+
+    context = {
+        "user_context": {"dataloaders": dataloader_mock, "app_settings": settings_mock}
+    }
+    payload = MagicMock
+    payload.uuid = uuid4()
+
+    settings = MagicMock
+    settings.ad_organizational_unit = "OU=foo"
+    settings.ad_search_base = "DC=bar"
+
+    output = await asyncio.gather(
+        listen_to_changes_in_employees(context, payload),
+    )
+
+    assert output == [None]

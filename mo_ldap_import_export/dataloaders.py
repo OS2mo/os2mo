@@ -28,15 +28,15 @@ class Dataloaders(BaseModel):
 
         arbitrary_types_allowed = True
 
-    ad_org_persons_loader: DataLoader
-    ad_org_person_loader: DataLoader
-    ad_org_persons_uploader: DataLoader
+    ad_employees_loader: DataLoader
+    ad_employee_loader: DataLoader
+    ad_employees_uploader: DataLoader
     mo_employees_loader: DataLoader
     mo_employee_uploader: DataLoader
     mo_employee_loader: DataLoader
 
 
-class ADOrganizationalPerson(BaseModel):
+class AdEmployee(BaseModel):
     """Model for an AD organizationalperson"""
 
     dn: str
@@ -45,14 +45,12 @@ class ADOrganizationalPerson(BaseModel):
 
 
 def get_ad_attributes() -> list[str]:
-    return [
-        a for a in ADOrganizationalPerson.schema()["properties"].keys() if a != "dn"
-    ]
+    return [a for a in AdEmployee.schema()["properties"].keys() if a != "dn"]
 
 
-async def load_ad_organizationalPerson(
+async def load_ad_employee(
     keys: list[str], ad_connection: Connection
-) -> list[ADOrganizationalPerson]:
+) -> list[AdEmployee]:
 
     logger = structlog.get_logger()
     output = []
@@ -72,23 +70,27 @@ async def load_ad_organizationalPerson(
         elif len(response) == 0:
             raise Exception("Found no entries for dn=%s" % dn)
 
-        organizationalPerson = ADOrganizationalPerson(
+        for attribute, value in response[0]["attributes"].items():
+            if value == []:
+                response[0]["attributes"][attribute] = None
+
+        employee = AdEmployee(
             dn=response[0]["dn"],
             Name=response[0]["attributes"]["name"],
             Department=response[0]["attributes"]["department"],
         )
 
-        logger.info("Found %s" % organizationalPerson)
-        output.append(organizationalPerson)
+        logger.info("Found %s" % employee)
+        output.append(employee)
 
     return output
 
 
-async def load_ad_organizationalPersons(
+async def load_ad_employees(
     key: int,
     ad_connection: Connection,
     search_base: str,
-) -> list[list[ADOrganizationalPerson]]:
+) -> list[list[AdEmployee]]:
     """
     Returns list with all organizationalPersons
     """
@@ -120,7 +122,7 @@ async def load_ad_organizationalPersons(
             break
 
     output_list = [
-        ADOrganizationalPerson(
+        AdEmployee(
             dn=o.entry_dn,
             Name=o.Name.value,
             Department=o.Department.value,
@@ -131,9 +133,7 @@ async def load_ad_organizationalPersons(
     return [output_list]
 
 
-async def upload_ad_organizationalPerson(
-    keys: list[ADOrganizationalPerson], ad_connection: Connection
-):
+async def upload_ad_employee(keys: list[AdEmployee], ad_connection: Connection):
     logger = structlog.get_logger()
     output = []
     success = 0
@@ -150,6 +150,13 @@ async def upload_ad_organizationalPerson(
             logger.info("Uploading the following changes: %s" % changes)
             ad_connection.modify(dn, changes)
             response = ad_connection.result
+
+            # If the user does not exist, create him/her/hir
+            if response["description"] == "noSuchObject":
+                logger.info("Creating %s" % dn)
+                ad_connection.add(dn, "organizationalPerson")
+                ad_connection.modify(dn, changes)
+                response = ad_connection.result
 
             if response["description"] == "success":
                 success += 1
@@ -273,29 +280,29 @@ def configure_dataloaders(context: Context) -> Dataloaders:
 
     settings = context["user_context"]["settings"]
     ad_connection = context["user_context"]["ad_connection"]
-    ad_org_persons_loader = DataLoader(
+    ad_employees_loader = DataLoader(
         load_fn=partial(
-            load_ad_organizationalPersons,
+            load_ad_employees,
             ad_connection=ad_connection,
             search_base=settings.ad_search_base,
         ),
         cache=False,
     )
 
-    ad_org_person_loader = DataLoader(
-        load_fn=partial(load_ad_organizationalPerson, ad_connection=ad_connection),
+    ad_employee_loader = DataLoader(
+        load_fn=partial(load_ad_employee, ad_connection=ad_connection),
         cache=False,
     )
 
-    ad_org_persons_uploader = DataLoader(
-        load_fn=partial(upload_ad_organizationalPerson, ad_connection=ad_connection),
+    ad_employees_uploader = DataLoader(
+        load_fn=partial(upload_ad_employee, ad_connection=ad_connection),
         cache=False,
     )
 
     return Dataloaders(
         **graphql_dataloaders,
-        ad_org_persons_loader=ad_org_persons_loader,
-        ad_org_person_loader=ad_org_person_loader,
-        ad_org_persons_uploader=ad_org_persons_uploader,
+        ad_employees_loader=ad_employees_loader,
+        ad_employee_loader=ad_employee_loader,
+        ad_employees_uploader=ad_employees_uploader,
         mo_employee_uploader=mo_employee_uploader,
     )
