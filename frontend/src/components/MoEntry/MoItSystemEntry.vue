@@ -39,10 +39,6 @@ import MoEntryBase from "./MoEntryBase"
 import OrgUnitValidity from "@/mixins/OrgUnitValidity"
 
 export default {
-  props: {
-    orgUnitInfo: Object,
-  },
-
   mixins: [OrgUnitValidity],
 
   extends: MoEntryBase,
