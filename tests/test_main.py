@@ -219,11 +219,11 @@ async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
 def test_ad_get_all_endpoint(test_client: TestClient) -> None:
     """Test the AD get-all endpoint on our app."""
 
-    response = test_client.get("/AD/organizationalperson")
+    response = test_client.get("/AD/employee")
     assert response.status_code == 202
 
 
-def test_ad_post_organizationalperson_endpoint(test_client: TestClient) -> None:
+def test_ad_post_ad_employee_endpoint(test_client: TestClient) -> None:
     """Test the AD get-all endpoint on our app."""
 
     ad_person_to_post = {
@@ -231,7 +231,7 @@ def test_ad_post_organizationalperson_endpoint(test_client: TestClient) -> None:
         "Name": "Lars Peter Thomsen",
         "Department": None,
     }
-    response = test_client.post("/AD/organizationalperson", json=ad_person_to_post)
+    response = test_client.post("/AD/employee", json=ad_person_to_post)
     assert response.status_code == 200
 
 
@@ -275,7 +275,7 @@ def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
 def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     """Test the AD get endpoint on our app."""
 
-    response = test_client.get("/AD/organizationalperson/foo")
+    response = test_client.get("/AD/employee/foo")
     assert response.status_code == 202
 
 

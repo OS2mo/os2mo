@@ -182,9 +182,9 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     # Get a speficic person from AD
-    @app.get("/AD/organizationalperson/{dn}", status_code=202)
+    @app.get("/AD/employee/{dn}", status_code=202)
     async def load_employee_from_AD(dn: str, request: Request) -> Any:
-        """Request single organizational person"""
+        """Request single employee"""
         logger.info("Manually triggered AD request of %s" % dn)
 
         result = await fastramqpi._context["user_context"][
@@ -193,10 +193,10 @@ def create_app(**kwargs: Any) -> FastAPI:
         return result
 
     # Get all persons from AD
-    @app.get("/AD/organizationalperson", status_code=202)
+    @app.get("/AD/employee", status_code=202)
     async def load_all_employees_from_AD() -> Any:
-        """Request all organizational persons"""
-        logger.info("Manually triggered AD request of all organizational persons")
+        """Request all employees"""
+        logger.info("Manually triggered AD request of all employees")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
@@ -204,7 +204,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return result
 
     # Modify a person in AD
-    @app.post("/AD/organizationalperson")
+    @app.post("/AD/employee")
     async def post_employee_to_AD(employee: AdEmployee) -> Any:
         logger.info("Posting %s to AD" % employee)
 
@@ -216,7 +216,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/MO/employee", status_code=202)
     async def load_all_employees_from_MO() -> Any:
         """Request all persons from MO"""
-        logger.info("Manually triggered MO request of all organizational persons")
+        logger.info("Manually triggered MO request of all employees")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
@@ -235,7 +235,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get a speficic person from MO
     @app.get("/MO/employee/{uuid}", status_code=202)
     async def load_employee_from_MO(uuid: str, request: Request) -> Any:
-        """Request single organizational person"""
+        """Request single employee"""
         logger.info("Manually triggered MO request of %s" % uuid)
 
         result = await fastramqpi._context["user_context"][

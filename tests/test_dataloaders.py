@@ -99,7 +99,7 @@ def mock_ad_entry(Name: str, Department: Union[str, None], dn: str) -> object:
     return Entry()
 
 
-async def test_load_organizationalPerson(
+async def test_load_ad_employee(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
@@ -120,9 +120,12 @@ async def test_load_organizationalPerson(
     assert output == expected_result
 
 
-async def test_load_organizationalPerson_empty_list(
+async def test_load_ad_employee_empty_list(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
+    """
+    Simulate case where the Department is an empty list
+    """
     # Mock data
     Name = "Nick Janssen"
     Department = None
@@ -141,7 +144,7 @@ async def test_load_organizationalPerson_empty_list(
     assert output == expected_result
 
 
-async def test_load_organizationalPerson_multiple_results(
+async def test_load_ad_employee_multiple_results(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
@@ -162,7 +165,7 @@ async def test_load_organizationalPerson_multiple_results(
         pass
 
 
-async def test_load_organizationalPerson_no_results(
+async def test_load_ad_employee_no_results(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
@@ -178,7 +181,7 @@ async def test_load_organizationalPerson_no_results(
         pass
 
 
-async def test_load_ad_employee(
+async def test_load_ad_employees(
     ad_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     """Test that load_organizationalPersons works as expected."""

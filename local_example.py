@@ -15,7 +15,7 @@ from uuid import uuid4
 import requests  # type: ignore
 
 # Get all users from AD
-r = requests.get("http://0.0.0.0:8000/AD/organizationalperson")
+r = requests.get("http://0.0.0.0:8000/AD/employee")
 print("Found a user from AD:")
 print(r.json()[-2])
 print("")
@@ -31,13 +31,11 @@ ad_person_to_post = {
     "Name": "Lars Peter Thomsen",
     "Department": new_department,
 }
-requests.post("http://0.0.0.0:8000/AD/organizationalperson", json=ad_person_to_post)
+requests.post("http://0.0.0.0:8000/AD/employee", json=ad_person_to_post)
 
 
 # Get the users again - validate that the user is modified
-r = requests.get(
-    "http://0.0.0.0:8000/AD/organizationalperson/%s" % ad_person_to_post["dn"]
-)
+r = requests.get("http://0.0.0.0:8000/AD/employee/%s" % ad_person_to_post["dn"])
 assert r.json()["Department"] == new_department
 print("Successfully edited department to '%s' in AD" % new_department)
 print("")
@@ -69,7 +67,7 @@ dn = "CN=%s %s,OU=Users,OU=Magenta,DC=ad,DC=addev" % (
     mo_employee_to_post["givenname"],
     mo_employee_to_post["surname"],
 )
-r = requests.get("http://0.0.0.0:8000/AD/organizationalperson/%s" % dn)
+r = requests.get("http://0.0.0.0:8000/AD/employee/%s" % dn)
 assert r.json()["Name"] == "%s %s" % (
     mo_employee_to_post["givenname"],
     mo_employee_to_post["surname"],

@@ -37,7 +37,7 @@ class Dataloaders(BaseModel):
 
 
 class AdEmployee(BaseModel):
-    """Model for an AD organizationalperson"""
+    """Model for an AD employee"""
 
     dn: str
     Name: str  # TODO: This field cannot be modified in AD. Add a 'protected' flag?
