@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+12.7.0 - 2022-11-07
+-------------------
+
+[#52581] it-system-entry fields disabled if the component is loaded in an edit-mode.
+
 12.6.0 - 2022-11-03
 -------------------
 
