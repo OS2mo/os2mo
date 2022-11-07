@@ -279,7 +279,7 @@ def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
-async def test_listen_to_changes_in_employees(empty_dataloaders: Dataloaders) -> None:
+async def test_listen_to_changes_in_employees() -> None:
     async def employee_fn(keys):
         return [Employee(uuid=uuid4(), givenname="Clark", surname="Kent")]
 
