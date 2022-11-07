@@ -91,16 +91,14 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
-        return await create_address(input.to_pydantic())  # type: ignore
+        return await create_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an address.",
         permission_classes=[admin_permission_class],
     )
     async def address_update(self, input: AddressUpdateInput) -> AddressType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await update_address(input.to_pydantic())  # type: ignore
+        return await update_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an address by UUID",
@@ -109,7 +107,7 @@ class Mutation:
     async def address_terminate(
         self, at: AddressTerminateInput
     ) -> AddressTerminateType:
-        return await terminate_addr(at.to_pydantic())  # type: ignore
+        return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(
         description="Delete an address.",
@@ -127,9 +125,7 @@ class Mutation:
     async def association_create(
         self, input: AssociationCreateInput
     ) -> AssociationType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await create_association(input.to_pydantic())  # type: ignore
+        return await create_association(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an association.",
@@ -138,9 +134,7 @@ class Mutation:
     async def association_update(
         self, input: AssociationUpdateInput
     ) -> AssociationType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await update_association(input.to_pydantic())  # type: ignore
+        return await update_association(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an association by UUID",
@@ -149,7 +143,7 @@ class Mutation:
     async def association_terminate(
         self, input: AssociationTerminateInput
     ) -> AssociationType:
-        return await terminate_association(input.to_pydantic())  # type: ignore
+        return await terminate_association(input.to_pydantic())
 
     # TODO: association_delete
 
@@ -160,7 +154,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
-        return await create_class(input.to_pydantic())  # type: ignore
+        return await create_class(input.to_pydantic())
 
     # TODO: class_update
     # TODO: class_terminate
@@ -173,9 +167,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await employee_create(input.to_pydantic())  # type: ignore
+        return await employee_create(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
@@ -184,14 +176,14 @@ class Mutation:
     async def employee_update(
         self, input: EmployeeUpdateInput
     ) -> EmployeeUpdateResponseType:
-        return await employee_update(input.to_pydantic())  # type: ignore
+        return await employee_update(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
     async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
-        return await terminate_employee(input.to_pydantic())  # type: ignore
+        return await terminate_employee(input.to_pydantic())
 
     # TODO: employee_delete
 
@@ -201,16 +193,14 @@ class Mutation:
         description="Create an engagement", permission_classes=[admin_permission_class]
     )
     async def engagement_create(self, input: EngagementCreateInput) -> EngagementType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await create_engagement(input.to_pydantic())  # type: ignore
+        return await create_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
     async def engagement_update(self, input: EngagementUpdateInput) -> EngagementType:
-        return await update_engagement(input.to_pydantic())  # type: ignore
+        return await update_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an engagement by UUID",
@@ -219,7 +209,7 @@ class Mutation:
     async def engagement_terminate(
         self, input: EngagementTerminateInput
     ) -> EngagementTerminateType:
-        return await terminate_engagement(input.to_pydantic())  # type: ignore
+        return await terminate_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Delete an engagement.",
@@ -243,7 +233,7 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def facet_create(self, input: FacetCreateInput) -> FacetType:
-        return await create_facet(input.to_pydantic())  # type: ignore
+        return await create_facet(input.to_pydantic())
 
     # TODO: facet_update
     # TODO: facet_terminate
@@ -264,21 +254,21 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def ituser_create(self, input: ITUserCreateInput) -> ITUserType:
-        return await create_ituser(input.to_pydantic())  # type: ignore
+        return await create_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
     )
     async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
-        return await update_ituser(input.to_pydantic())  # type: ignore
+        return await update_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates IT-user by UUID",
         permission_classes=[admin_permission_class],
     )
     async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
-        return await terminate_ituser(input.to_pydantic())  # type: ignore
+        return await terminate_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Delete an IT-User.",
@@ -311,21 +301,21 @@ class Mutation:
         permission_classes=[admin_permission_class],
     )
     async def manager_create(self, input: ManagerCreateInput) -> ManagerType:
-        return await create_manager(input.to_pydantic())  # type: ignore
+        return await create_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates a manager for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
     async def manager_update(self, input: ManagerUpdateInput) -> ManagerType:
-        return await update_manager(input.to_pydantic())  # type: ignore
+        return await update_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates a manager unit by UUID",
         permission_classes=[admin_permission_class],
     )
     async def manager_terminate(self, input: ManagerTerminateInput) -> ManagerType:
-        return await terminate_manager(input.to_pydantic())  # type: ignore
+        return await terminate_manager(input.to_pydantic())
 
     # TODO: manager_delete
 
@@ -355,9 +345,7 @@ class Mutation:
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
     ) -> OrganisationUnitType:
-        # Have to use type:ignore for now due to:
-        # * https://github.com/strawberry-graphql/strawberry/pull/2017
-        return await create_org_unit(input.to_pydantic())  # type: ignore
+        return await create_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
@@ -366,7 +354,7 @@ class Mutation:
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
     ) -> OrganisationUnitType:
-        return await update_org_unit(input.to_pydantic())  # type:ignore
+        return await update_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an organization unit by UUID",
@@ -375,7 +363,7 @@ class Mutation:
     async def org_unit_terminate(
         self, unit: OrganisationUnitTerminateInput
     ) -> OrganisationUnitType:
-        return await terminate_org_unit(unit.to_pydantic())  # type: ignore
+        return await terminate_org_unit(unit.to_pydantic())
 
     # TODO: org_unit_delete
 
