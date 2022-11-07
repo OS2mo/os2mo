@@ -198,6 +198,8 @@ export default {
       switch (this.contentType) {
         case "employee":
           return false
+        case "org_unit":
+          return false
         case "related":
           return false
         default:
