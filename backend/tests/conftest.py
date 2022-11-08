@@ -145,7 +145,7 @@ def fastapi_test_app():
     yield test_app()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def latest_graphql_url() -> str:
     latest = last(graphql_versions)
     return f"/graphql/v{latest.version}"
@@ -256,9 +256,11 @@ class GQLResponse:
 
 
 @pytest.fixture(scope="class")
-def graphapi_post(graphapi_test: TestClient):
+def graphapi_post(graphapi_test: TestClient, latest_graphql_url: str):
     def _post(
-        query: str, variables: dict[str, Any] | None = None, url: str = "/graphql"
+        query: str,
+        variables: dict[str, Any] | None = None,
+        url: str = latest_graphql_url,
     ) -> GQLResponse:
         with graphapi_test as client:
             response = client.post(url, json={"query": query, "variables": variables})

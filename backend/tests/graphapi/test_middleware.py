@@ -61,16 +61,18 @@ def patch_dataloader(patch_loader, monkeypatch):
 
 
 @freezegun.freeze_time("1337-04-20")
-def test_is_graphql(graphapi_test):
+def test_is_graphql(graphapi_test, latest_graphql_url):
     """Test that is_graphql is set on graphql requests."""
-    response = graphapi_test.post("/graphql", json={"query": "{ __typename }"})
+    response = graphapi_test.post(latest_graphql_url, json={"query": "{ __typename }"})
     assert response.json()["extensions"]["is_graphql"]
 
 
 @freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_default(graphapi_test):
+def test_graphql_dates_default(graphapi_test, latest_graphql_url):
     """Test default GraphQL date arguments."""
-    response = graphapi_test.post("/graphql", json={"query": "{ employees { uuid } }"})
+    response = graphapi_test.post(
+        latest_graphql_url, json={"query": "{ employees { uuid } }"}
+    )
     data, errors = response.json().get("data"), response.json().get("errors")
     graphql_dates = response.json()["extensions"]["graphql_dates"]
     assert data is not None
@@ -83,7 +85,7 @@ def test_graphql_dates_default(graphapi_test):
 
 @freezegun.freeze_time("1337-04-20")
 @given(dates=st.builds(OpenValidity))
-def test_graphql_dates_explicit(graphapi_test, dates):
+def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
     """Test explicit GraphQL date arguments."""
     query = """
             query TestQuery($from_date: DateTime, $to_date: DateTime) {
@@ -93,7 +95,7 @@ def test_graphql_dates_explicit(graphapi_test, dates):
             }
             """
     response = graphapi_test.post(
-        "/graphql",
+        latest_graphql_url,
         json={
             "query": query,
             "variables": {"from_date": dates.from_date, "to_date": dates.to_date},
@@ -110,7 +112,7 @@ def test_graphql_dates_explicit(graphapi_test, dates):
     dates=st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
 )
 @freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_failure(graphapi_test_no_exc, dates):
+def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
     """Test failing GraphQL date arguments.
 
     We use a test client that silences server side errors in order to
@@ -125,7 +127,7 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates):
             """
     dates = jsonable_encoder(dates)
     response = graphapi_test_no_exc.post(
-        "/graphql",
+        latest_graphql_url,
         json={
             "query": query,
             "variables": {
@@ -147,7 +149,7 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates):
 
     # Test the specific case where from is None and to is UNSET
     response = graphapi_test_no_exc.post(
-        "/graphql",
+        latest_graphql_url,
         json={"query": query, "variables": {"from_date": None}},
     )
     data, errors = response.json().get("data"), response.json().get("errors")
@@ -162,10 +164,10 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates):
 
 
 @freezegun.freeze_time("1337-04-20")
-def test_graphql_dates_to_lora(graphapi_test):
+def test_graphql_dates_to_lora(graphapi_test, latest_graphql_url):
     """Test that GraphQL arguments propagate to the LoRa connector."""
     response = graphapi_test.post(
-        "/graphql", json={"query": "{ employees (to_date: null) { uuid } }"}
+        latest_graphql_url, json={"query": "{ employees (to_date: null) { uuid } }"}
     )
     lora_args = response.json()["extensions"]["lora_args"]
     now = datetime.now(tz=tzutc())
