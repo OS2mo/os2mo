@@ -75,7 +75,6 @@ def configure_ad_connection(settings: Settings) -> ContextManager:
         client_strategy=get_client_strategy(),
         auto_bind=True,
     )
-    # connection.bind()
 
     return cast(ContextManager, connection)
 
