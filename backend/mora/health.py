@@ -50,8 +50,10 @@ async def root() -> dict[str, bool]:
     query = """
     query HealthQuery {
       healths {
-        identifier
-        status
+        objects {
+          identifier
+          status
+        }
       }
     }
     """
@@ -59,7 +61,10 @@ async def root() -> dict[str, bool]:
     if r.errors:
         raise ValueError(r.errors)
 
-    return {health["identifier"]: health["status"] for health in r.data["healths"]}
+    return {
+        health["identifier"]: health["status"]
+        for health in r.data["healths"]["objects"]
+    }
 
 
 @router.get("/{identifier}")
@@ -67,7 +72,9 @@ async def healthcheck(identifier: str) -> bool | None:
     query = """
     query HealthQuery($identifier: String!) {
       healths(identifiers: [$identifier]) {
-        status
+        objects {
+          status
+        }
       }
     }
     """
@@ -75,6 +82,6 @@ async def healthcheck(identifier: str) -> bool | None:
     r = await execute_graphql(query, variable_values={"identifier": identifier})
     if r.errors:
         raise ValueError(r.errors)
-    if not r.data["healths"]:
+    if not r.data["healths"]["objects"]:
         raise HTTPException(status_code=404, detail="Healthcheck not found")
-    return one(r.data["healths"])["status"]
+    return one(r.data["healths"]["objects"])["status"]
