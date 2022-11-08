@@ -147,8 +147,9 @@ async def upload_ad_employee(keys: list[AdEmployee], ad_connection: Connection):
         dn = key.dn
         parameters_to_upload = [k for k in key.dict().keys() if k != "dn"]
         results = []
+        parameters = key.dict()
         for parameter_to_upload in parameters_to_upload:
-            value = key.dict()[parameter_to_upload]
+            value = parameters[parameter_to_upload]
             value_to_upload = [] if value is None else [value]
             changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
 
