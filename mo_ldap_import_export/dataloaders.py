@@ -19,6 +19,9 @@ from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
+from .exceptions import MultipleObjectsReturnedException
+from .exceptions import NoObjectsReturnedException
+
 
 class Dataloaders(BaseModel):
     """Collection of program dataloaders."""
@@ -66,9 +69,11 @@ async def load_ad_employee(
         response = ad_connection.response
 
         if len(response) > 1:
-            raise Exception("Found multiple entries for dn=%s" % dn)
+            raise MultipleObjectsReturnedException(
+                "Found multiple entries for dn=%s" % dn
+            )
         elif len(response) == 0:
-            raise Exception("Found no entries for dn=%s" % dn)
+            raise NoObjectsReturnedException("Found no entries for dn=%s" % dn)
 
         for attribute, value in response[0]["attributes"].items():
             if value == []:

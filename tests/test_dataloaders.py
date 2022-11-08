@@ -19,6 +19,8 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import AdEmployee
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
+from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
+from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 
 
 @pytest.fixture
@@ -160,7 +162,7 @@ async def test_load_ad_employee_multiple_results(
         await asyncio.gather(
             dataloaders.ad_employee_loader.load(dn),
         )
-    except Exception as e:
+    except MultipleObjectsReturnedException as e:
         assert str(e) == "Found multiple entries for dn=%s" % dn
         pass
 
@@ -176,7 +178,7 @@ async def test_load_ad_employee_no_results(
         await asyncio.gather(
             dataloaders.ad_employee_loader.load(dn),
         )
-    except Exception as e:
+    except NoObjectsReturnedException as e:
         assert str(e) == "Found no entries for dn=%s" % dn
         pass
 
