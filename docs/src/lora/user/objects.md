@@ -13,12 +13,12 @@ The complete reference documentation for the fields can be found in
 dokumentområdet](https://www.digitaliser.dk/resource/1567464/artefact/Generelleegenskaberforservicesp%c3%a5sags-ogdokumentomr%c3%a5det-OIO-Godkendt%5bvs.1.1%5d.pdf?artefact=true&PID=1763377)
 with more info for those specifically for `Organisation` in :
 [Specifikation af serviceinterface for
-organisation](https://www.digitaliser.dk/resource/1569113/artefact/Specifikationafserviceinterfacefororganisation-OIO-Godkendt%5bvs.1.1%5d.pdf?artefact=true&PID=1569586).
-
+organisation](https://www.digitaliser.dk/resource/1569113/artefact/Specifikationafserviceinterfacefororganisation-OIO-Godkendt%5bvs.1.1%5d.pdf?artefact=true&PID=1569586)
+.
 
 !!! Note
-    As an example, the REST interface for Organisation is specified here:
-    <http://info.rammearkitektur.dk/index.php/LoRA_Organisationsservice>
+As an example, the REST interface for Organisation is specified here:
+<http://info.rammearkitektur.dk/index.php/LoRA_Organisationsservice>
 
     Please note that in comparison with this official specification, our
     system currently does not support the parameters `-miljø` and
@@ -31,7 +31,6 @@ organisation](https://www.digitaliser.dk/resource/1569113/artefact/Specifikation
 
     As regards the parameter `-version`, we have deferred support for it
     until we actually have more than one version of the protocol to support.
-
 
 ## Some `Organisation` objects
 
@@ -73,23 +72,24 @@ The fields used in the example `organisation` are the following:
 
 `organisationegenskaber→brugervendtnoegle`
 
->   An ID for the user. Semantically, this should be unique, but we don't enforce that. It is intended for the user to recognise the object. Required.
+> An ID for the user. Semantically, this should be unique, but we don't enforce that. It is intended for the user to
+> recognise the object. Required.
 
 `organisationegenskaber→organisationsnavn`
 
->   The official name of the organisation.
+> The official name of the organisation.
 
 `organisationegenskaber→virkning`
 
->   The period when the above attributes is valid. See [Valid time](./objects.md#valid-time). Required.
+> The period when the above attributes is valid. See [Valid time](./objects.md#valid-time). Required.
 
 `organisationgyldighed→gyldighed`
 
->   Whether the organisation is active or not. Can take the values `Aktiv` and `Inaktiv`. Required.
+> Whether the organisation is active or not. Can take the values `Aktiv` and `Inaktiv`. Required.
 
 `organisationgyldighed→virkning`
 
->   The period when the above `gyldighed` is valid. See [Valid time](./objects.md#valid-time). Required.
+> The period when the above `gyldighed` is valid. See [Valid time](./objects.md#valid-time). Required.
 
 ### `organisationenhed`
 
@@ -145,17 +145,17 @@ The fields used in the example `organisationenhed` are the following:
 
 `organisationenhedegenskaber→*` and `organisationenhedgyldighed→*`
 
->   Similar to `organisation`.
+> Similar to `organisation`.
 
 `relationer→tilhoerer`
 
->   This is the root `organisation` which the `organisationenhed` is
-    part of. This is usally set on all `organisationenhed` to the single
-    `organisation` in the mox instance.
+> This is the root `organisation` which the `organisationenhed` is
+> part of. This is usally set on all `organisationenhed` to the single
+`organisation` in the mox instance.
 
 `relationer→overordnet`
 
->   The parent `organisationenhed`.
+> The parent `organisationenhed`.
 
 ## Bitemporality
 
@@ -186,19 +186,21 @@ The fields used in the example are the following:
 
 `from`
 
->   The time when this fact starts to be true in the real world. Date and time input is accepted in almost any reasonable format, including ISO 8601. Required.
+> The time when this fact starts to be true in the real world. Date and time input is accepted in almost any reasonable
+> format, including ISO 8601. Required.
 
 `from_included`
 
->   Whether the `from` timestamp is closed or open. Default `true`.
+> Whether the `from` timestamp is closed or open. Default `true`.
 
 `to`
 
->   The time when this facts stop to be true in the real world. Date and time input is accepted in almost any reasonable format, including ISO 8601. Required.
+> The time when this facts stop to be true in the real world. Date and time input is accepted in almost any reasonable
+> format, including ISO 8601. Required.
 
 `to_included`
 
->   Whether the `to` timestamp is closed or open. Default `false`.
+> Whether the `to` timestamp is closed or open. Default `false`.
 
 ### Transaction time
 
@@ -209,10 +211,3 @@ database. With the query parameters to a
 [List](./api/list.md#listoperation) or
 [Search operation](./api/search.md#searchoperation) it can give you a view
 of the state of the database at given time in the past or future.
-
-## Integrationdata
-
-The `integrationdata` field is different and its uniqueness is
-documented here.
-
-- [Integrationdata](./objects/integrationdata.md)
