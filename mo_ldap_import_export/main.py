@@ -45,7 +45,9 @@ async def listen_to_changes_in_employees(
     logger.info("[MO] Change registered in the employee model")
     logger.info("Payload: %s" % payload)
 
-    changed_employee: Employee = await context["user_context"][
+    user_context = context["user_context"]
+
+    changed_employee: Employee = await user_context[
         "dataloaders"
     ].mo_employee_loader.load(payload.uuid)
 
@@ -55,15 +57,15 @@ async def listen_to_changes_in_employees(
     # ad_employee: AdEmployee = convert_employee_from_mo_to_ad(changed_employee)
 
     cn = "CN=%s," % (changed_employee.givenname + " " + changed_employee.surname)
-    ou = "OU=Users,%s," % context["user_context"]["app_settings"].ad_organizational_unit
-    dc = context["user_context"]["app_settings"].ad_search_base
+    ou = "OU=Users,%s," % user_context["app_settings"].ad_organizational_unit
+    dc = user_context["app_settings"].ad_search_base
     dn = cn + ou + dc
     ad_employee = AdEmployee(
         dn=dn, Name=changed_employee.givenname, Department=changed_employee.org
     )
 
     logger.info("Uploading %s to AD" % ad_employee)
-    await context["user_context"]["dataloaders"].ad_employees_uploader.load(ad_employee)
+    await user_context["dataloaders"].ad_employees_uploader.load(ad_employee)
 
 
 @asynccontextmanager
