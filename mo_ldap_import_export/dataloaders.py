@@ -39,6 +39,7 @@ class Dataloaders(BaseModel):
     mo_employee_loader: DataLoader
 
 
+# TODO: move this placeholder class to its own file and extend properties
 class AdEmployee(BaseModel):
     """Model for an AD employee"""
 
