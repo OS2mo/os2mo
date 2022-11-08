@@ -110,10 +110,9 @@ async def load_ad_employees(
         "paged_size": 500,  # TODO: Find this number from AD rather than hard-code it?
     }
 
-    page = 0
-    for page in range(0, 10000):
+    # Max 10_000 pages to avoid eternal loops
+    for page in range(0, 10_000):
         logger.info("searching page %d" % page)
-        page += 1
         ad_connection.search(**searchParameters)
         output.extend(ad_connection.entries)
 
