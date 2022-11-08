@@ -270,7 +270,8 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         "mo_employee_loader": load_mo_employee,
     }
 
-    graphql_session = context["user_context"]["gql_client"]
+    user_context = context["user_context"]
+    graphql_session = user_context["gql_client"]
     graphql_dataloaders: dict[str, DataLoader] = {
         key: DataLoader(
             load_fn=partial(value, graphql_session=graphql_session), cache=False
@@ -278,14 +279,14 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         for key, value in graphql_loader_functions.items()
     }
 
-    model_client = context["user_context"]["model_client"]
+    model_client = user_context["model_client"]
     mo_employee_uploader = DataLoader(
         load_fn=partial(upload_mo_employee, model_client=model_client),
         cache=False,
     )
 
-    settings = context["user_context"]["settings"]
-    ad_connection = context["user_context"]["ad_connection"]
+    settings = user_context["settings"]
+    ad_connection = user_context["ad_connection"]
     ad_employees_loader = DataLoader(
         load_fn=partial(
             load_ad_employees,
