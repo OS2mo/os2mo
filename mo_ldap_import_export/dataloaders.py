@@ -111,7 +111,7 @@ async def load_ad_employees(
     }
 
     page = 0
-    while True:
+    for page in range(0, 10000):
         logger.info("searching page %d" % page)
         page += 1
         ad_connection.search(**searchParameters)
