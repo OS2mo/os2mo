@@ -262,7 +262,7 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         context: The FastRAMQPI context to configure our dataloaders with.
 
     Returns:
-        Dataloaders required for ensure_adguid_itsystem.
+        Dataloaders required
     """
 
     graphql_loader_functions: dict[str, Callable] = {

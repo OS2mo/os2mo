@@ -54,7 +54,7 @@ async def listen_to_changes_in_employees(
     logger.info("Found Employee in MO: %s" % changed_employee)
 
     logger.info("Converting MO Employee object to AD object")
-    # ldap_employee: LdapEmployee = convert_employee_from_mo_to_ad(changed_employee)
+    # ldap_employee: LdapEmployee = convert_employee_from_mo_to_ldap(changed_employee)
 
     cn = "CN=%s," % (changed_employee.givenname + " " + changed_employee.surname)
     ou = "OU=Users,%s," % user_context["app_settings"].ldap_organizational_unit
@@ -185,7 +185,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a specific person from AD
     @app.get("/AD/employee/{dn}", status_code=202)
-    async def loldap_employee_from_AD(dn: str, request: Request) -> Any:
+    async def loldap_employee_from_LDAP(dn: str, request: Request) -> Any:
         """Request single employee"""
         logger.info("Manually triggered AD request of %s" % dn)
 
@@ -196,7 +196,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get all persons from AD
     @app.get("/AD/employee", status_code=202)
-    async def loldap_all_employees_from_AD() -> Any:
+    async def loldap_all_employees_from_LDAP() -> Any:
         """Request all employees"""
         logger.info("Manually triggered AD request of all employees")
 
@@ -207,7 +207,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Modify a person in AD
     @app.post("/AD/employee")
-    async def post_employee_to_AD(employee: LdapEmployee) -> Any:
+    async def post_employee_to_LDAP(employee: LdapEmployee) -> Any:
         logger.info("Posting %s to AD" % employee)
 
         await fastramqpi._context["user_context"][

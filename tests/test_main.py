@@ -4,7 +4,6 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-"""Test ensure_adguid_itsystem."""
 import asyncio
 import os
 from collections.abc import Iterator
