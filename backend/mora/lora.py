@@ -610,10 +610,10 @@ class Scope(BaseScope):
         ass_msg = "'{}' is not a supported parameter for 'get_all'{}."
         assert "list" not in params, ass_msg.format("list", ", implicitly set")
         assert "uuid" not in params, ass_msg.format("uuid", ", use 'get_all_by_uuid'")
-        params["foersteresultat"] = cursor
-        params["maximalantalresultater"] = limit
 
-        response = await self.load(**params)
+        response = await self.load(
+            foersteresultat=cursor, maximalantalresultater=limit, **params
+        )
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
         return filter_registrations(
             response=response, wantregs=wantregs, changed_since=changed_since

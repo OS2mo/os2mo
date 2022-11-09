@@ -139,7 +139,7 @@ class Resolver(StaticResolver):
         dataloader: DataLoader, uuids: list[UUID], **kwargs: Any
     ) -> Paged[MOModel]:
         MOModels = await dataloader.load_many(list(set(uuids)))
-        models = [model for model in MOModels if model]
+        models = [model for model in MOModels if model != []]
         end_cursor: int = (kwargs["cursor"] or 0) + len(models)
         return Paged(objects=models, page_info=PageInfo(next_cursor=end_cursor))
 
