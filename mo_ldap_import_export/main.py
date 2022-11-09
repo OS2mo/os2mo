@@ -20,10 +20,10 @@ from ramqp.mo import MORouter
 from ramqp.mo.models import PayloadType
 
 from .config import Settings
-from .dataloaders import AdEmployee
 from .dataloaders import configure_dataloaders
-from .ldap import ad_healthcheck
-from .ldap import configure_ad_connection
+from .dataloaders import LdapEmployee
+from .ldap import configure_ldap_connection
+from .ldap import ldap_healthcheck
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -54,28 +54,28 @@ async def listen_to_changes_in_employees(
     logger.info("Found Employee in MO: %s" % changed_employee)
 
     logger.info("Converting MO Employee object to AD object")
-    # ad_employee: AdEmployee = convert_employee_from_mo_to_ad(changed_employee)
+    # ldap_employee: LdapEmployee = convert_employee_from_mo_to_ad(changed_employee)
 
     cn = "CN=%s," % (changed_employee.givenname + " " + changed_employee.surname)
-    ou = "OU=Users,%s," % user_context["app_settings"].ad_organizational_unit
-    dc = user_context["app_settings"].ad_search_base
+    ou = "OU=Users,%s," % user_context["app_settings"].ldap_organizational_unit
+    dc = user_context["app_settings"].ldap_search_base
     dn = cn + ou + dc
-    ad_employee = AdEmployee(
+    ldap_employee = LdapEmployee(
         dn=dn, Name=changed_employee.givenname, Department=changed_employee.org
     )
 
-    logger.info("Uploading %s to AD" % ad_employee)
-    await user_context["dataloaders"].ad_employees_uploader.load(ad_employee)
+    logger.info("Uploading %s to AD" % ldap_employee)
+    await user_context["dataloaders"].ldap_employees_uploader.load(ldap_employee)
 
 
 @asynccontextmanager
-async def open_ad_connection(ad_connection: Connection) -> AsyncIterator[None]:
+async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[None]:
     """Open the AD connection during FastRAMQPI lifespan.
 
     Yields:
         None
     """
-    with ad_connection:
+    with ldap_connection:
         yield
 
 
@@ -155,10 +155,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(gql_client=gql_client)
 
     logger.info("Configuring AD connection")
-    ad_connection = configure_ad_connection(settings)
-    fastramqpi.add_context(ad_connection=ad_connection)
-    fastramqpi.add_healthcheck(name="ADConnection", healthcheck=ad_healthcheck)
-    fastramqpi.add_lifespan_manager(open_ad_connection(ad_connection), 1500)
+    ldap_connection = configure_ldap_connection(settings)
+    fastramqpi.add_context(ldap_connection=ldap_connection)
+    fastramqpi.add_healthcheck(name="ADConnection", healthcheck=ldap_healthcheck)
+    fastramqpi.add_lifespan_manager(open_ldap_connection(ldap_connection), 1500)
 
     fastramqpi.add_lifespan_manager(seed_dataloaders(fastramqpi), 2000)
 
@@ -185,38 +185,38 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a specific person from AD
     @app.get("/AD/employee/{dn}", status_code=202)
-    async def load_employee_from_AD(dn: str, request: Request) -> Any:
+    async def loldap_employee_from_AD(dn: str, request: Request) -> Any:
         """Request single employee"""
         logger.info("Manually triggered AD request of %s" % dn)
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_employee_loader.load(dn)
+        ].ldap_employee_loader.load(dn)
         return result
 
     # Get all persons from AD
     @app.get("/AD/employee", status_code=202)
-    async def load_all_employees_from_AD() -> Any:
+    async def loldap_all_employees_from_AD() -> Any:
         """Request all employees"""
         logger.info("Manually triggered AD request of all employees")
 
         result = await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_employees_loader.load(1)
+        ].ldap_employees_loader.load(1)
         return result
 
     # Modify a person in AD
     @app.post("/AD/employee")
-    async def post_employee_to_AD(employee: AdEmployee) -> Any:
+    async def post_employee_to_AD(employee: LdapEmployee) -> Any:
         logger.info("Posting %s to AD" % employee)
 
         await fastramqpi._context["user_context"][
             "dataloaders"
-        ].ad_employees_uploader.load(employee)
+        ].ldap_employees_uploader.load(employee)
 
     # Get all persons from MO
     @app.get("/MO/employee", status_code=202)
-    async def load_all_employees_from_MO() -> Any:
+    async def loldap_all_employees_from_MO() -> Any:
         """Request all persons from MO"""
         logger.info("Manually triggered MO request of all employees")
 
@@ -236,7 +236,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a speficic person from MO
     @app.get("/MO/employee/{uuid}", status_code=202)
-    async def load_employee_from_MO(uuid: str, request: Request) -> Any:
+    async def loldap_employee_from_MO(uuid: str, request: Request) -> Any:
         """Request single employee"""
         logger.info("Manually triggered MO request of %s" % uuid)
 

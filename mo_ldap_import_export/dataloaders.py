@@ -31,16 +31,16 @@ class Dataloaders(BaseModel):
 
         arbitrary_types_allowed = True
 
-    ad_employees_loader: DataLoader
-    ad_employee_loader: DataLoader
-    ad_employees_uploader: DataLoader
+    ldap_employees_loader: DataLoader
+    ldap_employee_loader: DataLoader
+    ldap_employees_uploader: DataLoader
     mo_employees_loader: DataLoader
     mo_employee_uploader: DataLoader
     mo_employee_loader: DataLoader
 
 
 # TODO: move this placeholder class to its own file and extend properties
-class AdEmployee(BaseModel):
+class LdapEmployee(BaseModel):
     """Model for an AD employee"""
 
     dn: str
@@ -48,13 +48,13 @@ class AdEmployee(BaseModel):
     Department: Union[str, None]
 
 
-def get_ad_attributes() -> list[str]:
-    return [a for a in AdEmployee.schema()["properties"].keys() if a != "dn"]
+def get_ldap_attributes() -> list[str]:
+    return [a for a in LdapEmployee.schema()["properties"].keys() if a != "dn"]
 
 
-async def load_ad_employee(
-    keys: list[str], ad_connection: Connection
-) -> list[AdEmployee]:
+async def loldap_ldap_employee(
+    keys: list[str], ldap_connection: Connection
+) -> list[LdapEmployee]:
 
     logger = structlog.get_logger()
     output = []
@@ -63,11 +63,11 @@ async def load_ad_employee(
         searchParameters = {
             "search_base": dn,
             "search_filter": "(objectclass=organizationalPerson)",
-            "attributes": get_ad_attributes(),
+            "attributes": get_ldap_attributes(),
         }
 
-        ad_connection.search(**searchParameters)
-        response = ad_connection.response
+        ldap_connection.search(**searchParameters)
+        response = ldap_connection.response
 
         if len(response) > 1:
             raise MultipleObjectsReturnedException(
@@ -80,7 +80,7 @@ async def load_ad_employee(
             if value == []:
                 response[0]["attributes"][attribute] = None
 
-        employee = AdEmployee(
+        employee = LdapEmployee(
             dn=response[0]["dn"],
             Name=response[0]["attributes"]["name"],
             Department=response[0]["attributes"]["department"],
@@ -92,11 +92,11 @@ async def load_ad_employee(
     return output
 
 
-async def load_ad_employees(
+async def loldap_ldap_employees(
     key: int,
-    ad_connection: Connection,
+    ldap_connection: Connection,
     search_base: str,
-) -> list[list[AdEmployee]]:
+) -> list[list[LdapEmployee]]:
     """
     Returns list with all organizationalPersons
     """
@@ -106,18 +106,18 @@ async def load_ad_employees(
     searchParameters = {
         "search_base": search_base,
         "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": get_ad_attributes(),
+        "attributes": get_ldap_attributes(),
         "paged_size": 500,  # TODO: Find this number from AD rather than hard-code it?
     }
 
     # Max 10_000 pages to avoid eternal loops
     for page in range(0, 10_000):
         logger.info("searching page %d" % page)
-        ad_connection.search(**searchParameters)
-        output.extend(ad_connection.entries)
+        ldap_connection.search(**searchParameters)
+        output.extend(ldap_connection.entries)
 
         # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
-        cookie = ad_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
+        cookie = ldap_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
             "cookie"
         ]
 
@@ -127,7 +127,7 @@ async def load_ad_employees(
             break
 
     output_list = [
-        AdEmployee(
+        LdapEmployee(
             dn=o.entry_dn,
             Name=o.Name.value,
             Department=o.Department.value,
@@ -138,7 +138,7 @@ async def load_ad_employees(
     return [output_list]
 
 
-async def upload_ad_employee(keys: list[AdEmployee], ad_connection: Connection):
+async def uploldap_ldap_employee(keys: list[LdapEmployee], ldap_connection: Connection):
     logger = structlog.get_logger()
     output = []
     success = 0
@@ -154,15 +154,15 @@ async def upload_ad_employee(keys: list[AdEmployee], ad_connection: Connection):
             changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
 
             logger.info("Uploading the following changes: %s" % changes)
-            ad_connection.modify(dn, changes)
-            response = ad_connection.result
+            ldap_connection.modify(dn, changes)
+            response = ldap_connection.result
 
             # If the user does not exist, create him/her/hir
             if response["description"] == "noSuchObject":
                 logger.info("Creating %s" % dn)
-                ad_connection.add(dn, "organizationalPerson")
-                ad_connection.modify(dn, changes)
-                response = ad_connection.result
+                ldap_connection.add(dn, "organizationalPerson")
+                ldap_connection.modify(dn, changes)
+                response = ldap_connection.result
 
             if response["description"] == "success":
                 success += 1
@@ -202,7 +202,7 @@ def format_employee_output(result):
     return output
 
 
-async def load_mo_employees(
+async def loldap_mo_employees(
     key: int, graphql_session: AsyncClientSession
 ) -> list[list[Employee]]:
 
@@ -223,7 +223,7 @@ async def load_mo_employees(
     return [format_employee_output(result)]
 
 
-async def load_mo_employee(
+async def loldap_mo_employee(
     keys: list[str], graphql_session: AsyncClientSession
 ) -> list[Employee]:
     output = []
@@ -247,7 +247,7 @@ async def load_mo_employee(
     return output
 
 
-async def upload_mo_employee(
+async def uploldap_mo_employee(
     keys: list[Employee],
     model_client: ModelClient,
 ):
@@ -266,8 +266,8 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     """
 
     graphql_loader_functions: dict[str, Callable] = {
-        "mo_employees_loader": load_mo_employees,
-        "mo_employee_loader": load_mo_employee,
+        "mo_employees_loader": loldap_mo_employees,
+        "mo_employee_loader": loldap_mo_employee,
     }
 
     user_context = context["user_context"]
@@ -281,35 +281,35 @@ def configure_dataloaders(context: Context) -> Dataloaders:
 
     model_client = user_context["model_client"]
     mo_employee_uploader = DataLoader(
-        load_fn=partial(upload_mo_employee, model_client=model_client),
+        load_fn=partial(uploldap_mo_employee, model_client=model_client),
         cache=False,
     )
 
     settings = user_context["settings"]
-    ad_connection = user_context["ad_connection"]
-    ad_employees_loader = DataLoader(
+    ldap_connection = user_context["ldap_connection"]
+    ldap_employees_loader = DataLoader(
         load_fn=partial(
-            load_ad_employees,
-            ad_connection=ad_connection,
-            search_base=settings.ad_search_base,
+            loldap_ldap_employees,
+            ldap_connection=ldap_connection,
+            search_base=settings.ldap_search_base,
         ),
         cache=False,
     )
 
-    ad_employee_loader = DataLoader(
-        load_fn=partial(load_ad_employee, ad_connection=ad_connection),
+    ldap_employee_loader = DataLoader(
+        load_fn=partial(loldap_ldap_employee, ldap_connection=ldap_connection),
         cache=False,
     )
 
-    ad_employees_uploader = DataLoader(
-        load_fn=partial(upload_ad_employee, ad_connection=ad_connection),
+    ldap_employees_uploader = DataLoader(
+        load_fn=partial(uploldap_ldap_employee, ldap_connection=ldap_connection),
         cache=False,
     )
 
     return Dataloaders(
         **graphql_dataloaders,
-        ad_employees_loader=ad_employees_loader,
-        ad_employee_loader=ad_employee_loader,
-        ad_employees_uploader=ad_employees_uploader,
+        ldap_employees_loader=ldap_employees_loader,
+        ldap_employee_loader=ldap_employee_loader,
+        ldap_employees_uploader=ldap_employees_uploader,
         mo_employee_uploader=mo_employee_uploader,
     )

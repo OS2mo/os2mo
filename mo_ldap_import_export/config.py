@@ -57,24 +57,24 @@ class Settings(BaseSettings):
     amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@localhost:5672")
     amqp_exchange: str = "os2mo"
 
-    ad_controllers: ServerList = Field(
+    ldap_controllers: ServerList = Field(
         ..., description="List of domain controllers to query"
     )
-    ad_domain: str = Field(
+    ldap_domain: str = Field(
         ..., description="Domain to use when authenticating with the domain controller"
     )
-    ad_user: str = Field(
+    ldap_user: str = Field(
         "os2mo",
         description="Username to use when authenticating with the domain controller",
     )
-    ad_password: SecretStr = Field(
+    ldap_password: SecretStr = Field(
         ...,
         description="Password to use when authenticating with the domain controller",
     )
-    ad_search_base: str = Field(
+    ldap_search_base: str = Field(
         ..., description="Search base to utilize for all AD requests"
     )
-    ad_organizational_unit: str = Field(
+    ldap_organizational_unit: str = Field(
         ..., description="Organizational unit to utilize for all AD requests"
     )
 

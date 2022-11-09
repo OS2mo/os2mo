@@ -10,12 +10,12 @@ services:
     environment:
       amqp_url: "amqp://guest:guest@msg_broker"
 
-      AD_CONTROLLERS: '[{"host": "100.110.188.107"}]'
-      AD_DOMAIN: "AD"
-      AD_USER: ""
-      AD_PASSWORD: ""
-      AD_SEARCH_BASE: "DC=ad,DC=addev"
-      AD_ORGANIZATIONAL_UNIT: "OU=Magenta"
+      LDAP_CONTROLLERS: '[{"host": "100.110.188.107"}]'
+      LDAP_DOMAIN: "AD"
+      LDAP_USER: ""
+      LDAP_PASSWORD: ""
+      LDAP_SEARCH_BASE: "DC=ad,DC=addev"
+      LDAP_ORGANIZATIONAL_UNIT: "OU=Magenta"
 
       AUTH_SERVER: "http://keycloak:8080/auth"
 

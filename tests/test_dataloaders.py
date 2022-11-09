@@ -16,19 +16,19 @@ import pytest
 from ramodels.mo.employee import Employee
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.dataloaders import AdEmployee
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
+from mo_ldap_import_export.dataloaders import LdapEmployee
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 
 
 @pytest.fixture
-def ad_connection() -> Iterator[MagicMock]:
-    """Fixture to construct a mock ad_connection.
+def ldap_connection() -> Iterator[MagicMock]:
+    """Fixture to construct a mock ldap_connection.
 
     Yields:
-        A mock for ad_connection.
+        A mock for ldap_connection.
     """
     yield MagicMock()
 
@@ -47,18 +47,18 @@ def model_client() -> Iterator[AsyncMock]:
 def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("CLIENT_ID", "foo")
     monkeypatch.setenv("client_secret", "bar")
-    monkeypatch.setenv("AD_CONTROLLERS", '[{"host": "0.0.0.0"}]')
-    monkeypatch.setenv("AD_DOMAIN", "AD")
-    monkeypatch.setenv("AD_USER", "foo")
-    monkeypatch.setenv("AD_PASSWORD", "bar")
-    monkeypatch.setenv("AD_SEARCH_BASE", "DC=ad,DC=addev")
-    monkeypatch.setenv("AD_ORGANIZATIONAL_UNIT", "OU=Magenta")
+    monkeypatch.setenv("LDAP_CONTROLLERS", '[{"host": "0.0.0.0"}]')
+    monkeypatch.setenv("LDAP_DOMAIN", "AD")
+    monkeypatch.setenv("LDAP_USER", "foo")
+    monkeypatch.setenv("LDAP_PASSWORD", "bar")
+    monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
+    monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
     return Settings()
 
 
 @pytest.fixture
 def dataloaders(
-    ad_connection: MagicMock,
+    ldap_connection: MagicMock,
     gql_client: AsyncMock,
     model_client: AsyncMock,
     settings: Settings,
@@ -72,7 +72,7 @@ def dataloaders(
         {
             "user_context": {
                 "settings": settings,
-                "ad_connection": ad_connection,
+                "ldap_connection": ldap_connection,
                 "gql_client": gql_client,
                 "model_client": model_client,
             },
@@ -81,7 +81,9 @@ def dataloaders(
     yield dataloaders
 
 
-def mock_ad_entry(Name: str, Department: Union[str, None, list], dn: str) -> MagicMock:
+def mock_ldap_entry(
+    Name: str, Department: Union[str, None, list], dn: str
+) -> MagicMock:
 
     entry = MagicMock()
     entry.entry_dn = dn
@@ -92,29 +94,29 @@ def mock_ad_entry(Name: str, Department: Union[str, None, list], dn: str) -> Mag
     return entry
 
 
-async def test_load_ad_employee(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_loldap_ldap_employee(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
     Name = "Nick Janssen"
     Department = None
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_result = [AdEmployee(Name=Name, Department=Department, dn=dn)]
+    expected_result = [LdapEmployee(Name=Name, Department=Department, dn=dn)]
 
-    ad_connection.response = [
+    ldap_connection.response = [
         {"dn": dn, "attributes": {"name": Name, "department": Department}}
     ]
 
     output = await asyncio.gather(
-        dataloaders.ad_employee_loader.load(dn),
+        dataloaders.ldap_employee_loader.load(dn),
     )
 
     assert output == expected_result
 
 
-async def test_load_ad_employee_empty_list(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_loldap_ldap_employee_empty_list(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     """
     Simulate case where the Department is an empty list
@@ -124,34 +126,34 @@ async def test_load_ad_employee_empty_list(
     Department = None
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
 
-    expected_result = [AdEmployee(Name=Name, Department=Department, dn=dn)]
+    expected_result = [LdapEmployee(Name=Name, Department=Department, dn=dn)]
 
-    ad_connection.response = [
+    ldap_connection.response = [
         {"dn": dn, "attributes": {"name": Name, "department": []}}
     ]
 
     output = await asyncio.gather(
-        dataloaders.ad_employee_loader.load(dn),
+        dataloaders.ldap_employee_loader.load(dn),
     )
 
     assert output == expected_result
 
 
-async def test_load_ad_employee_multiple_results(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_loldap_ldap_employee_multiple_results(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
     Name = "Nick Janssen"
     Department = None
     dn = "DC=ad,DC=addev"
 
-    ad_connection.response = [
+    ldap_connection.response = [
         {"dn": dn, "attributes": {"name": Name, "department": Department}}
     ] * 20
 
     try:
         await asyncio.gather(
-            dataloaders.ad_employee_loader.load(dn),
+            dataloaders.ldap_employee_loader.load(dn),
         )
     except MultipleObjectsReturnedException as e:
         assert str(e) == "Found multiple entries for dn=%s" % dn
@@ -159,16 +161,16 @@ async def test_load_ad_employee_multiple_results(
         raise Exception("Test failed")
 
 
-async def test_load_ad_employee_no_results(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_loldap_ldap_employee_no_results(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
-    ad_connection.response = []
+    ldap_connection.response = []
     dn = "foo"
 
     try:
         await asyncio.gather(
-            dataloaders.ad_employee_loader.load(dn),
+            dataloaders.ldap_employee_loader.load(dn),
         )
     except NoObjectsReturnedException as e:
         assert str(e) == "Found no entries for dn=%s" % dn
@@ -176,10 +178,10 @@ async def test_load_ad_employee_no_results(
         raise Exception("Test failed")
 
 
-async def test_load_ad_employees(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_loldap_ldap_employees(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
-    """Test that load_organizationalPersons works as expected."""
+    """Test that loldap_organizationalPersons works as expected."""
 
     # Mock data
     Name = "Nick Janssen"
@@ -189,7 +191,7 @@ async def test_load_ad_employees(
     expected_results = [{"Name": Name, "Department": Department, "dn": dn}]
 
     # Mock AD connection
-    ad_connection.entries = [mock_ad_entry(Name, Department, dn)]
+    ldap_connection.entries = [mock_ldap_entry(Name, Department, dn)]
 
     # Simulate three pages
     cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
@@ -201,30 +203,30 @@ async def test_load_ad_employees(
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ad_connection.result = next(results)
+        ldap_connection.result = next(results)
 
     # Every time a search is performed, point to the next page.
-    ad_connection.search.side_effect = set_new_result
+    ldap_connection.search.side_effect = set_new_result
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ad_employees_loader.load(0),
+        dataloaders.ldap_employees_loader.load(0),
     )
 
     assert output == [expected_results * len(cookies)]
 
 
-async def test_upload_ad_employee(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_uploldap_ldap_employee(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
-    employee = AdEmployee(
+    employee = LdapEmployee(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         Name="Nick Janssen",
         Department="GL",
     )
 
-    bad_response = {
+    bldap_response = {
         "result": 67,
         "description": "notAllowedOnRDN",
         "dn": "",
@@ -256,28 +258,28 @@ async def test_upload_ad_employee(
 
     results = iter(
         [good_response] * len(allowed_parameters_to_upload)
-        + [bad_response] * len(disallowed_parameters_to_upload)
+        + [bldap_response] * len(disallowed_parameters_to_upload)
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ad_connection.result = next(results)
+        ldap_connection.result = next(results)
 
     # Every time a search is performed, point to the next page.
-    ad_connection.modify.side_effect = set_new_result
+    ldap_connection.modify.side_effect = set_new_result
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ad_employees_uploader.load(employee),
+        dataloaders.ldap_employees_uploader.load(employee),
     )
 
-    assert output == [[good_response, bad_response]]
+    assert output == [[good_response, bldap_response]]
 
 
-async def test_create_ad_employee(
-    ad_connection: MagicMock, dataloaders: Dataloaders
+async def test_create_ldap_employee(
+    ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
-    employee = AdEmployee(
+    employee = LdapEmployee(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         Name="Nick Janssen",
         Department="GL",
@@ -307,19 +309,19 @@ async def test_create_ad_employee(
     )
 
     def set_new_result(*args, **kwargs) -> None:
-        ad_connection.result = next(results)
+        ldap_connection.result = next(results)
 
-    ad_connection.modify.side_effect = set_new_result
+    ldap_connection.modify.side_effect = set_new_result
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ad_employees_uploader.load(employee),
+        dataloaders.ldap_employees_uploader.load(employee),
     )
 
     assert output == [[good_response, good_response]]
 
 
-async def test_load_mo_employees(
+async def test_loldap_mo_employees(
     dataloaders: Dataloaders, gql_client: AsyncMock
 ) -> None:
 
@@ -349,7 +351,7 @@ async def test_load_mo_employees(
     assert output == [expected_results]
 
 
-async def test_load_mo_employee(
+async def test_loldap_mo_employee(
     dataloaders: Dataloaders, gql_client: AsyncMock
 ) -> None:
 
@@ -371,10 +373,10 @@ async def test_load_mo_employee(
     assert output == expected_result
 
 
-async def test_upload_mo_employee(
+async def test_uploldap_mo_employee(
     model_client: AsyncMock, dataloaders: Dataloaders
 ) -> None:
-    """Test that test_upload_mo_employee works as expected."""
+    """Test that test_uploldap_mo_employee works as expected."""
     model_client.upload.return_value = ["1", None, "3"]
 
     results = await asyncio.gather(

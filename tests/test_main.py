@@ -25,7 +25,7 @@ from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import listen_to_changes_in_employees
-from mo_ldap_import_export.main import open_ad_connection
+from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import seed_dataloaders
 
 
@@ -39,18 +39,18 @@ def settings_overrides() -> Iterator[dict[str, str]]:
     overrides = {
         "CLIENT_ID": "Foo",
         "CLIENT_SECRET": "bar",
-        "AD_CONTROLLERS": '[{"host": "localhost"}]',
-        "AD_DOMAIN": "AD",
-        "AD_USER": "foo",
-        "AD_PASSWORD": "foo",
-        "AD_SEARCH_BASE": "DC=ad,DC=addev",
-        "AD_ORGANIZATIONAL_UNIT": "OU=Magenta",
+        "LDAP_CONTROLLERS": '[{"host": "localhost"}]',
+        "LDAP_DOMAIN": "AD",
+        "LDAP_USER": "foo",
+        "LDAP_PASSWORD": "foo",
+        "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
     }
     yield overrides
 
 
 @pytest.fixture
-def load_settings_overrides(
+def loldap_settings_overrides(
     settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[dict[str, str]]:
     """Fixture to set happy-path settings overrides as environmental variables.
@@ -102,7 +102,7 @@ def empty_dataloaders() -> Dataloaders:
 @pytest.fixture
 def fastramqpi(
     disable_metrics: None,
-    load_settings_overrides: dict[str, str],
+    loldap_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     empty_dataloaders: Dataloaders,
 ) -> Iterator[FastRAMQPI]:
@@ -115,7 +115,7 @@ def fastramqpi(
         "mo_ldap_import_export.main.configure_dataloaders",
         return_value=empty_dataloaders,
     ), patch(
-        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock
     ), patch(
         "mo_ldap_import_export.main.construct_gql_client",
         return_value=gql_client,
@@ -147,41 +147,41 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
 
 
 @pytest.fixture
-def ad_connection() -> Iterator[MagicMock]:
-    """Fixture to construct a mock ad_connection.
+def ldap_connection() -> Iterator[MagicMock]:
+    """Fixture to construct a mock ldap_connection.
 
     Yields:
-        A mock for ad_connection.
+        A mock for ldap_connection.
     """
     yield MagicMock()
 
 
 def test_create_app(
-    load_settings_overrides: dict[str, str],
+    loldap_settings_overrides: dict[str, str],
 ) -> None:
     """Test that we can construct our FastAPI application."""
 
     with patch(
-        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock
     ):
         app = create_app()
     assert isinstance(app, FastAPI)
 
 
 def test_create_fastramqpi(
-    load_settings_overrides: dict[str, str], disable_metrics: None
+    loldap_settings_overrides: dict[str, str], disable_metrics: None
 ) -> None:
     """Test that we can construct our FastRAMQPI system."""
 
     with patch(
-        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock
     ):
         fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)
 
 
-async def test_open_ad_connection() -> None:
-    """Test the open_ad_connection."""
+async def test_open_ldap_connection() -> None:
+    """Test the open_ldap_connection."""
     state = []
 
     @contextmanager
@@ -190,10 +190,10 @@ async def test_open_ad_connection() -> None:
         yield
         state.append(2)
 
-    ad_connection = manager()
+    ldap_connection = manager()
 
     assert not state
-    async with open_ad_connection(ad_connection):
+    async with open_ldap_connection(ldap_connection):
         assert state == [1]
     assert state == [1, 2]
 
@@ -201,7 +201,7 @@ async def test_open_ad_connection() -> None:
 async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
     """Test the seed_dataloaders asynccontextmanager."""
 
-    fastramqpi.add_context(ad_connection=MagicMock)
+    fastramqpi.add_context(ldap_connection=MagicMock)
 
     user_context = fastramqpi.get_context()["user_context"]
     assert user_context.get("dataloaders") is not None
@@ -213,22 +213,22 @@ async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
     assert isinstance(dataloaders, Dataloaders)
 
 
-def test_ad_get_all_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
     """Test the AD get-all endpoint on our app."""
 
     response = test_client.get("/AD/employee")
     assert response.status_code == 202
 
 
-def test_ad_post_ad_employee_endpoint(test_client: TestClient) -> None:
+def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     """Test the AD get-all endpoint on our app."""
 
-    ad_person_to_post = {
+    ldap_person_to_post = {
         "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         "Name": "Lars Peter Thomsen",
         "Department": None,
     }
-    response = test_client.post("/AD/employee", json=ad_person_to_post)
+    response = test_client.post("/AD/employee", json=ldap_person_to_post)
     assert response.status_code == 200
 
 
@@ -269,7 +269,7 @@ def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 200
 
 
-def test_ad_get_organizationalUser_endpoint(test_client: TestClient) -> None:
+def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     """Test the AD get endpoint on our app."""
 
     response = test_client.get("/AD/employee/foo")
@@ -286,11 +286,11 @@ async def test_listen_to_changes_in_employees() -> None:
     dataloader_mock = MagicMock
     dataloader_mock.mo_employee_loader = DataLoader(load_fn=employee_fn, cache=False)
 
-    dataloader_mock.ad_employees_uploader = DataLoader(load_fn=empty_fn, cache=False)
+    dataloader_mock.ldap_employees_uploader = DataLoader(load_fn=empty_fn, cache=False)
 
     settings_mock = MagicMock
-    settings_mock.ad_organizational_unit = "foo"
-    settings_mock.ad_search_base = "bar"
+    settings_mock.ldap_organizational_unit = "foo"
+    settings_mock.ldap_search_base = "bar"
 
     context = {
         "user_context": {"dataloaders": dataloader_mock, "app_settings": settings_mock}
@@ -299,8 +299,8 @@ async def test_listen_to_changes_in_employees() -> None:
     payload.uuid = uuid4()
 
     settings = MagicMock
-    settings.ad_organizational_unit = "OU=foo"
-    settings.ad_search_base = "DC=bar"
+    settings.ldap_organizational_unit = "OU=foo"
+    settings.ldap_search_base = "DC=bar"
 
     output = await asyncio.gather(
         listen_to_changes_in_employees(context, payload),

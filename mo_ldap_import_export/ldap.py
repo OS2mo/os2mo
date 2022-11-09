@@ -50,7 +50,7 @@ def get_client_strategy():
     return RESTARTABLE
 
 
-def configure_ad_connection(settings: Settings) -> ContextManager:
+def configure_ldap_connection(settings: Settings) -> ContextManager:
     """Configure an AD connection.
 
     Args:
@@ -59,7 +59,7 @@ def configure_ad_connection(settings: Settings) -> ContextManager:
     Returns:
         ContextManager that can be opened to establish an AD connection.
     """
-    servers = list(map(construct_server, settings.ad_controllers))
+    servers = list(map(construct_server, settings.ldap_controllers))
 
     # Pick the next server to use at random, discard non-active servers
     server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
@@ -69,8 +69,8 @@ def configure_ad_connection(settings: Settings) -> ContextManager:
     logger.info("Client strategy: %s" % get_client_strategy())
     connection = Connection(
         server=server_pool,
-        user=settings.ad_domain + "\\" + settings.ad_user,
-        password=settings.ad_password.get_secret_value(),
+        user=settings.ldap_domain + "\\" + settings.ldap_user,
+        password=settings.ldap_password.get_secret_value(),
         authentication=NTLM,
         client_strategy=get_client_strategy(),
         auto_bind=True,
@@ -79,14 +79,14 @@ def configure_ad_connection(settings: Settings) -> ContextManager:
     return cast(ContextManager, connection)
 
 
-async def ad_healthcheck(context: Union[dict, Context]) -> bool:
+async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
     """AD connection Healthcheck.
 
     Args:
-        context: To lookup ad_connection in.
+        context: To lookup ldap_connection in.
 
     Returns:
         Whether the AMQPSystem is OK.
     """
-    ad_connection = context["user_context"]["ad_connection"]
-    return cast(bool, ad_connection.bound)
+    ldap_connection = context["user_context"]["ldap_connection"]
+    return cast(bool, ldap_connection.bound)

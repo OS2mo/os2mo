@@ -22,20 +22,20 @@ print("")
 
 
 # Modify a user in AD
-ad_person_to_post = r.json()[-2]
+ldap_person_to_post = r.json()[-2]
 new_department = (
     "Department which will buy %d cakes for its colleagues" % random.randint(0, 10_000)
 )
-ad_person_to_post = {
+ldap_person_to_post = {
     "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
     "Name": "Lars Peter Thomsen",
     "Department": new_department,
 }
-requests.post("http://0.0.0.0:8000/AD/employee", json=ad_person_to_post)
+requests.post("http://0.0.0.0:8000/AD/employee", json=ldap_person_to_post)
 
 
 # Get the users again - validate that the user is modified
-r = requests.get("http://0.0.0.0:8000/AD/employee/%s" % ad_person_to_post["dn"])
+r = requests.get("http://0.0.0.0:8000/AD/employee/%s" % ldap_person_to_post["dn"])
 assert r.json()["Department"] == new_department
 print("Successfully edited department to '%s' in AD" % new_department)
 print("")
