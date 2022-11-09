@@ -185,7 +185,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a specific person from AD
     @app.get("/AD/employee/{dn}", status_code=202)
-    async def loldap_employee_from_LDAP(dn: str, request: Request) -> Any:
+    async def load_employee_from_LDAP(dn: str, request: Request) -> Any:
         """Request single employee"""
         logger.info("Manually triggered AD request of %s" % dn)
 
@@ -196,7 +196,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get all persons from AD
     @app.get("/AD/employee", status_code=202)
-    async def loldap_all_employees_from_LDAP() -> Any:
+    async def load_all_employees_from_LDAP() -> Any:
         """Request all employees"""
         logger.info("Manually triggered AD request of all employees")
 
@@ -216,7 +216,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get all persons from MO
     @app.get("/MO/employee", status_code=202)
-    async def loldap_all_employees_from_MO() -> Any:
+    async def load_all_employees_from_MO() -> Any:
         """Request all persons from MO"""
         logger.info("Manually triggered MO request of all employees")
 
@@ -236,7 +236,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get a speficic person from MO
     @app.get("/MO/employee/{uuid}", status_code=202)
-    async def loldap_employee_from_MO(uuid: str, request: Request) -> Any:
+    async def load_employee_from_MO(uuid: str, request: Request) -> Any:
         """Request single employee"""
         logger.info("Manually triggered MO request of %s" % uuid)
 

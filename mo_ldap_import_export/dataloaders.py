@@ -52,7 +52,7 @@ def get_ldap_attributes() -> list[str]:
     return [a for a in LdapEmployee.schema()["properties"].keys() if a != "dn"]
 
 
-async def loldap_ldap_employee(
+async def load_ldap_employee(
     keys: list[str], ldap_connection: Connection
 ) -> list[LdapEmployee]:
 
@@ -92,7 +92,7 @@ async def loldap_ldap_employee(
     return output
 
 
-async def loldap_ldap_employees(
+async def load_ldap_employees(
     key: int,
     ldap_connection: Connection,
     search_base: str,
@@ -138,7 +138,7 @@ async def loldap_ldap_employees(
     return [output_list]
 
 
-async def uploldap_ldap_employee(keys: list[LdapEmployee], ldap_connection: Connection):
+async def upload_ldap_employee(keys: list[LdapEmployee], ldap_connection: Connection):
     logger = structlog.get_logger()
     output = []
     success = 0
@@ -202,7 +202,7 @@ def format_employee_output(result):
     return output
 
 
-async def loldap_mo_employees(
+async def load_mo_employees(
     key: int, graphql_session: AsyncClientSession
 ) -> list[list[Employee]]:
 
@@ -223,7 +223,7 @@ async def loldap_mo_employees(
     return [format_employee_output(result)]
 
 
-async def loldap_mo_employee(
+async def load_mo_employee(
     keys: list[str], graphql_session: AsyncClientSession
 ) -> list[Employee]:
     output = []
@@ -247,7 +247,7 @@ async def loldap_mo_employee(
     return output
 
 
-async def uploldap_mo_employee(
+async def upload_mo_employee(
     keys: list[Employee],
     model_client: ModelClient,
 ):
@@ -266,8 +266,8 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     """
 
     graphql_loader_functions: dict[str, Callable] = {
-        "mo_employees_loader": loldap_mo_employees,
-        "mo_employee_loader": loldap_mo_employee,
+        "mo_employees_loader": load_mo_employees,
+        "mo_employee_loader": load_mo_employee,
     }
 
     user_context = context["user_context"]
@@ -281,7 +281,7 @@ def configure_dataloaders(context: Context) -> Dataloaders:
 
     model_client = user_context["model_client"]
     mo_employee_uploader = DataLoader(
-        load_fn=partial(uploldap_mo_employee, model_client=model_client),
+        load_fn=partial(upload_mo_employee, model_client=model_client),
         cache=False,
     )
 
@@ -289,7 +289,7 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     ldap_connection = user_context["ldap_connection"]
     ldap_employees_loader = DataLoader(
         load_fn=partial(
-            loldap_ldap_employees,
+            load_ldap_employees,
             ldap_connection=ldap_connection,
             search_base=settings.ldap_search_base,
         ),
@@ -297,12 +297,12 @@ def configure_dataloaders(context: Context) -> Dataloaders:
     )
 
     ldap_employee_loader = DataLoader(
-        load_fn=partial(loldap_ldap_employee, ldap_connection=ldap_connection),
+        load_fn=partial(load_ldap_employee, ldap_connection=ldap_connection),
         cache=False,
     )
 
     ldap_employees_uploader = DataLoader(
-        load_fn=partial(uploldap_ldap_employee, ldap_connection=ldap_connection),
+        load_fn=partial(upload_ldap_employee, ldap_connection=ldap_connection),
         cache=False,
     )
 

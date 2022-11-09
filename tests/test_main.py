@@ -49,7 +49,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
 
 
 @pytest.fixture
-def loldap_settings_overrides(
+def load_settings_overrides(
     settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[dict[str, str]]:
     """Fixture to set happy-path settings overrides as environmental variables.
@@ -101,7 +101,7 @@ def empty_dataloaders() -> Dataloaders:
 @pytest.fixture
 def fastramqpi(
     disable_metrics: None,
-    loldap_settings_overrides: dict[str, str],
+    load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     empty_dataloaders: Dataloaders,
 ) -> Iterator[FastRAMQPI]:
@@ -156,7 +156,7 @@ def ldap_connection() -> Iterator[MagicMock]:
 
 
 def test_create_app(
-    loldap_settings_overrides: dict[str, str],
+    load_settings_overrides: dict[str, str],
 ) -> None:
     """Test that we can construct our FastAPI application."""
 
@@ -168,7 +168,7 @@ def test_create_app(
 
 
 def test_create_fastramqpi(
-    loldap_settings_overrides: dict[str, str], disable_metrics: None
+    load_settings_overrides: dict[str, str], disable_metrics: None
 ) -> None:
     """Test that we can construct our FastRAMQPI system."""
 

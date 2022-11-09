@@ -54,7 +54,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
 
 
 @pytest.fixture
-def loldap_settings_overrides(
+def load_settings_overrides(
     settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[dict[str, str]]:
     """Fixture to set happy-path settings overrides as environmental variables.
@@ -76,14 +76,14 @@ def loldap_settings_overrides(
     yield settings_overrides
 
 
-def test_construct_server(loldap_settings_overrides: dict[str, str]) -> None:
+def test_construct_server(load_settings_overrides: dict[str, str]) -> None:
     settings = Settings()
 
     server = construct_server(settings.ldap_controllers[0])
     assert isinstance(server, Server)
 
 
-def test_configure_ldap_connection(loldap_settings_overrides: dict[str, str]) -> None:
+def test_configure_ldap_connection(load_settings_overrides: dict[str, str]) -> None:
 
     settings = Settings()
 

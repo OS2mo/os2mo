@@ -94,7 +94,7 @@ def mock_ldap_entry(
     return entry
 
 
-async def test_loldap_ldap_employee(
+async def test_load_ldap_employee(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
@@ -115,7 +115,7 @@ async def test_loldap_ldap_employee(
     assert output == expected_result
 
 
-async def test_loldap_ldap_employee_empty_list(
+async def test_load_ldap_employee_empty_list(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     """
@@ -139,7 +139,7 @@ async def test_loldap_ldap_employee_empty_list(
     assert output == expected_result
 
 
-async def test_loldap_ldap_employee_multiple_results(
+async def test_load_ldap_employee_multiple_results(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
     # Mock data
@@ -161,7 +161,7 @@ async def test_loldap_ldap_employee_multiple_results(
         raise Exception("Test failed")
 
 
-async def test_loldap_ldap_employee_no_results(
+async def test_load_ldap_employee_no_results(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
@@ -178,10 +178,10 @@ async def test_loldap_ldap_employee_no_results(
         raise Exception("Test failed")
 
 
-async def test_loldap_ldap_employees(
+async def test_load_ldap_employees(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
-    """Test that loldap_organizationalPersons works as expected."""
+    """Test that load_organizationalPersons works as expected."""
 
     # Mock data
     Name = "Nick Janssen"
@@ -216,7 +216,7 @@ async def test_loldap_ldap_employees(
     assert output == [expected_results * len(cookies)]
 
 
-async def test_uploldap_ldap_employee(
+async def test_upload_ldap_employee(
     ldap_connection: MagicMock, dataloaders: Dataloaders
 ) -> None:
 
@@ -321,7 +321,7 @@ async def test_create_ldap_employee(
     assert output == [[good_response, good_response]]
 
 
-async def test_loldap_mo_employees(
+async def test_load_mo_employees(
     dataloaders: Dataloaders, gql_client: AsyncMock
 ) -> None:
 
@@ -351,7 +351,7 @@ async def test_loldap_mo_employees(
     assert output == [expected_results]
 
 
-async def test_loldap_mo_employee(
+async def test_load_mo_employee(
     dataloaders: Dataloaders, gql_client: AsyncMock
 ) -> None:
 
@@ -373,10 +373,10 @@ async def test_loldap_mo_employee(
     assert output == expected_result
 
 
-async def test_uploldap_mo_employee(
+async def test_upload_mo_employee(
     model_client: AsyncMock, dataloaders: Dataloaders
 ) -> None:
-    """Test that test_uploldap_mo_employee works as expected."""
+    """Test that test_upload_mo_employee works as expected."""
     model_client.upload.return_value = ["1", None, "3"]
 
     results = await asyncio.gather(
