@@ -1,0 +1,7 @@
+**/__pycache__/**
+.spyproject/**
+.hypothesis/**
+/.coverage
+/.coveragerc
+/docker-compose.override.yml
+**.rum-bak
