@@ -81,24 +81,15 @@ def dataloaders(
     yield dataloaders
 
 
-def mock_ad_entry(Name: str, Department: Union[str, None], dn: str) -> object:
+def mock_ad_entry(Name: str, Department: Union[str, None, list], dn: str) -> MagicMock:
 
-    # Mock AD entry
-    class Entry:
-        class NameClass:
-            def __init__(self) -> None:
-                self.value: str = Name
+    entry = MagicMock()
+    entry.entry_dn = dn
 
-        class DepartmentClass:
-            def __init__(self) -> None:
-                self.value: Union[str, None, list] = Department
+    entry.attach_mock(MagicMock(value=Name), "Name")
+    entry.attach_mock(MagicMock(value=Department), "Department")
 
-        # objectGUID: objectGUIDClass = objectGUIDClass()
-        entry_dn: str = dn
-        Name: NameClass = NameClass()
-        Department: DepartmentClass = DepartmentClass()
-
-    return Entry()
+    return entry
 
 
 async def test_load_ad_employee(
@@ -164,7 +155,8 @@ async def test_load_ad_employee_multiple_results(
         )
     except MultipleObjectsReturnedException as e:
         assert str(e) == "Found multiple entries for dn=%s" % dn
-        pass
+    else:
+        raise Exception("Test failed")
 
 
 async def test_load_ad_employee_no_results(
@@ -180,7 +172,8 @@ async def test_load_ad_employee_no_results(
         )
     except NoObjectsReturnedException as e:
         assert str(e) == "Found no entries for dn=%s" % dn
-        pass
+    else:
+        raise Exception("Test failed")
 
 
 async def test_load_ad_employees(

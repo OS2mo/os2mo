@@ -66,9 +66,8 @@ def load_settings_overrides(
         Minimal set of overrides.
     """
     for key, value in settings_overrides.items():
-        if os.environ.get(key) is not None:
-            continue
-        monkeypatch.setenv(key, value)
+        if os.environ.get(key) is None:
+            monkeypatch.setenv(key, value)
     yield settings_overrides
 
 
@@ -115,15 +114,13 @@ def fastramqpi(
     with patch(
         "mo_ldap_import_export.main.configure_dataloaders",
         return_value=empty_dataloaders,
+    ), patch(
+        "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
+    ), patch(
+        "mo_ldap_import_export.main.construct_gql_client",
+        return_value=gql_client,
     ):
-        with patch(
-            "mo_ldap_import_export.main.configure_ad_connection", new_callable=MagicMock
-        ):
-            with patch(
-                "mo_ldap_import_export.main.construct_gql_client",
-                return_value=gql_client,
-            ):
-                yield create_fastramqpi()
+        yield create_fastramqpi()
 
 
 @pytest.fixture

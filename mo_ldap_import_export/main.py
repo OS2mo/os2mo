@@ -183,7 +183,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
 
-    # Get a speficic person from AD
+    # Get a specific person from AD
     @app.get("/AD/employee/{dn}", status_code=202)
     async def load_employee_from_AD(dn: str, request: Request) -> Any:
         """Request single employee"""
