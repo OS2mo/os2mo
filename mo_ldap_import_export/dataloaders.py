@@ -46,6 +46,9 @@ class LdapEmployee(BaseModel):
     dn: str
     Name: str  # TODO: This field cannot be modified in AD. Add a 'protected' flag?
     Department: Union[str, None]
+    objectGUID: Union[str, None]
+    givenName: Union[str, None]
+    sn: Union[str, None]
 
 
 def get_ldap_attributes() -> list[str]:

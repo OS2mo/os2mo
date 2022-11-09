@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Event handling."""
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -20,6 +21,7 @@ from ramqp.mo import MORouter
 from ramqp.mo.models import PayloadType
 
 from .config import Settings
+from .converters import EmployeeConverter
 from .dataloaders import configure_dataloaders
 from .dataloaders import LdapEmployee
 from .ldap import configure_ldap_connection
@@ -182,6 +184,19 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
+
+    mappings_folder = os.path.join(os.path.dirname(__file__), "mappings")
+
+    @app.get("/AD/employee/converted", status_code=202)
+    async def convert_all_org_persons_from_ldap() -> Any:
+        """Request all organizational persons, converted to MO"""
+        logger.info("Manually triggered LDAP request of all organizational persons")
+        converter = EmployeeConverter(os.path.join(mappings_folder, "default.json"))
+        result = await fastramqpi._context["user_context"][
+            "dataloaders"
+        ].ldap_employees_loader.load(1)
+        result = [converter.from_ldap(r) for r in result]
+        return result
 
     # Get a specific person from AD
     @app.get("/AD/employee/{dn}", status_code=202)
