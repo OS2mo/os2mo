@@ -1,0 +1,24 @@
+{
+  "ldap_to_mo": {
+    "user_attrs": {
+      "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
+      "surname": "{{ldap.surname or ldap.sn or ldap.name|splitlast|last or ''}}",
+      "cpr_no": "{{ldap.cpr or None}}",
+      "seniority": "{{ldap.seniority or None}}",
+      "nickname_givenname": "{{ldap.nickname_givenname or None}}",
+      "nickname_surname": "{{ldap.nickname_surname or None}}"
+    }
+  },
+  "mo_to_ldap": {
+    "user_attrs": {
+      "givenName": "{{mo.givenname}}",
+      "sn": "{{mo.surname}}",
+      "displayName": "{{mo.surname}}, {{mo.givenname}}",
+      "name": "{{mo.givenname}} {{mo.surname}}",
+      "cpr": "{{mo.cpr_no or None}}",
+      "seniority": "{{mo.seniority or None}}",
+      "nickname_givenname": "{{mo.nickname_givenname or None}}",
+      "nickname_surname": "{{mo.nickname_surname or None}}"
+    }
+  }
+}
