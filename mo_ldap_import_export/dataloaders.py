@@ -220,6 +220,8 @@ async def load_mo_employees(
     )
 
     result = await graphql_session.execute(query)
+
+    # Note: Output is a list of list; The dataloader expects a single object as output
     return [format_employee_output(result)]
 
 
