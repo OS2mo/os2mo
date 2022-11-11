@@ -290,7 +290,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "uuid": userid,
             "cpr_no": cpr,
         }
-
         await self.assertRequestResponse(
             f"/service/e/{userid}/",
             expected_employee,

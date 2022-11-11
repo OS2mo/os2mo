@@ -84,7 +84,9 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel, **kwargs: Any) -> Paged[MOModel]:
+async def get_mo(
+    model: MOModel, limit: int | None = None, cursor: int | None = None, **kwargs: Any
+) -> Paged[MOModel]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
@@ -95,9 +97,9 @@ async def get_mo(model: MOModel, **kwargs: Any) -> Paged[MOModel]:
         list[MOModel]: List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
-    results = await search_role_type(mo_type, **kwargs)
+    results = await search_role_type(mo_type, limit, cursor, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
-    end_cursor: int = (kwargs["cursor"] or 0) + len(parsed_results)
+    end_cursor: int = (cursor or 0) + len(parsed_results)
     return Paged(objects=parsed_results, page_info=PageInfo(next_cursor=end_cursor))
 
 

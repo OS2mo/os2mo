@@ -39,6 +39,8 @@ from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
 from oio_rest.config import get_settings as get_lora_settings
 
+# from mora.graphapi.versions.latest.schema import Cursor
+
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -610,7 +612,6 @@ class Scope(BaseScope):
         ass_msg = "'{}' is not a supported parameter for 'get_all'{}."
         assert "list" not in params, ass_msg.format("list", ", implicitly set")
         assert "uuid" not in params, ass_msg.format("uuid", ", use 'get_all_by_uuid'")
-
         response = await self.load(
             foersteresultat=cursor, maximalantalresultater=limit, **params
         )

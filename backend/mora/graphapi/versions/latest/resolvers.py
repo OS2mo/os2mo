@@ -58,13 +58,17 @@ class StaticResolver:
         user_keys: list[str] | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
         if uuids is not None:
-            return await self.get_by_uuid(info.context[self.loader], uuids, **kwargs)
+            return await self.get_by_uuid(
+                info.context[self.loader], uuids, limit, cursor
+            )
         if user_keys is not None:
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
@@ -78,11 +82,16 @@ class StaticResolver:
             use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
             escaped_user_keys = (re.escape(k) for k in user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
-        return await info.context[self.getter](**kwargs)
+        return await info.context[self.getter](limit=limit, cursor=cursor, **kwargs)
 
     @staticmethod
     # type: ignore[no-untyped-def]
-    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
+    async def get_by_uuid(
+        dataloader: DataLoader,
+        uuids: list[UUID],
+        limit: int | None = None,
+        cursor: Cursor | None = None,
+    ):
         """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
         Args:
@@ -136,11 +145,15 @@ class Resolver(StaticResolver):
 
     @staticmethod
     async def get_by_uuid(
-        dataloader: DataLoader, uuids: list[UUID], **kwargs: Any
+        dataloader: DataLoader,
+        uuids: list[UUID],
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ) -> Paged[MOModel]:
         MOModels = await dataloader.load_many(list(set(uuids)))
         models = [model for model in MOModels if model != []]
-        end_cursor: int = (kwargs["cursor"] or 0) + len(models)
+        models = models[:limit]
+        end_cursor: int = (cursor or 0) + len(models)
         return Paged(objects=models, page_info=PageInfo(next_cursor=end_cursor))
 
 
@@ -160,6 +173,8 @@ class ClassResolver(StaticResolver):
         user_keys: list[str] | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
+        limit: int | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve classes."""
         if facet_user_keys is not None:
@@ -182,6 +197,8 @@ class ClassResolver(StaticResolver):
             user_keys=user_keys,
             from_date=None,  # from -inf
             to_date=None,  # to inf
+            limit=limit,
+            cursor=cursor,
             **kwargs,
         )
 

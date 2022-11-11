@@ -5,6 +5,7 @@ from typing import Any
 from uuid import UUID
 
 from mora.common import get_connector
+from mora.graphapi.versions.latest.schema import Cursor
 from mora.handler.reading import get_handler_for_type
 from mora.mapping import MoOrgFunk
 
@@ -37,7 +38,12 @@ def _extract_search_params(query_args: dict[Any | MoOrgFunk, Any]) -> dict[Any, 
     return args
 
 
-async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]]:
+async def search_role_type(
+    role_type: str,
+    limit: int | None = None,
+    cursor: Cursor | None = None,
+    **kwargs: Any,
+) -> list[dict[str, Any]]:
     connector = get_connector()
     handler = get_handler_for_type(role_type)
     return await handler.get(
@@ -46,6 +52,8 @@ async def search_role_type(role_type: str, **kwargs: Any) -> list[dict[str, Any]
             query_args={
                 "at": None,
                 "validity": None,
+                "limit": limit,
+                "cursor": cursor,
                 **kwargs,  # type: ignore
             }
         ),
