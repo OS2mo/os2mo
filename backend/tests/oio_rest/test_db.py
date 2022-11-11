@@ -1632,34 +1632,6 @@ class TestPGErrors(unittest.TestCase):
             db.object_exists(classname, uuid)
 
     @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_get_document_from_content_url_raises_on_pgerror(self, mock_get_conn):
-        # type: (MagicMock) -> None
-
-        # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        cursor.execute.side_effect = TestPGErrors.TestException
-
-        # Act
-        with pytest.raises(DBException):
-            db.get_document_from_content_url("")
-
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
-    def test_get_document_from_content_url_raises_on_unknown_pgerror(
-        self, mock_get_conn
-    ):
-        # type: (MagicMock) -> None
-
-        # Arrange
-        cursor = get_mocked_cursor(mock_get_conn)
-        exception = TestPGErrors.TestException()
-        exception.pgcode = "12345"
-        cursor.execute.side_effect = exception
-
-        # Act
-        with pytest.raises(TestPGErrors.TestException):
-            db.get_document_from_content_url("")
-
-    @patch("oio_rest.db.psycopg2.Error", new=TestException)
     def test_create_or_import_object_raises_on_pgerror(self, mock_get_conn):
         # type: (MagicMock) -> None
 
