@@ -26,11 +26,11 @@ def get_citizen(cpr: str) -> dict[str, Any]:
 
     sp_uuids = {
         "service_agreement": str(settings.sp_settings.sp_agreement_uuid),
-        "user_system": str(settings.sp_settings.sp_user_system_uuid),
+        "user_system": str(settings.sp_settings.sp_system_uuid),
         "user": str(settings.sp_settings.sp_municipality_uuid),
         "service": str(settings.sp_settings.sp_service_uuid),
     }
-    certificate = settings.sp_settings.sp_certificate_path
+    certificate = str(settings.sp_settings.sp_certificate_path)
     sp_production = settings.sp_settings.sp_production
     try:
         return service_person_stamdata_udvidet.get_citizen(
