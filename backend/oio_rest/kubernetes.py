@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
+
 from fastapi import APIRouter
 from fastapi import Response
 from starlette.status import HTTP_204_NO_CONTENT
@@ -22,6 +24,6 @@ async def liveness():
 @kubernetes_router.get("/ready", status_code=HTTP_204_NO_CONTENT)
 async def readiness(response: Response):
     try:
-        object_exists("Organisation", _UUID_DUMMY)
+        await asyncio.to_thread(object_exists, "Organisation", _UUID_DUMMY)
     except DBException:
         response.status_code = HTTP_503_SERVICE_UNAVAILABLE

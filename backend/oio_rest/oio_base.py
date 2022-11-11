@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2015-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 """Superclasses for OIO objects and object hierarchies."""
+import asyncio
 import datetime
 import json
 from abc import ABCMeta
@@ -399,7 +400,9 @@ class OIORestObject:
 
         note = typed_get(input, "note", "")
         registration = cls.gather_registration(input)
-        uuid = db.create_or_import_object(cls.__name__, note, registration)
+        uuid = await asyncio.to_thread(
+            db.create_or_import_object, cls.__name__, note, registration
+        )
         # Pass log info on request object.
         # request.api_operation = "Opret"
         # request.uuid = uuid
@@ -486,7 +489,8 @@ class OIORestObject:
             # Fill out a registration object based on the query arguments
             registration = build_registration(cls.__name__, list_args)
             # request.api_operation = "Søg"
-            results = ConfiguredDBInterface().searcher.search_objects(
+            results = await asyncio.to_thread(
+                ConfiguredDBInterface().searcher.search_objects,
                 class_name=cls.__name__,
                 uuid=uuid_param,
                 registration=registration,
@@ -505,7 +509,8 @@ class OIORestObject:
 
             if args.get("list") is not None:
                 # request.api_operation = "List"
-                results = list_fn(
+                results = await asyncio.to_thread(
+                    list_fn,
                     cls.__name__,
                     results[0],
                     virkning_fra,
@@ -518,7 +523,8 @@ class OIORestObject:
         else:
             uuid_param = list_args.get("uuid", None)
             # request.api_operation = "List"
-            results = list_fn(
+            results = await asyncio.to_thread(
+                list_fn,
                 cls.__name__,
                 uuid_param,
                 virkning_fra,
@@ -559,7 +565,8 @@ class OIORestObject:
 
         # request.api_operation = "Læs"
         # request.uuid = uuid
-        object_list = list_fn(
+        object_list = await asyncio.to_thread(
+            list_fn,
             cls.__name__,
             [uuid],
             virkning_fra,
@@ -632,7 +639,7 @@ class OIORestObject:
         # Get most common parameters if available.
         note = typed_get(input, "note", "")
         registration = cls.gather_registration(input)
-        exists = db.object_exists(cls.__name__, uuid)
+        exists = await asyncio.to_thread(db.object_exists, cls.__name__, uuid)
         deleted_or_passive = False
         if exists:
             livscyklus = db.get_life_cycle_code(cls.__name__, uuid)
@@ -647,11 +654,14 @@ class OIORestObject:
         if not exists:
             # Do import.
             # request.api_operation = "Import"
-            db.create_or_import_object(cls.__name__, note, registration, uuid)
+            await asyncio.to_thread(
+                db.create_or_import_object, cls.__name__, note, registration, uuid
+            )
         elif deleted_or_passive:
             # Import.
             # request.api_operation = "Import"
-            db.update_object(
+            await asyncio.to_thread(
+                db.update_object,
                 cls.__name__,
                 note,
                 registration,
@@ -661,7 +671,9 @@ class OIORestObject:
         else:
             # Edit.
             # request.api_operation = "Ret"
-            db.create_or_import_object(cls.__name__, note, registration, uuid)
+            await asyncio.to_thread(
+                db.create_or_import_object, cls.__name__, note, registration, uuid
+            )
         return {"uuid": uuid}
 
     @classmethod
@@ -678,7 +690,7 @@ class OIORestObject:
         uuid = str(uuid)
 
         # If the object doesn't exist, we can't patch it.
-        if not db.object_exists(cls.__name__, uuid):
+        if not await asyncio.to_thread(db.object_exists, cls.__name__, uuid):
             raise NotFoundException(
                 "No {} with ID {} found in service {}".format(
                     cls.__name__, uuid, cls.service_name
@@ -703,11 +715,15 @@ class OIORestObject:
             # Passivate
             # request.api_operation = "Passiver"
             registration = cls.gather_registration({})
-            db.passivate_object(cls.__name__, note, registration, uuid)
+            await asyncio.to_thread(
+                db.passivate_object, cls.__name__, note, registration, uuid
+            )
         else:
             # Edit/change
             # request.api_operation = "Ret"
-            db.update_object(cls.__name__, note, registration, uuid)
+            await asyncio.to_thread(
+                db.update_object, cls.__name__, note, registration, uuid
+            )
         return {"uuid": uuid}
 
     @classmethod
@@ -728,7 +744,7 @@ class OIORestObject:
         registration = cls.gather_registration({})
         # request.api_operation = "Slet"
         # request.uuid = uuid
-        db.delete_object(class_name, registration, note, uuid)
+        await asyncio.to_thread(db.delete_object, class_name, registration, note, uuid)
 
         return {"uuid": uuid}
 
