@@ -105,8 +105,8 @@ LEAVE_TYPE = "leave_type"
 # Manager
 MANAGER_KEY = "Leder"
 MANAGER = "manager"
-MANAGER_TYPE = "manager_type"
-MANAGER_LEVEL = "manager_level"
+MANAGER_TYPE = "manager_type_uuid"
+MANAGER_LEVEL = "manager_level_uuid"
 RESPONSIBILITY = "responsibility"
 
 # Engagement association

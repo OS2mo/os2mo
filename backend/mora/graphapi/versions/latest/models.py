@@ -868,9 +868,9 @@ class ManagerCreate(Manager):
 
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
 
-    manager_level: UUID = Field(description="UUID of the managers level.")
+    manager_level_uuid: UUID = Field(description="UUID of the managers level.")
 
-    manager_type: UUID = Field(description="UUID of the managers type..")
+    manager_type_uuid: UUID = Field(description="UUID of the managers type.")
 
     validity: RAValidity = Field(description="Validity range for the manager.")
 
@@ -890,8 +890,8 @@ class ManagerCreate(Manager):
             "person": gen_uuid(self.person),
             "responsibility": responsibilities,
             "org_unit": gen_uuid(self.org_unit),
-            "manager_level": gen_uuid(self.manager_level),
-            "manager_type": gen_uuid(self.manager_type),
+            "manager_level_uuid": gen_uuid(self.manager_level_uuid),
+            "manager_type_uuid": gen_uuid(self.manager_type_uuid),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -923,11 +923,11 @@ class ManagerUpdate(Manager):
     org_unit: UUID | None = Field(
         description="UUID of the managers organisation unit to be updated."
     )
-    manager_type: UUID | None = Field(
+    manager_type_uuid: UUID | None = Field(
         description="UUID of the managers type to be updated."
     )
 
-    manager_level: UUID | None = Field(
+    manager_level_uuid: UUID | None = Field(
         description="UUID of the managers level to be updated."
     )
 
@@ -948,8 +948,8 @@ class ManagerUpdate(Manager):
             "person": gen_uuid(self.person),
             "responsibility": self.responsibility,
             "org_unit": gen_uuid(self.org_unit),
-            "manager_type": gen_uuid(self.manager_type),
-            "manager_level": gen_uuid(self.manager_level),
+            "manager_type_uuid": gen_uuid(self.manager_type_uuid),
+            "manager_level_uuid": gen_uuid(self.manager_level_uuid),
         }
         if self.responsibility:
             data_dict["responsibility"] = [

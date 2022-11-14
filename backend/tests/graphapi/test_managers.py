@@ -218,8 +218,8 @@ async def test_create_manager_integration_test(
             person=st.just(employee_uuid),
             responsibility=st.just(responsibility_uuids),
             org_unit=st.sampled_from(org_uuids),
-            manager_type=st.sampled_from(manager_type_uuids),
-            manager_level=st.sampled_from(manager_level_uuids),
+            manager_type_uuid=st.sampled_from(manager_type_uuids),
+            manager_level_uuid=st.sampled_from(manager_level_uuids),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -250,8 +250,8 @@ async def test_create_manager_integration_test(
                     employee: employee_uuid
                     responsibility: responsibility_uuids
                     org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
+                    manager_type_uuid: manager_type_uuid
+                    manager_level_uuid: manager_level_uuid
                     validity {
                         from
                         to
@@ -273,8 +273,8 @@ async def test_create_manager_integration_test(
     assert responsibility_list == test_data.responsibility
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.person
-    assert UUID(obj["manager_type"]) == test_data.manager_type
-    assert UUID(obj["manager_level"]) == test_data.manager_level
+    assert UUID(obj["manager_type_uuid"]) == test_data.manager_type_uuid
+    assert UUID(obj["manager_level_uuid"]) == test_data.manager_level_uuid
     assert obj["user_key"] == test_data.user_key or str(uuid)
 
     assert (
@@ -301,8 +301,8 @@ async def test_create_manager_integration_test(
             "person": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "responsibility": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "manager_level": None,
-            "manager_type": None,
+            "manager_level_uuid": None,
+            "manager_type_uuid": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -311,14 +311,14 @@ async def test_create_manager_integration_test(
             "person": None,
             "responsibility": None,
             "org_unit": None,
-            "manager_type": None,
+            "manager_type_uuid": None,
             # This is a known issue: if "manager_level" is set to None, the
             # "responsibility" field may NOT be updated. If manager_level is set to be
             # updated, the "responsibility" field may NOT be set to None. In other
             # words: if "manager_level" is to be updated, then "responsibility" is also
             # expected to be updated, and if "manager_level" is not set to be updated,
             # then neither may "responsibility" be updated.
-            "manager_level": None,
+            "manager_level_uuid": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -327,8 +327,8 @@ async def test_create_manager_integration_test(
             "person": None,
             "responsibility": ["93ea44f9-127c-4465-a34c-77d149e3e928"],
             "org_unit": None,
-            "manager_level": "ca76a441-6226-404f-88a9-31e02e420e52",
-            "manager_type": None,
+            "manager_level_uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+            "manager_type_uuid": None,
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -337,8 +337,8 @@ async def test_create_manager_integration_test(
             "person": None,
             "responsibility": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "manager_level": None,
-            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+            "manager_level_uuid": None,
+            "manager_type_uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
@@ -351,8 +351,8 @@ async def test_create_manager_integration_test(
                 "93ea44f9-127c-4465-a34c-77d149e3e928",
             ],
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-            "manager_level": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
-            "manager_type": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
+            "manager_level_uuid": "d56f174d-c45d-4b55-bdc6-c57bf68238b9",
+            "manager_type_uuid": "a22f8575-89b4-480b-a7ba-b3f1372e25a4",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
     ],
@@ -371,8 +371,8 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
                     person: employee_uuid
                     responsibility: responsibility_uuids
                     org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
+                    manager_type_uuid: manager_type_uuid
+                    manager_level_uuid: manager_level_uuid
                     validity {
                         from
                         to
@@ -409,8 +409,8 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
                     person: employee_uuid
                     responsibility: responsibility_uuids
                     org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
+                    manager_type_uuid: manager_type_uuid
+                    manager_level_uuid: manager_level_uuid
                     validity {
                         from
                         to
