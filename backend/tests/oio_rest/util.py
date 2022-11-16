@@ -157,6 +157,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
             list ordering
 
             """
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
             if isinstance(obj, dict):
                 return {k: sort_inner_lists(v) for k, v in obj.items()}
             elif isinstance(obj, (list, tuple)):

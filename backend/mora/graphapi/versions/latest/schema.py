@@ -509,8 +509,12 @@ class Engagement:
         permission_classes=[gen_read_permission("employee")],
     )
     async def employee(self, root: EngagementRead, info: Info) -> list["Employee"]:
+
         loader: DataLoader = info.context["employee_loader"]
-        return (await loader.load(root.employee_uuid)).objects
+        test = await loader.load(root.employee_uuid)
+        print(self)
+        print("************************************", test)
+        return test
 
     @strawberry.field(
         description="Related organisation unit",

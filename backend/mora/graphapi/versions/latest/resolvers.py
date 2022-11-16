@@ -63,6 +63,7 @@ class StaticResolver:
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
+        print("******************** INTERNAL RESOLVE *********************")
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
         if uuids is not None:
@@ -154,6 +155,8 @@ class Resolver(StaticResolver):
         models = [model for model in MOModels if model != []]
         models = models[:limit]
         end_cursor: int = (cursor or 0) + len(models)
+        print("******************* GET_BY_UUID *******************")
+        print(models)
         return Paged(objects=models, page_info=PageInfo(next_cursor=end_cursor))
 
 
@@ -314,6 +317,7 @@ class EmployeeResolver(Resolver):
         cursor: Cursor | None = None,
     ):
         """Resolve employees."""
+        print("*********************** EMPLOYEE_RESOLVER *********************'")
         kwargs = {}
         if cpr_numbers is not None:
             kwargs["tilknyttedepersoner"] = [
@@ -348,6 +352,7 @@ class EngagementResolver(Resolver):
         cursor: Cursor | None = None,
     ):
         """Resolve engagements."""
+        print("*************** ENGAGEMENT_RESOLVER *******************")
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees

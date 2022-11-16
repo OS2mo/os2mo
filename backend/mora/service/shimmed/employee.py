@@ -66,6 +66,7 @@ async def get_employee(
 
         def transformer(data: dict[str, Any]) -> dict[str, Any]:
             employees = flatten_data(data["employees"])
+            print("qqqqqqqqqqqqqqqq", employees)
             employee = one(employees)
             return {
                 **employee,
@@ -83,6 +84,7 @@ async def get_employee(
     )
     handle_gql_error(response)
     if not flatten_data(response.data["employees"]):
+        print("1111111111111111111111111111")
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(response.data)

@@ -100,6 +100,8 @@ async def get_mo(
     results = await search_role_type(mo_type, limit, cursor, **kwargs)
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
     end_cursor: int = (cursor or 0) + len(parsed_results)
+    print("********************* GET MO ********************")
+    print("GET MO :", parsed_results)
     return Paged(objects=parsed_results, page_info=PageInfo(next_cursor=end_cursor))
 
 
@@ -116,6 +118,8 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[MOModel]:
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
+    print("********************* LOAD MO  ********************")
+    print("LOAD MO :", parsed_results)
     # jeg fatter ikke hvordan det her hænger sammen. Det er giga klammo, men det virker
     # kun hvis jeg sender en liste med MOModels til `get_by_uuid`, som så laver det til
     # et `Paged` objekt..

@@ -10,7 +10,6 @@ from typing import Any
 from typing import Optional
 from uuid import UUID
 
-from more_itertools import flatten
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
@@ -36,6 +35,7 @@ class MOEmployee(EmployeeRead):
 
     @root_validator(pre=True)
     def handle_deprecated_keys(cls, values: dict[str, Any]) -> dict[str, Any]:
+        print("3333333333333333333333333333333333333333333333")
         # noop overriding parent method - we need name & nickname
         return values
 
@@ -212,7 +212,7 @@ async def execute_graphql(
     return await schema.execute(*args, **kwargs)
 
 
-def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:
+def flatten_data(resp_dicts: dict[str, Any]) -> list[Any]:
     """Function to flatten response data into just the objects.
 
     Args:
@@ -221,4 +221,4 @@ def flatten_data(resp_dicts: list[dict[str, Any]]) -> list[Any]:
     Returns:
         List of response objects.
     """
-    return list(flatten([d["objects"] for d in resp_dicts]))
+    return list([d for d in resp_dicts["objects"]])
