@@ -18,12 +18,12 @@ from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
-from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import paged_search
+from .ldap import single_object_search
 from .ldap_classes import LdapEmployee
 
 
@@ -88,22 +88,10 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
             % (user_context["cpr_field"], cpr),
             "attributes": attributes,
         }
-
-        ldap_connection.search(**searchParameters)
-        response = ldap_connection.response
-
-        search_entries = [r for r in response if r["type"] == "searchResEntry"]
-
-        if len(search_entries) > 1:
-            logger.info(response)
-            raise MultipleObjectsReturnedException(
-                "Found multiple entries for cpr=%s" % cpr
-            )
-        elif len(search_entries) == 0:
-            raise NoObjectsReturnedException("Found no entries for cpr=%s" % cpr)
+        search_result = single_object_search(searchParameters, ldap_connection)
 
         employee: LdapEmployee = make_ldap_object(
-            search_entries[0], LdapEmployee, attributes, context
+            search_result, LdapEmployee, attributes, context
         )
 
         logger.info("Found %s" % employee)

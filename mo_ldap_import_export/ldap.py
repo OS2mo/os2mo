@@ -22,6 +22,8 @@ from more_itertools import only
 
 from .config import ServerConfig
 from .config import Settings
+from .exceptions import MultipleObjectsReturnedException
+from .exceptions import NoObjectsReturnedException
 
 
 def construct_server(server_config: ServerConfig) -> Server:
@@ -180,3 +182,23 @@ def paged_search(context: Context, searchParameters: dict) -> list:
             break
 
     return responses
+
+
+def single_object_search(searchParameters, ldap_connection):
+    ldap_connection.search(**searchParameters)
+    response = ldap_connection.response
+    logger = structlog.get_logger()
+
+    search_entries = [r for r in response if r["type"] == "searchResEntry"]
+
+    if len(search_entries) > 1:
+        logger.info(response)
+        raise MultipleObjectsReturnedException(
+            "Found multiple entries for %s" % str(searchParameters)
+        )
+    elif len(search_entries) == 0:
+        raise NoObjectsReturnedException(
+            "Found no entries for %s" % str(searchParameters)
+        )
+    else:
+        return search_entries[0]
