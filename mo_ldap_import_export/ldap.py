@@ -115,7 +115,7 @@ def get_ldap_superiors(ldap_connection, ldap_object: Union[str, None]):
     return superiors
 
 
-def get_ldap_attributes(ldap_connection, root_ldap_object: Union[str, None]):
+def get_ldap_attributes(ldap_connection, root_ldap_object: str):
     """
     ldap_connection : ldap connection object
     ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
