@@ -94,18 +94,19 @@ async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
-def get_ldap_schema(ldap_connection):
+def get_ldap_schema(ldap_connection: Connection):
     return ldap_connection.server.schema
 
 
-def get_ldap_object_schema(ldap_connection, ldap_object: str):
+def get_ldap_object_schema(ldap_connection: Connection, ldap_object: str):
     schema = get_ldap_schema(ldap_connection)
     return schema.object_classes[ldap_object]
 
 
-def get_ldap_superiors(ldap_connection, ldap_object: Union[str, None]):
+def get_ldap_superiors(ldap_connection: Connection, root_ldap_object: str):
 
     superiors = []
+    ldap_object: Union[str, None] = root_ldap_object
     while ldap_object is not None:
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         ldap_object = only(always_iterable(object_schema.superior))
@@ -115,7 +116,7 @@ def get_ldap_superiors(ldap_connection, ldap_object: Union[str, None]):
     return superiors
 
 
-def get_ldap_attributes(ldap_connection, root_ldap_object: str):
+def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     """
     ldap_connection : ldap connection object
     ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
