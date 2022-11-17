@@ -107,8 +107,8 @@ def get_ldap_superiors(ldap_connection, ldap_object: Union[str, None]):
 
     superiors = []
     while ldap_object is not None:
-        schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        ldap_object = only(always_iterable(schema.superior))
+        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
+        ldap_object = only(always_iterable(object_schema.superior))
         if ldap_object is not None:
             superiors.append(ldap_object)
 
@@ -126,10 +126,10 @@ def get_ldap_attributes(ldap_connection, root_ldap_object: Union[str, None]):
     superiors = get_ldap_superiors(ldap_connection, root_ldap_object)
 
     for ldap_object in [root_ldap_object] + superiors:
-        schema = get_ldap_object_schema(ldap_connection, ldap_object)
+        object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         if ldap_object != "top":
             logger.info("Fetching allowed objects for %s" % ldap_object)
-            all_attributes += schema.may_contain
+            all_attributes += object_schema.may_contain
     return all_attributes
 
 
