@@ -24,6 +24,7 @@ from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
 from .ldap import paged_search
 from .ldap import single_object_search
+from .ldap_classes import GenericLdapObject
 from .ldap_classes import LdapEmployee
 
 
@@ -45,27 +46,68 @@ class Dataloaders(BaseModel):
     ldap_populated_overview_loader: DataLoader
 
 
-def make_ldap_object(
-    response: dict, object_class: Any, attributes: list, context: Context
-) -> Any:
+def is_dn(value):
+    if type(value) is not str:
+        return False
+    elif ("CN=" in value) and ("OU=" in value) and ("DC=" in value):
+        return True
+    else:
+        return False
+
+
+def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
     """
     Takes an ldap response and formats it as a class
     """
+    logger = structlog.get_logger()
+    user_context = context["user_context"]
+    ldap_connection = user_context["ldap_connection"]
+    attributes = list(response["attributes"].keys())
+    cpr_field = user_context["cpr_field"]
 
     ldap_dict = {"dn": response["dn"]}
 
-    if object_class.__name__ == "LdapEmployee":
+    object_class: Any
+    if cpr_field in attributes:
+        object_class = LdapEmployee
+
         # The employee class must contain a cpr number field
-        cpr_field = context["user_context"]["cpr_field"]
         cpr_number = response["attributes"][cpr_field]
 
         # TODO: Add a cpr number check here?
         ldap_dict["cpr"] = str(cpr_number)
 
+    else:
+        object_class = GenericLdapObject
+
+    def get_ldap_object(dn):
+
+        if nest is False:
+            return dn
+
+        searchParameters = {
+            "search_base": dn,
+            "search_filter": "(objectclass=*)",
+            "attributes": ["*"],
+        }
+        search_result = single_object_search(searchParameters, ldap_connection)
+        logger.info("[make_ldap_object] Found %s" % search_result["dn"])
+
+        return make_ldap_object(search_result, context, nest=False)
+
+    def is_other_dn(value):
+        return is_dn(value) & (value != response["dn"])
+
     for attribute in attributes:
         value = response["attributes"][attribute]
-        if (value == []) or (type(value) is bytes):
+        if value == []:
             ldap_dict[attribute] = None
+        elif is_other_dn(value):
+            ldap_dict[attribute] = get_ldap_object(value)
+        elif type(value) is list:
+            ldap_dict[attribute] = [
+                get_ldap_object(v) if is_other_dn(v) else v for v in value
+            ]
         else:
             ldap_dict[attribute] = value
 
@@ -79,22 +121,19 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
     search_base = user_context["settings"].ldap_search_base
     ldap_connection = user_context["ldap_connection"]
     output = []
-    attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
 
     for cpr in keys:
         searchParameters = {
             "search_base": search_base,
             "search_filter": "(&(objectclass=organizationalPerson)(%s=%s))"
             % (user_context["cpr_field"], cpr),
-            "attributes": attributes,
+            "attributes": ["*"],
         }
         search_result = single_object_search(searchParameters, ldap_connection)
 
-        employee: LdapEmployee = make_ldap_object(
-            search_result, LdapEmployee, attributes, context
-        )
+        employee: LdapEmployee = make_ldap_object(search_result, context)
 
-        logger.info("Found %s" % employee)
+        logger.info("Found %s" % employee.dn)
         output.append(employee)
 
     return output
@@ -104,20 +143,15 @@ async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmplo
     """
     Returns list with all organizationalPersons
     """
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
-
-    attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
-
     searchParameters = {
         "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": attributes,
+        "attributes": ["*"],
     }
 
     responses = paged_search(context, searchParameters)
 
     output: list[LdapEmployee] = [
-        make_ldap_object(r, LdapEmployee, attributes, context) for r in responses
+        make_ldap_object(r, context, nest=False) for r in responses
     ]
 
     return [output]

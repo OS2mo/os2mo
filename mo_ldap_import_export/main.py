@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi import Response
 from fastapi import status
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
@@ -178,6 +179,13 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     return fastramqpi
 
 
+def encode_result(result):
+    json_compatible_result = jsonable_encoder(
+        result, custom_encoder={bytes: lambda v: None}
+    )
+    return json_compatible_result
+
+
 def create_app(**kwargs: Any) -> FastAPI:
     """FastAPI application factory.
 
@@ -215,7 +223,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         logger.info("Manually triggered LDAP request of %s" % cpr)
 
         result = await dataloaders.ldap_employee_loader.load(cpr)
-        return result
+        return encode_result(result)
 
     # Get a specific person from LDAP - Converted to MO
     @app.get("/LDAP/employee/{dn}/converted", status_code=202)
@@ -242,7 +250,8 @@ def create_app(**kwargs: Any) -> FastAPI:
         logger.info("Manually triggered LDAP request of all employees")
 
         result = await dataloaders.ldap_employees_loader.load(1)
-        return result
+
+        return encode_result(result)
 
     # Modify a person in LDAP
     @app.post("/LDAP/employee")

@@ -10,21 +10,80 @@ Created on Mon Oct 24 09:37:25 2022
 
 @author: nick
 """
+import json
 import random
 
+import pandas as pd
 import requests  # type: ignore
 
-# Get all users from LDAP
+# Dataframe display settings
+pd.set_option("display.large_repr", "info")
+pd.set_option("display.max_info_columns", 1000)
+
+
+def reduce_dict(d):
+    # Returns a dict with only the relevant parameters for nested entries
+    return {
+        "cpr": d["cpr"],
+        "dn": d["dn"],
+    }
+
+
+# Cleans out None values and nested dicts so we can print it on screen.
+def clean_dict(d):
+    output_dict = {}
+    for key, value in d.items():
+        if value is None:
+            # Remove empty values
+            continue
+        elif type(value) is dict:
+            # Cleanup nested entries
+            if "cpr" in value.keys():
+                output_dict[key] = reduce_dict(value)
+            else:
+                output_dict[key] = value
+        elif type(value) is list:
+            cleaned_list = []
+            for list_entry in value:
+                if type(list_entry) is dict:
+                    if "cpr" in list_entry.keys():
+                        list_entry = reduce_dict(list_entry)
+                cleaned_list.append(list_entry)
+            output_dict[key] = cleaned_list
+        else:
+            output_dict[key] = value
+
+    return output_dict
+
+
+def pretty_print(d):
+    print(json.dumps(clean_dict(d), sort_keys=True, indent=4))
+
+
+# %% Get all users from LDAP
 r = requests.get("http://0.0.0.0:8000/LDAP/employee")
-print("Found a user from LDAP:")
-ad_user = r.json()[300]
-print(ad_user)
+print("Found all user from LDAP:")
+df = pd.DataFrame(r.json())
+print(df)
 print("")
 
+# Get a single user from LDAP
+ad_user = r.json()[300]
+r2 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % ad_user["cpr"])
+print("Here is a single user:")
+ad_user_detailed = r2.json()
+pretty_print(ad_user_detailed)
+
+# Get his manager from LDAP
+manager_cpr = ad_user_detailed["manager"]["cpr"]
+r3 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % manager_cpr)
+print("Here is his manager:")
+pretty_print(r3.json())
+
 # Get a user from LDAP (Converted to MO)
-r2 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s/converted" % ad_user["cpr"])
+r4 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s/converted" % ad_user["cpr"])
 print("Here is the same user, MO style:")
-print(r2.json())
+pretty_print(r4.json())
 print("")
 
 # %% Modify a user in LDAP
