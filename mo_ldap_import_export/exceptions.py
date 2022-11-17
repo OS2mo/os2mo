@@ -9,3 +9,11 @@ class MultipleObjectsReturnedException(Exception):
 
 class NoObjectsReturnedException(Exception):
     pass
+
+
+class CprNoNotFound(Exception):
+    pass
+
+
+class IncorrectMapping(Exception):
+    pass

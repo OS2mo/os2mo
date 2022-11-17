@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 #
 # SPDX-License-Identifier: MPL-2.0
-"""AD Connection handling."""
+"""LDAP Connection handling."""
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import cast
@@ -51,13 +51,13 @@ def get_client_strategy():
 
 
 def configure_ldap_connection(settings: Settings) -> ContextManager:
-    """Configure an AD connection.
+    """Configure an LDAP connection.
 
     Args:
         settings: The Settings instance to configure our ad connection with.
 
     Returns:
-        ContextManager that can be opened to establish an AD connection.
+        ContextManager that can be opened to establish an LDAP connection.
     """
     servers = list(map(construct_server, settings.ldap_controllers))
 
@@ -80,7 +80,7 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
 
 
 async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
-    """AD connection Healthcheck.
+    """LDAP connection Healthcheck.
 
     Args:
         context: To lookup ldap_connection in.

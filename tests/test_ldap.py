@@ -44,7 +44,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_CONTROLLERS": '[{"host": "111.111.111.111"}]',
         "CLIENT_ID": "foo",
         "CLIENT_SECRET": "bar",
-        "LDAP_DOMAIN": "AD",
+        "LDAP_DOMAIN": "LDAP",
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",

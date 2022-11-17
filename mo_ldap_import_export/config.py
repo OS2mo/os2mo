@@ -72,10 +72,10 @@ class Settings(BaseSettings):
         description="Password to use when authenticating with the domain controller",
     )
     ldap_search_base: str = Field(
-        ..., description="Search base to utilize for all AD requests"
+        ..., description="Search base to utilize for all LDAP requests"
     )
     ldap_organizational_unit: str = Field(
-        ..., description="Organizational unit to utilize for all AD requests"
+        ..., description="Organizational unit to utilize for all LDAP requests"
     )
 
     mo_url: AnyHttpUrl = Field(
