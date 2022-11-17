@@ -80,5 +80,30 @@ print("")
 url = "http://localhost:5000/medarbejder/%s#medarbejder" % mo_employee_to_post["uuid"]
 print("see:\n%s\nto validate that the nickname/name was appropriately changed" % url)
 
-# Finish
+# %% get an overview of all information in LDAP
+r = requests.get("http://0.0.0.0:8000/LDAP/overview")
+overview = r.json()
+print("Here is an overview of the classes in the LDAP structure:")
+print("[")
+for p in list(overview.keys())[:10]:
+    print(p)
+print("...]")
+
+print("")
+
+print("Here are the attributes which belong to organizationalPerson:")
+print("[")
+for p in list(overview["organizationalPerson"]["attributes"])[:10]:
+    print(p)
+print("...]")
+
+# %% And an overview which only contains fields that actually contain data:
+r = requests.get("http://0.0.0.0:8000/LDAP/overview/populated")
+populated_overview = r.json()
+
+print("And here are the fields that actually contain data for organizationalPerson:")
+print(populated_overview["organizationalPerson"])
+
+
+# %% Finish
 print("Success")

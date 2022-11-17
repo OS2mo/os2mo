@@ -14,6 +14,7 @@ from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
+from fastramqpi.context import Context
 from more_itertools import collapse
 from ramodels.mo.employee import Employee
 
@@ -22,8 +23,10 @@ from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.dataloaders import get_ldap_attributes
 from mo_ldap_import_export.dataloaders import LdapEmployee
+from mo_ldap_import_export.dataloaders import make_overview_entry
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.ldap import paged_search
 
 
 @pytest.fixture()
@@ -75,29 +78,35 @@ def settings(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture
-def dataloaders(
+def context(
     ldap_connection: MagicMock,
     gql_client: AsyncMock,
     model_client: AsyncMock,
     settings: Settings,
     cpr_field: str,
+) -> Context:
+
+    return {
+        "user_context": {
+            "settings": settings,
+            "ldap_connection": ldap_connection,
+            "gql_client": gql_client,
+            "model_client": model_client,
+            "cpr_field": cpr_field,
+        },
+    }
+
+
+@pytest.fixture
+def dataloaders(
+    context: Context,
 ) -> Iterator[Dataloaders]:
     """Fixture to construct a dataloaders object using fixture mocks.
 
     Yields:
         Dataloaders with mocked clients.
     """
-    dataloaders = configure_dataloaders(
-        {
-            "user_context": {
-                "settings": settings,
-                "ldap_connection": ldap_connection,
-                "gql_client": gql_client,
-                "model_client": model_client,
-                "cpr_field": cpr_field,
-            },
-        }
-    )
+    dataloaders = configure_dataloaders(context)
     yield dataloaders
 
 
@@ -188,7 +197,7 @@ async def test_load_ldap_employee_no_results(
 
 
 async def test_load_ldap_employees(
-    ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
+    dataloaders: Dataloaders, ldap_attributes: dict
 ) -> None:
     """Test that load_organizationalPersons works as expected."""
 
@@ -198,30 +207,16 @@ async def test_load_ldap_employees(
 
     expected_results = [LdapEmployee(dn=dn, cpr=cpr, **ldap_attributes)]
 
-    # Mock LDAP connection
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
-
-    # Simulate three pages
-    cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
-    results = iter(
-        [
-            {"controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}}}
-            for cookie in cookies
-        ]
-    )
-
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
-
-    # Every time a search is performed, point to the next page.
-    ldap_connection.search.side_effect = set_new_result
-
     # Get result from dataloader
-    output = await asyncio.gather(
-        dataloaders.ldap_employees_loader.load(0),
-    )
+    with patch(
+        "mo_ldap_import_export.dataloaders.paged_search",
+        return_value=[mock_ldap_response(ldap_attributes, dn)],
+    ):
+        output = await asyncio.gather(
+            dataloaders.ldap_employees_loader.load(0),
+        )
 
-    assert output == [expected_results * len(cookies)]
+    assert output == [expected_results]
 
 
 async def test_modify_ldap_employee(
@@ -437,5 +432,134 @@ async def test_get_ldap_attributes():
     ldap_connection.server.schema.object_classes = object_classes
 
     # test the function
-    output = get_ldap_attributes(ldap_connection, levels[0])
+    output = get_ldap_attributes(ldap_connection, str(levels[0]))
     assert output == expected_output
+
+
+async def test_paged_search(
+    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
+):
+
+    # Mock data
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    expected_results = [mock_ldap_response(ldap_attributes, dn)]
+
+    # Mock LDAP connection
+    ldap_connection.response = expected_results
+
+    # Simulate three pages
+    cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
+    results = iter(
+        [
+            {
+                "controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}},
+                "description": "OK",
+            }
+            for cookie in cookies
+        ]
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ldap_connection.result = next(results)
+
+    # Every time a search is performed, point to the next page.
+    ldap_connection.search.side_effect = set_new_result
+
+    searchParameters = {
+        "search_filter": "(objectclass=organizationalPerson)",
+        "attributes": ["foo", "bar"],
+    }
+    output = paged_search(context, searchParameters)
+
+    assert output == expected_results * len(cookies)
+
+
+async def test_invalid_paged_search(
+    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
+):
+
+    # Mock data
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
+
+    ldap_connection.result = {
+        "description": "operationsError",
+    }
+
+    searchParameters = {
+        "search_filter": "(objectclass=organizationalPerson)",
+        "attributes": ["foo", "bar"],
+    }
+    output = paged_search(context, searchParameters)
+
+    assert output == []
+
+
+async def test_make_overview_entry():
+
+    attributes = ["foo", "bar"]
+    superiors = ["state", "country", "world"]
+    entry = make_overview_entry(attributes, superiors)
+
+    assert entry == {"attributes": attributes, "superiors": superiors}
+
+
+async def test_get_overview(dataloaders: Dataloaders):
+
+    schema_mock = MagicMock()
+    schema_mock.object_classes = {"object1": "foo"}
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.get_ldap_schema",
+        return_value=schema_mock,
+    ), patch(
+        "mo_ldap_import_export.dataloaders.get_ldap_attributes",
+        return_value=["attr1", "attr2"],
+    ), patch(
+        "mo_ldap_import_export.dataloaders.get_ldap_superiors",
+        return_value=["sup1", "sup2"],
+    ):
+        output = (
+            await asyncio.gather(
+                dataloaders.ldap_overview_loader.load([1]),
+            )
+        )[0]
+
+    assert output == {
+        "object1": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
+    }
+
+
+async def test_get_populated_overview(dataloaders: Dataloaders):
+
+    overview = {
+        "object1": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
+    }
+
+    responses = [
+        {
+            "attributes": {
+                "attr1": "foo",  # We expect this attribute in the output
+                "attr2": None,  # But not this one
+            }
+        }
+    ]
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.load_ldap_overview",
+        return_value=[overview],
+    ), patch(
+        "mo_ldap_import_export.dataloaders.paged_search",
+        return_value=responses,
+    ):
+        output = (
+            await asyncio.gather(
+                dataloaders.ldap_populated_overview_loader.load([1]),
+            )
+        )[0]
+
+    assert output == {
+        "object1": {"attributes": ["attr1"], "superiors": ["sup1", "sup2"]}
+    }
