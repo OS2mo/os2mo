@@ -20,8 +20,9 @@ from fastramqpi.main import FastRAMQPI
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
+from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.dataloaders import Dataloaders
-from mo_ldap_import_export.dataloaders import LdapEmployee
+from mo_ldap_import_export.ldap_classes import LdapEmployee
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import listen_to_changes_in_employees
@@ -40,7 +41,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "CLIENT_ID": "Foo",
         "CLIENT_SECRET": "bar",
         "LDAP_CONTROLLERS": '[{"host": "localhost"}]',
-        "LDAP_DOMAIN": "AD",
+        "LDAP_DOMAIN": "LDAP",
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
@@ -214,9 +215,9 @@ async def test_seed_dataloaders(fastramqpi: FastRAMQPI) -> None:
 
 
 def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
-    """Test the AD get-all endpoint on our app."""
+    """Test the LDAP get-all endpoint on our app."""
 
-    response = test_client.get("/AD/employee")
+    response = test_client.get("/LDAP/employee")
     assert response.status_code == 202
 
 
@@ -226,23 +227,79 @@ def test_ldap_get_all_converted_endpoint(
     """Test the LDAP get-all endpoint on our app."""
 
     async def loader(x):
-        return [[LdapEmployee(Name="Tester", Department="QA", dn="someDN")]]
+        return [
+            [
+                LdapEmployee(
+                    name="Tester", Department="QA", dn="someDN", cpr="0101011234"
+                )
+            ]
+        ]
 
     empty_dataloaders.ldap_employees_loader = DataLoader(load_fn=loader, cache=False)
 
-    response = test_client.get("/AD/employee/converted")
+    response = test_client.get("/LDAP/employee/converted")
     assert response.status_code == 202
 
 
+def test_ldap_get_all_converted_endpoint_failure(
+    test_client: TestClient, empty_dataloaders: Dataloaders
+) -> None:
+    """Test the LDAP get-all endpoint on our app."""
+
+    async def loader(x):
+        return [
+            [LdapEmployee(name="Tester", Department="QA", dn="someDN", cpr="invalid")]
+        ]
+
+    empty_dataloaders.ldap_employees_loader = DataLoader(load_fn=loader, cache=False)
+
+    response = test_client.get("/LDAP/employee/converted")
+    assert response.status_code == 202
+
+
+def test_ldap_get_converted_endpoint(
+    test_client: TestClient, empty_dataloaders: Dataloaders
+) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    async def loader(x):
+        return [
+            LdapEmployee(name="Tester", Department="QA", dn="someDN", cpr="0101011234")
+        ]
+
+    empty_dataloaders.ldap_employee_loader = DataLoader(load_fn=loader, cache=False)
+
+    response = test_client.get("/LDAP/employee/foo/converted")
+    assert response.status_code == 202
+
+
+def test_ldap_get_converted_endpoint_failure(
+    test_client: TestClient, empty_dataloaders: Dataloaders
+) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    async def loader(x):
+        return [
+            LdapEmployee(name="Tester", Department="QA", dn="someDN", cpr="invalid")
+        ]
+
+    empty_dataloaders.ldap_employee_loader = DataLoader(load_fn=loader, cache=False)
+
+    response = test_client.get("/LDAP/employee/foo/converted")
+
+    assert response.status_code == 404
+
+
 def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
-    """Test the AD get-all endpoint on our app."""
+    """Test the LDAP get-all endpoint on our app."""
 
     ldap_person_to_post = {
         "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        "Name": "Lars Peter Thomsen",
+        "cpr": "0101121234",
+        "name": "Lars Peter Thomsen",
         "Department": None,
     }
-    response = test_client.post("/AD/employee", json=ldap_person_to_post)
+    response = test_client.post("/LDAP/employee", json=ldap_person_to_post)
     assert response.status_code == 200
 
 
@@ -284,9 +341,9 @@ def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
 
 
 def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
-    """Test the AD get endpoint on our app."""
+    """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/AD/employee/foo")
+    response = test_client.get("/LDAP/employee/foo")
     assert response.status_code == 202
 
 
@@ -297,22 +354,34 @@ async def test_listen_to_changes_in_employees() -> None:
     async def empty_fn(keys):
         return ["foo"] * len(keys)
 
-    dataloader_mock = MagicMock
+    dataloader_mock = MagicMock()
     dataloader_mock.mo_employee_loader = DataLoader(load_fn=employee_fn, cache=False)
 
     dataloader_mock.ldap_employees_uploader = DataLoader(load_fn=empty_fn, cache=False)
 
-    settings_mock = MagicMock
+    settings_mock = MagicMock()
     settings_mock.ldap_organizational_unit = "foo"
     settings_mock.ldap_search_base = "bar"
 
+    mapping = read_mapping_json(
+        os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
+    )
+
+    converter_mock = MagicMock()
+    converter_mock.cpr_field = "EmployeeID"
+
     context = {
-        "user_context": {"dataloaders": dataloader_mock, "app_settings": settings_mock}
+        "user_context": {
+            "dataloaders": dataloader_mock,
+            "settings": settings_mock,
+            "mapping": mapping,
+            "converter": converter_mock,
+        }
     }
-    payload = MagicMock
+    payload = MagicMock()
     payload.uuid = uuid4()
 
-    settings = MagicMock
+    settings = MagicMock()
     settings.ldap_organizational_unit = "OU=foo"
     settings.ldap_search_base = "DC=bar"
 
