@@ -432,7 +432,7 @@ async def test_get_ldap_attributes():
     ldap_connection.server.schema.object_classes = object_classes
 
     # test the function
-    output = get_ldap_attributes(ldap_connection, levels[0])
+    output = get_ldap_attributes(ldap_connection, str(levels[0]))
     assert output == expected_output
 
 
