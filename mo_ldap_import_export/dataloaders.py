@@ -12,9 +12,7 @@ import structlog
 from fastramqpi.context import Context
 from gql import gql
 from gql.client import AsyncClientSession
-from more_itertools import always_iterable
 from more_itertools import flatten
-from more_itertools import only
 from pydantic import BaseModel
 from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
@@ -22,6 +20,10 @@ from strawberry.dataloader import DataLoader
 
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .ldap import get_ldap_attributes
+from .ldap import get_ldap_schema
+from .ldap import get_ldap_superiors
+from .ldap import paged_search
 from .ldap_classes import LdapEmployee
 
 
@@ -39,23 +41,8 @@ class Dataloaders(BaseModel):
     mo_employees_loader: DataLoader
     mo_employee_uploader: DataLoader
     mo_employee_loader: DataLoader
-
-
-def get_ldap_attributes(ldap_connection, ad_object: Union[str, None]):
-    """
-    ldap_connection : ldap connection object
-    ad_object : ad_object to fetch attributes for. for example "organizationalPerson"
-    """
-
-    logger = structlog.get_logger()
-    all_attributes = []
-    while ad_object is not None:
-        schema = ldap_connection.server.schema.object_classes[ad_object]
-        if ad_object != "top":
-            logger.info("Fetching allowed objects for %s" % ad_object)
-            all_attributes += schema.may_contain
-        ad_object = only(always_iterable(schema.superior))
-    return all_attributes
+    ldap_overview_loader: DataLoader
+    ldap_populated_overview_loader: DataLoader
 
 
 def make_ldap_object(
@@ -129,37 +116,17 @@ async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmplo
     """
     Returns list with all organizationalPersons
     """
-    logger = structlog.get_logger()
     user_context = context["user_context"]
-    search_base = user_context["settings"].ldap_search_base
     ldap_connection = user_context["ldap_connection"]
 
-    responses = []
     attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
 
     searchParameters = {
-        "search_base": search_base,
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": attributes,
-        "paged_size": 500,  # TODO: Find this number from LDAP rather than hard-code it?
     }
 
-    # Max 10_000 pages to avoid eternal loops
-    for page in range(0, 10_000):
-        logger.info("searching page %d" % page)
-        ldap_connection.search(**searchParameters)
-        entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
-        responses.extend(entries)
-
-        # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
-        cookie = ldap_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
-            "cookie"
-        ]
-
-        if cookie and type(cookie) is bytes:
-            searchParameters["paged_cookie"] = cookie
-        else:
-            break
+    responses = paged_search(context, searchParameters)
 
     output: list[LdapEmployee] = [
         make_ldap_object(r, LdapEmployee, attributes, context) for r in responses
@@ -239,6 +206,61 @@ async def upload_ldap_employee(
     logger.info("Succeeded MODIFY_REPLACE operations: %d" % success)
     logger.info("Failed MODIFY_REPLACE operations: %d" % failed)
     return output
+
+
+def make_overview_entry(attributes, superiors):
+    return {
+        "attributes": attributes,
+        "superiors": superiors,
+    }
+
+
+async def load_ldap_overview(keys: list[int], context: Context):
+    user_context = context["user_context"]
+    ldap_connection = user_context["ldap_connection"]
+    schema = get_ldap_schema(ldap_connection)
+
+    all_object_classes = sorted(list(schema.object_classes.keys()))
+
+    output = {}
+    for ldap_class in all_object_classes:
+        all_attributes = get_ldap_attributes(ldap_connection, ldap_class)
+        superiors = get_ldap_superiors(ldap_connection, ldap_class)
+        output[ldap_class] = make_overview_entry(all_attributes, superiors)
+
+    return [output]
+
+
+async def load_ldap_populated_overview(keys: list[int], context: Context):
+    """
+    Like load_ldap_overview but only returns fields which actually contain data
+    """
+    nan_values: list[Union[None, list]] = [None, []]
+
+    output = {}
+    overview = (await load_ldap_overview([1], context))[0]
+
+    for ldap_class in overview.keys():
+        searchParameters = {
+            "search_filter": "(objectclass=%s)" % ldap_class,
+            "attributes": overview[ldap_class]["attributes"],
+        }
+
+        responses = paged_search(context, searchParameters)
+
+        populated_attributes = []
+        for attribute in overview[ldap_class]["attributes"]:
+            values = [r["attributes"][attribute] for r in responses]
+            values = [v for v in values if v not in nan_values]
+
+            if len(values) > 0:
+                populated_attributes.append(attribute)
+
+        if len(populated_attributes) > 0:
+            superiors = overview[ldap_class]["superiors"]
+            output[ldap_class] = make_overview_entry(populated_attributes, superiors)
+
+    return [output]
 
 
 def get_mo_employee_objects_str():
@@ -353,6 +375,8 @@ def configure_dataloaders(context: Context) -> Dataloaders:
         "ldap_employees_loader": load_ldap_employees,
         "ldap_employee_loader": load_ldap_employee,
         "ldap_employees_uploader": upload_ldap_employee,
+        "ldap_overview_loader": load_ldap_overview,
+        "ldap_populated_overview_loader": load_ldap_populated_overview,
     }
 
     ldap_dataloaders: dict[str, DataLoader] = {

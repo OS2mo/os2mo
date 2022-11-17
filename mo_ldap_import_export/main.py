@@ -276,4 +276,22 @@ def create_app(**kwargs: Any) -> FastAPI:
         result = await dataloaders.mo_employee_loader.load(uuid)
         return result
 
+    # Get LDAP overview
+    @app.get("/LDAP/overview", status_code=202)
+    async def load_overview_from_LDAP() -> Any:
+        """Request an overview of the LDAP structure"""
+        logger.info("Manually triggered LDAP request of overview")
+
+        result = await dataloaders.ldap_overview_loader.load(1)
+        return result
+
+    # Get populated LDAP overview
+    @app.get("/LDAP/overview/populated", status_code=202)
+    async def load_populated_overview_from_LDAP() -> Any:
+        """Request an overview of the LDAP structure"""
+        logger.info("Manually triggered LDAP request of populated overview")
+
+        result = await dataloaders.ldap_populated_overview_loader.load(1)
+        return result
+
     return app

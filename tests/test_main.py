@@ -390,3 +390,17 @@ async def test_listen_to_changes_in_employees() -> None:
     )
 
     assert output == [None]
+
+
+def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/LDAP/overview")
+    assert response.status_code == 202
+
+
+def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/LDAP/overview/populated")
+    assert response.status_code == 202
