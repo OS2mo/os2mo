@@ -81,6 +81,9 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         object_class = GenericLdapObject
 
     def get_ldap_object(dn):
+        """
+        Gets a ldap object based on its DN
+        """
 
         if nest is False:
             return dn

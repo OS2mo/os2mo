@@ -7,6 +7,7 @@
 """Test dataloaders."""
 import asyncio
 from collections.abc import Iterator
+from typing import Any
 from typing import Collection
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -21,8 +22,11 @@ from ramodels.mo.employee import Employee
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
+from mo_ldap_import_export.dataloaders import GenericLdapObject
 from mo_ldap_import_export.dataloaders import get_ldap_attributes
+from mo_ldap_import_export.dataloaders import is_dn
 from mo_ldap_import_export.dataloaders import LdapEmployee
+from mo_ldap_import_export.dataloaders import make_ldap_object
 from mo_ldap_import_export.dataloaders import make_overview_entry
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -74,6 +78,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
+    monkeypatch.setenv("LDAP_USER_CLASS", "user")
+
     return Settings()
 
 
@@ -563,3 +569,109 @@ async def test_get_populated_overview(dataloaders: Dataloaders):
     assert output == {
         "object1": {"attributes": ["attr1"], "superiors": ["sup1", "sup2"]}
     }
+
+
+async def test_is_dn():
+    dn = "CN=Harry Styles, OU=Band, DC=Stage"
+    assert is_dn(dn) is True
+    not_a_dn = "foo"
+    assert is_dn(not_a_dn) is False
+
+
+async def test_make_ldap_object(cpr_field: str, context: Context):
+
+    response: dict[str, Any] = {}
+    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["attributes"] = {
+        "Name": "Harry",
+        "Occupation": "Douchebag",
+        "manager": "CN=Jonie Mitchell, OU=Band, DC=Stage",
+        cpr_field: "0102041245",
+    }
+
+    ldap_object = make_ldap_object(response, context, nest=False)
+
+    expected_ldap_object = LdapEmployee(
+        **response["attributes"],
+        cpr=response["attributes"][cpr_field],
+        dn=response["dn"]
+    )
+
+    assert ldap_object == expected_ldap_object
+
+
+async def test_make_generic_ldap_object(cpr_field: str, context: Context):
+
+    # Note that there is no cpr field in the attributes.
+    # Indicating that this is not a person
+    response: dict[str, Any] = {}
+    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["attributes"] = {
+        "Name": "Harry",
+        "Occupation": "Douchebag",
+        "manager": "CN=Jonie Mitchell, OU=Band, DC=Stage",
+    }
+
+    ldap_object = make_ldap_object(response, context, nest=False)
+
+    expected_ldap_object = GenericLdapObject(
+        **response["attributes"], dn=response["dn"]
+    )
+
+    assert ldap_object == expected_ldap_object
+
+
+async def test_make_nested_ldap_object(cpr_field: str, context: Context):
+
+    # Here we expect the manager's entry to be another ldap object instead of a string
+    # As well as the band members
+    attributes_without_nests = {
+        "Name": "Harry",
+        "Occupation": "Douchebag",
+    }
+
+    response: dict[str, Any] = {}
+    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["attributes"] = attributes_without_nests.copy()
+    response["attributes"]["manager"] = "CN=Jonie Mitchell, OU=Band, DC=Stage"
+    response["attributes"]["band_members"] = [
+        "CN=George Harrisson, OU=Band, DC=Stage",
+        "CN=Ringo Starr, OU=Band, DC=Stage",
+    ]
+
+    # But we do not expect the manager and band members friends or buddies to be
+    # ldap objects
+    nested_response: dict[str, Any] = {}
+    nested_response["dn"] = "CN=Person with affiliation to Harry, OU=Band, DC=Stage"
+    nested_response["attributes"] = {
+        "Name": "Anonymous",
+        "Occupation": "Slave",
+        "best_friend": "CN=God, OU=Band, DC=Stage",
+        "buddies": [
+            "CN=Satan, OU=Band, DC=Stage",
+            "CN=Vladimir, OU=Band, DC=Stage",
+        ],
+    }
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.single_object_search",
+        return_value=nested_response,
+    ):
+        ldap_object = make_ldap_object(response, context, nest=True)
+
+    manager_ldap_object = GenericLdapObject(
+        **nested_response["attributes"], dn=nested_response["dn"]
+    )
+
+    band_members_ldap_objects = [
+        GenericLdapObject(**r["attributes"], dn=r["dn"]) for r in [nested_response] * 2
+    ]
+
+    expected_ldap_object = GenericLdapObject(
+        **attributes_without_nests,
+        dn=response["dn"],
+        manager=manager_ldap_object,
+        band_members=band_members_ldap_objects
+    )
+
+    assert ldap_object == expected_ldap_object

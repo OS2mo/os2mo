@@ -49,6 +49,7 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
+        "LDAP_USER_CLASS": "user",
     }
     yield overrides
 
