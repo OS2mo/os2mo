@@ -91,7 +91,7 @@ new_department = (
     "Department which will buy %d cakes for its colleagues" % random.randint(0, 10_000)
 )
 ldap_person_to_post = {
-    "dn": "CN=1212125556,OU=Users,OU=Magenta,DC=ad,DC=addev",
+    "dn": "CN=1212125557,OU=Users,OU=Magenta,DC=ad,DC=addev",
     "name": "Joe Jackson",
     "department": new_department,
     "cpr": "1212125556",
@@ -133,6 +133,7 @@ print("Successfully edited nickname_givenname to '%s' in MO" % nickname_givennam
 r = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % mo_employee_to_post["cpr_no"])
 assert r.json()["givenName"] == mo_employee_to_post["givenname"]
 assert r.json()["sn"] == mo_employee_to_post["surname"]
+print("Validated that the changes are reflected in LDAP")
 
 # Print the hyperlink to the employee.
 print("")
@@ -150,9 +151,9 @@ print("...]")
 
 print("")
 
-print("Here are the attributes which belong to organizationalPerson:")
+print("Here are the attributes which belong to user:")
 print("[")
-for p in list(overview["organizationalPerson"]["attributes"])[:10]:
+for p in list(overview["user"]["attributes"])[:10]:
     print(p)
 print("...]")
 
@@ -160,9 +161,8 @@ print("...]")
 r = requests.get("http://0.0.0.0:8000/LDAP/overview/populated")
 populated_overview = r.json()
 
-print("And here are the fields that actually contain data for organizationalPerson:")
-print(populated_overview["organizationalPerson"])
-
+print("And here are the fields that actually contain data for a user:")
+pretty_print(populated_overview["user"])
 
 # %% Finish
 print("Success")
