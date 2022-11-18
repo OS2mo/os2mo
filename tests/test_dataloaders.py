@@ -199,7 +199,7 @@ async def test_load_ldap_employee_no_results(
 async def test_load_ldap_employees(
     dataloaders: Dataloaders, ldap_attributes: dict
 ) -> None:
-    """Test that load_organizationalPersons works as expected."""
+    """Test that test_load_ldap_employees works as expected."""
 
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"

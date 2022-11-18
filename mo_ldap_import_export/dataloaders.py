@@ -119,14 +119,15 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
     logger = structlog.get_logger()
     user_context = context["user_context"]
     search_base = user_context["settings"].ldap_search_base
+    user_class = user_context["settings"].ldap_user_class
     ldap_connection = user_context["ldap_connection"]
     output = []
 
     for cpr in keys:
         searchParameters = {
             "search_base": search_base,
-            "search_filter": "(&(objectclass=organizationalPerson)(%s=%s))"
-            % (user_context["cpr_field"], cpr),
+            "search_filter": "(&(objectclass=%s)(%s=%s))"
+            % (user_class, user_context["cpr_field"], cpr),
             "attributes": ["*"],
         }
         search_result = single_object_search(searchParameters, ldap_connection)
@@ -141,10 +142,12 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
 
 async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmployee]]:
     """
-    Returns list with all organizationalPersons
+    Returns list with all employees
     """
+
+    user_class = context["user_context"]["settings"].ldap_user_class
     searchParameters = {
-        "search_filter": "(objectclass=organizationalPerson)",
+        "search_filter": "(objectclass=%s)" % user_class,
         "attributes": ["*"],
     }
 
@@ -164,8 +167,9 @@ async def upload_ldap_employee(
     logger = structlog.get_logger()
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
+    user_class = user_context["settings"].ldap_user_class
 
-    all_attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
+    all_attributes = get_ldap_attributes(ldap_connection, user_class)
     output = []
     success = 0
     failed = 0
@@ -211,7 +215,7 @@ async def upload_ldap_employee(
             # If the user does not exist, create him/her/hir
             if response["description"] == "noSuchObject":
                 logger.info("Creating %s" % dn)
-                ldap_connection.add(dn, "organizationalPerson")
+                ldap_connection.add(dn, user_class)
                 ldap_connection.modify(dn, changes)
                 response = ldap_connection.result
 
