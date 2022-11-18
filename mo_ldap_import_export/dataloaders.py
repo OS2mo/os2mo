@@ -47,6 +47,9 @@ class Dataloaders(BaseModel):
 
 
 def is_dn(value):
+    """
+    Determine if a value is a dn (distinguished name) string
+    """
     if type(value) is not str:
         return False
     elif ("CN=" in value) and ("OU=" in value) and ("DC=" in value):
@@ -99,6 +102,12 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         return make_ldap_object(search_result, context, nest=False)
 
     def is_other_dn(value):
+        """
+        Determine if the value is a dn (distinguished name)
+        But not the dn of the main object itself
+
+        This is to avoid that the code requests information about itself
+        """
         return is_dn(value) & (value != response["dn"])
 
     for attribute in attributes:
