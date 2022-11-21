@@ -191,7 +191,7 @@ def paged_search(context: Context, searchParameters: dict) -> list:
 
 def single_object_search(searchParameters, ldap_connection):
     """
-    Performs an LDAP search and throws an exception if there are mulitple or no search
+    Performs an LDAP search and throws an exception if there are multiple or no search
     results.
 
     Parameters
