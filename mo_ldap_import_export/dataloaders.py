@@ -58,22 +58,23 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
     search_base = settings.ldap_search_base
     user_class = settings.ldap_user_class
 
-    object_class_filter = "objectclass=%s" % user_class
+    object_class_filter = f"objectclass={user_class}"
     output = []
 
     for cpr in keys:
-        cpr_filter = "%s=%s" % (cpr_field, cpr)
+        cpr_filter = f"{cpr_field}={cpr}"
 
         searchParameters = {
             "search_base": search_base,
-            "search_filter": "(&(%s)(%s))" % (object_class_filter, cpr_filter),
+            "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": ["*"],
         }
         search_result = single_object_search(searchParameters, ldap_connection)
 
         employee: LdapEmployee = make_ldap_object(search_result, context)
 
-        logger.info("Found %s" % employee.dn)
+        dn = employee.dn
+        logger.info(f"Found {dn}")
         output.append(employee)
 
     return output
@@ -86,7 +87,7 @@ async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmplo
 
     user_class = context["user_context"]["settings"].ldap_user_class
     searchParameters = {
-        "search_filter": "(objectclass=%s)" % user_class,
+        "search_filter": f"(objectclass={user_class})",
         "attributes": ["*"],
     }
 
@@ -120,9 +121,9 @@ async def upload_ldap_employee(
                 context=context,
             )
             dn = existing_employee[0].dn
-            logger.info("Found existing employee: %s" % dn)
+            logger.info(f"Found existing employee: {dn}")
         except NoObjectsReturnedException as e:
-            logger.info("Could not find existing employee: %s" % e)
+            logger.info(f"Could not find existing employee: {e}")
 
             # Note: it is possible that the employee exists, but that the CPR no.
             # attribute is not set. In that case this function will just set the cpr no.
@@ -146,13 +147,13 @@ async def upload_ldap_employee(
             value_to_upload = [] if value is None else [value]
             changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
 
-            logger.info("Uploading the following changes: %s" % changes)
+            logger.info(f"Uploading the following changes: {changes}")
             ldap_connection.modify(dn, changes)
             response = ldap_connection.result
 
             # If the user does not exist, create him/her/hir
             if response["description"] == "noSuchObject":
-                logger.info("Creating %s" % dn)
+                logger.info(f"Creating {dn}")
                 ldap_connection.add(dn, user_class)
                 ldap_connection.modify(dn, changes)
                 response = ldap_connection.result
@@ -161,14 +162,14 @@ async def upload_ldap_employee(
                 success += 1
             else:
                 failed += 1
-            logger.info("Response: %s" % response)
+            logger.info(f"Response: {response}")
 
             results.append(response)
 
         output.append(results)
 
-    logger.info("Succeeded MODIFY_REPLACE operations: %d" % success)
-    logger.info("Failed MODIFY_REPLACE operations: %d" % failed)
+    logger.info(f"Succeeded MODIFY_REPLACE operations: {success}")
+    logger.info(f"Failed MODIFY_REPLACE operations: {failed}")
     return output
 
 
@@ -206,7 +207,7 @@ async def load_ldap_populated_overview(keys: list[int], context: Context):
 
     for ldap_class in overview.keys():
         searchParameters = {
-            "search_filter": "(objectclass=%s)" % ldap_class,
+            "search_filter": f"(objectclass={ldap_class})",
             "attributes": overview[ldap_class]["attributes"],
         }
 

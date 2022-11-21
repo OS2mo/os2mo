@@ -69,27 +69,28 @@ print("")
 
 # Get a single user from LDAP
 ad_user = r.json()[300]
-r2 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % ad_user["cpr"])
+cpr = ad_user["cpr"]
+r2 = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}")
 print("Here is a single user:")
 ad_user_detailed = r2.json()
 pretty_print(ad_user_detailed)
 
 # Get his manager from LDAP
 manager_cpr = ad_user_detailed["manager"]["cpr"]
-r3 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % manager_cpr)
+r3 = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{manager_cpr}")
 print("Here is his manager:")
 pretty_print(r3.json())
 
 # Get a user from LDAP (Converted to MO)
-r4 = requests.get("http://0.0.0.0:8000/LDAP/employee/%s/converted" % ad_user["cpr"])
+r4 = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}/converted")
 print("Here is the same user, MO style:")
 pretty_print(r4.json())
 print("")
 
 # %% Modify a user in LDAP
-new_department = (
-    "Department which will buy %d cakes for its colleagues" % random.randint(0, 10_000)
-)
+random_int = random.randint(0, 10_000)
+new_department = f"Department which will buy {random_int} cakes for its colleagues"
+
 ldap_person_to_post = {
     "dn": "CN=1212125557,OU=Users,OU=Magenta,DC=ad,DC=addev",
     "name": "Joe Jackson",
@@ -100,9 +101,10 @@ requests.post("http://0.0.0.0:8000/LDAP/employee", json=ldap_person_to_post)
 
 
 # Get the users again - validate that the user is modified
-r = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % ldap_person_to_post["cpr"])
+cpr = ldap_person_to_post["cpr"]
+r = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}")
 assert r.json()["department"] == new_department
-print("Successfully edited department to '%s' in LDAP" % new_department)
+print(f"Successfully edited department to '{new_department}' in LDAP")
 print("")
 
 
@@ -116,29 +118,34 @@ print("")
 
 # Modify a user in MO (Which should also trigger an LDAP user create/modify)
 mo_employee_to_post = mo_user
-nickname_givenname = "Man who can do %d push ups" % random.randint(0, 10_000)
+random_int = random.randint(0, 10_000)
+nickname_givenname = f"Man who can do {random_int} push ups"
 mo_employee_to_post["nickname_givenname"] = nickname_givenname
-mo_employee_to_post["surname"] = "Hansen_%d" % random.randint(0, 10_000)
+random_int = random.randint(0, 10_000)
+mo_employee_to_post["surname"] = f"Hansen_{random_int}"
 mo_employee_to_post["givenname"] = "Hans"
 
 requests.post("http://0.0.0.0:8000/MO/employee", json=mo_employee_to_post)
 
 # Load the user and check if the nickname was changed appropriately
-r = requests.get("http://0.0.0.0:8000/MO/employee/%s" % mo_employee_to_post["uuid"])
+uuid = mo_employee_to_post["uuid"]
+r = requests.get(f"http://0.0.0.0:8000/MO/employee/{uuid}")
 assert r.json()["surname"] == mo_employee_to_post["surname"]
 assert r.json()["nickname_givenname"] == nickname_givenname
-print("Successfully edited nickname_givenname to '%s' in MO" % nickname_givenname)
+print(f"Successfully edited nickname_givenname to '{nickname_givenname}' in MO")
 
 # Check that the user is now also in LDAP, and that his name is correct
-r = requests.get("http://0.0.0.0:8000/LDAP/employee/%s" % mo_employee_to_post["cpr_no"])
+cpr = mo_employee_to_post["cpr_no"]
+r = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}")
 assert r.json()["givenName"] == mo_employee_to_post["givenname"]
 assert r.json()["sn"] == mo_employee_to_post["surname"]
 print("Validated that the changes are reflected in LDAP")
 
 # Print the hyperlink to the employee.
 print("")
-url = "http://localhost:5000/medarbejder/%s#medarbejder" % mo_employee_to_post["uuid"]
-print("see:\n%s\nto validate that the nickname/name was appropriately changed" % url)
+uuid = mo_employee_to_post["uuid"]
+url = "http://localhost:5000/medarbejder/{uuid}#medarbejder"
+print(f"see:\n{url}\nto validate that the nickname/name was appropriately changed")
 
 # %% get an overview of all information in LDAP
 r = requests.get("http://0.0.0.0:8000/LDAP/overview")

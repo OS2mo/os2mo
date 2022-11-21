@@ -43,7 +43,8 @@ def construct_server(server_config: ServerConfig) -> Server:
     )
 
     logger = structlog.get_logger()
-    logger.info("Setting up server to %s" % server_config.host)
+    host = server_config.host
+    logger.info(f"Setting up server to {host}")
     return Server(
         host=server_config.host,
         port=server_config.port,
@@ -70,10 +71,11 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
 
     # Pick the next server to use at random, discard non-active servers
     server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
+    client_strategy = get_client_strategy()
 
     logger = structlog.get_logger()
-    logger.info("Connecting to %s" % server_pool)
-    logger.info("Client strategy: %s" % get_client_strategy())
+    logger.info(f"Connecting to {server_pool}")
+    logger.info(f"Client strategy: {client_strategy}")
     connection = Connection(
         server=server_pool,
         user=settings.ldap_domain + "\\" + settings.ldap_user,
@@ -134,7 +136,7 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     for ldap_object in [root_ldap_object] + superiors:
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         if ldap_object != "top":
-            logger.info("Fetching allowed objects for %s" % ldap_object)
+            logger.info(f"Fetching allowed objects for {ldap_object}")
             all_attributes += object_schema.may_contain
     return all_attributes
 
@@ -157,18 +159,18 @@ def paged_search(context: Context, searchParameters: dict) -> list:
     searchParameters["paged_size"] = 500
     searchParameters["search_base"] = search_base
 
-    logger.info(
-        "searching for %s on %s"
-        % (searchParameters["search_filter"], searchParameters["search_base"])
-    )
+    search_filter = searchParameters["search_filter"]
+    search_base = searchParameters["search_base"]
+
+    logger.info(f"searching for {search_filter} on {search_base}")
 
     # Max 10_000 pages to avoid eternal loops
     for page in range(0, 10_000):
-        logger.info("searching page %d" % page)
+        logger.info(f"searching page {page}")
         ldap_connection.search(**searchParameters)
 
         if ldap_connection.result["description"] == "operationsError":
-            logger.warn("%s Search failed" % searchParameters["search_filter"])
+            logger.warn(f"{search_filter} Search failed")
             break
 
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
@@ -197,13 +199,11 @@ def single_object_search(searchParameters, ldap_connection):
     if len(search_entries) > 1:
         logger.info(response)
         raise MultipleObjectsReturnedException(
-            "Found multiple entries for %s" % str(searchParameters)
+            f"Found multiple entries for {searchParameters}"
         )
     elif len(search_entries) == 0:
         logger.info(response)
-        raise NoObjectsReturnedException(
-            "Found no entries for %s" % str(searchParameters)
-        )
+        raise NoObjectsReturnedException(f"Found no entries for {searchParameters}")
     else:
         return search_entries[0]
 
@@ -236,7 +236,8 @@ def get_ldap_object(dn, context, nest=True):
         "attributes": ["*"],
     }
     search_result = single_object_search(searchParameters, ldap_connection)
-    logger.info("[get_ldap_object] Found %s" % search_result["dn"])
+    dn = search_result["dn"]
+    logger.info(f"[get_ldap_object] Found {dn}")
     return make_ldap_object(search_result, context, nest=nest)
 
 
