@@ -307,7 +307,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
 
         This is to avoid that the code requests information about itself
         """
-        return is_dn(value) & (value != response["dn"])
+        return is_dn(value) and value != response["dn"]
 
     for attribute in attributes:
         value = response["attributes"][attribute]
