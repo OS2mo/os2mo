@@ -27,8 +27,6 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapEmployee
 
-# from .ldap_classes import GenericLdapObject
-
 
 class Dataloaders(BaseModel):
     """Collection of program dataloaders."""
@@ -52,16 +50,23 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
 
     logger = structlog.get_logger()
     user_context = context["user_context"]
-    search_base = user_context["settings"].ldap_search_base
-    user_class = user_context["settings"].ldap_user_class
+
     ldap_connection = user_context["ldap_connection"]
+    cpr_field = user_context["cpr_field"]
+    settings = user_context["settings"]
+
+    search_base = settings.ldap_search_base
+    user_class = settings.ldap_user_class
+
+    object_class_filter = "objectclass=%s" % user_class
     output = []
 
     for cpr in keys:
+        cpr_filter = "%s=%s" % (cpr_field, cpr)
+
         searchParameters = {
             "search_base": search_base,
-            "search_filter": "(&(objectclass=%s)(%s=%s))"
-            % (user_class, user_context["cpr_field"], cpr),
+            "search_filter": "(&(%s)(%s))" % (object_class_filter, cpr_filter),
             "attributes": ["*"],
         }
         search_result = single_object_search(searchParameters, ldap_connection)
@@ -87,9 +92,8 @@ async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmplo
 
     responses = paged_search(context, searchParameters)
 
-    output: list[LdapEmployee] = [
-        make_ldap_object(r, context, nest=False) for r in responses
-    ]
+    output: list[LdapEmployee]
+    output = [make_ldap_object(r, context, nest=False) for r in responses]
 
     return [output]
 
