@@ -237,8 +237,9 @@ def is_dn(value):
     for required in ("CN=", "OU=", "DC="):
         found = False
         for part in parts:
-            if part.startswith(required):
+            if part.strip().startswith(required):
                 found = True
+                break
         if not found:
             return False
     return True
