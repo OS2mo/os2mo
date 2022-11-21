@@ -190,6 +190,19 @@ def paged_search(context: Context, searchParameters: dict) -> list:
 
 
 def single_object_search(searchParameters, ldap_connection):
+    """
+    Performs an LDAP search and throws an exception if there are mulitple or no search
+    results.
+
+    Parameters
+    -------------
+    searchParameters : dict
+        Dict with the following keys:
+            * search_base
+            * search_filter
+            * attributes
+            * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+    """
     ldap_connection.search(**searchParameters)
     response = ldap_connection.response
     logger = structlog.get_logger()
