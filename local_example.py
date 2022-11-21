@@ -164,5 +164,8 @@ populated_overview = r.json()
 print("And here are the fields that actually contain data for a user:")
 pretty_print(populated_overview["user"])
 
+print("Here are all the fields that actually contain data:")
+pretty_print(populated_overview)
+
 # %% Finish
 print("Success")
