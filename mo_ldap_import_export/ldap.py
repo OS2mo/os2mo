@@ -295,10 +295,10 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         Gets a ldap object based on its DN - unless we are in a nested loop
         """
 
-        if not nest:
+        if nest:
+            return get_ldap_object(dn, context, nest=False)
+        else:
             return dn
-
-        return get_ldap_object(dn, context, nest=False)
 
     def is_other_dn(value):
         """
