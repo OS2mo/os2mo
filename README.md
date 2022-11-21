@@ -20,8 +20,8 @@ You can get the coverage report like this:
 
 ### Using the app
 
-First create a docker-compose.override.yml file based on the
-docker-compose.override.template.yml file
+First create a `docker-compose.override.yml` file based on the
+`docker-compose.override.template.yml` file
 
 You can then boot the app like this:
 
