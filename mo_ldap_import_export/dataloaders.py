@@ -88,7 +88,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         Gets a ldap object based on its DN
         """
 
-        if nest is False:
+        if not nest:
             return dn
 
         searchParameters = {
