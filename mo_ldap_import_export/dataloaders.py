@@ -22,10 +22,12 @@ from .exceptions import NoObjectsReturnedException
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
+from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
-from .ldap_classes import GenericLdapObject
 from .ldap_classes import LdapEmployee
+
+# from .ldap_classes import GenericLdapObject
 
 
 class Dataloaders(BaseModel):
@@ -44,86 +46,6 @@ class Dataloaders(BaseModel):
     mo_employee_loader: DataLoader
     ldap_overview_loader: DataLoader
     ldap_populated_overview_loader: DataLoader
-
-
-def is_dn(value):
-    """
-    Determine if a value is a dn (distinguished name) string
-    """
-    if type(value) is not str:
-        return False
-    elif ("CN=" in value) and ("OU=" in value) and ("DC=" in value):
-        return True
-    else:
-        return False
-
-
-def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
-    """
-    Takes an ldap response and formats it as a class
-    """
-    logger = structlog.get_logger()
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
-    attributes = list(response["attributes"].keys())
-    cpr_field = user_context["cpr_field"]
-
-    ldap_dict = {"dn": response["dn"]}
-
-    object_class: Any
-    if cpr_field in attributes:
-        object_class = LdapEmployee
-
-        # The employee class must contain a cpr number field
-        cpr_number = response["attributes"][cpr_field]
-
-        # TODO: Add a cpr number check here?
-        ldap_dict["cpr"] = str(cpr_number)
-
-    else:
-        object_class = GenericLdapObject
-
-    def get_ldap_object(dn):
-        """
-        Gets a ldap object based on its DN
-        """
-
-        if not nest:
-            return dn
-
-        searchParameters = {
-            "search_base": dn,
-            "search_filter": "(objectclass=*)",
-            "attributes": ["*"],
-        }
-        search_result = single_object_search(searchParameters, ldap_connection)
-        logger.info("[make_ldap_object] Found %s" % search_result["dn"])
-
-        return make_ldap_object(search_result, context, nest=False)
-
-    def is_other_dn(value):
-        """
-        Determine if the value is a dn (distinguished name)
-        But not the dn of the main object itself
-
-        This is to avoid that the code requests information about itself
-        """
-        return is_dn(value) & (value != response["dn"])
-
-    for attribute in attributes:
-        value = response["attributes"][attribute]
-        if value == []:
-            ldap_dict[attribute] = None
-        elif is_other_dn(value):
-            ldap_dict[attribute] = get_ldap_object(value)
-        elif type(value) is list:
-            ldap_dict[attribute] = [
-                get_ldap_object(v) if is_other_dn(v) else v for v in value
-            ]
-        else:
-            ldap_dict[attribute] = value
-
-    return object_class(**ldap_dict)
 
 
 async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmployee]:
