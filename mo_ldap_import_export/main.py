@@ -180,6 +180,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
 
 def encode_result(result):
+    # This removes all bytes objects from the result. for example images
     json_compatible_result = jsonable_encoder(
         result, custom_encoder={bytes: lambda v: None}
     )

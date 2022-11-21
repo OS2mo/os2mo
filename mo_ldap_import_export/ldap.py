@@ -200,6 +200,7 @@ def single_object_search(searchParameters, ldap_connection):
             "Found multiple entries for %s" % str(searchParameters)
         )
     elif len(search_entries) == 0:
+        logger.info(response)
         raise NoObjectsReturnedException(
             "Found no entries for %s" % str(searchParameters)
         )
@@ -222,6 +223,8 @@ def is_dn(value):
 def get_ldap_object(dn, context, nest=True):
     """
     Gets a ldap object based on its DN
+
+    if nest is True, also gets ldap objects of related objects.
     """
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
@@ -240,10 +243,10 @@ def get_ldap_object(dn, context, nest=True):
 def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
     """
     Takes an ldap response and formats it as a class
+
+    if nest is True, also makes ldap objects of related objects.
     """
-    # logger = structlog.get_logger()
     user_context = context["user_context"]
-    # ldap_connection = user_context["ldap_connection"]
     attributes = list(response["attributes"].keys())
     cpr_field = user_context["cpr_field"]
 
