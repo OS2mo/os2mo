@@ -297,8 +297,8 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
 
         if nest:
             return get_ldap_object(dn, context, nest=False)
-        else:
-            return dn
+        else:  # pragma: no cover
+            raise Exception("Already running in nested loop")
 
     def is_other_dn(value):
         """
@@ -313,11 +313,12 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         value = response["attributes"][attribute]
         if value == []:
             ldap_dict[attribute] = None
-        elif is_other_dn(value):
+        elif is_other_dn(value) and nest:
             ldap_dict[attribute] = get_nested_ldap_object(value)
         elif type(value) is list:
             ldap_dict[attribute] = [
-                get_nested_ldap_object(v) if is_other_dn(v) else v for v in value
+                get_nested_ldap_object(v) if is_other_dn(v) and nest else v
+                for v in value
             ]
         else:
             ldap_dict[attribute] = value
