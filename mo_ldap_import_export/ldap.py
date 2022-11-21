@@ -232,10 +232,16 @@ def is_dn(value):
     """
     if type(value) is not str:
         return False
-    elif ("CN=" in value) and ("OU=" in value) and ("DC=" in value):
-        return True
-    else:
-        return False
+
+    parts = value.split(",")
+    for required in ("CN=", "OU=", "DC="):
+        found = False
+        for part in parts:
+            if part.startswith(required):
+                found = True
+        if not found:
+            return False
+    return True
 
 
 def get_ldap_object(dn, context, nest=True):

@@ -131,14 +131,13 @@ class EmployeeConverter:
         for ldap_field_name, template in user_attrs_mapping.items():
             ldap_object[ldap_field_name] = template.render({"mo": mo_object})
 
-        givenname = (mo_object.givenname,)
-        surname = (mo_object.surname,)
-        cpr_no = (mo_object.cpr_no or "",)
+        givenname = mo_object.givenname
+        surname = mo_object.surname
+        cpr_no = mo_object.cpr_no or ""
+        ldap_organizational_unit = self.settings.ldap_organizational_unit
 
-        #  Common Name
-        cn = f"CN={givenname} {surname} - {cpr_no}"
-
-        ou = "OU=Users," + self.settings.ldap_organizational_unit  # Org. Unit
+        cn = f"CN={givenname} {surname} - {cpr_no}"  # Common Name
+        ou = f"OU=Users,{ldap_organizational_unit}"  # Org. Unit
         dc = self.settings.ldap_search_base  # Domain Component
         dn = ",".join([cn, ou, dc])  # Distinguished Name
         ldap_object["dn"] = dn

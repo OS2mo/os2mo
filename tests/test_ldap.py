@@ -171,7 +171,7 @@ async def test_ldap_healthcheck(ldap_connection: MagicMock) -> None:
 
 
 async def test_is_dn():
-    dn = "CN=Harry Styles, OU=Band, DC=Stage"
+    dn = "CN=Harry Styles,OU=Band,DC=Stage"
     assert is_dn(dn) is True
     not_a_dn = "foo"
     assert is_dn(not_a_dn) is False
@@ -180,11 +180,11 @@ async def test_is_dn():
 async def test_make_ldap_object(cpr_field: str, context: Context):
 
     response: dict[str, Any] = {}
-    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["dn"] = "CN=Harry Styles,OU=Band,DC=Stage"
     response["attributes"] = {
         "Name": "Harry",
         "Occupation": "Douchebag",
-        "manager": "CN=Jonie Mitchell, OU=Band, DC=Stage",
+        "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
         cpr_field: "0102041245",
     }
 
@@ -204,11 +204,11 @@ async def test_make_generic_ldap_object(cpr_field: str, context: Context):
     # Note that there is no cpr field in the attributes.
     # Indicating that this is not a person
     response: dict[str, Any] = {}
-    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["dn"] = "CN=Harry Styles,OU=Band,DC=Stage"
     response["attributes"] = {
         "Name": "Harry",
         "Occupation": "Douchebag",
-        "manager": "CN=Jonie Mitchell, OU=Band, DC=Stage",
+        "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
     }
 
     ldap_object = make_ldap_object(response, context, nest=False)
@@ -230,12 +230,12 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
     }
 
     response: dict[str, Any] = {}
-    response["dn"] = "CN=Harry Styles, OU=Band, DC=Stage"
+    response["dn"] = "CN=Harry Styles,OU=Band,DC=Stage"
     response["attributes"] = attributes_without_nests.copy()
-    response["attributes"]["manager"] = "CN=Jonie Mitchell, OU=Band, DC=Stage"
+    response["attributes"]["manager"] = "CN=Jonie Mitchell,OU=Band,DC=Stage"
     response["attributes"]["band_members"] = [
-        "CN=George Harrisson, OU=Band, DC=Stage",
-        "CN=Ringo Starr, OU=Band, DC=Stage",
+        "CN=George Harrisson,OU=Band,DC=Stage",
+        "CN=Ringo Starr,OU=Band,DC=Stage",
     ]
     response["attributes"][cpr_field] = "0101011234"
 
@@ -246,10 +246,10 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
     nested_response["attributes"] = {
         "Name": "Anonymous",
         "Occupation": "Slave",
-        "best_friend": "CN=God, OU=Band, DC=Stage",
+        "best_friend": "CN=God,OU=Band,DC=Stage",
         "buddies": [
-            "CN=Satan, OU=Band, DC=Stage",
-            "CN=Vladimir, OU=Band, DC=Stage",
+            "CN=Satan,OU=Band,DC=Stage",
+            "CN=Vladimir,OU=Band,DC=Stage",
         ],
     }
 

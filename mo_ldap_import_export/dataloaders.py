@@ -73,8 +73,7 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
 
         employee: LdapEmployee = make_ldap_object(search_result, context)
 
-        dn = employee.dn
-        logger.info(f"Found {dn}")
+        logger.info(f"Found {employee.dn}")
         output.append(employee)
 
     return output
