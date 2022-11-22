@@ -16,6 +16,7 @@ from pytest import MonkeyPatch
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_employee_validity
+from .utils import fetch_org_unit_validity
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
@@ -96,9 +97,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 # --------------------------------------------------------------------------------------
 
 
-@given(test_data=...)
 @patch("mora.graphapi.versions.latest.mutators.create_ituser", new_callable=AsyncMock)
-async def test_create_ituser(create_ituser: AsyncMock, test_data: ITUserCreate) -> None:
+@given(data=st.data())
+async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> None:
     """Test that pydantic jsons are passed through to create_ituser."""
 
     mutate_query = """
@@ -110,6 +111,23 @@ async def test_create_ituser(create_ituser: AsyncMock, test_data: ITUserCreate) 
     """
     created_uuid = uuid4()
     create_ituser.return_value = ITUserType(uuid=created_uuid)
+
+    employee_or_org_unit = data.draw(st.booleans())
+
+    if employee_or_org_unit:
+        employee_uuid = uuid4()
+        org_unit_uuid = None
+    else:
+        employee_uuid = None
+        org_unit_uuid = uuid4()
+
+    test_data = data.draw(
+        st.builds(
+            ITUserCreate,
+            person=st.just(employee_uuid),
+            org_unit=st.just(org_unit_uuid),
+        )
+    )
 
     payload = jsonable_encoder(test_data)
 
@@ -135,25 +153,55 @@ async def test_create_ituser_integration_test(
     graphapi_post,
     itsystem_uuids,
     employee_uuids,
+    org_uuids,
 ) -> None:
 
     validate_unique_constraint.return_value = None
 
-    employee_uuid = data.draw(st.sampled_from(employee_uuids))
-    employee_from, employee_to = fetch_employee_validity(graphapi_post, employee_uuid)
+    # Create bool to choose between creating ITuser for employee or org_unit
+    employee_or_org_unit = data.draw(st.booleans())
 
-    test_data_validity_start = data.draw(
-        st.datetimes(min_value=employee_from, max_value=employee_to or datetime.max)
-    )
-
-    if employee_to:
-        test_data_validity_end_strat = st.datetimes(
-            min_value=test_data_validity_start, max_value=employee_to
+    if employee_or_org_unit:
+        employee_uuid = data.draw(st.sampled_from(employee_uuids))
+        employee_from, employee_to = fetch_employee_validity(
+            graphapi_post, employee_uuid
         )
+
+        test_data_validity_start = data.draw(
+            st.datetimes(min_value=employee_from, max_value=employee_to or datetime.max)
+        )
+
+        if employee_to:
+            test_data_validity_end_strat = st.datetimes(
+                min_value=test_data_validity_start, max_value=employee_to
+            )
+        else:
+            test_data_validity_end_strat = st.none() | st.datetimes(
+                min_value=test_data_validity_start,
+            )
+
+        org_unit_uuid = None
+
     else:
-        test_data_validity_end_strat = st.none() | st.datetimes(
-            min_value=test_data_validity_start,
+        org_unit_uuid = data.draw(st.sampled_from(org_uuids))
+        org_unit_from, org_unit_to = fetch_org_unit_validity(
+            graphapi_post, org_unit_uuid
         )
+
+        test_data_validity_start = data.draw(
+            st.datetimes(min_value=org_unit_from, max_value=org_unit_to or datetime.max)
+        )
+
+        if org_unit_to:
+            test_data_validity_end_strat = st.datetimes(
+                min_value=test_data_validity_start, max_value=org_unit_to
+            )
+        else:
+            test_data_validity_end_strat = st.none() | st.datetimes(
+                min_value=test_data_validity_start,
+            )
+
+        employee_uuid = None
 
     test_data = data.draw(
         st.builds(
@@ -164,6 +212,7 @@ async def test_create_ituser_integration_test(
             ),
             itsystem=st.sampled_from(itsystem_uuids),
             person=st.just(employee_uuid),
+            org_unit=st.just(org_unit_uuid),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -184,7 +233,6 @@ async def test_create_ituser_integration_test(
     )
     assert response.errors is None
     uuid = UUID(response.data["ituser_create"]["uuid"])
-
     verify_query = """
         query VerifyQuery($uuid: UUID!) {
             itusers(uuids: [$uuid]) {
@@ -193,6 +241,7 @@ async def test_create_ituser_integration_test(
                     user_key
                     itsystem_uuid
                     employee_uuid
+                    org_unit_uuid
                     validity {
                         from
                         to
@@ -215,7 +264,14 @@ async def test_create_ituser_integration_test(
         assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
-        assert UUID(obj["employee_uuid"]) == test_data.person
+
+        # Support both employee_it_user and org_unit_it_user creation
+        if test_data.person is not None:
+            assert UUID(obj["employee_uuid"]) == test_data.person
+            assert obj["org_unit_uuid"] is None
+        if test_data.person is None:
+            assert obj["employee_uuid"] is None
+            assert UUID(obj["org_unit_uuid"]) == test_data.org_unit
         assert (
             datetime.fromisoformat(obj["validity"]["from"]).date()
             == test_data.validity.from_date.date()

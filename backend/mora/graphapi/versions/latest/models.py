@@ -745,15 +745,30 @@ class ITUser(UUIDBase):
 class ITUserCreate(ITUser):
     """Model representing a IT-user creation."""
 
-    # org_unit removed since it's never used and the usecase doesn't seem to be there.
-    # Instead `person` is now required.
-
     type_: str = Field("it", alias="type", description="The object type.")
     user_key: str = Field(description="The IT user account name.")
     primary: UUID | None = Field(description="Primary field of the IT user object")
     itsystem: UUID = Field(description="Reference to the IT system for the IT user.")
-    person: UUID = Field(description="Reference to the employee for the IT user.")
+    person: UUID | None = Field(
+        description="Reference to the employee for the IT user (if any)."
+    )
+    org_unit: UUID | None = Field(
+        description="Reference to the organisation unit of the IT user (if any)."
+    )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
+
+    @root_validator
+    def validation(cls, values: dict[str, Any]) -> dict[str, Any]:
+        """Verifies that at only one of org_unit and employee field has been set."""
+        if (values.get("person") and values.get("org_unit")) or (
+            not values.get("person") and not values.get("org_unit")
+        ):
+            exceptions.ErrorCodes.E_INVALID_INPUT(
+                f"Exactly 1 of the fields {mapping.ORG_UNIT} or "
+                f"{mapping.PERSON} must be set",
+                obj=cls,
+            )
+        return values
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
@@ -767,6 +782,7 @@ class ITUserCreate(ITUser):
             "primary": gen_uuid(self.primary),
             "itsystem": gen_uuid(self.itsystem),
             "person": gen_uuid(self.person),
+            "org_unit": gen_uuid(self.org_unit),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
