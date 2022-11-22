@@ -227,14 +227,14 @@ def create_app(**kwargs: Any) -> FastAPI:
         return encode_result(result)
 
     # Get a specific person from LDAP - Converted to MO
-    @app.get("/LDAP/employee/{dn}/converted", status_code=202)
+    @app.get("/LDAP/employee/{cpr}/converted", status_code=202)
     async def convert_employee_from_LDAP(
-        dn: str, request: Request, response: Response
+        cpr: str, request: Request, response: Response
     ) -> Any:
         """Request single employee"""
-        logger.info(f"Manually triggered LDAP request of {dn}")
+        logger.info(f"Manually triggered LDAP request of {cpr}")
 
-        result = await dataloaders.ldap_employee_loader.load(dn)
+        result = await dataloaders.ldap_employee_loader.load(cpr)
         try:
             return converter.from_ldap(result)
         except ValidationError as e:
