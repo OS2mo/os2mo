@@ -15,7 +15,7 @@ from ramodels.mo.employee import Employee
 
 from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
-from .ldap_classes import LdapEmployee
+from .ldap_classes import LdapObject
 
 
 def read_mapping_json(filename: str) -> Any:
@@ -118,7 +118,7 @@ class EmployeeConverter:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
         return mapping
 
-    def to_ldap(self, mo_object: Employee) -> LdapEmployee:
+    def to_ldap(self, mo_object: Employee) -> LdapObject:
         ldap_object = {}
         try:
             mapping = self.mapping["mo_to_ldap"]
@@ -141,11 +141,10 @@ class EmployeeConverter:
         dc = self.settings.ldap_search_base  # Domain Component
         dn = ",".join([cn, ou, dc])  # Distinguished Name
         ldap_object["dn"] = dn
-        ldap_object["cpr"] = ldap_object[self.cpr_field]
 
-        return LdapEmployee(**ldap_object)
+        return LdapObject(**ldap_object)
 
-    def from_ldap(self, ldap_object: LdapEmployee) -> Employee:
+    def from_ldap(self, ldap_object: LdapObject) -> Employee:
         ldap_dict = CaseInsensitiveDict(
             {
                 key: value[0] if type(value) == list and len(value) == 1 else value

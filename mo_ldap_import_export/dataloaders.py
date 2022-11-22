@@ -18,6 +18,7 @@ from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
+from .exceptions import CprNoNotFound
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
@@ -25,7 +26,7 @@ from .ldap import get_ldap_superiors
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
-from .ldap_classes import LdapEmployee
+from .ldap_classes import LdapObject
 
 
 class Dataloaders(BaseModel):
@@ -46,7 +47,7 @@ class Dataloaders(BaseModel):
     ldap_populated_overview_loader: DataLoader
 
 
-async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmployee]:
+async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapObject]:
 
     logger = structlog.get_logger()
     user_context = context["user_context"]
@@ -71,7 +72,7 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
         }
         search_result = single_object_search(searchParameters, ldap_connection)
 
-        employee: LdapEmployee = make_ldap_object(search_result, context)
+        employee: LdapObject = make_ldap_object(search_result, context)
 
         logger.info(f"Found {employee.dn}")
         output.append(employee)
@@ -79,7 +80,7 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
     return output
 
 
-async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmployee]]:
+async def load_ldap_employees(key: int, context: Context) -> list[list[LdapObject]]:
     """
     Returns list with all employees
     """
@@ -92,14 +93,14 @@ async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmplo
 
     responses = paged_search(context, searchParameters)
 
-    output: list[LdapEmployee]
+    output: list[LdapObject]
     output = [make_ldap_object(r, context, nest=False) for r in responses]
 
     return [output]
 
 
 async def upload_ldap_employee(
-    keys: list[LdapEmployee],
+    keys: list[LdapObject],
     context: Context,
 ):
     logger = structlog.get_logger()
@@ -114,9 +115,15 @@ async def upload_ldap_employee(
     cpr_field = user_context["cpr_field"]
     for key in keys:
 
+        parameters_to_upload = list(key.dict().keys())
+
+        # Check if the cpr field is present
+        if cpr_field not in parameters_to_upload:
+            raise CprNoNotFound(f"cpr field '{cpr_field}' not found in ldap object")
+
         try:
             existing_employee = await load_ldap_employee(
-                [key.cpr],
+                [key.dict()[cpr_field]],
                 context=context,
             )
             dn = existing_employee[0].dn
@@ -129,17 +136,11 @@ async def upload_ldap_employee(
             # attribute in LDAP.
             dn = key.dn
 
-        parameters_to_upload = list(key.dict().keys())
         parameters_to_upload = [
             p for p in parameters_to_upload if p != "dn" and p in all_attributes
         ]
         results = []
         parameters = key.dict()
-
-        # Add cpr field
-        if cpr_field not in parameters_to_upload:
-            parameters_to_upload = parameters_to_upload + [cpr_field]
-        parameters[cpr_field] = key.cpr
 
         for parameter_to_upload in parameters_to_upload:
             value = parameters[parameter_to_upload]

@@ -26,8 +26,7 @@ from mo_ldap_import_export.ldap import get_client_strategy
 from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
-from mo_ldap_import_export.ldap_classes import GenericLdapObject
-from mo_ldap_import_export.ldap_classes import LdapEmployee
+from mo_ldap_import_export.ldap_classes import LdapObject
 
 # from .test_dataloaders import cpr_field, context
 
@@ -177,32 +176,8 @@ async def test_is_dn():
     assert is_dn(not_a_dn) is False
 
 
-async def test_make_ldap_object(cpr_field: str, context: Context):
-
-    response: dict[str, Any] = {}
-    response["dn"] = "CN=Harry Styles,OU=Band,DC=Stage"
-    response["attributes"] = {
-        "Name": "Harry",
-        "Occupation": "Douchebag",
-        "manager": "CN=Jonie Mitchell,OU=Band,DC=Stage",
-        cpr_field: "0102041245",
-    }
-
-    ldap_object = make_ldap_object(response, context, nest=False)
-
-    expected_ldap_object = LdapEmployee(
-        **response["attributes"],
-        cpr=response["attributes"][cpr_field],
-        dn=response["dn"]
-    )
-
-    assert ldap_object == expected_ldap_object
-
-
 async def test_make_generic_ldap_object(cpr_field: str, context: Context):
 
-    # Note that there is no cpr field in the attributes.
-    # Indicating that this is not a person
     response: dict[str, Any] = {}
     response["dn"] = "CN=Harry Styles,OU=Band,DC=Stage"
     response["attributes"] = {
@@ -213,9 +188,7 @@ async def test_make_generic_ldap_object(cpr_field: str, context: Context):
 
     ldap_object = make_ldap_object(response, context, nest=False)
 
-    expected_ldap_object = GenericLdapObject(
-        **response["attributes"], dn=response["dn"]
-    )
+    expected_ldap_object = LdapObject(**response["attributes"], dn=response["dn"])
 
     assert ldap_object == expected_ldap_object
 
@@ -260,10 +233,10 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
         ldap_object = make_ldap_object(response, context, nest=True)
 
     # harry is an Employee because he has a cpr no.
-    assert type(ldap_object) == LdapEmployee
+    assert type(ldap_object) == LdapObject
 
     # The manager is generic because she does not have a cpr no.
-    assert type(ldap_object.manager) == GenericLdapObject  # type: ignore
+    assert type(ldap_object.manager) == LdapObject  # type: ignore
 
     # The manager's buddies are dns because we only nest 1 level
     assert is_dn(ldap_object.manager.best_friend) is True  # type: ignore
@@ -272,5 +245,5 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
 
     # The band members are generic because they do not have a cpr no.
     assert type(ldap_object.band_members) == list  # type: ignore
-    assert type(ldap_object.band_members[0]) == GenericLdapObject  # type: ignore
-    assert type(ldap_object.band_members[1]) == GenericLdapObject  # type: ignore
+    assert type(ldap_object.band_members[0]) == LdapObject  # type: ignore
+    assert type(ldap_object.band_members[1]) == LdapObject  # type: ignore

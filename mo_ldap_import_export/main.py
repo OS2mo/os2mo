@@ -31,7 +31,7 @@ from .converters import read_mapping_json
 from .dataloaders import configure_dataloaders
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
-from .ldap_classes import LdapEmployee
+from .ldap_classes import LdapObject
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -256,7 +256,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Modify a person in LDAP
     @app.post("/LDAP/employee")
-    async def post_employee_to_LDAP(employee: LdapEmployee) -> Any:
+    async def post_employee_to_LDAP(employee: LdapObject) -> Any:
         logger.info(f"Posting {employee} to LDAP")
 
         await dataloaders.ldap_employees_uploader.load(employee)

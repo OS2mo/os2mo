@@ -69,14 +69,14 @@ print("")
 
 # Get a single user from LDAP
 ad_user = r.json()[300]
-cpr = ad_user["cpr"]
+cpr = ad_user["employeeID"]
 r2 = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}")
 print("Here is a single user:")
 ad_user_detailed = r2.json()
 pretty_print(ad_user_detailed)
 
 # Get his manager from LDAP
-manager_cpr = ad_user_detailed["manager"]["cpr"]
+manager_cpr = ad_user_detailed["manager"]["employeeID"]
 r3 = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{manager_cpr}")
 print("Here is his manager:")
 pretty_print(r3.json())
@@ -95,13 +95,13 @@ ldap_person_to_post = {
     "dn": "CN=1212125557,OU=Users,OU=Magenta,DC=ad,DC=addev",
     "name": "Joe Jackson",
     "department": new_department,
-    "cpr": "1212125556",
+    "employeeID": "1212125556",
 }
 requests.post("http://0.0.0.0:8000/LDAP/employee", json=ldap_person_to_post)
 
 
 # Get the users again - validate that the user is modified
-cpr = ldap_person_to_post["cpr"]
+cpr = ldap_person_to_post["employeeID"]
 r = requests.get(f"http://0.0.0.0:8000/LDAP/employee/{cpr}")
 assert r.json()["department"] == new_department
 print(f"Successfully edited department to '{new_department}' in LDAP")
@@ -173,6 +173,14 @@ pretty_print(populated_overview["user"])
 
 print("Here are all the fields that actually contain data:")
 pretty_print(populated_overview)
+
+
+# %% Get all converted users from LDAP
+r = requests.get("http://0.0.0.0:8000/LDAP/employee/converted")
+print("Converted all user from LDAP:")
+df = pd.DataFrame(r.json())
+print(df)
+print("")
 
 # %% Finish
 print("Success")

@@ -9,7 +9,7 @@ from ramodels.mo import Employee
 
 from mo_ldap_import_export.converters import EmployeeConverter
 from mo_ldap_import_export.converters import read_mapping_json
-from mo_ldap_import_export.dataloaders import LdapEmployee
+from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import IncorrectMapping
 
@@ -39,7 +39,7 @@ context: Context = {"user_context": {"mapping": mapping, "settings": settings_mo
 def test_ldap_to_mo() -> None:
     converter = EmployeeConverter(context)
     employee = converter.from_ldap(
-        LdapEmployee(
+        LdapObject(
             dn="",
             name="",
             givenName="Tester",
@@ -144,7 +144,7 @@ def test_mapping_loader_failure() -> None:
         converter.mapping = bad_mapping
         with pytest.raises(IncorrectMapping):
             converter.from_ldap(
-                LdapEmployee(
+                LdapObject(
                     dn="",
                     name="",
                     givenName="Tester",
@@ -236,7 +236,7 @@ def test_template_lenience() -> None:
         context={"user_context": {"mapping": mapping, "settings": settings_mock}}
     )
     converter.from_ldap(
-        LdapEmployee(
+        LdapObject(
             dn="",
             cpr="1234567890",
         )
