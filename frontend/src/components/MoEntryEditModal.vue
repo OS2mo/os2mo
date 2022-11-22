@@ -184,7 +184,7 @@ export default {
     this.backendValidationMessage = null
 
     this.$root.$on("bv::modal::shown", (data) => {
-      this.updateEntryOriginal()
+      this.entryOriginal = JSON.parse(JSON.stringify(this.entry));
 
       // Clear any backend validation message if modal is closed and reopened
       this.backendValidationMessage = null
@@ -211,10 +211,6 @@ export default {
   },
 
   methods: {
-    updateEntryOriginal() {
-      this.entryOriginal = JSON.parse(JSON.stringify(this.entry));
-    },
-
     /**
      * Handle the entry content.
      */
