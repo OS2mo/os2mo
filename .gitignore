@@ -8,3 +8,4 @@
 .cache/**
 venv
 .idea
+local_example_nj.py

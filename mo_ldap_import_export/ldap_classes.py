@@ -6,7 +6,10 @@ from pydantic import BaseModel
 from pydantic import Extra
 
 
-class LdapEmployee(BaseModel, extra=Extra.allow):
+class GenericLdapObject(BaseModel, extra=Extra.allow):
     dn: str  # LDAP requires that the class contains a 'dn' (Distinguished Name) field
+
+
+class LdapEmployee(GenericLdapObject, extra=Extra.allow):
     cpr: str  # We require that the class contains a cpr field.
     # Apart from that, LDAP decides the fields in this model.

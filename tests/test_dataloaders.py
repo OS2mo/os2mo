@@ -74,6 +74,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
+    monkeypatch.setenv("LDAP_USER_CLASS", "user")
+
     return Settings()
 
 
@@ -142,29 +144,6 @@ async def test_load_ldap_employee(
     assert output == expected_result
 
 
-async def test_load_ldap_employee_empty_list(
-    ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
-) -> None:
-    """
-    Simulate case where the department is an empty list
-    """
-    # Mock data
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    cpr = "0101011234"
-
-    ldap_attributes["department"] = None
-    expected_result = [LdapEmployee(dn=dn, cpr=cpr, **ldap_attributes)]
-
-    ldap_attributes["department"] = []
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
-
-    output = await asyncio.gather(
-        dataloaders.ldap_employee_loader.load(dn),
-    )
-
-    assert output == expected_result
-
-
 async def test_load_ldap_employee_multiple_results(
     ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
 ) -> None:
@@ -179,6 +158,7 @@ async def test_load_ldap_employee_multiple_results(
         )
     except Exception as e:
         assert type(e) == MultipleObjectsReturnedException
+        assert e.status_code == 404
 
 
 async def test_load_ldap_employee_no_results(
@@ -194,12 +174,13 @@ async def test_load_ldap_employee_no_results(
         )
     except Exception as e:
         assert type(e) == NoObjectsReturnedException
+        assert e.status_code == 404
 
 
 async def test_load_ldap_employees(
     dataloaders: Dataloaders, ldap_attributes: dict
 ) -> None:
-    """Test that load_organizationalPersons works as expected."""
+    """Test that test_load_ldap_employees works as expected."""
 
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"

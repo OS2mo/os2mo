@@ -4,6 +4,7 @@
 """LDAP Connection handling."""
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
+from typing import Any
 from typing import cast
 from typing import ContextManager
 from typing import Union
@@ -22,6 +23,10 @@ from more_itertools import only
 
 from .config import ServerConfig
 from .config import Settings
+from .exceptions import MultipleObjectsReturnedException
+from .exceptions import NoObjectsReturnedException
+from .ldap_classes import GenericLdapObject
+from .ldap_classes import LdapEmployee
 
 
 def construct_server(server_config: ServerConfig) -> Server:
@@ -38,7 +43,8 @@ def construct_server(server_config: ServerConfig) -> Server:
     )
 
     logger = structlog.get_logger()
-    logger.info("Setting up server to %s" % server_config.host)
+    host = server_config.host
+    logger.info(f"Setting up server to {host}")
     return Server(
         host=server_config.host,
         port=server_config.port,
@@ -65,10 +71,11 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
 
     # Pick the next server to use at random, discard non-active servers
     server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
+    client_strategy = get_client_strategy()
 
     logger = structlog.get_logger()
-    logger.info("Connecting to %s" % server_pool)
-    logger.info("Client strategy: %s" % get_client_strategy())
+    logger.info(f"Connecting to {server_pool}")
+    logger.info(f"Client strategy: {client_strategy}")
     connection = Connection(
         server=server_pool,
         user=settings.ldap_domain + "\\" + settings.ldap_user,
@@ -129,7 +136,7 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     for ldap_object in [root_ldap_object] + superiors:
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
         if ldap_object != "top":
-            logger.info("Fetching allowed objects for %s" % ldap_object)
+            logger.info(f"Fetching allowed objects for {ldap_object}")
             all_attributes += object_schema.may_contain
     return all_attributes
 
@@ -152,18 +159,18 @@ def paged_search(context: Context, searchParameters: dict) -> list:
     searchParameters["paged_size"] = 500
     searchParameters["search_base"] = search_base
 
-    logger.info(
-        "searching for %s on %s"
-        % (searchParameters["search_filter"], searchParameters["search_base"])
-    )
+    search_filter = searchParameters["search_filter"]
+    search_base = searchParameters["search_base"]
+
+    logger.info(f"searching for {search_filter} on {search_base}")
 
     # Max 10_000 pages to avoid eternal loops
     for page in range(0, 10_000):
-        logger.info("searching page %d" % page)
+        logger.info(f"searching page {page}")
         ldap_connection.search(**searchParameters)
 
         if ldap_connection.result["description"] == "operationsError":
-            logger.warn("%s Search failed" % searchParameters["search_filter"])
+            logger.warn(f"{search_filter} Search failed")
             break
 
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
@@ -180,3 +187,139 @@ def paged_search(context: Context, searchParameters: dict) -> list:
             break
 
     return responses
+
+
+def single_object_search(searchParameters, ldap_connection):
+    """
+    Performs an LDAP search and throws an exception if there are multiple or no search
+    results.
+
+    Parameters
+    -------------
+    searchParameters : dict
+        Dict with the following keys:
+            * search_base
+            * search_filter
+            * attributes
+            * see https://ldap3.readthedocs.io/en/latest/searches.html for more keys
+
+    Notes
+    ------
+    If you want to be 100% sure that the search only returns one result; Supply an
+    object's dn (distinguished name) as the search base.
+    """
+    ldap_connection.search(**searchParameters)
+    response = ldap_connection.response
+    logger = structlog.get_logger()
+
+    search_entries = [r for r in response if r["type"] == "searchResEntry"]
+
+    if len(search_entries) > 1:
+        logger.info(response)
+        raise MultipleObjectsReturnedException(
+            f"Found multiple entries for {searchParameters}"
+        )
+    elif len(search_entries) == 0:
+        logger.info(response)
+        raise NoObjectsReturnedException(f"Found no entries for {searchParameters}")
+    else:
+        return search_entries[0]
+
+
+def is_dn(value):
+    """
+    Determine if a value is a dn (distinguished name) string
+    """
+    if type(value) is not str:
+        return False
+
+    parts = value.split(",")
+    for required in ("CN=", "OU=", "DC="):
+        found = False
+        for part in parts:
+            if part.strip().startswith(required):
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+
+def get_ldap_object(dn, context, nest=True):
+    """
+    Gets a ldap object based on its DN
+
+    if nest is True, also gets ldap objects of related objects.
+    """
+    user_context = context["user_context"]
+    ldap_connection = user_context["ldap_connection"]
+    logger = structlog.get_logger()
+
+    searchParameters = {
+        "search_base": dn,
+        "search_filter": "(objectclass=*)",
+        "attributes": ["*"],
+    }
+    search_result = single_object_search(searchParameters, ldap_connection)
+    dn = search_result["dn"]
+    logger.info(f"[get_ldap_object] Found {dn}")
+    return make_ldap_object(search_result, context, nest=nest)
+
+
+def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
+    """
+    Takes an ldap response and formats it as a class
+
+    if nest is True, also makes ldap objects of related objects.
+    """
+    user_context = context["user_context"]
+    attributes = list(response["attributes"].keys())
+    cpr_field = user_context["cpr_field"]
+
+    ldap_dict = {"dn": response["dn"]}
+
+    object_class: Any
+    if cpr_field in attributes:
+        object_class = LdapEmployee
+
+        # The employee class must contain a cpr number field
+        cpr_number = response["attributes"][cpr_field]
+
+        # TODO: Add a cpr number check here?
+        ldap_dict["cpr"] = str(cpr_number)
+
+    else:
+        object_class = GenericLdapObject
+
+    def get_nested_ldap_object(dn):
+        """
+        Gets a ldap object based on its DN - unless we are in a nested loop
+        """
+
+        if nest:
+            return get_ldap_object(dn, context, nest=False)
+        else:  # pragma: no cover
+            raise Exception("Already running in nested loop")
+
+    def is_other_dn(value):
+        """
+        Determine if the value is a dn (distinguished name)
+        But not the dn of the main object itself
+
+        This is to avoid that the code requests information about itself
+        """
+        return is_dn(value) and value != response["dn"]
+
+    for attribute in attributes:
+        value = response["attributes"][attribute]
+        if is_other_dn(value) and nest:
+            ldap_dict[attribute] = get_nested_ldap_object(value)
+        elif type(value) is list:
+            ldap_dict[attribute] = [
+                get_nested_ldap_object(v) if is_other_dn(v) and nest else v
+                for v in value
+            ]
+        else:
+            ldap_dict[attribute] = value
+
+    return object_class(**ldap_dict)

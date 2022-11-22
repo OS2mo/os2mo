@@ -18,12 +18,13 @@ from raclients.modelclient.mo import ModelClient
 from ramodels.mo.employee import Employee
 from strawberry.dataloader import DataLoader
 
-from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
+from .ldap import make_ldap_object
 from .ldap import paged_search
+from .ldap import single_object_search
 from .ldap_classes import LdapEmployee
 
 
@@ -45,68 +46,34 @@ class Dataloaders(BaseModel):
     ldap_populated_overview_loader: DataLoader
 
 
-def make_ldap_object(
-    response: dict, object_class: Any, attributes: list, context: Context
-) -> Any:
-    """
-    Takes an ldap response and formats it as a class
-    """
-
-    ldap_dict = {"dn": response["dn"]}
-
-    if object_class.__name__ == "LdapEmployee":
-        # The employee class must contain a cpr number field
-        cpr_field = context["user_context"]["cpr_field"]
-        cpr_number = response["attributes"][cpr_field]
-
-        # TODO: Add a cpr number check here?
-        ldap_dict["cpr"] = str(cpr_number)
-
-    for attribute in attributes:
-        value = response["attributes"][attribute]
-        if (value == []) or (type(value) is bytes):
-            ldap_dict[attribute] = None
-        else:
-            ldap_dict[attribute] = value
-
-    return object_class(**ldap_dict)
-
-
 async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmployee]:
 
     logger = structlog.get_logger()
     user_context = context["user_context"]
-    search_base = user_context["settings"].ldap_search_base
+
     ldap_connection = user_context["ldap_connection"]
+    cpr_field = user_context["cpr_field"]
+    settings = user_context["settings"]
+
+    search_base = settings.ldap_search_base
+    user_class = settings.ldap_user_class
+
+    object_class_filter = f"objectclass={user_class}"
     output = []
-    attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
 
     for cpr in keys:
+        cpr_filter = f"{cpr_field}={cpr}"
+
         searchParameters = {
             "search_base": search_base,
-            "search_filter": "(&(objectclass=organizationalPerson)(%s=%s))"
-            % (user_context["cpr_field"], cpr),
-            "attributes": attributes,
+            "search_filter": f"(&({object_class_filter})({cpr_filter}))",
+            "attributes": ["*"],
         }
+        search_result = single_object_search(searchParameters, ldap_connection)
 
-        ldap_connection.search(**searchParameters)
-        response = ldap_connection.response
+        employee: LdapEmployee = make_ldap_object(search_result, context)
 
-        search_entries = [r for r in response if r["type"] == "searchResEntry"]
-
-        if len(search_entries) > 1:
-            logger.info(response)
-            raise MultipleObjectsReturnedException(
-                "Found multiple entries for cpr=%s" % cpr
-            )
-        elif len(search_entries) == 0:
-            raise NoObjectsReturnedException("Found no entries for cpr=%s" % cpr)
-
-        employee: LdapEmployee = make_ldap_object(
-            search_entries[0], LdapEmployee, attributes, context
-        )
-
-        logger.info("Found %s" % employee)
+        logger.info(f"Found {employee.dn}")
         output.append(employee)
 
     return output
@@ -114,23 +81,19 @@ async def load_ldap_employee(keys: list[str], context: Context) -> list[LdapEmpl
 
 async def load_ldap_employees(key: int, context: Context) -> list[list[LdapEmployee]]:
     """
-    Returns list with all organizationalPersons
+    Returns list with all employees
     """
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
 
-    attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
-
+    user_class = context["user_context"]["settings"].ldap_user_class
     searchParameters = {
-        "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": attributes,
+        "search_filter": f"(objectclass={user_class})",
+        "attributes": ["*"],
     }
 
     responses = paged_search(context, searchParameters)
 
-    output: list[LdapEmployee] = [
-        make_ldap_object(r, LdapEmployee, attributes, context) for r in responses
-    ]
+    output: list[LdapEmployee]
+    output = [make_ldap_object(r, context, nest=False) for r in responses]
 
     return [output]
 
@@ -142,8 +105,9 @@ async def upload_ldap_employee(
     logger = structlog.get_logger()
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
+    user_class = user_context["settings"].ldap_user_class
 
-    all_attributes = get_ldap_attributes(ldap_connection, "organizationalPerson")
+    all_attributes = get_ldap_attributes(ldap_connection, user_class)
     output = []
     success = 0
     failed = 0
@@ -156,9 +120,9 @@ async def upload_ldap_employee(
                 context=context,
             )
             dn = existing_employee[0].dn
-            logger.info("Found existing employee: %s" % dn)
+            logger.info(f"Found existing employee: {dn}")
         except NoObjectsReturnedException as e:
-            logger.info("Could not find existing employee: %s" % e)
+            logger.info(f"Could not find existing employee: {e}")
 
             # Note: it is possible that the employee exists, but that the CPR no.
             # attribute is not set. In that case this function will just set the cpr no.
@@ -182,14 +146,14 @@ async def upload_ldap_employee(
             value_to_upload = [] if value is None else [value]
             changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
 
-            logger.info("Uploading the following changes: %s" % changes)
+            logger.info(f"Uploading the following changes: {changes}")
             ldap_connection.modify(dn, changes)
             response = ldap_connection.result
 
             # If the user does not exist, create him/her/hir
             if response["description"] == "noSuchObject":
-                logger.info("Creating %s" % dn)
-                ldap_connection.add(dn, "organizationalPerson")
+                logger.info(f"Creating {dn}")
+                ldap_connection.add(dn, user_class)
                 ldap_connection.modify(dn, changes)
                 response = ldap_connection.result
 
@@ -197,14 +161,14 @@ async def upload_ldap_employee(
                 success += 1
             else:
                 failed += 1
-            logger.info("Response: %s" % response)
+            logger.info(f"Response: {response}")
 
             results.append(response)
 
         output.append(results)
 
-    logger.info("Succeeded MODIFY_REPLACE operations: %d" % success)
-    logger.info("Failed MODIFY_REPLACE operations: %d" % failed)
+    logger.info(f"Succeeded MODIFY_REPLACE operations: {success}")
+    logger.info(f"Failed MODIFY_REPLACE operations: {failed}")
     return output
 
 
@@ -242,7 +206,7 @@ async def load_ldap_populated_overview(keys: list[int], context: Context):
 
     for ldap_class in overview.keys():
         searchParameters = {
-            "search_filter": "(objectclass=%s)" % ldap_class,
+            "search_filter": f"(objectclass={ldap_class})",
             "attributes": overview[ldap_class]["attributes"],
         }
 

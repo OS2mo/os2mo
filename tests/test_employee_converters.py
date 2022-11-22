@@ -209,6 +209,7 @@ def test_find_cpr_field() -> None:
             converter = EmployeeConverter(context)
         except Exception as e:
             assert type(e) == CprNoNotFound
+            assert e.status_code == 404
         else:
             assert converter.cpr_field == "employeeID"
 

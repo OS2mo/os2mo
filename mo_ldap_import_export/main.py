@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi import Response
 from fastapi import status
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from ldap3 import Connection
@@ -51,12 +52,12 @@ async def listen_to_changes_in_employees(
 ) -> None:
     user_context = context["user_context"]
     logger.info("[MO] Change registered in the employee model")
-    logger.info("Payload: %s" % payload)
+    logger.info(f"Payload: {payload}")
 
     # Get MO employee
     mo_employee_loader = user_context["dataloaders"].mo_employee_loader
     changed_employee: Employee = await mo_employee_loader.load(payload.uuid)
-    logger.info("Found Employee in MO: %s" % changed_employee)
+    logger.info(f"Found Employee in MO: {changed_employee}")
 
     # Convert to LDAP
     logger.info("Converting MO Employee object to LDAP object")
@@ -64,7 +65,7 @@ async def listen_to_changes_in_employees(
     ldap_employee = converter.to_ldap(changed_employee)
 
     # Upload to LDAP
-    logger.info("Uploading %s to LDAP" % ldap_employee)
+    logger.info(f"Uploading {ldap_employee} to LDAP")
     await user_context["dataloaders"].ldap_employees_uploader.load(ldap_employee)
 
 
@@ -178,6 +179,14 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     return fastramqpi
 
 
+def encode_result(result):
+    # This removes all bytes objects from the result. for example images
+    json_compatible_result = jsonable_encoder(
+        result, custom_encoder={bytes: lambda v: None}
+    )
+    return json_compatible_result
+
+
 def create_app(**kwargs: Any) -> FastAPI:
     """FastAPI application factory.
 
@@ -205,31 +214,31 @@ def create_app(**kwargs: Any) -> FastAPI:
             try:
                 converted_results.append(converter.from_ldap(r))
             except ValidationError as e:
-                logger.error("Cannot create MO Employee: %s" % str(e))
+                logger.error(f"Cannot create MO Employee: {e}")
         return converted_results
 
     # Get a specific person from LDAP
     @app.get("/LDAP/employee/{cpr}", status_code=202)
     async def load_employee_from_LDAP(cpr: str, request: Request) -> Any:
         """Request single employee"""
-        logger.info("Manually triggered LDAP request of %s" % cpr)
+        logger.info(f"Manually triggered LDAP request of {cpr}")
 
         result = await dataloaders.ldap_employee_loader.load(cpr)
-        return result
+        return encode_result(result)
 
     # Get a specific person from LDAP - Converted to MO
-    @app.get("/LDAP/employee/{dn}/converted", status_code=202)
+    @app.get("/LDAP/employee/{cpr}/converted", status_code=202)
     async def convert_employee_from_LDAP(
-        dn: str, request: Request, response: Response
+        cpr: str, request: Request, response: Response
     ) -> Any:
         """Request single employee"""
-        logger.info("Manually triggered LDAP request of %s" % dn)
+        logger.info(f"Manually triggered LDAP request of {cpr}")
 
-        result = await dataloaders.ldap_employee_loader.load(dn)
+        result = await dataloaders.ldap_employee_loader.load(cpr)
         try:
             return converter.from_ldap(result)
         except ValidationError as e:
-            logger.warn("Cannot create MO Employee: %s" % str(e))
+            logger.warn(f"Cannot create MO Employee: {e}")
             response.status_code = (
                 status.HTTP_404_NOT_FOUND
             )  # TODO: return other status?
@@ -242,12 +251,13 @@ def create_app(**kwargs: Any) -> FastAPI:
         logger.info("Manually triggered LDAP request of all employees")
 
         result = await dataloaders.ldap_employees_loader.load(1)
-        return result
+
+        return encode_result(result)
 
     # Modify a person in LDAP
     @app.post("/LDAP/employee")
     async def post_employee_to_LDAP(employee: LdapEmployee) -> Any:
-        logger.info("Posting %s to LDAP" % employee)
+        logger.info(f"Posting {employee} to LDAP")
 
         await dataloaders.ldap_employees_uploader.load(employee)
 
@@ -263,7 +273,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Post a person to MO
     @app.post("/MO/employee")
     async def post_employee_to_MO(employee: Employee) -> Any:
-        logger.info("Posting %s to MO" % employee)
+        logger.info(f"Posting {employee} to MO")
 
         await dataloaders.mo_employee_uploader.load(employee)
 
@@ -271,7 +281,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/MO/employee/{uuid}", status_code=202)
     async def load_employee_from_MO(uuid: str, request: Request) -> Any:
         """Request single employee"""
-        logger.info("Manually triggered MO request of %s" % uuid)
+        logger.info(f"Manually triggered MO request of {uuid}")
 
         result = await dataloaders.mo_employee_loader.load(uuid)
         return result
