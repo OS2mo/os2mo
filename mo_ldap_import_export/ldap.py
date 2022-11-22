@@ -312,9 +312,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
 
     for attribute in attributes:
         value = response["attributes"][attribute]
-        if value == []:
-            ldap_dict[attribute] = None
-        elif is_other_dn(value) and nest:
+        if is_other_dn(value) and nest:
             ldap_dict[attribute] = get_nested_ldap_object(value)
         elif type(value) is list:
             ldap_dict[attribute] = [

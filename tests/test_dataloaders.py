@@ -144,29 +144,6 @@ async def test_load_ldap_employee(
     assert output == expected_result
 
 
-async def test_load_ldap_employee_empty_list(
-    ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
-) -> None:
-    """
-    Simulate case where the department is an empty list
-    """
-    # Mock data
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    cpr = "0101011234"
-
-    ldap_attributes["department"] = None
-    expected_result = [LdapEmployee(dn=dn, cpr=cpr, **ldap_attributes)]
-
-    ldap_attributes["department"] = []
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
-
-    output = await asyncio.gather(
-        dataloaders.ldap_employee_loader.load(dn),
-    )
-
-    assert output == expected_result
-
-
 async def test_load_ldap_employee_multiple_results(
     ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
 ) -> None:
