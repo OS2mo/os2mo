@@ -195,7 +195,6 @@ export default {
 
     this.$root.$on("bv::modal::hidden", () => {
       if(this.submitting) {
-        console.log('Skipping RESET LOGIC, since we are currently submitting!')
         return;
       }
 
