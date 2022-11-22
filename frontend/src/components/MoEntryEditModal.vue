@@ -106,8 +106,10 @@ export default {
        * Used to detect changes and restore the value.
        */
       entry: {},
+      entryOriginal: {},
       isLoading: false,
       backendValidationMessage: null,
+      submitting: false,
     }
   },
 
@@ -182,12 +184,22 @@ export default {
     this.backendValidationMessage = null
 
     this.$root.$on("bv::modal::shown", (data) => {
+      this.updateEntryOriginal()
+
       // Clear any backend validation message if modal is closed and reopened
       this.backendValidationMessage = null
-
       if (this.content) {
         this.handleContent(this.content)
       }
+    })
+
+    this.$root.$on("bv::modal::hidden", () => {
+      if(this.submitting) {
+        console.log('Skipping RESET LOGIC, since we are currently submitting!')
+        return;
+      }
+
+      this.entry = JSON.parse(JSON.stringify(this.entryOriginal));
     })
   },
 
@@ -199,6 +211,10 @@ export default {
   },
 
   methods: {
+    updateEntryOriginal() {
+      this.entryOriginal = JSON.parse(JSON.stringify(this.entry));
+    },
+
     /**
      * Handle the entry content.
      */
@@ -221,8 +237,10 @@ export default {
         return
       }
 
-      this.isLoading = true
+      // Prevent RESET logic when hiding modal
+      this.submitting = true
 
+      this.isLoading = true
       let data = {
         type: this.contentType,
         uuid: this.entry.uuid,
