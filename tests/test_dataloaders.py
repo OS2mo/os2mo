@@ -22,8 +22,9 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import configure_dataloaders
 from mo_ldap_import_export.dataloaders import Dataloaders
 from mo_ldap_import_export.dataloaders import get_ldap_attributes
-from mo_ldap_import_export.dataloaders import LdapEmployee
+from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.dataloaders import make_overview_entry
+from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.ldap import paged_search
@@ -131,9 +132,8 @@ async def test_load_ldap_employee(
 ) -> None:
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    cpr = "0101011234"
 
-    expected_result = [LdapEmployee(dn=dn, cpr=cpr, **ldap_attributes)]
+    expected_result = [LdapObject(dn=dn, **ldap_attributes)]
 
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
@@ -184,9 +184,8 @@ async def test_load_ldap_employees(
 
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    cpr = "0101011234"
 
-    expected_results = [LdapEmployee(dn=dn, cpr=cpr, **ldap_attributes)]
+    expected_results = [LdapObject(dn=dn, **ldap_attributes)]
 
     # Get result from dataloader
     with patch(
@@ -206,7 +205,7 @@ async def test_modify_ldap_employee(
     ldap_attributes: dict,
 ) -> None:
 
-    employee = LdapEmployee(
+    employee = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         cpr="0101011234",
         **ldap_attributes
@@ -267,6 +266,32 @@ async def test_modify_ldap_employee(
     ]
 
 
+async def test_create_invalid_ldap_employee(
+    ldap_connection: MagicMock,
+    dataloaders: Dataloaders,
+    ldap_attributes: dict,
+    cpr_field: str,
+) -> None:
+
+    ldap_attributes_without_cpr_field = {
+        key: value for key, value in ldap_attributes.items() if key != cpr_field
+    }
+
+    employee = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        **ldap_attributes_without_cpr_field
+    )
+
+    # Get result from dataloader
+    try:
+        await asyncio.gather(
+            dataloaders.ldap_employees_uploader.load(employee),
+        )
+    except CprNoNotFound as e:
+        assert e.status_code == 404
+        assert type(e) == CprNoNotFound
+
+
 async def test_create_ldap_employee(
     ldap_connection: MagicMock,
     dataloaders: Dataloaders,
@@ -274,15 +299,8 @@ async def test_create_ldap_employee(
     cpr_field: str,
 ) -> None:
 
-    # Test to see if the cpr field is added. Even if not supplied in the attributes
-    ldap_attributes_without_cpr_field = {
-        key: value for key, value in ldap_attributes.items() if key != cpr_field
-    }
-
-    employee = LdapEmployee(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        cpr="0101011234",
-        **ldap_attributes_without_cpr_field
+    employee = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev", **ldap_attributes
     )
 
     non_existing_object_response = {
@@ -303,8 +321,7 @@ async def test_create_ldap_employee(
         "type": "modifyResponse",
     }
 
-    parameters_to_upload = [k for k in employee.dict().keys() if k not in ["dn", "cpr"]]
-    parameters_to_upload += [cpr_field]
+    parameters_to_upload = [k for k in employee.dict().keys() if k not in ["dn"]]
 
     results = iter(
         [non_existing_object_response] + [good_response] * len(parameters_to_upload)

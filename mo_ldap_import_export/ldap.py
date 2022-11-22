@@ -25,8 +25,7 @@ from .config import ServerConfig
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
-from .ldap_classes import GenericLdapObject
-from .ldap_classes import LdapEmployee
+from .ldap_classes import LdapObject
 
 
 def construct_server(server_config: ServerConfig) -> Server:
@@ -272,24 +271,8 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
 
     if nest is True, also makes ldap objects of related objects.
     """
-    user_context = context["user_context"]
     attributes = list(response["attributes"].keys())
-    cpr_field = user_context["cpr_field"]
-
     ldap_dict = {"dn": response["dn"]}
-
-    object_class: Any
-    if cpr_field in attributes:
-        object_class = LdapEmployee
-
-        # The employee class must contain a cpr number field
-        cpr_number = response["attributes"][cpr_field]
-
-        # TODO: Add a cpr number check here?
-        ldap_dict["cpr"] = str(cpr_number)
-
-    else:
-        object_class = GenericLdapObject
 
     def get_nested_ldap_object(dn):
         """
@@ -322,4 +305,4 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         else:
             ldap_dict[attribute] = value
 
-    return object_class(**ldap_dict)
+    return LdapObject(**ldap_dict)
