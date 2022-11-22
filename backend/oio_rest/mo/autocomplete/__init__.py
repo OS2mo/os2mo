@@ -293,7 +293,7 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
     orgfunk_rel_other = orgfunk_rel.alias()
 
     current_attrs_only = text(
-        "(organisationfadunktion_attr_egenskaber.virkning).timeperiod @> now()"
+        "(organisationfunktion_attr_egenskaber.virkning).timeperiod @> now()"
     )
     attrs = func.jsonb_agg(
         func.distinct(
@@ -461,7 +461,7 @@ def find_org_units_matching_thor(phrase: str, class_uuids: list[UUID] | None = N
     orgfunk_rel_other = orgfunk_rel.alias()
 
     current_attrs_only = text(
-        "(organisationfadunktion_attr_egenskaber.virkning).timeperiod @> now()"
+        "(organisationfunktion_attr_egenskaber.virkning).timeperiod @> now()"
     )
     attrs = func.jsonb_agg(
         func.distinct(
