@@ -158,6 +158,7 @@ async def test_load_ldap_employee_multiple_results(
         )
     except Exception as e:
         assert type(e) == MultipleObjectsReturnedException
+        assert e.status_code == 404
 
 
 async def test_load_ldap_employee_no_results(
@@ -173,6 +174,7 @@ async def test_load_ldap_employee_no_results(
         )
     except Exception as e:
         assert type(e) == NoObjectsReturnedException
+        assert e.status_code == 404
 
 
 async def test_load_ldap_employees(
