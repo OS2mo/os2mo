@@ -184,21 +184,22 @@ export default {
     this.backendValidationMessage = null
 
     this.$root.$on("bv::modal::shown", (data) => {
-      this.entryOriginal = JSON.parse(JSON.stringify(this.entry));
+      this.entryOriginal = JSON.parse(JSON.stringify(this.entry))
 
       // Clear any backend validation message if modal is closed and reopened
       this.backendValidationMessage = null
+
       if (this.content) {
         this.handleContent(this.content)
       }
     })
 
     this.$root.$on("bv::modal::hidden", () => {
-      if(this.submitting) {
-        return;
+      if (this.submitting) {
+        return
       }
 
-      this.entry = JSON.parse(JSON.stringify(this.entryOriginal));
+      this.entry = JSON.parse(JSON.stringify(this.entryOriginal))
     })
   },
 
