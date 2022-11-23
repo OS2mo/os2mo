@@ -81,6 +81,7 @@ Check coverage ramodels:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
     - pip install coverage
+    - cd ..
     - coverage combine
   script:
     - coverage report -m --fail-under=100
