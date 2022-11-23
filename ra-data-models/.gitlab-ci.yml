@@ -63,13 +63,13 @@ Test ramodels:
     - pytest
       --cov=ramodels
       --cov-report=html
-      --shard-id=$(($CI_NODE_INDEX - 1))
-      --num-shards=$CI_NODE_TOTAL
-    - mv .coverage ".coverage.$(($CI_NODE_INDEX - 1))"
+      --group ${CI_NODE_INDEX}
+      --splits ${CI_NODE_TOTAL}
+    - mv .coverage "${CI_PROJECT_DIR}/.coverage.${CI_JOB_ID}"
   artifacts:
     when: always
     paths:
-      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
+      - ".coverage.$CI_JOB_ID"
   rules:
     - <<: *if-merge-request
 

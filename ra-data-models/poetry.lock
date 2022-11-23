@@ -631,15 +631,15 @@ py = "*"
 pytest = ">=3.10"
 
 [[package]]
-name = "pytest-shard"
-version = "0.1.2"
-description = ""
+name = "pytest-split"
+version = "0.8.0"
+description = "Pytest plugin which splits the test suite to equally sized sub suites based on test execution time."
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7.1,<4.0"
 
 [package.dependencies]
-pytest = "*"
+pytest = ">=5,<8"
 
 [[package]]
 name = "pytest-xdist"
@@ -834,7 +834,7 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "d9eb1d24af14e719130bdb44462d202614215ada4605f96ca4258dae08522298"
+content-hash = "ecd1d1767ff7574edf9a822f390cb43d906f64a73f41b30b0b7df4eea5b32b4c"
 
 [metadata.files]
 attrs = [
@@ -1206,9 +1206,9 @@ pytest-forked = [
     {file = "pytest-forked-1.4.0.tar.gz", hash = "sha256:8b67587c8f98cbbadfdd804539ed5455b6ed03802203485dd2f53c1422d7440e"},
     {file = "pytest_forked-1.4.0-py3-none-any.whl", hash = "sha256:bbbb6717efc886b9d64537b41fb1497cfaf3c9601276be8da2cccfea5a3c8ad8"},
 ]
-pytest-shard = [
-    {file = "pytest-shard-0.1.2.tar.gz", hash = "sha256:b86a967fbfd1c8e50295095ccda031b7e890862ee06531d5142844f4c1d1cd67"},
-    {file = "pytest_shard-0.1.2-py3-none-any.whl", hash = "sha256:407a1df385cebe1feb9b4d2e7eeee8b044f8a24f0919421233159a17c59be2b9"},
+pytest-split = [
+    {file = "pytest-split-0.8.0.tar.gz", hash = "sha256:8571a3f60ca8656c698ed86b0a3212bb9e79586ecb201daef9988c336ff0e6ff"},
+    {file = "pytest_split-0.8.0-py3-none-any.whl", hash = "sha256:2e06b8b1ab7ceb19d0b001548271abaf91d12415a8687086cf40581c555d309f"},
 ]
 pytest-xdist = [
     {file = "pytest-xdist-2.5.0.tar.gz", hash = "sha256:4580deca3ff04ddb2ac53eba39d76cb5dd5edeac050cb6fbc768b0dd712b4edf"},
