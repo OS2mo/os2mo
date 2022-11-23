@@ -67,9 +67,8 @@ Test ramodels:
       --num-shards=$CI_NODE_TOTAL
     - mv .coverage ".coverage.$(($CI_NODE_INDEX - 1))"
   artifacts:
-    name: "coverage.$(($CI_NODE_INDEX - 1))"
     paths:
-      - "ra-data-models/.coverage.$(($CI_NODE_INDEX - 1))"
+      - "ra-data-models/.coverage*"
   rules:
     - <<: *if-merge-request
 
