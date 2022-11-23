@@ -44,7 +44,7 @@ The folder structure should be organized like this:
 			- lora/
 			- etc.
 
-There exists a frontend testsuite, however it's unused at the current moment.
+There exists a frontend test suite for Vue, however, its end-to-end part is unused at the current moment.
 
 ### Best practices
 
@@ -73,7 +73,7 @@ How these phases are being conducted is determined by the conftest.py in each te
 
 We use fixtures to define behavior and state for how each test should be run.
 
-Commenly used fixtures:
+Commonly used fixtures:
 | Fixture | Effect |
 |----------|-------------|
 | XXX_test_app |  A fixture that instantiates a mora fast api app. |
@@ -93,7 +93,7 @@ A test can be marked as being a certain type, most default marks dont do anythin
 
 | Mark | Effect |
 |----------|-------------|
-| pytest.mark.slow | Sets max timoout on the tests call phase to 80 sec. |
+| pytest.mark.slow | Sets max timeout on the tests call phase to 80 sec. |
 | pytest.mark.slow_setup | Removes max timeout on a tests setup phase. |
 | pytest.mark.integration_test | Marks the test as being an integration test, meaning that time limits apply to it. |
 
