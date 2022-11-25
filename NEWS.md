@@ -1,1 +1,1 @@
-backend/CHANGELOG.md
+docs/src/changelog.md

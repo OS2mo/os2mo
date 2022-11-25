@@ -613,12 +613,32 @@ Export GQL Schema:
     paths:
       - $OUT
 
+Export Changelog:
+  extends:
+    - .docs-base
+    - .docs:rules:build-docs
+  needs: []
+  image: node:18-alpine
+  variables:
+    OUT: $CI_PROJECT_DIR/docs/.dynamic_changelog.md
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0
+  before_script:
+    - apk add git
+    - npm install conventional-changelog-cli
+  script:
+    - npx conventional-changelog --config docs/.conventional_commit.config --preset conventionalcommits >> $OUT
+  artifacts:
+    paths:
+      - $OUT
+
 .build-docs:
   extends:
     - .docs-base
     - .docs:rules:build-docs
   needs:
     - Export GQL Schema
+    - Export Changelog
   image: python:3.10
   variables:
     POETRY_VERSION: 1.1.12
@@ -627,6 +647,7 @@ Export GQL Schema:
     - pip3 install poetry==${POETRY_VERSION}
     - cd docs && poetry install --no-interaction
   script:
+    - cat .dynamic_changelog.md .static_changelog.md >> src/changelog.md
     - mkdocs build --strict --site-dir=$CI_PROJECT_DIR/site
   artifacts:
     paths:
