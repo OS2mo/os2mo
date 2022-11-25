@@ -3,10 +3,12 @@
 import copy
 import unittest.mock
 from uuid import UUID
+from uuid import uuid4
 
 import pytest
 
 from mora.auth.exceptions import AuthorizationError
+from mora.auth.keycloak.owner import _get_entity_owners
 from mora.auth.keycloak.owner import get_ancestor_owners
 from mora.auth.keycloak.rbac import _rbac
 from mora.mapping import ADMIN
@@ -287,3 +289,24 @@ class TestGetAncestorOwners:
         ancestor_owners = await get_ancestor_owners(UUID(FILOSOFISK_INSTITUT))
 
         assert set() == ancestor_owners
+
+
+class TestGetEntityOwners:
+    @unittest.mock.patch("mora.auth.keycloak.owner.common.get_connector")
+    @unittest.mock.patch("mora.auth.keycloak.owner.OwnerReader.get_from_type")
+    async def test_filter_empty_dicts_and_vacant_owners(
+        self, mock_get_from_type, mock_get_connector
+    ):
+        # Arrange
+        owner_uuid = uuid4()
+        mock_get_from_type.return_value = [
+            {},
+            {"owner": None},  # Happens for vacant owners
+            {"owner": {"uuid": str(owner_uuid)}},
+        ]
+
+        # Act
+        owners = await _get_entity_owners(uuid4(), EntityType.ORG_UNIT)
+
+        # Assert
+        assert owners == {owner_uuid}
