@@ -67,10 +67,6 @@ asgi-lifespan = "^1.0.1"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.autopub]
-git-username = "MagentaBot"
-git-email = "info@magenta.dk"
-
 [tool.pytest.ini_options]
 markers = [
   "integration_test: mark test as an integration test",

@@ -84,7 +84,7 @@ Check coverage ramodels:
     - cd ..
     - coverage combine
   script:
-    - coverage report -m --fail-under=100
+    - coverage report -m --fail-under=80
   rules:
     - <<: *if-merge-request
 

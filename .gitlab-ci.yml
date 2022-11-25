@@ -55,17 +55,15 @@ variables:
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
 include:
-  - local: "ra-data-models/.gitlab-ci.yml"
-  - project: "labs/salt-automation"
-    file: "/gitlab-ci-templates/common/autopub.v1.yml"
-  - project: "labs/salt-automation"
-    file: "/gitlab-ci-templates/common/docker-build-meta.v1.yml"
-  - project: "labs/salt-automation"
-    file: "/gitlab-ci-templates/common/docker-release-meta.v1.yml"
-  - project: "labs/salt-automation"
-    file: "/gitlab-ci-templates/common/config-updater-meta.v1.yml"
-  - project: 'labs/salt-automation'
-    file: "/gitlab-ci-templates/common/pre-commit.v1.yml"
+  - local: ra-data-models/.gitlab-ci.yml
+  - project: labs/salt-automation
+    file:
+      - gitlab-ci-templates/common/conventional-commits.v1.yml
+      - gitlab-ci-templates/common/docker-build-meta.v1.yml
+      - gitlab-ci-templates/common/docker-release-meta.v1.yml
+      - gitlab-ci-templates/common/config-updater-meta.v1.yml
+  - project: labs/salt-automation
+    file: gitlab-ci-templates/common/pre-commit.v1.yml
     rules:
       - <<: *if-merge-request
 
@@ -85,7 +83,6 @@ workflow:
 default:
   # All jobs are interruptible by default
   interruptible: true
-
 
 # Services
 ###########
