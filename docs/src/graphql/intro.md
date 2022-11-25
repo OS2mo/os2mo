@@ -2,7 +2,7 @@
 title: OS2mo GraphAPI
 ---
 
-[OS2mo version 2.4.0](../news.md#240-2021-09-23) introduced a new endpoint, `/graphql`, that serves a [GraphQL](https://graphql.org/) based API. The documentation found in this section focuses on how to interact with this new endpoint.
+OS2mo version 2.4.0 introduced a new endpoint, `/graphql`, that serves a [GraphQL](https://graphql.org/) based API. The documentation found in this section focuses on how to interact with this new endpoint.
 
 Graph APIs differ from REST APIs in key areas. Most notably, they only operate on a single endpoint and data is obtained using `POST` requests to this endpoint with queries in the request body.
 

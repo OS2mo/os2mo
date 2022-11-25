@@ -10,7 +10,7 @@ docs_dir: src/
 nav:
   - OS2MO:
       - Velkommen: index.md
-      - Release History: news.md
+      - Release History: changelog.md
       - Arkitektur og design:
           - arkitektur-design/overview.md
           - arkitektur-design/facets.md
