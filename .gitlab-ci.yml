@@ -191,16 +191,6 @@ Build OS2mo:
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/api.Dockerfile
     BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
-Build test frontend:
-  extends:
-    - .build:test-image
-    - .build-docker
-  variables:
-    CI_IMAGE: ${FRONTEND_TEST_IMAGE_SHA}
-    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
-    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
-    TARGET: frontend
-
 Build Keycloak-realm:
   stage: build
   needs: []
@@ -361,33 +351,6 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - <<: *if-merge-request
-
-# Frontend Tests
-################
-Vue-unit-test:
-  extends:
-    - .test-base
-  needs:
-    - Build test frontend
-  image: $FRONTEND_TEST_IMAGE_SHA
-  variables:
-    GIT_STRATEGY: none
-    BASE_URL: "http://mo"
-  script:
-    - cd /app/frontend
-    - yarn install --dev
-    - yarn test:unit
-      --coverage
-      --coverageReporters=cobertura
-      --coverageReporters=html
-      --coverageReporters=text-summary
-      --coverageDirectory=$CI_PROJECT_DIR/coverage
-  artifacts:
-    when: always
-    paths:
-      - $CI_PROJECT_DIR/coverage
-    # reports:
-    #   cobertura: $CI_PROJECT_DIR/coverage/cobertura-coverage.xml
 
 # Review
 #########
