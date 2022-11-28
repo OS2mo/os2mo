@@ -110,10 +110,15 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
 
     # NOTE!!: Currently, there can be multiple owners (but this will change)
 
-    logger.debug("_get_entity_owners called for entity type ", entity_type=entity_type)
+    logger.debug(
+        "_get_entity_owners called for entity type ", entity_type=entity_type, uuid=uuid
+    )
 
     c = common.get_connector()
     r = await OwnerReader.get_from_type(c, entity_type.value, uuid, changed_since=None)
+    logger.debug("OwnerReader.get_from_type", response=r)
 
-    r = filter(bool, r)
-    return {UUID(item[OWNER][UUID_KEY]) for item in r}
+    # Filter out empty dicts and vacant owners
+    r_filtered = filter(lambda item: item.get(OWNER) is not None, r)
+
+    return {UUID(item[OWNER][UUID_KEY]) for item in r_filtered}
