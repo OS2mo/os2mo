@@ -53,6 +53,7 @@ variables:
 
 include:
   - local: ra-data-models/.gitlab-ci.yml
+  - local: backend/os2mo-http-trigger-protocol/.gitlab-ci.yml
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/conventional-commits.v1.yml
