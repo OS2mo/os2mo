@@ -1,21 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-FROM node:10 AS frontend
-
-WORKDIR /app/frontend
-
-COPY frontend/package.json .
-COPY frontend/yarn.lock .
-# We fail hard if the yaml.lock is outdated.
-RUN yarn install --frozen-lockfile && yarn cache clean
-
-COPY frontend .
-RUN yarn build
-
-# script for `vue-cli-service serve` from frontend/package.json
-CMD ["yarn", "dev"]
-
+FROM magentaaps/os2mo-frontend:12.13.0 AS frontend
 
 FROM python:3.10 AS dist
 
@@ -69,11 +55,10 @@ COPY LICENSE .
 COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
-COPY NEWS.md .
 COPY backend/mora/main.py .
 
 # Copy frontend code.
-COPY --from=frontend /app/frontend/dist ./frontend/dist
+COPY --from=frontend /usr/share/nginx/html/ ./frontend/dist
 
 # Run the server as the mora user on port 5000
 USER mora:mora

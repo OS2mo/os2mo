@@ -15,15 +15,12 @@ stages:
 
 variables:
   BACKEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
-  FRONTEND_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend:${CI_COMMIT_SHA}
-  FRONTEND_TEST_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/frontend-test:${CI_COMMIT_SHA}
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
   KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
   PYPROJECT_ROOT: "./backend"
 
   BACKEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
-  FRONTEND_RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo-frontend
 
   # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
@@ -192,15 +189,6 @@ Build OS2mo:
   variables:
     CI_IMAGE: ${BACKEND_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/api.Dockerfile
-    BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
-
-Build frontend:
-  extends:
-    - .build:release-image
-    - .build-docker
-  variables:
-    CI_IMAGE: ${FRONTEND_IMAGE_SHA}
-    DOCKERFILE: ${CI_PROJECT_DIR}/docker/frontend.Dockerfile
     BUILD_DOCKER_EXTRA_FLAGS: --build-arg=COMMIT_SHA=${CI_COMMIT_SHA} --build-arg=COMMIT_TAG=${CI_COMMIT_TAG}
 
 Build test frontend:
@@ -476,21 +464,6 @@ Release API version:
     CI_IMAGE: $BACKEND_IMAGE_SHA
     RELEASE_IMAGE: $BACKEND_RELEASE_REGISTRY_IMAGE
 
-Release Frontend master:
-  extends:
-    - .release-master
-  variables:
-    CI_IMAGE: $FRONTEND_IMAGE_SHA
-    RELEASE_IMAGE: $FRONTEND_RELEASE_REGISTRY_IMAGE
-
-Release Frontend version:
-  extends:
-    - .release-version
-  variables:
-    CI_IMAGE: $FRONTEND_IMAGE_SHA
-    RELEASE_IMAGE: $FRONTEND_RELEASE_REGISTRY_IMAGE
-
-
 # Deploy API
 #############
 # Flux
@@ -532,49 +505,6 @@ Deploy API to Salt Prod:
   needs: []
   variables:
     ENDPOINT: os2mo/salt/os2mo/update-prod
-
-
-# Deploy Frontend
-##################
-# Flux
-Deploy frontend to Flux Dev:
-  extends: .release-to-dev
-  needs:
-    - Release Frontend version
-  variables:
-    ENDPOINT: os2mo/flux/os2mo-frontend/update-dev
-
-Deploy frontend to Flux Test:
-  extends: .release-to-test
-  needs: []
-  variables:
-    ENDPOINT: os2mo/flux/os2mo-frontend/update-test
-
-Deploy frontend to Flux Prod:
-  extends: .release-to-prod
-  needs: []
-  variables:
-    ENDPOINT: os2mo/flux/os2mo-frontend/update-prod
-
-# Salt
-Deploy frontend to Salt Dev:
-  extends: .release-to-dev
-  needs:
-    - Release Frontend version
-  variables:
-    ENDPOINT: os2mo/salt/os2mo-frontend/update-dev
-
-Deploy frontend to Salt Test:
-  extends: .release-to-test
-  needs: []
-  variables:
-    ENDPOINT: os2mo/salt/os2mo-frontend/update-test
-
-Deploy frontend to Salt Prod:
-  extends: .release-to-prod
-  needs: []
-  variables:
-    ENDPOINT: os2mo/salt/os2mo-frontend/update-prod
 
 
 # Docs
