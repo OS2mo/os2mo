@@ -69,7 +69,6 @@ COPY LICENSE .
 COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
-COPY NEWS.md .
 COPY backend/mora/main.py .
 
 # Copy frontend code.
