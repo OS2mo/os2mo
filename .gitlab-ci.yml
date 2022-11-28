@@ -54,7 +54,9 @@ variables:
 include:
   - local: ra-data-models/.gitlab-ci.yml
   - project: labs/salt-automation
+    ref: feature/xxxxx_do_not_interrupt_meta
     file:
+      - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/docker-build-meta.v1.yml
       - gitlab-ci-templates/common/docker-release-meta.v1.yml
@@ -118,16 +120,8 @@ default:
 
 # Sync
 #######
-Don't Interrupt:
-  stage: sync
-  image: alpine:latest
-  interruptible: false
-  variables:
-    GIT_STRATEGY: none
-  script:
-    - echo "This jobs makes sure this pipeline won't be interrupted!"
-    - echo "It works because you cannot cancel subsequent jobs after a job with interruptible=false starts."
-    - echo "See https://docs.gitlab.com/ee/ci/yaml/#interruptible for more information."
+Do not interrupt:
+  extends: .do-not-interrupt
   rules:
     - <<: *if-default-branch-refs
     - <<: *if-tag
