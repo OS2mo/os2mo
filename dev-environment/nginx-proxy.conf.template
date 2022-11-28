@@ -67,7 +67,7 @@ server {
     # Frontend
     # (everything unmatched)
     location / {
-        set $frontend frontend;
-        proxy_pass http://$frontend;
+        set $frontend_static frontend_static;
+        proxy_pass http://$frontend_static;
     }
 }
