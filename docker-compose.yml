@@ -23,9 +23,7 @@ services:
 
   mo:
     tty: true
-    build:
-      context: .
-      dockerfile: docker/api.Dockerfile
+    build: .
     # The `volumes` and `command` mounts the backend directory in the docker
     # container and overwrites the CMD from Dockerfile. With this gunicorn
     # reloads on file changes. This is very useful when developing the backend.
