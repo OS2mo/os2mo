@@ -236,16 +236,8 @@ Build Keycloak DB:
   rules:
     - <<: *if-merge-request
 
-
 # Backend Tests
 ################
-.backend-test-base:
-  extends:
-    - .test-base
-    - .services:use-mo
-  variables:
-    HYPOTHESIS_PROFILE: "ci"
-
 Unit-test:
   image: python:3.10
   needs: []
@@ -278,12 +270,13 @@ Unit-test:
 
 Integration-test:
   extends:
-    - .backend-test-base
+    - .test-base
+    - .services:use-mo
   needs:
-    - !reference [".backend-test-base", needs]
     - Build Keycloak DB
     - Build Keycloak
   variables:
+    HYPOTHESIS_PROFILE: "ci"
     FF_NETWORK_PER_BUILD: 1  # activate container-to-container networking
   services:
     # mox db
