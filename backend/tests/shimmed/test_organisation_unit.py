@@ -93,6 +93,7 @@ class TestOrganisationUnitRead:
                     "user_key": "AU",
                     "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
                 },
+                "org_unit_hierarchy": None,
                 "org_unit_level": None,
                 "org_unit_type": {
                     "example": None,
