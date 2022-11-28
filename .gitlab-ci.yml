@@ -25,6 +25,9 @@ variables:
   # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
+  PRODUCT: os2mo
+  COMPONENT: os2mo
+
 # Conditions
 #############
 # Global Conditions
@@ -59,7 +62,8 @@ include:
       - gitlab-ci-templates/common/conventional-commits.v1.yml
       - gitlab-ci-templates/common/docker-build-meta.v1.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
-      - gitlab-ci-templates/common/config-updater-meta.v1.yml
+      - gitlab-ci-templates/common/config-updater-salt.v1.yml
+      - gitlab-ci-templates/common/config-updater-flux.v1.yml
   - project: labs/salt-automation
     file: gitlab-ci-templates/common/pre-commit.v1.yml
     rules:
@@ -391,57 +395,8 @@ Stop Review:
       allow_failure: true
 
 
-# Deploy API
-#############
-# Flux
-Deploy API to Flux Dev:
-  extends: .release-to-dev
-  needs:
-    - Release version
-  variables:
-    ENDPOINT: os2mo/flux/os2mo/update-dev
-
-Deploy API to Flux Test:
-  extends: .release-to-test
-  needs: []
-  variables:
-    ENDPOINT: os2mo/flux/os2mo/update-test
-
-Deploy API to Flux Prod:
-  extends: .release-to-prod
-  needs: []
-  variables:
-    ENDPOINT: os2mo/flux/os2mo/update-prod
-
-# Salt
-Deploy API to Salt Dev:
-  extends: .release-to-dev
-  needs:
-    - Release version
-  variables:
-    ENDPOINT: os2mo/salt/os2mo/update-dev
-
-Deploy API to Salt Test:
-  extends: .release-to-test
-  needs: []
-  variables:
-    ENDPOINT: os2mo/salt/os2mo/update-test
-
-Deploy API to Salt Prod:
-  extends: .release-to-prod
-  needs: []
-  variables:
-    ENDPOINT: os2mo/salt/os2mo/update-prod
-
-
 # Docs
 #######
-.docs-base:
-  stage: docs
-
-.docs:rules:deploy-branch-docs:
-  rules:
-    - <<: *if-merge-request
 
 .docs:rules:deploy-master-docs:
   rules:
@@ -453,12 +408,12 @@ Deploy API to Salt Prod:
 
 .docs:rules:build-docs:
   rules:
-    - !reference [".docs:rules:deploy-branch-docs", rules]
+    - <<: *if-merge-request
     - !reference [".docs:rules:deploy-master-docs", rules]
 
 Export GQL Schema:
+  stage: docs
   extends:
-    - .docs-base
     - .docs:rules:build-docs
     - .services:use-mo
   variables:
@@ -471,8 +426,8 @@ Export GQL Schema:
       - $OUT
 
 Export Changelog:
+  stage: docs
   extends:
-    - .docs-base
     - .docs:rules:build-docs
   needs: []
   image: node:18-alpine
@@ -490,8 +445,8 @@ Export Changelog:
       - $OUT
 
 .build-docs:
+  stage: docs
   extends:
-    - .docs-base
     - .docs:rules:build-docs
   needs:
     - Export GQL Schema
@@ -514,11 +469,12 @@ Export Changelog:
 Build and deploy branch docs:
   extends:
     - .build-docs
-    - .docs:rules:deploy-branch-docs
   environment:
     name: docs/$CI_COMMIT_REF_SLUG
     url: $CI_JOB_URL/artifacts/file/site/index.html
     auto_stop_in: 1 week
+  rules:
+    - <<: *if-merge-request
 
 Build master docs:
     extends:
@@ -527,8 +483,8 @@ Build master docs:
 
 # To release to GitLab Pages, the job must be called 'pages'
 pages:
+  stage: docs
   extends:
-    - .docs-base
     - .docs:rules:deploy-master-docs
   needs:
     - Build master docs
