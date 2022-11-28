@@ -5,7 +5,7 @@ services:
   mo_ldap_import_export:
     container_name: mo_ldap_ie
     build: .
-    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload"]
+    command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload", "--reload-include", "*.json"]
 
     environment:
       amqp_url: "amqp://guest:guest@msg_broker"
