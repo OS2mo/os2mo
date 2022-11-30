@@ -38,8 +38,6 @@ def no_auth_endpoints():
         "/health/ready",
         "/health/{identifier}",
         "/version/",
-        "/{path:path}",
-        "/favicon.ico",
         "/service/keycloak.json",
         "/service/token",
         "/service/exports/{file_name}",

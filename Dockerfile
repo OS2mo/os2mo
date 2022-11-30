@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 
-FROM magentaaps/os2mo-frontend:12.13.0 AS frontend
-
-FROM python:3.10 AS dist
+FROM python:3.10
 
 LABEL org.opencontainers.image.title="OS2mo - Medarbejder og Organisation"
 LABEL org.opencontainers.image.vendor="Magenta ApS"
@@ -56,9 +54,6 @@ COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
 COPY backend/mora/main.py .
-
-# Copy frontend code.
-COPY --from=frontend /usr/share/nginx/html/ ./frontend/dist
 
 # Run the server as the mora user on port 5000
 USER mora:mora
