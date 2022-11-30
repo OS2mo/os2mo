@@ -134,8 +134,6 @@ class Settings(BaseSettings):
     # Endpoint switches
     # Enable testing endpoints
     testcafe_enable: bool = True
-    # Serve frontend
-    statics_enable: bool = False
     # GraphQL settings
     graphql_enable: bool = True
     graphiql_enable: bool = False

@@ -5,14 +5,10 @@ from itertools import chain
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from more_itertools import only
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
@@ -51,25 +47,6 @@ from tests.util import setup_test_routing
 basedir = os.path.dirname(__file__)
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
 logger = get_logger()
-
-
-def static_content_router():
-    router = APIRouter()
-
-    @router.get("/favicon.ico", response_class=FileResponse)
-    def favicon():
-        """Serve favicon.ico on `/favicon.ico`."""
-        return FileResponse(
-            distdir + "/favicon.ico", media_type="image/vnd.microsoft.icon"
-        )
-
-    @router.get("/", response_class=HTMLResponse)
-    @router.get("/{path:path}", response_class=HTMLResponse)
-    def index(path=""):
-        """Serve index.html on `/` and unknown paths."""
-        return FileResponse(distdir + "/index.html")
-
-    return router
 
 
 async def fallback_handler(*args, **kwargs):
@@ -185,10 +162,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 "description": "Healthcheck endpoints. "
                 "Called by the observability setup.",
             },
-            {
-                "name": "Static",
-                "description": "Endpoints serving static frontend content.",
-            },
         ],
     )
     app = FastAPI(
@@ -250,19 +223,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     if settings.enable_internal_lora:
         lora_app = create_lora_app()
         app.mount("/lora", lora_app)
-
-    # Statics must be included last because of the wildcard, matching anything unhandled
-    if settings.statics_enable:
-        if os.path.exists(distdir):
-            app.mount(
-                "/static/", StaticFiles(directory=distdir + "/static/"), name="static"
-            )
-        else:
-            logger.warning("No dist directory to serve", distdir=distdir)
-        app.include_router(
-            static_content_router(),
-            tags=["Static"],
-        )
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)

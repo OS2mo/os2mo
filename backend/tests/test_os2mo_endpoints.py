@@ -100,19 +100,12 @@ all_endpoints = (
 
 testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
 
-statics_endpoints = {
-    "/",
-    "/{path:path}",
-    "/favicon.ico",
-}
-
 internal_lora_endpoints = {"/lora"}
 
 
 endpoint_feature_flags = {
     "testcafe_enable": False,
     "enable_internal_lora": False,
-    "statics_enable": False,
 }
 
 
@@ -131,12 +124,6 @@ def test_testcafe_enabled():
     )
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints | testcafe_endpoints
-
-
-def test_static_enabled():
-    app = create_app(ChainMap({"statics_enable": True}, endpoint_feature_flags))
-    routes = set(map(attrgetter("path"), app.routes)) | {""}
-    assert routes == all_endpoints | statics_endpoints
 
 
 def test_internal_lora_enabled():
