@@ -441,6 +441,7 @@ async def get_one_orgunit(
     unittype = mapping.ORG_UNIT_TYPE_FIELD.get_uuid(unit)
     timeplanning = mapping.ORG_UNIT_TIME_PLANNING_FIELD.get_uuid(unit)
     org_unit_level = mapping.ORG_UNIT_LEVEL_FIELD.get_uuid(unit)
+    org_unit_hierarchy = mapping.ORG_UNIT_HIERARCHY_FIELD.get_uuid(unit)
     parentid = rels["overordnet"][0]["uuid"]
     r = {
         "name": attrs["enhedsnavn"],
@@ -496,6 +497,13 @@ async def get_one_orgunit(
                     )
                 )
 
+            if org_unit_hierarchy:
+                org_unit_hierarchy_task = create_task(
+                    await facet.request_bulked_get_one_class_full(
+                        classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
+                    )
+                )
+
         parent = await parent_task
 
         if parentid is not None:
@@ -539,6 +547,10 @@ async def get_one_orgunit(
                 await org_unit_level_task if org_unit_level else None
             )
 
+            r[mapping.ORG_UNIT_HIERARCHY] = (
+                await org_unit_hierarchy_task if org_unit_hierarchy else None
+            )
+
     elif details is UnitDetails.SELF:
         r[mapping.ORG] = await org.get_configured_organisation()
         parent_task = create_task(
@@ -572,6 +584,13 @@ async def get_one_orgunit(
                 )
             )
 
+        if org_unit_hierarchy:
+            org_unit_hierarchy_task = create_task(
+                await facet.request_bulked_get_one_class_full(
+                    classid=org_unit_hierarchy, only_primary_uuid=only_primary_uuid
+                )
+            )
+
         r[mapping.PARENT] = await parent_task
 
         r[mapping.ORG] = await org_task
@@ -582,6 +601,10 @@ async def get_one_orgunit(
 
         r[mapping.ORG_UNIT_LEVEL] = (
             await org_unit_level_task if org_unit_level else None
+        )
+
+        r[mapping.ORG_UNIT_HIERARCHY] = (
+            await org_unit_hierarchy_task if org_unit_hierarchy else None
         )
 
     elif details is UnitDetails.MINIMAL:
