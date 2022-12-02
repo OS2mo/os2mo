@@ -64,7 +64,7 @@ graph_app = None
 def test_app():
     global graph_app
     if not graph_app:
-        graph_app = create_app(settings_overrides={"graphql_enable": True})
+        graph_app = create_app()
         graph_app.dependency_overrides[auth] = admin_auth
     return graph_app
 

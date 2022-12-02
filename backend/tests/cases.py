@@ -30,7 +30,6 @@ graph_api_test_app = None
 class NewGraphApiTestApp:
 
     app_settings_overrides = {
-        "graphql_enable": True,
         "graphiql_enable": True,
     }
 
