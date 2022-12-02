@@ -21,6 +21,13 @@ services:
       BASE_URL: http://mo:80
     restart: unless-stopped
 
+  frontend_new_static:
+    image: magentaaps/os2mo-naldo:1.31.0
+    environment:
+      PUBLIC_BASE_URL: http://localhost:5000
+      PUBLIC_GRAPHQL_VERSION: graphql/v3
+    restart: unless-stopped
+
   mo:
     tty: true
     build: .
