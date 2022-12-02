@@ -111,9 +111,6 @@ default:
     DB_USER: mox
     DB_PASSWORD: mox
 
-    LORA_URL: "http://localhost/lora/"
-    ENABLE_INTERNAL_LORA: "true"
-
 .services:use-mo:
   needs:
     - Build OS2mo

@@ -52,18 +52,11 @@ settings = config.get_settings()
 async def create_lora_client(app: FastAPI | None = None) -> httpx.AsyncClient:
     """Return lora client.
 
-    If `ENABLE_INTERNAL_LORA` is set, this transparently sends requests to the
-    internal LoRa ASGI app. Otherwise, it is an HTTP client.
+    IThis transparently sends requests to the internal LoRa ASGI app.
     """
-    if config.get_settings().enable_internal_lora:
-        return AsyncClient(
-            app=app,
-            base_url="http://localhost/lora/",
-            timeout=config.get_settings().httpx_timeout,
-        )
-
     return AsyncClient(
-        base_url=config.get_settings().lora_url,
+        app=app,
+        base_url="http://localhost/lora/",
         timeout=config.get_settings().httpx_timeout,
     )
 
@@ -736,14 +729,8 @@ class Scope(BaseScope):
 
 
 async def get_version():
-    if config.get_settings().enable_internal_lora:
-        settings = get_lora_settings()
-        return settings.commit_tag
-    response = await client.get(url="version")
-    try:
-        return response.json()["lora_version"]
-    except ValueError:
-        return "Could not find lora version: %s" % response.text
+    settings = get_lora_settings()
+    return settings.commit_tag
 
 
 class AutocompleteScope(BaseScope):

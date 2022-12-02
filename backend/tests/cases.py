@@ -87,10 +87,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
         return base_test_app
 
-    @property
-    def lora_url(self):
-        return config.get_settings().lora_url
-
     def get_token(self, use_client_secret: bool = False) -> str:
         """
         Get OIDC token from Keycloak to send with the request
@@ -340,10 +336,6 @@ class _BaseTestCase(TestCase):
             base_test_app = app.create_app(self.app_settings_overrides)
 
         return base_test_app
-
-    @property
-    def lora_url(self):
-        return config.get_settings().lora_url
 
     def get_token(self, use_client_secret: bool = False) -> str:
         """

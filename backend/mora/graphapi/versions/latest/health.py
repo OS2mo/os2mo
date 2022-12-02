@@ -4,16 +4,13 @@
 from collections.abc import Callable
 
 import aiohttp
-from httpx import HTTPStatusError
 from os2mo_dar_client import AsyncDARClient
 from structlog import get_logger
 
 from mora import config
-from mora import lora
 from mora.exceptions import HTTPException
 from mora.service.org import ConfiguredOrganisation
 from mora.triggers.internal.amqp_trigger import amqp_system
-
 
 logger = get_logger()
 
@@ -44,22 +41,9 @@ async def oio_rest() -> bool:
     """Check if the configured oio_rest can be reached.
 
     Returns:
-        bool: True if reachable. False if not.
+        bool: True, since we're hosting LoRa internally 😎
     """
-    settings = config.get_settings()
-    if settings.enable_internal_lora:
-        return True
-    try:
-        r = await lora.client.get(url="site-map")  # type: ignore
-        r.raise_for_status()
-        return True
-    except HTTPStatusError as err:
-        logger.critical("Problem contacting lora", exception=str(err))
-        return False
-    except Exception as err:
-        logger.critical("HTTPX client error", exception=str(err))
-        return False
-    return False
+    return True
 
 
 @register_health_endpoint

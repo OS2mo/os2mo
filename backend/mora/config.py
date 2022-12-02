@@ -62,13 +62,10 @@ class Settings(BaseSettings):
     """
     These settings can be overwritten by environment variables
     The environement variable name is the upper-cased version of the variable name below
-    E.g. LORA_URL == lora_url
     """
 
     commit_tag: str | None
     commit_sha: str | None
-    lora_url: AnyHttpUrl = "http://mox/"
-    enable_internal_lora: bool = False
 
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
