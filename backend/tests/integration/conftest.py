@@ -15,7 +15,7 @@ def graphapi_test():
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    with TestClient(test_app(graphql_enable=True)) as client:
+    with TestClient(test_app()) as client:
         yield client
 
 
