@@ -128,15 +128,12 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     ldap_object : ldap class to fetch attributes for. for example "organizationalPerson"
     """
 
-    logger = structlog.get_logger()
     all_attributes = []
     superiors = get_ldap_superiors(ldap_connection, root_ldap_object)
 
     for ldap_object in [root_ldap_object] + superiors:
         object_schema = get_ldap_object_schema(ldap_connection, ldap_object)
-        if ldap_object != "top":
-            logger.info(f"Fetching allowed objects for {ldap_object}")
-            all_attributes += object_schema.may_contain
+        all_attributes += object_schema.may_contain
     return all_attributes
 
 
@@ -170,6 +167,7 @@ def paged_search(context: Context, searchParameters: dict) -> list:
 
         if ldap_connection.result["description"] == "operationsError":
             logger.warn(f"{search_filter} Search failed")
+            logger.warn(ldap_connection.result)
             break
 
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
@@ -205,7 +203,8 @@ def single_object_search(searchParameters, ldap_connection):
     Notes
     ------
     If you want to be 100% sure that the search only returns one result; Supply an
-    object's dn (distinguished name) as the search base.
+    object's dn (distinguished name) as the search base and set
+    searchFilter = "(objectclass=*)"
     """
     ldap_connection.search(**searchParameters)
     response = ldap_connection.response
@@ -306,3 +305,10 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
             ldap_dict[attribute] = value
 
     return LdapObject(**ldap_dict)
+
+
+def get_attribute_types(ldap_connection):
+    """
+    Returns a dictionary with attribute type information for all attributes in LDAP
+    """
+    return ldap_connection.server.schema.attribute_types
