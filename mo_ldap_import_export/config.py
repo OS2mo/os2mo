@@ -78,10 +78,6 @@ class Settings(BaseSettings):
         ..., description="Organizational unit to utilize for all LDAP requests"
     )
 
-    ldap_user_class: str = Field(
-        ..., description="User ObjectClass for employee lookup"
-    )
-
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
         description="Base URL for OS2mo.",

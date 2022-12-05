@@ -16,7 +16,6 @@ services:
       LDAP_PASSWORD: ""
       LDAP_SEARCH_BASE: "DC=ad,DC=addev"
       LDAP_ORGANIZATIONAL_UNIT: "OU=Magenta"
-      LDAP_USER_CLASS: "user"
 
       AUTH_SERVER: "http://keycloak:8080/auth"
 

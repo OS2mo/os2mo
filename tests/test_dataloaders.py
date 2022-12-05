@@ -4,7 +4,6 @@
 # pylint: disable=redefined-outer-name
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
-"""Test dataloaders."""
 import asyncio
 from collections.abc import Iterator
 from typing import Collection
@@ -15,24 +14,24 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from more_itertools import collapse
+from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
 
 from mo_ldap_import_export.config import Settings
-from mo_ldap_import_export.dataloaders import configure_dataloaders
-from mo_ldap_import_export.dataloaders import Dataloaders
-from mo_ldap_import_export.dataloaders import get_ldap_attributes
+from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
-from mo_ldap_import_export.dataloaders import make_overview_entry
 from mo_ldap_import_export.exceptions import CprNoNotFound
-from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
-from mo_ldap_import_export.ldap import paged_search
 
 
 @pytest.fixture()
 def ldap_attributes() -> dict:
-    return {"department": None, "name": "John", "employeeID": "0101011234"}
+    return {
+        "department": None,
+        "name": "John",
+        "employeeID": "0101011234",
+        "postalAddress": "foo",
+    }
 
 
 @pytest.fixture
@@ -61,6 +60,11 @@ def gql_client() -> Iterator[AsyncMock]:
 
 
 @pytest.fixture
+def gql_client_sync() -> Iterator[MagicMock]:
+    yield MagicMock()
+
+
+@pytest.fixture
 def model_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
@@ -75,9 +79,15 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
-    monkeypatch.setenv("LDAP_USER_CLASS", "user")
 
     return Settings()
+
+
+@pytest.fixture
+def converter() -> MagicMock:
+    converter_mock = MagicMock()
+    converter_mock.find_ldap_object_class.return_value = "user"
+    return converter_mock
 
 
 @pytest.fixture
@@ -87,6 +97,8 @@ def context(
     model_client: AsyncMock,
     settings: Settings,
     cpr_field: str,
+    converter: MagicMock,
+    gql_client_sync: MagicMock,
 ) -> Context:
 
     return {
@@ -96,21 +108,41 @@ def context(
             "gql_client": gql_client,
             "model_client": model_client,
             "cpr_field": cpr_field,
+            "converter": converter,
+            "gql_client_sync": gql_client_sync,
         },
     }
 
 
 @pytest.fixture
-def dataloaders(
-    context: Context,
-) -> Iterator[Dataloaders]:
+def get_attribute_types() -> dict:
+
+    attr1_mock = MagicMock()
+    attr2_mock = MagicMock()
+    attr1_mock.single_value = False
+    attr2_mock.single_value = True
+    return {
+        "attr1": attr1_mock,
+        "attr2": attr2_mock,
+        "department": MagicMock(),
+        "name": MagicMock(),
+        "employeeID": MagicMock(),
+        "postalAddress": MagicMock(),
+    }
+
+
+@pytest.fixture
+def dataloader(context: Context, get_attribute_types: dict) -> DataLoader:
     """Fixture to construct a dataloaders object using fixture mocks.
 
     Yields:
         Dataloaders with mocked clients.
     """
-    dataloaders = configure_dataloaders(context)
-    yield dataloaders
+    with patch(
+        "mo_ldap_import_export.dataloaders.get_attribute_types",
+        return_value=get_attribute_types,
+    ):
+        return DataLoader(context)
 
 
 def mock_ldap_response(ldap_attributes: dict, dn: str) -> dict[str, Collection[str]]:
@@ -127,88 +159,47 @@ def mock_ldap_response(ldap_attributes: dict, dn: str) -> dict[str, Collection[s
     return response
 
 
-async def test_load_ldap_employee(
-    ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
+async def test_load_ldap_cpr_object(
+    ldap_connection: MagicMock, dataloader: DataLoader, ldap_attributes: dict
 ) -> None:
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+    cpr_no = "0101012002"
 
-    expected_result = [LdapObject(dn=dn, **ldap_attributes)]
-
+    expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
     output = await asyncio.gather(
-        dataloaders.ldap_employee_loader.load(dn),
+        dataloader.load_ldap_cpr_object(cpr_no, "Employee"),
     )
 
-    assert output == expected_result
+    assert output[0] == expected_result
 
 
-async def test_load_ldap_employee_multiple_results(
-    ldap_connection: MagicMock, dataloaders: Dataloaders, ldap_attributes: dict
-) -> None:
-    # Mock data
-    dn = "DC=ad,DC=addev"
-
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 20
-
-    try:
-        await asyncio.gather(
-            dataloaders.ldap_employee_loader.load(dn),
-        )
-    except Exception as e:
-        assert type(e) == MultipleObjectsReturnedException
-        assert e.status_code == 404
-
-
-async def test_load_ldap_employee_no_results(
-    ldap_connection: MagicMock, dataloaders: Dataloaders
+async def test_load_ldap_objects(
+    ldap_connection: MagicMock, dataloader: DataLoader, ldap_attributes: dict
 ) -> None:
 
-    ldap_connection.response = []
-    dn = "foo"
-
-    try:
-        await asyncio.gather(
-            dataloaders.ldap_employee_loader.load(dn),
-        )
-    except Exception as e:
-        assert type(e) == NoObjectsReturnedException
-        assert e.status_code == 404
-
-
-async def test_load_ldap_employees(
-    dataloaders: Dataloaders, ldap_attributes: dict
-) -> None:
-    """Test that test_load_ldap_employees works as expected."""
-
-    # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+    expected_result = [LdapObject(dn=dn, **ldap_attributes)] * 2
+    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)] * 2
 
-    expected_results = [LdapObject(dn=dn, **ldap_attributes)]
+    output = await asyncio.gather(
+        dataloader.load_ldap_objects("Employee"),
+    )
 
-    # Get result from dataloader
-    with patch(
-        "mo_ldap_import_export.dataloaders.paged_search",
-        return_value=[mock_ldap_response(ldap_attributes, dn)],
-    ):
-        output = await asyncio.gather(
-            dataloaders.ldap_employees_loader.load(0),
-        )
-
-    assert output == [expected_results]
+    assert output[0] == expected_result
 
 
 async def test_modify_ldap_employee(
     ldap_connection: MagicMock,
-    dataloaders: Dataloaders,
+    dataloader: DataLoader,
     ldap_attributes: dict,
 ) -> None:
 
     employee = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        cpr="0101011234",
-        **ldap_attributes
+        **ldap_attributes,
     )
 
     bad_response = {
@@ -254,10 +245,11 @@ async def test_modify_ldap_employee(
 
     # Get result from dataloader
     with patch(
-        "mo_ldap_import_export.dataloaders.load_ldap_employee", return_value=[employee]
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_cpr_object",
+        return_value=employee,
     ):
         output = await asyncio.gather(
-            dataloaders.ldap_employees_uploader.load(employee),
+            dataloader.upload_ldap_object(employee, "user"),
         )
 
     assert output == [
@@ -268,7 +260,7 @@ async def test_modify_ldap_employee(
 
 async def test_create_invalid_ldap_employee(
     ldap_connection: MagicMock,
-    dataloaders: Dataloaders,
+    dataloader: DataLoader,
     ldap_attributes: dict,
     cpr_field: str,
 ) -> None:
@@ -279,22 +271,46 @@ async def test_create_invalid_ldap_employee(
 
     employee = LdapObject(
         dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        **ldap_attributes_without_cpr_field
+        **ldap_attributes_without_cpr_field,
     )
 
     # Get result from dataloader
     try:
         await asyncio.gather(
-            dataloaders.ldap_employees_uploader.load(employee),
+            dataloader.upload_ldap_object(employee, "user"),
         )
     except CprNoNotFound as e:
         assert e.status_code == 404
         assert type(e) == CprNoNotFound
 
 
+async def test_append_data_to_ldap_object(
+    ldap_connection: MagicMock,
+    dataloader: DataLoader,
+    ldap_attributes: dict,
+    cpr_field: str,
+):
+
+    address = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        postalAddress="foo",
+        **{cpr_field: "123"},
+    )
+
+    dataloader.single_value = {"postalAddress": False, cpr_field: True}
+
+    await asyncio.gather(
+        dataloader.upload_ldap_object(address, "user"),
+    )
+
+    changes = {"postalAddress": [("MODIFY_ADD", "foo")]}
+    dn = address.dn
+    assert ldap_connection.modify.called_once_with(dn, changes)
+
+
 async def test_create_ldap_employee(
     ldap_connection: MagicMock,
-    dataloaders: Dataloaders,
+    dataloader: DataLoader,
     ldap_attributes: dict,
     cpr_field: str,
 ) -> None:
@@ -334,45 +350,13 @@ async def test_create_ldap_employee(
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloaders.ldap_employees_uploader.load(employee),
+        dataloader.upload_ldap_object(employee, "user"),
     )
 
     assert output == [[good_response] * len(parameters_to_upload)]
 
 
-async def test_load_mo_employees(
-    dataloaders: Dataloaders, gql_client: AsyncMock
-) -> None:
-
-    cpr_nos = ["1407711900", "0910443755", "1904433310"]
-    uuids = [uuid4() for i in range(3)]
-
-    gql_client.execute.return_value = {
-        "employees": [
-            {"objects": [{"cpr_no": cpr_nos[0], "uuid": uuids[0]}]},
-            {
-                "objects": [
-                    {"cpr_no": cpr_nos[1], "uuid": uuids[1]},
-                    {"cpr_no": cpr_nos[2], "uuid": uuids[2]},
-                ]
-            },
-        ]
-    }
-
-    expected_results = []
-    for cpr_no, uuid in zip(cpr_nos, uuids):
-        expected_results.append(Employee(**{"cpr_no": cpr_no, "uuid": uuid}))
-
-    output = await asyncio.gather(
-        dataloaders.mo_employees_loader.load(0),
-    )
-
-    assert output == [expected_results]
-
-
-async def test_load_mo_employee(
-    dataloaders: Dataloaders, gql_client: AsyncMock
-) -> None:
+async def test_load_mo_employee(dataloader: DataLoader, gql_client: AsyncMock) -> None:
 
     cpr_no = "1407711900"
     uuid = uuid4()
@@ -386,125 +370,40 @@ async def test_load_mo_employee(
     expected_result = [Employee(**{"cpr_no": cpr_no, "uuid": uuid})]
 
     output = await asyncio.gather(
-        dataloaders.mo_employee_loader.load(uuid),
+        dataloader.load_mo_employee(uuid),
     )
 
     assert output == expected_result
 
 
 async def test_upload_mo_employee(
-    model_client: AsyncMock, dataloaders: Dataloaders
+    model_client: AsyncMock, dataloader: DataLoader
 ) -> None:
     """Test that test_upload_mo_employee works as expected."""
-    model_client.upload.return_value = ["1", None, "3"]
 
-    results = await asyncio.gather(
-        dataloaders.mo_employee_uploader.load(1),
-        dataloaders.mo_employee_uploader.load(2),
-        dataloaders.mo_employee_uploader.load(3),
-    )
-    assert results == ["1", None, "3"]
-    model_client.upload.assert_called_with([1, 2, 3])
+    return_values = ["1", None, "3"]
+    input_values = [1, 2, 3]
+    for input_value, return_value in zip(input_values, return_values):
+        model_client.upload.return_value = return_value
 
-
-async def test_get_ldap_attributes():
-    ldap_connection = MagicMock()
-
-    # Simulate 3 levels
-    levels = ["bottom", "middle", "top", None]
-    expected_attributes = [["mama", "papa"], ["brother", "sister"], ["wife"], None]
-
-    # We expect only the first two levels as output. 'top' is not taken into account
-    expected_output = list(collapse(expected_attributes[:2]))
-
-    # Format object_classes dict
-    object_classes = {}
-    for i in range(len(levels) - 1):
-        schema = MagicMock()
-
-        schema.may_contain = expected_attributes[i]
-        schema.superior = levels[i + 1]
-        object_classes[levels[i]] = schema
-
-    # Add to mock
-    ldap_connection.server.schema.object_classes = object_classes
-
-    # test the function
-    output = get_ldap_attributes(ldap_connection, str(levels[0]))
-    assert output == expected_output
+        result = await asyncio.gather(
+            dataloader.upload_mo_objects([input_value]),
+        )
+        assert result[0] == return_value
+        model_client.upload.assert_called_with([input_value])
 
 
-async def test_paged_search(
-    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
-):
+async def test_make_overview_entry(dataloader: DataLoader):
 
-    # Mock data
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+    attributes = ["attr1", "attr2"]
+    superiors = ["sup1", "sup2"]
+    entry = dataloader.make_overview_entry(attributes, superiors)
 
-    expected_results = [mock_ldap_response(ldap_attributes, dn)]
-
-    # Mock LDAP connection
-    ldap_connection.response = expected_results
-
-    # Simulate three pages
-    cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
-    results = iter(
-        [
-            {
-                "controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}},
-                "description": "OK",
-            }
-            for cookie in cookies
-        ]
-    )
-
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
-
-    # Every time a search is performed, point to the next page.
-    ldap_connection.search.side_effect = set_new_result
-
-    searchParameters = {
-        "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": ["foo", "bar"],
-    }
-    output = paged_search(context, searchParameters)
-
-    assert output == expected_results * len(cookies)
+    assert entry["attributes"] == attributes
+    assert entry["superiors"] == superiors
 
 
-async def test_invalid_paged_search(
-    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
-):
-
-    # Mock data
-    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-
-    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
-
-    ldap_connection.result = {
-        "description": "operationsError",
-    }
-
-    searchParameters = {
-        "search_filter": "(objectclass=organizationalPerson)",
-        "attributes": ["foo", "bar"],
-    }
-    output = paged_search(context, searchParameters)
-
-    assert output == []
-
-
-async def test_make_overview_entry():
-
-    attributes = ["foo", "bar"]
-    superiors = ["state", "country", "world"]
-    entry = make_overview_entry(attributes, superiors)
-
-    assert entry == {"attributes": attributes, "superiors": superiors}
-
-
-async def test_get_overview(dataloaders: Dataloaders):
+async def test_get_overview(dataloader: DataLoader):
 
     schema_mock = MagicMock()
     schema_mock.object_classes = {"object1": "foo"}
@@ -519,18 +418,15 @@ async def test_get_overview(dataloaders: Dataloaders):
         "mo_ldap_import_export.dataloaders.get_ldap_superiors",
         return_value=["sup1", "sup2"],
     ):
-        output = (
-            await asyncio.gather(
-                dataloaders.ldap_overview_loader.load([1]),
-            )
-        )[0]
+        output = dataloader.load_ldap_overview()
 
-    assert output == {
-        "object1": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
-    }
+    assert output["object1"]["attributes"] == ["attr1", "attr2"]
+    assert output["object1"]["superiors"] == ["sup1", "sup2"]
+    assert output["object1"]["attribute_types"]["attr1"].single_value is False
+    assert output["object1"]["attribute_types"]["attr2"].single_value is True
 
 
-async def test_get_populated_overview(dataloaders: Dataloaders):
+async def test_get_populated_overview(dataloader: DataLoader):
 
     overview = {
         "object1": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
@@ -546,18 +442,159 @@ async def test_get_populated_overview(dataloaders: Dataloaders):
     ]
 
     with patch(
-        "mo_ldap_import_export.dataloaders.load_ldap_overview",
-        return_value=[overview],
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_overview",
+        return_value=overview,
     ), patch(
         "mo_ldap_import_export.dataloaders.paged_search",
         return_value=responses,
     ):
-        output = (
-            await asyncio.gather(
-                dataloaders.ldap_populated_overview_loader.load([1]),
-            )
-        )[0]
+        output = dataloader.load_ldap_populated_overview()
 
-    assert output == {
-        "object1": {"attributes": ["attr1"], "superiors": ["sup1", "sup2"]}
+    assert output["object1"]["attributes"] == ["attr1"]
+    assert output["object1"]["superiors"] == ["sup1", "sup2"]
+    assert output["object1"]["attribute_types"]["attr1"].single_value is False
+
+
+async def test_load_mo_address_types(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "Email"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
     }
+
+    expected_result = {uuid: name}
+    output = dataloader.load_mo_address_types()
+    assert output == expected_result
+
+
+async def test_load_mo_address_no_valid_addresses(
+    dataloader: DataLoader, gql_client: AsyncMock
+) -> None:
+    uuid = uuid4()
+
+    gql_client.execute.return_value = {"addresses": []}
+
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(dataloader.load_mo_address(uuid))
+
+
+async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) -> None:
+
+    uuid = uuid4()
+
+    address_dict: dict = {
+        "value": "foo@bar.dk",
+        "uuid": uuid,
+        "address_type": {"uuid": uuid},
+        "validity": {"from": "2021-01-01 01:00"},
+        "person": {"uuid": uuid},
+    }
+
+    # Note that 'Address' requires 'person' to be a dict
+    expected_result = Address(**address_dict.copy())
+
+    # While graphQL returns it as a list with length 1
+    address_dict["person"] = [{"cpr_no": "0101012002", "uuid": uuid}]
+    address_dict["address_type"]["name"] = "address"
+
+    gql_client.execute.return_value = {
+        "addresses": [
+            {"objects": [address_dict]},
+        ]
+    }
+
+    output = await asyncio.gather(
+        dataloader.load_mo_address(uuid),
+    )
+
+    address_metadata = {
+        "address_type_name": address_dict["address_type"]["name"],
+        "employee_cpr_no": address_dict["person"][0]["cpr_no"],
+    }
+
+    assert output[0][0] == expected_result
+    assert output[0][1] == address_metadata
+
+
+def test_load_ldap_object(dataloader: DataLoader):
+
+    make_ldap_object = MagicMock()
+    with patch(
+        "mo_ldap_import_export.dataloaders.single_object_search",
+        return_value="foo",
+    ), patch(
+        "mo_ldap_import_export.dataloaders.make_ldap_object",
+        new_callable=make_ldap_object,
+    ):
+        dn = "CN=Nikki Minaj"
+        output = dataloader.load_ldap_object(dn, ["foo", "bar"])
+        assert output.called_once_with("foo", dataloader.context)
+
+
+def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
+    dataloader.single_value = {"value": False}
+
+    ldap_objects = [
+        # LdapObject(dn="foo", value="New address"),
+        LdapObject(dn="foo", value="Old address"),
+    ]
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="foo", value=["New address", "Old address"]),
+    ):
+        dataloader.cleanup_attributes_in_ldap(ldap_objects)
+
+        changes = {"value": [("MODIFY_DELETE", "Old address")]}
+        assert dataloader.ldap_connection.modify.called_once_with("foo", changes)
+
+    # Simulate impossible case - where the value field of the ldap object on the server
+    # is not a list
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="foo", value="New address"),
+    ):
+        with pytest.raises(Exception):
+            dataloader.cleanup_attributes_in_ldap(ldap_objects)
+
+
+async def test_load_mo_employee_addresses(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    address1_uuid = uuid4()
+    address2_uuid = uuid4()
+
+    gql_client.execute.return_value = {
+        "employees": [
+            {
+                "objects": [
+                    {
+                        "addresses": [
+                            {"uuid": address1_uuid},
+                            {"uuid": address2_uuid},
+                        ]
+                    }
+                ]
+            },
+        ]
+    }
+
+    employee_uuid = uuid4()
+    address_type_uuid = uuid4()
+
+    load_mo_address = AsyncMock()
+    dataloader.load_mo_address = load_mo_address  # type: ignore
+
+    await asyncio.gather(
+        dataloader.load_mo_employee_addresses(employee_uuid, address_type_uuid),
+    )
+
+    load_mo_address.assert_any_call(address1_uuid)
+    load_mo_address.assert_any_call(address2_uuid)

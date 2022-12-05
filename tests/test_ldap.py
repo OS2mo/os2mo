@@ -18,17 +18,27 @@ from fastramqpi.context import Context
 from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import Server
+from more_itertools import collapse
 
+from .test_dataloaders import mock_ldap_response
 from mo_ldap_import_export.config import Settings
+from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
+from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
 from mo_ldap_import_export.ldap import get_client_strategy
+from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
+from mo_ldap_import_export.ldap import paged_search
+from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
 
-# from .test_dataloaders import cpr_field, context
+
+@pytest.fixture()
+def ldap_attributes() -> dict:
+    return {"department": None, "name": "John", "employeeID": "0101011234"}
 
 
 @pytest.fixture
@@ -56,7 +66,6 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
-    monkeypatch.setenv("LDAP_USER_CLASS", "user")
 
     return Settings()
 
@@ -107,7 +116,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
         "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
-        "LDAP_USER_CLASS": "user",
     }
     yield overrides
 
@@ -247,3 +255,109 @@ async def test_make_nested_ldap_object(cpr_field: str, context: Context):
     assert type(ldap_object.band_members) == list  # type: ignore
     assert type(ldap_object.band_members[0]) == LdapObject  # type: ignore
     assert type(ldap_object.band_members[1]) == LdapObject  # type: ignore
+
+
+async def test_get_ldap_attributes():
+    ldap_connection = MagicMock()
+
+    # Simulate 3 levels
+    levels = ["bottom", "middle", "top", None]
+    expected_attributes = [["mama", "papa"], ["brother", "sister"], ["wife"], None]
+
+    expected_output = list(collapse(expected_attributes[:3]))
+
+    # Format object_classes dict
+    object_classes = {}
+    for i in range(len(levels) - 1):
+        schema = MagicMock()
+
+        schema.may_contain = expected_attributes[i]
+        schema.superior = levels[i + 1]
+        object_classes[levels[i]] = schema
+
+    # Add to mock
+    ldap_connection.server.schema.object_classes = object_classes
+
+    # test the function
+    output = get_ldap_attributes(ldap_connection, str(levels[0]))
+    assert output == expected_output
+
+
+async def test_paged_search(
+    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
+):
+
+    # Mock data
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    expected_results = [mock_ldap_response(ldap_attributes, dn)]
+
+    # Mock LDAP connection
+    ldap_connection.response = expected_results
+
+    # Simulate three pages
+    cookies = [bytes("first page", "utf-8"), bytes("second page", "utf-8"), None]
+    results = iter(
+        [
+            {
+                "controls": {"1.2.840.113556.1.4.319": {"value": {"cookie": cookie}}},
+                "description": "OK",
+            }
+            for cookie in cookies
+        ]
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ldap_connection.result = next(results)
+
+    # Every time a search is performed, point to the next page.
+    ldap_connection.search.side_effect = set_new_result
+
+    searchParameters = {
+        "search_filter": "(objectclass=organizationalPerson)",
+        "attributes": ["foo", "bar"],
+    }
+    output = paged_search(context, searchParameters)
+
+    assert output == expected_results * len(cookies)
+
+
+async def test_invalid_paged_search(
+    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
+):
+
+    # Mock data
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
+
+    ldap_connection.result = {
+        "description": "operationsError",
+    }
+
+    searchParameters = {
+        "search_filter": "(objectclass=organizationalPerson)",
+        "attributes": ["foo", "bar"],
+    }
+    output = paged_search(context, searchParameters)
+
+    assert output == []
+
+
+async def test_single_object_search(ldap_connection: MagicMock):
+
+    search_entry = {"type": "searchResEntry"}
+
+    ldap_connection.response = [search_entry]
+    output = single_object_search({}, ldap_connection)
+
+    assert output == search_entry
+    ldap_connection.response = [search_entry]
+
+    with pytest.raises(MultipleObjectsReturnedException):
+        ldap_connection.response = [search_entry] * 2
+        output = single_object_search({}, ldap_connection)
+
+    with pytest.raises(NoObjectsReturnedException):
+        ldap_connection.response = [search_entry] * 0
+        output = single_object_search({}, ldap_connection)
