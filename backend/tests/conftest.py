@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
 from typing import TypeVar
+from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
@@ -24,6 +25,7 @@ from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
+from more_itertools import one
 from respx.mocks import HTTPCoreMocker
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -409,13 +411,29 @@ def gen_organisation(
 
 
 @pytest.fixture
-def mock_organisation(respx_mock) -> UUID:
+def mock_organisation(respx_mock) -> YieldFixture[UUID]:
     organisation = gen_organisation()
 
     respx_mock.get(
         "http://localhost/lora/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
     return organisation["id"]
+
+
+@pytest.fixture
+def mock_get_valid_organisations(respx_mock) -> YieldFixture[UUID]:
+    organisation = gen_organisation()
+
+    reg = one(organisation["registreringer"])
+    attrs = one(reg["attributter"]["organisationegenskaber"])
+    mocked_organisation = {
+        "name": attrs["organisationsnavn"],
+        "user_key": attrs["brugervendtnoegle"],
+        "uuid": organisation["id"],
+    }
+    with patch("mora.service.org.get_valid_organisations") as mock:
+        mock.return_value = [mocked_organisation]
+        yield UUID(mocked_organisation["uuid"])
 
 
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
