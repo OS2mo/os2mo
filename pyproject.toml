@@ -65,7 +65,7 @@ asgi-lifespan = "^1.0.1"
 commitizen = "^2.37.1"
 
 [tool.commitizen]
-name = "cz_conventional_commits"
+name = "cz_magenta"
 tag_format = "$version"
 changelog_start_rev = "12.11.1"
 
