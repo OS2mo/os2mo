@@ -42,7 +42,7 @@ VOLUME /queries
 ENV VIRTUAL_ENV=/poetry-env \
     PATH="/poetry-env/bin:$POETRY_HOME/bin:$PATH"
 WORKDIR /app/backend/
-COPY backend/poetry.lock backend/pyproject.toml /app/backend/
+COPY poetry.lock pyproject.toml /app/backend/
 RUN python3 -m venv $VIRTUAL_ENV \
     && poetry install --no-interaction \
     && rm -rf /root/.cache

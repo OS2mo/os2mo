@@ -20,8 +20,6 @@ variables:
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
 
-  PYPROJECT_ROOT: "./backend"
-
   # Review values cannot be changed without also modifying salt-automation/config-updater
   REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
@@ -255,9 +253,8 @@ Unit-test:
   script:
     - pip install poetry
     - poetry config virtualenvs.in-project true
-    - cd backend
     - poetry install
-    - poetry run pytest tests
+    - poetry run pytest backend/tests/
       -p no:cacheprovider
       -m "not integration_test"
       --color=yes
@@ -266,7 +263,7 @@ Unit-test:
   cache:
     paths:
       - ${PIP_CACHE_DIR}
-      - ${CI_PROJECT_DIR}/backend/.venv
+      - ${CI_PROJECT_DIR}/.venv
   artifacts:
     when: always
     paths:
@@ -438,7 +435,7 @@ Export Changelog:
   before_script:
     - pip3 install Commitizen
   script:
-    - cd backend && cz changelog --dry-run >> $OUT
+    - cz changelog --dry-run >> $OUT
   artifacts:
     paths:
       - $OUT
