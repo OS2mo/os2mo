@@ -66,3 +66,10 @@ repos:
     rev: v1.2.0
     hooks:
       - id: refurb
+
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v2.37.1
+    hooks:
+      - id: commitizen
+      - id: commitizen-branch
+        stages: [push]
