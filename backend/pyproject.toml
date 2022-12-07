@@ -62,6 +62,12 @@ pre-commit = "^2.20.0"
 respx = "0.17.1"
 "tap.py" = "^3.1"
 asgi-lifespan = "^1.0.1"
+commitizen = "^2.37.1"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+tag_format = "$version"
+changelog_start_rev = "12.11.1"
 
 [build-system]
 requires = ["poetry-core"]

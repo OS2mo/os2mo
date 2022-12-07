@@ -430,16 +430,15 @@ Export Changelog:
   extends:
     - .docs:rules:build-docs
   needs: []
-  image: node:18-alpine
+  image: python:3
   variables:
     OUT: $CI_PROJECT_DIR/docs/.dynamic_changelog.md
     GIT_STRATEGY: clone
     GIT_DEPTH: 0
   before_script:
-    - apk add git
-    - npm install conventional-changelog-cli
+    - pip3 install Commitizen
   script:
-    - npx conventional-changelog --config docs/.conventional_commit.config --preset conventionalcommits >> $OUT
+    - cd backend && cz changelog --dry-run >> $OUT
   artifacts:
     paths:
       - $OUT
