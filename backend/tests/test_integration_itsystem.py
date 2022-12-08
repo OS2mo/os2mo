@@ -315,7 +315,6 @@ class WritingMinimal(tests.cases.LoRATestCase):
             "TZ": "UTC",
         }
 
-    @pytest.mark.slow
     def test_errors(self):
         # In Postgres 10.0 the messages mentioning type names was changed. See
         # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2

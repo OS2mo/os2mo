@@ -125,7 +125,6 @@ class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
             (None, None, None, False),
         ]
     )
-    @pytest.mark.slow
     async def test_mutator(
         self, given_uuid, given_from_date, given_to_date, expected_result
     ):
@@ -321,7 +320,6 @@ def valid_cprs(draw) -> str:
         cpr_number=st.none() | valid_cprs(),
     )
 )
-@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_employee_integration_test(
@@ -657,7 +655,6 @@ async def test_update_mutator_fails(
         },
     ],
 )
-@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_update_integration(given_data, graphapi_post):

@@ -448,7 +448,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected, actual)
 
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
-    @pytest.mark.slow
     async def test_create_org_unit(self, m):
         c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
@@ -1465,7 +1464,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             },
         )
 
-    @pytest.mark.slow
     async def test_edit_parent_reads_from_previous_relation(self):
         # In this test, the org unit tree looks like this:
         #
@@ -2625,7 +2623,6 @@ class Tests(tests.cases.LoRATestCase):
             amqp_topics={"org_unit.org_unit.update": 1},
         )
 
-    @pytest.mark.slow
     @freezegun.freeze_time("2016-01-01")
     @util.mock("aabogade.json", allow_mox=True, real_http=True)
     def test_edit_org_unit_extending_end(self, m):

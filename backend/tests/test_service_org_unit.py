@@ -300,7 +300,6 @@ class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
         )
         self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
 
-    @pytest.mark.slow
     @util.patch_query_args()
     async def test_get_one_orgunit_with_association_count(self):
         result = await get_one_orgunit(
@@ -310,7 +309,6 @@ class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
         )
         assert "association_count" in result
 
-    @pytest.mark.slow
     @util.patch_query_args()
     async def test_details_nchildren(self):
         await self._assert_orgunit_keys(
@@ -318,7 +316,6 @@ class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
             details=UnitDetails.NCHILDREN,
         )
 
-    @pytest.mark.slow
     @util.patch_query_args()
     async def test_details_path(self):
         await self._assert_orgunit_keys(

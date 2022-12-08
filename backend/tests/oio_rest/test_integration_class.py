@@ -1,13 +1,10 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import pytest
-
 from tests.oio_rest import util
 from tests.oio_rest.util import DBTestCase
 
 
 class Tests(DBTestCase):
-    @pytest.mark.slow
     def test_import(self):
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 
@@ -351,7 +348,6 @@ class Tests(DBTestCase):
             status_code=404,
         )
 
-    @pytest.mark.slow
     def test_deleting_something(self):
         objid = self.load_fixture("/klassifikation/klasse", "klasse_opret.json")
 

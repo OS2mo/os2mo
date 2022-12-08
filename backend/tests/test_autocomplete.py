@@ -19,7 +19,6 @@ class TestAutocompleteScope(AsyncLoRATestCase):
         ]
     )
     @respx.mock
-    @pytest.mark.slow
     async def test_autocomplete(self, path: str, expected_result: list):
         respx.get(f"http://localhost/lora/autocomplete/{path}?phrase=phrase").mock(
             return_value=Response(200, json={"results": []})
