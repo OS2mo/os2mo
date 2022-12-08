@@ -428,7 +428,7 @@ class mock(requests_mock.Mocker):
         self.__overrider = None
         self.register_uri(
             requests_mock.ANY,
-            re.compile(f"^{config.get_settings().lora_url}/.*"),
+            re.compile("^http://mox/.*"),
             real_http=True,
         )
 

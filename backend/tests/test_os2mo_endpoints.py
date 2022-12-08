@@ -91,6 +91,7 @@ all_endpoints = (
         "/graphql/v{version_number}",
         "/version/",
         "/saml/sso/",
+        "/lora",
     }
     | doc_endpoints
     | health_endpoints
@@ -100,12 +101,9 @@ all_endpoints = (
 
 testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
 
-internal_lora_endpoints = {"/lora"}
-
 
 endpoint_feature_flags = {
     "testcafe_enable": False,
-    "enable_internal_lora": False,
 }
 
 
@@ -124,9 +122,3 @@ def test_testcafe_enabled():
     )
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints | testcafe_endpoints
-
-
-def test_internal_lora_enabled():
-    app = create_app(ChainMap({"enable_internal_lora": True}, endpoint_feature_flags))
-    routes = set(map(attrgetter("path"), app.routes)) | {""}
-    assert routes == all_endpoints | internal_lora_endpoints

@@ -89,7 +89,7 @@ services:
     image: magentaaps/os2mo-init:1.0
     environment:
       MO_URL: "http://mo"
-      LORA_URL: "http://mox"
+      LORA_URL: "http://mo/lora"
       CLIENT_ID: "dipex"
       CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
       AUTH_SERVER: "http://keycloak:8080/auth"

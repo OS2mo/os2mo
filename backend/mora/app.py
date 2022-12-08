@@ -219,9 +219,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         app.include_router(setup_test_routing(), tags=["Testing"])
 
     # Mount all of Lora in
-    if settings.enable_internal_lora:
-        lora_app = create_lora_app()
-        app.mount("/lora", lora_app)
+    lora_app = create_lora_app()
+    app.mount("/lora", lora_app)
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
@@ -236,10 +235,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         await triggers.register(app)
         if lora.client is not None:
             return
-        if settings.enable_internal_lora:
-            lora.client = await lora.create_lora_client(app)
-        else:
-            lora.client = await lora.create_lora_client()
+        lora.client = await lora.create_lora_client(app)
 
     @app.on_event("shutdown")
     async def shutdown():
