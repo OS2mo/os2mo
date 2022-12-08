@@ -144,7 +144,6 @@ async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> No
     new_callable=AsyncMock,
 )
 @given(data=st.data())
-@pytest.mark.slow
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_ituser_integration_test(

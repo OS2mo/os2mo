@@ -387,7 +387,6 @@ async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_arg
     create_address.assert_not_called()
 
 
-@pytest.mark.slow
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")

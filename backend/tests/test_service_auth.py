@@ -204,12 +204,10 @@ class TestAuthEndpointsReturn2xx(
         # integration tests
         self.app.dependency_overrides = {}
 
-    @pytest.mark.slow_setup
     @pytest.mark.usefixtures("sample_structures_minimal")
     async def test_auth_service_org(self):
         await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
-    @pytest.mark.slow
     async def test_auth_graphql(self):
         # GET (only works with GraphiQL enabled)
         await self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
@@ -267,7 +265,6 @@ def test_uuid_parse_fails_on_garbage():
 
 @sample_structures_minimal_cls_fixture
 class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
-    @pytest.mark.slow
     @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
     def test_401_when_uuid_missing_in_token(self, mock_auth):
         validation_err = ValidationError(

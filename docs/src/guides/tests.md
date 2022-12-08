@@ -93,8 +93,6 @@ A test can be marked as being a certain type, most default marks dont do anythin
 
 | Mark | Effect |
 |----------|-------------|
-| pytest.mark.slow | Sets max timeout on the tests call phase to 80 sec. |
-| pytest.mark.slow_setup | Removes max timeout on a tests setup phase. |
 | pytest.mark.integration_test | Marks the test as being an integration test, meaning that time limits apply to it. |
 
 ## Testclasses (Deprecated)

@@ -1209,7 +1209,6 @@ class Writing(tests.cases.LoRATestCase):
 @sample_structures_minimal_cls_fixture
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncReadingMinimal(tests.cases.AsyncLoRATestCase):
-    @pytest.mark.slow
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_missing_class(self, mock):
         # The relevant address_type klasse is not present in the minimal dataset

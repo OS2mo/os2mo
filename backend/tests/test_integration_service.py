@@ -21,8 +21,6 @@ org_unit_address_type_facet = {
 
 
 @pytest.mark.usefixtures("testing_db")
-@pytest.mark.slow
-@pytest.mark.slow_setup
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
@@ -500,7 +498,6 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
 class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
     maxDiff = None
 
-    @pytest.mark.slow
     async def test_children(self):
 
         await self.assertRequestResponse(
@@ -570,7 +567,6 @@ class TestsMinimal(tests.cases.LoRATestCase):
             "TZ": "UTC",
         }
 
-    @pytest.mark.slow
     def test_facet_create_and_update(self):
         payload = {
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
@@ -1130,7 +1126,6 @@ class Tests(tests.cases.LoRATestCase):
             [],
         )
 
-    @pytest.mark.slow
     def test_facet(self):
         self.assertRequestResponse(
             "/service/o/00000000-0000-0000-0000-000000000000/f/",

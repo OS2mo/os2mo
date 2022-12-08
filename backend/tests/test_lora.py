@@ -17,7 +17,6 @@ from mora import util as mora_util
 @pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
-    @pytest.mark.slow
     @respx.mock
     async def test_get_effects(self):
         respx.get("http://localhost/lora/organisation/organisationenhed").mock(
@@ -268,7 +267,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         ]
     )
     @respx.mock
-    @pytest.mark.slow
     async def test_errors_text(self, status_in, status_out, error_key):
         respx.get(
             "http://localhost/lora/organisation/organisationenhed",
@@ -325,7 +323,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "description": "go away",
         }
 
-    @pytest.mark.slow
     @respx.mock
     async def test_finding_nothing(self):
         respx.get(
@@ -556,7 +553,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             "konsolider": "True",
         }
 
-    @pytest.mark.slow
     @respx.mock
     async def test_noop_update_returns_null(self):
         # A "no-op" update in LoRa returns a response with an error message,
@@ -593,7 +589,6 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         updated_uuid = await c.bruger.update({}, uuid)
         assert uuid == updated_uuid
 
-    @pytest.mark.slow
     @respx.mock
     async def test_update_returns_nothing_on_lora_404(self):
         # Updating a nonexistent LoRa object returns a 404 status code, which
