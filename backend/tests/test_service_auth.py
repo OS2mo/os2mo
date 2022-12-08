@@ -221,7 +221,7 @@ class TestAuthEndpointsReturn2xx(
         )
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_required_if_client_is_mo():
     with pytest.raises(ValidationError) as err:
         KeycloakToken(azp="mo-frontend", realm_access=RealmAccess(roles={"owner"}))
@@ -233,7 +233,7 @@ def test_uuid_required_if_client_is_mo():
     assert len(err.value.errors()) == 1
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_uuid():
     token = KeycloakToken(
         azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
@@ -241,14 +241,14 @@ def test_uuid_parsed_correctly_uuid():
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_base64():
     token = KeycloakToken(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
-@util.override_config(Settings(keycloak_rbac_enabled=True, confdb_show_owner=True))
+@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parse_fails_on_garbage():
     with pytest.raises(ValidationError) as err:
         KeycloakToken(

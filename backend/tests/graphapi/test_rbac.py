@@ -116,7 +116,6 @@ async def test_graphql_rbac(
             "os2mo_auth": "True",
             "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
-            "confdb_show_owner": "True",
         }
     )
     # Setup the GraphQL context with the required dataloaders and OIDC token
@@ -186,7 +185,6 @@ async def test_mutators_require_rbac(
             "os2mo_auth": "True",
             "keycloak_rbac_enabled": "True",
             "graphql_rbac": "True",
-            "confdb_show_owner": "True",
         }
     )
     # Setup the GraphQL context with the required dataloaders and OIDC token

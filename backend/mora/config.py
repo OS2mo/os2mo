@@ -181,17 +181,6 @@ class Settings(BaseSettings):
     lora_auth_realm: str = "lora"
     lora_auth_server: AnyHttpUrl = "http://keycloak:8080/auth"
 
-    @root_validator
-    def show_owners_must_be_true_if_rbac_is_enabled(
-        cls, values: dict[str, Any]
-    ) -> dict[str, Any]:
-        if values["keycloak_rbac_enabled"]:
-            if not values["confdb_show_owner"]:
-                raise ValueError(
-                    "'confdb_show_owner' must be true when RBAC is enabled"
-                )
-        return values
-
     # ConfDB settings
     confdb_show_roles: bool = True
     confdb_show_kle: bool = False
@@ -214,7 +203,6 @@ class Settings(BaseSettings):
     confdb_extension_field_ui_labels: str = ""
     confdb_show_engagement_hyperlink: bool = False
     confdb_show_seniority: bool = False
-    confdb_show_owner: bool = False
     confdb_show_custom_logo: str = ""
 
     # Autocomplete: use new API? Requires LoRa 1.13 or later.
