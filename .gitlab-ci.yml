@@ -113,6 +113,7 @@ default:
     ENABLE_INTERNAL_LORA: "true"
 
 .services:use-mo:
+  # Remember to add `needs: [Build OS2mo]` if you overwrite `needs`.
   needs:
     - Build OS2mo
   image: $IMAGE_SHA
@@ -274,6 +275,7 @@ Integration-test:
     - .test-base
     - .services:use-mo
   needs:
+    - Build OS2mo
     - Build Keycloak DB
     - Build Keycloak
   variables:
