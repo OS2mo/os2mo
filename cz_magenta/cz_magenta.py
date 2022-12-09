@@ -47,6 +47,11 @@ class MagentaCz(ConventionalCommitsCz):
         output += parsed_message["ticket"] + " " + parsed_message["message"]
         output += ("\n\n" + commit.body + "\n" if commit.body else "")
         parsed_message["message"] = output
+    def changelog_message_builder_hook(self, parsed_message: dict, commit) -> dict:
+        warning = (u"\u26A0\uFE0F" + " ") if parsed_message["breaking"] else ""
+        body = ("\n\n" + commit.body + "\n") if commit.body else ""
+        output = f"{warning}{parsed_message['ticket']} {parsed_message['message']}{body}"
+        parsed_message["message"] = output
         return parsed_message
 
     # Questions = Iterable[MutableMapping[str, Any]]
