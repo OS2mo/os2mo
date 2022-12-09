@@ -27,8 +27,7 @@
           "show_user_key_in_search": false,
           "extension_field_ui_labels": "",
           "show_engagement_hyperlink": false,
-          "show_seniority": false,
-          "show_owner": false
+          "show_seniority": false
         }
       },
       "parent": {
@@ -54,8 +53,7 @@
             "show_user_key_in_search": false,
             "extension_field_ui_labels": "",
             "show_engagement_hyperlink": false,
-            "show_seniority": false,
-            "show_owner": false
+            "show_seniority": false
           }
         },
         "parent": null,
@@ -175,8 +173,7 @@
           "show_user_key_in_search": false,
           "extension_field_ui_labels": "",
           "show_engagement_hyperlink": false,
-          "show_seniority": false,
-          "show_owner": false
+          "show_seniority": false
         }
       },
       "parent": {
@@ -202,8 +199,7 @@
             "show_user_key_in_search": false,
             "extension_field_ui_labels": "",
             "show_engagement_hyperlink": false,
-            "show_seniority": false,
-            "show_owner": false
+            "show_seniority": false
           }
         },
         "parent": null,

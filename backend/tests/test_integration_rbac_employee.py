@@ -79,7 +79,7 @@ class TestCreateEmployee(tests.cases.LoRATestCase):
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_employee(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -136,7 +136,7 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_creating_detail_address(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -155,7 +155,7 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
             URL_CREATE_DETAIL, json=self.create_detail_payload, status_code=status_code
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_201_when_creating_it_system_detail_as_owner_of_employee(self):
         # Use user "Anders And" (who owns the employee)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -166,7 +166,7 @@ class TestCreateEmployeeDetailViaEmployee(TestCommon):
             status_code=HTTP_201_CREATED,
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(self):
         # Use user "Anders And" (who owns the employee)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -224,7 +224,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_employment(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -243,7 +243,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             status_code=status_code,
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_multiple_employments_owns_one_unit_but_not_the_other(self):
         # Use user "Anders And" (who owns one unit but not the other)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -256,7 +256,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             URL_CREATE_DETAIL, json=payload, status_code=HTTP_403_FORBIDDEN
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_multiple_employments_owns_all_units(self):
         # Use user "Anders And" (who owns all units)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -268,7 +268,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             status_code=HTTP_201_CREATED,
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_multiple_associations_owns_one_unit_but_not_the_other(self):
         # Use user "Anders And" (who owns one unit but not the other)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -279,7 +279,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             status_code=HTTP_403_FORBIDDEN,
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_multiple_associations_owns_all_units(self):
         # Use user "Anders And" (who owns all units)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -295,7 +295,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_role(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -326,7 +326,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_association(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -356,7 +356,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
     @parameterized.expand(
         [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_manager(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -401,7 +401,7 @@ class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
             URL_CREATE_DETAIL, json=self.payload, status_code=status_code
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_object_types_in_list_must_be_identical(self):
         # Use user "Anders And" (who owns all units)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -479,7 +479,7 @@ class TestEditEmployeeDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_address(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -506,7 +506,7 @@ class TestEditEmployeeDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_employment(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -531,7 +531,7 @@ class TestEditEmployeeDetail(TestCommon):
             (OWNER, ANDERS_AND, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_role(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -554,7 +554,7 @@ class TestEditEmployeeDetail(TestCommon):
             (OWNER, ANDERS_AND, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_association(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -577,7 +577,7 @@ class TestEditEmployeeDetail(TestCommon):
             (OWNER, ANDERS_AND, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_manager(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -614,7 +614,7 @@ class TestMoveEmployment(tests.cases.LoRATestCase):
             (OWNER, ANDERS_AND, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_move_employment(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -634,7 +634,7 @@ class TestMoveEmployment(tests.cases.LoRATestCase):
             status_code=status_code,
         )
 
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_move_multiple_employments_as_non_owner_of_source_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
 
@@ -686,7 +686,7 @@ class TestTerminateDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_address(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -715,7 +715,7 @@ class TestTerminateDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_employment(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -753,7 +753,7 @@ class TestTerminateEmployee(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_employee(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -805,7 +805,7 @@ class TestEmployeeLeave(TestCommon):
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
         ]
     )
-    @override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @override_config(Settings(keycloak_rbac_enabled=True))
     def test_employee_leave(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:

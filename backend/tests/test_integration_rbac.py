@@ -217,7 +217,7 @@ class TestCreateOrgUnit(TestCommon):
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_org_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -235,7 +235,7 @@ class TestCreateOrgUnit(TestCommon):
             self.url_create, json=self.create_org_unit_payload, status_code=status_code
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_201_when_creating_unit_as_owner_of_parent_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
         self.create_org_unit_payload["parent"] = {"uuid": HUM_UNIT}
@@ -253,7 +253,7 @@ class TestCreateOrgUnit(TestCommon):
             (ADMIN, ANDERS_AND, HTTP_201_CREATED),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_top_level_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -283,7 +283,7 @@ class TestRenameOrgUnit(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_rename_org_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -323,7 +323,7 @@ class TestTerminateOrgUnit(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_org_unit(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -389,7 +389,7 @@ class TestCreateDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_201_CREATED),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_create_detail(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -410,7 +410,7 @@ class TestCreateDetail(TestCommon):
             status_code=status_code,
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_201_when_creating_multiple_details_as_owner_of_unit(self):
         # Use user "Anders And" (who owns the unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -423,7 +423,7 @@ class TestCreateDetail(TestCommon):
             status_code=HTTP_201_CREATED,
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_400_when_creating_multiple_details_with_different_types(self):
         # Use user "Anders And" (who owns the unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -495,7 +495,7 @@ class TestEditDetail(TestCommon):
             (ADMIN, FEDTMULE, HTTP_200_OK),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_edit_detail(self, role: str, userid: str, status_code: int):
         """
         Test of write access for the following cases:
@@ -528,7 +528,7 @@ class TestIndirectOwnership(TestCommon):
             (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
         ]
     )
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_rename_subunit(self, role: str, userid: str, status_code: int):
         self.app.dependency_overrides[auth] = mock_auth(role, userid)
         self.rename_payload["data"]["uuid"] = self.org_unit_uuid_2
@@ -553,7 +553,7 @@ class TestMoveOrgUnit(TestCommon):
             },
         }
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_owner_of_unit_moves_unit_to_subunit_of_owned_unit(self):
         # Use user "Anders And" (who owns the parent unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -563,7 +563,7 @@ class TestMoveOrgUnit(TestCommon):
             self.url_edit_detail, json=self.move_unit_payload, status_code=HTTP_200_OK
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_owner_of_unit_moves_unit_to_owned_unit(self):
         # Use user "Anders And" (who owns the parent unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -573,7 +573,7 @@ class TestMoveOrgUnit(TestCommon):
             self.url_edit_detail, json=self.move_unit_payload, status_code=HTTP_200_OK
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_non_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
         self.move_unit_payload["data"]["parent"]["uuid"] = self.org_unit_uuid_2
@@ -584,7 +584,7 @@ class TestMoveOrgUnit(TestCommon):
             status_code=HTTP_403_FORBIDDEN,
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_owner_of_unit_moves_unit_to_subunit_of_non_owned_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
         self.move_unit_payload["data"]["parent"]["uuid"] = ROOT_UNIT
@@ -595,7 +595,7 @@ class TestMoveOrgUnit(TestCommon):
             status_code=HTTP_403_FORBIDDEN,
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_non_owner_of_unit_moves_unit_to_non_owned_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
         self.move_unit_payload["data"]["parent"]["uuid"] = self.org_unit_uuid_1
@@ -606,7 +606,7 @@ class TestMoveOrgUnit(TestCommon):
             status_code=HTTP_403_FORBIDDEN,
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_owner_moves_owned_subunit_to_owned_subunit(self):
         # Use user "Anders And" (who owns the parent unit)
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
@@ -621,7 +621,7 @@ class TestMoveOrgUnit(TestCommon):
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestTerminateOrgUnitDetail(TestCommon):
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_address_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -635,7 +635,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_association_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -649,7 +649,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_manager_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
@@ -663,7 +663,7 @@ class TestTerminateOrgUnitDetail(TestCommon):
             self.url_terminate_detail, json=payload, status_code=HTTP_200_OK
         )
 
-    @util.override_config(Settings(confdb_show_owner=True, keycloak_rbac_enabled=True))
+    @util.override_config(Settings(keycloak_rbac_enabled=True))
     def test_terminate_org_unit_as_owner_of_unit(self):
         self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 

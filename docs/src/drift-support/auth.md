@@ -277,7 +277,6 @@ enable RBAC:
 
 ``` {.bash}
 KEYCLOAK_RBAC_ENABLED: "true"
-CONFDB_SHOW_OWNER: "true"
 ```
 
 ### Configuration of Keycloak
