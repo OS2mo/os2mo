@@ -13,6 +13,7 @@ from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 import tests.cases
 from mora.graphapi.versions.latest import health
+from mora.service.org import ConfiguredOrganisation
 from tests import util
 
 HTTPX_MOCK_RESPONSE_404 = Response(
@@ -28,6 +29,7 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 class DatasetHealthTests(tests.cases.AsyncTestCase):
     @respx.mock
     async def test_dataset_returns_false_if_no_data_found(self):
+        ConfiguredOrganisation.clear()
         respx.get("http://localhost/lora/organisation/organisation").mock(
             return_value=Response(200, json={"results": [[]]})
         )
@@ -37,6 +39,7 @@ class DatasetHealthTests(tests.cases.AsyncTestCase):
     @respx.mock
     @pytest.mark.usefixtures("mock_organisation")
     async def test_dataset_returns_true_if_data_found(self):
+        ConfiguredOrganisation.clear()
         actual = await health.dataset()
         assert actual is True
 

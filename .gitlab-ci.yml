@@ -251,7 +251,7 @@ Unit-test:
   script:
     - pip install poetry
     - poetry config virtualenvs.in-project true
-    - poetry install
+    - poetry install --with ci
     - poetry run pytest backend/tests/
       -p no:cacheprovider
       -m "not integration_test"
