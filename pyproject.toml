@@ -64,6 +64,12 @@ respx = "0.17.1"
 asgi-lifespan = "^1.0.1"
 commitizen = "^2.37.1"
 
+[tool.poetry.group.ci]
+optional = true
+
+[tool.poetry.group.ci.dependencies]
+pytest-randomly = "^3.12.0"
+
 [tool.commitizen]
 name = "cz_conventional_commits"
 tag_format = "$version"
