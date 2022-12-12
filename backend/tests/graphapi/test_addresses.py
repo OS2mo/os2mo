@@ -168,7 +168,16 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
     elif address_type in (addr_type_orgunit_ean,):
         test_data_value = data.draw(st.from_regex(r"^\d{13}$"))
     else:
-        test_data_value = data.draw(st.text())
+        test_data_value = data.draw(
+            st.text(
+                alphabet=st.characters(
+                    blacklist_categories=(
+                        "Cs",
+                        "Cc",
+                    )
+                )
+            )
+        )
 
     return data.draw(
         st.builds(
