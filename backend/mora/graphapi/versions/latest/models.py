@@ -1013,10 +1013,6 @@ class OrgUnitTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for organisation units."""
 
 
-class OrganisationUnit(UUIDBase):
-    """Model representing an organisation unit."""
-
-
 class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
@@ -1033,7 +1029,7 @@ class OrganisationUnitTerminate(ValidityTerminate):
         }
 
 
-class OrganisationUnitCreate(OrganisationUnit):
+class OrganisationUnitCreate(UUIDBase):
     """Model for creating org-units."""
 
     name: str = Field(description="Org-unit name.")
@@ -1069,7 +1065,7 @@ class OrganisationUnitCreate(OrganisationUnit):
         }
 
 
-class OrganisationUnitUpdate(OrganisationUnit):
+class OrganisationUnitUpdate(UUIDBase):
     """Model for updating an organisation unit."""
 
     uuid: UUID = Field(description="UUID of the organisation unit to be updated.")

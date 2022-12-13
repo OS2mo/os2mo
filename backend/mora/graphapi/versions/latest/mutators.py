@@ -67,7 +67,6 @@ from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
 from .types import ManagerType
-from .types import OrganisationUnitType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -340,18 +339,14 @@ class Mutation:
         description="Creates org-unit",
         permission_classes=[admin_permission_class],
     )
-    async def org_unit_create(
-        self, input: OrganisationUnitCreateInput
-    ) -> OrganisationUnitType:
+    async def org_unit_create(self, input: OrganisationUnitCreateInput) -> UUIDReturn:
         return await create_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
-    async def org_unit_update(
-        self, input: OrganisationUnitUpdateInput
-    ) -> OrganisationUnitType:
+    async def org_unit_update(self, input: OrganisationUnitUpdateInput) -> UUIDReturn:
         return await update_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
@@ -360,7 +355,7 @@ class Mutation:
     )
     async def org_unit_terminate(
         self, unit: OrganisationUnitTerminateInput
-    ) -> OrganisationUnitType:
+    ) -> UUIDReturn:
         return await terminate_org_unit(unit.to_pydantic())
 
     # TODO: org_unit_delete

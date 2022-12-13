@@ -15,7 +15,6 @@ from .models import Employee as EmployeeModel
 from .models import EmployeeUpdateResponse
 from .models import Engagement as EngagementModel
 from .models import Manager as ManagerModel
-from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
 
 # Various
@@ -139,13 +138,6 @@ class ManagerType:
 
 # Organisational Units
 # --------------------
-@strawberry.experimental.pydantic.type(
-    model=OrganisationUnitModel,
-    all_fields=True,
-)
-class OrganisationUnitType:
-    """GraphQL type for/of an organisation unit."""
-
 
 # Related Units
 # -------------
