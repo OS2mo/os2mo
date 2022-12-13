@@ -18,7 +18,6 @@ from .models import ITUser as ITUserModel
 from .models import Manager as ManagerModel
 from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
-from ramodels.mo._shared import UUIDBase
 
 # Various
 # -------
@@ -113,13 +112,6 @@ class EngagementType:
 
 # Facets
 # ------
-@strawberry.experimental.pydantic.type(
-    model=UUIDBase,
-    all_fields=True,
-)
-class FacetType:
-    """GraphQL type for an creating facets."""
-
 
 # ITSystems
 # ---------

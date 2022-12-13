@@ -66,7 +66,6 @@ from .types import EmployeeType
 from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
-from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
 from .types import OrganisationUnitType
@@ -232,7 +231,7 @@ class Mutation:
         description="Create new facet object",
         permission_classes=[admin_permission_class],
     )
-    async def facet_create(self, input: FacetCreateInput) -> FacetType:
+    async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
         return await create_facet(input.to_pydantic())
 
     # TODO: facet_update
