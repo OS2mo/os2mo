@@ -62,7 +62,6 @@ from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
 from .types import AssociationType
-from .types import ClassCreateType
 from .types import EmployeeType
 from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
@@ -71,6 +70,7 @@ from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
 from .types import OrganisationUnitType
+from .types import UUIDReturn
 from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
@@ -153,7 +153,7 @@ class Mutation:
         description="Create new mo-class under facet",
         permission_classes=[admin_permission_class],
     )
-    async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
+    async def class_create(self, input: ClassCreateInput) -> UUIDReturn:
         return await create_class(input.to_pydantic())
 
     # TODO: class_update

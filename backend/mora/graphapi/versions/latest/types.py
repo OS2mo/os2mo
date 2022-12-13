@@ -4,6 +4,7 @@ import json
 from base64 import b64decode
 from base64 import b64encode
 from typing import NewType
+from uuid import UUID
 
 import strawberry
 
@@ -33,6 +34,11 @@ Cursor = strawberry.scalar(
     serialize=lambda v: b64encode(json.dumps(v).encode("ascii")).decode("ascii"),
     parse_value=lambda v: int(b64decode(v)),
 )
+
+
+@strawberry.type
+class UUIDReturn:
+    uuid: UUID
 
 
 # Addresses
@@ -73,15 +79,6 @@ class AssociationType:
 
 # Classes
 # -------
-
-
-@strawberry.experimental.pydantic.type(
-    model=UUIDBase,
-    all_fields=True,
-)
-class ClassCreateType:
-    """GraphQL type for a Class."""
-
 
 # Employees
 # ---------
