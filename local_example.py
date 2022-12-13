@@ -72,7 +72,7 @@ df = pd.DataFrame(r.json())
 print(df)
 print("")
 
-r = requests.get("http://0.0.0.0:8000/LDAP/Postadresse")
+r = requests.get("http://0.0.0.0:8000/LDAP/Lokation")
 print("Found all post addresses from LDAP:")
 df = pd.DataFrame(r.json())
 print(df)
@@ -87,10 +87,10 @@ ad_user_detailed = r2.json()
 pretty_print(ad_user_detailed)
 
 # Get his manager from LDAP
-manager_cpr = ad_user_detailed["manager"]["employeeID"]
-r3 = requests.get(f"http://0.0.0.0:8000/LDAP/Employee/{manager_cpr}")
-print("Here is his manager:")
-pretty_print(r3.json())
+# manager_cpr = ad_user_detailed["manager"]["employeeID"]
+# r3 = requests.get(f"http://0.0.0.0:8000/LDAP/Employee/{manager_cpr}")
+# print("Here is his manager:")
+# pretty_print(r3.json())
 
 # Get his mail address
 r4 = requests.get(f"http://0.0.0.0:8000/LDAP/Email/{cpr}")
@@ -99,13 +99,13 @@ ad_user_detailed = r4.json()
 pretty_print(ad_user_detailed)
 
 # Get his post address(es)
-r4 = requests.get(f"http://0.0.0.0:8000/LDAP/Postadresse/{cpr}")
+r4 = requests.get(f"http://0.0.0.0:8000/LDAP/Lokation/{cpr}")
 print("Here is his post address:")
 ad_user_detailed = r4.json()
 pretty_print(ad_user_detailed)
 
 # Get a user from LDAP (Converted to MO)
-for json_key in ["Employee", "Email", "Postadresse"]:
+for json_key in ["Employee", "Email", "Lokation"]:
     cpr = ad_user["employeeID"]
     r5 = requests.get(f"http://0.0.0.0:8000/LDAP/{json_key}/{cpr}/converted")
     if r5.status_code == 202:
@@ -230,7 +230,7 @@ number_of_populated_user_attributes = len(populated_overview["user"]["attributes
 assert number_of_user_attributes != number_of_populated_user_attributes
 
 # %% Get all converted users from LDAP
-for json_key in ["Employee", "Email", "Postadresse"]:
+for json_key in ["Employee", "Email", "Lokation"]:
     r = requests.get(f"http://0.0.0.0:8000/LDAP/{json_key}/converted")
     print(f"Converted all {json_key}s from LDAP:")
     df = pd.DataFrame(r.json())
