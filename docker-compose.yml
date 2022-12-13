@@ -7,15 +7,10 @@ services:
     build: .
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload", "--reload-include", "*.json"]
 
+    env_file:
+      ./dev-environment/mo_ldap_import_export.env
     environment:
       amqp_url: "amqp://guest:guest@msg_broker"
-
-      LDAP_CONTROLLERS: '[{"host": "100.110.188.107"}]'
-      LDAP_DOMAIN: "AD"
-      LDAP_USER: ""
-      LDAP_PASSWORD: ""
-      LDAP_SEARCH_BASE: "DC=ad,DC=addev"
-      LDAP_ORGANIZATIONAL_UNIT: "OU=Magenta"
 
       AUTH_SERVER: "http://keycloak:8080/auth"
 

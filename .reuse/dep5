@@ -2,6 +2,6 @@ Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: OS2mo-ldap-import-export
 Upstream-Contact: Magenta ApS <info@magenta.dk>
 
-Files: mo_ldap_import_export/* tests/* docker-compose.yml docker-compose.override.template.yml Dockerfile README.md mypy.ini poetry.lock pyproject.toml .gitignore .gitlab-ci.yml .pre-commit-config.yaml .flake8
+Files: mo_ldap_import_export/* tests/* dev-environment/* docker-compose.yml docker-compose.override.template.yml Dockerfile README.md mypy.ini poetry.lock pyproject.toml .gitignore .gitlab-ci.yml .pre-commit-config.yaml .flake8
 Copyright: 2021-2022 Magenta ApS <info@magenta.dk>
 License: MPL-2.0

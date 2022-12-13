@@ -262,9 +262,22 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_lifespan_manager(open_ldap_connection(ldap_connection), 1500)
 
     logger.info("Loading mapping file")
-    mappings_folder = os.path.join(os.path.dirname(__file__), "mappings")
-    mappings_file = os.path.join(mappings_folder, "default.json")
+    mappings_path = os.environ.get("CONVERSION_MAP")
+    if not mappings_path:
+        mappings_path = "mappings/magenta_demo.json"
+        logger.warning(f"CONVERSION_MAP is not set, falling back to {mappings_path}")
+    mappings_file = os.path.normpath(
+        mappings_path
+        if mappings_path.startswith("/")
+        else os.path.join(os.path.dirname(__file__), mappings_path)
+    )
+    if not os.path.isfile(mappings_file):
+        raise FileNotFoundError(
+            f"Configured mapping file {mappings_file} does not exist "
+            f"(this is set by the CONVERSION_MAP environment variable)"
+        )
     fastramqpi.add_context(mapping=read_mapping_json(mappings_file))
+    logger.info(f"Loaded mapping file {mappings_file}")
 
     logger.info("Initializing dataloader")
     context = fastramqpi.get_context()

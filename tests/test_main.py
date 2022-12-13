@@ -78,6 +78,23 @@ def load_settings_overrides(
 
 
 @pytest.fixture
+def load_settings_overrides_incorrect_mapping(
+    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> Iterator[dict[str, str]]:
+    """Fixture to construct dictionary of minimal overrides for valid settings,
+       but pointing to a nonexistent mapping file
+
+    Yields:
+        Minimal set of overrides.
+    """
+    overrides = {**settings_overrides, "CONVERSION_MAP": "nonexisting_file"}
+    for key, value in overrides.items():
+        if os.environ.get(key) is None:
+            monkeypatch.setenv(key, value)
+    yield overrides
+
+
+@pytest.fixture
 def disable_metrics(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Fixture to set the ENABLE_METRICS environmental variable to False.
 
@@ -564,3 +581,20 @@ async def test_import_address_objects(
     ]
 
     dataloader.upload_mo_objects.assert_called_with(converted_objects_uuid_checked)
+
+
+async def test_load_mapping_file_environment(
+    load_settings_overrides_incorrect_mapping: dict[str, str],
+    disable_metrics: None,
+    converter: MagicMock,
+) -> None:
+
+    with patch(
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
+    ), patch(
+        "mo_ldap_import_export.main.LdapConverter", return_value=converter
+    ), pytest.raises(
+        FileNotFoundError
+    ):
+        fastramqpi = create_fastramqpi()
+        assert isinstance(fastramqpi, FastRAMQPI)
