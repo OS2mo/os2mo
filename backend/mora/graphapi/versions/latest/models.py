@@ -738,11 +738,7 @@ class FacetCreate(UUIDBase):
 
 # ITUsers
 # -------
-class ITUser(UUIDBase):
-    """OS2Mo IT-User model."""
-
-
-class ITUserCreate(ITUser):
+class ITUserCreate(UUIDBase):
     """Model representing a IT-user creation."""
 
     type_: str = Field("it", alias="type", description="The object type.")
@@ -792,7 +788,7 @@ class ITUserCreate(ITUser):
         }
 
 
-class ITUserUpdate(ITUser):
+class ITUserUpdate(UUIDBase):
     """Model representing a IT-user creation."""
 
     uuid: UUID = Field(description="UUID of the IT-user you want to update.")

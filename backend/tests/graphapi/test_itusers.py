@@ -22,7 +22,7 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import ITUserCreate
 from mora.graphapi.versions.latest.models import ITUserUpdate
-from mora.graphapi.versions.latest.types import ITUserType
+from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
@@ -110,7 +110,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> No
         }
     """
     created_uuid = uuid4()
-    create_ituser.return_value = ITUserType(uuid=created_uuid)
+    create_ituser.return_value = UUIDReturn(uuid=created_uuid)
 
     employee_or_org_unit = data.draw(st.booleans())
 
@@ -297,7 +297,7 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
         }
     """
     updated_uuid = uuid4()
-    update_ituser.return_value = ITUserType(uuid=updated_uuid)
+    update_ituser.return_value = UUIDReturn(uuid=updated_uuid)
 
     payload = jsonable_encoder(test_data)
 

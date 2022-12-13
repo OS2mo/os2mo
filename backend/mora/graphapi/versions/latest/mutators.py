@@ -66,7 +66,6 @@ from .types import EmployeeType
 from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
-from .types import ITUserType
 from .types import ManagerType
 from .types import OrganisationUnitType
 from .types import UUIDReturn
@@ -252,21 +251,21 @@ class Mutation:
         description="Creates an IT-User.",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_create(self, input: ITUserCreateInput) -> ITUserType:
+    async def ituser_create(self, input: ITUserCreateInput) -> UUIDReturn:
         return await create_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
+    async def ituser_update(self, input: ITUserUpdateInput) -> UUIDReturn:
         return await update_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates IT-user by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> UUIDReturn:
         return await terminate_ituser(input.to_pydantic())
 
     @strawberry.mutation(
