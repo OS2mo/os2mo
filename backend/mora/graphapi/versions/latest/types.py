@@ -14,7 +14,6 @@ from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import EmployeeUpdateResponse
 from .models import Engagement as EngagementModel
-from .models import Manager as ManagerModel
 from mora.util import CPR
 
 # Various
@@ -125,13 +124,6 @@ class EngagementType:
 
 # Managers
 # --------
-@strawberry.experimental.pydantic.type(
-    model=ManagerModel,
-    all_fields=True,
-)
-class ManagerType:
-    """GraphQL type for/of a manager."""
-
 
 # Root Organisation
 # -----------------

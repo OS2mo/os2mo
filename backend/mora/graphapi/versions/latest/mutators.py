@@ -66,7 +66,6 @@ from .types import EmployeeType
 from .types import EmployeeUpdateResponseType
 from .types import EngagementTerminateType
 from .types import EngagementType
-from .types import ManagerType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -292,26 +291,25 @@ class Mutation:
 
     # Managers
     # --------
-
     @strawberry.mutation(
         description="Creates a manager for a specific organisation.",
         permission_classes=[admin_permission_class],
     )
-    async def manager_create(self, input: ManagerCreateInput) -> ManagerType:
+    async def manager_create(self, input: ManagerCreateInput) -> UUIDReturn:
         return await create_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates a manager for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
-    async def manager_update(self, input: ManagerUpdateInput) -> ManagerType:
+    async def manager_update(self, input: ManagerUpdateInput) -> UUIDReturn:
         return await update_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates a manager unit by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def manager_terminate(self, input: ManagerTerminateInput) -> ManagerType:
+    async def manager_terminate(self, input: ManagerTerminateInput) -> UUIDReturn:
         return await terminate_manager(input.to_pydantic())
 
     # TODO: manager_delete

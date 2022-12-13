@@ -859,13 +859,7 @@ class ITUserTerminate(ValidityTerminate):
 
 # Managers
 # --------
-
-
-class Manager(UUIDBase):
-    """Model representing a manager."""
-
-
-class ManagerCreate(Manager):
+class ManagerCreate(UUIDBase):
     """Model for creating an employee of manager type."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -913,7 +907,7 @@ class ManagerCreate(Manager):
         }
 
 
-class ManagerUpdate(Manager):
+class ManagerUpdate(UUIDBase):
     """Model for updating a manager."""
 
     uuid: UUID = Field(description="UUID of the manager to be updated.")
