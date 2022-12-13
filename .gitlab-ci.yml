@@ -58,7 +58,7 @@ include:
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
       - gitlab-ci-templates/common/conventional-commits.v1.yml
-      - gitlab-ci-templates/common/docker-build-meta.v1.yml
+      - gitlab-ci-templates/common/docker-build-meta.v2.yml
       - gitlab-ci-templates/common/docker-release.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
       - gitlab-ci-templates/common/config-updater-flux.v1.yml
@@ -83,6 +83,10 @@ workflow:
 default:
   # All jobs are interruptible by default
   interruptible: true
+  # Opt in to running on kubernetes runners
+  # https://redmine.magenta-aps.dk/issues/42309
+  tags:
+    - kubernetes
 
 # Services
 ###########
