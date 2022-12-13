@@ -802,7 +802,7 @@ MUNICIPALITY_CODE_PATTERN = re.compile(r"urn:dk:kommune:(\d+)")
 class Organisation:
     @strawberry.field(description="The municipality code for the organisation unit")
     async def municipality_code(
-        self, root: OrganisationUnitRead, info: Info
+        self, root: OrganisationRead, info: Info
     ) -> int | None:
         """Get The municipality code for the organisation unit (if any).
 
@@ -822,29 +822,98 @@ class Organisation:
 # Organisation Unit
 # -----------------
 
+async def fetch_orgunit(info: Info, uuid: UUID) -> OrganisationUnitRead:
+    loader: DataLoader = info.context["org_unit_loader"]
+    response = await loader.load(uuid)
+    return one(response.objects)
 
-@strawberry.experimental.pydantic.type(
-    model=OrganisationUnitRead,
-    all_fields=True,
+
+@strawberry.type(
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
+    uuid: UUID
+
+    @strawberry.field(
+        description="UUID of the parent organisation unit."
+    )
+    async def parent_uuid(self, info: Info) -> UUID | None:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.parent_uuid
+
+    @strawberry.field(
+        description="UUID of the organisation unit hierarchy."
+    )
+    async def org_unit_hierarchy(self, info: Info) -> UUID | None:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.org_unit_hierarchy
+
+    @strawberry.field(
+        description="UUID of the organisation unit type."
+    )
+    async def unit_type_uuid(self, info: Info) -> UUID | None:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.unit_type_uuid
+
+    @strawberry.field(
+        description="UUID of the organisation unit level."
+    )
+    async def org_unit_level_uuid(self, info: Info) -> UUID | None:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.org_unit_level_uuid
+
+    @strawberry.field(
+        description="UUID of the time planning object."
+    )
+    async def time_planning_uuid(self, info: Info) -> UUID | None:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.time_planning_uuid
+
+    @strawberry.field(
+        description="The object type."
+    )
+    async def type(self, info: Info) -> str:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit._type
+
+    @strawberry.field(
+        description="Name of the created organisation unit."
+    )
+    async def name(self, info: Info) -> str:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.name
+
+    @strawberry.field(
+        description="Short, unique key. Defaults to object UUID."
+    )
+    async def user_key(self, info: Info) -> str:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.user_key
+
+    @strawberry.field(
+        description="Validity of the created organisation unit."
+    )
+    async def validity(self, info: Info) -> Validity:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        return org_unit.validity
+
     @strawberry.field(
         description="The immediate ancestor in the organisation tree",
         permission_classes=[gen_read_permission("org_unit")],
     )
-    async def parent(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["OrganisationUnit"]:
+    async def parent(self, info: Info) -> Optional["OrganisationUnit"]:
         """Get the immediate ancestor in the organisation tree.
 
         Returns:
             Optional[OrganisationUnit]: The ancestor, if any.
         """
+        org_unit = await fetch_orgunit(info, self.uuid)
+        parent_uuid = org_unit.parent_uuid
+
         loader: DataLoader = info.context["org_unit_loader"]
-        if root.parent_uuid is None:
+        if parent_uuid is None:
             return None
-        return only((await loader.load(root.parent_uuid)).objects)
+        return only((await loader.load(parent_uuid)).objects)
 
     @strawberry.field(
         description="The immediate descendants in the organisation tree",
@@ -852,7 +921,6 @@ class OrganisationUnit:
     )
     async def children(
         self,
-        root: OrganisationUnitRead,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
@@ -876,7 +944,7 @@ class OrganisationUnit:
             user_keys=user_keys,
             from_date=from_date,
             to_date=to_date,
-            parents=[root.uuid],
+            parents=[self.uuid],
             hierarchies=hierarchies,
         )
         return list(chain.from_iterable(r.objects for r in responses))
@@ -884,7 +952,6 @@ class OrganisationUnit:
     @strawberry.field(description="Children count of the organisation unit.")
     async def child_count(
         self,
-        root: OrganisationUnitRead,
         info: Info,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -899,7 +966,7 @@ class OrganisationUnit:
             info=info,
             from_date=from_date,
             to_date=to_date,
-            parents=[root.uuid],
+            parents=[self.uuid],
             hierarchies=hierarchies,
         )
         return len(responses)
@@ -909,74 +976,75 @@ class OrganisationUnit:
         description="Organisation unit hierarchy",
         permission_classes=[gen_read_permission("class")],
     )
-    async def org_unit_hierarchy_model(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
+    async def org_unit_hierarchy_model(self, info: Info) -> Optional["Class"]:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        org_unit_hierarchy = org_unit.org_unit_hierarchy
+
         loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_hierarchy is None:
+        if org_unit_hierarchy is None:
             return None
-        return await loader.load(root.org_unit_hierarchy)
+        return await loader.load(org_unit_hierarchy)
 
     @strawberry.field(
         description="Organisation unit type",
         permission_classes=[gen_read_permission("class")],
     )
-    async def unit_type(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
+    async def unit_type(self, info: Info) -> Optional["Class"]:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        unit_type_uuid = org_unit.org_unit_hierarchy
+
         loader: DataLoader = info.context["class_loader"]
-        if root.unit_type_uuid is None:
+        if unit_type_uuid is None:
             return None
-        return await loader.load(root.unit_type_uuid)
+        return await loader.load(unit_type_uuid)
 
     # TODO: Remove org prefix from RAModel and remove it here too
     @strawberry.field(
         description="Organisation unit level",
         permission_classes=[gen_read_permission("class")],
     )
-    async def org_unit_level(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
+    async def org_unit_level(self, info: Info) -> Optional["Class"]:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        org_unit_level_uuid = org_unit.org_unit_level_uuid
+
         loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_level_uuid is None:
+        if org_unit_level_uuid is None:
             return None
-        return await loader.load(root.org_unit_level_uuid)
+        return await loader.load(org_unit_level_uuid)
 
     @strawberry.field(
         description="Time planning strategy",
         permission_classes=[gen_read_permission("class")],
     )
-    async def time_planning(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
+    async def time_planning(self, info: Info) -> Optional["Class"]:
+        org_unit = await fetch_orgunit(info, self.uuid)
+        time_planning_uuid = org_unit.time_planning_uuid
+
         loader: DataLoader = info.context["class_loader"]
-        if root.time_planning_uuid is None:
+        if time_planning_uuid is None:
             return None
-        return await loader.load(root.time_planning_uuid)
+        return await loader.load(time_planning_uuid)
 
     @strawberry.field(
         description="Related engagements",
         permission_classes=[gen_read_permission("engagement")],
     )
-    async def engagements(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Engagement"]:
+    async def engagements(self, info: Info) -> list["Engagement"]:
         loader: DataLoader = info.context["org_unit_engagement_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Managers of the organisation unit",
         permission_classes=[gen_read_permission("manager")],
     )
-    async def managers(
-        self, root: OrganisationUnitRead, info: Info, inherit: bool = False
-    ) -> list["Manager"]:
+    async def managers(self, info: Info, inherit: bool = False) -> list["Manager"]:
         loader: DataLoader = info.context["org_unit_manager_loader"]
         ou_loader: DataLoader = info.context["org_unit_loader"]
-        result = await loader.load(root.uuid)
+        result = await loader.load(self.uuid)
         if inherit:
-            parent = root
+            parent = self
             while not result:
+                parent = await fetch_orgunit(info, parent.uuid)
                 parent_uuid = parent.parent_uuid
                 tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
                 result, response = await asyncio.gather(*tasks)
@@ -991,13 +1059,10 @@ class OrganisationUnit:
         permission_classes=[gen_read_permission("address")],
     )
     async def addresses(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        address_types: list[UUID] | None = None,
+        self, info: Info, address_types: list[UUID] | None = None
     ) -> list["Address"]:
         loader: DataLoader = info.context["org_unit_address_loader"]
-        result = await loader.load(root.uuid)
+        result = await loader.load(self.uuid)
         address_reads = await filter_address_types(result, address_types)
         return list(map(Address.from_pydantic, address_reads))
 
@@ -1005,63 +1070,57 @@ class OrganisationUnit:
         description="Related leaves",
         permission_classes=[gen_read_permission("leave")],
     )
-    async def leaves(self, root: OrganisationUnitRead, info: Info) -> list["Leave"]:
+    async def leaves(self, info: Info) -> list["Leave"]:
         loader: DataLoader = info.context["org_unit_leave_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Related associations",
         permission_classes=[gen_read_permission("association")],
     )
-    async def associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Association"]:
+    async def associations(self, info: Info) -> list["Association"]:
         loader: DataLoader = info.context["org_unit_association_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Related roles",
         permission_classes=[gen_read_permission("role")],
     )
-    async def roles(self, root: OrganisationUnitRead, info: Info) -> list["Role"]:
+    async def roles(self, info: Info) -> list["Role"]:
         loader: DataLoader = info.context["org_unit_role_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Related IT users",
         permission_classes=[gen_read_permission("ituser")],
     )
-    async def itusers(self, root: OrganisationUnitRead, info: Info) -> list["ITUser"]:
+    async def itusers(self, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["org_unit_ituser_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="KLE responsibilites for the organisation unit",
         permission_classes=[gen_read_permission("kle")],
     )
-    async def kles(self, root: OrganisationUnitRead, info: Info) -> list["KLE"]:
+    async def kles(self, info: Info) -> list["KLE"]:
         loader: DataLoader = info.context["org_unit_kle_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Related units for the organisational unit",
         permission_classes=[gen_read_permission("related_unit")],
     )
-    async def related_units(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["RelatedUnit"]:
+    async def related_units(self, info: Info) -> list["RelatedUnit"]:
         loader: DataLoader = info.context["org_unit_related_unit_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
     @strawberry.field(
         description="Engagement associations for the organisational unit",
         permission_classes=[gen_read_permission("engagement_association")],
     )
-    async def engagement_associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["EngagementAssociation"]:
+    async def engagement_associations(self, info: Info) -> list["EngagementAssociation"]:
         loader: DataLoader = info.context["org_unit_engagement_association_loader"]
-        return await loader.load(root.uuid)
+        return await loader.load(self.uuid)
 
 
 # Related Unit

@@ -15,7 +15,6 @@ from .models import OrganisationUnitUpdate
 from .models import OrgUnitTrigger
 from .models import Validity
 from .schema import Response
-from .types import OrganisationUnitType
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -133,7 +132,7 @@ async def terminate_org_unit_validation(
 
 async def terminate_org_unit(
     ou_terminate: OrganisationUnitTerminate,
-) -> OrganisationUnitType:
+) -> UUID:
     try:
         await terminate_org_unit_validation(ou_terminate)
     except Exception as e:
@@ -181,10 +180,10 @@ async def terminate_org_unit(
     _ = await Trigger.run(trigger_dict)
 
     # Return the unit as the final thing
-    return OrganisationUnitType(uuid=lora_result)
+    return UUID(lora_result)
 
 
-async def create_org_unit(input: OrganisationUnitCreate) -> OrganisationUnitType:
+async def create_org_unit(input: OrganisationUnitCreate) -> UUID:
     input_dict = input.to_handler_dict()
 
     handler = await OrgUnitRequestHandler.construct(
@@ -192,10 +191,10 @@ async def create_org_unit(input: OrganisationUnitCreate) -> OrganisationUnitType
     )
     uuid = await handler.submit()
 
-    return OrganisationUnitType(uuid=UUID(uuid))
+    return UUID(uuid)
 
 
-async def update_org_unit(input: OrganisationUnitUpdate) -> OrganisationUnitType:
+async def update_org_unit(input: OrganisationUnitUpdate) -> UUID:
     """Updating an organisation unit."""
     input_dict = input.to_handler_dict()
 
@@ -209,4 +208,4 @@ async def update_org_unit(input: OrganisationUnitUpdate) -> OrganisationUnitType
 
     uuid = await request.submit()
 
-    return OrganisationUnitType(uuid=UUID(uuid))
+    return UUID(uuid)

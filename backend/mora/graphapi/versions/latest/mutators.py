@@ -58,6 +58,7 @@ from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
+from .schema import OrganisationUnit
 from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
@@ -70,7 +71,6 @@ from .types import EngagementType
 from .types import FacetType
 from .types import ITUserType
 from .types import ManagerType
-from .types import OrganisationUnitType
 from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
@@ -344,8 +344,8 @@ class Mutation:
     )
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
-    ) -> OrganisationUnitType:
-        return await create_org_unit(input.to_pydantic())
+    ) -> OrganisationUnit:
+        return OrganisationUnit(uuid=await create_org_unit(input.to_pydantic()))
 
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
@@ -353,8 +353,8 @@ class Mutation:
     )
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
-    ) -> OrganisationUnitType:
-        return await update_org_unit(input.to_pydantic())
+    ) -> OrganisationUnit:
+        return OrganisationUnit(uuid=await update_org_unit(input.to_pydantic()))
 
     @strawberry.mutation(
         description="Terminates an organization unit by UUID",
@@ -362,8 +362,8 @@ class Mutation:
     )
     async def org_unit_terminate(
         self, unit: OrganisationUnitTerminateInput
-    ) -> OrganisationUnitType:
-        return await terminate_org_unit(unit.to_pydantic())
+    ) -> OrganisationUnit:
+        return OrganisationUnit(uuid=await terminate_org_unit(unit.to_pydantic()))
 
     # TODO: org_unit_delete
 
