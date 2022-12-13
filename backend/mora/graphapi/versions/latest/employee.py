@@ -6,8 +6,7 @@ from ....mapping import RequestType
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate
-from .types import EmployeeType
-from .types import EmployeeUpdateResponseType
+from .types import UUIDReturn
 from mora import common
 from mora import lora
 from mora import mapping
@@ -17,7 +16,7 @@ from mora.service.employee import EmployeeRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(input: EmployeeCreate) -> EmployeeType:
+async def create(input: EmployeeCreate) -> UUIDReturn:
     input_dict = input.to_handler_dict()
 
     # Copied service-logic
@@ -26,10 +25,10 @@ async def create(input: EmployeeCreate) -> EmployeeType:
     )
     uuid = await handler.submit()
 
-    return EmployeeType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))
 
 
-async def terminate(termination: EmployeeTerminate) -> EmployeeType:
+async def terminate(termination: EmployeeTerminate) -> UUIDReturn:
     # Create request dict, legacy, from data model
     request = {mapping.VALIDITY: {mapping.TO: termination.to_date.date().isoformat()}}
     if termination.from_date:
@@ -88,12 +87,12 @@ async def terminate(termination: EmployeeTerminate) -> EmployeeType:
     # Write a noop entry to the user, to be used for the history
     await common.add_history_entry(c.bruger, uuid, "Afslut medarbejder")
 
-    return EmployeeType(uuid=UUID(result))
+    return UUIDReturn(uuid=UUID(result))
 
 
-async def update(employee_update: EmployeeUpdate) -> EmployeeUpdateResponseType:
+async def update(employee_update: EmployeeUpdate) -> UUIDReturn:
     request_handler = await EmployeeRequestHandler.construct(
         employee_update.to_handler_dict(), RequestType.EDIT
     )
     _ = await request_handler.submit()
-    return EmployeeUpdateResponseType(uuid=employee_update.uuid)
+    return UUIDReturn(uuid=employee_update.uuid)

@@ -458,11 +458,7 @@ class ClassCreate(MOBase):
 
 # Employees
 # ---------
-class Employee(UUIDBase):
-    """OS2Mo employee model."""
-
-
-class EmployeeCreate(Employee):
+class EmployeeCreate(UUIDBase):
     """Model representing an employee creation."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -591,10 +587,6 @@ class EmployeeUpdate(RAValidity):
             mapping.UUID: str(self.uuid),
             mapping.DATA: {k: v for k, v in data_dict.items() if v},
         }
-
-
-class EmployeeUpdateResponse(UUIDBase):
-    pass
 
 
 # Engagements

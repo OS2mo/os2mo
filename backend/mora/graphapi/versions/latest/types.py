@@ -11,8 +11,6 @@ import strawberry
 from .models import Address as AddressModel
 from .models import AddressCreateResponse
 from .models import Association as AssociationModel
-from .models import Employee as EmployeeModel
-from .models import EmployeeUpdateResponse
 from mora.util import CPR
 
 # Various
@@ -77,13 +75,6 @@ class AssociationType:
 
 # Employees
 # ---------
-@strawberry.experimental.pydantic.type(
-    model=EmployeeModel,
-    all_fields=True,
-)
-class EmployeeType:
-    pass
-
 
 # Engagements
 # -----------
@@ -120,11 +111,3 @@ class EmployeeType:
 
 # Roles
 # -----
-
-
-@strawberry.experimental.pydantic.type(
-    model=EmployeeUpdateResponse,
-    all_fields=True,
-)
-class EmployeeUpdateResponseType:
-    pass

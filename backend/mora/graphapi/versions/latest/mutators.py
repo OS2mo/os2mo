@@ -62,8 +62,6 @@ from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
 from .types import AssociationType
-from .types import EmployeeType
-from .types import EmployeeUpdateResponseType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -160,23 +158,21 @@ class Mutation:
         description="Creates an employee for a specific organisation.",
         permission_classes=[admin_permission_class],
     )
-    async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
+    async def employee_create(self, input: EmployeeCreateInput) -> UUIDReturn:
         return await employee_create(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_update(
-        self, input: EmployeeUpdateInput
-    ) -> EmployeeUpdateResponseType:
+    async def employee_update(self, input: EmployeeUpdateInput) -> UUIDReturn:
         return await employee_update(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
+    async def employee_terminate(self, input: EmployeeTerminateInput) -> UUIDReturn:
         return await terminate_employee(input.to_pydantic())
 
     # TODO: employee_delete
