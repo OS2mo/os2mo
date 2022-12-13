@@ -194,10 +194,6 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class Address(UUIDBase):
-    """Address (detail) model."""
-
-
 class AddressCreate(RAValidity):
     """Model representing an address creation.
 
@@ -260,10 +256,6 @@ class AddressCreate(RAValidity):
         }
 
 
-class AddressCreateResponse(UUIDBase):
-    """Response from GraphQL when creating addresses."""
-
-
 class AddressTerminate(ValidityTerminate):
     """Model representing an address-termination."""
 
@@ -297,7 +289,7 @@ class AddressTerminate(ValidityTerminate):
         }
 
 
-class AddressUpdate(Address):
+class AddressUpdate(UUIDBase):
     """Model representing an association update."""
 
     uuid: UUID = Field(description="UUID of the association we want to update.")

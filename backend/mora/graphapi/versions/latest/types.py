@@ -8,12 +8,8 @@ from uuid import UUID
 
 import strawberry
 
-from .models import Address as AddressModel
-from .models import AddressCreateResponse
 from mora.util import CPR
 
-# Various
-# -------
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
 CPRType = strawberry.scalar(
     CPR,
@@ -31,75 +27,3 @@ Cursor = strawberry.scalar(
 @strawberry.type
 class UUIDReturn:
     uuid: UUID
-
-
-# Addresses
-# ---------
-@strawberry.experimental.pydantic.type(
-    model=AddressModel,
-    all_fields=True,
-)
-class AddressType:
-    """GraphQL type for/of an address (detail)."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=AddressCreateResponse,
-    all_fields=True,
-)
-class AddressCreateType:
-    """GraphQL response type for address creation."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=AddressModel,
-    all_fields=True,
-)
-class AddressTerminateType:
-    """GraphQL response type for address termination."""
-
-
-# Associations
-# ------------
-
-# Classes
-# -------
-
-# Employees
-# ---------
-
-# Engagements
-# -----------
-
-# EngagementsAssociations
-# -----------------------
-
-# Facets
-# ------
-
-# ITSystems
-# ---------
-
-# ITUsers
-# -------
-
-# KLEs
-# ----
-
-# Leave
-# -----
-
-# Managers
-# --------
-
-# Root Organisation
-# -----------------
-
-# Organisational Units
-# --------------------
-
-# Related Units
-# -------------
-
-# Roles
-# -----

@@ -58,9 +58,6 @@ from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
-from .types import AddressCreateType
-from .types import AddressTerminateType
-from .types import AddressType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -81,23 +78,21 @@ class Mutation:
         description="Create an address.",
         permission_classes=[admin_permission_class],
     )
-    async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
+    async def address_create(self, input: AddressCreateInput) -> UUIDReturn:
         return await create_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an address.",
         permission_classes=[admin_permission_class],
     )
-    async def address_update(self, input: AddressUpdateInput) -> AddressType:
+    async def address_update(self, input: AddressUpdateInput) -> UUIDReturn:
         return await update_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an address by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def address_terminate(
-        self, at: AddressTerminateInput
-    ) -> AddressTerminateType:
+    async def address_terminate(self, at: AddressTerminateInput) -> UUIDReturn:
         return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(
