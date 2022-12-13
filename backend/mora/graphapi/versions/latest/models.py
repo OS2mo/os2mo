@@ -338,11 +338,7 @@ class AddressUpdate(Address):
 
 # Associations
 # ------------
-class Association(UUIDBase):
-    """OS2mo association model."""
-
-
-class AssociationCreate(Association):
+class AssociationCreate(UUIDBase):
     """Model representing an association creation."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -372,7 +368,7 @@ class AssociationCreate(Association):
         }
 
 
-class AssociationUpdate(Association):
+class AssociationUpdate(UUIDBase):
     """Model representing an association update."""
 
     uuid: UUID = Field(description="UUID of the association we want to update.")

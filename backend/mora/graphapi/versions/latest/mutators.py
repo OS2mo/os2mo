@@ -61,7 +61,6 @@ from .schema import OrganisationUnitRefresh
 from .types import AddressCreateType
 from .types import AddressTerminateType
 from .types import AddressType
-from .types import AssociationType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -114,18 +113,14 @@ class Mutation:
         description="Creates an association.",
         permission_classes=[admin_permission_class],
     )
-    async def association_create(
-        self, input: AssociationCreateInput
-    ) -> AssociationType:
+    async def association_create(self, input: AssociationCreateInput) -> UUIDReturn:
         return await create_association(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an association.",
         permission_classes=[admin_permission_class],
     )
-    async def association_update(
-        self, input: AssociationUpdateInput
-    ) -> AssociationType:
+    async def association_update(self, input: AssociationUpdateInput) -> UUIDReturn:
         return await update_association(input.to_pydantic())
 
     @strawberry.mutation(
@@ -134,7 +129,7 @@ class Mutation:
     )
     async def association_terminate(
         self, input: AssociationTerminateInput
-    ) -> AssociationType:
+    ) -> UUIDReturn:
         return await terminate_association(input.to_pydantic())
 
     # TODO: association_delete

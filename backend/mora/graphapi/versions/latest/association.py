@@ -6,14 +6,14 @@ from uuid import UUID
 from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
-from .types import AssociationType
+from .types import UUIDReturn
 from mora import lora
 from mora import mapping
 from mora.service.association import AssociationRequestHandler
 from mora.triggers import Trigger
 
 
-async def create_association(input: AssociationCreate) -> AssociationType:
+async def create_association(input: AssociationCreate) -> UUIDReturn:
     input_dict = input.to_handler_dict()
 
     handler = await AssociationRequestHandler.construct(
@@ -21,10 +21,10 @@ async def create_association(input: AssociationCreate) -> AssociationType:
     )
     uuid = await handler.submit()
 
-    return AssociationType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))
 
 
-async def update_association(input: AssociationUpdate) -> AssociationType:
+async def update_association(input: AssociationUpdate) -> UUIDReturn:
     """Helper function for updating associations."""
     input_dict = input.to_handler_dict()
 
@@ -37,12 +37,10 @@ async def update_association(input: AssociationUpdate) -> AssociationType:
     request = await AssociationRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return AssociationType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))
 
 
-async def terminate_association(
-    input: AssociationTerminate,
-) -> AssociationType:
+async def terminate_association(input: AssociationTerminate) -> UUIDReturn:
     """Helper function for terminating associations."""
     trigger = input.get_association_trigger()
     trigger_dict = trigger.to_trigger_dict()
@@ -66,4 +64,4 @@ async def terminate_association(
 
     _ = await Trigger.run(trigger_dict)
 
-    return AssociationType(uuid=UUID(lora_result))
+    return UUIDReturn(uuid=UUID(lora_result))

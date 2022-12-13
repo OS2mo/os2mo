@@ -10,7 +10,6 @@ import strawberry
 
 from .models import Address as AddressModel
 from .models import AddressCreateResponse
-from .models import Association as AssociationModel
 from mora.util import CPR
 
 # Various
@@ -62,13 +61,6 @@ class AddressTerminateType:
 
 # Associations
 # ------------
-@strawberry.experimental.pydantic.type(
-    model=AssociationModel,
-    all_fields=True,
-)
-class AssociationType:
-    """GraphQL type for an association."""
-
 
 # Classes
 # -------
