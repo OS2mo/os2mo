@@ -619,10 +619,6 @@ class EngagementTrigger(OrgFuncTrigger):
     """
 
 
-class Engagement(UUIDBase):
-    """Model representing an Engagement."""
-
-
 class EngagementTerminate(ValidityTerminate):
     """Model representing an engagement termination(or rather end-date update)."""
 
@@ -653,7 +649,7 @@ class EngagementTerminate(ValidityTerminate):
         )
 
 
-class EngagementCreate(Engagement):
+class EngagementCreate(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID = Field(description="The related org-unit object.")
     employee: UUID = Field(description="UUID of the related employee.")
@@ -682,7 +678,7 @@ class EngagementCreate(Engagement):
         }
 
 
-class EngagementUpdate(Engagement):
+class EngagementUpdate(UUIDBase):
     uuid: UUID = Field(description="UUID of the Engagement you want to update.")
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID | None = Field(description="The related org-unit object.")

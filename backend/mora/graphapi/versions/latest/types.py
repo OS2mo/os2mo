@@ -13,7 +13,6 @@ from .models import AddressCreateResponse
 from .models import Association as AssociationModel
 from .models import Employee as EmployeeModel
 from .models import EmployeeUpdateResponse
-from .models import Engagement as EngagementModel
 from mora.util import CPR
 
 # Various
@@ -88,21 +87,6 @@ class EmployeeType:
 
 # Engagements
 # -----------
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementTerminateType:
-    """GraphQL type for an engagement."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementType:
-    """GraphQL type for an engagement."""
-
 
 # EngagementsAssociations
 # -----------------------

@@ -27,7 +27,7 @@ from mora.graphapi.versions.latest.engagements import terminate_engagement
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementTerminate
 from mora.graphapi.versions.latest.models import EngagementUpdate
-from mora.graphapi.versions.latest.types import EngagementType
+from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import EngagementRead
 from tests.conftest import GQLResponse
@@ -271,7 +271,7 @@ async def test_create_engagement(
         }
     """
     created_uuid = uuid4()
-    create_engagement.return_value = EngagementType(uuid=created_uuid)
+    create_engagement.return_value = UUIDReturn(uuid=created_uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -391,7 +391,7 @@ async def test_update_engagement_unit_test(
     """
 
     engagement_uuid_to_update = uuid4()
-    update_engagement.return_value = EngagementType(uuid=engagement_uuid_to_update)
+    update_engagement.return_value = UUIDReturn(uuid=engagement_uuid_to_update)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(

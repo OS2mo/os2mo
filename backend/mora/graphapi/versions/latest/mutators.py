@@ -64,8 +64,6 @@ from .types import AddressType
 from .types import AssociationType
 from .types import EmployeeType
 from .types import EmployeeUpdateResponseType
-from .types import EngagementTerminateType
-from .types import EngagementType
 from .types import UUIDReturn
 from mora.common import get_connector
 
@@ -188,23 +186,21 @@ class Mutation:
     @strawberry.mutation(
         description="Create an engagement", permission_classes=[admin_permission_class]
     )
-    async def engagement_create(self, input: EngagementCreateInput) -> EngagementType:
+    async def engagement_create(self, input: EngagementCreateInput) -> UUIDReturn:
         return await create_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def engagement_update(self, input: EngagementUpdateInput) -> EngagementType:
+    async def engagement_update(self, input: EngagementUpdateInput) -> UUIDReturn:
         return await update_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def engagement_terminate(
-        self, input: EngagementTerminateInput
-    ) -> EngagementTerminateType:
+    async def engagement_terminate(self, input: EngagementTerminateInput) -> UUIDReturn:
         return await terminate_engagement(input.to_pydantic())
 
     @strawberry.mutation(
