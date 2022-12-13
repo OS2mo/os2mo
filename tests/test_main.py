@@ -6,6 +6,7 @@
 # pylint: disable=protected-access
 import asyncio
 import os
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock
@@ -21,11 +22,15 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.utils import RejectMessage
+from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import read_mapping_json
+from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
+from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
+from mo_ldap_import_export.main import get_address_uuid
 from mo_ldap_import_export.main import listen_to_changes_in_employees
 from mo_ldap_import_export.main import open_ldap_connection
 
@@ -99,7 +104,7 @@ def sync_dataloader() -> MagicMock:
 def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
 
     test_ldap_object = LdapObject(
-        name="Tester", Department="QA", dn="someDN", cpr="0101012002"
+        name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
     test_mo_employee = Employee(cpr_no="1212121234")
     test_mo_address = Address.from_simplified_fields(
@@ -340,6 +345,7 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
     }
     payload = MagicMock()
     payload.uuid = uuid4()
+    payload.object_uuid = uuid4()
 
     settings = MagicMock()
     settings.ldap_organizational_unit = "OU=foo"
@@ -387,6 +393,22 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
     )
     assert dataloader.cleanup_attributes_in_ldap.called_with([], "Email")
 
+    # Simulate an uuid which should be skipped
+    with patch(
+        "mo_ldap_import_export.main.uuids_to_ignore",
+        [payload.object_uuid],
+    ):
+        with capture_logs() as cap_logs:
+            await asyncio.gather(
+                listen_to_changes_in_employees(
+                    context, payload, mo_routing_key=mo_routing_key
+                ),
+            )
+
+            entries = [w for w in cap_logs if w["log_level"] == "info"]
+
+            assert re.match(f".*Ignoring {payload.object_uuid}", entries[0]["event"])
+
 
 def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
@@ -407,9 +429,16 @@ async def test_listen_to_changes_in_employees_not_supported() -> None:
     # Terminating a user is currently not supported
     mo_routing_key = MORoutingKey.build("employee.employee.terminate")
     context: dict = {}
-    payload = None
+    payload = MagicMock()
+
+    original_function = listen_to_changes_in_employees.__wrapped__
 
     # Which means the message should be rejected
+    with pytest.raises(NotSupportedException):
+        await asyncio.gather(
+            original_function(context, payload, mo_routing_key=mo_routing_key),
+        )
+
     with pytest.raises(RejectMessage):
         await asyncio.gather(
             listen_to_changes_in_employees(
@@ -443,3 +472,95 @@ def test_load_address_from_MO_endpoint(test_client: TestClient):
 def test_load_address_types_from_MO_endpoint(test_client: TestClient):
     response = test_client.get("/MO/Address_types")
     assert response.status_code == 202
+
+
+def test_get_address_uuid():
+    uuid1 = uuid4()
+    uuid2 = uuid4()
+    address_values_in_mo = {uuid1: "Aldersrovej 1", uuid2: "Aldersrovej 2"}
+
+    assert get_address_uuid("Aldersrovej 1", address_values_in_mo) == uuid1
+    assert get_address_uuid("Aldersrovej 2", address_values_in_mo) == uuid2
+
+
+async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
+    response = test_client.get("/Import/all?test_on_first_20_entries=true")
+    assert response.status_code == 202
+
+
+async def test_import_all_objects_from_LDAP(test_client: TestClient) -> None:
+    response = test_client.get("/Import/all")
+    assert response.status_code == 202
+
+
+async def test_import_single_object_from_LDAP(test_client: TestClient) -> None:
+    response = test_client.get("/Import/0101011234")
+    assert response.status_code == 202
+
+
+async def test_import_single_object_from_LDAP_non_existing_employee(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
+    dataloader.find_mo_employee_uuid.return_value = None
+    response = test_client.get("/Import/0101011234")
+    assert response.status_code == 202
+
+
+async def test_import_single_object_from_LDAP_multiple_employees(
+    test_client: TestClient, dataloader: AsyncMock
+) -> None:
+    dataloader.load_ldap_cpr_object.return_value = None
+    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException(
+        "foo"
+    )
+
+    with capture_logs() as cap_logs:
+        response = test_client.get("/Import/0101011234")
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+
+        assert re.match(
+            ".*Could not upload .* object.*",
+            warnings[0]["event"],
+        )
+
+    assert response.status_code == 202
+
+
+async def test_import_address_objects(
+    test_client: TestClient, converter: MagicMock, dataloader: AsyncMock
+):
+    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
+    converter.import_mo_object_class.return_value = Address
+
+    address_type_uuid = uuid4()
+
+    converted_objects = [
+        Address.from_simplified_fields("foo@bar.dk", address_type_uuid, "2021-01-01"),
+        Address.from_simplified_fields("foo2@bar.dk", address_type_uuid, "2021-01-01"),
+        Address.from_simplified_fields("foo3@bar.dk", address_type_uuid, "2021-01-01"),
+    ]
+
+    converter.from_ldap.return_value = converted_objects
+
+    mo_uuid = uuid4()
+    address_in_mo = MagicMock()
+    address_in_mo.uuid = mo_uuid
+    address_in_mo.value = "foo@bar.dk"
+    addresses_in_mo = [(address_in_mo, None)]
+
+    dataloader.load_mo_employee_addresses.return_value = addresses_in_mo
+
+    response = test_client.get("/Import/0101011234")
+    assert response.status_code == 202
+
+    address1_dict = converted_objects[0].dict()
+    address1_dict["uuid"] = mo_uuid
+    address1_dict["user_key"] = str(mo_uuid)
+
+    converted_objects_uuid_checked = [
+        Address(**address1_dict),
+        converted_objects[1],
+        converted_objects[2],
+    ]
+
+    dataloader.upload_mo_objects.assert_called_with(converted_objects_uuid_checked)

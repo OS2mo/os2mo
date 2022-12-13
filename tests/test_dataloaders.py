@@ -468,9 +468,8 @@ async def test_load_mo_address_types(
         ]
     }
 
-    expected_result = {uuid: name}
     output = dataloader.load_mo_address_types()
-    assert output == expected_result
+    assert output[name]["uuid"] == uuid
 
 
 async def test_load_mo_address_no_valid_addresses(
@@ -598,3 +597,51 @@ async def test_load_mo_employee_addresses(
 
     load_mo_address.assert_any_call(address1_uuid)
     load_mo_address.assert_any_call(address2_uuid)
+
+
+async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMock):
+    uuid = uuid4()
+    gql_client.execute.return_value = {
+        "employees": [
+            {"uuid": uuid},
+        ]
+    }
+
+    output = await asyncio.gather(
+        dataloader.find_mo_employee_uuid("0101011221"),
+    )
+    assert output[0] == uuid
+
+
+async def test_find_mo_employee_uuid_not_found(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+    gql_client.execute.return_value = {"employees": []}
+
+    output = await asyncio.gather(
+        dataloader.find_mo_employee_uuid("0101011221"),
+    )
+
+    assert output[0] is None
+
+
+async def test_load_mo_employee_not_found(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+    gql_client.execute.return_value = {"employees": []}
+
+    uuid = uuid4()
+
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(
+            dataloader.load_mo_employee(uuid),
+        )
+
+
+async def test_load_mo_address_types_not_found(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+):
+    gql_client_sync.execute.return_value = {"facets": []}
+
+    output = dataloader.load_mo_address_types()
+    assert output == {}

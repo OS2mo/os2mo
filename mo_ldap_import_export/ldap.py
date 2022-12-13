@@ -272,6 +272,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
     """
     attributes = list(response["attributes"].keys())
     ldap_dict = {"dn": response["dn"]}
+    logger = structlog.get_logger()
 
     def get_nested_ldap_object(dn):
         """
@@ -279,6 +280,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
         """
 
         if nest:
+            logger.info(f"[make_ldap_object] Loading nested ldap object with dn={dn}")
             return get_ldap_object(dn, context, nest=False)
         else:  # pragma: no cover
             raise Exception("Already running in nested loop")

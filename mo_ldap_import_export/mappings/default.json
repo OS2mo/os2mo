@@ -3,31 +3,31 @@
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
-      "surname": "{{ldap.surname or ldap.sn or ldap.name|splitlast|last or ''}}",
-      "cpr_no": "{{ldap.employeeID or ldap.cpr or None}}",
-      "seniority": "{{ldap.seniority or None}}",
-      "nickname_givenname": "{{ldap.nickname_givenname or None}}",
-      "nickname_surname": "{{ldap.nickname_surname or None}}"
+      "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
+      "cpr_no": "{{ldap.employeeID or None}}",
+      "seniority": "{{None}}",
+      "nickname_givenname": "{{None}}",
+      "nickname_surname": "{{None}}"
     },
     // Note: This key needs to be a valid MO address type name*
     "Email": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.mail or None}}",
       "type": "address",
-      "validity": "{{ dict(from_date = ldap.mail_validity_from or now()|strftime) }}",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
 
       // Note: Get valid address type uuids by using GET MO/address_types
-      "address_type": "{{ dict(uuid='f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
     },
     // Note: This key needs to be a valid MO address type name*
-    "Postadresse": {
+    "Lokation": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ ldap.postalAddress or None }}",
       "type": "address",
-      "validity": "{{ dict(from_date=ldap.mail_validity_from or now()|strftime) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
 
       // Note: Get valid address type uuids by using GET MO/address_types
-      "address_type": "{{ dict(uuid='e75f74f5-cbc4-4661-b9f4-e6a9e05abb2d') }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
     }
   },
   "mo_to_ldap": {
@@ -38,7 +38,6 @@
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "employeeID": "{{mo_employee.cpr_no or None}}",
-      "manager": "{{None}}",
       "department": "{{None}}"
     },
     // Note: This key needs to be a valid MO address type name*
@@ -48,7 +47,7 @@
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type name*
-    "Postadresse": {
+    "Lokation": {
       "objectClass": "user",
       "postalAddress": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"

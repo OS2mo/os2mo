@@ -264,6 +264,28 @@ class DataLoader:
 
         return output
 
+    async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+
+        query = gql(
+            """
+            query FindEmployeeUUID {
+              employees(cpr_numbers: "%s") {
+                uuid
+              }
+            }
+            """
+            % cpr_no
+        )
+
+        result = await graphql_session.execute(query)
+
+        if len(result["employees"]) == 0:
+            return None
+        else:
+            uuid: UUID = result["employees"][0]["uuid"]
+            return uuid
+
     async def load_mo_employee(self, uuid: UUID) -> Employee:
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
 
@@ -286,6 +308,8 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
+        if len(result["employees"]) == 0:
+            raise NoObjectsReturnedException(f"Employee with uuid={uuid} not found")
         entry = result["employees"][0]["objects"][0]
 
         return Employee(**entry)
@@ -298,6 +322,7 @@ class DataLoader:
                 classes {
                   name
                   uuid
+                  scope
                 }
               }
             }
@@ -306,7 +331,11 @@ class DataLoader:
         graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
         result = graphql_session.execute(query)
 
-        output = {d["uuid"]: d["name"] for d in result["facets"][0]["classes"]}
+        if len(result["facets"]) == 0:
+            output = {}
+        else:
+            output = {d["name"]: d for d in result["facets"][0]["classes"]}
+
         return output
 
     async def load_mo_address(self, uuid: UUID) -> tuple[Address, dict]:
