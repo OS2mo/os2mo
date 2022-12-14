@@ -323,6 +323,13 @@ class Mutation:
     # -----------------
 
     # TODO: org_create
+    # @strawberry.mutation(
+    #     description="Creates a root organisation.",
+    #     permission_classes=[admin_permission_class],
+    # )
+    # async def organisation_create(self, input: ManagerCreateInput) -> ManagerType:
+    #     return await create_organisation(input.to_pydantic())
+
     # TODO: org_update
     # TODO: org_terminate
     # TODO: org_delete
