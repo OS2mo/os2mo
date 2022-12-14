@@ -41,6 +41,7 @@ from .inputs import ITUserUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
+from .inputs import OrganisationCreateInput
 from .inputs import OrganisationUnitCreateInput
 from .inputs import OrganisationUnitTerminateInput
 from .inputs import OrganisationUnitUpdateInput
@@ -56,9 +57,11 @@ from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
+from .organisation import create_organisation
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
 from .types import UUIDReturn
+from .types import OrganisationType
 from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
@@ -300,6 +303,13 @@ class Mutation:
     # -----------------
 
     # TODO: org_create
+    @strawberry.mutation(
+        description="Creates a root organisation.",
+        permission_classes=[admin_permission_class],
+    )
+    async def org_create(self, input: OrganisationCreateInput) -> OrganisationType:
+        return await create_organisation(input.to_pydantic())
+
     # TODO: org_update
     # TODO: org_terminate
     # TODO: org_delete

@@ -23,6 +23,7 @@ from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
 from .models import Organisation
+from .models import OrganisationCreate
 from .models import OrganisationUnitCreate
 from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
@@ -56,6 +57,14 @@ class RAValidityInput:
 )
 class OrganisationInput:
     """input model for terminating organisation units."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=OrganisationCreate,
+    all_fields=True,
+)
+class OrganisationCreateInput:
+    """Input model for creating a root Organisation."""
 
 
 # Addresses

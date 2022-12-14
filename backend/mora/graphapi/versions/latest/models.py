@@ -183,6 +183,12 @@ class Organisation(UUIDBase):
     pass
 
 
+class OrganisationCreate(BaseModel):
+    """Model representing an Organization creation."""
+
+    name: str = Field(description="The name of the organisation")
+
+
 # Addresses
 # ---------
 class AddressTrigger(OrgFuncTrigger):
