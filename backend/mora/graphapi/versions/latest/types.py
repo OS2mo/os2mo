@@ -4,23 +4,12 @@ import json
 from base64 import b64decode
 from base64 import b64encode
 from typing import NewType
+from uuid import UUID
 
 import strawberry
 
-from .models import Address as AddressModel
-from .models import AddressCreateResponse
-from .models import Association as AssociationModel
-from .models import Employee as EmployeeModel
-from .models import EmployeeUpdateResponse
-from .models import Engagement as EngagementModel
-from .models import ITUser as ITUserModel
-from .models import Manager as ManagerModel
-from .models import OrganisationUnit as OrganisationUnitModel
 from mora.util import CPR
-from ramodels.mo._shared import UUIDBase
 
-# Various
-# -------
 # https://strawberry.rocks/docs/integrations/pydantic#classes-with-__get_validators__
 CPRType = strawberry.scalar(
     CPR,
@@ -35,147 +24,6 @@ Cursor = strawberry.scalar(
 )
 
 
-# Addresses
-# ---------
-@strawberry.experimental.pydantic.type(
-    model=AddressModel,
-    all_fields=True,
-)
-class AddressType:
-    """GraphQL type for/of an address (detail)."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=AddressCreateResponse,
-    all_fields=True,
-)
-class AddressCreateType:
-    """GraphQL response type for address creation."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=AddressModel,
-    all_fields=True,
-)
-class AddressTerminateType:
-    """GraphQL response type for address termination."""
-
-
-# Associations
-# ------------
-@strawberry.experimental.pydantic.type(
-    model=AssociationModel,
-    all_fields=True,
-)
-class AssociationType:
-    """GraphQL type for an association."""
-
-
-# Classes
-# -------
-
-
-@strawberry.experimental.pydantic.type(
-    model=UUIDBase,
-    all_fields=True,
-)
-class ClassCreateType:
-    """GraphQL type for a Class."""
-
-
-# Employees
-# ---------
-@strawberry.experimental.pydantic.type(
-    model=EmployeeModel,
-    all_fields=True,
-)
-class EmployeeType:
-    pass
-
-
-# Engagements
-# -----------
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementTerminateType:
-    """GraphQL type for an engagement."""
-
-
-@strawberry.experimental.pydantic.type(
-    model=EngagementModel,
-    all_fields=True,
-)
-class EngagementType:
-    """GraphQL type for an engagement."""
-
-
-# EngagementsAssociations
-# -----------------------
-
-# Facets
-# ------
-@strawberry.experimental.pydantic.type(
-    model=UUIDBase,
-    all_fields=True,
-)
-class FacetType:
-    """GraphQL type for an creating facets."""
-
-
-# ITSystems
-# ---------
-
-# ITUsers
-# -------
-@strawberry.experimental.pydantic.type(
-    model=ITUserModel,
-    all_fields=True,
-)
-class ITUserType:
-    """GraphQL type for an IT-user."""
-
-
-# KLEs
-# ----
-
-# Leave
-# -----
-
-# Managers
-# --------
-@strawberry.experimental.pydantic.type(
-    model=ManagerModel,
-    all_fields=True,
-)
-class ManagerType:
-    """GraphQL type for/of a manager."""
-
-
-# Root Organisation
-# -----------------
-
-# Organisational Units
-# --------------------
-@strawberry.experimental.pydantic.type(
-    model=OrganisationUnitModel,
-    all_fields=True,
-)
-class OrganisationUnitType:
-    """GraphQL type for/of an organisation unit."""
-
-
-# Related Units
-# -------------
-
-# Roles
-# -----
-
-
-@strawberry.experimental.pydantic.type(
-    model=EmployeeUpdateResponse,
-    all_fields=True,
-)
-class EmployeeUpdateResponseType:
-    pass
+@strawberry.type
+class UUIDReturn:
+    uuid: UUID

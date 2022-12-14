@@ -5,14 +5,14 @@ from uuid import UUID
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
-from .types import ITUserType
+from .types import UUIDReturn
 from mora import lora
 from mora import mapping
 from mora.service.itsystem import ItsystemRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(input: ITUserCreate) -> ITUserType:
+async def create(input: ITUserCreate) -> UUIDReturn:
     input_dict = input.to_handler_dict()
 
     handler = await ItsystemRequestHandler.construct(
@@ -20,10 +20,10 @@ async def create(input: ITUserCreate) -> ITUserType:
     )
     uuid = await handler.submit()
 
-    return ITUserType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))
 
 
-async def terminate(input: ITUserTerminate) -> ITUserType:
+async def terminate(input: ITUserTerminate) -> UUIDReturn:
     trigger = input.get_trigger()
     trigger_dict = trigger.to_trigger_dict()
 
@@ -46,10 +46,10 @@ async def terminate(input: ITUserTerminate) -> ITUserType:
 
     _ = await Trigger.run(trigger_dict)
 
-    return ITUserType(uuid=UUID(lora_result))
+    return UUIDReturn(uuid=UUID(lora_result))
 
 
-async def update(input: ITUserUpdate) -> ITUserType:
+async def update(input: ITUserUpdate) -> UUIDReturn:
     input_dict = input.to_handler_dict()
 
     req = {
@@ -61,4 +61,4 @@ async def update(input: ITUserUpdate) -> ITUserType:
     request = await ItsystemRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return ITUserType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))

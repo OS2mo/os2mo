@@ -27,7 +27,7 @@ from mora.graphapi.versions.latest.association import terminate_association
 from mora.graphapi.versions.latest.models import AssociationCreate
 from mora.graphapi.versions.latest.models import AssociationTerminate
 from mora.graphapi.versions.latest.models import AssociationUpdate
-from mora.graphapi.versions.latest.types import AssociationType
+from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
@@ -224,7 +224,7 @@ async def test_create_association(
         }
     """
     created_uuid = uuid4()
-    create_association.return_value = AssociationType(uuid=created_uuid)
+    create_association.return_value = UUIDReturn(uuid=created_uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -465,7 +465,7 @@ async def test_update_association_unit_test(
     """
 
     association_uuid_to_update = uuid4()
-    update_association.return_value = AssociationType(uuid=association_uuid_to_update)
+    update_association.return_value = UUIDReturn(uuid=association_uuid_to_update)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(

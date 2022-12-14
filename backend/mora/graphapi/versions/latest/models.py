@@ -194,10 +194,6 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class Address(UUIDBase):
-    """Address (detail) model."""
-
-
 class AddressCreate(RAValidity):
     """Model representing an address creation.
 
@@ -260,10 +256,6 @@ class AddressCreate(RAValidity):
         }
 
 
-class AddressCreateResponse(UUIDBase):
-    """Response from GraphQL when creating addresses."""
-
-
 class AddressTerminate(ValidityTerminate):
     """Model representing an address-termination."""
 
@@ -297,7 +289,7 @@ class AddressTerminate(ValidityTerminate):
         }
 
 
-class AddressUpdate(Address):
+class AddressUpdate(UUIDBase):
     """Model representing an association update."""
 
     uuid: UUID = Field(description="UUID of the association we want to update.")
@@ -338,11 +330,7 @@ class AddressUpdate(Address):
 
 # Associations
 # ------------
-class Association(UUIDBase):
-    """OS2mo association model."""
-
-
-class AssociationCreate(Association):
+class AssociationCreate(UUIDBase):
     """Model representing an association creation."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -372,7 +360,7 @@ class AssociationCreate(Association):
         }
 
 
-class AssociationUpdate(Association):
+class AssociationUpdate(UUIDBase):
     """Model representing an association update."""
 
     uuid: UUID = Field(description="UUID of the association we want to update.")
@@ -458,11 +446,7 @@ class ClassCreate(MOBase):
 
 # Employees
 # ---------
-class Employee(UUIDBase):
-    """OS2Mo employee model."""
-
-
-class EmployeeCreate(Employee):
+class EmployeeCreate(UUIDBase):
     """Model representing an employee creation."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -593,10 +577,6 @@ class EmployeeUpdate(RAValidity):
         }
 
 
-class EmployeeUpdateResponse(UUIDBase):
-    pass
-
-
 # Engagements
 # -----------
 class EngagementTrigger(OrgFuncTrigger):
@@ -617,10 +597,6 @@ class EngagementTrigger(OrgFuncTrigger):
 
         employee_id: Optional[UUID]
     """
-
-
-class Engagement(UUIDBase):
-    """Model representing an Engagement."""
 
 
 class EngagementTerminate(ValidityTerminate):
@@ -653,7 +629,7 @@ class EngagementTerminate(ValidityTerminate):
         )
 
 
-class EngagementCreate(Engagement):
+class EngagementCreate(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID = Field(description="The related org-unit object.")
     employee: UUID = Field(description="UUID of the related employee.")
@@ -682,7 +658,7 @@ class EngagementCreate(Engagement):
         }
 
 
-class EngagementUpdate(Engagement):
+class EngagementUpdate(UUIDBase):
     uuid: UUID = Field(description="UUID of the Engagement you want to update.")
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID | None = Field(description="The related org-unit object.")
@@ -738,11 +714,7 @@ class FacetCreate(UUIDBase):
 
 # ITUsers
 # -------
-class ITUser(UUIDBase):
-    """OS2Mo IT-User model."""
-
-
-class ITUserCreate(ITUser):
+class ITUserCreate(UUIDBase):
     """Model representing a IT-user creation."""
 
     type_: str = Field("it", alias="type", description="The object type.")
@@ -796,7 +768,7 @@ class ITUserCreate(ITUser):
         }
 
 
-class ITUserUpdate(ITUser):
+class ITUserUpdate(UUIDBase):
     """Model representing a IT-user creation."""
 
     uuid: UUID = Field(description="UUID of the IT-user you want to update.")
@@ -869,13 +841,7 @@ class ITUserTerminate(ValidityTerminate):
 
 # Managers
 # --------
-
-
-class Manager(UUIDBase):
-    """Model representing a manager."""
-
-
-class ManagerCreate(Manager):
+class ManagerCreate(UUIDBase):
     """Model for creating an employee of manager type."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
@@ -923,7 +889,7 @@ class ManagerCreate(Manager):
         }
 
 
-class ManagerUpdate(Manager):
+class ManagerUpdate(UUIDBase):
     """Model for updating a manager."""
 
     uuid: UUID = Field(description="UUID of the manager to be updated.")
@@ -1023,10 +989,6 @@ class OrgUnitTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for organisation units."""
 
 
-class OrganisationUnit(UUIDBase):
-    """Model representing an organisation unit."""
-
-
 class OrganisationUnitTerminate(ValidityTerminate):
     """Model representing an organisation unit termination."""
 
@@ -1043,7 +1005,7 @@ class OrganisationUnitTerminate(ValidityTerminate):
         }
 
 
-class OrganisationUnitCreate(OrganisationUnit):
+class OrganisationUnitCreate(UUIDBase):
     """Model for creating org-units."""
 
     name: str = Field(description="Org-unit name.")
@@ -1079,7 +1041,7 @@ class OrganisationUnitCreate(OrganisationUnit):
         }
 
 
-class OrganisationUnitUpdate(OrganisationUnit):
+class OrganisationUnitUpdate(UUIDBase):
     """Model for updating an organisation unit."""
 
     uuid: UUID = Field(description="UUID of the organisation unit to be updated.")

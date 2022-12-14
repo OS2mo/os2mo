@@ -7,9 +7,7 @@ from ....mapping import RequestType
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
-from .types import AddressCreateType
-from .types import AddressTerminateType
-from .types import AddressType
+from .types import UUIDReturn
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -17,17 +15,17 @@ from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(address_create: AddressCreate) -> AddressCreateType:
+async def create(address_create: AddressCreate) -> UUIDReturn:
     request_handler_dict = await address_create.to_handler_dict()
     request_handler = await AddressRequestHandler.construct(
         request_handler_dict, RequestType.CREATE
     )
     new_uuid = await request_handler.submit()
 
-    return AddressCreateType(uuid=new_uuid)
+    return UUIDReturn(uuid=new_uuid)
 
 
-async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminateType:
+async def terminate_addr(address_terminate: AddressTerminate) -> UUIDReturn:
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )
@@ -59,7 +57,7 @@ async def terminate_addr(address_terminate: AddressTerminate) -> AddressTerminat
 
     _ = await Trigger.run(trigger_dict)
 
-    return AddressTerminateType(uuid=UUID(lora_result))
+    return UUIDReturn(uuid=UUID(lora_result))
 
 
 async def _get_original_addr(
@@ -72,7 +70,7 @@ async def _get_original_addr(
     return original
 
 
-async def update_address(input: AddressUpdate) -> AddressType:
+async def update_address(input: AddressUpdate) -> UUIDReturn:
     """Helper function for updating associations."""
     input_dict = input.to_handler_dict()
 
@@ -85,4 +83,4 @@ async def update_address(input: AddressUpdate) -> AddressType:
     request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return AddressType(uuid=UUID(uuid))
+    return UUIDReturn(uuid=UUID(uuid))

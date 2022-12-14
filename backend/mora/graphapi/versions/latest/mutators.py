@@ -58,19 +58,7 @@ from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
-from .types import AddressCreateType
-from .types import AddressTerminateType
-from .types import AddressType
-from .types import AssociationType
-from .types import ClassCreateType
-from .types import EmployeeType
-from .types import EmployeeUpdateResponseType
-from .types import EngagementTerminateType
-from .types import EngagementType
-from .types import FacetType
-from .types import ITUserType
-from .types import ManagerType
-from .types import OrganisationUnitType
+from .types import UUIDReturn
 from mora.common import get_connector
 
 logger = logging.getLogger(__name__)
@@ -90,23 +78,21 @@ class Mutation:
         description="Create an address.",
         permission_classes=[admin_permission_class],
     )
-    async def address_create(self, input: AddressCreateInput) -> AddressCreateType:
+    async def address_create(self, input: AddressCreateInput) -> UUIDReturn:
         return await create_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an address.",
         permission_classes=[admin_permission_class],
     )
-    async def address_update(self, input: AddressUpdateInput) -> AddressType:
+    async def address_update(self, input: AddressUpdateInput) -> UUIDReturn:
         return await update_address(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an address by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def address_terminate(
-        self, at: AddressTerminateInput
-    ) -> AddressTerminateType:
+    async def address_terminate(self, at: AddressTerminateInput) -> UUIDReturn:
         return await terminate_addr(at.to_pydantic())
 
     @strawberry.mutation(
@@ -122,18 +108,14 @@ class Mutation:
         description="Creates an association.",
         permission_classes=[admin_permission_class],
     )
-    async def association_create(
-        self, input: AssociationCreateInput
-    ) -> AssociationType:
+    async def association_create(self, input: AssociationCreateInput) -> UUIDReturn:
         return await create_association(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an association.",
         permission_classes=[admin_permission_class],
     )
-    async def association_update(
-        self, input: AssociationUpdateInput
-    ) -> AssociationType:
+    async def association_update(self, input: AssociationUpdateInput) -> UUIDReturn:
         return await update_association(input.to_pydantic())
 
     @strawberry.mutation(
@@ -142,7 +124,7 @@ class Mutation:
     )
     async def association_terminate(
         self, input: AssociationTerminateInput
-    ) -> AssociationType:
+    ) -> UUIDReturn:
         return await terminate_association(input.to_pydantic())
 
     # TODO: association_delete
@@ -153,7 +135,7 @@ class Mutation:
         description="Create new mo-class under facet",
         permission_classes=[admin_permission_class],
     )
-    async def class_create(self, input: ClassCreateInput) -> ClassCreateType:
+    async def class_create(self, input: ClassCreateInput) -> UUIDReturn:
         return await create_class(input.to_pydantic())
 
     # TODO: class_update
@@ -166,23 +148,21 @@ class Mutation:
         description="Creates an employee for a specific organisation.",
         permission_classes=[admin_permission_class],
     )
-    async def employee_create(self, input: EmployeeCreateInput) -> EmployeeType:
+    async def employee_create(self, input: EmployeeCreateInput) -> UUIDReturn:
         return await employee_create(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_update(
-        self, input: EmployeeUpdateInput
-    ) -> EmployeeUpdateResponseType:
+    async def employee_update(self, input: EmployeeUpdateInput) -> UUIDReturn:
         return await employee_update(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an employee by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def employee_terminate(self, input: EmployeeTerminateInput) -> EmployeeType:
+    async def employee_terminate(self, input: EmployeeTerminateInput) -> UUIDReturn:
         return await terminate_employee(input.to_pydantic())
 
     # TODO: employee_delete
@@ -192,23 +172,21 @@ class Mutation:
     @strawberry.mutation(
         description="Create an engagement", permission_classes=[admin_permission_class]
     )
-    async def engagement_create(self, input: EngagementCreateInput) -> EngagementType:
+    async def engagement_create(self, input: EngagementCreateInput) -> UUIDReturn:
         return await create_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def engagement_update(self, input: EngagementUpdateInput) -> EngagementType:
+    async def engagement_update(self, input: EngagementUpdateInput) -> UUIDReturn:
         return await update_engagement(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates an engagement by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def engagement_terminate(
-        self, input: EngagementTerminateInput
-    ) -> EngagementTerminateType:
+    async def engagement_terminate(self, input: EngagementTerminateInput) -> UUIDReturn:
         return await terminate_engagement(input.to_pydantic())
 
     @strawberry.mutation(
@@ -232,7 +210,7 @@ class Mutation:
         description="Create new facet object",
         permission_classes=[admin_permission_class],
     )
-    async def facet_create(self, input: FacetCreateInput) -> FacetType:
+    async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
         return await create_facet(input.to_pydantic())
 
     # TODO: facet_update
@@ -253,21 +231,21 @@ class Mutation:
         description="Creates an IT-User.",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_create(self, input: ITUserCreateInput) -> ITUserType:
+    async def ituser_create(self, input: ITUserCreateInput) -> UUIDReturn:
         return await create_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an IT-User.",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_update(self, input: ITUserUpdateInput) -> ITUserType:
+    async def ituser_update(self, input: ITUserUpdateInput) -> UUIDReturn:
         return await update_ituser(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates IT-user by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def ituser_terminate(self, input: ITUserTerminateInput) -> ITUserType:
+    async def ituser_terminate(self, input: ITUserTerminateInput) -> UUIDReturn:
         return await terminate_ituser(input.to_pydantic())
 
     @strawberry.mutation(
@@ -295,26 +273,25 @@ class Mutation:
 
     # Managers
     # --------
-
     @strawberry.mutation(
         description="Creates a manager for a specific organisation.",
         permission_classes=[admin_permission_class],
     )
-    async def manager_create(self, input: ManagerCreateInput) -> ManagerType:
+    async def manager_create(self, input: ManagerCreateInput) -> UUIDReturn:
         return await create_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates a manager for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
-    async def manager_update(self, input: ManagerUpdateInput) -> ManagerType:
+    async def manager_update(self, input: ManagerUpdateInput) -> UUIDReturn:
         return await update_manager(input.to_pydantic())
 
     @strawberry.mutation(
         description="Terminates a manager unit by UUID",
         permission_classes=[admin_permission_class],
     )
-    async def manager_terminate(self, input: ManagerTerminateInput) -> ManagerType:
+    async def manager_terminate(self, input: ManagerTerminateInput) -> UUIDReturn:
         return await terminate_manager(input.to_pydantic())
 
     # TODO: manager_delete
@@ -342,18 +319,14 @@ class Mutation:
         description="Creates org-unit",
         permission_classes=[admin_permission_class],
     )
-    async def org_unit_create(
-        self, input: OrganisationUnitCreateInput
-    ) -> OrganisationUnitType:
+    async def org_unit_create(self, input: OrganisationUnitCreateInput) -> UUIDReturn:
         return await create_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
         description="Updates an organisation unit for a specific organisation by UUID.",
         permission_classes=[admin_permission_class],
     )
-    async def org_unit_update(
-        self, input: OrganisationUnitUpdateInput
-    ) -> OrganisationUnitType:
+    async def org_unit_update(self, input: OrganisationUnitUpdateInput) -> UUIDReturn:
         return await update_org_unit(input.to_pydantic())
 
     @strawberry.mutation(
@@ -362,7 +335,7 @@ class Mutation:
     )
     async def org_unit_terminate(
         self, unit: OrganisationUnitTerminateInput
-    ) -> OrganisationUnitType:
+    ) -> UUIDReturn:
         return await terminate_org_unit(unit.to_pydantic())
 
     # TODO: org_unit_delete

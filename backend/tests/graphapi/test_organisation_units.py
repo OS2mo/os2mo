@@ -22,7 +22,7 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import OrganisationUnitCreate
 from mora.graphapi.versions.latest.models import OrganisationUnitUpdate
-from mora.graphapi.versions.latest.types import OrganisationUnitType
+from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo import Validity as RAValidity
 from tests.conftest import GQLResponse
@@ -103,7 +103,7 @@ async def test_create_org_unit(
     """
 
     created_uuid = uuid4()
-    create_org_unit.return_value = OrganisationUnitType(uuid=created_uuid)
+    create_org_unit.return_value = UUIDReturn(uuid=created_uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -442,7 +442,7 @@ async def test_update_org_unit_mutation_unit_test(
         }
     """
 
-    update_org_unit.return_value = OrganisationUnitType(uuid=test_data.uuid)
+    update_org_unit.return_value = UUIDReturn(uuid=test_data.uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})

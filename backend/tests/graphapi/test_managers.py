@@ -26,7 +26,7 @@ from mora.graphapi.versions.latest.manager import terminate_manager
 from mora.graphapi.versions.latest.models import ManagerCreate
 from mora.graphapi.versions.latest.models import ManagerTerminate
 from mora.graphapi.versions.latest.models import ManagerUpdate
-from mora.graphapi.versions.latest.types import ManagerType
+from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
 from tests.conftest import GQLResponse
@@ -172,7 +172,7 @@ async def test_create_manager_mutation_unit_test(
         }
     """
 
-    create_manager.return_value = ManagerType(uuid=test_data.uuid)
+    create_manager.return_value = UUIDReturn(uuid=test_data.uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
@@ -446,7 +446,7 @@ async def test_update_manager_mutation_unit_test(
         }
     """
 
-    update_manager.return_value = ManagerType(uuid=test_data.uuid)
+    update_manager.return_value = UUIDReturn(uuid=test_data.uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
