@@ -172,8 +172,8 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
             st.text(
                 alphabet=st.characters(
                     blacklist_categories=(
-                        "Cs",
-                        "Cc",
+                        "Cs",  # st.text() normal blacklist_categories default (surrogate chars)
+                        "Cc",  # prevent hypothesis from creating control chars (ex: "\x00")
                     )
                 )
             )
