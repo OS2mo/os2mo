@@ -11,6 +11,7 @@ from ...lora import LoraObjectType
 from ...service import employee
 from ...service import facet
 from ...service import orgunit
+from .engagement import get_engagement
 from mora import util
 from mora.request_scoped.bulking import request_wide_bulk
 
@@ -65,6 +66,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         org_unit_uuid = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         itsystem_uuid = mapping.SINGLE_ITSYSTEM_FIELD.get_uuid(effect)
         primary_uuid = mapping.PRIMARY_FIELD.get_uuid(effect)
+        engagement_uuid = mapping.ASSOCIATED_FUNCTION_FIELD.get_uuid(effect)
 
         base_obj = await super()._get_mo_object_from_effect(effect, start, end, funcid)
 
@@ -73,6 +75,7 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
                 **base_obj,
                 "employee_uuid": person_uuid,
                 "org_unit_uuid": org_unit_uuid,
+                "engagement_uuid": engagement_uuid,
                 "itsystem_uuid": itsystem_uuid,
                 "primary_uuid": primary_uuid,
             }
@@ -98,6 +101,13 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         else:
             org_unit_task = noop_task()
 
+        if engagement_uuid:
+            engagement_task = get_engagement(
+                request_wide_bulk.connector, uuid=engagement_uuid
+            )
+        else:
+            engagement_task = noop_task()
+
         if primary_uuid:
             primary_task = facet.request_bulked_get_one_class_full(
                 primary_uuid, only_primary_uuid=only_primary_uuid
@@ -105,8 +115,8 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
         else:
             primary_task = noop_task()
 
-        itsystem, person, org_unit, primary = await gather(
-            it_system_task, person_task, org_unit_task, primary_task
+        itsystem, person, org_unit, primary, engagement = await gather(
+            it_system_task, person_task, org_unit_task, primary_task, engagement_task
         )
         return {
             **base_obj,
@@ -114,4 +124,5 @@ class ItSystemBindingReader(reading.OrgFunkReadingHandler):
             mapping.PERSON: person,
             mapping.ORG_UNIT: org_unit,
             mapping.PRIMARY: primary,
+            mapping.ENGAGEMENT: engagement,
         }

@@ -83,8 +83,9 @@ def _mo_create_it_user_doc():
         "uuid": _it_user_uuid,
         "itsystem": {"uuid": _it_system_uuid},
         "user_key": "usernameInItSystem",
-        "org_unit": {"uuid": _unitid},
         "person": {"uuid": _userid},
+        "org_unit": {"uuid": _unitid},
+        "engagement": None,
         "validity": {"from": "2017-01-01", "to": None},
     }
 

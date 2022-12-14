@@ -10,6 +10,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
+from hypothesis.strategies import DataObject
 from more_itertools import one
 from pytest import MonkeyPatch
 
@@ -49,8 +50,9 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                         uuid
                         user_key
                         employee_uuid
-                        itsystem_uuid
                         org_unit_uuid
+                        engagement_uuid
+                        itsystem_uuid
                         primary_uuid
                         type
                         validity {from to}
@@ -99,7 +101,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 @patch("mora.graphapi.versions.latest.mutators.create_ituser", new_callable=AsyncMock)
 @given(data=st.data())
-async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> None:
+async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None:
     """Test that pydantic jsons are passed through to create_ituser."""
 
     mutate_query = """
@@ -112,9 +114,10 @@ async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> No
     created_uuid = uuid4()
     create_ituser.return_value = ITUserType(uuid=created_uuid)
 
-    employee_or_org_unit = data.draw(st.booleans())
+    # TODO: Why isn't this two different tests?
+    should_test_employee = data.draw(st.booleans())
 
-    if employee_or_org_unit:
+    if should_test_employee:
         employee_uuid = uuid4()
         org_unit_uuid = None
     else:
@@ -148,7 +151,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: ITUserCreate) -> No
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_ituser_integration_test(
     validate_unique_constraint: AsyncMock,
-    data: ITUserCreate,
+    data: DataObject,
     graphapi_post,
     itsystem_uuids,
     employee_uuids,
@@ -158,9 +161,11 @@ async def test_create_ituser_integration_test(
     validate_unique_constraint.return_value = None
 
     # Create bool to choose between creating ITuser for employee or org_unit
-    employee_or_org_unit = data.draw(st.booleans())
+    # TODO: Why isn't this two different tests?
+    should_test_employee = data.draw(st.booleans())
+    engagement_uuid = None
 
-    if employee_or_org_unit:
+    if should_test_employee:
         employee_uuid = data.draw(st.sampled_from(employee_uuids))
         employee_from, employee_to = fetch_employee_validity(
             graphapi_post, employee_uuid
@@ -178,6 +183,7 @@ async def test_create_ituser_integration_test(
             test_data_validity_end_strat = st.none() | st.datetimes(
                 min_value=test_data_validity_start,
             )
+        engagement_uuid = data.draw(st.uuids() | st.none())
 
         org_unit_uuid = None
 
@@ -212,6 +218,7 @@ async def test_create_ituser_integration_test(
             itsystem=st.sampled_from(itsystem_uuids),
             person=st.just(employee_uuid),
             org_unit=st.just(org_unit_uuid),
+            engagement=st.just(engagement_uuid),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
