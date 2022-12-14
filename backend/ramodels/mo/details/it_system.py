@@ -40,6 +40,9 @@ class ITUserRead(ITUserBase):
     org_unit_uuid: UUID | None = Field(
         description="UUID organisation unit related to the user."
     )
+    engagement_uuid: UUID | None = Field(
+        description="UUID of the engagement related to the user."
+    )
     primary_uuid: UUID | None = Field(
         description="UUID of an associated `primary_type` class."
     )

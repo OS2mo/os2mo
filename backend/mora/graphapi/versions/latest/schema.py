@@ -643,6 +643,18 @@ class ITUser:
         return (await loader.load(root.org_unit_uuid)).objects
 
     @strawberry.field(
+        description="Related engagement",
+        permission_classes=[gen_read_permission("engagement")],
+    )
+    async def engagement(
+        self, root: ITUserRead, info: Info
+    ) -> list["Engagement"] | None:
+        loader: DataLoader = info.context["engagement_loader"]
+        if root.engagement_uuid is None:
+            return None
+        return (await loader.load(root.engagement_uuid)).objects
+
+    @strawberry.field(
         description="Connected itsystem",
         permission_classes=[gen_read_permission("itsystem")],
     )

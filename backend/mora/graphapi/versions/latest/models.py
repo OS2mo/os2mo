@@ -755,6 +755,9 @@ class ITUserCreate(ITUser):
     org_unit: UUID | None = Field(
         description="Reference to the organisation unit of the IT user (if any)."
     )
+    engagement: UUID | None = Field(
+        description="Reference to the engagement of the IT user (if any)."
+    )
     validity: RAValidity = Field(description="Validity of the created IT user object.")
 
     @root_validator
@@ -782,6 +785,7 @@ class ITUserCreate(ITUser):
             "primary": gen_uuid(self.primary),
             "itsystem": gen_uuid(self.itsystem),
             "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
             "org_unit": gen_uuid(self.org_unit),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
@@ -797,6 +801,7 @@ class ITUserUpdate(ITUser):
 
     uuid: UUID = Field(description="UUID of the IT-user you want to update.")
     user_key: str | None = Field(description="The IT user account name.")
+    engagement: UUID | None = Field(description="Optional reference to an engagement.")
     primary: UUID | None = Field(description="Primary field of the IT user object")
     itsystem: UUID | None = Field(
         description="Reference to the IT system for the IT user."
@@ -813,6 +818,7 @@ class ITUserUpdate(ITUser):
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
             "itsystem": gen_uuid(self.itsystem),
+            "engagement": gen_uuid(self.engagement),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()

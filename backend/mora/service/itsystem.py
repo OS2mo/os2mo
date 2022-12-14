@@ -100,6 +100,9 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
         employee = util.checked_get(req, mapping.PERSON, {}, required=False)
         employee_uuid = util.get_uuid(employee, required=False)
 
+        engagement = util.checked_get(req, mapping.ENGAGEMENT, {}, required=False)
+        engagement_uuid = util.get_uuid(engagement, required=False)
+
         org_uuid = (
             await org.get_configured_organisation(
                 util.get_mapping_uuid(req, mapping.ORG, required=False)
@@ -164,6 +167,13 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
             tilknyttedeorganisationer=[org_uuid],
             tilknyttedeenheder=[org_unit_uuid] if org_unit_uuid else [],
             tilknyttedeitsystemer=[systemid],
+            tilknyttedefunktioner=[
+                common.associated_orgfunc(
+                    uuid=engagement_uuid, orgfunc_type=mapping.MoOrgFunk.ENGAGEMENT
+                )
+            ]
+            if engagement_uuid
+            else [],
         )
 
         self.payload = func
@@ -225,6 +235,16 @@ class ItsystemRequestHandler(handlers.OrgFunkRequestHandler):
                 )
             )
 
+        if data.get(mapping.ENGAGEMENT):
+            update_fields.append(
+                (
+                    mapping.ASSOCIATED_FUNCTION_FIELD,
+                    {
+                        "uuid": util.get_mapping_uuid(data, mapping.ENGAGEMENT),
+                        mapping.OBJECTTYPE: mapping.ENGAGEMENT,
+                    },
+                )
+            )
         if data.get(mapping.ORG_UNIT):
             update_fields.append(
                 (
