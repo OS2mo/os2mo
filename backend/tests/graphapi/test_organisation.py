@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 from itertools import chain
+from uuid import UUID
 
 import pytest
 from httpx import Response
@@ -138,3 +139,31 @@ async def test_no_fields_query(graphapi_post, respx_mock, mock_organisation):
     error = one(result.errors)
     assert error["message"] == "Syntax Error: Expected Name, found '}'."
     assert result.data is None
+
+
+@pytest.mark.usefixtures("mock_asgi_transport")
+async def test_create_mutator_integration(graphapi_post):
+    mutation_query = """
+    mutation($input: OrganisationCreateInput!) {
+        org_create(input: $input) {
+                uuid
+            }
+    }
+    """
+
+    test_data_name = "test_fra_test"
+    mutation_result: GQLResponse = graphapi_post(
+        mutation_query, variables={"input": {"name": test_data_name}}
+    )
+    assert mutation_result.errors is None
+    assert mutation_result.data
+
+    uuid = UUID(mutation_result.data.get("org_create", {}).get("uuid", None))
+
+    # Query the new organisation
+    query = "query { org { uuid, name, user_key }}"
+    query_result: GQLResponse = graphapi_post(query)
+    assert query_result.errors is None
+    assert query_result.data
+    assert query_result.data.get("org", {}).get("uuid", "") == str(uuid)
+    assert query_result.data.get("org", {}).get("name", "") == test_data_name
