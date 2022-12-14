@@ -146,7 +146,7 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
 
     if address_type in (addr_type_orgunit_address, addr_type_user_address):
         # FYI: The UUIDs we sample from, are the ones found in:
-        # backend\tests\mocking\dawa-addresses.json
+        # backend/tests/mocking/dawa-addresses.json
         test_data_value = data.draw(
             st.sampled_from(
                 [
@@ -315,6 +315,13 @@ async def test_create_mutator(create_address: AsyncMock, data):
             user_andersand,
             None,
             addr_type_user_phone,
+        ),
+        # Engagements
+        (
+            None,
+            None,
+            engagement_andersand,
+            addr_type_user_address,
         ),
     ]
 
@@ -623,13 +630,13 @@ async def test_terminate(given_uuid, given_validity_dts):
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 7),
+        ("", 8),
         # Address Type filters
-        ('(address_type_user_keys: "BrugerPostadresse")', 1),
-        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 1),
+        ('(address_type_user_keys: "BrugerPostadresse")', 2),
+        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 2),
         ('(address_type_user_keys: "BrugerEmail")', 2),
         ('(address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")', 2),
-        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 3),
+        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 4),
         (
             """
             (address_types: [
@@ -637,7 +644,7 @@ async def test_terminate(given_uuid, given_validity_dts):
                 "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
             ])
         """,
-            3,
+            4,
         ),
         (
             """
@@ -646,7 +653,7 @@ async def test_terminate(given_uuid, given_validity_dts):
                 address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
             )
         """,
-            3,
+            4,
         ),
         # Employee filters
         ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),
@@ -660,6 +667,9 @@ async def test_terminate(given_uuid, given_validity_dts):
         """,
             3,
         ),
+        # Engagement filters
+        ('(engagements: "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab")', 0),
+        ('(engagements: "d000591f-8705-4324-897a-075e3623f37b")', 1),
         # Mixed filters
         (
             """
@@ -740,6 +750,17 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
             "employee": None,
             "address_type": "e34d4426-9845-4c72-b31e-709be85d6fa2",
             "engagement": None,
+            "value": "5798000420526",
+            "visibility": None,
+            "validity": {"to": None, "from": "2016-01-01T00:00:00+01:00"},
+        },
+        {
+            "uuid": "a0fe7d43-1e0d-4232-a220-87098024b34d",
+            "user_key": "5798000420526",
+            "org_unit": None,
+            "employee": None,
+            "address_type": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+            "engagement": "00e96933-91e4-42ac-9881-0fe1738b2e59",
             "value": "5798000420526",
             "visibility": None,
             "validity": {"to": None, "from": "2016-01-01T00:00:00+01:00"},

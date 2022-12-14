@@ -139,6 +139,18 @@ class Address:
             return None
         return (await loader.load(root.org_unit_uuid)).objects
 
+    @strawberry.field(
+        description="Connected Engagement",
+        permission_classes=[gen_read_permission("engagement")],
+    )
+    async def engagement(
+        self, root: AddressRead, info: Info
+    ) -> list["Engagement"] | None:
+        if root.engagement_uuid is None:
+            return None
+        loader: DataLoader = info.context["engagement_loader"]
+        return (await loader.load(root.engagement_uuid)).objects
+
     @strawberry.field(description="Name of address")
     async def name(self, root: AddressRead, info: Info) -> str | None:
         address_type = await Address.address_type(self, root, info)
