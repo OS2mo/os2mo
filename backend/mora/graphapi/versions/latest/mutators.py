@@ -48,6 +48,7 @@ from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
 from .itsystem import create_itsystem
+from .itsystem import delete_itsystem
 from .itsystem import ITSystemCreateInput
 from .manager import create_manager
 from .manager import terminate_manager
@@ -235,7 +236,15 @@ class Mutation:
 
     # TODO: itsystem_update
     # TODO: itsystem_terminate
-    # TODO: itsystem_delete
+
+    @strawberry.mutation(
+        description="Deletes an ITSystem.",
+        permission_classes=[admin_permission_class],
+    )
+    async def itsystem_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
+        note = ""
+        uuid = await delete_itsystem(uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # ITUsers
     # -------
