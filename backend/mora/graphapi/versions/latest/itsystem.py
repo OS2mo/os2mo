@@ -99,6 +99,42 @@ async def create_itsystem(
     return uuid
 
 
+async def update_itsystem(
+    input: ITSystemCreate, itsystem_uuid: UUID, organisation_uuid: UUID, note: str
+) -> UUID:
+    exists = await asyncio.to_thread(db.object_exists, "itsystem", str(itsystem_uuid))
+    if not exists:
+        raise ValueError("Cannot update a non-existent object")
+
+    # Construct a LoRa registration object from our input arguments
+    lifecycle_code = await asyncio.to_thread(
+        db.get_life_cycle_code, "itsystem", str(itsystem_uuid)
+    )
+
+    # Let LoRa's SQL templates do their magic
+    registration = input.to_registration(organisation_uuid=organisation_uuid)
+    if lifecycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
+        # Reactivate and update
+        uuid = await asyncio.to_thread(
+            db.update_object,
+            "itsystem",
+            note,
+            registration,
+            uuid=str(itsystem_uuid),
+            life_cycle_code=db.Livscyklus.IMPORTERET.value,
+        )
+    else:
+        # Update
+        uuid = await asyncio.to_thread(
+            db.create_or_import_object,
+            "itsystem",
+            note,
+            registration,
+            str(itsystem_uuid),
+        )
+    return uuid
+
+
 async def delete_itsystem(itsystem_uuid: UUID, note: str) -> UUID:
     # Gather a blank registration
     registration: dict[str, dict] = {

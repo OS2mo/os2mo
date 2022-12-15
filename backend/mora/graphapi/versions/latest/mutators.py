@@ -50,6 +50,7 @@ from .it_user import update as update_ituser
 from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
 from .itsystem import ITSystemCreateInput
+from .itsystem import update_itsystem
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -287,7 +288,18 @@ class Mutation:
         uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
         return UUIDReturn(uuid=uuid)
 
-    # TODO: itsystem_update
+    @strawberry.mutation(
+        description="Updates an ITSystem.",
+        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+    )
+    async def itsystem_update(
+        self, info: Info, input: ITSystemCreateInput, uuid: UUID
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await update_itsystem(input.to_pydantic(), uuid, org.uuid, note)
+        return UUIDReturn(uuid=uuid)
+
     # TODO: itsystem_terminate
 
     @strawberry.mutation(
