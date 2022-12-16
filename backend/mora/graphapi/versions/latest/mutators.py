@@ -13,6 +13,7 @@ from .address import update_address
 from .association import create_association
 from .association import terminate_association
 from .association import update_association
+from .classes import ClassCreateInput
 from .classes import create_class
 from .classes import delete_class
 from .classes import update_class
@@ -23,20 +24,21 @@ from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
+from .facets import delete_facet
+from .facets import FacetCreateInput
+from .facets import update_facet
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
-from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
-from .inputs import FacetCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -235,15 +237,37 @@ class Mutation:
     # Facets
     # ------
     @strawberry.mutation(
-        description="Create new facet object",
+        description="Creates a facet.",
         permission_classes=[admin_permission_class],
     )
-    async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
-        return await create_facet(input.to_pydantic())
+    async def facet_create(self, info: Info, input: FacetCreateInput) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await create_facet(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
 
-    # TODO: facet_update
+    @strawberry.mutation(
+        description="Updates a facet.",
+        permission_classes=[admin_permission_class],
+    )
+    async def facet_update(
+        self, info: Info, input: FacetCreateInput, uuid: UUID
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await update_facet(input.to_pydantic(), uuid, org.uuid, note)
+        return UUIDReturn(uuid=uuid)
+
     # TODO: facet_terminate
-    # TODO: facet_delete
+
+    @strawberry.mutation(
+        description="Deletes a facet.",
+        permission_classes=[admin_permission_class],
+    )
+    async def facet_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
+        note = ""
+        uuid = await delete_facet(uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # ITSystems
     # ---------

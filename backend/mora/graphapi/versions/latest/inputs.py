@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
-from .classes import ClassCreate
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
@@ -15,7 +14,6 @@ from .models import EmployeeUpdate
 from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
-from .models import FacetCreate
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
@@ -110,16 +108,6 @@ class AssociationTerminateInput:
     """input model for terminating associations."""
 
 
-# Classes
-# -------
-@strawberry.experimental.pydantic.input(
-    model=ClassCreate,
-    all_fields=True,
-)
-class ClassCreateInput:
-    """Input model for creating a mo-class."""
-
-
 # Employees
 # ---------
 @strawberry.experimental.pydantic.input(
@@ -174,19 +162,6 @@ class EngagementUpdateInput:
 
 # EngagementsAssociations
 # -----------------------
-
-# Facets
-# ------
-@strawberry.experimental.pydantic.input(
-    model=FacetCreate,
-    all_fields=True,
-)
-class FacetCreateInput:
-    """Input model for creating a facet."""
-
-
-# ITSystems
-# ---------
 
 # ITUsers
 # -------
