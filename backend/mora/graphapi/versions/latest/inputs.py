@@ -2,13 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
 
+from .classes import ClassCreate
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
 from .models import AssociationCreate
 from .models import AssociationTerminate
 from .models import AssociationUpdate
-from .models import ClassCreate
 from .models import EmployeeCreate
 from .models import EmployeeTerminate
 from .models import EmployeeUpdate

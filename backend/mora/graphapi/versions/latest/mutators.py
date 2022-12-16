@@ -14,6 +14,8 @@ from .association import create_association
 from .association import terminate_association
 from .association import update_association
 from .classes import create_class
+from .classes import delete_class
+from .classes import update_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
@@ -50,6 +52,7 @@ from .it_user import update as update_ituser
 from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
 from .itsystem import ITSystemCreateInput
+from .itsystem import update_itsystem
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -135,15 +138,37 @@ class Mutation:
     # Classes
     # -------
     @strawberry.mutation(
-        description="Create new mo-class under facet",
+        description="Creates a class.",
         permission_classes=[admin_permission_class],
     )
-    async def class_create(self, input: ClassCreateInput) -> UUIDReturn:
-        return await create_class(input.to_pydantic())
+    async def class_create(self, info: Info, input: ClassCreateInput) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
 
-    # TODO: class_update
+    @strawberry.mutation(
+        description="Updates a class.",
+        permission_classes=[admin_permission_class],
+    )
+    async def class_update(
+        self, info: Info, input: ClassCreateInput, uuid: UUID
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await update_class(input.to_pydantic(), uuid, org.uuid, note)
+        return UUIDReturn(uuid=uuid)
+
     # TODO: class_terminate
-    # TODO: class_delete
+
+    @strawberry.mutation(
+        description="Deletes a class.",
+        permission_classes=[admin_permission_class],
+    )
+    async def class_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
+        note = ""
+        uuid = await delete_class(uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # Employees
     # ---------

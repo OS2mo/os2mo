@@ -18,9 +18,9 @@ from .strategies import graph_data_uuids_strat
 from mora import mapping
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.classes import ClassCreate
 from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
-from mora.graphapi.versions.latest.models import ClassCreate
 from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
