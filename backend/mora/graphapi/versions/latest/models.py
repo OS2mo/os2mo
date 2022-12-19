@@ -833,12 +833,6 @@ class ITUserTerminate(ValidityTerminate):
         )  # type: ignore
 
 
-# KLEs
-# ----
-
-# Leave
-# -----
-
 # Managers
 # --------
 class ManagerCreate(UUIDBase):
