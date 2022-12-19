@@ -3,10 +3,9 @@
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+from mora.db import get_database_connection
+from mora.db import get_new_connection
 from oio_rest import config
-from oio_rest.db import close_connection
-from oio_rest.db import get_connection
-from oio_rest.db import get_new_connection
 from oio_rest.db.alembic_helpers import get_prerequisites
 from oio_rest.db.alembic_helpers import is_schema_installed
 from oio_rest.db.alembic_helpers import setup_database
@@ -26,8 +25,6 @@ def create_new_testing_database(identifier: str) -> str:
             cursor.execute(f"CREATE DATABASE {new_db_name} OWNER mox")
             for prerequisite in get_prerequisites(db_name=new_db_name):
                 cursor.execute(prerequisite)
-
-    close_connection()
 
     return new_db_name
 
@@ -82,12 +79,10 @@ def remove_testing_database(new_db_name: str) -> None:
             # Drop the database
             cursor.execute(f"DROP DATABASE {new_db_name}")
 
-    close_connection()
-
 
 def _check_current_database_is_testing() -> None:
     # Check that we are operating on the testing database
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         cursor.execute("select current_database()")
         current_database = cursor.fetchone()[0]
         assert current_database.endswith("_test")
@@ -95,7 +90,7 @@ def _check_current_database_is_testing() -> None:
 
 def _is_alembic_installed() -> bool:
     query_migrations_applied = "select count(*) from alembic_version"
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(query_migrations_applied)
         except UndefinedTable:

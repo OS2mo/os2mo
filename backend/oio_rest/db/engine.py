@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from sqlalchemy.engine import create_engine
 
-from oio_rest.db import get_connection
+from oio_rest.db import get_database_connection
 
 
 def get_engine():
@@ -13,4 +13,6 @@ def get_engine():
     # Doing this means we only consume one database connection per LoRa worker,
     # as the `get_connection` function reuses a global database connection for
     # each worker process.
-    return create_engine("postgresql://unused-database-url", creator=get_connection)
+    return create_engine(
+        "postgresql://unused-database-url", creator=get_database_connection
+    )

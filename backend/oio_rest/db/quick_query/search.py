@@ -5,7 +5,7 @@ from datetime import datetime
 
 from more_itertools import flatten
 
-from oio_rest.db import get_connection
+from mora.db import get_database_connection
 from oio_rest.db import Livscyklus
 from oio_rest.db import to_bool
 from oio_rest.db.quick_query.registration_parsing import Attribute
@@ -519,7 +519,7 @@ def quick_search(
     sql = qb.get_query()
 
     # execute query against LoRa
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         cursor.execute(sql)
         output = cursor.fetchall()
 

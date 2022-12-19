@@ -50,9 +50,11 @@ from ._organisationsfunktion import OrganisationFunktionRegistrering
 from ._organisationsfunktion import OrganisationFunktionRelation
 from ._organisationsfunktion import OrganisationFunktionRelationKode
 from ._organisationsfunktion import OrganisationFunktionTilsGyldighed
-from .db import create_connection
+from .db import _get_dbname
 from .db import DBConnectionPlugin
+from .db import dbname_context
 from .db import get_database_connection
+from .db import get_new_connection
 from oio_rest.config import get_settings as oio_rest_get_settings
 
 

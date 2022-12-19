@@ -5,8 +5,8 @@ from uuid import UUID
 import pytest
 
 from mora import mapping
+from mora.db import get_database_connection
 from mora.graphapi.versions.latest.graphql_utils import get_uuids
-from oio_rest.db import get_connection
 from tests.conftest import fake_auth
 from tests.conftest import GQLResponse
 
@@ -34,7 +34,7 @@ async def test_create_facet(graphapi_post):
     assert result.data
     facet_uuid = UUID(result.data["facet_create"]["uuid"])
 
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         cursor.execute(
             """
             SELECT (registrering).brugerref

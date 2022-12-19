@@ -10,10 +10,10 @@ from more_itertools import one
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from tap.parser import Parser
 
+from mora.db import get_database_connection
+from mora.db import get_new_connection
 from oio_rest import config
 from oio_rest.db import db_templating
-from oio_rest.db import get_connection
-from oio_rest.db import get_new_connection
 from tests.oio_rest import util
 
 
@@ -43,7 +43,7 @@ def setup_pgsql_test(testing_db: str):
 @pytest.mark.usefixtures("setup_pgsql_test", "empty_db")
 @pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
 def test_pgsql(subtests, dbfile):
-    with get_connection() as conn, conn.cursor() as curs:
+    with get_database_connection() as conn, conn.cursor() as curs:
         # Run the actual test
         curs.execute(dbfile.read_text())
         # Fetch results in TAP format

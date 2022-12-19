@@ -17,10 +17,10 @@ from .query import Query as LatestQuery
 from .types import CPRType
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.db import _get_dbname
 from mora.db import get_sessionmaker
 from mora.util import CPR
 from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.db import _get_dbname
 
 
 class LatestGraphQLSchema(BaseGraphQLSchema):

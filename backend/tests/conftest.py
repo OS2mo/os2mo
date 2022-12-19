@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
 from typing import TypeVar
-from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -30,8 +29,11 @@ from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
 from respx.mocks import HTTPCoreMocker
+from starlette.middleware import Middleware
 from starlette_context import context
 from starlette_context import request_cycle_context
+from starlette_context.middleware import RawContextMiddleware
+from starlette_context.plugins import Plugin
 
 from mora import lora
 from mora.app import create_app
@@ -40,6 +42,9 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
+from mora.db import DBConnectionPlugin
+from mora.db import dbname_context
+from mora.db import get_database_connection
 from mora.db import get_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
@@ -47,8 +52,6 @@ from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
-from oio_rest.db import dbname_context
-from oio_rest.db import get_connection
 from ramodels.mo import Validity
 from tests.db_testing import create_new_testing_database
 from tests.db_testing import remove_testing_database
@@ -135,43 +138,14 @@ def mocked_context():
         yield context
 
 
-@pytest.fixture()
-def disable_db_connection_middleware():
-    with patch("mora.db.create_connection", new_callable=AsyncMock) as mocked_create:
-        mocked_create.return_value = None
-
-        yield
-
-
-@pytest.hookimpl(trylast=True)
-def pytest_collection_modifyitems(items):
-    """Automatically remove db_connection middleware from unit-tests."""
-    for item in items:
-        if not item.get_closest_marker("integration_test"):
-            item.fixturenames.append("disable_db_connection_middleware")
-
-
-async def fake_auth():
-    return {
-        "acr": "1",
-        "allowed-origins": ["http://localhost:5001"],
-        "azp": "vue",
-        "email": "bruce@kung.fu",
-        "email_verified": False,
-        "exp": 1621779689,
-        "family_name": "Lee",
-        "given_name": "Bruce",
-        "iat": 1621779389,
-        "iss": "http://localhost:8081/auth/realms/mo",
-        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
-        "name": "Bruce Lee",
-        "preferred_username": "bruce",
-        "scope": "email profile",
-        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
-        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-        "typ": "Bearer",
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-    }
+async def fake_auth() -> Token:
+    return Token(
+        azp="vue",
+        email="bruce@kung.fu",
+        preferred_username="bruce",
+        realm_access={"roles": set()},
+        uuid="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+    )
 
 
 async def admin_auth() -> Token:
@@ -203,6 +177,20 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
 
 def raw_test_app(**overrides: Any) -> FastAPI:
     app = create_app(overrides)
+
+    new_middlewares: list[Middleware] = []
+    for middleware in app.user_middleware:
+        if middleware.cls.__name__ == "RawContextMiddleware":
+            middleware.options["plugins"] = tuple(
+                plugin
+                for plugin in middleware.options["plugins"]
+                if not isinstance(plugin, DBConnectionPlugin)
+            )
+        new_middlewares.append(middleware)
+
+    app.user_middleware = new_middlewares
+    app.middleware_stack = app.build_middleware_stack()
+
     return app
 
 
@@ -326,7 +314,7 @@ async def load_fixture(fixture_db: str) -> AsyncYieldFixture[str]:
     Yields:
         The newly created databases name.
     """
-    conn = get_connection()
+    conn = get_database_connection()
     await load_sample_structures()
     conn.commit()  # commit the initial sample structures
     yield fixture_db
@@ -354,7 +342,7 @@ def load_fixture_data_with_reset(load_fixture: None) -> YieldFixture[None]:
 
     # Pre-seed the connection, disabling auto-commit on it.
     # Ensuring tests do not ruin our fixture database.
-    conn = get_connection()
+    conn = get_database_connection()
     try:
         conn.set_session(autocommit=False)
     except psycopg2.ProgrammingError:

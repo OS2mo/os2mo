@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from mora import lora
-from oio_rest.db import get_connection
+from mora.db import get_database_connection
 from tests.cases import assert_registrations_equal
 
 
@@ -20,14 +20,14 @@ async def test_db_resets_rollbacks(load_fixture: None) -> None:
     user_count_intitial = "initial_commits"
     user_count_after = "user_count_after"
 
-    conn = get_connection()
+    conn = get_database_connection()
     with conn.cursor() as cursor:
         cursor.execute(query_last_commit)
         user_count_intitial = cursor.fetchone()[0]
 
     yield
 
-    conn = get_connection()
+    conn = get_database_connection()
     with conn.cursor() as cursor:
         cursor.execute(query_last_commit)
         user_count_after = cursor.fetchone()[0]

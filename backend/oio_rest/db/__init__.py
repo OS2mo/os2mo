@@ -4,10 +4,8 @@ import collections
 import copy
 import datetime
 import enum
-import os
 import pathlib
 from contextlib import suppress
-from contextvars import ContextVar
 from typing import Any
 
 import dateutil
@@ -19,7 +17,6 @@ from psycopg2.extensions import adapt as psyco_adapt
 from psycopg2.extensions import AsIs
 from psycopg2.extensions import Boolean
 from psycopg2.extensions import QuotedString
-from psycopg2.extensions import TRANSACTION_STATUS_INERROR
 from psycopg2.extras import DateTimeTZRange
 
 from ..custom_exceptions import BadRequestException
@@ -42,6 +39,7 @@ from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
 from mora.auth.middleware import get_authenticated_user
+from mora.db import get_database_connection
 from oio_rest import config
 
 """
@@ -56,7 +54,7 @@ jinja_env = Environment(
 
 
 def adapt(value):
-    connection = get_connection()
+    connection = get_database_connection()
 
     adapter = psyco_adapt(value)
     if hasattr(adapter, "prepare"):
@@ -65,81 +63,6 @@ def adapt(value):
 
 
 jinja_env.filters["adapt"] = adapt
-
-# We only have one connection, so we cannot benefit from the gunicorn gthread
-# worker class, which is intended to reduce memory footprint anyway. This
-# implementation is intended to be used with the sync worker class and can be
-# scaled by tuning the numbers of workers.
-# If you intent to change this, beware that psycopgs pool interface is very
-# hard to use correctly. An alternative approach is gevent worker class with
-# psycogreen. I am not sure if we would then need a big pool or one green
-# connection :-)
-# Regardless of how you change it, please reflect those changes in the
-# documentation (currently located at doc/user/operating-mox.rst).
-_connection = None
-
-
-dbname_context = ContextVar("dbname")
-
-
-def _get_dbname():
-    settings = config.get_settings()
-    dbname = settings.db_name
-    dbname = dbname_context.get(dbname)
-    return dbname
-
-
-def get_new_connection(dbname: str | None = None, autocommit: bool = True):
-    settings = config.get_settings()
-
-    connection = psycopg2.connect(
-        dbname=dbname or settings.db_name,
-        user=settings.db_user,
-        password=settings.db_password,
-        host=settings.db_host,
-        port=settings.db_port,
-        application_name="mox init connection",
-        sslmode=settings.db_sslmode,
-    )
-    connection.autocommit = autocommit
-    return connection
-
-
-def get_connection(dbname: str | None = None):
-    """Return a psycopg connection."""
-    global _connection
-
-    if dbname is None:
-        dbname = _get_dbname()
-
-    if (_connection is not None) and (_connection.info.dbname != dbname):
-        _connection = None
-
-    # If no connection exists, or the current connection is closed, or the
-    # current transaction is aborted, then open a new connection.
-
-    def closed():
-        return _connection.closed != 0
-
-    def in_error():
-        return _connection.info.transaction_status == TRANSACTION_STATUS_INERROR
-
-    if (_connection is None) or closed() or in_error():
-        commit = True
-        if os.environ.get("TESTING", "") == "True":
-            commit = False
-        _connection = get_new_connection(dbname, commit)
-
-    return _connection
-
-
-def close_connection():
-    """Close psycopg connection, if open."""
-    global _connection
-    if _connection is not None:
-        _connection.close()
-        _connection = None
-
 
 #
 # GENERAL FUNCTION AND CLASS DEFINITIONS
@@ -402,7 +325,7 @@ def object_exists(class_name, uuid):
     )
     """
 
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql, (uuid,))
         except psycopg2.Error as e:
@@ -452,7 +375,7 @@ def create_or_import_object(class_name, note, registration, uuid=None):
     )
 
     # Call Postgres! Return OK or not accordingly
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -500,7 +423,7 @@ def delete_object(class_name, registration, note, uuid):
     )
 
     # Call Postgres! Return OK or not accordingly
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -539,7 +462,7 @@ def passivate_object(class_name, note, registration, uuid):
     )
 
     # Call PostgreSQL
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:
@@ -579,7 +502,7 @@ def update_object(
     )
 
     # Call PostgreSQL
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
             cursor.fetchone()
@@ -639,7 +562,7 @@ def list_objects(
     if registreret_fra is not None or registreret_til is not None:
         registration_period = DateTimeTZRange(registreret_fra, registreret_til)
 
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(
                 sql,
@@ -1009,7 +932,7 @@ def search_objects(
         # TODO: Get this into the SQL function signature!
         restrictions=sql_restrictions,
     )
-    with get_connection().cursor() as cursor:
+    with get_database_connection().cursor() as cursor:
         try:
             cursor.execute(sql)
         except psycopg2.Error as e:

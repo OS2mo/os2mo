@@ -16,6 +16,12 @@ from oio_rest.app import create_app
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.custom_exceptions import DBException
 from oio_rest.custom_exceptions import NotFoundException
+from oio_rest.db.db_helpers import AktoerAttr
+from oio_rest.db.db_helpers import JournalDokument
+from oio_rest.db.db_helpers import JournalNotat
+from oio_rest.db.db_helpers import OffentlighedUndtaget
+from oio_rest.db.db_helpers import Soegeord
+from oio_rest.db.db_helpers import VaerdiRelationAttr
 
 
 def get_mocked_cursor(mock):
@@ -42,8 +48,6 @@ class TestDB(TestCase):
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_journalnotat(self, mock_get_rel):
-        from oio_rest.db.db_helpers import JournalNotat
-
         # Arrange
         mock_get_rel.return_value = "journalnotat"
 
@@ -62,8 +66,6 @@ class TestDB(TestCase):
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_journaldokument(self, mock_get_rel):
-        from oio_rest.db.db_helpers import JournalDokument, OffentlighedUndtaget
-
         # Arrange
         mock_get_rel.return_value = "journaldokument"
 
@@ -91,8 +93,6 @@ class TestDB(TestCase):
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_aktoerattr(self, mock_get_rel):
-        from oio_rest.db.db_helpers import AktoerAttr
-
         # Arrange
         mock_get_rel.return_value = "aktoerattr"
 
@@ -135,8 +135,6 @@ class TestDB(TestCase):
 
     @patch("oio_rest.db.get_relation_field_type")
     def test_convert_relation_value_vaerdirelationattr(self, mock_get_rel):
-        from oio_rest.db.db_helpers import VaerdiRelationAttr
-
         # Arrange
         mock_get_rel.return_value = "vaerdirelationattr"
 
@@ -363,7 +361,6 @@ class TestDB(TestCase):
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_soegeord(self, mock_get_field_type):
         # type: (MagicMock) -> None
-        from oio_rest.db.db_helpers import Soegeord
 
         # Arrange
         mock_get_field_type.return_value = "soegeord"
@@ -385,7 +382,6 @@ class TestDB(TestCase):
     @patch("oio_rest.db.get_field_type")
     def test_convert_attr_value_offentlighedundtagettype(self, mock_get_field_type):
         # type: (MagicMock) -> None
-        from oio_rest.db.db_helpers import OffentlighedUndtaget
 
         # Arrange
         mock_get_field_type.return_value = "offentlighedundtagettype"
@@ -1408,7 +1404,7 @@ class TestConsolidateVirkninger(unittest.TestCase):
 
 @patch("oio_rest.db.sql_convert_registration", new=MagicMock())
 class TestDBObjectFunctions(unittest.TestCase):
-    @patch("oio_rest.db.get_connection")
+    @patch("mora.db.get_database_connection")
     @patch("oio_rest.db.jinja_env")
     def test_update_object_returns_uuid(self, mock_jinja_env, mock_get_conn):
         # type: (MagicMock, MagicMock) -> None
@@ -1421,7 +1417,7 @@ class TestDBObjectFunctions(unittest.TestCase):
         # Assert
         assert uuid == actual_result
 
-    @patch("oio_rest.db.get_connection")
+    @patch("mora.db.get_database_connection")
     @patch("oio_rest.db.jinja_env")
     def test_list_objects_raises_on_no_results(self, mock_jinja_env, mock_get_conn):
         # type: (MagicMock, MagicMock) -> None
@@ -1440,7 +1436,7 @@ class TestDBObjectFunctions(unittest.TestCase):
                 "registrering_til",
             )
 
-    @patch("oio_rest.db.get_connection")
+    @patch("mora.db.get_database_connection")
     def test_list_objects_repairs_relations(self, mock_get_conn):
         # Arrange
         cursor = get_mocked_cursor(mock_get_conn)
@@ -1645,7 +1641,7 @@ class TestDBGeneralSQL(unittest.TestCase):
 Diagnostics = collections.namedtuple("Diagnostics", ["message_primary"])
 
 
-@patch("oio_rest.db.get_connection")
+@patch("mora.db.get_database_connection")
 @patch("oio_rest.db.sql_get_registration", new=MagicMock())
 @patch("oio_rest.db.sql_convert_registration", new=MagicMock())
 @patch("oio_rest.db.jinja_env.get_template", new=MagicMock())

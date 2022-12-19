@@ -6,10 +6,10 @@ from psycopg2.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
-from . import get_connection
 from alembic import command
 from alembic import op
 from alembic.config import Config
+from mora.db import get_new_connection
 
 
 def get_alembic_cfg() -> Config:
@@ -21,7 +21,7 @@ def get_alembic_cfg() -> Config:
 
 
 def _test_query(sql_query: str) -> bool:
-    with get_connection().cursor() as cursor:
+    with get_new_connection().cursor() as cursor:
         try:
             cursor.execute(sql_query)
         except UndefinedTable:
@@ -91,7 +91,7 @@ def truncate_all_tables():
         end
         $func$;
     """
-    with get_connection().cursor() as cursor:
+    with get_new_connection().cursor() as cursor:
         return cursor.execute(truncate_all, (schema_name,))
 
 

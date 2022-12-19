@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Starlette plugins to create our database connection."""
-import os
+from contextvars import ContextVar
 from typing import Any
 
 import psycopg2
@@ -13,15 +13,22 @@ from starlette_context import context
 from starlette_context.plugins import Plugin
 
 from oio_rest.config import get_settings
-from oio_rest.db import _get_dbname
+
+dbname_context = ContextVar("dbname")
 
 
-def create_connection():
-    dbname = _get_dbname()
+def _get_dbname():
+    settings = get_settings()
+    dbname = settings.db_name
+    dbname = dbname_context.get(dbname)
+    return dbname
+
+
+def get_new_connection(dbname: str | None = None, autocommit: bool = True):
     settings = get_settings()
 
-    _connection = psycopg2.connect(
-        dbname=dbname,
+    connection = psycopg2.connect(
+        dbname=dbname or _get_dbname(),
         user=settings.db_user,
         password=settings.db_password,
         host=settings.db_host,
@@ -29,12 +36,8 @@ def create_connection():
         application_name="mox init connection",
         sslmode=settings.db_sslmode,
     )
-    commit = True
-    if os.environ.get("TESTING", "") == "True":
-        commit = False
-    _connection.autocommit = commit
-
-    return _connection
+    connection.autocommit = autocommit
+    return connection
 
 
 class DBConnectionPlugin(Plugin):
@@ -43,7 +46,7 @@ class DBConnectionPlugin(Plugin):
     key = "db_connection"
 
     async def process_request(self, request: Request | HTTPConnection) -> Any | None:
-        return create_connection()
+        return get_new_connection()
 
     async def enrich_response(self, response: Response | Message) -> None:
         connection = context.get("db_connection")
@@ -52,4 +55,8 @@ class DBConnectionPlugin(Plugin):
 
 def get_database_connection() -> Any | None:
     """Get the database connection."""
-    return context.get("db_connection", None)
+    connection = context.get("db_connection", None)
+    if connection:
+        return connection
+
+    return get_new_connection()
