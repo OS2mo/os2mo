@@ -82,8 +82,6 @@ build-backend = "poetry.core.masonry.api"
 [tool.pytest.ini_options]
 markers = [
   "integration_test: mark test as an integration test",
-  "slow: mark test as being very slow",
-  "slow_setup: mark a test as having an exceptionally slow setup time, and prevent errors from timeout",
 ]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"
