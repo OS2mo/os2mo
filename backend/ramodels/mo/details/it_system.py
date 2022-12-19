@@ -6,6 +6,7 @@ from uuid import UUID
 from pydantic import Field
 
 from .._shared import EmployeeRef
+from .._shared import EngagementRef
 from .._shared import ITSystemRef
 from .._shared import MOBase
 from .._shared import OrgUnitRef
@@ -78,6 +79,9 @@ class ITUser(MOBase):
     org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
     )
+    engagement: EngagementRef | None = Field(
+        description="Reference to the engagement for the IT user."
+    )
     validity: Validity = Field(description="Validity of the created IT user object.")
 
     @classmethod
@@ -90,11 +94,13 @@ class ITUser(MOBase):
         to_date: str | None = None,
         person_uuid: UUID | None = None,
         org_unit_uuid: UUID | None = None,
+        engagement_uuid: UUID | None = None,
     ) -> "ITUser":
         """Create an IT User from simplified fields."""
         it_system = ITSystemRef(uuid=itsystem_uuid)
         person = PersonRef(uuid=person_uuid) if person_uuid else None
         org_unit = OrgUnitRef(uuid=org_unit_uuid) if org_unit_uuid else None
+        engagement = EngagementRef(uuid=engagement_uuid) if engagement_uuid else None
         validity = Validity(from_date=from_date, to_date=to_date)
 
         return cls(
@@ -103,5 +109,6 @@ class ITUser(MOBase):
             itsystem=it_system,
             person=person,
             org_unit=org_unit,
+            engagement=engagement,
             validity=validity,
         )

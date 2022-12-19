@@ -103,6 +103,7 @@ def it_user_fsf_strat(draw):
         "to_date": st.none() | to_date_strat(),
         "org_unit_uuid": st.none() | st.uuids(),
         "person_uuid": st.none() | st.uuids(),
+        "engagement_uuid": st.none() | st.uuids(),
     }
 
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
