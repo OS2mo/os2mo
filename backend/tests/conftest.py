@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
 from typing import TypeVar
+from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -134,14 +135,43 @@ def mocked_context():
         yield context
 
 
-async def fake_auth() -> Token:
-    return Token(
-        azp="vue",
-        email="bruce@kung.fu",
-        preferred_username="bruce",
-        realm_access={"roles": set()},
-        uuid="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-    )
+@pytest.fixture()
+def disable_db_connection_middleware():
+    with patch("mora.db.create_connection", new_callable=AsyncMock) as mocked_create:
+        mocked_create.return_value = None
+
+        yield
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_collection_modifyitems(items):
+    """Automatically remove db_connection middleware from unit-tests."""
+    for item in items:
+        if not item.get_closest_marker("integration_test"):
+            item.fixturenames.append("disable_db_connection_middleware")
+
+
+async def fake_auth():
+    return {
+        "acr": "1",
+        "allowed-origins": ["http://localhost:5001"],
+        "azp": "vue",
+        "email": "bruce@kung.fu",
+        "email_verified": False,
+        "exp": 1621779689,
+        "family_name": "Lee",
+        "given_name": "Bruce",
+        "iat": 1621779389,
+        "iss": "http://localhost:8081/auth/realms/mo",
+        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
+        "name": "Bruce Lee",
+        "preferred_username": "bruce",
+        "scope": "email profile",
+        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
+        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
+        "typ": "Bearer",
+        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+    }
 
 
 async def admin_auth() -> Token:

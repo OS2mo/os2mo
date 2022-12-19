@@ -26,6 +26,7 @@ from . import service
 from . import triggers
 from .common import LoRaConnectorPlugin
 from .config import Environment
+from .db import DBConnectionPlugin
 from .db import get_sessionmaker
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
@@ -128,6 +129,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
+                DBConnectionPlugin(),
             ),
         )
     ]
