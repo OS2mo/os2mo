@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
@@ -14,10 +8,6 @@ from .models import FacetCreate
 from .types import UUIDReturn
 from mora.common import get_connector
 from ramodels.lora.facet import Facet as LoraFacet
-
-# --------------------------------------------------------------------------------------
-# Helper functions for Facet mutators
-# --------------------------------------------------------------------------------------
 
 
 async def create_facet(input: FacetCreate) -> UUIDReturn:

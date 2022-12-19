@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
 from ramodels_tests.conftest import from_date_strat
@@ -22,11 +16,6 @@ from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.details.it_system import ITUserBase
 from ramodels.mo.details.it_system import ITUserRead
 from ramodels.mo.details.it_system import ITUserWrite
-
-
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
 
 
 @st.composite

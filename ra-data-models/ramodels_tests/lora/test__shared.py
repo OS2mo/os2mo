@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import re
 from datetime import datetime
 from functools import partial
@@ -63,11 +57,6 @@ single_item_error = partial(
 )
 
 
-# --------------------------------------------------------------------------------------
-# LoraBase
-# --------------------------------------------------------------------------------------
-
-
 class TestLoraBase:
     def test_init(self):
         # LoraBase cannot be instantiated
@@ -104,11 +93,6 @@ class TestLoraBase:
         # Test non-string object_type for coverage
         with pytest.raises(ValidationError):
             LoRaSub(object_type=123)  # type: ignore
-
-
-# --------------------------------------------------------------------------------------
-# InfiniteDatetime
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -234,11 +218,6 @@ def valid_inf_dt(draw):
     return InfiniteDatetime.from_value(valid_input)
 
 
-# --------------------------------------------------------------------------------------
-# EffectiveTime
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def effective_time_strat(draw):
     required = {
@@ -290,10 +269,6 @@ def valid_edt(draw):
     return EffectiveTime(from_date=from_dt, to_date=to_dt)
 
 
-# --------------------------------------------------------------------------------------
-# Authority
-# --------------------------------------------------------------------------------------
-
 urn_pat = r"^urn:[a-z0-9][a-z0-9-]{0,31}:[a-z0-9()+,\-.:=@;$_!*'%/?#]+$"
 
 
@@ -323,11 +298,6 @@ class TestAuthority:
 def valid_auth(draw):
     model_dict = draw(authority_strat())
     return Authority(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# FacetProperties
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -360,11 +330,6 @@ class TestFacetProperties:
 def valid_fp(draw):
     model_dict = draw(facet_prop_strat())
     return FacetProperties(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# FacetAttributes
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -401,11 +366,6 @@ def valid_facet_attrs(draw):
     return FacetAttributes(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# Published
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def published_strat(draw):
     required = {"effective_time": valid_edt()}
@@ -424,11 +384,6 @@ class TestPublished:
 def valid_pub(draw):
     model_dict = draw(published_strat())
     return Published(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# FacetStates
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -463,11 +418,6 @@ def valid_facet_states(draw):
     return FacetStates(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# Responsible
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def responsible_strat(draw):
     required = {"uuid": st.uuids(), "effective_time": valid_edt()}
@@ -492,11 +442,6 @@ class TestResponsible:
 def valid_resp(draw):
     model_dict = draw(responsible_strat())
     return Responsible(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# FacetRef
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -525,11 +470,6 @@ def valid_fref(draw):
     return FacetRef(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# OwnerRef
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def owner_ref_strat(draw):
     required = {"uuid": st.uuids(), "effective_time": valid_edt()}
@@ -554,11 +494,6 @@ class TestOwnerRef:
 def valid_oref(draw):
     model_dict = draw(owner_ref_strat())
     return OwnerRef(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# FacetRelations
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -598,11 +533,6 @@ def valid_facet_relations(draw):
     return FacetRelations(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# ITSystemProperties
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def itsys_prop_strat(draw):
     required = {"user_key": st.text(), "effective_time": valid_edt()}
@@ -625,11 +555,6 @@ class TestITSysProperties:
 def itsys_valid_prop(draw):
     model_dict = draw(itsys_prop_strat())
     return ITSystemProperties(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# ITSystemAttributes
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -666,11 +591,6 @@ class TestITSysAttributes:
 def valid_itsys_attr(draw):
     model_dict = draw(itsys_attr_strat())
     return ITSystemAttributes(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# Relation
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -713,11 +633,6 @@ class TestGetRelations:
         else:
             # single UUID
             assert len(cast(list, get_relations(**params))) == 1
-
-
-# --------------------------------------------------------------------------------------
-# ITSystemRelations
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -778,11 +693,6 @@ def valid_itsys_relations(draw):
     return ITSystemRelations(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# ITSystemValidState
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def itsys_valid_state_strat(draw):
     required = {"state": st.text(), "effective_time": valid_edt()}
@@ -800,11 +710,6 @@ class TestITSysValidState:
 def itsys_valid_state(draw):
     model_dict = draw(itsys_valid_state_strat())
     return ITSystemValidState(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# ITSystemStates
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -843,11 +748,6 @@ def valid_itsys_states(draw):
     return ITSystemStates(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# KlasseProperties
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def klasse_prop_strat(draw):
     required = {
@@ -874,11 +774,6 @@ class TestKlasseProperties:
 def valid_klsprop(draw):
     model_dict = draw(klasse_prop_strat())
     return KlasseProperties(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# KlasseRelations
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -926,11 +821,6 @@ def valid_klasse_relations(draw):
     return KlasseRelations(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# KlasseAttributes
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def klasse_attr_strat(draw):
     required = {"properties": st.lists(valid_klsprop(), min_size=1, max_size=1)}
@@ -959,11 +849,6 @@ class TestKlasseAttributes:
 def valid_klasse_attrs(draw):
     model_dict = draw(klasse_attr_strat())
     return KlasseAttributes(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# KlasseStates
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -996,11 +881,6 @@ def valid_klasse_states(draw):
     return KlasseStates(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# OrganisationProperties
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def org_prop_strat(draw):
     required = {"user_key": st.text(), "name": st.text(), "effective_time": valid_edt()}
@@ -1018,11 +898,6 @@ class TestOrganisationProperties:
 def valid_orgprop(draw):
     model_dict = draw(org_prop_strat())
     return OrganisationProperties(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# OrganisationAttributes
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -1055,11 +930,6 @@ def valid_org_attrs(draw):
     return OrganisationAttributes(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# OrganisationValidState
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def org_valid_states_strat(draw):
     required = {"effective_time": valid_edt()}
@@ -1078,11 +948,6 @@ class TestOrganisationValidState:
 def valid_orgstate(draw):
     model_dict = draw(org_valid_states_strat())
     return OrganisationValidState(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# OrganisationStates
-# --------------------------------------------------------------------------------------
 
 
 @st.composite
@@ -1113,11 +978,6 @@ class TestOrganisationStates:
 def valid_org_states(draw):
     model_dict = draw(org_states_strat())
     return OrganisationStates(**model_dict)
-
-
-# --------------------------------------------------------------------------------------
-# OrganisationRelations
-# --------------------------------------------------------------------------------------
 
 
 @st.composite

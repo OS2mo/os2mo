@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
 from ramodels_tests.conftest import not_from_regex
@@ -20,10 +14,6 @@ from ramodels.mo.details import Leave
 from ramodels.mo.details import LeaveBase
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import LeaveWrite
-
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
 
 
 @st.composite

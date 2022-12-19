@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
 from ramodels_tests.conftest import from_date_strat
@@ -29,10 +23,6 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from ramodels.mo.organisation_unit import OrganisationUnitBase
 from ramodels.mo.organisation_unit import OrganisationUnitRead
 from ramodels.mo.organisation_unit import OrganisationUnitWrite
-
-# --------------------------------------------------------------------------------------
-# Tests
-# --------------------------------------------------------------------------------------
 
 
 @st.composite

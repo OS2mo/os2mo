@@ -94,11 +94,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
-# --------------------------------------------------------------------------------------
-# Create tests
-# --------------------------------------------------------------------------------------
-
-
 @patch("mora.graphapi.versions.latest.mutators.create_ituser", new_callable=AsyncMock)
 @given(data=st.data())
 async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None:

@@ -36,11 +36,6 @@ class NonEmptyString(ConstrainedStr):
     min_length: int = 1
 
 
-# --------------------------------------------------------------------------------------
-# Models
-# --------------------------------------------------------------------------------------
-
-
 class Validity(OpenValidity):
     """Model representing an entities validity range.
 

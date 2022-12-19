@@ -28,11 +28,6 @@ from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
 
-# --------------------------------------------------------------------------------------
-# Class query tests
-# --------------------------------------------------------------------------------------
-
-
 @given(test_data=graph_data_strat(ClassRead))
 def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
     """Test that we can query all attributes of the classes data model."""
@@ -101,10 +96,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
-
-# --------------------------------------------------------------------------------------
-# Class mutator tests
-# --------------------------------------------------------------------------------------
 
 OPTIONAL = {
     "published": st.none() | st.from_regex(PrintableStr.regex),

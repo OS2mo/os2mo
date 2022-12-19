@@ -364,11 +364,6 @@ async def test_create_employee_integration_test(
     assert obj["cpr_no"] == test_data.cpr_number
 
 
-# --------------------------------------------------------------------------------------
-# Update tests
-# --------------------------------------------------------------------------------------
-
-
 @given(
     st.uuids(),
     # from & to
@@ -736,11 +731,6 @@ async def test_update_integration(given_data, graphapi_post):
 
     if test_data.cpr_no:
         assert verify_data.get("cpr_no") == test_data.cpr_no
-
-
-# --------------------------------------------------------------------------------------
-# Helper methods
-# --------------------------------------------------------------------------------------
 
 
 def _get_employee_update_mutation_query(mutation_func: str):

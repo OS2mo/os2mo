@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# ---------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# ---------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------
-# Imports
-# ---------------------------------------------------------------------------------------
 import pytest
 from hypothesis import given
 from hypothesis import strategies as st
@@ -26,10 +20,6 @@ from ramodels.mo.employee import Employee
 from ramodels.mo.employee import EmployeeBase
 from ramodels.mo.employee import EmployeeRead
 from ramodels.mo.employee import EmployeeWrite
-
-# ---------------------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------------------
 
 
 @st.composite
