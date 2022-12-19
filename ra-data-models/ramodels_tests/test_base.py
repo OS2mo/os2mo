@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import datetime
 
 import pytest
@@ -20,10 +14,6 @@ from ramodels_tests.conftest import tz_dt_strat
 from ramodels.base import RABase
 from ramodels.base import tz_isodate
 from ramodels.exceptions import ISOParseError
-
-# --------------------------------------------------------------------------------------
-# Tests
-# --------------------------------------------------------------------------------------
 
 
 class TestRABase:

@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import json
 from pathlib import Path
 
@@ -19,10 +13,6 @@ from .test__shared import valid_org_relations
 from .test__shared import valid_org_states
 from ramodels.lora import Organisation
 from ramodels.lora import OrganisationRead
-
-# -----------------------------------------------------------------------------
-# Tests
-# -----------------------------------------------------------------------------
 
 
 @st.composite

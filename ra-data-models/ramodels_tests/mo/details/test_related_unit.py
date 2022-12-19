@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -14,10 +8,6 @@ from ramodels.mo._shared import Validity
 from ramodels.mo.details.related_unit import RelatedUnitBase
 from ramodels.mo.details.related_unit import RelatedUnitRead
 from ramodels.mo.details.related_unit import RelatedUnitWrite
-
-# ---------------------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------------------
 
 
 @st.composite

@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -13,11 +7,6 @@ from pydantic import BaseModel
 
 from ramodels import lora
 from ramodels import mo
-
-
-# --------------------------------------------------------------------------------------
-# Code
-# --------------------------------------------------------------------------------------
 
 
 def model_writer(model_list: Iterator[BaseModel], md_file: Path) -> None:

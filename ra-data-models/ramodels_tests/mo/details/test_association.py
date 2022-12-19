@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import date
 
 import pytest
@@ -29,10 +23,6 @@ from ramodels.mo.details import Association
 from ramodels.mo.details import AssociationBase
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import AssociationWrite
-
-# ---------------------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------------------
 
 
 @st.composite

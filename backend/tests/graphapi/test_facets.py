@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -29,10 +26,6 @@ from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from mora.graphapi.versions.latest.version import LatestGraphQLVersion
 from ramodels.mo import FacetRead
 from tests.conftest import GQLResponse
-
-# --------------------------------------------------------------------------------------
-# Facet query tests
-# --------------------------------------------------------------------------------------
 
 
 @given(test_data=graph_data_strat(FacetRead))
@@ -99,11 +92,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [facet.get("uuid") for facet in response.data["facets"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
-
-
-# --------------------------------------------------------------------------------------
-# Facet mutator tests
-# --------------------------------------------------------------------------------------
 
 
 OPTIONAL = {

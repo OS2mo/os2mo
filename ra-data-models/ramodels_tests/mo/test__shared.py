@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 from datetime import datetime
 
 import pytest
@@ -27,10 +21,6 @@ from ramodels.mo._shared import UUIDBase
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo._shared import validate_names
 from ramodels.mo._shared import Validity
-
-# --------------------------------------------------------------------------------------
-# Base models
-# --------------------------------------------------------------------------------------
 
 
 class TestUUIDBase:
@@ -99,11 +89,6 @@ class TestMOBase:
             MOType(type_=type_2)
 
 
-# --------------------------------------------------------------------------------------
-# MORef
-# --------------------------------------------------------------------------------------
-
-
 @st.composite
 def mo_ref_strat(draw):
     required = {"uuid": st.uuids()}
@@ -117,9 +102,6 @@ class TestMORef:
         assert MORef(**model_dict)
 
 
-# --------------------------------------------------------------------------------------
-# Validity
-# --------------------------------------------------------------------------------------
 @st.composite
 def open_validity_strat(draw):
     optional = {

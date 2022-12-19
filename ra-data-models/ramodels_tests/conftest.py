@@ -1,11 +1,5 @@
-#!/usr/bin/env python3
-# --------------------------------------------------------------------------------------
 # SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-# --------------------------------------------------------------------------------------
-# --------------------------------------------------------------------------------------
-# Imports
-# --------------------------------------------------------------------------------------
 import os
 import re
 from datetime import date
@@ -24,9 +18,6 @@ from pydantic import ValidationError
 from ramodels.mo import Validity
 
 
-# --------------------------------------------------------------------------------------
-# Settings
-# --------------------------------------------------------------------------------------
 ht.settings.register_profile(
     "ci", deadline=None, suppress_health_check=[HealthCheck.too_slow]
 )
@@ -43,10 +34,6 @@ ht.settings.register_profile(
     verbosity=ht.Verbosity.verbose,
 )
 ht.settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "default"))
-
-# --------------------------------------------------------------------------------------
-# Shared fixtures and strategies
-# --------------------------------------------------------------------------------------
 
 
 unexpected_value_error = partial(
