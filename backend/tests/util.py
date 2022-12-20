@@ -262,6 +262,7 @@ async def load_sample_structures(minimal=False):
             {
                 "email_andersand": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
                 "email_fedtmule": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+                "adresse_engagement_andersand": "00e96933-91e4-42ac-9881-0fe1738b2e59",
                 "adresse_fedtmule": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
                 "adresse_root": "414044e0-fe5f-4f82-be20-1e107ad50e80",
                 "adresse_hum": "e1a9cede-8c9b-4367-b628-113834361871",

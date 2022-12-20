@@ -197,6 +197,7 @@ class AddressResolver(Resolver):
         address_types: list[UUID] | None = None,
         address_type_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
+        engagements: list[UUID] | None = None,
     ):
         """Resolve addresses."""
         if address_type_user_keys is not None:
@@ -214,6 +215,8 @@ class AddressResolver(Resolver):
             kwargs["organisatoriskfunktionstype"] = address_types
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if engagements is not None:
+            kwargs["tilknyttedefunktioner"] = engagements
         return await super()._resolve(
             info=info,
             uuids=uuids,
