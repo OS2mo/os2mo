@@ -531,6 +531,12 @@ class LdapConverter:
 
             mo_class: Any = self.import_mo_object_class(json_key)
 
+            if not employee_uuid:
+                cpr = mo_dict.get("cpr_no")
+                if cpr:
+                    dataloader = self.context["user_context"]["dataloader"]
+                    employee_uuid = dataloader.find_mo_employee_uuid(cpr)
+
             if employee_uuid:
                 if "person" in mo_class.schema()["properties"].keys():
                     mo_dict["person"] = {"uuid": employee_uuid}
