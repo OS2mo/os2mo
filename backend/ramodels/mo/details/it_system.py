@@ -58,6 +58,9 @@ class ITUserWrite(ITUserBase):
     employee: EmployeeRef | None = Field(
         description="Reference to the employee for the IT user."
     )
+    engagement_uuid: UUID | None = Field(
+        description="UUID of the engagement related to the user."
+    )
     org_unit: OrgUnitRef | None = Field(
         description="Reference to the organisation unit for the IT user."
     )
