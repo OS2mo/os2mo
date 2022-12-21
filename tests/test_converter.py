@@ -34,6 +34,7 @@ def context() -> Context:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
+                "cpr_no": "{{ldap.employeeID or None}}",
             },
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
@@ -87,6 +88,12 @@ def context() -> Context:
         "postalAddress": False,
         "mail": True,
     }
+
+    find_mo_employee_uuid = MagicMock()
+    find_mo_employee_uuid.return_value = uuid.UUID(
+        hex="{135c46ae-3b0e-4679-8318-40b73d9cedf3}"
+    )
+    dataloader.find_mo_employee_uuid = find_mo_employee_uuid
 
     overview = {"user": {"attributes": list(dataloader.single_value.keys())}}
 
@@ -142,6 +149,28 @@ def test_ldap_to_mo(context: Context) -> None:
 
     # Note: Date is always at midnight in MO
     assert from_date == datetime.datetime(2019, 1, 1, 0, 0, 0)
+
+
+def test_ldap_to_mo_no_uuid(context: Context) -> None:
+    converter = LdapConverter(context)
+    employee_uuid = uuid4()
+    employee = converter.from_ldap(
+        LdapObject(
+            dn="",
+            name="",
+            givenName="Tester",
+            sn="Testersen",
+            objectGUID="{" + str(uuid.uuid4()) + "}",
+            employeeID="0101011234",  # Must have a CPR number
+        ),
+        "Employee",
+    )[0]
+    assert employee.givenname == "Tester"
+    assert employee.surname == "Testersen"
+    assert employee.uuid is not None
+    assert employee.uuid != employee_uuid
+    # Same uuid as in fixture
+    assert employee.uuid == uuid.UUID(hex="{135c46ae-3b0e-4679-8318-40b73d9cedf3}")
 
 
 def test_mo_to_ldap(context: Context) -> None:
