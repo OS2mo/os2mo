@@ -248,6 +248,7 @@ Unit-test:
     HYPOTHESIS_PROFILE: "ci"
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
+  parallel: 2
   script:
     - pip install poetry
     - poetry config virtualenvs.in-project true
@@ -258,6 +259,8 @@ Unit-test:
       --color=yes
       --show-capture=stdout
       --cov=mora
+      --group $CI_NODE_INDEX
+      --splits $CI_NODE_TOTAL
   cache:
     paths:
       - ${PIP_CACHE_DIR}
@@ -297,7 +300,7 @@ Integration-test:
       -m "integration_test"
       -p no:cacheprovider
       --color=yes
-      --show-capture=no
+      --show-capture=stdout
       --cov=mora
       --cov=oio_rest
       --group $CI_NODE_INDEX
