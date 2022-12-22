@@ -5,9 +5,9 @@ from uuid import UUID
 import pytest
 
 from mora import mapping
-from mora.auth.middleware import LORA_USER_UUID
 from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from oio_rest.db import get_connection
+from tests.conftest import fake_auth
 from tests.conftest import GQLResponse
 
 
@@ -44,4 +44,5 @@ async def test_create_facet(graphapi_post):
         )
         brugerref = cursor.fetchone()[0]
 
-    assert str(brugerref) == str(LORA_USER_UUID)
+    user_ref = await fake_auth()
+    assert str(brugerref) == str(user_ref["uuid"])

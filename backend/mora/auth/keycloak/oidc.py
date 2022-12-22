@@ -21,7 +21,7 @@ logger = get_logger()
 
 
 NO_AUTH_UUID = UUID(int=0)
-LEGACY_AUTH_UUID = UUID(int=0)
+LEGACY_AUTH_UUID = UUID(int=1)
 
 
 async def noauth() -> Token:
@@ -139,3 +139,19 @@ async def rbac_admin(request: Request, token: Token = Depends(auth)):
 
 async def rbac_owner(request: Request, token: Token = Depends(auth)):
     return await rbac(request, False, token)
+
+
+async def get_token(request: Request) -> Token:
+    """Programatically get a Token using whatever backend has been configured.
+
+    Args:
+        request: The FastAPI request object to extract the token from.
+
+    Returns:
+        The extracted or dummy token object.
+    """
+    if auth == noauth:
+        return await noauth()
+    if auth == legacy_auth_adapter:
+        return await legacy_auth_adapter(request)
+    return await fetch_keycloak_token(request)
