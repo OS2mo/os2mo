@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 from fastapi import Depends
 from fastapi import Request
 from fastapi.security import OAuth2PasswordBearer
@@ -18,20 +20,34 @@ from mora.graphapi.versions.latest.permissions import PERMISSIONS
 logger = get_logger()
 
 
+NO_AUTH_UUID = UUID(int=0)
+LEGACY_AUTH_UUID = UUID(int=0)
+
+
 async def noauth() -> Token:
     """Noop auth provider."""
     return Token(
         azp="mo-frontend",
-        uuid="00000000-0000-0000-0000-000000000000",
+        uuid=str(NO_AUTH_UUID),
         realm_access=RealmAccess(roles={"admin", "owner"}.union(PERMISSIONS)),
     )
 
 
+async def legacyauth() -> Token:
+    """Legacy auth provider."""
+    return Token(
+        azp="mo-frontend",
+        uuid=str(LEGACY_AUTH_UUID),
+        realm_access=RealmAccess(roles={"admin", "owner"}.union(PERMISSIONS)),
+    )
+
+
+token_url_path = "service/token"
 keycloak_auth = get_auth_dependency(
     host=config.get_settings().keycloak_host,
     port=config.get_settings().keycloak_port,
     realm=config.get_settings().keycloak_realm,
-    token_url_path="service/token",
+    token_url_path=token_url_path,
     token_model=Token,
     http_schema=config.get_settings().keycloak_schema,
     alg=config.get_settings().keycloak_signing_alg,
@@ -51,6 +67,11 @@ async def validate_token(token: str) -> Token:
     return await keycloak_auth(token)
 
 
+async def fetch_keycloak_token(request: Request) -> Token:
+    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl=token_url_path)(request)
+    return await validate_token(oauth2_scheme)
+
+
 async def legacy_auth_adapter(request: Request) -> Token:
     """
     Legacy support for the old session database to allow for grace-period before
@@ -65,9 +86,8 @@ async def legacy_auth_adapter(request: Request) -> Token:
     if session_id:
         logger.warning("Legacy session token used")
         if validate_session(session_id):
-            return await noauth()
-    oauth2_scheme = await OAuth2PasswordBearer(tokenUrl="service/token")(request)
-    return await validate_token(oauth2_scheme)
+            return await legacyauth()
+    return fetch_keycloak_token(request)
 
 
 # TODO: Remove this, once a proper auth solution is in place,

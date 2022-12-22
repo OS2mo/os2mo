@@ -41,6 +41,8 @@ services:
       # the setting FILE_STORAGE=filesystem
       # - /tmp:/queries
       # For reload
+      - ./poetry.lock:/app/poetry.lock
+      - ./pyproject.toml:/app/pyproject.toml
       - ./backend:/app/backend
       - ./.pytest_cache:/app/.pytest_cache
       - ./.cov-report:/tmp/.cov-report:rw

@@ -19,7 +19,6 @@ from psycopg2.extensions import QuotedString
 from psycopg2.extensions import TRANSACTION_STATUS_INERROR
 from psycopg2.extras import DateTimeTZRange
 
-from ..authentication import get_authenticated_user
 from ..custom_exceptions import BadRequestException
 from ..custom_exceptions import DBException
 from ..custom_exceptions import NotAllowedException
@@ -39,6 +38,7 @@ from .db_helpers import OffentlighedUndtaget
 from .db_helpers import Soegeord
 from .db_helpers import to_bool
 from .db_helpers import VaerdiRelationAttr
+from mora.auth.middleware import get_authenticated_user
 from oio_rest import config
 
 """
@@ -424,16 +424,14 @@ def create_or_import_object(class_name, note, registration, uuid=None):
     else:
         life_cycle_code = Livscyklus.IMPORTERET.value
 
-    user_ref = get_authenticated_user()
+    user_ref = str(get_authenticated_user())
 
     registration = sql_convert_registration(registration, class_name)
     sql_registration = sql_get_registration(
         class_name, None, life_cycle_code, user_ref, note, registration
     )
 
-    sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.CREATE
-    )
+    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.CREATE)
 
     sql_template = jinja_env.get_template("create_object.sql")
     sql = sql_template.render(
@@ -477,12 +475,10 @@ def delete_object(class_name, registration, note, uuid):
         # Already deleted, no problem as DELETE is idempotent.
         return
 
-    user_ref = get_authenticated_user()
+    user_ref = str(get_authenticated_user())
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
-    sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.DELETE
-    )
+    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.DELETE)
     sql = sql_template.render(
         class_name=class_name,
         uuid=uuid,
@@ -515,12 +511,12 @@ def delete_object(class_name, registration, note, uuid):
 def passivate_object(class_name, note, registration, uuid):
     """Passivate object by calling the stored procedure."""
 
-    user_ref = get_authenticated_user()
+    user_ref = str(get_authenticated_user())
     life_cycle_code = Livscyklus.PASSIVERET.value
     sql_template = jinja_env.get_template("update_object.sql")
     registration = sql_convert_registration(registration, class_name)
     sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.PASSIVATE
+        user_ref, class_name, Operation.PASSIVATE
     )
     sql = sql_template.render(
         class_name=class_name,
@@ -555,13 +551,11 @@ def update_object(
     class_name, note, registration, uuid=None, life_cycle_code=Livscyklus.RETTET.value
 ):
     """Update object with the partial data supplied."""
-    user_ref = get_authenticated_user()
+    user_ref = str(get_authenticated_user())
 
     registration = sql_convert_registration(registration, class_name)
 
-    sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.UPDATE
-    )
+    sql_restrictions = get_restrictions_as_sql(user_ref, class_name, Operation.UPDATE)
 
     sql_template = jinja_env.get_template("update_object.sql")
     sql = sql_template.render(
@@ -629,7 +623,7 @@ def list_objects(
     sql_template = jinja_env.get_template("list_objects.sql")
 
     sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.READ
+        str(get_authenticated_user()), class_name, Operation.READ
     )
 
     sql = sql_template.render(class_name=class_name, restrictions=sql_restrictions)
@@ -941,7 +935,7 @@ def search_objects(
         virkning_soeg = DateTimeTZRange(virkning_fra, virkning_til)
 
     sql_restrictions = get_restrictions_as_sql(
-        get_authenticated_user(), class_name, Operation.READ
+        str(get_authenticated_user()), class_name, Operation.READ
     )
 
     sql = sql_template.render(
