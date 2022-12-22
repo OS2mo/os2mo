@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
+from mora.auth.middleware import fetch_authenticated_user
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
@@ -58,6 +59,11 @@ async def admin_auth():
     return Token(**auth)
 
 
+async def admin_auth_uuid():
+    token = await admin_auth()
+    return token.uuid
+
+
 graph_app = None
 
 
@@ -66,6 +72,7 @@ def test_app():
     if not graph_app:
         graph_app = create_app()
         graph_app.dependency_overrides[auth] = admin_auth
+        graph_app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     return graph_app
 
 
