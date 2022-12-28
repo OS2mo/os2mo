@@ -46,6 +46,4 @@ Both of the above will return JSON data similar to
 The OS2mo graph model can be interactively explored via our [OS2mo | GraphQL Voyager](voyager.html) instance. It is updated on every MO release, meaning it will always reflect the latest graph model.
 
 ## GraphiQL
-It is possible to configure development and testing servers to expose [GraphiQL](https://github.com/graphql/graphiql/tree/main/packages/graphiql), an interactive in-browser GraphQL IDE. GraphiQL is useful for testing out queries and exploring the data model.
-
-Per [GraphQL best practices](https://graphql.org/learn/serving-over-http/#graphiql) for serving over HTTP, GraphiQL will always be turned off in production.
+OS2mo exposes [GraphiQL](https://github.com/graphql/graphiql/tree/main/packages/graphiql), an interactive in-browser GraphQL IDE, by default. GraphiQL is useful for testing out queries and exploring the data model.

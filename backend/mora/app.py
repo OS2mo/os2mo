@@ -204,7 +204,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             tags=["Service." + name],
         )
 
-    setup_graphql(app=app, enable_graphiql=settings.graphiql_enable)
+    setup_graphql(app=app)
 
     if settings.os2mo_auth:
         app.include_router(

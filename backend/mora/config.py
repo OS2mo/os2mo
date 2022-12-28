@@ -131,8 +131,6 @@ class Settings(BaseSettings):
     # Endpoint switches
     # Enable testing endpoints
     testcafe_enable: bool = True
-    # GraphQL settings
-    graphiql_enable: bool = False
 
     # HTTP Trigger settings
     http_endpoints: list[str] | None
