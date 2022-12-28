@@ -135,10 +135,19 @@ def fastapi_test_app():
     yield test_app()
 
 
-@pytest.fixture(scope="session")
-def latest_graphql_url() -> str:
+def get_latest_graphql_url() -> str:
+    """Return the latest GraphQL endpoint URL.
+
+    This is defined in a separate function to allow usage from old
+    unittest.TestCase classes.
+    """
     latest = last(graphql_versions)
     return f"/graphql/v{latest.version}"
+
+
+@pytest.fixture(scope="session")
+def latest_graphql_url() -> str:
+    return get_latest_graphql_url()
 
 
 @pytest.fixture

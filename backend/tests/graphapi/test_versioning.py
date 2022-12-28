@@ -21,7 +21,7 @@ def get_test_client(
 ) -> TestClient:
     app = FastAPI()
     app.dependency_overrides[auth] = fake_auth
-    setup_graphql(app, enable_graphiql=True, versions=versions)
+    setup_graphql(app, versions=versions)
     return TestClient(app)
 
 
@@ -97,9 +97,3 @@ def test_non_existent():
     assert test_client.get("/graphql/v2").status_code == 200
     # Future versions are NOT FOUND
     assert test_client.get("/graphql/v3").status_code == 404
-
-
-def test_legacy_endpoint_works(test_client: TestClient):
-    """TODO: This should be removed ASAP when everything is migrated."""
-    response = test_client.post("/graphql", json={"query": "Query {}"})
-    assert response

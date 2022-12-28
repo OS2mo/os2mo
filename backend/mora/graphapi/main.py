@@ -26,9 +26,7 @@ graphql_versions: list[type[BaseGraphQLVersion]] = [
 
 
 def setup_graphql(
-    app: FastAPI,
-    enable_graphiql: bool = False,
-    versions: list[type[BaseGraphQLVersion]] | None = None,
+    app: FastAPI, versions: list[type[BaseGraphQLVersion]] | None = None
 ) -> None:
     if versions is None:
         versions = graphql_versions
@@ -52,7 +50,7 @@ def setup_graphql(
     )
     for version in active_versions:
         # TODO: Add deprecation header as per the decision log (link/successor)
-        router.include_router(version.get_router(graphiql=enable_graphiql))
+        router.include_router(version.get_router())
 
     # Deprecated routers. This works as a fallback for all inactive version numbers,
     # since has lower routing priority by being defined later.
@@ -72,12 +70,3 @@ def setup_graphql(
     # Bind main router to the FastAPI app. Ideally, we'd let the caller define the
     # prefix, but this causes issues when routing the "empty" `/graphql` path.
     app.include_router(router, prefix="/graphql", dependencies=[Depends(auth)])
-
-    # The legacy router is included last (with GraphiQL disabled), so it only defines
-    # routes that have not already been defined, i.e. POST /graphql.
-    # TODO: This should be removed ASAP when everything is migrated
-    app.include_router(
-        oldest.get_router(path="/graphql"),
-        deprecated=True,
-        dependencies=[Depends(auth)],
-    )

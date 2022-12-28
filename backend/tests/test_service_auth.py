@@ -26,6 +26,7 @@ from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from tests import util
+from tests.conftest import get_latest_graphql_url
 from tests.util import sample_structures_minimal_cls_fixture
 
 
@@ -94,7 +95,7 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     )
 
 
-class AsyncTestAuthEndpointsReturn401(
+class TestAsyncAuthEndpointsReturn401(
     tests.cases.NewGraphApiTestApp, tests.cases._AsyncBaseTestCase
 ):
     async def asyncSetUp(self):
@@ -179,12 +180,8 @@ class AsyncTestAuthEndpointsReturn401(
         )
 
     async def test_auth_graphql(self):
-        # GET (only works with GraphiQL enabled)
-        await self.assertRequestFails("/graphql", HTTP_401_UNAUTHORIZED)
-
-        # POST (usual communication, always enabled)
         await self.assertRequestFails(
-            "/graphql",
+            get_latest_graphql_url(),
             HTTP_401_UNAUTHORIZED,
             json={"query": "{ __typename }"},  # always implemented
         )
@@ -209,12 +206,8 @@ class TestAuthEndpointsReturn2xx(
         await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
     async def test_auth_graphql(self):
-        # GET (only works with GraphiQL enabled)
-        await self.assertRequest("/graphql", HTTP_200_OK, set_auth_header=True)
-
-        # POST (usual communication, always enabled)
         await self.assertRequest(
-            "/graphql",
+            get_latest_graphql_url(),
             HTTP_200_OK,
             set_auth_header=True,
             json={"query": "{ __typename }"},  # always implemented
