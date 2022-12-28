@@ -22,8 +22,6 @@ from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.latest.models import ClassCreate
 from mora.graphapi.versions.latest.types import UUIDReturn
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
-from mora.graphapi.versions.latest.version import LatestGraphQLVersion
 from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
@@ -164,12 +162,12 @@ async def test_integration_create_class(test_data, graphapi_post):
     test_data["facet_uuid"] = await get_uuids(mapping.FACETS, graphapi_post)
 
     mutate_query = """
-                    mutation CreateClass($input: ClassCreateInput!){
-                        class_create(input: $input){
-                                                    uuid
-                                                    }
-                    }
-                    """
+        mutation CreateClass($input: ClassCreateInput!) {
+          class_create(input: $input) {
+            uuid
+          }
+        }
+    """
 
     test_data = prepare_mutator_data(test_data)
 
@@ -185,28 +183,22 @@ async def test_integration_create_class(test_data, graphapi_post):
     )
 
     """Query data to check that it actually gets written to database"""
-    query_query = """query ($uuid: [UUID!]!)
-                    {
-                        __typename
-                        classes(uuids: $uuid)
-                        {
-                        uuid
-                        type
-                        org_uuid
-                        user_key
-                        name
-                        facet_uuid
-                        }
-                    }
-
-                """
-
-    context_value = await LatestGraphQLVersion.get_context()
-
-    query_response = await LatestGraphQLSchema.get().execute(
+    query_query = """
+        query ($uuid: [UUID!]!) {
+          __typename
+          classes(uuids: $uuid) {
+            uuid
+            type
+            org_uuid
+            user_key
+            name
+            facet_uuid
+          }
+        }
+    """
+    query_response = await execute_graphql(
         query=query_query,
         variable_values={"uuid": str(response_uuid)},
-        context_value=context_value,
     )
 
     test_data, query = prepare_query_data(test_data, query_response)

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
+from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
 from dataclasses import dataclass
@@ -25,7 +26,9 @@ from starlette_context import request_cycle_context
 
 from mora import lora
 from mora.app import create_app
+from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import token_getter
 from mora.config import get_settings
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.models import NonEmptyString
@@ -124,9 +127,18 @@ async def fake_auth():
     }
 
 
+def fake_token_getter() -> Callable[[], Awaitable[Token]]:
+    async def get_fake_token():
+        token = await fake_auth()
+        return token
+
+    return get_fake_token
+
+
 def test_app(**overrides: Any):
     app = create_app(overrides)
     app.dependency_overrides[auth] = fake_auth
+    app.dependency_overrides[token_getter] = fake_token_getter
     return app
 
 

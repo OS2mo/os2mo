@@ -4,6 +4,7 @@ import unittest.mock
 from uuid import UUID
 
 import pytest
+from fastapi.routing import APIWebSocketRoute
 from more_itertools import one
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.models import RealmAccess
@@ -25,6 +26,7 @@ from mora.auth.keycloak.models import KeycloakToken
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
+from mora.graphapi.main import graphql_versions
 from tests import util
 from tests.conftest import get_latest_graphql_url
 from tests.util import sample_structures_minimal_cls_fixture
@@ -47,8 +49,12 @@ def no_auth_endpoints():
         "/testing/testcafe-db-teardown",
         "/metrics",
         "/saml/sso/",
+        "/graphql",
+        "/graphql/v{version_number}",
     }
-    yield no_auth_endpoints
+    graphql_endpoints = {f"/graphql/v{version.version}" for version in graphql_versions}
+
+    yield no_auth_endpoints | graphql_endpoints
 
 
 @pytest.fixture
@@ -61,10 +67,9 @@ def all_routes(fastapi_test_app):
         "/service/exports/{file_name}",
     }
     routes = fastapi_test_app.routes
+    routes = filter(lambda route: not isinstance(route, APIWebSocketRoute), routes)
     routes = filter(lambda route: route.path not in skip_endpoints, routes)
-    all_routes = routes
-
-    yield all_routes
+    yield routes
 
 
 def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints):
@@ -180,10 +185,19 @@ class TestAsyncAuthEndpointsReturn401(
         )
 
     async def test_auth_graphql(self):
-        await self.assertRequestFails(
-            get_latest_graphql_url(),
-            HTTP_401_UNAUTHORIZED,
-            json={"query": "{ __typename }"},  # always implemented
+        await self.assertRequestResponse(
+            path=get_latest_graphql_url(),
+            json={"query": "{ org { uuid } }"},
+            expected={
+                "data": None,
+                "errors": [
+                    {
+                        "locations": [{"column": 3, "line": 1}],
+                        "message": "Not authenticated",
+                        "path": ["org"],
+                    }
+                ],
+            },
         )
 
 
@@ -206,11 +220,13 @@ class TestAuthEndpointsReturn2xx(
         await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
 
     async def test_auth_graphql(self):
-        await self.assertRequest(
-            get_latest_graphql_url(),
-            HTTP_200_OK,
+        await self.assertRequestResponse(
+            path=get_latest_graphql_url(),
             set_auth_header=True,
-            json={"query": "{ __typename }"},  # always implemented
+            json={"query": "{ org { uuid } }"},
+            expected={
+                "data": {"org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"}}
+            },
         )
 
 

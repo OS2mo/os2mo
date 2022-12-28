@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
+from collections.abc import Callable
 from typing import Any
 
 from fastapi import Depends
@@ -12,7 +14,7 @@ from .mutators import Mutation
 from .query import Query
 from .types import CPRType
 from mora.auth.keycloak.models import Token
-from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import token_getter
 from mora.util import CPR
 
 
@@ -44,10 +46,12 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
     schema = LatestGraphQLSchema
 
     @classmethod
-    async def get_context(cls, token: Token = Depends(auth)) -> dict[str, Any]:
+    async def get_context(
+        cls, get_token: Callable[[], Awaitable[Token]] = Depends(token_getter)
+    ) -> dict[str, Any]:
         return {
             **await super().get_context(),
             **await get_loaders(),
-            "token": token,
+            "get_token": get_token,
             "filestorage": get_filestorage(),
         }
