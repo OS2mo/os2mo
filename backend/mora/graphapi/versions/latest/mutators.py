@@ -60,9 +60,10 @@ from .org_unit import update_org_unit
 from .organisation import create_organisation
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
-from .types import OrganisationType
 from .types import UUIDReturn
 from mora.common import get_connector
+
+# from .types import OrganisationType
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +308,7 @@ class Mutation:
         description="Creates a root organisation.",
         permission_classes=[admin_permission_class],
     )
-    async def org_create(self, input: OrganisationCreateInput) -> OrganisationType:
+    async def org_create(self, input: OrganisationCreateInput) -> UUIDReturn:
         return await create_organisation(input.to_pydantic())
 
     # TODO: org_update

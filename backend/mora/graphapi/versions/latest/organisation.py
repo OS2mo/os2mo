@@ -3,12 +3,12 @@
 from fastapi.encoders import jsonable_encoder
 
 from .models import OrganisationCreate
-from .types import OrganisationType
+from .types import UUIDReturn
 from mora import lora
 from ramodels.lora.organisation import Organisation
 
 
-async def create_organisation(input: OrganisationCreate) -> OrganisationType:
+async def create_organisation(input: OrganisationCreate) -> UUIDReturn:
     # Convert input to LoRa payload
     root_organisation = Organisation.from_simplified_fields(
         name=input.name,
@@ -24,4 +24,4 @@ async def create_organisation(input: OrganisationCreate) -> OrganisationType:
     uuid = await c.organisation.create(jsonified)
 
     # Return
-    return OrganisationType(uuid=uuid)
+    return UUIDReturn(uuid=uuid)
