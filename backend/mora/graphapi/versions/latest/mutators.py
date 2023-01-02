@@ -60,8 +60,8 @@ from .org_unit import update_org_unit
 from .organisation import create_organisation
 from .permissions import gen_role_permission
 from .schema import OrganisationUnitRefresh
-from .types import UUIDReturn
 from .types import OrganisationType
+from .types import UUIDReturn
 from mora.common import get_connector
 
 logger = logging.getLogger(__name__)

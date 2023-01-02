@@ -68,11 +68,24 @@ async def get_lora_organisation(c, orgid, org=None):
         if not org or not util.is_reg_valid(org):
             return None
 
+    # From & to data
+    ret_from_dt = {"timestamp": org["fratidspunkt"]["tidsstempeldatotid"]}
+    limit_identicator_from = org["fratidspunkt"].get("graenseindikator", None)
+    if limit_identicator_from:
+        ret_from_dt["limit_indicator"] = limit_identicator_from
+
+    ret_to_dt = {"timestamp": org["tiltidspunkt"]["tidsstempeldatotid"]}
+    limit_identicator_to = org["tiltidspunkt"].get("graenseindikator", None)
+    if limit_identicator_to:
+        ret_to_dt["limit_indicator"] = limit_identicator_from
+
     attrs = org["attributter"]["organisationegenskaber"][0]
     ret = {
         "name": attrs["organisationsnavn"],
         "user_key": attrs["brugervendtnoegle"],
         "uuid": orgid,
+        "from": ret_from_dt,
+        "to": ret_to_dt,
     }
     return ret
 
