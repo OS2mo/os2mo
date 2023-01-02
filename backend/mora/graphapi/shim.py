@@ -25,6 +25,7 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
+from ramodels.mo._shared import EngagementType
 from ramodels.mo.details import AddressRead
 
 
@@ -187,6 +188,7 @@ class MOAddress(AddressRead):
     address_type: None | MOAddressType | UUIDObject
     person: None | list[MOEmployee] | UUIDObject
     org_unit: None | OrgUnitType | UUIDObject
+    engagement: None | EngagementType | UUIDObject
     visibility: VisibilityRead | None
     validity: ValidityDates
     href: str | None

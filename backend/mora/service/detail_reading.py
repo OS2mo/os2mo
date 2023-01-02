@@ -15,6 +15,7 @@ creating and editing relations for employees and organisational units:
 
 
 """
+import asyncio
 import collections
 from datetime import date
 from datetime import datetime
@@ -25,6 +26,7 @@ from uuid import UUID
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from more_itertools import first
+from more_itertools import flatten
 
 from . import handlers
 from .. import common
@@ -135,24 +137,64 @@ async def list_addresses_employee(
     validity: ValidityLiteral | None = None,
 ):
     """GraphQL shim"""
+    args = {}
+    if at is not None:
+        args["from_date"] = at
+    if validity is not None:
+        start, end = validity_tuple(validity)
+        args["from_date"] = start
+        args["to_date"] = end
+
+    # Addresses can be associated both directly with Employees, but also indirectly
+    # through engagements. We want to show both in the frontend, so we start by
+    # fetching all the employee's engagements.
+    r = await execute_graphql(
+        """
+        query GetEngagements($employee_uuids: [UUID!], $from_date: DateTime, $to_date: DateTime) {
+          engagements(
+            employees: $employee_uuids
+            from_date: $from_date
+            to_date: $to_date
+          ) {
+            uuid
+          }
+        }
+        """,
+        variable_values=jsonable_encoder(dict(employee_uuid=[eid]) | args),
+    )
+    if r.errors:
+        raise ValueError(r.errors)
+    engagement_uuids = {e["uuid"] for e in r.data["engagements"]}
+
     if only_primary_uuid:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+            query GetAddress(
+              $employee_uuids: [UUID!],
+              $engagement_uuids: [UUID!],
+              $from_date: DateTime,
+              $to_date: DateTime
+            ) {
+              addresses(
+                employees: $employee_uuids
+                engagements: $engagement_uuids
+                from_date: $from_date
+                to_date: $to_date
+              ) {
                 objects {
-                  addresses {
+                  uuid
+                  user_key
+                  href
+                  name
+                  value
+                  value2
+                  validity {
+                    from
+                    to
+                  }
+                  address_type_uuid
+                  employee_uuid
+                  engagement {
                     uuid
-                    user_key
-                    href
-                    name
-                    value
-                    value2
-                    validity {
-                      from
-                      to
-                    }
-                    address_type_uuid
-                    employee_uuid
                   }
                 }
               }
@@ -160,91 +202,103 @@ async def list_addresses_employee(
         """
     else:
         query = """
-            query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
-              employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
+            query GetAddress(
+              $employee_uuids: [UUID!],
+              $engagement_uuids: [UUID!],
+              $from_date: DateTime,
+              $to_date: DateTime
+            ) {
+              addresses(
+                employees: $employee_uuids
+                engagements: $engagement_uuids
+                from_date: $from_date
+                to_date: $to_date
+              ) {
                 objects {
-                  addresses {
-                    uuid
+                  uuid
+                  user_key
+                  href
+                  name
+                  value
+                  value2
+                  validity {
+                    from
+                    to
+                  }
+                  address_type {
                     user_key
-                    href
+                    uuid
                     name
-                    value
-                    value2
-                    validity {
-                      from
-                      to
-                    }
-                    address_type {
+                    scope
+                    example
+                    owner
+                    top_level_facet {
                       user_key
                       uuid
-                      name
-                      scope
-                      example
-                      owner
-                      top_level_facet {
-                        user_key
-                        uuid
-                        description
-                      }
-                      facet {
-                        user_key
-                        uuid
-                        description
-                      }
+                      description
                     }
-                    visibility {
-                      uuid
-                      name
+                    facet {
                       user_key
-                      example
-                      scope
-                      owner
-                    }
-                    employee {
-                      givenname
-                      surname
-                      name
-                      nickname
-                      nickname_surname
-                      nickname_givenname
                       uuid
-                      seniority
+                      description
                     }
+                  }
+                  visibility {
+                    uuid
+                    name
+                    user_key
+                    example
+                    scope
+                    owner
+                  }
+                  employee {
+                    givenname
+                    surname
+                    name
+                    nickname
+                    nickname_surname
+                    nickname_givenname
+                    uuid
+                    seniority
+                  }
+                  engagement {
+                    uuid
                   }
                 }
               }
             }
         """
-    args = {"uuid": eid}
-    if at is not None:
-        args["from_date"] = at
-    if validity is not None:
-        start, end = validity_tuple(validity)
-        args["from_date"] = start
-        args["to_date"] = end
-    r = await execute_graphql(
-        query,
-        variable_values=jsonable_encoder(args),
+
+    async def get_addresses(**variable_values) -> list[dict]:
+        r = await execute_graphql(
+            query,
+            variable_values=jsonable_encoder(variable_values | args),
+        )
+        if r.errors:
+            raise ValueError(r.errors)
+
+        return flatten_data(r.data["addresses"])
+
+    data = await asyncio.gather(
+        get_addresses(employee_uuids=[eid]),
+        get_addresses(engagement_uuids=engagement_uuids),
     )
-    if r.errors:
-        raise ValueError(r.errors)
-
-    flat = flatten_data(r.data["employees"])
-    if len(flat) == 0:
-        return []
-
-    # Due to the nature of our query, the length of flat will sometimes be > 1
-    # when querying historical data. However, the historical addresses reported will be
-    # correct and identical for all elements, and as such we simply return the first one
-    data = first(flat)["addresses"]
+    data = list(flatten(data))
 
     for element in data:
+        if element["engagement"] is not None:
+            element["engagement"] = first(element.pop("engagement"))
         # the old api calls it "person" instead of "employee"
+        element["person"] = None
         if only_primary_uuid:
-            element["person"] = {"uuid": element.pop("employee_uuid")}
+            employee_uuid = element.pop("employee_uuid")
+            if employee_uuid is not None:
+                element["person"] = {"uuid": employee_uuid}
             element["address_type"] = {"uuid": element.pop("address_type_uuid")}
         else:
-            element["person"] = first(element.pop("employee"))
+            employee = element.pop("employee")
+            if employee is not None:
+                element["person"] = first(employee)
 
     return list(filter(partial(filter_by_validity, validity), data))
 

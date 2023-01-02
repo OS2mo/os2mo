@@ -383,6 +383,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                         "person": {
                             "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
                         },
+                        "engagement": None,
                         "user_key": "root@example.com",
                         "uuid": addr_id,
                         "validity": {
@@ -1362,7 +1363,7 @@ class AsyncReading(tests.cases.AsyncLoRATestCase):
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.LoRATestCase):
+class TestReading(tests.cases.LoRATestCase):
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     def test_reading(self, mock):
         with self.subTest("Addresses present"):
@@ -1370,6 +1371,24 @@ class Reading(tests.cases.LoRATestCase):
                 "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053"
                 "/details/address?validity=present&only_primary_uuid=1",
                 [
+                    {
+                        "uuid": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+                        "address_type": {
+                            "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+                        },
+                        "href": "https://www.openstreetmap.org/?mlon="
+                        "10.19938084&mlat=56.17102843&zoom=16",
+                        "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                        "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                        "value2": None,
+                        "user_key": "Christiansborg Slotsplads 1, 1218 København K",
+                        "person": None,
+                        "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
+                        "validity": {
+                            "from": "2016-05-12",
+                            "to": None,
+                        },
+                    },
                     {
                         "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
                         "address_type": {
@@ -1383,6 +1402,7 @@ class Reading(tests.cases.LoRATestCase):
                         "person": {
                             "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
                         },
+                        "engagement": None,
                         "validity": {
                             "from": "1932-05-12",
                             "to": None,
@@ -1402,6 +1422,7 @@ class Reading(tests.cases.LoRATestCase):
                         "person": {
                             "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
                         },
+                        "engagement": None,
                         "validity": {
                             "from": "1932-05-12",
                             "to": None,
@@ -1416,3 +1437,80 @@ class Reading(tests.cases.LoRATestCase):
                 "/details/address?validity=present",
                 [],
             )
+
+    def test_reading_employee_and_engagement_addresses(self):
+        """Test reading addresses returns both employee and engagement addresses.
+
+        Querying an Employee's addresses should return addresses both linked directly
+        to the employee and addresses linked through their engagements.
+        This is used in the (old) frontend.
+        """
+        self.assertRequestResponse(
+            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a"  # andersand user
+            "/details/address?validity=present",
+            [
+                {
+                    # email_andersand, linked directly to the user
+                    "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                    "user_key": "bruger@example.comw",
+                    "value": "bruger@example.com",
+                    "value2": None,
+                    "validity": {"from": "1934-06-09", "to": None},
+                    "address_type": {
+                        "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+                        "user_key": "BrugerEmail",
+                        "scope": "EMAIL",
+                        "example": "test@example.com",
+                        "owner": None,
+                        "name": "Email",
+                        "facet": {
+                            "user_key": "employee_address_type",
+                            "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                            "description": "",
+                        },
+                        "top_level_facet": {
+                            "user_key": "employee_address_type",
+                            "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                            "description": "",
+                        },
+                    },
+                    "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+                    "engagement": None,
+                    "visibility": None,
+                    "href": "mailto:bruger@example.com",
+                    "name": "bruger@example.com",
+                },
+                {
+                    # adresse_engagement_andersand, linked through the engagement
+                    "uuid": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+                    "user_key": "Christiansborg Slotsplads 1, 1218 København K",
+                    "value": "b1f1817d-5f02-4331-b8b3-97330a5d3197",
+                    "value2": None,
+                    "validity": {"from": "2016-05-12", "to": None},
+                    "address_type": {
+                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                        "user_key": "BrugerPostadresse",
+                        "scope": "DAR",
+                        "example": "<UUID>",
+                        "owner": None,
+                        "name": "Postadresse",
+                        "facet": {
+                            "user_key": "employee_address_type",
+                            "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                            "description": "",
+                        },
+                        "top_level_facet": {
+                            "user_key": "employee_address_type",
+                            "uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+                            "description": "",
+                        },
+                    },
+                    "person": None,
+                    "engagement": {"uuid": "d000591f-8705-4324-897a-075e3623f37b"},
+                    "visibility": None,
+                    "href": "https://www.openstreetmap.org/?mlon=10.19938084"
+                    "&mlat=56.17102843&zoom=16",
+                    "name": "Nordre Ringgade 1, 8000 Aarhus C",
+                },
+            ],
+        )
