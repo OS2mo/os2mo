@@ -2,6 +2,7 @@
 from collections.abc import Iterator
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from unittest.mock import PropertyMock
 
 import pytest
 from fastramqpi.context import Context
@@ -65,7 +66,7 @@ def test_get_existing_usernames(
     username_generator: UserNameGenerator,
     existing_usernames: list,
 ):
-    result = username_generator._get_existing_usernames()
+    result = username_generator.existing_usernames
     assert result == existing_usernames
 
 
@@ -106,7 +107,8 @@ def test_create_username(username_generator: UserNameGenerator):
 
     # Simulate case where 'njans' is taken
     with patch(
-        "mo_ldap_import_export.usernames.UserNameGenerator._get_existing_usernames",
+        "mo_ldap_import_export.usernames.UserNameGenerator.existing_usernames",
+        new_callable=PropertyMock,
         return_value=["njans"],
     ):
         username = username_generator._create_username(["Nick", "Janssen"])

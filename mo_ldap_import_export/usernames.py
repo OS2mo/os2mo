@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 import structlog
@@ -35,7 +36,7 @@ class UserNameGeneratorBase:
         self.combinations = self.json_inputs["combinations_to_try"]
 
     def _check_key(self, key):
-        if key not in self.mapping["username_generator"].keys():
+        if key not in self.mapping["username_generator"]:
             raise IncorrectMapping(
                 f"'{key}' key not present in mapping['username_generator']"
             )
@@ -47,13 +48,15 @@ class UserNameGeneratorBase:
         else:
             return object_to_check
 
+    def _check_key_and_type(self, key, type_to_check):
+        self._check_key(key)
+        return self._check_type(key, type_to_check)
+
     def _check_char_replacement(self):
-        self._check_key("char_replacement")
-        self._check_type("char_replacement", dict)
+        self._check_key_and_type("char_replacement", dict)
 
     def _check_forbidden_usernames(self):
-        self._check_key("forbidden_usernames")
-        forbidden_usernames = self._check_type("forbidden_usernames", list)
+        forbidden_usernames = self._check_key_and_type("forbidden_usernames", list)
 
         for username in forbidden_usernames:
             if type(username) is not str:
@@ -65,8 +68,7 @@ class UserNameGeneratorBase:
                 )
 
     def _check_combinations_to_try(self):
-        self._check_key("combinations_to_try")
-        combinations = self._check_type("combinations_to_try", list)
+        combinations = self._check_key_and_type("combinations_to_try", list)
 
         accepted_characters = ["F", "L", "1", "2", "3", "X"]
         for combination in combinations:
@@ -80,13 +82,14 @@ class UserNameGeneratorBase:
 
     def check_json_inputs(self):
 
-        if "username_generator" not in self.mapping.keys():
+        if "username_generator" not in self.mapping:
             raise IncorrectMapping("'username_generator' key not present in mapping")
         self._check_char_replacement()
         self._check_forbidden_usernames()
         self._check_combinations_to_try()
 
-    def _get_existing_usernames(self):
+    @property
+    def existing_usernames(self):
         user_class = self.user_context["mapping"]["mo_to_ldap"]["Employee"][
             "objectClass"
         ]
@@ -100,31 +103,33 @@ class UserNameGeneratorBase:
         ]
         return existing_usernames
 
-    def _get_ou(self):
+    @property
+    def ou(self):
         """
         Return LDAPs OU (Organizational Unit)
         """
         return self.settings.ldap_organizational_unit
 
-    def _get_dc(self):
+    @property
+    def dc(self):
         """
         Return LDAPs DC (Domain Component)
         """
         return self.settings.ldap_search_base  # Domain Component
 
-    def _make_cn(self, username_string):
+    def _make_cn(self, username_string: str):
 
         return f"CN={username_string}"
 
-    def _make_dn(self, username_string):
+    def _make_dn(self, username_string: str):
 
         cn = self._make_cn(username_string)
-        ou = self._get_ou()
-        dc = self._get_dc()
+        ou = self.ou
+        dc = self.dc
         dn = ",".join([cn, ou, dc])  # Distinguished Name
         return dn
 
-    def _name_fixer(self, name: list) -> list:
+    def _name_fixer(self, name: list[str]) -> list[str]:
         """
         Inspired by ad_integration/usernames.py
         """
@@ -134,48 +139,65 @@ class UserNameGeneratorBase:
                 name[i] = name[i].replace(char, replacement)
 
             # Remove all remaining characters outside a-z
-            for char in name[i].lower():
-                if ord(char) not in range(ord("a"), ord("z") + 1):
-                    name[i] = name[i].replace(char, "")
+            name[i] = re.sub(r"[^a-z]+", "", name[i].lower())
 
         return name
 
-    def _machine_readable_combi(self, combi):
+    def _machine_readable_combi(self, combi: str):
         """
         Inspired by ad_integration/usernames.py
         """
         readable_combi = []
         max_position = -1
         position: Union[int, None]
-        for i in range(0, len(combi)):
+        for character in combi:
             # First name
-            if combi[i] == "F":
+            if character == "F":
                 position = 0
             # First middle name
-            if combi[i] == "1":
+            if character == "1":
                 position = 1
             # Second middle name
-            if combi[i] == "2":
+            if character == "2":
                 position = 2
             # Third middle name
-            if combi[i] == "3":
+            if character == "3":
                 position = 3
             # Last name (independent of middle names)
-            if combi[i] == "L":
+            if character == "L":
                 position = -1
-            if combi[i] == "X":
+            if character == "X":
                 position = None
             if position is not None and position > max_position:
                 max_position = position
             readable_combi.append(position)
         return (readable_combi, max_position)
 
-    def _create_from_combi(self, name, combi):
+    def _create_from_combi(self, name: list, combi: str):
         """
         Create a username from a name and a combination.
 
+        Parameters
+        -------------
+        name : list
+            Name of the user given as a list with at least two elements.
+        combi : str
+            Combination to create a username from. For example "F123LX"
+
+        Returns
+        -----------
+        username : str
+            Username which was generated according to the combi. Note that this
+            username still contains 'X' characters, which need to be replaced with
+            a number
+
+        Notes
+        ---------
         Inspired by ad_integration/usernames.py
         """
+
+        # Convert combi into machine readable code.
+        # For example: combi = "F123LX" returns code = [0,1,2,3,-1,None]
         (code, max_position) = self._machine_readable_combi(combi)
 
         # Do not use codes that uses more names than the actual person has
@@ -187,8 +209,10 @@ class UserNameGeneratorBase:
             relevant_name = code[0]
             username = name[relevant_name][0].lower()
         else:
+            # None translates to 'X'. This is replaced with a number later on.
             username = "X"
 
+        # Loop over all remaining entries in the combi
         current_char = 0
         for i in range(1, len(code)):
             if code[i] == code[i - 1]:
@@ -203,6 +227,7 @@ class UserNameGeneratorBase:
                     break
                 username += name[relevant_name][current_char].lower()
             else:
+                # None translates to 'X'. This is replaced with a number later on.
                 username += "X"
         return username
 
@@ -220,12 +245,19 @@ class UserNameGeneratorBase:
         Inspired by ad_integration/usernames.py
         """
         name = self._name_fixer(name)
-        existing_usernames = self._get_existing_usernames()
+        existing_usernames = self.existing_usernames
 
+        # The permutation is a number inside the username, it is normally only used in
+        # case a username is already occupied. It can be specified using 'X' in the
+        # username template.
+        #
+        # The first attempted permutation should be '2':
+        # For example; If 'cvt' is occupied, a username 'cvt2' will be generated.
+        #
+        # The last attempted permutation is '9' - because we would like to limit the
+        # permutation counter to a single digit.
         for permutation_counter in range(2, 10):
-            i = 0
             for combi in self.combinations:
-                i = i + 1
                 username = self._create_from_combi(name, combi)
                 if not username:
                     continue
