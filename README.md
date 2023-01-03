@@ -275,7 +275,11 @@ For example:
                             "FLLLLX"],
     "char_replacement": {"ø": "oe",
                          "æ": "ae",
-                         "å": "aa"},
+                         "å": "aa",
+                         "Ø": "oe",
+                         "Æ": "ae",
+                         "Å": "aa"
+                         },
     "forbidden_usernames": ["hater",
                             "lazer"]
   }
@@ -326,11 +330,18 @@ Similarly, a person named `Jens Hans Hansen` will get `jhhan` as a username:
 
 `char_replacement` must be a dictionary with characters to replace when creating a
 username. For example: A person named `Jens Åberg` will get username `jaabe`, instead of
-`jåber`.
+`jåber`:
+
+* `Jens Åberg` becomes `Jens aaberg` after character replacement
+* `F123L` does not match because the person has no middle names
+* `F12LL` does not match because the person has no middle names
+* `F1LLL` does not match because the person has no middle names
+* `FLLLL` matches. The username becomes `jaabe`
 
 `forbidden_usernames` is a list of usernames which are not allowed. For example: A
 person named `Hans Åberg Terp` will get username `hterp`:
 
+* `Hans Åberg Terp` becomes `Hans aaberg Terp` after character replacement
 * `F123L` does not match because the person has no second/third middle name
 * `F12LL` does not match because the person has no second middle name
 * `F1LLL` matches, but returns username `hater`, which is forbidden.
