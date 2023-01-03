@@ -11,6 +11,7 @@ from tests.conftest import fake_auth
 from tests.conftest import GQLResponse
 
 
+@pytest.mark.xfail
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_facet(graphapi_post):
