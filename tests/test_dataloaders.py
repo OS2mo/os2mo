@@ -169,11 +169,9 @@ async def test_load_ldap_cpr_object(
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = await asyncio.gather(
-        dataloader.load_ldap_cpr_object(cpr_no, "Employee"),
-    )
+    output = dataloader.load_ldap_cpr_object(cpr_no, "Employee")
 
-    assert output[0] == expected_result
+    assert output == expected_result
 
 
 async def test_load_ldap_objects(

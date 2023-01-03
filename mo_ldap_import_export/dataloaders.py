@@ -46,7 +46,7 @@ class DataLoader:
         search_result = single_object_search(searchParameters, self.ldap_connection)
         return make_ldap_object(search_result, self.context)
 
-    async def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
+    def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
         """
         Loads an ldap object which can be found using a cpr number lookup
 
@@ -155,8 +155,6 @@ class DataLoader:
         cpr_field = self.user_context["cpr_field"]
 
         object_class = converter.find_ldap_object_class(json_key)
-
-        self.logger.info(f"Uploading {object_to_upload}")
         parameters_to_upload = list(object_to_upload.dict().keys())
 
         # Check if the cpr field is present
@@ -164,20 +162,20 @@ class DataLoader:
             raise CprNoNotFound(f"cpr field '{cpr_field}' not found in ldap object")
 
         try:
-            existing_object = await self.load_ldap_cpr_object(
-                object_to_upload.dict()[cpr_field], json_key
-            )
-            dn = existing_object.dn
-            self.logger.info(f"Found existing object: {dn}")
-        except NoObjectsReturnedException as e:
-            self.logger.info(f"Could not find existing object: {e}")
-
             # Note: it is possible that an employee object exists, but that the CPR no.
             # attribute is not set. In that case this function will just set the cpr no.
             # attribute in LDAP.
-            dn = object_to_upload.dn
+            existing_object = self.load_ldap_cpr_object(
+                object_to_upload.dict()[cpr_field], json_key
+            )
+            object_to_upload.dn = existing_object.dn
+            self.logger.info(f"Found existing object: {existing_object.dn}")
+        except NoObjectsReturnedException:
+            self.logger.info("Could not find existing object: An entry will be created")
 
+        self.logger.info(f"Uploading {object_to_upload}")
         parameters_to_upload = [p for p in parameters_to_upload if p != "dn"]
+        dn = object_to_upload.dn
         results = []
 
         for parameter_to_upload in parameters_to_upload:

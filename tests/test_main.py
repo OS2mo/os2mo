@@ -128,10 +128,13 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
         "foo@bar.dk", uuid4(), "2021-01-01"
     )
 
+    load_ldap_cpr_object = MagicMock()
+    load_ldap_cpr_object.return_value = test_ldap_object
+
     dataloader = AsyncMock()
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
-    dataloader.load_ldap_cpr_object.return_value = test_ldap_object
+    dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = (

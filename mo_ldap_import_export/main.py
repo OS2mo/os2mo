@@ -40,6 +40,7 @@ from .exceptions import NotSupportedException
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap_classes import LdapObject
+from .usernames import UserNameGenerator
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -141,7 +142,7 @@ async def listen_to_changes_in_employees(
 
         # Get all addresses for this user in LDAP (note that LDAP can contain multiple
         # addresses in one object.)
-        loaded_ldap_address = await dataloader.load_ldap_cpr_object(
+        loaded_ldap_address = dataloader.load_ldap_cpr_object(
             changed_employee.cpr_no, json_key
         )
 
@@ -280,13 +281,15 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info(f"Loaded mapping file {mappings_file}")
 
     logger.info("Initializing dataloader")
-    context = fastramqpi.get_context()
-    dataloader = DataLoader(context)
+    dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
 
+    logger.info("Initializing username generator")
+    username_generator = UserNameGenerator(fastramqpi.get_context())
+    fastramqpi.add_context(username_generator=username_generator)
+
     logger.info("Initializing converters")
-    context = fastramqpi.get_context()
-    converter = LdapConverter(context)
+    converter = LdapConverter(fastramqpi.get_context())
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(converter=converter)
 
@@ -391,7 +394,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         for json_key in json_keys:
             logger.info(f"Loading {json_key} object")
             try:
-                loaded_object = await dataloader.load_ldap_cpr_object(cpr, json_key)
+                loaded_object = dataloader.load_ldap_cpr_object(cpr, json_key)
             except MultipleObjectsReturnedException as e:
                 logger.warning(f"Could not upload {json_key} object: {e}")
                 break
@@ -466,7 +469,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         cpr: str,
     ) -> Any:
 
-        result = await dataloader.load_ldap_cpr_object(cpr, json_key)
+        result = dataloader.load_ldap_cpr_object(cpr, json_key)
         return encode_result(result)
 
     # Get a specific cpr-indexed object from LDAP - Converted to MO
@@ -477,7 +480,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         response: Response,
     ) -> Any:
 
-        result = await dataloader.load_ldap_cpr_object(cpr, json_key)
+        result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
             return converter.from_ldap(result, json_key)
         except ValidationError as e:
