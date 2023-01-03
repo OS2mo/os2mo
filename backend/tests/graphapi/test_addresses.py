@@ -294,7 +294,7 @@ async def test_create_mutator(create_address: AsyncMock, data):
         (
             org_unit_l1,
             None,
-            None,
+            engagement_andersand,
             addr_type_orgunit_openhours,
         ),
         # Users
@@ -313,15 +313,8 @@ async def test_create_mutator(create_address: AsyncMock, data):
         (
             None,
             user_andersand,
-            None,
-            addr_type_user_phone,
-        ),
-        # Engagements
-        (
-            None,
-            None,
             engagement_andersand,
-            addr_type_user_address,
+            addr_type_user_phone,
         ),
     ]
 

@@ -52,11 +52,11 @@ def write_strat(draw):
     required = {"address_type": st.builds(AddressType)}
     employee = st.fixed_dictionaries({"employee": st.builds(EmployeeRef)})
     org_unit = st.fixed_dictionaries({"org_unit": st.builds(OrgUnitRef)})
-    engagement = st.fixed_dictionaries({"engagement": st.builds(EngagementRef)})
     optional = {
         "visibility": st.none() | st.builds(Visibility),
+        "engagement": st.none() | st.builds(EngagementRef),
     }
-    ref_dict = draw(st.one_of(employee, org_unit, engagement))
+    ref_dict = draw(st.one_of(employee, org_unit))
     st_dict = draw(st.fixed_dictionaries(required, optional=optional))  # type: ignore
     return {**base_dict, **st_dict, **ref_dict}
 
@@ -65,7 +65,6 @@ def ref_check_strat():
     required = {
         "employee": st.builds(EmployeeRef),
         "org_unit": st.builds(OrgUnitRef),
-        "engagement": st.builds(EngagementRef),
     }
     return st.fixed_dictionaries(required)  # type: ignore
 

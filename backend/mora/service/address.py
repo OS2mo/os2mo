@@ -35,15 +35,14 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             list(
                 filter(
                     lambda x: x is not None,
-                    [org_unit_uuid, employee_uuid, engagement_uuid],
+                    [org_unit_uuid, employee_uuid],
                 )
             )
         )
 
         if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Must supply exactly one {mapping.ORG_UNIT} UUID, "
-                f"{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID",
+                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
                 obj=req,
             )
 
@@ -143,7 +142,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
                     [
                         data.get(mapping.PERSON),
                         data.get(mapping.ORG_UNIT),
-                        data.get(mapping.ENGAGEMENT),
                     ],
                 )
             )
@@ -151,8 +149,7 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
         if number_of_uuids > 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Must supply at most one of {mapping.ORG_UNIT} UUID, "
-                f"{mapping.PERSON} UUID and {mapping.ENGAGEMENT} UUID",
+                f"Must supply at most one of {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
                 obj=req,
             )
 

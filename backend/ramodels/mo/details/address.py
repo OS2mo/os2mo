@@ -34,8 +34,7 @@ class AddressBase(MOBase):
 class AddressRead(AddressBase):
     """
     A MO address read object.
-    Note that one and only one of {employee, org_unit, engagement} are given at any
-    time.
+    Note that one and only one of {employee, org_unit} are given at any time.
     """
 
     address_type_uuid: UUID = Field(description="UUID of the address type klasse.")
@@ -46,20 +45,20 @@ class AddressRead(AddressBase):
         description="UUID of the organisation unit related to the address."
     )
     engagement_uuid: UUID | None = Field(
-        description="UUID of the engagement related to the address."
+        description="Optional UUID of an associated engagement."
     )
     visibility_uuid: UUID | None = Field(
         description="UUID of the visibility klasse of the address."
     )
 
-    # NOTE: The one and only one of {employee, org_unit, engagement} invariant
-    # is not validated here because reads are assumed to originate from valid data.
+    # NOTE: The one and only one of {employee, org_unit} invariant is not validated
+    # here because reads are assumed to originate from valid data.
 
 
 class AddressWrite(AddressBase):
     """
     A MO address write object.
-    Note that one and only one of {employee, org_unit, engagement} can be given.
+    Note that one and only one of {employee, org_unit} can be given.
     """
 
     address_type: AddressType = Field(
@@ -75,23 +74,20 @@ class AddressWrite(AddressBase):
         )
     )
     engagement: EngagementRef | None = Field(
-        description=(
-            "Reference to the engagement for which the address should be created."
-        )
+        description="Optional association to an engagement."
     )
     visibility: Visibility | None = Field(
         description="Reference to the Visibility klasse of the created address object."
     )
 
     # NOTE: This is not optimal handling of variability. In a perfect world,
-    # we'd have an object_ref: Union[EmployeeRef, OrgUnitRef, EngagementRef]
-    # field so that we do not have to check it like this.
+    # we'd have an object_ref: Union[EmployeeRef, OrgUnitRef] field so that we do not
+    # have to check it like this.
     @root_validator
     def validate_references(cls, values: DictStrAny) -> DictStrAny:
         references = (
             values.get("employee"),
             values.get("org_unit"),
-            values.get("engagement"),
         )
         too_short = ValueError("A reference must be specified")
         too_long = ValueError("Too many references specified.")
@@ -142,9 +138,7 @@ class Address(MOBase):
         )
     )
     engagement: EngagementRef | None = Field(
-        description=(
-            "Reference to the engagement for which the address should be created."
-        )
+        description="Optional association to an engagement."
     )
     validity: Validity = Field(description="Validity of the created address object.")
     visibility: Visibility | None = Field(

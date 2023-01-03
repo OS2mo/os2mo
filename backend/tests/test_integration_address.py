@@ -533,6 +533,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                 "address": [
                     {
                         "type": "address",
+                        "person": {"uuid": userid},
                         "address_type": {
                             "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
                         },
@@ -897,6 +898,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
 
     @util.darmock("dawa-addresses.json", allow_mox=True, real_http=True)
     async def test_create_address_related_to_engagement(self, mock):
+        employee_id = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
         engagement_uuid = "d000591f-8705-4324-897a-075e3623f37b"
 
         req = [
@@ -909,6 +911,7 @@ class AsyncWriting(tests.cases.AsyncLoRATestCase):
                 "validity": {
                     "from": "2017-01-02",
                 },
+                "person": {"uuid": employee_id},
                 "engagement": {"uuid": engagement_uuid},
             }
         ]
@@ -963,8 +966,7 @@ class Writing(tests.cases.LoRATestCase):
             self.assertRequestResponse(
                 "/service/details/create",
                 {
-                    "description": "Must supply exactly one org_unit UUID, "
-                    "person UUID or engagement UUID",
+                    "description": "Must supply exactly one org_unit or person UUID",
                     "error": True,
                     "error_key": "E_INVALID_INPUT",
                     "obj": req[0],
@@ -996,8 +998,7 @@ class Writing(tests.cases.LoRATestCase):
             self.assertRequestResponse(
                 "/service/details/create",
                 {
-                    "description": "Must supply exactly one org_unit UUID, "
-                    "person UUID or engagement UUID",
+                    "description": "Must supply exactly one org_unit or person UUID",
                     "error": True,
                     "error_key": "E_INVALID_INPUT",
                     "obj": req[0],
@@ -1194,8 +1195,7 @@ class Writing(tests.cases.LoRATestCase):
             self.assertRequestResponse(
                 "/service/details/edit",
                 {
-                    "description": "Must supply at most one of org_unit UUID, "
-                    "person UUID and engagement UUID",
+                    "description": "Must supply at most one of org_unit or person UUID",
                     "error": True,
                     "error_key": "E_INVALID_INPUT",
                     "obj": req[0],
