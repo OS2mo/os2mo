@@ -13,6 +13,7 @@ from fastapi import APIRouter
 
 from .. import common
 from .. import exceptions
+from .. import mapping
 from .. import util
 
 
@@ -68,26 +69,24 @@ async def get_lora_organisation(c, orgid, org=None):
         if not org or not util.is_reg_valid(org):
             return None
 
-    # From & to data
-    ret_from_dt = {"timestamp": org["fratidspunkt"]["tidsstempeldatotid"]}
-    limit_identicator_from = org["fratidspunkt"].get("graenseindikator", None)
-    if limit_identicator_from:
-        ret_from_dt["limit_indicator"] = limit_identicator_from
+    # ORG validity: From & to
+    org_validity = {"from": org["fratidspunkt"]["tidsstempeldatotid"]}
+    if org_validity["from"] == mapping.INFINITY:
+        org_validity["from"] = util.NEGATIVE_INFINITY
 
-    ret_to_dt = {"timestamp": org["tiltidspunkt"]["tidsstempeldatotid"]}
-    limit_identicator_to = org["tiltidspunkt"].get("graenseindikator", None)
-    if limit_identicator_to:
-        ret_to_dt["limit_indicator"] = limit_identicator_from
+    # "to" is optional according to ramodels.mo.organisation.py::OrganisationRead
+    if org.get("tiltidspunkt", {}).get("tidsstempeldatotid", None):
+        org_validity["to"] = org["tiltidspunkt"]["tidsstempeldatotid"]
+        if org_validity["to"] == mapping.INFINITY:
+            org_validity["to"] = util.POSITIVE_INFINITY
 
     attrs = org["attributter"]["organisationegenskaber"][0]
-    ret = {
+    return {
         "name": attrs["organisationsnavn"],
         "user_key": attrs["brugervendtnoegle"],
         "uuid": orgid,
-        "from": ret_from_dt,
-        "to": ret_to_dt,
+        "validity": org_validity,
     }
-    return ret
 
 
 async def get_valid_organisations():
