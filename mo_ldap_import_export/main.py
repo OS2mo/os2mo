@@ -31,6 +31,7 @@ from ramqp.mo.models import RequestType
 from ramqp.utils import RejectMessage
 from tqdm import tqdm
 
+from . import usernames
 from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
@@ -40,7 +41,6 @@ from .exceptions import NotSupportedException
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap_classes import LdapObject
-from .usernames import UserNameGenerator
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -277,12 +277,17 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
             f"Configured mapping file {mappings_file} does not exist "
             f"(this is set by the CONVERSION_MAP environment variable)"
         )
-    fastramqpi.add_context(mapping=read_mapping_json(mappings_file))
+    mapping = read_mapping_json(mappings_file)
+    fastramqpi.add_context(mapping=mapping)
     logger.info(f"Loaded mapping file {mappings_file}")
 
     logger.info("Initializing dataloader")
     dataloader = DataLoader(fastramqpi.get_context())
     fastramqpi.add_context(dataloader=dataloader)
+
+    userNameGeneratorClass_string = mapping["username_generator"]["objectClass"]
+    logger.info(f"Importing {userNameGeneratorClass_string}")
+    UserNameGenerator = getattr(usernames, userNameGeneratorClass_string)
 
     logger.info("Initializing username generator")
     username_generator = UserNameGenerator(fastramqpi.get_context())

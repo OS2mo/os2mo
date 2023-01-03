@@ -54,6 +54,7 @@
     }
   },
   "username_generator": {
+     "objectClass" : "UserNameGenerator",
      "char_replacement":{
          "â": "a",
          "ä": "a",
