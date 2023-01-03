@@ -293,6 +293,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     username_generator = UserNameGenerator(fastramqpi.get_context())
     fastramqpi.add_context(username_generator=username_generator)
 
+    if not hasattr(username_generator, "generate_dn"):
+        raise AttributeError("Username generator needs to have a generate_dn function")
+
     logger.info("Initializing converters")
     converter = LdapConverter(fastramqpi.get_context())
     fastramqpi.add_context(cpr_field=converter.cpr_field)

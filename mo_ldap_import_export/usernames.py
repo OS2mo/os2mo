@@ -121,7 +121,7 @@ class UserNameGeneratorBase:
 
         return f"CN={username_string}"
 
-    def _make_dn(self, username_string: str):
+    def _make_dn(self, username_string: str) -> str:
 
         cn = self._make_cn(username_string)
         ou = self.ou
@@ -271,7 +271,7 @@ class UserNameGeneratorBase:
 
 
 class UserNameGenerator(UserNameGeneratorBase):
-    def generate_dn(self, employee: Employee):
+    def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
         object

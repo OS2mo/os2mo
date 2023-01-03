@@ -267,23 +267,28 @@ For example:
 ```
   [...]
   "username_generator": {
-    "Email": {
-      "combinations_to_try": ["F123L",
-                              "F12LL",
-                              "F1LLL",
-                              "FLLLL",
-                              "FLLLLX"],
-      "char_replacement": {"ø": "oe",
-                           "æ": "ae",
-                           "å": "aa"},
-      "forbidden_usernames": ["hater",
-                              "lazer"]
-    }
+    "objectClass" : "UserNameGenerator",
+    "combinations_to_try": ["F123L",
+                            "F12LL",
+                            "F1LLL",
+                            "FLLLL",
+                            "FLLLLX"],
+    "char_replacement": {"ø": "oe",
+                         "æ": "ae",
+                         "å": "aa"},
+    "forbidden_usernames": ["hater",
+                            "lazer"]
   }
   [...]
 ```
 
 The examples which follow use this json file.
+
+`objectClass` points to an object class in `usernames.py` which should be used for
+username generation. Currently only `UserNameGenerator` is accepted. If desired, new
+classes can be added to `usernames.py` and specified in the json file. The only
+requirement of a username generator class is that it has a function called
+`generate_dn`, which returns a string.
 
 `combinations_to_try` provides patterns to use for generating usernames. Patterns are
 tried starting with the first one, going down. If the first pattern is not a possible

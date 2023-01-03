@@ -601,3 +601,32 @@ async def test_load_mapping_file_environment(
     ):
         fastramqpi = create_fastramqpi()
         assert isinstance(fastramqpi, FastRAMQPI)
+
+
+async def test_load_faulty_username_generator(
+    disable_metrics: None,
+    load_settings_overrides: dict[str, str],
+    gql_client: AsyncMock,
+    dataloader: AsyncMock,
+    converter: MagicMock,
+) -> None:
+
+    usernames_mock = MagicMock()
+    usernames_mock.UserNameGenerator.return_value = "foo"
+
+    with patch(
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
+    ), patch(
+        "mo_ldap_import_export.main.construct_gql_client",
+        return_value=gql_client,
+    ), patch(
+        "mo_ldap_import_export.main.DataLoader", return_value=dataloader
+    ), patch(
+        "mo_ldap_import_export.main.LdapConverter", return_value=converter
+    ), patch(
+        "mo_ldap_import_export.main.usernames", usernames_mock
+    ), pytest.raises(
+        AttributeError
+    ):
+        fastramqpi = create_fastramqpi()
+        assert isinstance(fastramqpi, FastRAMQPI)
