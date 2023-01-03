@@ -1,12 +1,24 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from asyncio import create_task
+from asyncio import gather
+from collections.abc import Iterable
+from itertools import starmap
 from typing import Any
 from typing import cast
+from uuid import UUID
 
 import strawberry
+from more_itertools import bucket
+from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.types import Info
 
+from .... import common
+from .... import mapping
+from .... import util
+from ....graphapi.middleware import is_graphql
+from ....service import orgunit
 from .health import health_map
 from .models import ConfigurationRead
 from .models import FileRead
@@ -41,6 +53,7 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import OrganisationUnitRead
 from .schema import Paged
 from .schema import PageInfo
 from .schema import RelatedUnit
@@ -48,7 +61,9 @@ from .schema import Response
 from .schema import Role
 from .schema import Version
 from .types import Cursor
+from mora import lora
 from mora.config import get_public_settings
+from mora.graphapi.versions.latest.dataloaders import MOModel
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -181,11 +196,41 @@ class Query:
 
     # Organisational Units
     # --------------------
-    org_units: list[Response[OrganisationUnit]] = strawberry.field(
+    org_units_old: list[Response[OrganisationUnit]] = strawberry.field(
         resolver=OrganisationUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+
+    @strawberry.field(
+        description="Get a list of all organisation units, optionally by uuid(s)",
+        permission_classes=[gen_read_permission("org_unit")],
+    )
+    async def org_units(self, info: Info) -> list[Response[OrganisationUnit]]:
+        c = lora.Connector()
+        changed_since = None
+        search_fields = {}
+
+        result = await c.organisationenhed.get_all(
+            changed_since=changed_since,
+            **search_fields,
+        )
+        result_converted = await _get_obj_effects(c, result)
+
+        result_models = parse_obj_as(list[OrganisationUnitRead], result_converted)  # type: ignore
+        uuid_map = group_by_uuid(result_models)
+
+        result_final = list(
+            starmap(
+                lambda uuid, objects: Response(
+                    uuid=uuid, objects=objects
+                ),  # noqa: FURB111
+                uuid_map.items(),
+            )
+        )
+        return result_final
+
+        # return result
 
     # Related Units
     # -------------
@@ -290,3 +335,98 @@ class Query:
         settings = list(map(construct, settings_keys))
         parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
         return cast(list[Configuration], parsed_settings)
+
+
+# ------------------------------
+
+
+async def _get_obj_effects(
+    c: lora.Connector,
+    object_tuples: Iterable[tuple[str, dict[Any, Any]]],
+    flat: bool = False,
+) -> list[dict[Any, Any]]:
+    return [
+        x
+        for sublist in await gather(
+            *[
+                create_task(
+                    _async_get_mo_object_from_effect(c, function_id, function_obj, flat)
+                )
+                for function_id, function_obj in object_tuples
+            ]
+        )
+        for x in sublist
+    ]
+
+
+async def _async_get_mo_object_from_effect(
+    c, function_id, function_obj, flat: bool = False
+) -> list[Any]:
+    return await gather(
+        *[
+            create_task(
+                _get_mo_object_from_effect(effect, start, end, function_id, flat)
+            )
+            for start, end, effect in (await _get_effects(c, function_obj))
+            if util.is_reg_valid(effect)
+        ]
+    )
+
+
+async def _get_effects(c, obj, **params):
+    relevant = {
+        "attributter": ("organisationenhedegenskaber",),
+        "relationer": (
+            "enhedstype",
+            "opgaver",
+            "overordnet",
+            "tilhoerer",
+            "niveau",
+            "opmærkning",
+        ),
+        "tilstande": ("organisationenhedgyldighed",),
+    }
+    also = {}
+
+    return await c.organisationenhed.get_effects(obj, relevant, also, **params)
+
+
+async def _get_mo_object_from_effect(effect, start, end, obj_id, flat: bool = False):
+    c = common.get_connector()
+    only_primary_uuid = util.get_args_flag("only_primary_uuid")
+    details = orgunit.UnitDetails.FULL
+    if is_graphql():
+        details = orgunit.UnitDetails.MINIMAL
+
+    return await orgunit.get_one_orgunit(
+        c,
+        obj_id,
+        effect,
+        details=details,
+        validity={
+            mapping.FROM: util.to_iso_date(start),
+            mapping.TO: util.to_iso_date(end, is_end=True),
+        },
+        only_primary_uuid=only_primary_uuid,
+    )
+
+
+def group_by_uuid(
+    models: list[MOModel], uuids: list[UUID] | None = None
+) -> dict[UUID, list[MOModel]]:
+    """Auxiliary function to group MOModels by their UUID.
+
+    Args:
+        models: List of MOModels to group.
+        uuids: List of UUIDs that have been looked up. Defaults to None.
+
+    Returns:
+        dict[UUID, list[MOModel]]: A mapping of uuids and lists of corresponding
+            MOModels.
+    """
+    uuids = uuids if uuids is not None else []
+    buckets = bucket(models, lambda model: model.uuid)
+    # unique keys in order by incoming uuid.
+    # mypy doesn't like bucket for some reason
+    keys = unique_everseen([*uuids, *list(buckets)])  # type: ignore
+    return {key: list(buckets[key]) for key in keys}

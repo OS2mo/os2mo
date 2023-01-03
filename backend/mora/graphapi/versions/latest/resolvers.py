@@ -76,6 +76,7 @@ class StaticResolver:
             use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
             escaped_user_keys = (re.escape(k) for k in user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+
         return await info.context[self.getter](**kwargs)
 
     @staticmethod
