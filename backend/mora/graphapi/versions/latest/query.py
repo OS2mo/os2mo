@@ -1,9 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Iterable
-from itertools import starmap
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -63,7 +63,6 @@ from .schema import Version
 from .types import Cursor
 from mora import lora
 from mora.config import get_public_settings
-from mora.graphapi.versions.latest.dataloaders import MOModel
 
 
 @strawberry.type(description="Entrypoint for all read-operations")
@@ -206,31 +205,28 @@ class Query:
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("org_unit")],
     )
-    async def org_units(self, info: Info) -> list[Response[OrganisationUnit]]:
+    async def org_units(self) -> list[Response[OrganisationUnit]]:
+        # Connect to LoRa and get ALL org units
         c = lora.Connector()
         changed_since = None
-        search_fields = {}
-
+        search_fields: dict[str, str] = {}
         result = await c.organisationenhed.get_all(
             changed_since=changed_since,
             **search_fields,
         )
+
+        # Convert LoRa response to pydantic models
         result_converted = await _get_obj_effects(c, result)
+        result_models_strawberry = [
+            OrganisationUnit.from_pydantic(model)
+            for model in parse_obj_as(list[OrganisationUnitRead], result_converted)
+        ]
+        uuid_map = group_by_uuid(result_models_strawberry)
 
-        result_models = parse_obj_as(list[OrganisationUnitRead], result_converted)  # type: ignore
-        uuid_map = group_by_uuid(result_models)
-
-        result_final = list(
-            starmap(
-                lambda uuid, objects: Response(
-                    uuid=uuid, objects=objects
-                ),  # noqa: FURB111
-                uuid_map.items(),
-            )
-        )
-        return result_final
-
-        # return result
+        # Convert data to current expected GraphQL-response and return
+        return [
+            Response(uuid=uuid, objects=objects) for uuid, objects in uuid_map.items()
+        ]
 
     # Related Units
     # -------------
@@ -337,7 +333,7 @@ class Query:
         return cast(list[Configuration], parsed_settings)
 
 
-# ------------------------------
+# ------------------------------------------------------------------------------------------------------------------------
 
 
 async def _get_obj_effects(
@@ -360,7 +356,7 @@ async def _get_obj_effects(
 
 
 async def _async_get_mo_object_from_effect(
-    c, function_id, function_obj, flat: bool = False
+    c: lora.Connector, function_id: str, function_obj: dict, flat: bool = False
 ) -> list[Any]:
     return await gather(
         *[
@@ -373,7 +369,7 @@ async def _async_get_mo_object_from_effect(
     )
 
 
-async def _get_effects(c, obj, **params):
+async def _get_effects(c: lora.Connector, obj: dict, **params: dict) -> tuple:
     relevant = {
         "attributter": ("organisationenhedegenskaber",),
         "relationer": (
@@ -386,12 +382,18 @@ async def _get_effects(c, obj, **params):
         ),
         "tilstande": ("organisationenhedgyldighed",),
     }
-    also = {}
+    also: dict = {}
 
     return await c.organisationenhed.get_effects(obj, relevant, also, **params)
 
 
-async def _get_mo_object_from_effect(effect, start, end, obj_id, flat: bool = False):
+async def _get_mo_object_from_effect(
+    effect: dict,
+    start: datetime.datetime,
+    end: datetime.datetime,
+    obj_id: str,
+    flat: bool = False,
+) -> dict | None:
     c = common.get_connector()
     only_primary_uuid = util.get_args_flag("only_primary_uuid")
     details = orgunit.UnitDetails.FULL
@@ -412,8 +414,8 @@ async def _get_mo_object_from_effect(effect, start, end, obj_id, flat: bool = Fa
 
 
 def group_by_uuid(
-    models: list[MOModel], uuids: list[UUID] | None = None
-) -> dict[UUID, list[MOModel]]:
+    models: list[OrganisationUnit], uuids: list[UUID] | None = None
+) -> dict[UUID, list[OrganisationUnit]]:
     """Auxiliary function to group MOModels by their UUID.
 
     Args:
@@ -425,8 +427,10 @@ def group_by_uuid(
             MOModels.
     """
     uuids = uuids if uuids is not None else []
-    buckets = bucket(models, lambda model: model.uuid)
-    # unique keys in order by incoming uuid.
+
     # mypy doesn't like bucket for some reason
+    buckets = bucket(models, lambda model: model.uuid)  # type: ignore
+    # unique keys in order by incoming uuid.
     keys = unique_everseen([*uuids, *list(buckets)])  # type: ignore
+
     return {key: list(buckets[key]) for key in keys}
