@@ -534,7 +534,7 @@ class LdapConverter:
                 cpr = mo_dict.get("cpr_no")
                 if cpr:
                     dataloader = self.context["user_context"]["dataloader"]
-                    employee_uuid = dataloader.find_mo_employee_uuid(cpr)
+                    employee_uuid = dataloader.find_mo_employee_uuid_sync(cpr)
 
             if employee_uuid:
                 if "person" in mo_class.schema()["properties"].keys():

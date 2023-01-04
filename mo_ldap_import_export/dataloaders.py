@@ -262,6 +262,13 @@ class DataLoader:
 
         return output
 
+    def _return_mo_employee_uuid_result(self, result) -> Union[None, UUID]:
+        if len(result["employees"]) == 0:
+            return None
+        else:
+            uuid: UUID = result["employees"][0]["uuid"]
+            return uuid
+
     async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
 
@@ -277,12 +284,24 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
+        return self._return_mo_employee_uuid_result(result)
 
-        if len(result["employees"]) == 0:
-            return None
-        else:
-            uuid: UUID = result["employees"][0]["uuid"]
-            return uuid
+    def find_mo_employee_uuid_sync(self, cpr_no: str) -> Union[None, UUID]:
+        graphql_session: AsyncClientSession = self.user_context["gql_client_sync"]
+
+        query = gql(
+            """
+            query FindEmployeeUUID {
+              employees(cpr_numbers: "%s") {
+                uuid
+              }
+            }
+            """
+            % cpr_no
+        )
+
+        result = graphql_session.execute(query)
+        return self._return_mo_employee_uuid_result(result)
 
     async def load_mo_employee(self, uuid: UUID) -> Employee:
         graphql_session: AsyncClientSession = self.user_context["gql_client"]

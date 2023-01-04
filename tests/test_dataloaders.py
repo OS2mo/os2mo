@@ -597,18 +597,26 @@ async def test_load_mo_employee_addresses(
     load_mo_address.assert_any_call(address2_uuid)
 
 
-async def test_find_mo_employee_uuid(dataloader: DataLoader, gql_client: AsyncMock):
+async def test_find_mo_employee_uuid(
+    dataloader: DataLoader, gql_client: AsyncMock, gql_client_sync: MagicMock
+):
     uuid = uuid4()
-    gql_client.execute.return_value = {
+    return_value = {
         "employees": [
             {"uuid": uuid},
         ]
     }
 
+    gql_client.execute.return_value = return_value
+    gql_client_sync.execute.return_value = return_value
+
     output = await asyncio.gather(
         dataloader.find_mo_employee_uuid("0101011221"),
     )
     assert output[0] == uuid
+
+    output_sync = dataloader.find_mo_employee_uuid_sync("0101011221")
+    assert output_sync == uuid
 
 
 async def test_find_mo_employee_uuid_not_found(
