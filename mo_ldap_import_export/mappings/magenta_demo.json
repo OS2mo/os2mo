@@ -4,7 +4,7 @@
       "objectClass": "ramodels.mo.employee.Employee",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
-      "cpr_no": "{{ldap.employeeID or None}}",
+      "cpr_no": "{{ldap.employeeID[:6] + ldap.employeeID[-4:] or None}}",
       "seniority": "{{None}}",
       "nickname_givenname": "{{None}}",
       "nickname_surname": "{{None}}"
