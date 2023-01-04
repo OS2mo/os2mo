@@ -90,11 +90,11 @@ def context() -> Context:
         "mail": True,
     }
 
-    find_mo_employee_uuid = MagicMock()
-    find_mo_employee_uuid.return_value = uuid.UUID(
+    find_mo_employee_uuid_sync = MagicMock()
+    find_mo_employee_uuid_sync.return_value = uuid.UUID(
         hex="{135c46ae-3b0e-4679-8318-40b73d9cedf3}"
     )
-    dataloader.find_mo_employee_uuid = find_mo_employee_uuid
+    dataloader.find_mo_employee_uuid_sync = find_mo_employee_uuid_sync
 
     overview = {"user": {"attributes": list(dataloader.single_value.keys())}}
 
