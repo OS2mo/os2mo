@@ -226,6 +226,7 @@ For post addresses, it is required to use an address type in MO with `scope` != 
 The reason for this is that we cannot expect an LDAP server to have the same address
 format as DAR.
 
+
 #### Filters and globals
 
 In addition to the [Jinja2's builtin filters][jinja2_filters],
@@ -255,3 +256,105 @@ These are called using the normal function call syntax:
 [get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
 [get_address_types]:http://localhost:8000/docs#/MO/load_address_types_from_MO_MO_Address_types_get
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
+
+
+#### Username generation
+If a user is created in MO, the tool will try to find the matching user in LDAP using
+a CPR-number lookup. If the user does not exist in LDAP a username is generated and
+the user is created in LDAP. Username generation follows patterns set in the json file.
+For example:
+
+```
+  [...]
+  "username_generator": {
+    "objectClass" : "UserNameGenerator",
+    "combinations_to_try": ["F123L",
+                            "F12LL",
+                            "F1LLL",
+                            "FLLLL",
+                            "FLLLLX"],
+    "char_replacement": {"ø": "oe",
+                         "æ": "ae",
+                         "å": "aa",
+                         "Ø": "oe",
+                         "Æ": "ae",
+                         "Å": "aa"
+                         },
+    "forbidden_usernames": ["hater",
+                            "lazer"]
+  }
+  [...]
+```
+
+The examples which follow use this json file.
+
+`objectClass` points to an object class in `usernames.py` which should be used for
+username generation. Currently only `UserNameGenerator` is accepted. If desired, new
+classes can be added to `usernames.py` and specified in the json file. The only
+requirement of a username generator class is that it has a function called
+`generate_dn`, which returns a string.
+
+`combinations_to_try` provides patterns to use for generating usernames. Patterns are
+tried starting with the first one, going down. If the first pattern is not a possible
+pattern for some reason, the next one is attempted. The following characters are
+accepted:
+
+* `F`: First name
+* `1`: First middle name
+* `2`: Second middle name
+* `3`: Third middle name
+* `L`: Last name
+* `X`: A number to add to the username
+
+When using a json file such as the one printed above, a person named `Jens Hansen`
+will get `jhans` as a username. The username flow is as follows:
+
+* `F123L` does not match because the person has no middle names
+* `F12LL` does not match because the person has no middle names
+* `F1LLL` does not match because the person has no middle names
+* `FLLLL` matches. The username becomes `jhans`
+
+if `jhans` already exists, the username will be `jhans2`:
+
+* `F123L` does not match because the person has no middle names
+* `F12LL` does not match because the person has no middle names
+* `F1LLL` does not match because the person has no middle names
+* `FLLLL` does not match. The username `jhans` already exists
+* `FLLLLX` matches. The username becomes `jhans2`
+
+Similarly, a person named `Jens Hans Hansen` will get `jhhan` as a username:
+
+* `F123L` does not match because the person has no second/third middle name
+* `F12LL` does not match because the person has no second middle name
+* `F1LLL` matches. The username becomes `jhhan`
+
+`char_replacement` must be a dictionary with characters to replace when creating a
+username. For example: A person named `Jens Åberg` will get username `jaabe`, instead of
+`jåber`:
+
+* `Jens Åberg` becomes `Jens aaberg` after character replacement
+* `F123L` does not match because the person has no middle names
+* `F12LL` does not match because the person has no middle names
+* `F1LLL` does not match because the person has no middle names
+* `FLLLL` matches. The username becomes `jaabe`
+
+`forbidden_usernames` is a list of usernames which are not allowed. For example: A
+person named `Hans Åberg Terp` will get username `hterp`:
+
+* `Hans Åberg Terp` becomes `Hans aaberg Terp` after character replacement
+* `F123L` does not match because the person has no second/third middle name
+* `F12LL` does not match because the person has no second middle name
+* `F1LLL` matches, but returns username `hater`, which is forbidden.
+* `FLLLL` also matches. The username becomes `hterp`
+
+If none of the patterns match, a runtime error is returned. Note also, that a pattern
+such as `FLLLL` will fail, if a person has a last name which has less than four
+characters. To avoid errors, it is therefore recommended to:
+
+* Have at least a couple of patterns which contain an `X`
+* Have some short patterns in the list as well. Even though it might be required to have
+  (for example) a 5-character username, there should still be some 2 or 3-character
+  patterns in the list for people who have particularly short first or last names.
+
+If these patterns are highly undesirable, put them in the bottom of the list, and they
+will only be used if everything else fails.

@@ -128,10 +128,13 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
         "foo@bar.dk", uuid4(), "2021-01-01"
     )
 
+    load_ldap_cpr_object = MagicMock()
+    load_ldap_cpr_object.return_value = test_ldap_object
+
     dataloader = AsyncMock()
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
-    dataloader.load_ldap_cpr_object.return_value = test_ldap_object
+    dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = (
@@ -595,6 +598,35 @@ async def test_load_mapping_file_environment(
         "mo_ldap_import_export.main.LdapConverter", return_value=converter
     ), pytest.raises(
         FileNotFoundError
+    ):
+        fastramqpi = create_fastramqpi()
+        assert isinstance(fastramqpi, FastRAMQPI)
+
+
+async def test_load_faulty_username_generator(
+    disable_metrics: None,
+    load_settings_overrides: dict[str, str],
+    gql_client: AsyncMock,
+    dataloader: AsyncMock,
+    converter: MagicMock,
+) -> None:
+
+    usernames_mock = MagicMock()
+    usernames_mock.UserNameGenerator.return_value = "foo"
+
+    with patch(
+        "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
+    ), patch(
+        "mo_ldap_import_export.main.construct_gql_client",
+        return_value=gql_client,
+    ), patch(
+        "mo_ldap_import_export.main.DataLoader", return_value=dataloader
+    ), patch(
+        "mo_ldap_import_export.main.LdapConverter", return_value=converter
+    ), patch(
+        "mo_ldap_import_export.main.usernames", usernames_mock
+    ), pytest.raises(
+        AttributeError
     ):
         fastramqpi = create_fastramqpi()
         assert isinstance(fastramqpi, FastRAMQPI)

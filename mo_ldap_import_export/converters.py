@@ -19,6 +19,7 @@ from ldap3.utils.ciDict import CaseInsensitiveDict
 
 from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
+from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap_classes import LdapObject
 from .utils import delete_keys_from_dict
@@ -75,6 +76,7 @@ class LdapConverter:
         self.dataloader = self.user_context["dataloader"]
         self.address_type_info = self.dataloader.load_mo_address_types()
         self.overview = self.dataloader.load_ldap_overview()
+        self.username_generator = self.user_context["username_generator"]
 
         mapping = delete_keys_from_dict(
             copy.deepcopy(self.raw_mapping), ["objectClass"]
@@ -453,16 +455,13 @@ class LdapConverter:
 
         if not dn:
             mo_employee_object = mo_object_dict["mo_employee"]
+            cpr_no = mo_employee_object.cpr_no
 
-            givenname = mo_employee_object.givenname
-            surname = mo_employee_object.surname
-            cpr_no = mo_employee_object.cpr_no or ""
-            ldap_organizational_unit = self.settings.ldap_organizational_unit
+            try:
+                dn = self.dataloader.load_ldap_cpr_object(cpr_no, json_key).dn
+            except NoObjectsReturnedException:
+                dn = self.username_generator.generate_dn(mo_employee_object)
 
-            cn = f"CN={givenname} {surname} - {cpr_no}"  # Common Name
-            ou = f"OU=Users,{ldap_organizational_unit}"  # Org. Unit
-            dc = self.settings.ldap_search_base  # Domain Component
-            dn = ",".join([cn, ou, dc])  # Distinguished Name
         ldap_object["dn"] = dn
 
         return LdapObject(**ldap_object)
