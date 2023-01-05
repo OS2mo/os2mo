@@ -86,6 +86,7 @@ class LdapConverter:
         environment.filters["splitlast"] = LdapConverter.filter_splitlast
         environment.filters["splitfirst"] = LdapConverter.filter_splitfirst
         environment.filters["mo_datestring"] = LdapConverter.filter_mo_datestring
+        environment.filters["strip_non_digits"] = LdapConverter.filter_strip_non_digits
         self.mapping = self._populate_mapping_with_templates(
             mapping,
             environment,
@@ -388,6 +389,12 @@ class LdapConverter:
         MO only accepts date objects dated at midnight.
         """
         return datetime_object.strftime("%Y-%m-%dT00:00:00")
+
+    @staticmethod
+    def filter_strip_non_digits(input_string):
+        if type(input_string) is not str:
+            return None
+        return "".join(c for c in input_string if c in string.digits)
 
     @staticmethod
     def filter_splitlast(text):
