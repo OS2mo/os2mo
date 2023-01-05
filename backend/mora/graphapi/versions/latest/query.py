@@ -195,7 +195,7 @@ class Query:
 
     # Organisational Units
     # --------------------
-    org_units_old: list[Response[OrganisationUnit]] = strawberry.field(
+    org_units: list[Response[OrganisationUnit]] = strawberry.field(
         resolver=OrganisationUnitResolver().resolve,
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -205,7 +205,7 @@ class Query:
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[gen_read_permission("org_unit")],
     )
-    async def org_units(self) -> list[Response[OrganisationUnit]]:
+    async def org_units_manuel(self) -> list[Response[OrganisationUnit]]:
         # Connect to LoRa and get ALL org units
         c = lora.Connector()
         changed_since = None
