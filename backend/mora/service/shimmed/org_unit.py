@@ -28,6 +28,57 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 
 @org_unit_router.get(
+    "/o/{orgid}/ou/",
+    response_model=MOOrgUnit | UUIDObject,
+    response_model_exclude_unset=True,
+)
+async def list_orgunits(
+    orgid: UUID,
+    start: int | None = 0,
+    limit: int | None = 0,
+    query: str | None = None,
+    root: str | None = None,
+    hierarchy_uuids: list[UUID] | None = Query(default=None),
+    only_primary_uuid: bool | None = None,
+):
+
+    query_vars = {
+        # "uuid": unitid,
+        # "engagements": "engagement" in count,
+        # "associations": "association" in count,
+    }
+
+    query = """
+    query {
+        org_units {
+            uuid
+            objects {
+                uuid
+                name
+                user_key
+                org_unit_hierarchy
+                unit_type {
+                    uuid
+                    user_key
+                    type
+                    scope
+                    published
+                    parent_uuid
+                    example
+                    owner
+                }
+            }
+        }
+    }
+    """
+
+    response = await execute_graphql(
+        query, variable_values=jsonable_encoder(query_vars)
+    )
+    handle_gql_error(response)
+
+
+@org_unit_router.get(
     "/ou/{unitid}/",
     response_model=MOOrgUnit | UUIDObject,
     response_model_exclude_unset=True,
@@ -60,9 +111,12 @@ async def get_orgunit(
         "engagements": "engagement" in count,
         "associations": "association" in count,
     }
+
     if at is not None:
         variables["from_date"] = at
+
     unitid = str(unitid)
+
     if only_primary_uuid:
         query = """
         query OrganisationUnitQuery($uuid: UUID!)
