@@ -315,6 +315,13 @@ def test_splitlast() -> None:
     assert LdapConverter.filter_splitlast("") == ["", ""]
 
 
+def test_strip_non_digits() -> None:
+    assert LdapConverter.filter_strip_non_digits("01-01-01-1234") == "0101011234"
+    assert LdapConverter.filter_strip_non_digits("01/01/01-1234") == "0101011234"
+    assert LdapConverter.filter_strip_non_digits("010101-1234") == "0101011234"
+    assert LdapConverter.filter_strip_non_digits(101011234) is None
+
+
 def test_find_cpr_field(context: Context) -> None:
 
     # This mapping is accepted
