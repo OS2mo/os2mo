@@ -199,10 +199,13 @@ class AddressCreate(RAValidity):
     address_type: UUID = Field(description="Type of the address.")
     visibility: UUID | None = Field(description="Visibility for the address.")
 
-    # OBS: Only one of the 3 UUIDs are allowed to be set for the old logic to work
+    # OBS: Only one of the two UUIDs are allowed to be set for the old logic to work
     org_unit: UUID | None = Field(description="UUID for the related org unit.")
     person: UUID | None = Field(description="UUID for the related person.")
-    engagement: UUID | None = Field(description="UUID for the related engagement.")
+
+    engagement: UUID | None = Field(
+        description="Optional UUID of an associated engagement."
+    )
 
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -214,7 +217,6 @@ class AddressCreate(RAValidity):
                     [
                         values.get("org_unit"),
                         values.get("person"),
-                        values.get("engagement"),
                     ],
                 )
             )
@@ -222,8 +224,7 @@ class AddressCreate(RAValidity):
 
         if number_of_uuids != 1:
             raise exceptions.ErrorCodes.E_INVALID_INPUT(
-                f"Must supply exactly one {mapping.ORG_UNIT} UUID, "
-                f"{mapping.PERSON} UUID or {mapping.ENGAGEMENT} UUID",
+                f"Must supply exactly one {mapping.ORG_UNIT} or {mapping.PERSON} UUID",
                 obj=cls,
             )
 

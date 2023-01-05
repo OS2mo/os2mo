@@ -466,7 +466,7 @@ class _BaseTestCase(TestCase):
         expected = self.__sort_inner_lists(expected)
         actual = self.__sort_inner_lists(actual)
 
-        assert expected == actual, message
+        self.assertEqual(expected, actual)
 
     def assertRequestFails(
         self, path, code, message=None, set_auth_header=False, **kwargs
@@ -495,7 +495,8 @@ class _BaseTestCase(TestCase):
             if "json" in kwargs:
                 # "In the face of ambiguity, refuse the temptation to guess."
                 # ...so check that the arguments we override don't exist
-                assert kwargs.keys().isdisjoint({"method", "data"})
+                self.assertNotIn("method", kwargs)
+                self.assertNotIn("data", kwargs)
 
                 # kwargs['method'] = 'POST'
                 kwargs["data"] = json.dumps(kwargs.pop("json"), indent=2)
