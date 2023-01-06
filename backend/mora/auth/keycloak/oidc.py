@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Awaitable
+from collections.abc import Callable
 from uuid import UUID
 
 from fastapi import Depends
@@ -141,17 +143,22 @@ async def rbac_owner(request: Request, token: Token = Depends(auth)):
     return await rbac(request, False, token)
 
 
-async def get_token(request: Request) -> Token:
+def token_getter(request: Request) -> Callable[[], Awaitable[Token]]:
     """Programatically get a Token using whatever backend has been configured.
 
     Args:
         request: The FastAPI request object to extract the token from.
 
     Returns:
-        The extracted or dummy token object.
+        The extracted or dummy token object or None, if validation fails.
     """
-    if auth == noauth:
-        return await noauth()
-    if auth == legacy_auth_adapter:
-        return await legacy_auth_adapter(request)
-    return await fetch_keycloak_token(request)
+
+    async def get_token():
+        if auth == noauth:
+            return await noauth()
+
+        if auth == legacy_auth_adapter:
+            return await legacy_auth_adapter(request)
+        return await fetch_keycloak_token(request)
+
+    return get_token

@@ -205,8 +205,7 @@ async def execute_graphql(
     if "context_value" not in kwargs:
         # TODO: The token should be passed from the original caller, such that the
         #  service API shims get RBAC equivalent to the GraphQL API for free.
-        token = await noauth()
-        kwargs["context_value"] = await graphql_version.get_context(token=token)
+        kwargs["context_value"] = await graphql_version.get_context(get_token=noauth)
 
     schema = graphql_version.schema.get()
     return await schema.execute(*args, **kwargs)

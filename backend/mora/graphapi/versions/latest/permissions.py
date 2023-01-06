@@ -3,14 +3,32 @@
 from functools import cache
 from typing import Any
 
+from fastapi import HTTPException
 from prometheus_client import Counter
 from strawberry import BasePermission
 from strawberry.types import Info
 
 from mora.config import get_settings
 
-
 rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowed"])
+
+
+class IsAuthenticatedPermission(BasePermission):
+    """Permission class that checks that the request is authenticated."""
+
+    message = "User is not authenticated"
+
+    async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        """Returns `True` if a valid token exists."""
+        settings = get_settings()
+        # Always grant access if auth is disabled
+        if not settings.os2mo_auth:
+            return True
+        try:
+            token = await info.context["get_token"]()
+        except HTTPException as e:
+            raise PermissionError(e.detail) from e
+        return token is not None
 
 
 @cache
@@ -33,17 +51,14 @@ def gen_role_permission(
 
         message = fail_message
 
-        def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
+        async def has_permission(self, source: Any, info: Info, **kwargs: Any) -> bool:
             """Returns `True` if `role_name` exists in the token's roles."""
             settings = get_settings()
             # If GraphQL RBAC is not enabled, do not check permissions, unless forced
             if (not settings.graphql_rbac) and (not force_permission_check):
                 return True
             # Allow access only if expected role is in roles
-            token = info.context["token"]
-            # No token, no access
-            if token is None:
-                return False
+            token = await info.context["get_token"]()
             roles = token.realm_access.roles
             allow_access = role_name in roles
             rbac_counter.labels(role=role_name, allowed=allow_access).inc()

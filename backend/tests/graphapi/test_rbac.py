@@ -118,18 +118,22 @@ async def test_graphql_rbac(
             "graphql_rbac": "True",
         }
     )
+
     # Setup the GraphQL context with the required dataloaders and OIDC token
-    token = Token(
-        azp="mo",
-        uuid="00000000-0000-0000-0000-000000000000",
-        realm_access=RealmAccess(roles=roles),
-    )
+
+    async def get_token():
+        return Token(
+            azp="mo",
+            uuid="00000000-0000-0000-0000-000000000000",
+            realm_access=RealmAccess(roles=roles),
+        )
+
     context = {
         "org_loader": DataLoader(load_fn=load_org),
         "address_getter": load_all_addresses,
         "org_unit_getter": load_all_org_units,
         "org_unit_address_loader": DataLoader(load_fn=load_addresses),
-        "token": token,
+        "get_token": get_token,
     }
 
     response = await execute_graphql(query=query, context_value=context)
@@ -187,14 +191,18 @@ async def test_mutators_require_rbac(
             "graphql_rbac": "True",
         }
     )
+
     # Setup the GraphQL context with the required dataloaders and OIDC token
-    token = Token(
-        azp="mo",
-        uuid="00000000-0000-0000-0000-000000000000",
-        realm_access=RealmAccess(roles=[]),
-    )
+
+    async def get_token():
+        return Token(
+            azp="mo",
+            uuid="00000000-0000-0000-0000-000000000000",
+            realm_access=RealmAccess(roles=[]),
+        )
+
     context = {
-        "token": token,
+        "get_token": get_token,
     }
     response = await execute_graphql(query=mutation, context_value=context)
     assert len(response.errors) >= 1

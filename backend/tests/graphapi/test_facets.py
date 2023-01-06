@@ -22,8 +22,6 @@ from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.latest.models import FacetCreate
 from mora.graphapi.versions.latest.types import UUIDReturn
-from mora.graphapi.versions.latest.version import LatestGraphQLSchema
-from mora.graphapi.versions.latest.version import LatestGraphQLVersion
 from ramodels.mo import FacetRead
 from tests.conftest import GQLResponse
 
@@ -163,8 +161,8 @@ async def test_create_facet(test_data, graphapi_post):
     test_data["org_uuid"] = await get_uuids(mapping.ORG, graphapi_post)
 
     mutate_query = """
-        mutation CreateFacet($input: FacetCreateInput!){
-            facet_create(input: $input){
+        mutation CreateFacet($input: FacetCreateInput!) {
+            facet_create(input: $input) {
                 uuid
             }
         }
@@ -185,25 +183,21 @@ async def test_create_facet(test_data, graphapi_post):
 
     """Query data to check that it actually gets written to database"""
     query_query = """
-        query ($uuid: [UUID!]!){
+        query ($uuid: [UUID!]!) {
             __typename
-                facets(uuids: $uuid){
-                    uuid
-                    type
-                    org_uuid
-                    user_key
-                    published
-                    parent_uuid
-                }
+            facets(uuids: $uuid) {
+                uuid
+                type
+                org_uuid
+                user_key
+                published
+                parent_uuid
+            }
         }
     """
-
-    context_value = await LatestGraphQLVersion.get_context()
-
-    query_response = await LatestGraphQLSchema.get().execute(
+    query_response = await execute_graphql(
         query=query_query,
         variable_values={"uuid": str(response_uuid)},
-        context_value=context_value,
     )
 
     test_data, query = prepare_query_data(test_data, query_response)
@@ -216,8 +210,6 @@ async def test_create_facet(test_data, graphapi_post):
     """Assert response returned by quering data written."""
     assert query_response.errors is None
     assert query == test_data
-
-    """Test exception gets raised if illegal values are entered"""
 
 
 @given(test_data=write_strat())

@@ -6,6 +6,7 @@ This file specifies different pytest fixtures and settings shared throughout the
 GraphAPI test suite. Some are autoused for each test invocation, while others are made
 available for use as needed.
 """
+from collections.abc import Awaitable
 from collections.abc import Callable
 from operator import itemgetter
 from uuid import UUID
@@ -16,6 +17,7 @@ from fastapi.testclient import TestClient
 from mora.app import create_app
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import Token
+from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.graphapi.versions.latest.dataloaders import get_loaders
 from mora.graphapi.versions.latest.dataloaders import MOModel
@@ -64,6 +66,14 @@ async def admin_auth_uuid():
     return token.uuid
 
 
+def admin_token_getter() -> Callable[[], Awaitable[Token]]:
+    async def get_fake_admin_token():
+        token = await admin_auth()
+        return token
+
+    return get_fake_admin_token
+
+
 graph_app = None
 
 
@@ -73,6 +83,7 @@ def test_app():
         graph_app = create_app()
         graph_app.dependency_overrides[auth] = admin_auth
         graph_app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
+        graph_app.dependency_overrides[token_getter] = admin_token_getter
     return graph_app
 
 

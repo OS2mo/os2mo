@@ -10,10 +10,10 @@ from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
 from strawberry.extensions import Extension
-from strawberry.fastapi import GraphQLRouter
 from strawberry.schema.config import StrawberryConfig
 
 from mora.graphapi.middleware import StarletteContextExtension
+from mora.graphapi.router import CustomGraphQLRouter
 
 
 class BaseGraphQLSchema:
@@ -82,4 +82,4 @@ class BaseGraphQLVersion:
             context_getter=cls.get_context,
         )
         params.update(kwargs)  # allows overriding values
-        return GraphQLRouter(**params)  # type: ignore
+        return CustomGraphQLRouter(**params)  # type: ignore

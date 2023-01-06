@@ -3,7 +3,6 @@
 from datetime import date
 
 from fastapi import APIRouter
-from fastapi import Depends
 from fastapi import FastAPI
 from more_itertools import first
 from more_itertools import last
@@ -14,7 +13,6 @@ from starlette.responses import Response
 from .versions.v1.version import GraphQLVersion1
 from .versions.v2.version import GraphQLVersion2
 from .versions.v3.version import GraphQLVersion3
-from mora.auth.keycloak.oidc import auth
 from mora.graphapi.versions.base import BaseGraphQLVersion
 
 graphql_versions: list[type[BaseGraphQLVersion]] = [
@@ -69,4 +67,4 @@ def setup_graphql(
 
     # Bind main router to the FastAPI app. Ideally, we'd let the caller define the
     # prefix, but this causes issues when routing the "empty" `/graphql` path.
-    app.include_router(router, prefix="/graphql", dependencies=[Depends(auth)])
+    app.include_router(router, prefix="/graphql")
