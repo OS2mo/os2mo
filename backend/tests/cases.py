@@ -43,6 +43,40 @@ def sort_inner_lists(obj):
     return obj
 
 
+def assert_registrations_equal(expected, actual, message=None) -> None:
+    # drop lora-generated timestamps & users
+    for k in "fratidspunkt", "tiltidspunkt", "brugerref":
+        expected.pop(k, None)
+        actual.pop(k, None)
+
+    actual = sort_inner_lists(actual)
+    expected = sort_inner_lists(expected)
+
+    # Sort all inner lists and compare
+    assert expected == actual, message
+
+
+def assert_registrations_not_equal(expected, actual, message=None) -> None:
+    # drop lora-generated timestamps & users
+    for k in "fratidspunkt", "tiltidspunkt", "brugerref":
+        expected.pop(k, None)
+        actual.pop(k, None)
+
+    actual = sort_inner_lists(actual)
+    expected = sort_inner_lists(expected)
+
+    # Sort all inner lists and compare
+    assert expected != actual, message
+
+
+def assert_sorted_equal(expected, actual, message=None) -> None:
+    """Sort all inner-lists before comparison"""
+    expected = sort_inner_lists(expected)
+    actual = sort_inner_lists(actual)
+
+    assert expected == actual, message
+
+
 class MixinTestCase(TestCase):
     def create_app(self, overrides=None):
         global base_test_app
@@ -53,37 +87,13 @@ class MixinTestCase(TestCase):
         return base_test_app
 
     def assertRegistrationsEqual(self, expected, actual, message=None):
-
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = sort_inner_lists(actual)
-        expected = sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertEqual(expected, actual, message)
+        assert_registrations_equal(expected, actual, message)
 
     def assertRegistrationsNotEqual(self, expected, actual, message=None):
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = sort_inner_lists(actual)
-        expected = sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertNotEqual(expected, actual, message)
+        assert_registrations_not_equal(expected, actual, message)
 
     def assertSortedEqual(self, expected, actual, message=None):
-        """Sort all inner-lists before comparison"""
-
-        expected = sort_inner_lists(expected)
-        actual = sort_inner_lists(actual)
-
-        return self.assertEqual(expected, actual, message)
+        assert_sorted_equal(expected, actual, message)
 
 
 @pytest.mark.integration_test
