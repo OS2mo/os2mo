@@ -4,8 +4,6 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from mora.service.org import ConfiguredOrganisation
-
 
 async def async_helper1():
     return []
@@ -17,8 +15,6 @@ async def async_helper2():
 
 @patch("mora.service.org.get_valid_organisations", new=async_helper1)
 def test_no_orgs_in_mo(service_client: TestClient) -> None:
-    ConfiguredOrganisation.valid = False
-
     response = service_client.get("/service/o/")
     assert response.status_code == 400
     assert response.json() == {
@@ -31,8 +27,6 @@ def test_no_orgs_in_mo(service_client: TestClient) -> None:
 
 @patch("mora.service.org.get_valid_organisations", new=async_helper2)
 def test_more_than_one_org_in_mo(service_client: TestClient) -> None:
-    ConfiguredOrganisation.valid = False
-
     response = service_client.get("/service/o/")
     assert response.status_code == 400
     assert response.json() == {

@@ -45,6 +45,7 @@ from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import darmock
 from tests.util import load_sample_structures
+from tests.util import MockAioresponses
 
 
 T = TypeVar("T")
@@ -74,6 +75,11 @@ def pytest_runtest_protocol(item) -> None:
 
 
 st.register_type_strategy(Validity, validity_model_strat())
+
+
+@pytest.fixture(autouse=True)
+def clear_configured_organisation():
+    ConfiguredOrganisation.clear()
 
 
 @pytest.fixture(scope="class")
@@ -512,4 +518,10 @@ def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
 @pytest.fixture
 def darmocked():
     with darmock() as mock:
+        yield mock
+
+
+@pytest.fixture
+def mockaio():
+    with MockAioresponses(["dawa-autocomplete.json"]) as mock:
         yield mock
