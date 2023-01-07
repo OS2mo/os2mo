@@ -4,7 +4,6 @@ import json
 from contextlib import suppress
 from unittest import IsolatedAsyncioTestCase
 from unittest.case import TestCase
-from unittest.mock import patch
 
 import httpx
 import pytest
@@ -298,18 +297,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
 class AsyncTestCase(_AsyncBaseTestCase):
     pass
-
-
-class AsyncMockRequestContextTestCase(IsolatedAsyncioTestCase):
-    async def asyncSetUp(self):
-        # Patch usages of request context in test cases that do not
-        # take place in a request
-        # It looks iffy, and it is, but the _real_ solution would be to rewrite the
-        # relevant code to not depend on a global request context
-        patcher = patch("mora.util.context", new={"query_args": {}})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        await super().asyncSetUp()
 
 
 @pytest.mark.integration_test
