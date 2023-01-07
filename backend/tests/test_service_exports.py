@@ -7,6 +7,7 @@ from typing import Any
 from unittest import mock
 
 import pytest
+from fastapi import FastAPI
 from fastapi import Request
 from fastapi.testclient import TestClient
 from starlette.status import HTTP_200_OK
@@ -20,23 +21,26 @@ import mora.graphapi.versions.latest.files
 from mora.config import get_settings
 from mora.service.shimmed.exports import oauth2_scheme
 from tests.conftest import test_app
+from tests.conftest import YieldFixture
 
 
 @pytest.fixture(scope="class")
-def fastapi_test_app_weird_auth():
+def fastapi_test_app_weird_auth() -> FastAPI:
     async def _noop_oauth2_scheme(request: Request) -> str | None:
         return "jwt-goes-here"
 
-    def test_app_weird_auth():
+    def test_app_weird_auth() -> FastAPI:
         app = test_app()
         app.dependency_overrides[oauth2_scheme] = _noop_oauth2_scheme
         return app
 
-    yield test_app_weird_auth()
+    return test_app_weird_auth()
 
 
-@pytest.fixture
-def service_client_weird_auth(fastapi_test_app_weird_auth):
+@pytest.fixture(scope="class")
+def service_client_weird_auth(
+    fastapi_test_app_weird_auth: FastAPI,
+) -> YieldFixture[TestClient]:
     with TestClient(fastapi_test_app_weird_auth) as client:
         yield client
 
@@ -45,7 +49,7 @@ async def _noop_check_auth_cookie(auth_cookie: str | None) -> None:
     pass
 
 
-@pytest.fixture
+@pytest.fixture()
 def mock_no_auth_cookie(monkeypatch):
     monkeypatch.setattr(
         mora.service.shimmed.exports, "_check_auth_cookie", _noop_check_auth_cookie

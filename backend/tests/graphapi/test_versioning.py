@@ -25,9 +25,9 @@ def get_test_client(
     return TestClient(app)
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def test_client() -> TestClient:
-    yield get_test_client()
+    return get_test_client()
 
 
 def test_latest_not_exposed_directly():

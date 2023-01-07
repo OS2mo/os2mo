@@ -4,6 +4,8 @@ from uuid import UUID
 
 import pytest
 import requests
+from fastapi import FastAPI
+from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
 from more_itertools import one
@@ -29,7 +31,7 @@ from tests import util
 from tests.conftest import get_latest_graphql_url
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def no_auth_endpoints():
     """Fixture yielding endpoint URL paths that should not have authentication."""
     no_auth_endpoints = {
@@ -54,8 +56,8 @@ def no_auth_endpoints():
     yield no_auth_endpoints | graphql_endpoints
 
 
-@pytest.fixture
-def all_routes(fastapi_test_app):
+@pytest.fixture(scope="session")
+def all_routes(fastapi_test_app: FastAPI) -> list[APIRoute]:
     """Fixture yields all routes defined in the FASTAPI app, excluding endpoints that
     which are NOT to be evaluated."""
     # List of endpoints to not evaluate
@@ -66,7 +68,7 @@ def all_routes(fastapi_test_app):
     routes = fastapi_test_app.routes
     routes = filter(lambda route: not isinstance(route, APIWebSocketRoute), routes)
     routes = filter(lambda route: route.path not in skip_endpoints, routes)
-    yield routes
+    return list(routes)
 
 
 def test_ensure_endpoints_depend_on_oidc_auth_function(all_routes, no_auth_endpoints):

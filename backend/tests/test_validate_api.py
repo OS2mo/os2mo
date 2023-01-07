@@ -3,59 +3,43 @@
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 
-import pytest
-
 from mora import util as mora_util
 
 
-@pytest.fixture
-def from_date() -> str:
-    return "2000-01-01"
-
-
-@pytest.fixture
-def uuid():
-    return {"uuid": "be0df80c-7eed-4a2e-a682-e36be4e4877e"}
-
-
-@pytest.fixture
-def person_uuid():
-    return "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
-
-
-@pytest.fixture
-def org_unit_uuid():
-    return "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
+UUID = {"uuid": "be0df80c-7eed-4a2e-a682-e36be4e4877e"}
+FROM_DATE = "2000-01-01"
+PERSON_UUID = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
+ORG_UNIT_UUID = "f4f28810-cdd9-4ff5-821e-427378ab4bf7"
 
 
 @patch("mora.service.validate.validator.is_date_range_in_org_unit_range")
-def test_candidate_org_unit(mock, service_client, uuid, from_date):
+def test_candidate_org_unit(mock, service_client):
     payload = {
-        "org_unit": uuid,
-        "validity": {"from": from_date, "to": None},
+        "org_unit": UUID,
+        "validity": {"from": FROM_DATE, "to": None},
     }
 
     service_client.post("/service/validate/org-unit/", json=payload)
 
     mock.assert_called_with(
-        uuid,
-        mora_util.parsedatetime(from_date),
+        UUID,
+        mora_util.parsedatetime(FROM_DATE),
         mora_util.POSITIVE_INFINITY,
     )
 
 
 @patch("mora.service.validate.validator.is_date_range_in_employee_range")
-def test_validate_employee(mock, service_client, uuid, from_date):
+def test_validate_employee(mock, service_client):
     payload = {
-        "person": uuid,
-        "validity": {"from": from_date, "to": None},
+        "person": UUID,
+        "validity": {"from": FROM_DATE, "to": None},
     }
 
     service_client.post("/service/validate/employee/", json=payload)
 
     mock.assert_called_with(
-        uuid,
-        mora_util.parsedatetime(from_date),
+        UUID,
+        mora_util.parsedatetime(FROM_DATE),
         mora_util.POSITIVE_INFINITY,
     )
 
@@ -75,57 +59,55 @@ def test_cpr(mock, service_client):
 
 
 @patch("mora.service.validate.validator.does_employee_have_active_engagement")
-def test_employee_engagements(mock, service_client, person_uuid, from_date):
+def test_employee_engagements(mock, service_client):
     payload = {
-        "person": {"uuid": person_uuid},
-        "validity": {"from": from_date, "to": None},
+        "person": {"uuid": PERSON_UUID},
+        "validity": {"from": FROM_DATE, "to": None},
     }
 
     service_client.post("/service/validate/active-engagements/", json=payload)
     mock.assert_called_with(
-        person_uuid,
-        mora_util.parsedatetime(from_date),
+        PERSON_UUID,
+        mora_util.parsedatetime(FROM_DATE),
         mora_util.POSITIVE_INFINITY,
     )
 
 
 @patch("mora.service.validate.validator.does_employee_have_existing_association")
-def test_existing_associations(
-    mock, service_client, person_uuid, org_unit_uuid, from_date
-):
+def test_existing_associations(mock, service_client):
     association_uuid = "7cd87e2a-e41a-4b68-baca-ff69426be753"
     payload = {
-        "person": {"uuid": person_uuid},
-        "org_unit": {"uuid": org_unit_uuid},
-        "validity": {"from": from_date, "to": None},
+        "person": {"uuid": PERSON_UUID},
+        "org_unit": {"uuid": ORG_UNIT_UUID},
+        "validity": {"from": FROM_DATE, "to": None},
         "uuid": association_uuid,
     }
 
     service_client.post("/service/validate/existing-associations/", json=payload)
     mock.assert_called_with(
-        person_uuid,
-        org_unit_uuid,
-        mora_util.parsedatetime(from_date),
+        PERSON_UUID,
+        ORG_UNIT_UUID,
+        mora_util.parsedatetime(FROM_DATE),
         association_uuid,
     )
 
 
 @patch("mora.service.validate.validator.is_candidate_parent_valid")
-def test_parent_org_unit(mock, service_client, org_unit_uuid, from_date):
+def test_parent_org_unit(mock, service_client):
     parent_uuid = "cc1fc948-d3f6-4bbc-9faf-288e0f956135"
 
     payload = {
-        "org_unit": {"uuid": org_unit_uuid},
+        "org_unit": {"uuid": ORG_UNIT_UUID},
         "parent": {"uuid": parent_uuid},
         "validity": {
-            "from": from_date,
+            "from": FROM_DATE,
         },
     }
 
     service_client.post("/service/validate/candidate-parent-org-unit/", json=payload)
 
     mock.assert_called_with(
-        org_unit_uuid, parent_uuid, mora_util.parsedatetime(from_date)
+        ORG_UNIT_UUID, parent_uuid, mora_util.parsedatetime(FROM_DATE)
     )
 
 
