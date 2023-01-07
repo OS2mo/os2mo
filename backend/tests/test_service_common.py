@@ -5,9 +5,9 @@ import json
 import freezegun
 import pytest
 import respx
+from fastapi.testclient import TestClient
 from httpx import Response
 
-import tests.cases
 from mora import common
 from mora import exceptions
 from mora import lora
@@ -16,49 +16,46 @@ from mora import util as mora_util
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
-class AsyncTestClass(tests.cases.AsyncTestCase):
-    maxDiff = None
+@freezegun.freeze_time("2018-01-01")
+@respx.mock
+async def test_history_missing(service_client: TestClient) -> None:
+    userid = "00000000-0000-0000-0000-000000000000"
 
-    @freezegun.freeze_time("2018-01-01")
-    @respx.mock
-    async def test_history_missing(self):
-        userid = "00000000-0000-0000-0000-000000000000"
+    url = "http://localhost/lora/organisation/bruger"
+    route = respx.get(url).mock(
+        return_value=Response(
+            200,
+            json={
+                "results": [],
+            },
+        )
+    )
 
-        url = "http://localhost/lora/organisation/bruger"
-        route = respx.get(url).mock(
-            return_value=Response(
-                200,
-                json={
-                    "results": [],
-                },
-            )
+    with pytest.raises(exceptions.HTTPException) as cm:
+        await common.add_history_entry(
+            lora.Connector().bruger,
+            userid,
+            "kaflaflibob",
         )
 
-        with pytest.raises(exceptions.HTTPException) as cm:
-            await common.add_history_entry(
-                lora.Connector().bruger,
-                userid,
-                "kaflaflibob",
-            )
+    assert json.loads(route.calls[0].request.read()) == {
+        "uuid": [userid],
+        "virkningfra": "2018-01-01T00:00:00+01:00",
+        "virkningtil": "2018-01-01T00:00:00.000001+01:00",
+        "konsolider": "True",
+    }
 
-        assert json.loads(route.calls[0].request.read()) == {
-            "uuid": [userid],
-            "virkningfra": "2018-01-01T00:00:00+01:00",
-            "virkningtil": "2018-01-01T00:00:00.000001+01:00",
-            "konsolider": "True",
-        }
-
-        assert cm.value.detail == {
-            "description": "Not found.",
-            "error": True,
-            "error_key": "E_NOT_FOUND",
-            "path": "organisation/bruger",
-            "status": 404,
-            "uuid": userid,
-        }
+    assert cm.value.detail == {
+        "description": "Not found.",
+        "error": True,
+        "error_key": "E_NOT_FOUND",
+        "path": "organisation/bruger",
+        "status": 404,
+        "uuid": userid,
+    }
 
 
-def test_update_payload_complex():
+def test_update_payload_complex() -> None:
     # Arrange
     fields = [
         (
@@ -199,7 +196,7 @@ def test_update_payload_complex():
     assert expected_payload == actual_payload
 
 
-def test_inactivates_correctly_when_diminishing_bounds():
+def test_inactivates_correctly_when_diminishing_bounds() -> None:
     # Arrange
     old_from = "2013-01-01T00:00:00+01:00"
     old_to = "2016-01-01T00:00:00+01:00"
@@ -245,7 +242,7 @@ def test_inactivates_correctly_when_diminishing_bounds():
     assert expected_result == actual_result
 
 
-def test_does_not_inactivate_when_expanding_bounds():
+def test_does_not_inactivate_when_expanding_bounds() -> None:
     # Arrange
     old_from = "2014-01-01T00:00:00+01:00"
     old_to = "2015-01-01T00:00:00+01:00"
@@ -270,7 +267,7 @@ def test_does_not_inactivate_when_expanding_bounds():
     assert expected_result == actual_result
 
 
-def test_does_not_inactivate_when_bounds_do_not_move():
+def test_does_not_inactivate_when_bounds_do_not_move() -> None:
     # Arrange
     old_from = "2014-01-01T00:00:00+01:00"
     old_to = "2015-01-01T00:00:00+01:00"
@@ -295,7 +292,7 @@ def test_does_not_inactivate_when_bounds_do_not_move():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_aztm_times_are_inside_bounds():
+def test_ensure_bounds_aztm_times_are_inside_bounds() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2013-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2015-01-01T00:00:00+01:00")
@@ -364,7 +361,7 @@ def test_ensure_bounds_aztm_times_are_inside_bounds():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_aztm_expanding_from_time():
+def test_ensure_bounds_aztm_expanding_from_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2010-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2014-01-01T00:00:00+01:00")
@@ -465,7 +462,7 @@ def test_ensure_bounds_aztm_expanding_from_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_aztm_diminishing_from_time():
+def test_ensure_bounds_aztm_diminishing_from_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2012-07-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2015-01-01T00:00:00+01:00")
@@ -535,7 +532,7 @@ def test_ensure_bounds_aztm_diminishing_from_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_aztm_expanding_to_time():
+def test_ensure_bounds_aztm_expanding_to_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2012-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2017-01-01T00:00:00+01:00")
@@ -636,7 +633,7 @@ def test_ensure_bounds_aztm_expanding_to_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_aztm_diminishing_to_time():
+def test_ensure_bounds_aztm_diminishing_to_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2012-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2014-07-01T00:00:00+02:00")
@@ -706,7 +703,7 @@ def test_ensure_bounds_aztm_diminishing_to_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_ztm():
+def test_ensure_bounds_ztm() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2000-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2020-07-01T00:00:00+02:00")
@@ -809,7 +806,7 @@ def test_ensure_bounds_ztm():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_zto_expanding_to_time():
+def test_ensure_bounds_zto_expanding_to_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2012-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2016-07-01T00:00:00+02:00")
@@ -892,7 +889,7 @@ def test_ensure_bounds_zto_expanding_to_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_zto_expanding_from_time():
+def test_ensure_bounds_zto_expanding_from_time() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2010-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2015-01-01T00:00:00+01:00")
@@ -975,7 +972,7 @@ def test_ensure_bounds_zto_expanding_from_time():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_zto_inside_bounds():
+def test_ensure_bounds_zto_inside_bounds() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2012-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2015-01-01T00:00:00+01:00")
@@ -1045,7 +1042,7 @@ def test_ensure_bounds_zto_inside_bounds():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_zto_extending_both_ends():
+def test_ensure_bounds_zto_extending_both_ends() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2010-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2020-01-01T00:00:00+01:00")
@@ -1137,7 +1134,7 @@ def test_ensure_bounds_zto_extending_both_ends():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_zto_extending_both_ends_single_effect():
+def test_ensure_bounds_zto_extending_both_ends_single_effect() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2010-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2020-01-01T00:00:00+01:00")
@@ -1202,7 +1199,7 @@ def test_ensure_bounds_zto_extending_both_ends_single_effect():
     assert expected_result == actual_result
 
 
-def test_ensure_bounds_handles_unknown_fields():
+def test_ensure_bounds_handles_unknown_fields() -> None:
     # Arrange
     new_from = mora_util.parsedatetime("2010-01-01T00:00:00+01:00")
     new_to = mora_util.parsedatetime("2020-01-01T00:00:00+01:00")
@@ -1240,7 +1237,7 @@ def test_ensure_bounds_handles_unknown_fields():
     assert expected_result == actual_result
 
 
-def test_merge_obj_1():
+def test_merge_obj_1() -> None:
     """New obj overlaps beginning and ending of originals"""
     # Arrange
     orig_objs = [
@@ -1315,7 +1312,7 @@ def test_merge_obj_1():
     assert expected_result == actual_result
 
 
-def test_merge_obj_2():
+def test_merge_obj_2() -> None:
     """Original timespan completely contains new timespan"""
     # Arrange
     orig_objs = [
@@ -1381,7 +1378,7 @@ def test_merge_obj_2():
     assert expected_result == actual_result
 
 
-def test_merge_obj_3():
+def test_merge_obj_3() -> None:
     """New doesn't overlap with originals"""
     # Arrange
     orig_objs = [
@@ -1456,7 +1453,7 @@ def test_merge_obj_3():
     assert expected_result == actual_result
 
 
-def test_merge_obj_4():
+def test_merge_obj_4() -> None:
     """New completely overlaps with old"""
     # Arrange
     orig_objs = [
@@ -1513,7 +1510,7 @@ def test_merge_obj_4():
     assert expected_result == actual_result
 
 
-def test_merge_obj_5():
+def test_merge_obj_5() -> None:
     """Handle infinity"""
     # Arrange
     orig_objs = [
@@ -1570,7 +1567,7 @@ def test_merge_obj_5():
     assert expected_result == actual_result
 
 
-def test_merge_obj_6():
+def test_merge_obj_6() -> None:
     """Handle -infinity"""
     # Arrange
     orig_objs = [
@@ -1618,7 +1615,7 @@ def test_merge_obj_6():
     assert expected_result == actual_result
 
 
-def test_merge_obj_7():
+def test_merge_obj_7() -> None:
     """Handle writing more than one entry"""
     # Arrange
     orig_objs = [
@@ -1665,7 +1662,7 @@ def test_merge_obj_7():
     assert expected_result == actual_result
 
 
-def test_merge_obj_8():
+def test_merge_obj_8() -> None:
     """Handle overwriting more than one entry"""
     # Arrange
     orig_objs = [
@@ -1712,7 +1709,7 @@ def test_merge_obj_8():
     assert expected_result == actual_result
 
 
-def test_merge_obj_9():
+def test_merge_obj_9() -> None:
     """Handle overwriting where orig contains multiple entries
     with semi-arbitrary virkningstider"""
     # Arrange
