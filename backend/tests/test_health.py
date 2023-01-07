@@ -13,7 +13,6 @@ from starlette.status import HTTP_204_NO_CONTENT
 from starlette.status import HTTP_503_SERVICE_UNAVAILABLE
 
 from mora.graphapi.versions.latest import health
-from mora.service.org import ConfiguredOrganisation
 
 
 HTTPX_MOCK_RESPONSE_404 = Response(
@@ -27,7 +26,6 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 @pytest.mark.usefixtures("mock_asgi_transport")
 @respx.mock
 async def test_dataset_returns_false_if_no_data_found() -> None:
-    ConfiguredOrganisation.clear()
     respx.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": [[]]})
     )
@@ -39,7 +37,6 @@ async def test_dataset_returns_false_if_no_data_found() -> None:
 @respx.mock
 @pytest.mark.usefixtures("mock_organisation")
 async def test_dataset_returns_true_if_data_found() -> None:
-    ConfiguredOrganisation.clear()
     actual = await health.dataset()
     assert actual is True
 
