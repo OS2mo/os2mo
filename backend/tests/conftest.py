@@ -308,7 +308,7 @@ async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
     _mox_testing_api("db-reset")
 
 
-@pytest.fixture()
+@pytest.fixture(scope="session")
 def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
@@ -488,7 +488,7 @@ def patch_loader():
     yield patcher
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
     """Fixture yielding a FastAPI test client.
 
@@ -497,7 +497,7 @@ def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
     return TestClient(fastapi_admin_test_app)
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
     """Fixture yielding a FastAPI test client.
 

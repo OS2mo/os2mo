@@ -8,14 +8,12 @@ from mora import exceptions
 from mora.service.address_handler.dar import DARAddressHandler
 
 
-@pytest.fixture
-def valid_value() -> str:
-    return "0a3f50a0-23c9-32b8-e044-0003ba298018"
+VALID_VALUE = "0a3f50a0-23c9-32b8-e044-0003ba298018"
 
 
-async def test_from_effect(valid_value):
+async def test_from_effect():
     # Arrange
-    effect = {"relationer": {"adresser": [{"urn": f"urn:dar:{valid_value}"}]}}
+    effect = {"relationer": {"adresser": [{"urn": f"urn:dar:{VALID_VALUE}"}]}}
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
             address_handler = await DARAddressHandler.from_effect(effect)
@@ -24,12 +22,12 @@ async def test_from_effect(valid_value):
         actual_value = address_handler.value
 
         # Assert
-        assert valid_value == actual_value
+        assert VALID_VALUE == actual_value
 
 
-async def test_from_request(valid_value):
+async def test_from_request():
     # Arrange
-    request = {"value": valid_value}
+    request = {"value": VALID_VALUE}
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
             address_handler = await DARAddressHandler.from_request(request)
@@ -38,12 +36,12 @@ async def test_from_request(valid_value):
         actual_value = address_handler.value
 
         # Assert
-        assert valid_value == actual_value
+        assert VALID_VALUE == actual_value
 
 
-async def test_get_mo_address(valid_value):
+async def test_get_mo_address():
     # Arrange
-    request = {"value": valid_value}
+    request = {"value": VALID_VALUE}
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
             address_handler = await DARAddressHandler.from_request(request)
@@ -84,12 +82,12 @@ async def test_validation_fails_on_unknown_uuid():
                 await DARAddressHandler.validate_value(value)
 
 
-async def test_validation_succeeds_on_correct_uuid(valid_value):
+async def test_validation_succeeds_on_correct_uuid():
     # Act & Assert
     # Assert that no exception is raised
     with util.darmock("dawa-addresses.json", real_http=True):
         with dar_loader():
-            await DARAddressHandler.validate_value(valid_value)
+            await DARAddressHandler.validate_value(VALID_VALUE)
 
 
 async def test_validation_succeeds_with_force():
@@ -168,12 +166,12 @@ async def test_failed_lookup_from_effect():
         assert expected == await address_handler.get_mo_address_and_properties()
 
 
-def test_get_lora_address(valid_value):
+def test_get_lora_address():
     # Arrange
     visibility = "d99b500c-34b4-4771-9381-5c989eede969"
-    address_handler = DARAddressHandler(valid_value, visibility)
+    address_handler = DARAddressHandler(VALID_VALUE, visibility)
 
-    expected = {"objekttype": "DAR", "urn": f"urn:dar:{valid_value}"}
+    expected = {"objekttype": "DAR", "urn": f"urn:dar:{VALID_VALUE}"}
 
     # Act
     actual = address_handler.get_lora_address()
