@@ -23,19 +23,12 @@ logger = get_logger()
 
 # Global variables for test optimizations
 base_test_app = None
-graph_api_test_app = None
 
 
-class NewTestApp:
-    def create_app(self, overrides=None):
-        service.org.ConfiguredOrganisation.valid = False
-        _app = app.create_app()
-        return _app
-
-
-class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
-    """
-    Async base class for MO testcases w/o LoRA access.
+@pytest.mark.integration_test
+class AsyncLoRATestCase(IsolatedAsyncioTestCase):
+    """Base class for LoRA testcases; the test creates an empty LoRA
+    instance, and deletes all objects between runs.
     """
 
     maxDiff = None
@@ -253,10 +246,10 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
 
         """
         if isinstance(obj, dict):
-            return {k: AsyncTestCase.__sort_inner_lists(v) for k, v in obj.items()}
+            return {k: AsyncLoRATestCase.__sort_inner_lists(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return sorted(
-                map(AsyncTestCase.__sort_inner_lists, obj),
+                map(AsyncLoRATestCase.__sort_inner_lists, obj),
                 key=(lambda p: json.dumps(p, sort_keys=True)),
             )
         return obj
@@ -293,17 +286,6 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         actual = self.__sort_inner_lists(actual)
 
         return self.assertEqual(expected, actual, message)
-
-
-class AsyncTestCase(_AsyncBaseTestCase):
-    pass
-
-
-@pytest.mark.integration_test
-class AsyncLoRATestCase(_AsyncBaseTestCase):
-    """Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    """
 
 
 @pytest.mark.integration_test
