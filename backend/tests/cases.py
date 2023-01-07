@@ -296,9 +296,33 @@ class _AsyncBaseTestCase(IsolatedAsyncioTestCase):
         return self.assertEqual(expected, actual, message)
 
 
-class _BaseTestCase(TestCase):
+class AsyncTestCase(_AsyncBaseTestCase):
+    pass
+
+
+class AsyncMockRequestContextTestCase(IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        # Patch usages of request context in test cases that do not
+        # take place in a request
+        # It looks iffy, and it is, but the _real_ solution would be to rewrite the
+        # relevant code to not depend on a global request context
+        patcher = patch("mora.util.context", new={"query_args": {}})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        await super().asyncSetUp()
+
+
+@pytest.mark.integration_test
+class AsyncLoRATestCase(_AsyncBaseTestCase):
+    """Base class for LoRA testcases; the test creates an empty LoRA
+    instance, and deletes all objects between runs.
     """
-    Base class for MO testcases w/o LoRA access.
+
+
+@pytest.mark.integration_test
+class LoRATestCase(TestCase):
+    """Base class for LoRA testcases; the test creates an empty LoRA
+    instance, and deletes all objects between runs.
     """
 
     maxDiff = None
@@ -510,10 +534,10 @@ class _BaseTestCase(TestCase):
 
         """
         if isinstance(obj, dict):
-            return {k: TestCase.__sort_inner_lists(v) for k, v in obj.items()}
+            return {k: LoRATestCase.__sort_inner_lists(v) for k, v in obj.items()}
         elif isinstance(obj, (list, tuple)):
             return sorted(
-                map(TestCase.__sort_inner_lists, obj),
+                map(LoRATestCase.__sort_inner_lists, obj),
                 key=(lambda p: json.dumps(p, sort_keys=True)),
             )
         return obj
@@ -550,49 +574,3 @@ class _BaseTestCase(TestCase):
         actual = self.__sort_inner_lists(actual)
 
         return self.assertEqual(expected, actual, message)
-
-
-class AsyncTestCase(_AsyncBaseTestCase):
-    pass
-
-
-class TestCase(_BaseTestCase):
-    pass
-
-
-class AsyncMockRequestContextTestCase(IsolatedAsyncioTestCase):
-    async def asyncSetUp(self):
-        # Patch usages of request context in test cases that do not
-        # take place in a request
-        # It looks iffy, and it is, but the _real_ solution would be to rewrite the
-        # relevant code to not depend on a global request context
-        patcher = patch("mora.util.context", new={"query_args": {}})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        await super().asyncSetUp()
-
-
-class MockRequestContextTestCase(TestCase):
-    def setUp(self):
-        # Patch usages of request context in test cases that do not
-        # take place in a request
-        # It looks iffy, and it is, but the _real_ solution would be to rewrite the
-        # relevant code to not depend on a global request context
-        patcher = patch("mora.util.context", new={"query_args": {}})
-        patcher.start()
-        self.addCleanup(patcher.stop)
-        super().setUp()
-
-
-@pytest.mark.integration_test
-class AsyncLoRATestCase(_AsyncBaseTestCase):
-    """Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    """
-
-
-@pytest.mark.integration_test
-class LoRATestCase(_BaseTestCase):
-    """Base class for LoRA testcases; the test creates an empty LoRA
-    instance, and deletes all objects between runs.
-    """
