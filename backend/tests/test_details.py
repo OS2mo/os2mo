@@ -1,82 +1,61 @@
 # SPDX-FileCopyrightText: 2018-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import tests.cases
+import pytest
+from fastapi.testclient import TestClient
 
 
-class AsyncTests(tests.cases.AsyncTestCase):
-    maxDiff = None
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/service/details/create",
+        "/service/details/edit",
+    ],
+)
+def test_create_invalid_type(service_client: TestClient, url: str) -> None:
+    response = service_client.post(url, json=[{"type": "kaflaflibob"}])
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Unknown role type.",
+        "error": True,
+        "error_key": "E_UNKNOWN_ROLE_TYPE",
+        "status": 400,
+        "types": ["kaflaflibob"],
+    }
 
-    async def test_create_invalid_type(self):
-        await self.assertRequestResponse(
-            "/service/details/create",
+
+def test_invalid_json(service_client: TestClient) -> None:
+    response = service_client.post("/service/details/edit", json="kaflaflibob")
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Invalid input.",
+        "error": True,
+        "error_key": "E_INVALID_INPUT",
+        "errors": [
             {
-                "description": "Unknown role type.",
-                "error": True,
-                "error_key": "E_UNKNOWN_ROLE_TYPE",
-                "status": 400,
-                "types": ["kaflaflibob"],
+                "loc": ["body"],
+                "msg": "value is not a valid list",
+                "type": "type_error.list",
             },
-            json=[
-                {
-                    "type": "kaflaflibob",
-                }
-            ],
-            status_code=400,
-        )
-
-    async def test_edit_invalid_type(self):
-        await self.assertRequestResponse(
-            "/service/details/edit",
             {
-                "description": "Unknown role type.",
-                "error": True,
-                "error_key": "E_UNKNOWN_ROLE_TYPE",
-                "status": 400,
-                "types": ["kaflaflibob"],
+                "loc": ["body"],
+                "msg": "value is not a valid dict",
+                "type": "type_error.dict",
             },
-            json=[
-                {
-                    "type": "kaflaflibob",
-                }
-            ],
-            status_code=400,
-        )
+        ],
+        "request": "kaflaflibob",
+        "status": 400,
+    }
 
-    async def test_invalid_json(self):
-        await self.assertRequestResponse(
-            "/service/details/edit",
-            {
-                "description": "Invalid input.",
-                "error": True,
-                "error_key": "E_INVALID_INPUT",
-                "errors": [
-                    {
-                        "loc": ["body"],
-                        "msg": "value is not a valid dict",
-                        "type": "type_error.dict",
-                    },
-                    {
-                        "loc": ["body"],
-                        "msg": "value is not a valid list",
-                        "type": "type_error.list",
-                    },
-                ],
-                "request": "kaflaflibob",
-                "status": 400,
-            },
-            json="kaflaflibob",
-            status_code=400,
-        )
 
-    async def test_request_invalid_type(self):
-        await self.assertRequestResponse(
-            "/service/e/00000000-0000-0000-0000-000000000000/details/blyf",
-            {
-                "description": "Unknown role type.",
-                "error": True,
-                "error_key": "E_UNKNOWN_ROLE_TYPE",
-                "status": 400,
-                "type": "blyf",
-            },
-            status_code=400,
-        )
+def test_request_invalid_type(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/e/00000000-0000-0000-0000-000000000000/details/blyf"
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Unknown role type.",
+        "error": True,
+        "error_key": "E_UNKNOWN_ROLE_TYPE",
+        "status": 400,
+        "type": "blyf",
+    }
