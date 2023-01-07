@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import pytest
+from fastapi.testclient import TestClient
 
 import tests.cases
 from mora.config import NavLink
@@ -8,48 +9,51 @@ from mora.config import Settings
 from tests import util
 
 
-class AsyncTests(tests.cases.AsyncTestCase):
-    async def test_global_user_settings_read(self):
-        """
-        Test that it is possible to correctly read default global settings.
-        """
-        url = "/service/configuration"
-        user_settings = await self.assertRequest(url)
-        assert "show_location" in user_settings
-        assert "show_user_key" in user_settings
-        assert "show_roles" in user_settings
-        assert user_settings["show_location"] is True
+def test_global_user_settings_read(service_client: TestClient) -> None:
+    """Test that it is possible to correctly read default global settings."""
+    url = "/service/configuration"
+    response = service_client.get(url)
+    assert response.status_code == 200
+    user_settings = response.json()
+    assert "show_location" in user_settings
+    assert "show_user_key" in user_settings
+    assert "show_roles" in user_settings
+    assert user_settings["show_location"] is True
 
-    async def test_global_user_settings_write(self):
-        """
-        Test that it is no longer possible to write a global setting
-        """
 
-        url = "/service/configuration"
+def test_global_user_settings_write(service_client: TestClient) -> None:
+    """Test that it is no longer possible to write a global setting."""
+    url = "/service/configuration"
+    payload = {"org_units": {"show_roles": "False"}}
+    response = service_client.post(url, json=payload)
+    assert response.status_code == 410
 
-        payload = {"org_units": {"show_roles": "False"}}
-        await self.assertRequest(url, json=payload, status_code=410)
-        user_settings = await self.assertRequest(url)
-        assert user_settings["show_roles"] is True
+    response = service_client.get(url)
+    assert response.status_code == 200
+    user_settings = response.json()
+    assert user_settings["show_roles"] is True
 
-        payload = {"org_units": {"show_roles": "True"}}
-        await self.assertRequest(url, json=payload, status_code=410)
-        user_settings = await self.assertRequest(url)
-        assert user_settings["show_roles"] is True
+    payload = {"org_units": {"show_roles": "True"}}
+    response = service_client.post(url, json=payload)
+    assert response.status_code == 410
 
-    async def test_ou_user_settings(self):
-        """
-        Test that reading and writing settings on units works corrcectly.
-        """
+    response = service_client.get(url)
+    assert response.status_code == 200
+    user_settings = response.json()
+    assert user_settings["show_roles"] is True
 
-        uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
-        payload = {"org_units": {"show_user_key": "True"}}
-        url = f"/service/ou/{uuid}/configuration"
-        await self.assertRequest(url, json=payload, status_code=410)
+def test_ou_user_settings(service_client: TestClient) -> None:
+    """Test that reading and writing settings on units works corrcectly."""
+    uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+    url = f"/service/ou/{uuid}/configuration"
+    payload = {"org_units": {"show_user_key": "True"}}
+    response = service_client.post(url, json=payload)
+    assert response.status_code == 410
 
-        user_settings = await self.assertRequest(url)
-        assert "show_kle" in user_settings
+    response = service_client.get(url)
+    assert response.status_code == 200
+    assert "show_kle" in response.json()
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -75,25 +79,19 @@ class LoRaTest(tests.cases.LoRATestCase):
         assert user_settings["show_location"]
 
 
-class AsyncTestNavLink(tests.cases.AsyncTestCase):
-    """
-    Test the retrieval of "nav links" via the "/service/navlinks" endpoint
-    """
+def test_empty_list(service_client: TestClient) -> None:
+    url = "/service/navlinks"
+    response = service_client.get(url)
+    assert response.status_code == 200
+    assert response.json() == [{}]
 
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        self.url = "/service/navlinks"
 
-    async def test_empty_list(self):
-        empty_list = await self.assertRequest(self.url)
-        self.assertSequenceEqual(empty_list, [{}])
+async def test_populated_list(service_client: TestClient) -> None:
+    url = "/service/navlinks"
+    href = "http://google.com"
+    text = "Google"
 
-    async def test_populated_list(self):
-        href = "http://google.com"
-        text = "Google"
-
-        with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
-            populated_list = await self.assertRequest(self.url)
-        assert len(populated_list) == 1
-        assert populated_list[0]["href"] == href
-        assert populated_list[0]["text"] == text
+    with util.override_config(Settings(navlinks=[NavLink(href=href, text=text)])):
+        response = service_client.get(url)
+        assert response.status_code == 200
+        assert response.json() == [{"href": "http://google.com", "text": "Google"}]
