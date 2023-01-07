@@ -27,13 +27,6 @@ base_test_app = None
 graph_api_test_app = None
 
 
-class NewGraphApiTestApp:
-    def create_app(self, overrides=None):
-        service.org.ConfiguredOrganisation.valid = False
-        _app = app.create_app()
-        return _app
-
-
 class NewTestApp:
     def create_app(self, overrides=None):
         service.org.ConfiguredOrganisation.valid = False
