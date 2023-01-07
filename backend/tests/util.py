@@ -17,6 +17,7 @@ from urllib.parse import parse_qsl
 
 import aioresponses
 import jinja2
+import pytest
 import requests_mock
 from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
@@ -506,6 +507,12 @@ class darmock(aioresponses.aioresponses):
         if json is not None:
             body = dumps(json)
         return super().get(*args, **kwargs, body=body)
+
+
+@pytest.fixture
+def darmocked():
+    with darmock as mock:
+        yield mock
 
 
 def modified_normalize_url(url: URL | str) -> URL:

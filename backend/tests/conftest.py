@@ -43,6 +43,7 @@ from oio_rest.db.testing import ensure_testing_database_exists
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
+from tests.util import darmock
 from tests.util import load_sample_structures
 
 
@@ -506,3 +507,9 @@ def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
     return TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
+
+
+@pytest.fixture
+def darmocked():
+    with darmock() as mock:
+        yield mock
