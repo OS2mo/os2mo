@@ -1,7 +1,8 @@
 # SPDX-FileCopyrightText: 2021- Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import datetime
 import re
+from datetime import date
+from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -13,10 +14,8 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
-from parameterized import parameterized
 from pytest import MonkeyPatch
 
-import tests.cases
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import mapping
@@ -33,13 +32,11 @@ from tests.conftest import GQLResponse
 # Helpers
 # from ..util import sample_structures_minimal_decorator, foo
 
-now_beginning = datetime.datetime.now().replace(
-    hour=0, minute=0, second=0, microsecond=0
-)
+now_beginning = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 tz_cph = ZoneInfo("Europe/Copenhagen")
-now_min_cph = datetime.datetime.combine(
-    datetime.datetime.now().date(), datetime.datetime.min.time()
-).replace(tzinfo=tz_cph)
+now_min_cph = datetime.combine(datetime.now().date(), datetime.min.time()).replace(
+    tzinfo=tz_cph
+)
 invalid_uuids = [UUID("7626ad64-327d-481f-8b32-36c78eb12f8c")]
 
 
@@ -101,157 +98,161 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert len(result_uuids) == len(set(test_uuids))
 
 
-class TestEmployeeTerminate(tests.cases.AsyncLoRATestCase):
-    @parameterized.expand(
-        [
-            (
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                NEGATIVE_INFINITY,
-                now_beginning,
-                True,
-            ),
-            (
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                now_beginning,
-                now_beginning,
-                True,
-            ),
-            ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, now_beginning, True),
-            ("3b866d97-0b1f-48e0-8078-686d96f430b3", now_beginning, None, False),
-            ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, None, False),
-            (None, now_beginning, None, False),
-            (None, None, now_beginning, False),
-            (None, None, None, False),
-        ]
-    )
-    async def test_mutator(
-        self, given_uuid, given_from_date, given_to_date, expected_result
-    ):
-        with patch("mora.lora.Scope.get_all") as mock_lora_get_all, patch(
-            "mora.service.handlers.get_handler_for_function"
-        ) as mock_get_handler_for_function, patch(
-            "mora.common.add_history_entry"
-        ) as mock_add_history_entry:
-            # Mocking
-            mock_lora_get_all.return_value = {
-                given_uuid: {
-                    "tilstande": {
-                        "organisationenhedgyldighed": [
-                            {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
-                        ]
-                    }
+@pytest.mark.parametrize(
+    "given_uuid,given_from_date,given_to_date,expected_result",
+    [
+        (
+            "3b866d97-0b1f-48e0-8078-686d96f430b3",
+            NEGATIVE_INFINITY,
+            now_beginning,
+            True,
+        ),
+        (
+            "3b866d97-0b1f-48e0-8078-686d96f430b3",
+            now_beginning,
+            now_beginning,
+            True,
+        ),
+        ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, now_beginning, True),
+        ("3b866d97-0b1f-48e0-8078-686d96f430b3", now_beginning, None, False),
+        ("3b866d97-0b1f-48e0-8078-686d96f430b3", None, None, False),
+        (None, now_beginning, None, False),
+        (None, None, now_beginning, False),
+        (None, None, None, False),
+    ],
+)
+async def test_mutator(
+    given_uuid: str,
+    given_from_date: str | datetime,
+    given_to_date: str | datetime,
+    expected_result: bool,
+) -> None:
+    with patch("mora.lora.Scope.get_all") as mock_lora_get_all, patch(
+        "mora.service.handlers.get_handler_for_function"
+    ) as mock_get_handler_for_function, patch(
+        "mora.common.add_history_entry"
+    ) as mock_add_history_entry:
+        # Mocking
+        mock_lora_get_all.return_value = {
+            given_uuid: {
+                "tilstande": {
+                    "organisationenhedgyldighed": [
+                        {"virkning": {mapping.FROM: NEGATIVE_INFINITY}}
+                    ]
                 }
-            }.items()
+            }
+        }.items()
 
-            mock_request_handler_submit = AsyncMock()
-            mock_request_handler_construct = AsyncMock(
-                return_value=AsyncMock(submit=mock_request_handler_submit)
-            )
-
-            mock_get_handler_for_function.return_value = AsyncMock(
-                construct=mock_request_handler_construct,
-            )
-
-            # Invoke GraphQL
-            mutation_func = "employee_terminate"
-            query, var_values = self._get_graphql_query_and_vars(
-                mutation_func,
-                uuid=given_uuid,
-                from_date=given_from_date,
-                to_date=given_to_date,
-            )
-
-            response = await execute_graphql(query, variable_values=var_values)
-
-            # Asserts
-            if expected_result:
-                mock_lora_get_all.assert_called()
-                mock_get_handler_for_function.assert_called()
-                mock_add_history_entry.assert_called()
-
-                mock_request_handler_construct.assert_called()
-                mock_request_handler_submit.assert_called()
-
-                assert (
-                    response.data.get(mutation_func, {}).get("uuid", None) == given_uuid
-                )
-            else:
-                mock_lora_get_all.assert_not_called()
-                mock_get_handler_for_function.assert_not_called()
-                mock_add_history_entry.assert_not_called()
-
-                mock_request_handler_construct.assert_not_called()
-                mock_request_handler_submit.assert_not_called()
-
-    @parameterized.expand(
-        [
-            (
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                NEGATIVE_INFINITY,
-                now_beginning,
-                True,
-            ),
-            (
-                "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                now_beginning,
-                now_beginning,
-                True,
-            ),
-            ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", now_beginning, True),
-            ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", "", False),
-            ("", now_beginning, "", False),
-            ("", "", now_beginning, False),
-            ("", NEGATIVE_INFINITY, now_beginning, False),
-            ("", "", "", False),
-        ]
-    )
-    async def test_pydantic_dataclass(
-        self, given_uuid, given_from_date, given_to_date, expected_result
-    ):
-        with patch(
-            "mora.graphapi.versions.latest.mutators.terminate_employee"
-        ) as mock_terminate_employee:
-            # Invoke GraphQL
-            mutation_func = "employee_terminate"
-            query, var_values = self._get_graphql_query_and_vars(
-                mutation_func,
-                uuid=given_uuid,
-                from_date=given_from_date,
-                to_date=given_to_date,
-            )
-
-            _ = await execute_graphql(query, variable_values=var_values)
-
-            if expected_result:
-                mock_terminate_employee.assert_called()
-            else:
-                mock_terminate_employee.assert_not_called()
-
-    @staticmethod
-    def _get_graphql_query_and_vars(
-        mutation_func: str = "employee_terminate", **kwargs
-    ):
-        query = (
-            f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) {{"
-            f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, }}) "
-            f"{{ uuid }}"
-            f"}}"
+        mock_request_handler_submit = AsyncMock()
+        mock_request_handler_construct = AsyncMock(
+            return_value=AsyncMock(submit=mock_request_handler_submit)
         )
 
-        var_values = {}
-        uuid = kwargs.get("uuid")
-        if uuid:
-            var_values["uuid"] = uuid
+        mock_get_handler_for_function.return_value = AsyncMock(
+            construct=mock_request_handler_construct,
+        )
 
-        from_date = kwargs.get("from_date")
-        if from_date:
-            var_values["from"] = from_date.isoformat()
+        # Invoke GraphQL
+        mutation_func = "employee_terminate"
+        query, var_values = _get_graphql_query_and_vars(
+            mutation_func,
+            uuid=given_uuid,
+            from_date=given_from_date,
+            to_date=given_to_date,
+        )
 
-        to_date = kwargs.get("to_date")
-        if to_date:
-            var_values["to"] = to_date.isoformat()
+        response = await execute_graphql(query, variable_values=var_values)
 
-        return query, var_values
+        # Asserts
+        if expected_result:
+            mock_lora_get_all.assert_called()
+            mock_get_handler_for_function.assert_called()
+            mock_add_history_entry.assert_called()
+
+            mock_request_handler_construct.assert_called()
+            mock_request_handler_submit.assert_called()
+
+            assert response.data.get(mutation_func, {}).get("uuid", None) == given_uuid
+        else:
+            mock_lora_get_all.assert_not_called()
+            mock_get_handler_for_function.assert_not_called()
+            mock_add_history_entry.assert_not_called()
+
+            mock_request_handler_construct.assert_not_called()
+            mock_request_handler_submit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "given_uuid,given_from_date,given_to_date,expected_result",
+    [
+        (
+            "3b866d97-0b1f-48e0-8078-686d96f430b3",
+            NEGATIVE_INFINITY,
+            now_beginning,
+            True,
+        ),
+        (
+            "3b866d97-0b1f-48e0-8078-686d96f430b3",
+            now_beginning,
+            now_beginning,
+            True,
+        ),
+        ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", now_beginning, True),
+        ("3b866d97-0b1f-48e0-8078-686d96f430b3", "", "", False),
+        ("", now_beginning, "", False),
+        ("", "", now_beginning, False),
+        ("", NEGATIVE_INFINITY, now_beginning, False),
+        ("", "", "", False),
+    ],
+)
+async def test_pydantic_dataclass(
+    given_uuid: str,
+    given_from_date: str | datetime,
+    given_to_date: str | datetime,
+    expected_result: bool,
+) -> None:
+    with patch(
+        "mora.graphapi.versions.latest.mutators.terminate_employee"
+    ) as mock_terminate_employee:
+        # Invoke GraphQL
+        mutation_func = "employee_terminate"
+        query, var_values = _get_graphql_query_and_vars(
+            mutation_func,
+            uuid=given_uuid,
+            from_date=given_from_date,
+            to_date=given_to_date,
+        )
+
+        _ = await execute_graphql(query, variable_values=var_values)
+
+        if expected_result:
+            mock_terminate_employee.assert_called()
+        else:
+            mock_terminate_employee.assert_not_called()
+
+
+def _get_graphql_query_and_vars(mutation_func: str = "employee_terminate", **kwargs):
+    query = (
+        f"mutation($uuid: UUID!, $from: DateTime, $to: DateTime!) {{"
+        f"{mutation_func}(input: {{uuid: $uuid, from: $from, to: $to, }}) "
+        f"{{ uuid }}"
+        f"}}"
+    )
+
+    var_values = {}
+    uuid = kwargs.get("uuid")
+    if uuid:
+        var_values["uuid"] = uuid
+
+    from_date = kwargs.get("from_date")
+    if from_date:
+        var_values["from"] = from_date.isoformat()
+
+    to_date = kwargs.get("to_date")
+    if to_date:
+        var_values["to"] = to_date.isoformat()
+
+    return query, var_values
 
 
 @given(test_data=...)
@@ -286,8 +287,8 @@ def valid_cprs(draw) -> str:
     # TODO: Add minimum and maximum birthyears as parameters
     valid_date = draw(
         st.dates(
-            min_value=datetime.date(1970, 1, 1),  # Should really start at 1857
-            max_value=datetime.date(2057, 1, 1),
+            min_value=date(1970, 1, 1),  # Should really start at 1857
+            max_value=date(2057, 1, 1),
         )
     )
     if valid_date.year < 1900:
@@ -385,7 +386,7 @@ async def test_create_employee_integration_test(
     # given_seniority
     # st.text() | st.none(),
     st.datetimes(
-        min_value=datetime.datetime(1930, 1, 1),
+        min_value=datetime(1930, 1, 1),
         max_value=now_beginning,
     )
     | st.none(),
@@ -792,7 +793,7 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
         from_date_str = lora_employee.get("fratidspunkt", {}).get(
             "tidsstempeldatotid", None
         )
-        return datetime.datetime.fromisoformat(from_date_str)
+        return datetime.fromisoformat(from_date_str)
 
     if mutator_key == "name":
         return f"{active_expansion['fornavn']} {active_expansion['efternavn']}"
