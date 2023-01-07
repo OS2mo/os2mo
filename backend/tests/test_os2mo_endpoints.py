@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from collections import ChainMap
 from datetime import date
 from operator import attrgetter
 
 from mora.app import create_app
-from mora.config import Environment
 from mora.graphapi.main import graphql_versions
 
 doc_endpoints = {
@@ -99,26 +97,8 @@ all_endpoints = (
     | graphql_endpoints
 )
 
-testcafe_endpoints = {"/testing/testcafe-db-setup", "/testing/testcafe-db-teardown"}
-
-
-endpoint_feature_flags = {
-    "testcafe_enable": False,
-}
-
 
 def test_all_endpoints():
-    app = create_app(endpoint_feature_flags)
+    app = create_app()
     routes = set(map(attrgetter("path"), app.routes)) | {""}
     assert routes == all_endpoints
-
-
-def test_testcafe_enabled():
-    app = create_app(
-        ChainMap(
-            {"testcafe_enable": True, "environment": Environment.TESTING},
-            endpoint_feature_flags,
-        )
-    )
-    routes = set(map(attrgetter("path"), app.routes)) | {""}
-    assert routes == all_endpoints | testcafe_endpoints
