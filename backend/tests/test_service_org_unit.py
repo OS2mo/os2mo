@@ -3,7 +3,9 @@
 import json
 from asyncio import Future
 from contextlib import nullcontext as does_not_raise
+from copy import deepcopy
 from unittest.mock import call
+from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import UUID
 
@@ -186,10 +188,42 @@ def test_unit_past(service_client: TestClient) -> None:
     }
 
 
+class CopyingMock(MagicMock):
+    """MagicMock that refers to its arguments by value instead of by reference.
+
+    Workaround for mutable mock arguments and to avoid the following:
+
+    >>> from unittest.mock import MagicMock
+    >>> b = MagicMock()
+    >>> a = {}
+    >>> b(a)
+    <MagicMock name='mock()' id='140710831830928'>
+    >>> b.assert_called_with({})
+
+    Good so far, but then this happens:
+
+    >>> a['b'] = 'c'
+    >>> b.assert_called_with({})
+    Expected: mock({})
+    Actual: mock({'b': 'c'})
+
+    With CopyingMock we do not have `a` by reference, but by value instead, and
+    thus it works 'as you would expect'.
+
+    See: https://docs.python.org/3/library/unittest.mock-examples.html under
+    "Coping with mutable arguments" for further details and the source of this code.
+    """
+
+    def __call__(self, /, *args, **kwargs):
+        args = deepcopy(args)
+        kwargs = deepcopy(kwargs)
+        return super().__call__(*args, **kwargs)
+
+
 @pytest.fixture
 def t_sender_mock():
     with patch(
-        "mora.triggers.internal.http_trigger.http_sender", new_callable=util.CopyingMock
+        "mora.triggers.internal.http_trigger.http_sender", new_callable=CopyingMock
     ) as mock:
         yield mock
 

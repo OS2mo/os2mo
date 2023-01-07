@@ -3,7 +3,6 @@
 from uuid import UUID
 
 import pytest
-import requests
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
@@ -151,46 +150,6 @@ async def test_no_auth_graphql(raw_client: TestClient) -> None:
             }
         ],
     }
-
-
-def get_keycloak_token(use_client_secret: bool = False) -> str:
-    """Get OIDC token from Keycloak to send to MOs backend.
-
-    Args:
-        use_client_secret: Whether to use client_secret or password.
-
-    Returns:
-        Encoded OIDC token from Keycloak
-    """
-
-    data = {
-        "grant_type": "password",
-        "client_id": "mo",
-        "username": "bruce",
-        "password": "bruce",
-    }
-    if use_client_secret:
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": "dipex",
-            "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
-        }
-
-    r = requests.post(
-        "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
-        data=data,
-    )
-    return r.json()["access_token"]
-
-
-@pytest.fixture(scope="session")
-def token():
-    return get_keycloak_token()
-
-
-@pytest.fixture(scope="session")
-def auth_headers(token: str):
-    return {"Authorization": f"Bearer {token}"}
 
 
 @pytest.mark.integration_test

@@ -14,6 +14,7 @@ from uuid import uuid4
 
 import psycopg2
 import pytest
+import requests
 from _pytest.monkeypatch import MonkeyPatch
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -525,3 +526,43 @@ def darmocked():
 def mockaio():
     with MockAioresponses(["dawa-autocomplete.json"]) as mock:
         yield mock
+
+
+def get_keycloak_token(use_client_secret: bool = False) -> str:
+    """Get OIDC token from Keycloak to send to MOs backend.
+
+    Args:
+        use_client_secret: Whether to use client_secret or password.
+
+    Returns:
+        Encoded OIDC token from Keycloak
+    """
+
+    data = {
+        "grant_type": "password",
+        "client_id": "mo",
+        "username": "bruce",
+        "password": "bruce",
+    }
+    if use_client_secret:
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": "dipex",
+            "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
+        }
+
+    r = requests.post(
+        "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
+        data=data,
+    )
+    return r.json()["access_token"]
+
+
+@pytest.fixture(scope="session")
+def token():
+    return get_keycloak_token()
+
+
+@pytest.fixture(scope="session")
+def auth_headers(token: str):
+    return {"Authorization": f"Bearer {token}"}

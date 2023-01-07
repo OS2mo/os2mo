@@ -7,7 +7,6 @@ from unittest.case import TestCase
 
 import httpx
 import pytest
-import requests
 from asgi_lifespan import LifespanManager
 from starlette.testclient import TestClient
 from structlog import get_logger
@@ -17,6 +16,7 @@ from mora import config
 from mora import service
 from mora.auth.keycloak.oidc import auth
 from tests.conftest import fake_auth
+from tests.conftest import get_keycloak_token
 
 
 logger = get_logger()
@@ -25,8 +25,69 @@ logger = get_logger()
 base_test_app = None
 
 
+def sort_inner_lists(obj):
+    """Sort all inner lists and tuples by their JSON string value,
+    recursively. This is quite stupid and slow, but works!
+
+    This is purely to help comparison tests, as we don't care
+    about the list ordering
+
+    """
+    if isinstance(obj, dict):
+        return {k: sort_inner_lists(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return sorted(
+            map(sort_inner_lists, obj),
+            key=(lambda p: json.dumps(p, sort_keys=True)),
+        )
+    return obj
+
+
+class MixinTestCase(TestCase):
+    def create_app(self, overrides=None):
+        global base_test_app
+        if not base_test_app:
+            service.org.ConfiguredOrganisation.valid = False
+            base_test_app = app.create_app(self.app_settings_overrides)
+
+        return base_test_app
+
+    def assertRegistrationsEqual(self, expected, actual, message=None):
+
+        # drop lora-generated timestamps & users
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
+            expected.pop(k, None)
+            actual.pop(k, None)
+
+        actual = sort_inner_lists(actual)
+        expected = sort_inner_lists(expected)
+
+        # Sort all inner lists and compare
+        return self.assertEqual(expected, actual, message)
+
+    def assertRegistrationsNotEqual(self, expected, actual, message=None):
+        # drop lora-generated timestamps & users
+        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
+            expected.pop(k, None)
+            actual.pop(k, None)
+
+        actual = sort_inner_lists(actual)
+        expected = sort_inner_lists(expected)
+
+        # Sort all inner lists and compare
+        return self.assertNotEqual(expected, actual, message)
+
+    def assertSortedEqual(self, expected, actual, message=None):
+        """Sort all inner-lists before comparison"""
+
+        expected = sort_inner_lists(expected)
+        actual = sort_inner_lists(actual)
+
+        return self.assertEqual(expected, actual, message)
+
+
 @pytest.mark.integration_test
-class AsyncLoRATestCase(IsolatedAsyncioTestCase):
+class AsyncLoRATestCase(MixinTestCase, IsolatedAsyncioTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
@@ -58,46 +119,6 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase):
         await self.client.aclose()
         await self.lifespanmanager.__aexit__()
 
-    def create_app(self, overrides=None):
-        global base_test_app
-        if not base_test_app:
-            service.org.ConfiguredOrganisation.valid = False
-            base_test_app = app.create_app(self.app_settings_overrides)
-
-        return base_test_app
-
-    def get_token(self, use_client_secret: bool = False) -> str:
-        """
-        Get OIDC token from Keycloak to send with the request
-        to the MO backend.
-
-        :param use_client_secret: use client secret if true and password otherwise
-        :return: Encoded OIDC token from Keycloak
-        """
-
-        data = {
-            "grant_type": "password",
-            "client_id": "mo",
-            "username": "bruce",
-            "password": "bruce",
-        }
-        if use_client_secret:
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": "dipex",
-                "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
-            }
-
-        r = httpx.post(
-            "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
-            data=data,
-            timeout=config.get_settings().httpx_timeout,
-        )
-
-        logger.debug("Keycloak token: " + json.dumps(r.json()))
-
-        return r.json()["access_token"]
-
     async def assertRequest(
         self,
         path,
@@ -127,7 +148,7 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase):
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
             kwargs.setdefault("headers", {}).update(
-                {"Authorization": "bearer " + self.get_token()}
+                {"Authorization": "bearer " + get_keycloak_token()}
             )
 
         r = await self.request(path, **kwargs)
@@ -193,8 +214,8 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase):
             **kwargs,
         )
 
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
+        expected = sort_inner_lists(expected)
+        actual = sort_inner_lists(actual)
 
         self.assertEqual(expected, actual, msg=message)
 
@@ -236,60 +257,9 @@ class AsyncLoRATestCase(IsolatedAsyncioTestCase):
 
         return await self.client.get(path, **kwargs)
 
-    @staticmethod
-    def __sort_inner_lists(obj):
-        """Sort all inner lists and tuples by their JSON string value,
-        recursively. This is quite stupid and slow, but works!
-
-        This is purely to help comparison tests, as we don't care
-        about the list ordering
-
-        """
-        if isinstance(obj, dict):
-            return {k: AsyncLoRATestCase.__sort_inner_lists(v) for k, v in obj.items()}
-        elif isinstance(obj, (list, tuple)):
-            return sorted(
-                map(AsyncLoRATestCase.__sort_inner_lists, obj),
-                key=(lambda p: json.dumps(p, sort_keys=True)),
-            )
-        return obj
-
-    def assertRegistrationsEqual(self, expected, actual, message=None):
-
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertEqual(expected, actual, message)
-
-    def assertRegistrationsNotEqual(self, expected, actual, message=None):
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertNotEqual(expected, actual, message)
-
-    def assertSortedEqual(self, expected, actual, message=None):
-        """Sort all inner-lists before comparison"""
-
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
-
-        return self.assertEqual(expected, actual, message)
-
 
 @pytest.mark.integration_test
-class LoRATestCase(TestCase):
+class LoRATestCase(MixinTestCase):
     """Base class for LoRA testcases; the test creates an empty LoRA
     instance, and deletes all objects between runs.
     """
@@ -308,45 +278,6 @@ class LoRATestCase(TestCase):
 
         # Bypass Keycloak per default
         self.app.dependency_overrides[auth] = fake_auth
-
-    def create_app(self, overrides=None):
-        global base_test_app
-        if not base_test_app:
-            service.org.ConfiguredOrganisation.valid = False
-            base_test_app = app.create_app(self.app_settings_overrides)
-
-        return base_test_app
-
-    def get_token(self, use_client_secret: bool = False) -> str:
-        """
-        Get OIDC token from Keycloak to send with the request
-        to the MO backend.
-
-        :param use_client_secret: use client secret if true and password otherwise
-        :return: Encoded OIDC token from Keycloak
-        """
-
-        data = {
-            "grant_type": "password",
-            "client_id": "mo",
-            "username": "bruce",
-            "password": "bruce",
-        }
-        if use_client_secret:
-            data = {
-                "grant_type": "client_credentials",
-                "client_id": "dipex",
-                "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
-            }
-
-        r = requests.post(
-            "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
-            data=data,
-        )
-
-        logger.debug("Keycloak token: " + json.dumps(r.json()))
-
-        return r.json()["access_token"]
 
     def assertRequest(
         self,
@@ -377,7 +308,7 @@ class LoRATestCase(TestCase):
         # Get OIDC token from Keycloak and add an auth request header
         if set_auth_header:
             kwargs.setdefault("headers", {}).update(
-                {"Authorization": "bearer " + self.get_token()}
+                {"Authorization": "bearer " + get_keycloak_token()}
             )
 
         r = self.request(path, **kwargs)
@@ -449,8 +380,8 @@ class LoRATestCase(TestCase):
             **kwargs,
         )
 
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
+        expected = sort_inner_lists(expected)
+        actual = sort_inner_lists(actual)
 
         self.assertEqual(expected, actual)
 
@@ -492,54 +423,3 @@ class LoRATestCase(TestCase):
                 return client.post(path, **kwargs)
 
             return client.get(path, **kwargs)
-
-    @staticmethod
-    def __sort_inner_lists(obj):
-        """Sort all inner lists and tuples by their JSON string value,
-        recursively. This is quite stupid and slow, but works!
-
-        This is purely to help comparison tests, as we don't care
-        about the list ordering
-
-        """
-        if isinstance(obj, dict):
-            return {k: LoRATestCase.__sort_inner_lists(v) for k, v in obj.items()}
-        elif isinstance(obj, (list, tuple)):
-            return sorted(
-                map(LoRATestCase.__sort_inner_lists, obj),
-                key=(lambda p: json.dumps(p, sort_keys=True)),
-            )
-        return obj
-
-    def assertRegistrationsEqual(self, expected, actual, message=None):
-
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertEqual(expected, actual, message)
-
-    def assertRegistrationsNotEqual(self, expected, actual, message=None):
-        # drop lora-generated timestamps & users
-        for k in "fratidspunkt", "tiltidspunkt", "brugerref":
-            expected.pop(k, None)
-            actual.pop(k, None)
-
-        actual = self.__sort_inner_lists(actual)
-        expected = self.__sort_inner_lists(expected)
-
-        # Sort all inner lists and compare
-        return self.assertNotEqual(expected, actual, message)
-
-    def assertSortedEqual(self, expected, actual, message=None):
-        """Sort all inner-lists before comparison"""
-
-        expected = self.__sort_inner_lists(expected)
-        actual = self.__sort_inner_lists(actual)
-
-        return self.assertEqual(expected, actual, message)
