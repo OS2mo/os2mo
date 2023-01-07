@@ -1,10 +1,11 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-import unittest.mock
 from uuid import UUID
 
 import pytest
+import requests
 from fastapi.routing import APIWebSocketRoute
+from fastapi.testclient import TestClient
 from more_itertools import one
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.models import RealmAccess
@@ -17,11 +18,8 @@ from os2mo_fastapi_utils.auth.test_helper import (
 from pydantic import MissingError
 from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
-from starlette.status import HTTP_200_OK
-from starlette.status import HTTP_401_UNAUTHORIZED
 
 import mora.auth.keycloak.oidc
-import tests.cases
 from mora.auth.keycloak.models import KeycloakToken
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
@@ -29,7 +27,6 @@ from mora.config import Settings
 from mora.graphapi.main import graphql_versions
 from tests import util
 from tests.conftest import get_latest_graphql_url
-from tests.util import sample_structures_minimal_cls_fixture
 
 
 @pytest.fixture
@@ -100,134 +97,121 @@ def test_ensure_no_auth_endpoints_do_not_depend_on_auth_function(
     )
 
 
-class TestAsyncAuthEndpointsReturn401(
-    tests.cases.NewGraphApiTestApp, tests.cases._AsyncBaseTestCase
-):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        # Enable the real OIDC auth function
-        self.app.dependency_overrides = {}
-
-    async def test_auth_service_address(self):
-        await self.assertRequestFails(
-            "/service/e/00000000-0000-0000-0000-000000000000/details/address",
-            HTTP_401_UNAUTHORIZED,
-        )
-
-    async def test_auth_service_cpr(self):
-        await self.assertRequestFails(
-            "/service/e/cpr_lookup/?q=1234", HTTP_401_UNAUTHORIZED
-        )
-
-    async def test_auth_service_details_reading(self):
-        await self.assertRequestFails(
-            "/service/e/00000000-0000-0000-0000-000000000000/details/",
-            HTTP_401_UNAUTHORIZED,
-        )
-
-    async def test_auth_service_details_writing(self):
-        await self.assertRequestResponse(
-            "/service/details/create",
-            "Not authenticated",
-            status_code=HTTP_401_UNAUTHORIZED,
-            json=[{"not": "important"}],
-        )
-
-    async def test_auth_service_employee(self):
-        await self.assertRequestFails(
-            "/service/o/00000000-0000-0000-0000-000000000000/e/", HTTP_401_UNAUTHORIZED
-        )
-
-    async def test_auth_service_exports(self):
-        await self.assertRequestFails(
-            "/service/exports/not-important", HTTP_401_UNAUTHORIZED
-        )
-
-    async def test_auth_service_facets(self):
-        await self.assertRequestFails("/service/c/ancestor-tree", HTTP_401_UNAUTHORIZED)
-
-    async def test_auth_service_itsystem(self):
-        await self.assertRequestFails(
-            "/service/o/00000000-0000-0000-0000-000000000000/it/", HTTP_401_UNAUTHORIZED
-        )
-
-    def test_auth_service_kle(self):
-        # KLE router not used anywhere?
-        pass
-
-    async def test_auth_service_org(self):
-        await self.assertRequestFails("/service/o/", HTTP_401_UNAUTHORIZED)
-
-    async def test_auth_service_orgunit(self):
-        await self.assertRequestFails(
-            "/service/ou/00000000-0000-0000-0000-000000000000/children",
-            HTTP_401_UNAUTHORIZED,
-        )
-
-    async def test_auth_service_related(self):
-        await self.assertRequestFails(
-            "/service/ou/00000000-0000-0000-0000-000000000000/map",
-            HTTP_401_UNAUTHORIZED,
-            json=[{"not": "important"}],
-        )
-
-    async def test_auth_service_configuration(self):
-        await self.assertRequestFails(
-            "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
-            HTTP_401_UNAUTHORIZED,
-        )
-
-    async def test_auth_service_validate(self):
-        await self.assertRequestFails(
-            "/service/validate/org-unit/",
-            HTTP_401_UNAUTHORIZED,
-            json=[{"not": "important"}],
-        )
-
-    async def test_auth_graphql(self):
-        await self.assertRequestResponse(
-            path=get_latest_graphql_url(),
-            json={"query": "{ org { uuid } }"},
-            expected={
-                "data": None,
-                "errors": [
-                    {
-                        "locations": [{"column": 3, "line": 1}],
-                        "message": "Not authenticated",
-                        "path": ["org"],
-                    }
-                ],
-            },
-        )
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/service/e/00000000-0000-0000-0000-000000000000/details/address",
+        "/service/e/cpr_lookup/?q=1234",
+        "/service/e/00000000-0000-0000-0000-000000000000/details/",
+        "/service/o/00000000-0000-0000-0000-000000000000/e/",
+        "/service/exports/not-important",
+        "/service/c/ancestor-tree",
+        "/service/o/00000000-0000-0000-0000-000000000000/it/",
+        "/service/o/",
+        "/service/ou/00000000-0000-0000-0000-000000000000/children",
+        "/service/ou/00000000-0000-0000-0000-000000000000/configuration",
+    ],
+)
+async def test_auth_service(raw_client: TestClient, url: str) -> None:
+    response = raw_client.get(url)
+    assert response.status_code == 401
+    # assert response.text == '"Not authenticated"'
 
 
-class TestAuthEndpointsReturn2xx(
-    tests.cases.NewGraphApiTestApp, tests.cases.AsyncLoRATestCase
-):
-    """
-    Keycloak integration tests of a few endpoints (one from /service endpoints
-    and one from the /graphql endpoints)
+@pytest.mark.integration_test
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/service/details/create",
+        "/service/ou/00000000-0000-0000-0000-000000000000/map",
+        "/service/validate/org-unit/",
+    ],
+)
+async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> None:
+    response = raw_client.post(url, json=[{"not": "important"}])
+    assert response.status_code == 401
+    assert response.text == '"Not authenticated"'
+
+
+async def test_no_auth_graphql(raw_client: TestClient) -> None:
+    response = raw_client.post(
+        get_latest_graphql_url(), json={"query": "{ org { uuid } }"}
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "data": None,
+        "errors": [
+            {
+                "locations": [{"column": 3, "line": 1}],
+                "message": "Not authenticated",
+                "path": ["org"],
+            }
+        ],
+    }
+
+
+def get_keycloak_token(use_client_secret: bool = False) -> str:
+    """Get OIDC token from Keycloak to send to MOs backend.
+
+    Args:
+        use_client_secret: Whether to use client_secret or password.
+
+    Returns:
+        Encoded OIDC token from Keycloak
     """
 
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        # Enable the real Keycloak auth mechanism in order to perform Keycloak
-        # integration tests
-        self.app.dependency_overrides = {}
+    data = {
+        "grant_type": "password",
+        "client_id": "mo",
+        "username": "bruce",
+        "password": "bruce",
+    }
+    if use_client_secret:
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": "dipex",
+            "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
+        }
 
-    @pytest.mark.usefixtures("sample_structures_minimal")
-    async def test_auth_service_org(self):
-        await self.assertRequest("/service/o/", HTTP_200_OK, set_auth_header=True)
+    r = requests.post(
+        "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
+        data=data,
+    )
+    return r.json()["access_token"]
 
-    async def test_auth_graphql(self):
-        await self.assertRequestResponse(
-            path=get_latest_graphql_url(),
-            set_auth_header=True,
-            json={"query": "{ org { uuid } }"},
-            expected={
-                "data": {"org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"}}
-            },
-        )
+
+@pytest.fixture(scope="session")
+def token():
+    return get_keycloak_token()
+
+
+@pytest.fixture(scope="session")
+def auth_headers(token: str):
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_minimal")
+def test_auth_service_org(raw_client: TestClient, auth_headers: dict[str, str]) -> None:
+    response = raw_client.get("/service/o/", headers=auth_headers)
+    assert response.status_code == 200
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_minimal")
+async def test_auth_graphql(
+    raw_client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    response = raw_client.post(
+        get_latest_graphql_url(),
+        headers=auth_headers,
+        json={"query": "{ org { uuid } }"},
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "data": {"org": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"}}
+    }
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
@@ -272,34 +256,22 @@ def test_uuid_parse_fails_on_garbage():
     assert len(err.value.errors()) == 2
 
 
-@sample_structures_minimal_cls_fixture
-class TestUuidInvalidOrMissing(tests.cases.LoRATestCase):
-    @unittest.mock.patch("mora.auth.keycloak.oidc.auth")
-    def test_401_when_uuid_missing_in_token(self, mock_auth):
-        validation_err = ValidationError(
-            errors=[ErrorWrapper(MissingError(), loc="uuid")], model=Token
-        )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_minimal")
+def test_401_when_uuid_missing_in_token(
+    raw_client: TestClient, auth_headers: dict[str, str]
+) -> None:
+    validation_err = ValidationError(
+        errors=[ErrorWrapper(MissingError(), loc="uuid")], model=Token
+    )
 
-        def fake_auth():
-            raise AuthenticationError(exc=validation_err)
+    def fake_auth():
+        raise AuthenticationError(exc=validation_err)
 
-        self.app.dependency_overrides[auth] = fake_auth
+    app = raw_client.app
+    app.dependency_overrides[auth] = fake_auth
 
-        # Make call to random endpoint
-        r = self.assertRequest(
-            "/service/o/", status_code=HTTP_401_UNAUTHORIZED, set_auth_header=True
-        )
-        assert {"status": "Unauthorized", "msg": str(validation_err)} == r
-
-
-# TODO: Find a way to test that endpoints works when auth is disabled
-@unittest.skip("Not working...(?)")
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestAuthDisabled(tests.cases.LoRATestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.app.dependency_overrides = []
-
-    @util.override_config(Settings(os2mo_auth=False))
-    def test_no_token_required_when_auth_disabled(self):
-        self.assertRequest("/service/o/")
+    # Make call to random endpoint
+    response = raw_client.get("/service/o/", headers=auth_headers)
+    assert response.status_code == 401
+    assert response.json() == {"status": "Unauthorized", "msg": str(validation_err)}

@@ -14,6 +14,7 @@ from uuid import uuid4
 import psycopg2
 import pytest
 from _pytest.monkeypatch import MonkeyPatch
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
 from hypothesis import settings as h_settings
@@ -145,19 +146,29 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-def test_app(**overrides: Any):
+def raw_test_app(**overrides: Any) -> FastAPI:
     app = create_app(overrides)
+    return app
+
+
+def test_app(**overrides: Any) -> FastAPI:
+    app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = fake_auth
     app.dependency_overrides[token_getter] = fake_token_getter
     return app
 
 
-def admin_test_app(**overrides: Any):
-    app = create_app(overrides)
+def admin_test_app(**overrides: Any) -> FastAPI:
+    app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = admin_auth
     app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     app.dependency_overrides[token_getter] = admin_token_getter
     return app
+
+
+@pytest.fixture(scope="session")
+def fastapi_raw_test_app():
+    yield raw_test_app()
 
 
 @pytest.fixture(scope="session")
@@ -183,6 +194,16 @@ def get_latest_graphql_url() -> str:
 @pytest.fixture(scope="session")
 def latest_graphql_url() -> str:
     return get_latest_graphql_url()
+
+
+@pytest.fixture(scope="session")
+def raw_client(fastapi_raw_test_app):
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    with TestClient(fastapi_raw_test_app) as client:
+        yield client
 
 
 @pytest.fixture(scope="session")
