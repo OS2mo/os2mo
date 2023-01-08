@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
@@ -9,7 +9,6 @@ from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
 from typing import TypeVar
-from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
 
@@ -25,7 +24,6 @@ from hypothesis import strategies as st
 from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
-from more_itertools import one
 from respx.mocks import HTTPCoreMocker
 from starlette_context import context
 from starlette_context import request_cycle_context
@@ -37,17 +35,15 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
-from mora.db import get_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.service.org import ConfiguredOrganisation
-from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
+from oio_rest.db.testing import teardown_testing_database
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
-from tests.util import _mox_testing_api
 from tests.util import darmock
 from tests.util import load_sample_structures
 from tests.util import MockAioresponses
@@ -87,7 +83,7 @@ def clear_configured_organisation():
     ConfiguredOrganisation.clear()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def mock_asgi_transport() -> YieldFixture[None]:
     HTTPCoreMocker.add_targets(
         "httpx._transports.asgi.ASGITransport",
@@ -172,13 +168,6 @@ def test_app(**overrides: Any) -> FastAPI:
     app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = fake_auth
     app.dependency_overrides[token_getter] = fake_token_getter
-    lora_settings = lora_get_settings()
-    app.state.sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name="mox_test",
-    )
     return app
 
 
@@ -240,7 +229,7 @@ def service_client(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
@@ -250,38 +239,31 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def testing_db() -> YieldFixture[None]:
-    _mox_testing_api("db-setup")
+    ensure_testing_database_exists()
     yield
-    _mox_testing_api("db-teardown")
+    teardown_testing_database()
 
 
-# Due to the current tight coupling between our unit and integration test,
-# The load_fixture_data can not be set as a session
-# scoped fixture with autouse true. Session fixture can not be
-# used as an input to default/function scoped fixture.
-are_fixtures_loaded = False
+@pytest.fixture(scope="session")
+async def load_fixture_data(testing_db) -> YieldFixture[None]:
+    conn = get_connection()
+    await load_sample_structures()
+    conn.commit()  # commit the initial sample structures
+    yield
 
 
-async def load_fixture_data() -> None:
-    """Loads full sample structure
-    Also naively looks if some of the sample structures are loaded
-    to avoid loading all sample data more than once.
-    """
-    global are_fixtures_loaded
-    if not are_fixtures_loaded:
-        ensure_testing_database_exists()
-        conn = get_connection()
-        await load_sample_structures()
-        conn.commit()  # commit the initial sample structures
-        are_fixtures_loaded = True
+@pytest.fixture(scope="session")
+async def load_minimal_fixture_data(testing_db) -> YieldFixture[None]:
+    conn = get_connection()
+    await load_sample_structures(minimal=True)
+    conn.commit()  # commit the initial sample structures
+    yield
 
 
-@pytest.fixture(scope="class")
-async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
-    await load_fixture_data()
-
+@pytest.fixture(scope="function")
+async def load_fixture_data_with_reset(load_fixture_data) -> YieldFixture[None]:
     conn = get_connection()
     try:
         conn.set_session(autocommit=False)
@@ -295,9 +277,9 @@ async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
 
 
 @pytest.fixture(scope="function")
-async def load_fixture_data_with_reset() -> YieldFixture[None]:
-    await load_fixture_data()
-
+async def load_minimal_fixture_data_with_reset(
+    load_minimal_fixture_data,
+) -> YieldFixture[None]:
     conn = get_connection()
     try:
         conn.set_session(autocommit=False)
@@ -317,14 +299,6 @@ def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
     loop.close()
 
 
-@pytest.fixture
-async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
-    """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=True)
-    yield
-    _mox_testing_api("db-reset")
-
-
 @pytest.fixture(scope="session")
 def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
@@ -339,11 +313,10 @@ def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestCl
 class GQLResponse:
     data: dict | None
     errors: list[dict] | None
-    extensions: dict | None
     status_code: int
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
     def _post(
         query: str,
@@ -351,13 +324,9 @@ def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
         url: str = latest_graphql_url,
     ) -> GQLResponse:
         response = admin_client.post(url, json={"query": query, "variables": variables})
-        data = response.json().get("data")
-        errors = response.json().get("errors")
-        extensions = response.json().get("extensions")
+        data, errors = response.json().get("data"), response.json().get("errors")
         status_code = response.status_code
-        return GQLResponse(
-            data=data, errors=errors, extensions=extensions, status_code=status_code
-        )
+        return GQLResponse(data=data, errors=errors, status_code=status_code)
 
     yield _post
 
@@ -423,7 +392,10 @@ def gen_organisation(
 
 
 @pytest.fixture
-def mock_organisation(respx_mock) -> YieldFixture[UUID]:
+def mock_organisation(respx_mock) -> UUID:
+    # Clear Organisation cache before mocking a new one
+    ConfiguredOrganisation.clear()
+
     organisation = gen_organisation()
 
     respx_mock.get(
@@ -432,29 +404,11 @@ def mock_organisation(respx_mock) -> YieldFixture[UUID]:
     return organisation["id"]
 
 
-@pytest.fixture
-def mock_get_valid_organisations(respx_mock) -> YieldFixture[UUID]:
-    organisation = gen_organisation()
-
-    reg = one(organisation["registreringer"])
-    attrs = one(reg["attributter"]["organisationegenskaber"])
-    mocked_organisation = {
-        "name": attrs["organisationsnavn"],
-        "user_key": attrs["brugervendtnoegle"],
-        "uuid": organisation["id"],
-    }
-    with patch("mora.service.org.get_valid_organisations") as mock:
-        mock.return_value = [mocked_organisation]
-        yield UUID(mocked_organisation["uuid"])
-
-
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
 
 
-@pytest.fixture(scope="class", name="org_uuids")
-def fetch_org_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="org_uuids")
+def fetch_org_uuids(load_fixture_data, graphapi_post: Callable) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
@@ -468,10 +422,8 @@ def fetch_org_uuids(
     return uuids
 
 
-@pytest.fixture(scope="class", name="employee_uuids")
-def fetch_employee_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="employee_uuids")
+def fetch_employee_uuids(load_fixture_data, graphapi_post: Callable) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
@@ -485,10 +437,8 @@ def fetch_employee_uuids(
     return uuids
 
 
-@pytest.fixture(scope="class", name="itsystem_uuids")
-def fetch_itsystem_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="itsystem_uuids")
+def fetch_itsystem_uuids(load_fixture_data, graphapi_post: Callable) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
             itsystems {
@@ -502,7 +452,7 @@ def fetch_itsystem_uuids(
     return uuids
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def patch_loader():
     """Fixture to patch dataloaders for mocks.
 
@@ -593,14 +543,3 @@ def token():
 @pytest.fixture(scope="session")
 def auth_headers(token: str):
     return {"Authorization": f"Bearer {token}"}
-
-
-@pytest.fixture
-def sp_configuration(monkeypatch, tmp_path) -> None:
-    """Configure minimal environment variables to test Serviceplatformen integration."""
-    tmp_file = tmp_path / "testfile"
-    tmp_file.write_text("This is a certificate")
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("ENABLE_SP", "True")
-    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
-    yield

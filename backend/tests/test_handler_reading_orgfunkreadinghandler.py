@@ -15,14 +15,14 @@ def lora_connector() -> Connector:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_minimal_fixture_data_with_reset")
 async def test_get_search_fields() -> None:
     result = OrgFunkReadingHandler._get_search_fields("ou", UNIT_UUID)
     assert result == {OrgFunkReadingHandler.SEARCH_FIELDS["ou"]: UNIT_UUID}
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_minimal_fixture_data_with_reset")
 async def test_get_from_type(lora_connector: Connector) -> None:
     result = await OrgFunkReadingHandler.get_from_type(lora_connector, "ou", UNIT_UUID)
     assert isinstance(result, list)
@@ -30,7 +30,7 @@ async def test_get_from_type(lora_connector: Connector) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_minimal_fixture_data_with_reset")
 async def test_get_count(lora_connector: Connector) -> None:
     # This counts the 2 org funcs of type "tilknyttedeenheder"
     # ("rod <-> fil", "rod <-> hum")

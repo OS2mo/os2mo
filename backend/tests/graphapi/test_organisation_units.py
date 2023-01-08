@@ -221,7 +221,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
@@ -257,7 +257,7 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [

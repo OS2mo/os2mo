@@ -27,8 +27,6 @@ from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
 
-# Helpers
-# from ..util import sample_structures_minimal_decorator, foo
 
 now_beginning = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 tz_cph = ZoneInfo("Europe/Copenhagen")

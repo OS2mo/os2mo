@@ -316,7 +316,7 @@ class ExtTestCase(BaseTestCase):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("tests_setup_and_teardown")
+@pytest.mark.usefixtures("testing_db")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
 

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: 2017-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import contextlib
@@ -16,6 +16,8 @@ from urllib.parse import parse_qsl
 import aioresponses
 import jinja2
 import requests_mock
+from fastapi import APIRouter
+from fastapi.encoders import jsonable_encoder
 from starlette_context import _request_scope_context_storage
 from starlette_context import context
 from strawberry.dataloader import DataLoader
@@ -28,7 +30,6 @@ from mora.config import Settings
 from mora.service.address_handler.dar import load_addresses
 from oio_rest.db.testing import ensure_testing_database_exists
 from oio_rest.db.testing import reset_testing_database
-from oio_rest.db.testing import setup_testing_database
 from oio_rest.db.testing import stop_testing
 
 
@@ -42,20 +43,6 @@ jinja_env = jinja2.Environment(
         searchpath=FIXTURE_DIR,
     ),
 )
-
-
-def _mox_testing_api(method: str) -> None:
-    """Calls MOX `testing/<method>` REST API."""
-    if method == "db-setup":
-        ensure_testing_database_exists()
-        setup_testing_database()
-    elif method == "db-teardown":
-        reset_testing_database()
-        stop_testing()
-    elif method == "db-reset":
-        reset_testing_database()
-    else:
-        raise ValueError("Unknown method: " + method)
 
 
 def jsonfile_to_dict(path):
@@ -161,7 +148,6 @@ async def load_sample_structures(minimal=False):
     users = {
         "andersand": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
         "fedtmule": "6ee24785-ee9a-4502-81c2-7697009c9053",
-        "mickeymouse": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
         "lis_jensen": "7626ad64-327d-481f-8b32-36c78eb12f8c",
         "erik_smidt_hansen": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
     }
@@ -328,8 +314,70 @@ async def load_sample_structures(minimal=False):
     await gather(*starmap(load_fixture, fixtures))
 
 
+def get_testcafe_config() -> Settings:
+    """
+    Generate a set of configuration settings with all feature flags set to True
+
+    Used during TestCafe test runs.
+    """
+
+    settings = Settings().dict()
+
+    feature_flags = {
+        "confdb_inherit_manager",
+        "confdb_show_cpr_no",
+        "confdb_show_engagement_hyperlink",
+        "confdb_show_kle",
+        "confdb_show_level",
+        "confdb_show_location",
+        "confdb_show_org_unit_button",
+        "confdb_show_primary_association",
+        "confdb_show_primary_engagement",
+        "confdb_show_roles",
+        "confdb_show_time_planning",
+        "confdb_show_user_key",
+        "confdb_show_user_key_in_search",
+        "show_it_associations_tab",
+    }
+
+    settings.update({key: True for key in feature_flags})
+
+    return Settings(**settings)
+
+
+def setup_test_routing():
+    """
+    Returns an app with testing API for e2e-test enabled. It is a superset
+    to `mora.app.create_app()`.
+    """
+    testing_router = APIRouter()
+
+    original_settings = config.get_settings
+
+    @testing_router.get("/testing/testcafe-db-setup")
+    async def _testcafe_db_setup():
+        ensure_testing_database_exists()
+        await load_sample_structures()
+
+        config.get_settings = get_testcafe_config
+
+        return jsonable_encoder({"testcafe-db-setup": True})
+
+    @testing_router.get("/testing/testcafe-db-teardown")
+    def _testcafe_db_teardown():
+        reset_testing_database()
+        stop_testing()
+
+        config.get_settings = original_settings
+
+        return jsonable_encoder({"testcafe-db-teardown": True})
+
+    return testing_router
+
+
 @contextlib.contextmanager
 def override_config(config_obj: Settings):
+
     original = config.get_settings
     config.get_settings = lambda: config_obj
     try:
@@ -526,23 +574,23 @@ def _sample_structures_cls_fixture(cls, minimal: bool):
 
     class FireableOffense(cls):
         async def asyncSetUp(self):
-            _mox_testing_api("db-setup")
+            ensure_testing_database_exists()
             await load_sample_structures(minimal=minimal)
             await super().asyncSetUp()
 
         async def asyncTearDown(self):
             await super().asyncTearDown()
-            _mox_testing_api("db-reset")
+            reset_testing_database()
 
     class FireableOffenseSync(cls):
         def setUp(self):
-            _mox_testing_api("db-setup")
+            ensure_testing_database_exists()
             asyncio.run(load_sample_structures(minimal=minimal))
             super().setUp()
 
         def tearDown(self):
             super().tearDown()
-            _mox_testing_api("db-reset")
+            reset_testing_database()
 
     if issubclass(cls, AsyncLoRATestCase):
         return FireableOffense

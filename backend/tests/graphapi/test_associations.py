@@ -97,7 +97,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
@@ -237,7 +237,7 @@ async def test_create_association(
 
 @given(data=st.data())
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_association_integration_test(
     data, graphapi_post, org_uuids, employee_uuids
 ) -> None:
@@ -324,7 +324,7 @@ async def test_create_association_integration_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "test_data",
     [

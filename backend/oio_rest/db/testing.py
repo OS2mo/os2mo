@@ -59,17 +59,9 @@ def setup_testing_database():
 
 def reset_testing_database():
     """Truncate all tables in the 'actual_state' schema, in the testing database"""
-    # HACK as long as we have two ways to generate sample structure data
-    # the are_fixtures_loaded needs to be set to false to ensure
-    # the correct change between minimal and full sample structure data
-
-    from tests import conftest
-
-    conftest.are_fixtures_loaded
     _begin_or_continue_testing()
     _check_current_database_is_testing()
     truncate_all_tables()
-    conftest.are_fixtures_loaded = False
 
 
 def teardown_testing_database():

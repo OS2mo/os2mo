@@ -244,7 +244,7 @@ async def test_unit_create_class(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_class_reset")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
