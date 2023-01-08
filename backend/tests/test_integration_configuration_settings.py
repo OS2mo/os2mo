@@ -3,7 +3,6 @@
 import pytest
 from fastapi.testclient import TestClient
 
-import tests.cases
 from mora.config import NavLink
 from mora.config import Settings
 from tests import util
@@ -56,27 +55,32 @@ def test_ou_user_settings(service_client: TestClient) -> None:
     assert "show_kle" in response.json()
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-class LoRaTest(tests.cases.LoRATestCase):
-    def test_ou_service_response(self):
-        """
-        Test that the service endpoint for units returns the correct
-        configuration settings, including that this endpoint should convert
-        the magic strings 'True' and 'False' into boolean values.
-        """
-        uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+def test_ou_service_response(service_client: TestClient) -> None:
+    """
+    Test that the service endpoint for units returns the correct
+    configuration settings, including that this endpoint should convert
+    the magic strings 'True' and 'False' into boolean values.
+    """
+    uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
 
-        url = f"/service/ou/{uuid}/configuration"
-        payload = {"org_units": {"show_user_key": "True"}}
-        self.assertRequest(url, json=payload, status_code=410)
-        payload = {"org_units": {"show_location": "False"}}
-        self.assertRequest(url, json=payload, status_code=410)
+    url = f"/service/ou/{uuid}/configuration"
+    payload = {"org_units": {"show_user_key": "True"}}
+    response = service_client.post(url, json=payload)
+    assert response.status_code == 410
 
-        service_url = f"/service/ou/{uuid}/"
-        response = self.assertRequest(service_url)
-        user_settings = response["user_settings"]["orgunit"]
-        assert user_settings["show_user_key"]
-        assert user_settings["show_location"]
+    payload = {"org_units": {"show_location": "False"}}
+    response = service_client.post(url, json=payload)
+    assert response.status_code == 410
+
+    service_url = f"/service/ou/{uuid}/"
+    response = service_client.get(service_url)
+    assert response.status_code == 200
+    result = response.json()
+    user_settings = result["user_settings"]["orgunit"]
+    assert user_settings["show_user_key"]
+    assert user_settings["show_location"]
 
 
 def test_empty_list(service_client: TestClient) -> None:
