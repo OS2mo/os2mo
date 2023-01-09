@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 - 2022 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from fastapi import APIRouter
 from fastapi.responses import RedirectResponse

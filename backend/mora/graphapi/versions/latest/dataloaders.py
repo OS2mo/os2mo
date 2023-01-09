@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021 Magenta ApS <https://magenta.dk>
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from asyncio import gather

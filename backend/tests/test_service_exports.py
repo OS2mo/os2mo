@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64encode
 from pathlib import Path

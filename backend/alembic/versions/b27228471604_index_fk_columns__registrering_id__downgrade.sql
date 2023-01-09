@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2022 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 DROP INDEX IF EXISTS aktivitet_attr_egenskaber_idx_aktivitet_registrering_id;
 DROP INDEX IF EXISTS aktivitet_relation_idx_aktivitet_registrering_id;

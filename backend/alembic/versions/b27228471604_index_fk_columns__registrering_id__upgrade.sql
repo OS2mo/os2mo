@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2022 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 CREATE INDEX IF NOT EXISTS aktivitet_attr_egenskaber_idx_aktivitet_registrering_id ON aktivitet_attr_egenskaber (aktivitet_registrering_id) WHERE aktivitet_registrering_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS aktivitet_relation_idx_aktivitet_registrering_id ON aktivitet_relation (aktivitet_registrering_id) WHERE aktivitet_registrering_id IS NOT NULL;

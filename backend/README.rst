@@ -25,7 +25,7 @@ Dokumentation kan nu findes ved at åbne filen
 Licens og Copyright
 ===================
 
-Copyright (c) 2017-2019, Magenta ApS.
+Copyright (c) Magenta ApS.
 
 Dette værk er frigivet under `Mozilla Public License, version 2.0
 <https://www.mozilla.org/en-US/MPL/>`_, som gengivet i ``LICENSE``. Dette er et
