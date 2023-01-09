@@ -6,6 +6,7 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
 from dataclasses import dataclass
+from operator import itemgetter
 from typing import Any
 from uuid import UUID
 from uuid import uuid4
@@ -26,11 +27,13 @@ from starlette_context import request_cycle_context
 
 from mora import lora
 from mora.app import create_app
-from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
+from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
 from mora.graphapi.main import graphql_versions
+from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.db import get_connection
@@ -39,6 +42,7 @@ from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
 from tests.util import load_sample_structures
+
 
 # Configs + fixtures
 h_db = InMemoryExampleDatabase()
@@ -104,27 +108,25 @@ def mocked_context() -> None:
         yield context
 
 
-async def fake_auth():
-    return {
-        "acr": "1",
-        "allowed-origins": ["http://localhost:5001"],
-        "azp": "vue",
-        "email": "bruce@kung.fu",
-        "email_verified": False,
-        "exp": 1621779689,
-        "family_name": "Lee",
-        "given_name": "Bruce",
-        "iat": 1621779389,
-        "iss": "http://localhost:8081/auth/realms/mo",
-        "jti": "25dbb58d-b3cb-4880-8b51-8b92ada4528a",
-        "name": "Bruce Lee",
-        "preferred_username": "bruce",
-        "scope": "email profile",
-        "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
-        "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
-        "typ": "Bearer",
-        "uuid": "99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
-    }
+async def fake_auth() -> Token:
+    return Token(
+        azp="vue",
+        email="bruce@kung.fu",
+        preferred_username="bruce",
+        realm_access={"roles": set()},
+        uuid="99e7b256-7dfa-4ee8-95c6-e3abe82e236a",
+    )
+
+
+async def admin_auth() -> Token:
+    auth = await fake_auth()
+    auth.realm_access.roles = {"admin"}
+    return auth
+
+
+async def admin_auth_uuid() -> UUID:
+    token = await admin_auth()
+    return token.uuid
 
 
 def fake_token_getter() -> Callable[[], Awaitable[Token]]:
@@ -135,6 +137,14 @@ def fake_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_token
 
 
+def admin_token_getter() -> Callable[[], Awaitable[Token]]:
+    async def get_fake_admin_token():
+        token = await admin_auth()
+        return token
+
+    return get_fake_admin_token
+
+
 def test_app(**overrides: Any):
     app = create_app(overrides)
     app.dependency_overrides[auth] = fake_auth
@@ -142,9 +152,22 @@ def test_app(**overrides: Any):
     return app
 
 
-@pytest.fixture(scope="class")
+def admin_test_app(**overrides: Any):
+    app = create_app(overrides)
+    app.dependency_overrides[auth] = admin_auth
+    app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
+    app.dependency_overrides[token_getter] = admin_token_getter
+    return app
+
+
+@pytest.fixture(scope="session")
 def fastapi_test_app():
     yield test_app()
+
+
+@pytest.fixture(scope="session")
+def fastapi_admin_test_app():
+    yield admin_test_app()
 
 
 def get_latest_graphql_url() -> str:
@@ -162,13 +185,23 @@ def latest_graphql_url() -> str:
     return get_latest_graphql_url()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def service_client(fastapi_test_app):
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
     with TestClient(fastapi_test_app) as client:
+        yield client
+
+
+@pytest.fixture(scope="class")
+def admin_client(fastapi_admin_test_app):
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    with TestClient(fastapi_admin_test_app) as client:
         yield client
 
 
@@ -267,14 +300,13 @@ class GQLResponse:
 
 
 @pytest.fixture(scope="class")
-def graphapi_post(graphapi_test: TestClient, latest_graphql_url: str):
+def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
     def _post(
         query: str,
         variables: dict[str, Any] | None = None,
         url: str = latest_graphql_url,
     ) -> GQLResponse:
-        with graphapi_test as client:
-            response = client.post(url, json={"query": query, "variables": variables})
+        response = admin_client.post(url, json={"query": query, "variables": variables})
         data, errors = response.json().get("data"), response.json().get("errors")
         status_code = response.status_code
         return GQLResponse(data=data, errors=errors, status_code=status_code)
@@ -289,31 +321,21 @@ class ServiceAPIResponse:
     errors: list[Any] | None
 
 
-@pytest.fixture(scope="class")
-def serviceapi_test():
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
-    yield TestClient(test_app())
-
-
-@pytest.fixture(scope="class")
-def serviceapi_post(serviceapi_test: TestClient):
+@pytest.fixture(scope="session")
+def serviceapi_post(service_client: TestClient):
     def _post(
         url: str,
         variables: dict[str, Any] | None = None,
         method: str = "get",
     ) -> ServiceAPIResponse:
         try:
-            with serviceapi_test as client:
-                match (method.lower()):
-                    case "get":
-                        response = client.get(url, json=variables)
-                    case "post":
-                        response = client.post(url, json=variables)
-                    case _:
-                        response = None
+            match (method.lower()):
+                case "get":
+                    response = service_client.get(url, json=variables)
+                case "post":
+                    response = service_client.post(url, json=variables)
+                case _:
+                    response = None
 
             if not response:
                 return None
@@ -366,3 +388,95 @@ def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
 
 
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
+
+
+@pytest.fixture(scope="class", name="org_uuids")
+def fetch_org_uuids(
+    load_fixture_data_with_class_reset, graphapi_post: Callable
+) -> list[UUID]:
+    parent_uuids_query = """
+        query FetchOrgUUIDs {
+            org_units {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["org_units"])))
+    return uuids
+
+
+@pytest.fixture(scope="class", name="employee_uuids")
+def fetch_employee_uuids(
+    load_fixture_data_with_class_reset, graphapi_post: Callable
+) -> list[UUID]:
+    parent_uuids_query = """
+        query FetchEmployeeUUIDs {
+            employees {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(parent_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["employees"])))
+    return uuids
+
+
+@pytest.fixture(scope="class", name="itsystem_uuids")
+def fetch_itsystem_uuids(
+    load_fixture_data_with_class_reset, graphapi_post: Callable
+) -> list[UUID]:
+    itsystem_uuids_query = """
+        query FetchITSystemUUIDs {
+            itsystems {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(itsystem_uuids_query)
+    assert response.errors is None
+    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["itsystems"])))
+    return uuids
+
+
+@pytest.fixture(scope="class")
+def patch_loader():
+    """Fixture to patch dataloaders for mocks.
+
+    It looks a little weird, being a function yielding a function which returns
+    a function. However, this is necessary in order to be able to use the fixture
+    with extra parameters.
+    """
+
+    def patcher(data: list[MOModel]):
+        # If our dataloader functions were sync, we could have used a lambda directly
+        # when monkeypatching. They are async, however, and as such we need to mock
+        # using an async function.
+        async def _patcher(*args, **kwargs):
+            return data
+
+        return _patcher
+
+    yield patcher
+
+
+@pytest.fixture(scope="class")
+def graphapi_test(fastapi_admin_test_app):
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    yield TestClient(fastapi_admin_test_app)
+
+
+@pytest.fixture(scope="class")
+def graphapi_test_no_exc(fastapi_admin_test_app):
+    """Fixture yielding a FastAPI test client.
+
+    This test client does not raise server errors. We use it to check error handling
+    in our GraphQL stack.
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    yield TestClient(fastapi_admin_test_app, raise_server_exceptions=False)

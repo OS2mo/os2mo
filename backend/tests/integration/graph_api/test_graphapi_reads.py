@@ -69,7 +69,7 @@ class TestGraphAPI:
     )
     @pytest.mark.parametrize("field", FIELDS)
     @given(data=st.data())
-    def test_queries(self, data, field, graphapi_post_integration):
+    def test_queries(self, data, field, graphapi_post):
         """Test queries generated from the entire schema.
 
         This tests all manners of valid queries generated from the GraphAPI schema.
@@ -83,7 +83,7 @@ class TestGraphAPI:
         )
 
         note(f"Failing query:\n{query}")
-        response: GQLResponse = graphapi_post_integration(query=query)
+        response: GQLResponse = graphapi_post(query=query)
         assert response.status_code == 200
         assert response.data
         assert response.errors is None
@@ -109,23 +109,19 @@ class TestManagerInheritance:
         }
     """
 
-    def test_manager_no_inheritance(self, graphapi_post_integration):
+    def test_manager_no_inheritance(self, graphapi_post):
         """No inheritance - no manager for filins."""
         variables = {"uuids": [self.filins], "inherit": False}
-        response: GQLResponse = graphapi_post_integration(
-            query=self.query, variables=variables
-        )
+        response: GQLResponse = graphapi_post(query=self.query, variables=variables)
         assert response.data
         assert response.errors is None
         managers = flatten_data(response.data["org_units"])
         assert managers == [{"managers": []}]
 
-    def test_manager_with_inheritance(self, graphapi_post_integration):
+    def test_manager_with_inheritance(self, graphapi_post):
         """Inheritance - Anders And is manager of both humfak & filins."""
         variables = {"uuids": [self.humfak, self.filins], "inherit": True}
-        response: GQLResponse = graphapi_post_integration(
-            query=self.query, variables=variables
-        )
+        response: GQLResponse = graphapi_post(query=self.query, variables=variables)
         assert response.data
         assert response.errors is None
         managers = flatten_data(response.data["org_units"])
@@ -133,7 +129,7 @@ class TestManagerInheritance:
 
 
 @pytest.mark.integration_test
-def test_regression_51523_1(graphapi_post_integration):
+def test_regression_51523_1(graphapi_post):
     query = """
         query TestQuery {
             org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
@@ -141,7 +137,7 @@ def test_regression_51523_1(graphapi_post_integration):
             }
         }
     """
-    response: GQLResponse = graphapi_post_integration(query)
+    response: GQLResponse = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -149,7 +145,7 @@ def test_regression_51523_1(graphapi_post_integration):
 
 
 @pytest.mark.integration_test
-def test_regression_51523_2(graphapi_post_integration):
+def test_regression_51523_2(graphapi_post):
     query = """
         query TestQuery {
             org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
@@ -159,7 +155,7 @@ def test_regression_51523_2(graphapi_post_integration):
             }
         }
     """
-    response: GQLResponse = graphapi_post_integration(query)
+    response: GQLResponse = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
@@ -168,7 +164,7 @@ def test_regression_51523_2(graphapi_post_integration):
 
 @pytest.mark.integration_test
 @pytest.mark.parametrize("field", UUID_SEARCHABLE_FIELDS)
-def test_regression_51523_generalised(graphapi_post_integration, field):
+def test_regression_51523_generalised(graphapi_post, field):
     query = f"""
         query TestQuery {{
             {field}(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {{
@@ -176,7 +172,7 @@ def test_regression_51523_generalised(graphapi_post_integration, field):
             }}
         }}
     """
-    response: GQLResponse = graphapi_post_integration(query)
+    response: GQLResponse = graphapi_post(query)
 
     assert response.errors is None
     assert response.data
