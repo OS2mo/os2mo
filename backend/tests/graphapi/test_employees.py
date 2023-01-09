@@ -6,7 +6,6 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
-from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -269,15 +268,14 @@ async def test_create_employee(
             }
         }
     """
-    created_uuid = uuid4()
-    create_employee.return_value = UUIDReturn(uuid=created_uuid)
+    create_employee.return_value = UUIDReturn(uuid=test_data.uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
         query=mutate_query, variable_values={"input": payload}
     )
     assert response.errors is None
-    assert response.data == {"employee_create": {"uuid": str(created_uuid)}}
+    assert response.data == {"employee_create": {"uuid": str(test_data.uuid)}}
 
     create_employee.assert_called_with(test_data)
 
@@ -311,6 +309,7 @@ def valid_cprs(draw) -> str:
 @given(
     test_data=st.builds(
         EmployeeCreate,
+        uuid=st.none() | st.uuids(),
         givenname=st.text(
             alphabet=st.characters(whitelist_categories=("L",)), min_size=1
         ),

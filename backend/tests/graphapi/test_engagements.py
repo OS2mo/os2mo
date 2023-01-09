@@ -270,15 +270,14 @@ async def test_create_engagement(
             }
         }
     """
-    created_uuid = uuid4()
-    create_engagement.return_value = UUIDReturn(uuid=created_uuid)
+    create_engagement.return_value = UUIDReturn(uuid=test_data.uuid)
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
         query=mutate_query, variable_values={"input": payload}
     )
     assert response.errors is None
-    assert response.data == {"engagement_create": {"uuid": str(created_uuid)}}
+    assert response.data == {"engagement_create": {"uuid": str(test_data.uuid)}}
 
     create_engagement.assert_called_with(test_data)
 

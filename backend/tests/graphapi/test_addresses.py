@@ -26,6 +26,7 @@ from mora.graphapi.versions.latest.address import terminate_addr
 from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
 from mora.graphapi.versions.latest.models import AddressUpdate
+from mora.graphapi.versions.latest.models import RAValidity
 from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo.details import AddressRead
 from tests import util
@@ -182,13 +183,16 @@ def _create_address_create_hypothesis_test_data(data, graphapi_post, test_data_s
         st.builds(
             AddressCreate,
             value=st.just(test_data_value),
-            from_date=st.just(test_data_from),
-            to_date=st.just(test_data_to),
             address_type=st.just(address_type),
             visibility=st.just(visibility_uuid_public),
             org_unit=st.just(test_data_org_unit_uuid),
             person=st.just(test_data_person_uuid),
             engagement=st.just(test_data_engagement_uuid),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_from),
+                to_date=st.just(test_data_to),
+            ),
         )
     )
 
@@ -220,7 +224,10 @@ def test_query_all(test_data, graphapi_post, patch_loader):
                         type
                         value
                         value2
-                        validity {from to}
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -547,21 +554,22 @@ async def test_create_integration(data, graphapi_post):
 
     # Asserts
     assert new_addr[mapping.UUID] is not None
+
     assert (
         new_addr[mapping.VALIDITY][mapping.FROM]
         == datetime.datetime.combine(
-            test_data.from_date.date(), datetime.datetime.min.time()
+            test_data.validity.from_date.date(), datetime.datetime.min.time()
         )
         .replace(tzinfo=tz_cph)
         .isoformat()
     )
     assert new_addr[mapping.VALIDITY][mapping.TO] == (
         datetime.datetime.combine(
-            test_data.to_date.date(), datetime.datetime.min.time()
+            test_data.validity.to_date.date(), datetime.datetime.min.time()
         )
         .replace(tzinfo=tz_cph)
         .isoformat()
-        if test_data.to_date
+        if test_data.validity.to_date
         else None
     )
 

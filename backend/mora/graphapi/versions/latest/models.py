@@ -15,13 +15,11 @@ from pydantic import root_validator
 from mora import common
 from mora import exceptions
 from mora import mapping
-from mora.service.org import get_configured_organisation
 from mora.util import CPR
 from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo._shared import MOBase
 from ramodels.mo._shared import UUIDBase
 
 
@@ -189,11 +187,8 @@ class AddressTrigger(OrgFuncTrigger):
     """Model representing a mora-trigger, specific for addresses."""
 
 
-class AddressCreate(RAValidity):
-    """Model representing an address creation.
-
-    OBS: RAValidity is the validity where "from_date" is required.
-    """
+class AddressCreate(UUIDBase):
+    """Model representing an address creation."""
 
     value: str = Field(description="The actual address value.")
     address_type: UUID = Field(description="Type of the address.")
@@ -202,10 +197,8 @@ class AddressCreate(RAValidity):
     # OBS: Only one of the two UUIDs are allowed to be set for the old logic to work
     org_unit: UUID | None = Field(description="UUID for the related org unit.")
     person: UUID | None = Field(description="UUID for the related person.")
-
-    engagement: UUID | None = Field(
-        description="Optional UUID of an associated engagement."
-    )
+    engagement: UUID | None = Field(description="UUID for the related engagement.")
+    validity: RAValidity = Field(description="Validity range for the org-unit.")
 
     @root_validator
     def verify_addr_relation(cls, values: dict[str, Any]) -> dict[str, Any]:
@@ -238,17 +231,19 @@ class AddressCreate(RAValidity):
             return {"uuid": str(uuid)}
 
         return {
-            mapping.VALUE: self.value,
-            mapping.ADDRESS_TYPE: gen_uuid(self.address_type),
-            mapping.VISIBILITY: gen_uuid(self.visibility),
-            mapping.VALIDITY: {
-                mapping.FROM: self.from_date.date().isoformat(),
-                mapping.TO: self.to_date.date().isoformat() if self.to_date else None,
+            "uuid": str(self.uuid),
+            "value": self.value,
+            "address_type": gen_uuid(self.address_type),
+            "visibility": gen_uuid(self.visibility),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
             },
-            mapping.ORG_UNIT: gen_uuid(self.org_unit),
-            mapping.PERSON: gen_uuid(self.person),
-            mapping.ENGAGEMENT: gen_uuid(self.engagement),
-            mapping.ORG: await get_configured_organisation(),
+            "org_unit": gen_uuid(self.org_unit),
+            "person": gen_uuid(self.person),
+            "engagement": gen_uuid(self.engagement),
         }
 
 
@@ -343,6 +338,7 @@ class AssociationCreate(UUIDBase):
             return {"uuid": str(uuid)}
 
         return {
+            "uuid": str(self.uuid),
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.employee),
@@ -421,13 +417,12 @@ class AssociationTerminate(ValidityTerminate):
 
 # Classes
 # -------
-class ClassCreate(MOBase):
+class ClassCreate(UUIDBase):
     """A MO Class create object."""
 
     type_: str = Field(
         "class", alias="type", description="The object type"
     )  # type is always "class"
-
     name: str = Field(description="Mo-class name.")
     user_key: str = Field(description="Extra info or uuid")
     org_uuid: UUID = Field(description="UUID of the related organisation.")
@@ -457,6 +452,7 @@ class EmployeeCreate(UUIDBase):
 
     def to_handler_dict(self) -> dict:
         return {
+            "uuid": str(self.uuid),
             "user_key": self.user_key,
             "givenname": self.givenname,
             "surname": self.surname,
@@ -640,6 +636,7 @@ class EngagementCreate(UUIDBase):
             return {"uuid": str(uuid)}
 
         return {
+            "uuid": str(self.uuid),
             "user_key": self.user_key,
             "org_unit": gen_uuid(self.org_unit),
             "person": gen_uuid(self.employee),
@@ -748,6 +745,7 @@ class ITUserCreate(UUIDBase):
             return {"uuid": str(uuid)}
 
         return {
+            "uuid": str(self.uuid),
             "type": self.type_,
             "user_key": self.user_key,
             "primary": gen_uuid(self.primary),
@@ -835,21 +833,14 @@ class ManagerCreate(UUIDBase):
     """Model for creating an employee of manager type."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
-
     type_: str = Field("manager", alias="type", description="The object type.")
-
     person: UUID = Field(description="UUID of the manager as person.")
-
     responsibility: list[UUID] = Field(
         description="UUID of the managers responsibilities."
     )
-
     org_unit: UUID = Field(description="UUID of the managers organisation unit.")
-
     manager_level: UUID = Field(description="UUID of the managers level.")
-
     manager_type: UUID = Field(description="UUID of the managers type..")
-
     validity: RAValidity = Field(description="Validity range for the manager.")
 
     def to_handler_dict(self) -> dict:
@@ -863,6 +854,7 @@ class ManagerCreate(UUIDBase):
         ]
 
         return {
+            "uuid": str(self.uuid),
             "user_key": self.user_key,
             "type": self.type_,
             "person": gen_uuid(self.person),
@@ -1014,6 +1006,7 @@ class OrganisationUnitCreate(UUIDBase):
             return {"uuid": str(uuid)}
 
         return {
+            "uuid": str(self.uuid),
             "name": self.name,
             "user_key": self.user_key,
             "time_planning": gen_uuid(self.time_planning),

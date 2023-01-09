@@ -93,6 +93,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 
 OPTIONAL = {
+    "uuid": st.uuids(),
     "published": st.none() | st.from_regex(PrintableStr.regex),
     "parent_uuid": st.none() | st.uuids(),
 }
@@ -101,7 +102,6 @@ OPTIONAL = {
 @st.composite
 def write_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "type": st.just("facet"),
         "user_key": st.from_regex(PrintableStr.regex),
         "org_uuid": st.uuids(),
@@ -138,9 +138,6 @@ def prepare_query_data(test_data, query_response):
         else {}
     )
     query = {k: v for k, v in query_dict.items() if k in td.keys()}
-
-    if not test_data["user_key"]:
-        test_data["user_key"] = test_data["uuid"]
 
     return test_data, query
 
@@ -184,7 +181,6 @@ async def test_create_facet(test_data, graphapi_post):
     """Query data to check that it actually gets written to database"""
     query_query = """
         query ($uuid: [UUID!]!) {
-            __typename
             facets(uuids: $uuid) {
                 uuid
                 type
@@ -205,7 +201,8 @@ async def test_create_facet(test_data, graphapi_post):
     """Assert response returned by mutation."""
     assert mut_response.errors is None
     assert mut_response.data
-    assert response_uuid == test_data["uuid"]
+    if test_data.get("uuid"):
+        assert response_uuid == test_data["uuid"]
 
     """Assert response returned by quering data written."""
     assert query_response.errors is None
@@ -225,7 +222,10 @@ async def test_unit_create_class(create_facet: AsyncMock, test_data: FacetCreate
         }
     """
 
-    created_uuid = uuid4()
+    if test_data.get("uuid"):
+        created_uuid = test_data["uuid"]
+    else:
+        created_uuid = uuid4()
     create_facet.return_value = UUIDReturn(uuid=created_uuid)
 
     payload = jsonable_encoder(test_data)

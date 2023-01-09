@@ -214,6 +214,7 @@ async def test_create_manager_integration_test(
     test_data = data.draw(
         st.builds(
             ManagerCreate,
+            uuid=st.uuids() | st.none(),
             person=st.just(employee_uuid),
             responsibility=st.just(responsibility_uuids),
             org_unit=st.sampled_from(org_uuids),
