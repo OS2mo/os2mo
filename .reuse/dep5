@@ -10,17 +10,17 @@ Source: https://os2mo.readthedocs.io/
 # License: ...
 
 Files: backend/tests/integration_test_data/* backend/tests/fixtures/* backend/tests/mocking/*.json .*yaml *.yml
-Copyright: 2017-2022 Magenta ApS <info@magenta.dk>
+Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
 
 Files: *.json *.xml *.rst *.odt *.pdf *.md *.docx *.png *.html *.svg *.ico *.drawio *.j2 *.terraform.lock.hcl
-Copyright: 2017-2022 Magenta ApS <info@magenta.dk>
+Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
 
 Files: *poetry.lock
-Copyright: 2017-2022 Magenta ApS <info@magenta.dk>
+Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
 
 Files: dev-environment/requirements.txt
-Copyright: 2017-2022 Magenta ApS <info@magenta.dk>
+Copyright: Magenta ApS <https://magenta.dk>
 License: MPL-2.0
