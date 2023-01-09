@@ -96,6 +96,23 @@ def load_settings_overrides_incorrect_mapping(
 
 
 @pytest.fixture
+def load_settings_overrides_not_listening(
+    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> Iterator[dict[str, str]]:
+    """Fixture to construct dictionary of minimal overrides for valid settings,
+       but pointing to a nonexistent mapping file
+
+    Yields:
+        Minimal set of overrides.
+    """
+    overrides = {**settings_overrides, "LISTEN_TO_CHANGES": "False"}
+    for key, value in overrides.items():
+        if os.environ.get(key) is None:
+            monkeypatch.setenv(key, value)
+    yield overrides
+
+
+@pytest.fixture
 def disable_metrics(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """Fixture to set the ENABLE_METRICS environmental variable to False.
 
@@ -336,7 +353,9 @@ def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
-async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
+async def test_listen_to_changes_in_employees(
+    dataloader: AsyncMock, load_settings_overrides: dict[str, str]
+) -> None:
 
     settings_mock = MagicMock()
     settings_mock.ldap_organizational_unit = "foo"
@@ -475,7 +494,9 @@ def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
     assert response.status_code == 202
 
 
-async def test_listen_to_changes_in_employees_not_supported() -> None:
+async def test_listen_to_changes_in_employees_not_supported(
+    load_settings_overrides: dict[str, str]
+) -> None:
 
     # Terminating a user is currently not supported
     mo_routing_key = MORoutingKey.build("employee.employee.terminate")
@@ -489,6 +510,22 @@ async def test_listen_to_changes_in_employees_not_supported() -> None:
         await asyncio.gather(
             original_function(context, payload, mo_routing_key=mo_routing_key),
         )
+
+    with pytest.raises(RejectMessage):
+        await asyncio.gather(
+            listen_to_changes_in_employees(
+                context, payload, mo_routing_key=mo_routing_key
+            ),
+        )
+
+
+async def test_listen_to_changes_in_employees_not_listening(
+    load_settings_overrides_not_listening: dict[str, str]
+) -> None:
+
+    mo_routing_key = MORoutingKey.build("employee.employee.edit")
+    context: dict = {}
+    payload = MagicMock()
 
     with pytest.raises(RejectMessage):
         await asyncio.gather(

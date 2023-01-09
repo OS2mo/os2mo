@@ -9,14 +9,6 @@ services:
 
     env_file:
       ./dev-environment/mo_ldap_import_export.env
-    environment:
-      amqp_url: "amqp://guest:guest@msg_broker"
-
-      AUTH_SERVER: "http://keycloak:8080/auth"
-
-      MO_URL: "http://mo"
-      CLIENT_ID: "dipex"
-      CLIENT_SECRET: "603f1c82-d012-4d04-9382-dbe659c533fb"
 
     volumes:
       - ./mo_ldap_import_export:/opt/app/
