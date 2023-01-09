@@ -410,9 +410,6 @@ def gen_organisation(
 
 @pytest.fixture
 def mock_organisation(respx_mock) -> UUID:
-    # Clear Organisation cache before mocking a new one
-    ConfiguredOrganisation.clear()
-
     organisation = gen_organisation()
 
     respx_mock.get(
