@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2021- Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from os2mo_fastapi_utils.auth.models import Token
 from os2mo_fastapi_utils.auth.oidc import get_auth_dependency

@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2022 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 -- Remove from tables
@@ -529,7 +529,7 @@ IF bruger_uuid is not NULL THEN
                 bruger a
                 JOIN bruger_registrering b on b.bruger_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -691,7 +691,7 @@ ELSE
                     a.brugertype ILIKE attrEgenskaberTypeObj.brugertype --case insensitive
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -859,7 +859,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -969,7 +969,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1064,7 +1064,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1204,7 +1204,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1369,7 +1369,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1470,7 +1470,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1571,7 +1571,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -1650,7 +1650,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -1669,7 +1669,7 @@ ELSE
         FROM
             bruger_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -3988,7 +3988,7 @@ IF facet_uuid is not NULL THEN
                 facet a
                 JOIN facet_registrering b on b.facet_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4175,7 +4175,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4289,7 +4289,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4429,7 +4429,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4594,7 +4594,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4695,7 +4695,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4796,7 +4796,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -4875,7 +4875,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -4894,7 +4894,7 @@ ELSE
         FROM
             facet_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -5834,7 +5834,7 @@ IF itsystem_uuid is not NULL THEN
                 itsystem a
                 JOIN itsystem_registrering b on b.itsystem_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6003,7 +6003,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6114,7 +6114,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6254,7 +6254,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6419,7 +6419,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6520,7 +6520,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6621,7 +6621,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -6700,7 +6700,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -6719,7 +6719,7 @@ ELSE
         FROM
             itsystem_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -7269,7 +7269,7 @@ IF klasse_uuid is not NULL THEN
                 klasse a
                 JOIN klasse_registrering b on b.klasse_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -7511,7 +7511,7 @@ END LOOP;
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -7634,7 +7634,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -7774,7 +7774,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -7939,7 +7939,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8040,7 +8040,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8141,7 +8141,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8220,7 +8220,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -8239,7 +8239,7 @@ ELSE
         FROM
             klasse_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8397,7 +8397,7 @@ IF klassifikation_uuid is not NULL THEN
                 klassifikation a
                 JOIN klassifikation_registrering b on b.klassifikation_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8566,7 +8566,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8677,7 +8677,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8817,7 +8817,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -8982,7 +8982,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9083,7 +9083,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9184,7 +9184,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9263,7 +9263,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -9282,7 +9282,7 @@ ELSE
         FROM
             klassifikation_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9440,7 +9440,7 @@ IF interessefaellesskab_uuid is not NULL THEN
                 interessefaellesskab a
                 JOIN interessefaellesskab_registrering b on b.interessefaellesskab_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9603,7 +9603,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9713,7 +9713,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -9853,7 +9853,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10018,7 +10018,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10119,7 +10119,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10220,7 +10220,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10299,7 +10299,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -10318,7 +10318,7 @@ ELSE
         FROM
             interessefaellesskab_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10476,7 +10476,7 @@ IF organisation_uuid is not NULL THEN
                 organisation a
                 JOIN organisation_registrering b on b.organisation_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10633,7 +10633,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10742,7 +10742,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -10882,7 +10882,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -11047,7 +11047,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -11148,7 +11148,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -11249,7 +11249,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -11328,7 +11328,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -11347,7 +11347,7 @@ ELSE
         FROM
             organisation_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13010,7 +13010,7 @@ IF aktivitet_uuid is not NULL THEN
                 aktivitet a
                 JOIN aktivitet_registrering b on b.aktivitet_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13197,7 +13197,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13312,7 +13312,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13452,7 +13452,7 @@ ELSE
                     tilsStatusTypeObj.status = a.status
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13587,7 +13587,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13790,7 +13790,7 @@ ELSE
                 )
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -13895,7 +13895,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -14000,7 +14000,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -14079,7 +14079,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -14460,7 +14460,7 @@ ELSE
         FROM
             aktivitet_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -14626,7 +14626,7 @@ IF dokument_uuid is not NULL THEN
                 dokument a
                 JOIN dokument_registrering b on b.dokument_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -14837,7 +14837,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -14968,7 +14968,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15108,7 +15108,7 @@ ELSE
                     tilsFremdriftTypeObj.fremdrift = a.fremdrift
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15273,7 +15273,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15369,7 +15369,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             (anyuuid = a.rel_maal_uuid OR anyuuid = e.rel_maal_uuid)
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15465,7 +15465,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             (anyurn = a.rel_maal_urn OR anyurn = e.rel_maal_urn)
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15544,7 +15544,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 --/**********************************************************//
@@ -15665,7 +15665,7 @@ ELSE
 
 			)
 			AND
-			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+			        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -15850,7 +15850,7 @@ ELSE
 				)
 			)
 			AND
-			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+			        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16006,7 +16006,7 @@ ELSE
 				delRelationTypeObj.urn = d.rel_maal_urn
 			)
 			AND
-			        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+			        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16131,7 +16131,7 @@ ELSE
         FROM
             dokument_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16293,7 +16293,7 @@ IF indsats_uuid is not NULL THEN
                 indsats a
                 JOIN indsats_registrering b on b.indsats_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16462,7 +16462,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16573,7 +16573,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16713,7 +16713,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -16848,7 +16848,7 @@ ELSE
                     tilsFremdriftTypeObj.fremdrift = a.fremdrift
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -17020,7 +17020,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -17121,7 +17121,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -17222,7 +17222,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -17301,7 +17301,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -17642,7 +17642,7 @@ ELSE
         FROM
             indsats_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -18348,7 +18348,7 @@ IF tilstand_uuid is not NULL THEN
                 tilstand a
                 JOIN tilstand_registrering b on b.tilstand_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -18505,7 +18505,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -18614,7 +18614,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -18754,7 +18754,7 @@ ELSE
                     tilsStatusTypeObj.status = a.status
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -18889,7 +18889,7 @@ ELSE
                     tilsPubliceretTypeObj.publiceret = a.publiceret
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -19080,7 +19080,7 @@ ELSE
                 )
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -19181,7 +19181,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -19282,7 +19282,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -19361,7 +19361,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -19380,7 +19380,7 @@ ELSE
         FROM
             tilstand_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -21583,7 +21583,7 @@ END;
 $$ LANGUAGE plpgsql STABLE;
 
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 /*
@@ -26363,7 +26363,7 @@ IF loghaendelse_uuid is not NULL THEN
                 loghaendelse a
                 JOIN loghaendelse_registrering b on b.loghaendelse_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -26556,7 +26556,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -26671,7 +26671,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -26811,7 +26811,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -26976,7 +26976,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -27077,7 +27077,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -27178,7 +27178,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -27257,7 +27257,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -27276,7 +27276,7 @@ ELSE
         FROM
             loghaendelse_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29041,7 +29041,7 @@ IF organisationenhed_uuid is not NULL THEN
                 organisationenhed a
                 JOIN organisationenhed_registrering b on b.organisationenhed_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29198,7 +29198,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29307,7 +29307,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29447,7 +29447,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29612,7 +29612,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29713,7 +29713,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29814,7 +29814,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -29893,7 +29893,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -29912,7 +29912,7 @@ ELSE
         FROM
             organisationenhed_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31059,7 +31059,7 @@ IF organisationfunktion_uuid is not NULL THEN
                 organisationfunktion a
                 JOIN organisationfunktion_registrering b on b.organisationfunktion_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31216,7 +31216,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31426,7 +31426,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31535,7 +31535,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31638,7 +31638,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31778,7 +31778,7 @@ ELSE
                     tilsGyldighedTypeObj.gyldighed = a.gyldighed
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -31943,7 +31943,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -32044,7 +32044,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -32145,7 +32145,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -32224,7 +32224,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -32243,7 +32243,7 @@ ELSE
         FROM
             organisationfunktion_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -33545,7 +33545,7 @@ IF sag_uuid is not NULL THEN
                 sag a
                 JOIN sag_registrering b on b.sag_id=a.id
                 WHERE
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -33756,7 +33756,7 @@ ELSE
                 )
                 AND
 
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -33874,7 +33874,7 @@ IF coalesce(array_length(anyAttrValueArr ,1),0)>0 THEN
             )
             AND
 
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -34014,7 +34014,7 @@ ELSE
                     tilsFremdriftTypeObj.fremdrift = a.fremdrift
                 )
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -34246,7 +34246,7 @@ ELSE
 
 
                 AND
-                        -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                        -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -34347,7 +34347,7 @@ IF coalesce(array_length(anyuuidArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -34448,7 +34448,7 @@ IF coalesce(array_length(anyurnArr ,1),0)>0 THEN
             )
 
             AND
-                    -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                    -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL
@@ -34527,7 +34527,7 @@ END IF;
 
 --/**********************//
 
--- SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 
@@ -34546,7 +34546,7 @@ ELSE
         FROM
             sag_registrering b
         WHERE
-                -- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+                -- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
         -- SPDX-License-Identifier: MPL-2.0
 		(
 				(registreringObj.registrering) IS NULL

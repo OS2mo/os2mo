@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 --DROP FUNCTION test.test_facet_db_schama();

@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2015-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 SELECT to_json(a.*) from as_search_{{ class_name|lower }}(

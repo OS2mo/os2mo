@@ -1,3 +1,3 @@
--- SPDX-FileCopyrightText: 2022 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 SELECT NULL;

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018-2020 Magenta ApS
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 # This is commented out as we no longer use the restrictions implementation,
 # but it was decided to keep for reference. Remove when restrictions.py is

@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: 2016-2020 Magenta ApS
+-- SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 -- SPDX-License-Identifier: MPL-2.0
 
 --SELECT * FROM runtests('test'::name);
