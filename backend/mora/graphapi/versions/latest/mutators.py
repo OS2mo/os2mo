@@ -47,6 +47,8 @@ from .inputs import OrganisationUnitUpdateInput
 from .it_user import create as create_ituser
 from .it_user import terminate as terminate_ituser
 from .it_user import update as update_ituser
+from .itsystem import create_itsystem
+from .itsystem import ITSystemCreateInput
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -219,8 +221,18 @@ class Mutation:
 
     # ITSystems
     # ---------
+    @strawberry.mutation(
+        description="Creates an ITSystem.",
+        permission_classes=[admin_permission_class],
+    )
+    async def itsystem_create(
+        self, info: Info, input: ITSystemCreateInput
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
 
-    # TODO: itsystem_create
     # TODO: itsystem_update
     # TODO: itsystem_terminate
     # TODO: itsystem_delete
