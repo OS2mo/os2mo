@@ -100,7 +100,7 @@ def load_settings_overrides_not_listening(
     settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[dict[str, str]]:
     """Fixture to construct dictionary of minimal overrides for valid settings,
-       but pointing to a nonexistent mapping file
+       but with listen_to_changes equal to False
 
     Yields:
         Minimal set of overrides.
