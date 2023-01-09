@@ -163,6 +163,7 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
     dataloader.load_mo_it_user.return_value = test_mo_it_user
     dataloader.load_mo_address_types = sync_dataloader
     dataloader.load_mo_it_systems = sync_dataloader
+    dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [
         (test_mo_address, {"address_type_name": "Email"})
     ] * 2
