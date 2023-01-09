@@ -16,8 +16,6 @@ from urllib.parse import parse_qsl
 import aioresponses
 import jinja2
 import requests_mock
-from fastapi import APIRouter
-from fastapi.encoders import jsonable_encoder
 from starlette_context import _request_scope_context_storage
 from starlette_context import context
 from strawberry.dataloader import DataLoader
@@ -325,66 +323,6 @@ async def load_sample_structures(minimal=False):
         )
 
     await gather(*starmap(load_fixture, fixtures))
-
-
-def get_testcafe_config() -> Settings:
-    """
-    Generate a set of configuration settings with all feature flags set to True
-
-    Used during TestCafe test runs.
-    """
-
-    settings = Settings().dict()
-
-    feature_flags = {
-        "confdb_inherit_manager",
-        "confdb_show_cpr_no",
-        "confdb_show_engagement_hyperlink",
-        "confdb_show_kle",
-        "confdb_show_level",
-        "confdb_show_location",
-        "confdb_show_org_unit_button",
-        "confdb_show_primary_association",
-        "confdb_show_primary_engagement",
-        "confdb_show_roles",
-        "confdb_show_time_planning",
-        "confdb_show_user_key",
-        "confdb_show_user_key_in_search",
-        "show_it_associations_tab",
-    }
-
-    settings.update({key: True for key in feature_flags})
-
-    return Settings(**settings)
-
-
-def setup_test_routing():
-    """
-    Returns an app with testing API for e2e-test enabled. It is a superset
-    to `mora.app.create_app()`.
-    """
-    testing_router = APIRouter()
-
-    original_settings = config.get_settings
-
-    @testing_router.get("/testing/testcafe-db-setup")
-    async def _testcafe_db_setup():
-        _mox_testing_api("db-setup")
-        await load_sample_structures()
-
-        config.get_settings = get_testcafe_config
-
-        return jsonable_encoder({"testcafe-db-setup": True})
-
-    @testing_router.get("/testing/testcafe-db-teardown")
-    def _testcafe_db_teardown():
-        _mox_testing_api("db-teardown")
-
-        config.get_settings = original_settings
-
-        return jsonable_encoder({"testcafe-db-teardown": True})
-
-    return testing_router
 
 
 @contextlib.contextmanager

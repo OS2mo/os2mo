@@ -42,7 +42,7 @@ from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
-from tests.util import setup_test_routing
+
 
 basedir = os.path.dirname(__file__)
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
@@ -214,9 +214,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         meta_router(),
         tags=["Meta"],
     )
-
-    if not settings.is_production() and settings.testcafe_enable:
-        app.include_router(setup_test_routing(), tags=["Testing"])
 
     # Mount all of Lora in
     lora_app = create_lora_app()

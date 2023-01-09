@@ -128,10 +128,6 @@ class Settings(BaseSettings):
     # Bulked LoRa DataLoader fetching
     bulked_fetch: bool = True
 
-    # Endpoint switches
-    # Enable testing endpoints
-    testcafe_enable: bool = True
-
     # HTTP Trigger settings
     http_endpoints: list[str] | None
     fetch_trigger_timeout: int = 5
