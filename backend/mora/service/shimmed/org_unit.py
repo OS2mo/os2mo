@@ -11,6 +11,7 @@ from fastapi import Depends
 from fastapi import Path
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
+from more_itertools import flatten
 from more_itertools import one
 
 from ...auth.keycloak import oidc
@@ -29,8 +30,11 @@ from ramodels.mo.organisation_unit import OrganisationUnitTerminate
 
 @org_unit_router.get(
     "/o/{orgid}/ou/",
-    response_model=MOOrgUnit | UUIDObject,
-    response_model_exclude_unset=True,
+    # TODO: Figure out how to define this, since we need to return
+    #       {"total": int, "offset": int, "items": [MOOrgUnit]}
+    #       but do not have pagination running yet.
+    # response_model=list[MOOrgUnit],
+    # response_model_exclude_unset=True,
 )
 async def list_orgunits(
     orgid: UUID,
@@ -47,7 +51,6 @@ async def list_orgunits(
         # "engagements": "engagement" in count,
         # "associations": "association" in count,
     }
-
     query = """
     query {
         org_units {
@@ -56,7 +59,14 @@ async def list_orgunits(
                 uuid
                 name
                 user_key
+                type
                 org_unit_hierarchy
+
+                validity {
+                    from
+                    to
+                }
+
                 unit_type {
                     uuid
                     user_key
@@ -66,6 +76,22 @@ async def list_orgunits(
                     parent_uuid
                     example
                     owner
+
+                    facet {
+                        uuid
+                        type
+                        published
+                        parent_uuid
+                        description
+                    }
+
+                    top_level_facet {
+                        uuid
+                        type
+                        published
+                        parent_uuid
+                        description
+                    }
                 }
             }
         }
@@ -76,6 +102,32 @@ async def list_orgunits(
         query, variable_values=jsonable_encoder(query_vars)
     )
     handle_gql_error(response)
+
+    org_units = list(flatten([d["objects"] for d in response.data["org_units"]]))
+    org_units_formatted = [
+        {
+            "name": ou["name"],
+            "user_key": ou["user_key"],
+            "uuid": ou["uuid"],
+            "validity": {
+                "from": datetime.fromisoformat(ou["validity"]["from"])
+                .date()
+                .isoformat()
+                if ou["validity"]["from"]
+                else None,
+                "to": datetime.fromisoformat(ou["validity"]["to"]).date().isoformat()
+                if ou["validity"]["to"]
+                else None,
+            },
+        }
+        for ou in org_units
+    ]
+
+    return {
+        "total": len(org_units_formatted),
+        "offset": 0,
+        "items": org_units_formatted,
+    }
 
 
 @org_unit_router.get(
