@@ -5,6 +5,7 @@ from uuid import UUID
 
 import pytest
 from hypothesis import given
+from more_itertools import first
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
@@ -92,6 +93,7 @@ def test_itsystem_create(graphapi_post) -> None:
         UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb"),
     }
 
+    # Verify existing state
     query = """
         query ReadITSystems {
             itsystems {
@@ -107,6 +109,7 @@ def test_itsystem_create(graphapi_post) -> None:
     itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
     assert itsystem_map.keys() == existing_itsystem_uuids
 
+    # Create new itsystem
     mutation = """
         mutation CreateITSystem($input: ITSystemCreateInput!) {
             itsystem_create(input: $input) {
@@ -121,12 +124,14 @@ def test_itsystem_create(graphapi_post) -> None:
     assert response.data
     new_uuid = UUID(response.data["itsystem_create"]["uuid"])
 
+    # Verify modified state
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
     itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
     assert itsystem_map.keys() == existing_itsystem_uuids | {new_uuid}
 
+    # Verify new object
     itsystem = itsystem_map[new_uuid]
     assert itsystem["name"] == "my_name"
     assert itsystem["user_key"] == "my_user_key"
@@ -134,7 +139,11 @@ def test_itsystem_create(graphapi_post) -> None:
 
 @given(uuid=..., user_key=..., name=...)
 def test_itsystem_create_mocked(
-    uuid: UUID, user_key: str, name: str, graphapi_post, get_valid_organisations: UUID
+    uuid: UUID,
+    user_key: str,
+    name: str,
+    graphapi_post,
+    mock_get_valid_organisations: UUID,
 ) -> None:
     """Test that create_or_import_object is called as expected."""
     mutation = """
@@ -179,10 +188,87 @@ def test_itsystem_create_mocked(
                 "relations": {
                     "tilknyttedeorganisationer": [
                         {
-                            "uuid": str(get_valid_organisations),
+                            "uuid": str(mock_get_valid_organisations),
                             "virkning": {"from": "-infinity", "to": "infinity"},
                         }
                     ]
                 },
             },
+        )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_itsystem_delete(graphapi_post) -> None:
+    """Test that we can delete an itsystem."""
+
+    existing_itsystem_uuids = {
+        UUID("0872fb72-926d-4c5c-a063-ff800b8ee697"),
+        UUID("14466fb0-f9de-439c-a6c2-b3262c367da7"),
+        UUID("59c135c9-2b15-41cc-97c8-b5dff7180beb"),
+    }
+
+    # Verify existing state
+    query = """
+        query ReadITSystems {
+            itsystems {
+                uuid
+                user_key
+                name
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    assert itsystem_map.keys() == existing_itsystem_uuids
+
+    # Delete itsystem
+    mutation = """
+        mutation DeleteITSystem($uuid: UUID!) {
+            itsystem_delete(uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutation, {"uuid": str(first(existing_itsystem_uuids))}
+    )
+    assert response.errors is None
+    assert response.data
+    deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])
+
+    # Verify modified state
+    response: GQLResponse = graphapi_post(query)
+    assert response.errors is None
+    assert response.data
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
+
+
+@given(uuid=...)
+def test_itsystem_delete_mocked(uuid: UUID, graphapi_post) -> None:
+    """Test that delete_object is called as expected."""
+    mutation = """
+        mutation DeleteITSystem($uuid: UUID!) {
+            itsystem_delete(uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    with patch("oio_rest.db.delete_object") as mock:
+        mock.return_value = None
+
+        response: GQLResponse = graphapi_post(mutation, {"uuid": str(uuid)})
+        assert response.errors is None
+        assert response.data
+        deleted_uuid = UUID(response.data["itsystem_delete"]["uuid"])
+        assert deleted_uuid == uuid
+
+        mock.assert_called_with(
+            "itsystem",
+            {"states": {}, "attributes": {}, "relations": {}},
+            "",
+            str(uuid),
         )
