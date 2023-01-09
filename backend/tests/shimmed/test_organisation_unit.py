@@ -4,6 +4,7 @@ import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
+from mora.service.orgunit import list_orgunits
 from tests.util import set_get_configuration
 
 
@@ -308,3 +309,35 @@ class TestOrganisationUnitWrite:
                 "to": "2018-01-01",
             },
         } in org_children.json()
+
+
+async def test_list_equivalence(service_client: TestClient):
+    """Verify the org-unit list endpoint handler respond with the same as the legacy logic.
+
+    We need to verify that the new shimmed endpoint handler, which uses GraphQL, returns the same
+    responses as the old legacy logic would.
+    """
+
+    # TODO: Create a test dataset to use for both legacy-logic and api-endpoint
+    org_id = "3b866d97-0b1f-48e0-8078-686d96f430b3"
+    start = None
+    limit = None
+    query = None
+    root = None
+    hierarchy_uuids = None
+    only_primary_uuid = None
+
+    # TODO: Invoke the legacy logic as the old endpoint would to get the old response
+    legacy_response = await list_orgunits(
+        org_id, start, limit, query, root, hierarchy_uuids, only_primary_uuid
+    )
+    print(legacy_response)
+
+    # TODO: Make a request to the org_units list endpoint which contains the new response
+    response = service_client.get(f"/service/o/{org_id}/ou/")
+    assert response.status_code == 200
+    response_dict = response.json()
+    print(response_dict)
+
+    # TODO: Verify the two responses are equal
+    assert legacy_response == response_dict
