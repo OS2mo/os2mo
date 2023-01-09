@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import Lock
-
 import pytest
 
 from mora.exceptions import HTTPException
@@ -29,15 +27,6 @@ class MockHandler(RequestHandler):
         await super().submit()
 
 
-lock = Lock()
-
-
-@pytest.fixture
-async def serialized_group() -> YieldFixture[None]:
-    async with lock:
-        yield
-
-
 @pytest.fixture
 def teardown_registry() -> YieldFixture[None]:
     assert "mock" not in Trigger.registry
@@ -45,7 +34,7 @@ def teardown_registry() -> YieldFixture[None]:
     del Trigger.registry["mock"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_any_exception() -> None:
     trigger_called = {"entry": False}
 
@@ -66,7 +55,7 @@ async def test_handler_trigger_any_exception() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_own_error() -> None:
     trigger_called = {"entry": False}
 
@@ -88,7 +77,7 @@ async def test_handler_trigger_own_error() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_edit() -> None:
     trigger_called = {"entry": False}
 
@@ -107,7 +96,7 @@ async def test_handler_trigger_before_edit() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_edit() -> None:
     trigger_called = {"entry": False}
 
@@ -127,7 +116,7 @@ async def test_handler_trigger_after_edit() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_create() -> None:
     trigger_called = {"entry": False}
 
@@ -146,7 +135,7 @@ async def test_handler_trigger_before_create() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_create() -> None:
     trigger_called = {"entry": False}
 
@@ -166,7 +155,7 @@ async def test_handler_trigger_after_create() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_before_terminate() -> None:
     trigger_called = {"entry": False}
 
@@ -185,7 +174,7 @@ async def test_handler_trigger_before_terminate() -> None:
     assert trigger_called["entry"]
 
 
-@pytest.mark.usefixtures("teardown_registry", "serialized_group")
+@pytest.mark.usefixtures("teardown_registry")
 async def test_handler_trigger_after_terminate() -> None:
     trigger_called = {"entry": False}
 
