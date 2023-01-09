@@ -226,6 +226,40 @@ For post addresses, it is required to use an address type in MO with `scope` != 
 The reason for this is that we cannot expect an LDAP server to have the same address
 format as DAR.
 
+#### IT user conversion
+It user conversion follows the same logic as address conversion. An example of an IT
+user conversion dict is as follows:
+
+```
+  [...]
+  "mo_to_ldap": {
+    "Active Directory": {
+      "objectClass": "user",
+      "msSFU30Name" : "{{mo_it_user.user_key}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
+    }
+  }
+  [...]
+```
+
+And the other way around:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "Active Directory": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "user_key": "{{ ldap.msSFU30Name or None }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+            }
+  }
+  [...]
+```
+
+Note that we have specified the json key equal to `Active Directory`. This key needs
+to be an IT system name in MO. IT system names can be retrieved using
+[GET:MO/IT_systems][get_it_systems]
 
 #### Filters and globals
 
@@ -251,11 +285,6 @@ These are called using the normal function call syntax:
   (`None`, `""`, `0`, `False`, `{}` or `[]`)
 * `now`: Returns current datetime
 * `get_address_type_uuid`: Returns the address type uuid for an address type string
-
-[swagger]:http://localhost:8000/docs
-[get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
-[get_address_types]:http://localhost:8000/docs#/MO/load_address_types_from_MO_MO_Address_types_get
-[jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
 
 
 #### Username generation
@@ -358,3 +387,10 @@ characters. To avoid errors, it is therefore recommended to:
 
 If these patterns are highly undesirable, put them in the bottom of the list, and they
 will only be used if everything else fails.
+
+
+[swagger]:http://localhost:8000/docs
+[get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
+[get_address_types]:http://localhost:8000/docs#/MO/load_address_types_from_MO_MO_Address_types_get
+[get_it_systems]:http://localhost:8000/docs#/MO/load_it_systems_from_MO_MO_IT_systems_get
+[jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters

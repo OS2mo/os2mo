@@ -74,7 +74,12 @@ class LdapConverter:
         self.settings = self.user_context["settings"]
         self.raw_mapping = self.user_context["mapping"]
         self.dataloader = self.user_context["dataloader"]
+
+        # Note: If new address types or IT systems are added to MO, this app needs
+        # to be rebooted
         self.address_type_info = self.dataloader.load_mo_address_types()
+        self.it_system_info = self.dataloader.load_mo_it_systems()
+
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
@@ -142,7 +147,8 @@ class LdapConverter:
     def get_accepted_json_keys(self) -> list[str]:
 
         mo_address_types = list(self.address_type_info.keys())
-        accepted_json_keys = ["Employee"] + mo_address_types
+        mo_it_systems = list(self.it_system_info.keys())
+        accepted_json_keys = ["Employee"] + mo_address_types + mo_it_systems
 
         return accepted_json_keys
 
@@ -253,14 +259,18 @@ class LdapConverter:
 
             for attribute in detected_single_value_attributes:
                 template = self.mapping["mo_to_ldap"][json_key][attribute]
-                dummy_dict = {"mo_address": {"value": 123}, "mo_employee": None}
+                dummy_dict = {
+                    "mo_address": {"value": 123},
+                    "mo_it_user": {"user_key": 123},
+                    "mo_employee": None,
+                }
                 if template.render(dummy_dict) == "123":
                     self.logger.warning(
                         (
                             f"[json check] {object_class}['{attribute}'] LDAP "
                             "attribute cannot contain multiple values. "
                             "Values in LDAP will be overwritten if "
-                            f"multiple addresses of the '{json_key}' type are "
+                            f"multiple objects of the '{json_key}' type are "
                             "added in MO."
                         )
                     )
@@ -372,6 +382,14 @@ class LdapConverter:
         address_type_info = self.address_type_info
         return address_type_info[address_type]["uuid"]
 
+    def get_it_system_uuid(self, it_system):
+        return self.it_system_info[it_system]["uuid"]
+
+    def get_it_system(self, uuid):
+        for it_system in self.it_system_info.values():
+            if it_system["uuid"] == str(uuid):
+                return it_system
+
     @staticmethod
     def str_to_dict(text):
         """
@@ -422,6 +440,7 @@ class LdapConverter:
                 mapping[key].globals[
                     "get_address_type_uuid"
                 ] = self.get_address_type_uuid
+                mapping[key].globals["get_it_system_uuid"] = self.get_it_system_uuid
 
             elif type(value) == dict:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)

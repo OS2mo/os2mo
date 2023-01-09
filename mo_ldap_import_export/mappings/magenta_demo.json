@@ -28,6 +28,12 @@
 
       // Note: Get valid address type uuids by using GET MO/address_types
       "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+    },
+    "Active Directory": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "user_key": "{{ ldap.msSFU30Name or None }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
     }
   },
   "mo_to_ldap": {
@@ -50,6 +56,11 @@
     "Lokation": {
       "objectClass": "user",
       "postalAddress": "{{mo_address.value}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
+    },
+    "Active Directory": {
+      "objectClass": "user",
+      "msSFU30Name" : "{{mo_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
   },

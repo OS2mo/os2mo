@@ -670,6 +670,25 @@ async def test_get_address_type_uuid(converter: LdapConverter):
     assert converter.get_address_type_uuid("bar") == "uuid2"
 
 
+async def test_get_it_system_uuid(converter: LdapConverter):
+    it_system_info = {"AD": {"uuid": "uuid1"}, "Office365": {"uuid": "uuid2"}}
+    converter.it_system_info = it_system_info
+
+    assert converter.get_it_system_uuid("AD") == "uuid1"
+    assert converter.get_it_system_uuid("Office365") == "uuid2"
+
+
+def test_get_it_system(converter: LdapConverter):
+    it_system_info = {
+        "AD": {"uuid": "uuid1", "name": "AD"},
+        "Office365": {"uuid": "uuid2", "name": "Office365"},
+    }
+    converter.it_system_info = it_system_info
+
+    assert converter.get_it_system("uuid1")["name"] == "AD"
+    assert converter.get_it_system("uuid2")["name"] == "Office365"
+
+
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
 
     converter.raw_mapping = {

@@ -19,6 +19,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastramqpi.main import FastRAMQPI
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.utils import RejectMessage
@@ -30,7 +31,7 @@ from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.main import get_address_uuid
+from mo_ldap_import_export.main import get_matching_address_uuid
 from mo_ldap_import_export.main import listen_to_changes_in_employees
 from mo_ldap_import_export.main import open_ldap_connection
 
@@ -127,6 +128,7 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
     test_mo_address = Address.from_simplified_fields(
         "foo@bar.dk", uuid4(), "2021-01-01"
     )
+    test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
     load_ldap_cpr_object = MagicMock()
     load_ldap_cpr_object.return_value = test_ldap_object
@@ -141,7 +143,9 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
         test_mo_address,
         {"address_type_name": "Email"},
     )
+    dataloader.load_mo_it_user.return_value = test_mo_it_user
     dataloader.load_mo_address_types = sync_dataloader
+    dataloader.load_mo_it_systems = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [
         (test_mo_address, {"address_type_name": "Email"})
     ] * 2
@@ -347,13 +351,10 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
     converted_ldap_object = LdapObject(dn="Foo")
     converter.to_ldap.return_value = converted_ldap_object
     converter.mapping = {"mo_to_ldap": {"Email": 2}}
-
-    converter.from_ldap.return_value = [
-        LdapObject(dn="foo", value="street 1"),
-        LdapObject(dn="bar", value="street 2"),
-    ]
+    converter.get_it_system.return_value = {"name": "AD"}
 
     address_type_name = "Email"
+    it_system_type_name = "AD"
 
     context = {
         "user_context": {
@@ -385,6 +386,11 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
     assert not dataloader.load_mo_address.called
 
     # Simulate a created address
+    converter.from_ldap.return_value = [
+        Address.from_simplified_fields("street1", uuid4(), "2021-01-01"),
+        Address.from_simplified_fields("street2", uuid4(), "2021-01-01"),
+    ]
+
     mo_routing_key = MORoutingKey.build("employee.address.create")
     await asyncio.gather(
         listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
@@ -394,12 +400,28 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
         converted_ldap_object, address_type_name
     )
 
-    # Simulate case where no cleanup is needed
+    # Simulate a created IT user
     converter.from_ldap.return_value = [
-        LdapObject(dn="foo", value="foo@bar.dk"),
-        LdapObject(dn="bar", value="foo@bar.dk"),
+        ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01"),
+        ITUser.from_simplified_fields("bar", uuid4(), "2021-01-01"),
     ]
 
+    mo_routing_key = MORoutingKey.build("employee.it.create")
+    await asyncio.gather(
+        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+    )
+    assert dataloader.load_mo_it_user.called
+    dataloader.upload_ldap_object.assert_called_with(
+        converted_ldap_object, it_system_type_name
+    )
+
+    # Simulate case where no cleanup is needed
+    converter.from_ldap.return_value = [
+        Address.from_simplified_fields("foo@bar.dk", uuid4(), "2021-01-01"),
+        Address.from_simplified_fields("foo@bar.dk", uuid4(), "2021-01-01"),
+    ]
+
+    mo_routing_key = MORoutingKey.build("employee.address.create")
     context = {
         "user_context": {
             "settings": settings_mock,
@@ -408,10 +430,19 @@ async def test_listen_to_changes_in_employees(dataloader: AsyncMock) -> None:
             "dataloader": dataloader,
         }
     }
-    await asyncio.gather(
-        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
-    )
-    assert dataloader.cleanup_attributes_in_ldap.called_with([], "Email")
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(
+            listen_to_changes_in_employees(
+                context, payload, mo_routing_key=mo_routing_key
+            ),
+        )
+
+        log_messages = [log for log in cap_logs if log["log_level"] == "info"]
+        assert re.match(
+            "No synchronization required",
+            log_messages[-1]["event"],
+        )
 
     # Simulate an uuid which should be skipped
     with patch(
@@ -494,13 +525,22 @@ def test_load_address_types_from_MO_endpoint(test_client: TestClient):
     assert response.status_code == 202
 
 
+def test_load_it_systems_from_MO_endpoint(test_client: TestClient):
+    response = test_client.get("/MO/IT_systems")
+    assert response.status_code == 202
+
+
 def test_get_address_uuid():
     uuid1 = uuid4()
     uuid2 = uuid4()
-    address_values_in_mo = {uuid1: "Aldersrovej 1", uuid2: "Aldersrovej 2"}
 
-    assert get_address_uuid("Aldersrovej 1", address_values_in_mo) == uuid1
-    assert get_address_uuid("Aldersrovej 2", address_values_in_mo) == uuid2
+    address1 = Address.from_simplified_fields("Aldersrovej 1", uuid1, "2021-01-01")
+    address2 = Address.from_simplified_fields("Aldersrovej 2", uuid2, "2021-01-01")
+
+    addresses_in_mo = {uuid1: address1, uuid2: address2}
+
+    assert get_matching_address_uuid("Aldersrovej 1", addresses_in_mo) == uuid1
+    assert get_matching_address_uuid("Aldersrovej 2", addresses_in_mo) == uuid2
 
 
 async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
@@ -551,6 +591,7 @@ async def test_import_address_objects(
 ):
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
     converter.import_mo_object_class.return_value = Address
+    converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
 
     address_type_uuid = uuid4()
 
@@ -562,10 +603,10 @@ async def test_import_address_objects(
 
     converter.from_ldap.return_value = converted_objects
 
-    mo_uuid = uuid4()
-    address_in_mo = MagicMock()
-    address_in_mo.uuid = mo_uuid
-    address_in_mo.value = "foo@bar.dk"
+    address_in_mo = Address.from_simplified_fields(
+        "foo@bar.dk", address_type_uuid, "2021-01-01"
+    )
+
     addresses_in_mo = [(address_in_mo, None)]
 
     dataloader.load_mo_employee_addresses.return_value = addresses_in_mo
@@ -573,17 +614,50 @@ async def test_import_address_objects(
     response = test_client.get("/Import/0101011234")
     assert response.status_code == 202
 
-    address1_dict = converted_objects[0].dict()
-    address1_dict["uuid"] = mo_uuid
-    address1_dict["user_key"] = str(mo_uuid)
-
     converted_objects_uuid_checked = [
-        Address(**address1_dict),
+        address_in_mo,
         converted_objects[1],
         converted_objects[2],
     ]
 
     dataloader.upload_mo_objects.assert_called_with(converted_objects_uuid_checked)
+
+
+async def test_import_it_user_objects(
+    test_client: TestClient, converter: MagicMock, dataloader: AsyncMock
+):
+    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
+    converter.import_mo_object_class.return_value = ITUser
+    converter.get_mo_attributes.return_value = ["user_key", "validity"]
+
+    it_system_type1_uuid = uuid4()
+    it_system_type2_uuid = uuid4()
+
+    converted_objects = [
+        ITUser.from_simplified_fields("Username1", it_system_type1_uuid, "2021-01-01"),
+        ITUser.from_simplified_fields("Username2", it_system_type2_uuid, "2021-01-01"),
+        ITUser.from_simplified_fields("Username3", it_system_type2_uuid, "2021-01-01"),
+    ]
+
+    converter.from_ldap.return_value = converted_objects
+
+    it_user_in_mo = ITUser.from_simplified_fields(
+        "Username1", it_system_type1_uuid, "2021-01-01"
+    )
+
+    it_users_in_mo = [it_user_in_mo]
+
+    dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
+
+    response = test_client.get("/Import/0101011234")
+    assert response.status_code == 202
+
+    non_existing_converted_objects = [
+        converted_objects[1],
+        converted_objects[2],
+    ]
+
+    dataloader.upload_mo_objects.assert_called_with(non_existing_converted_objects)
 
 
 async def test_load_mapping_file_environment(
