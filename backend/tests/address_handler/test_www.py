@@ -9,14 +9,12 @@ from mora.service.address_handler.www import WWWAddressHandler
 from tests import util
 
 
-@pytest.fixture
-def url_value() -> str:
-    return "http://www.test.org/"
+URL_VALUE = "http://www.test.org/"
 
 
-async def test_from_effect(url_value):
+async def test_from_effect():
     # Arrange
-    effect = {"relationer": {"adresser": [{"urn": f"urn:magenta.dk:www:{url_value}"}]}}
+    effect = {"relationer": {"adresser": [{"urn": f"urn:magenta.dk:www:{URL_VALUE}"}]}}
 
     address_handler = await WWWAddressHandler.from_effect(effect)
 
@@ -24,28 +22,28 @@ async def test_from_effect(url_value):
     actual_value = address_handler.value
 
     # Assert
-    assert url_value == actual_value
+    assert URL_VALUE == actual_value
 
 
-async def test_from_request(url_value):
+async def test_from_request():
     # Arrange
-    request = {"value": url_value}
+    request = {"value": URL_VALUE}
     address_handler = await WWWAddressHandler.from_request(request)
 
     # Act
     actual_value = address_handler.value
 
     # Assert
-    assert url_value == actual_value
+    assert URL_VALUE == actual_value
 
 
-async def test_get_mo_address(url_value):
+async def test_get_mo_address():
     # Arrange
     async def async_facet_get_one_class(x, y, *args, **kwargs):
         return {"uuid": y}
 
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    address_handler = WWWAddressHandler(url_value, visibility)
+    address_handler = WWWAddressHandler(URL_VALUE, visibility)
 
     expected = {
         "href": None,
@@ -63,9 +61,9 @@ async def test_get_mo_address(url_value):
         assert expected == actual
 
 
-def test_get_lora_address(url_value):
+def test_get_lora_address():
     # Arrange
-    address_handler = WWWAddressHandler(url_value, None)
+    address_handler = WWWAddressHandler(URL_VALUE, None)
 
     expected = {
         "objekttype": "WWW",

@@ -17,6 +17,7 @@ from oio_rest.app import create_app
 from oio_rest.auth.oidc import auth
 from oio_rest.db.testing import reset_testing_database
 from oio_rest.db.testing import setup_testing_database
+from tests.cases import sort_inner_lists
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -149,23 +150,6 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.client.request(url=path, **kwargs)
 
     def assertRegistrationsEqual(self, expected, actual, message=None):
-        def sort_inner_lists(obj):
-            """Sort all inner lists and tuples by their JSON string value,
-            recursively. This is quite stupid and slow, but works!
-
-            This is purely to help comparison tests, as we don't care about the
-            list ordering
-
-            """
-            if isinstance(obj, dict):
-                return {k: sort_inner_lists(v) for k, v in obj.items()}
-            elif isinstance(obj, (list, tuple)):
-                return sorted(
-                    map(sort_inner_lists, obj),
-                    key=(lambda p: json.dumps(p, sort_keys=True)),
-                )
-            return obj
-
         # drop lora-generated timestamps & users
         if isinstance(expected, dict):
             expected.pop("fratidspunkt", None)

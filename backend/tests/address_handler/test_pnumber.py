@@ -10,22 +10,16 @@ from mora.service.address_handler.pnumber import PNumberAddressHandler
 from tests import util
 
 
-@pytest.fixture
-def visibility_uuid() -> UUID:
-    return UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")
+VISIBILITY_UUID = UUID("dd5699af-b233-44ef-9107-7a37016b2ed1")
+VALUE_STRING = "1234567890"
 
 
-@pytest.fixture
-def value_string() -> str:
-    return "1234567890"
-
-
-async def test_from_effect(value_string):
+async def test_from_effect():
     # Arrange
 
     effect = {
         "relationer": {
-            "adresser": [{"urn": f"urn:dk:cvr:produktionsenhed:{value_string}"}]
+            "adresser": [{"urn": f"urn:dk:cvr:produktionsenhed:{VALUE_STRING}"}]
         }
     }
 
@@ -35,27 +29,27 @@ async def test_from_effect(value_string):
     actual_value = address_handler.value
 
     # Assert
-    assert value_string == actual_value
+    assert VALUE_STRING == actual_value
 
 
-async def test_from_request(value_string):
+async def test_from_request():
     # Arrange
-    request = {"value": value_string}
+    request = {"value": VALUE_STRING}
     address_handler = await PNumberAddressHandler.from_request(request)
 
     # Act
     actual_value = address_handler.value
 
     # Assert
-    assert value_string == actual_value
+    assert VALUE_STRING == actual_value
 
 
-async def test_get_mo_address(value_string, visibility_uuid):
+async def test_get_mo_address():
     async def async_facet_get_one_class(x, y, *args, **kwargs):
         return {"uuid": y}
 
     # Arrange
-    address_handler = PNumberAddressHandler(value_string, visibility_uuid)
+    address_handler = PNumberAddressHandler(VALUE_STRING, VISIBILITY_UUID)
 
     expected = {
         "href": None,
@@ -72,13 +66,13 @@ async def test_get_mo_address(value_string, visibility_uuid):
     assert expected == actual
 
 
-def test_get_lora_address(value_string):
+def test_get_lora_address():
     # Arrange
-    address_handler = PNumberAddressHandler(value_string, None)
+    address_handler = PNumberAddressHandler(VALUE_STRING, None)
 
     expected = {
         "objekttype": "PNUMBER",
-        "urn": f"urn:dk:cvr:produktionsenhed:{value_string}",
+        "urn": f"urn:dk:cvr:produktionsenhed:{VALUE_STRING}",
     }
 
     # Act

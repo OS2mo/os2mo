@@ -7,11 +7,9 @@ import os
 import re
 from asyncio import gather
 from collections.abc import Iterator
-from copy import deepcopy
 from itertools import starmap
 from json import dumps
 from typing import Any
-from unittest.mock import MagicMock
 from unittest.mock import patch
 from urllib.parse import parse_qsl
 
@@ -329,6 +327,37 @@ async def load_sample_structures(minimal=False):
     await gather(*starmap(load_fixture, fixtures))
 
 
+def get_testcafe_config() -> Settings:
+    """
+    Generate a set of configuration settings with all feature flags set to True
+
+    Used during TestCafe test runs.
+    """
+
+    settings = Settings().dict()
+
+    feature_flags = {
+        "confdb_inherit_manager",
+        "confdb_show_cpr_no",
+        "confdb_show_engagement_hyperlink",
+        "confdb_show_kle",
+        "confdb_show_level",
+        "confdb_show_location",
+        "confdb_show_org_unit_button",
+        "confdb_show_primary_association",
+        "confdb_show_primary_engagement",
+        "confdb_show_roles",
+        "confdb_show_time_planning",
+        "confdb_show_user_key",
+        "confdb_show_user_key_in_search",
+        "show_it_associations_tab",
+    }
+
+    settings.update({key: True for key in feature_flags})
+
+    return Settings(**settings)
+
+
 def setup_test_routing():
     """
     Returns an app with testing API for e2e-test enabled. It is a superset
@@ -376,13 +405,6 @@ def starlette_context():
         yield context
     finally:
         _request_scope_context_storage.reset(token)
-
-
-@contextlib.contextmanager
-def patch_is_graphql(is_graphql=False):
-    with starlette_context() as context:
-        context["is_graphql"] = is_graphql
-        yield context
 
 
 @contextlib.contextmanager
@@ -515,69 +537,6 @@ def modified_normalize_url(url: URL | str) -> URL:
 
 
 aioresponses.core.normalize_url = modified_normalize_url
-
-
-class CopyingMock(MagicMock):
-    """MagicMock that refers to its arguments by value instead of by reference.
-
-    Workaround for mutable mock arguments and to avoid the following:
-
-    >>> from unittest.mock import MagicMock
-    >>> b = MagicMock()
-    >>> a = {}
-    >>> b(a)
-    <MagicMock name='mock()' id='140710831830928'>
-    >>> b.assert_called_with({})
-
-    Good so far, but then this happens:
-
-    >>> a['b'] = 'c'
-    >>> b.assert_called_with({})
-    Expected: mock({})
-    Actual: mock({'b': 'c'})
-
-    With CopyingMock we do not have `a` by reference, but by value instead, and
-    thus it works 'as you would expect'.
-
-    See: https://docs.python.org/3/library/unittest.mock-examples.html under
-    "Coping with mutable arguments" for further details and the source of this code.
-    """
-
-    def __call__(self, /, *args, **kwargs):
-        args = deepcopy(args)
-        kwargs = deepcopy(kwargs)
-        return super().__call__(*args, **kwargs)
-
-
-def get_testcafe_config() -> Settings:
-    """
-    Generate a set of configuration settings with all feature flags set to True
-
-    Used during TestCafe test runs.
-    """
-
-    settings = Settings().dict()
-
-    feature_flags = {
-        "confdb_inherit_manager",
-        "confdb_show_cpr_no",
-        "confdb_show_engagement_hyperlink",
-        "confdb_show_kle",
-        "confdb_show_level",
-        "confdb_show_location",
-        "confdb_show_org_unit_button",
-        "confdb_show_primary_association",
-        "confdb_show_primary_engagement",
-        "confdb_show_roles",
-        "confdb_show_time_planning",
-        "confdb_show_user_key",
-        "confdb_show_user_key_in_search",
-        "show_it_associations_tab",
-    }
-
-    settings.update({key: True for key in feature_flags})
-
-    return Settings(**settings)
 
 
 @contextlib.contextmanager

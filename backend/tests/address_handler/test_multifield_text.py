@@ -2,22 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from unittest.mock import patch
 
-import pytest
-
 from mora.service.address_handler.multifield_text import MultifieldTextAddressHandler
 
 
-@pytest.fixture
-def text_value_one() -> str:
-    return "Test text whatever"
+TEXT_VALUE_ONE = "Test text whatever"
+TEXT_VALUE_TWO = "Test text whatever2"
 
 
-@pytest.fixture
-def text_value_two() -> str:
-    return "Test text whatever2"
-
-
-async def test_from_effect(text_value_one, text_value_two):
+async def test_from_effect():
     # Arrange
     effect = {
         "relationer": {
@@ -35,14 +27,14 @@ async def test_from_effect(text_value_one, text_value_two):
     actual_value2 = address_handler.value2
 
     # Assert
-    assert text_value_one == actual_value
-    assert text_value_two == actual_value2
+    assert TEXT_VALUE_ONE == actual_value
+    assert TEXT_VALUE_TWO == actual_value2
 
 
-async def test_from_request(text_value_one, text_value_two):
+async def test_from_request():
     # Arrange
 
-    request = {"value": text_value_one, "value2": text_value_two}
+    request = {"value": TEXT_VALUE_ONE, "value2": TEXT_VALUE_TWO}
     address_handler = await MultifieldTextAddressHandler.from_request(request)
 
     # Act
@@ -50,18 +42,18 @@ async def test_from_request(text_value_one, text_value_two):
     actual_value2 = address_handler.value2
 
     # Assert
-    assert text_value_one == actual_value
-    assert text_value_two == actual_value2
+    assert TEXT_VALUE_ONE == actual_value
+    assert TEXT_VALUE_TWO == actual_value2
 
 
-async def test_get_mo_address(text_value_one, text_value_two):
+async def test_get_mo_address():
     async def async_facet_get_one_class(x, y, *args, **kwargs):
         return {"uuid": y}
 
     # Arrange
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
     address_handler = MultifieldTextAddressHandler(
-        text_value_one, visibility, text_value_two
+        TEXT_VALUE_ONE, visibility, TEXT_VALUE_TWO
     )
 
     expected = {
@@ -80,13 +72,13 @@ async def test_get_mo_address(text_value_one, text_value_two):
         assert expected == actual
 
 
-async def test_get_mo_address_w_default(text_value_one):
+async def test_get_mo_address_w_default():
     async def async_facet_get_one_class(x, y, *args, **kwargs):
         return {"uuid": y}
 
     # Arrange
     visibility = "dd5699af-b233-44ef-9107-7a37016b2ed1"
-    address_handler = MultifieldTextAddressHandler(text_value_one, visibility)
+    address_handler = MultifieldTextAddressHandler(TEXT_VALUE_ONE, visibility)
 
     expected = {
         "href": None,
@@ -104,9 +96,9 @@ async def test_get_mo_address_w_default(text_value_one):
     assert expected == actual
 
 
-def test_get_lora_address(text_value_one, text_value_two):
+def test_get_lora_address():
     # Arrange
-    address_handler = MultifieldTextAddressHandler(text_value_one, None, text_value_two)
+    address_handler = MultifieldTextAddressHandler(TEXT_VALUE_ONE, None, TEXT_VALUE_TWO)
 
     expected = [
         {

@@ -14,8 +14,6 @@ from mora.service import orgunit as service_orgunit
 from tests.util import set_get_configuration
 
 
-mock_uuid = "f494ad89-039d-478e-91f2-a63566554bd6"
-
 org_unit_type_facet = {
     "description": "",
     "user_key": "org_unit_type",
@@ -34,6 +32,7 @@ def patch_orgunit_uuid(monkeypatch):
 
     autouse makes the fixture run on every test in the file
     """
+    mock_uuid = "f494ad89-039d-478e-91f2-a63566554bd6"
     monkeypatch.setattr(service_orgunit, "uuid4", lambda: mock_uuid)
     yield
 

@@ -8,12 +8,15 @@ from collections.abc import Generator
 from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
+from typing import TypeVar
 from uuid import UUID
 from uuid import uuid4
 
 import psycopg2
 import pytest
+import requests
 from _pytest.monkeypatch import MonkeyPatch
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
 from hypothesis import settings as h_settings
@@ -41,7 +44,13 @@ from oio_rest.db.testing import ensure_testing_database_exists
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import _mox_testing_api
+from tests.util import darmock
 from tests.util import load_sample_structures
+from tests.util import MockAioresponses
+
+
+T = TypeVar("T")
+YieldFixture = Generator[T, None, None]
 
 
 # Configs + fixtures
@@ -57,20 +66,25 @@ asyncio_mode = "strict"
 
 
 @pytest.fixture(autouse=True, scope="session")
-def seed_lora_client():
+def seed_lora_client() -> None:
     os.environ["PYTEST_RUNNING"] = "True"
     lora.client = asyncio.run(lora.create_lora_client(create_app()))
 
 
-def pytest_runtest_protocol(item):
+def pytest_runtest_protocol(item) -> None:
     os.environ["PYTEST_RUNNING"] = "True"
 
 
 st.register_type_strategy(Validity, validity_model_strat())
 
 
+@pytest.fixture(autouse=True)
+def clear_configured_organisation():
+    ConfiguredOrganisation.clear()
+
+
 @pytest.fixture(scope="class")
-def mock_asgi_transport():
+def mock_asgi_transport() -> YieldFixture[None]:
     HTTPCoreMocker.add_targets(
         "httpx._transports.asgi.ASGITransport",
         "httpx._transports.wsgi.WSGITransport",
@@ -85,7 +99,7 @@ def mock_asgi_transport():
 @pytest.fixture()
 def set_settings(
     monkeypatch: MonkeyPatch,
-) -> Generator[Callable[..., None], None, None]:
+) -> YieldFixture[Callable[..., None]]:
     """Set settings via kwargs callback."""
 
     def _inner(**kwargs: Any) -> None:
@@ -98,7 +112,7 @@ def set_settings(
 
 
 @pytest.fixture(autouse=True)
-def mocked_context() -> None:
+def mocked_context():
     """
     Testing code that relies on context vars without a full test client / app.
     https://starlette-context.readthedocs.io/en/latest/testing.html
@@ -145,15 +159,20 @@ def admin_token_getter() -> Callable[[], Awaitable[Token]]:
     return get_fake_admin_token
 
 
-def test_app(**overrides: Any):
+def raw_test_app(**overrides: Any) -> FastAPI:
     app = create_app(overrides)
+    return app
+
+
+def test_app(**overrides: Any) -> FastAPI:
+    app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = fake_auth
     app.dependency_overrides[token_getter] = fake_token_getter
     return app
 
 
-def admin_test_app(**overrides: Any):
-    app = create_app(overrides)
+def admin_test_app(**overrides: Any) -> FastAPI:
+    app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = admin_auth
     app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     app.dependency_overrides[token_getter] = admin_token_getter
@@ -161,13 +180,18 @@ def admin_test_app(**overrides: Any):
 
 
 @pytest.fixture(scope="session")
-def fastapi_test_app():
-    yield test_app()
+def fastapi_raw_test_app() -> FastAPI:
+    return raw_test_app()
 
 
 @pytest.fixture(scope="session")
-def fastapi_admin_test_app():
-    yield admin_test_app()
+def fastapi_test_app() -> FastAPI:
+    return test_app()
+
+
+@pytest.fixture(scope="session")
+def fastapi_admin_test_app() -> FastAPI:
+    return admin_test_app()
 
 
 def get_latest_graphql_url() -> str:
@@ -186,7 +210,17 @@ def latest_graphql_url() -> str:
 
 
 @pytest.fixture(scope="session")
-def service_client(fastapi_test_app):
+def raw_client(fastapi_raw_test_app: FastAPI) -> YieldFixture[TestClient]:
+    """Fixture yielding a FastAPI test client.
+
+    This fixture is class scoped to ensure safe teardowns between test classes.
+    """
+    with TestClient(fastapi_raw_test_app) as client:
+        yield client
+
+
+@pytest.fixture(scope="session")
+def service_client(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
@@ -196,7 +230,7 @@ def service_client(fastapi_test_app):
 
 
 @pytest.fixture(scope="class")
-def admin_client(fastapi_admin_test_app):
+def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
@@ -206,7 +240,7 @@ def admin_client(fastapi_admin_test_app):
 
 
 @pytest.fixture(scope="class")
-def testing_db():
+def testing_db() -> YieldFixture[None]:
     _mox_testing_api("db-setup")
     yield
     _mox_testing_api("db-teardown")
@@ -219,7 +253,7 @@ def testing_db():
 are_fixtures_loaded = False
 
 
-async def load_fixture_data():
+async def load_fixture_data() -> None:
     """Loads full sample structure
     Also naively looks if some of the sample structures are loaded
     to avoid loading all sample data more than once.
@@ -234,7 +268,7 @@ async def load_fixture_data():
 
 
 @pytest.fixture(scope="class")
-async def load_fixture_data_with_class_reset():
+async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
 
     await load_fixture_data()
 
@@ -251,7 +285,7 @@ async def load_fixture_data_with_class_reset():
 
 
 @pytest.fixture(scope="function")
-async def load_fixture_data_with_reset():
+async def load_fixture_data_with_reset() -> YieldFixture[None]:
 
     await load_fixture_data()
 
@@ -268,22 +302,22 @@ async def load_fixture_data_with_reset():
 
 
 @pytest.fixture(scope="session")
-def event_loop():
+def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
 
 @pytest.fixture
-async def sample_structures_minimal(testing_db):
+async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
     """Function scoped fixture, which is called on every test with a teardown"""
     await load_sample_structures(minimal=True)
     yield
     _mox_testing_api("db-reset")
 
 
-@pytest.fixture()
-def service_client_not_raising(fastapi_test_app):
+@pytest.fixture(scope="session")
+def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
@@ -375,16 +409,13 @@ def gen_organisation(
 
 
 @pytest.fixture
-def mock_organisation(respx_mock) -> Generator[UUID, None, None]:
-    # Clear Organisation cache before mocking a new one
-    ConfiguredOrganisation.clear()
-
+def mock_organisation(respx_mock) -> UUID:
     organisation = gen_organisation()
 
     respx_mock.get(
         "http://localhost/lora/organisation/organisation",
     ).mock(return_value=Response(200, json={"results": [[organisation]]}))
-    yield organisation["id"]
+    return organisation["id"]
 
 
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
@@ -462,21 +493,73 @@ def patch_loader():
     yield patcher
 
 
-@pytest.fixture(scope="class")
-def graphapi_test(fastapi_admin_test_app):
+@pytest.fixture(scope="session")
+def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
     """Fixture yielding a FastAPI test client.
 
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    yield TestClient(fastapi_admin_test_app)
+    return TestClient(fastapi_admin_test_app)
 
 
-@pytest.fixture(scope="class")
-def graphapi_test_no_exc(fastapi_admin_test_app):
+@pytest.fixture(scope="session")
+def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
     """Fixture yielding a FastAPI test client.
 
     This test client does not raise server errors. We use it to check error handling
     in our GraphQL stack.
     This fixture is class scoped to ensure safe teardowns between test classes.
     """
-    yield TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
+    return TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
+
+
+@pytest.fixture
+def darmocked():
+    with darmock() as mock:
+        yield mock
+
+
+@pytest.fixture
+def mockaio():
+    with MockAioresponses(["dawa-autocomplete.json"]) as mock:
+        yield mock
+
+
+def get_keycloak_token(use_client_secret: bool = False) -> str:
+    """Get OIDC token from Keycloak to send to MOs backend.
+
+    Args:
+        use_client_secret: Whether to use client_secret or password.
+
+    Returns:
+        Encoded OIDC token from Keycloak
+    """
+
+    data = {
+        "grant_type": "password",
+        "client_id": "mo",
+        "username": "bruce",
+        "password": "bruce",
+    }
+    if use_client_secret:
+        data = {
+            "grant_type": "client_credentials",
+            "client_id": "dipex",
+            "client_secret": "603f1c82-d012-4d04-9382-dbe659c533fb",
+        }
+
+    r = requests.post(
+        "http://keycloak:8080/auth/realms/mo/protocol/openid-connect/token",
+        data=data,
+    )
+    return r.json()["access_token"]
+
+
+@pytest.fixture(scope="session")
+def token():
+    return get_keycloak_token()
+
+
+@pytest.fixture(scope="session")
+def auth_headers(token: str):
+    return {"Authorization": f"Bearer {token}"}

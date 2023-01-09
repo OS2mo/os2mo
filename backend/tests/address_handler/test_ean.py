@@ -9,22 +9,16 @@ from mora.service.address_handler.ean import EANAddressHandler
 from tests import util
 
 
-@pytest.fixture
-def value_fixed():
-    return "1234567890123"
+VALUE_FIXED = "1234567890123"
+VISIBILITY_FIXED = "1f6295e8-9000-43ec-b694-4d288fa158bb"
 
 
-@pytest.fixture()
-def visibility_fixed():
-    return "1f6295e8-9000-43ec-b694-4d288fa158bb"
-
-
-async def test_from_effect(value_fixed, visibility_fixed):
+async def test_from_effect():
     # Arrange
     effect = {
         "relationer": {
-            "adresser": [{"urn": f"urn:magenta.dk:ean:{value_fixed}"}],
-            "opgaver": [{"objekttype": "synlighed", "uuid": visibility_fixed}],
+            "adresser": [{"urn": f"urn:magenta.dk:ean:{VALUE_FIXED}"}],
+            "opgaver": [{"objekttype": "synlighed", "uuid": VISIBILITY_FIXED}],
         }
     }
 
@@ -35,33 +29,33 @@ async def test_from_effect(value_fixed, visibility_fixed):
     actual_visibility = address_handler.visibility
 
     # Assert
-    assert value_fixed == actual_value
-    assert visibility_fixed == actual_visibility
+    assert VALUE_FIXED == actual_value
+    assert VISIBILITY_FIXED == actual_visibility
 
 
-async def test_from_request(value_fixed, visibility_fixed):
+async def test_from_request():
     # Arrange
-    request = {"value": value_fixed}
+    request = {"value": VALUE_FIXED}
     address_handler = await EANAddressHandler.from_request(request)
 
     # Act
     actual_value = address_handler.value
 
     # Assert
-    assert value_fixed == actual_value
+    assert VALUE_FIXED == actual_value
 
 
-async def test_get_mo_address(value_fixed, visibility_fixed):
+async def test_get_mo_address():
     async def async_facet_get_one_class(x, y, *args, **kwargs):
         return {"uuid": y}
 
     # Arrange
-    address_handler = EANAddressHandler(value_fixed, visibility_fixed)
+    address_handler = EANAddressHandler(VALUE_FIXED, VISIBILITY_FIXED)
 
     expected = {
         "href": None,
-        "name": value_fixed,
-        "value": value_fixed,
+        "name": VALUE_FIXED,
+        "value": VALUE_FIXED,
         "value2": None,
         "visibility": {"uuid": "1f6295e8-9000-43ec-b694-4d288fa158bb"},
     }
@@ -74,13 +68,13 @@ async def test_get_mo_address(value_fixed, visibility_fixed):
         assert expected == actual
 
 
-def test_get_lora_address(value_fixed):
+def test_get_lora_address():
     # Arrange
-    address_handler = EANAddressHandler(value_fixed, None)
+    address_handler = EANAddressHandler(VALUE_FIXED, None)
 
     expected = {
         "objekttype": "EAN",
-        "urn": f"urn:magenta.dk:ean:{value_fixed}",
+        "urn": f"urn:magenta.dk:ean:{VALUE_FIXED}",
     }
 
     # Act

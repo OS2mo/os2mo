@@ -7,7 +7,6 @@ from httpx import Response
 from more_itertools import distinct_permutations
 from more_itertools import one
 
-from mora.service.org import ConfiguredOrganisation
 from mora.service.org import get_configured_organisation
 from tests.conftest import GQLResponse
 
@@ -47,7 +46,6 @@ def test_query_organisation(graphapi_post, mock_organisation):
 @pytest.mark.usefixtures("mock_asgi_transport")
 async def test_invalid_query_no_organisation(graphapi_post, respx_mock):
     """Test that we get an error when querying with no organisation."""
-    ConfiguredOrganisation.clear()
     respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": []})
     )
