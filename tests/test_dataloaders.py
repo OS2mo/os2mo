@@ -489,8 +489,9 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
         "value": "foo@bar.dk",
         "uuid": uuid,
         "address_type": {"uuid": uuid},
-        "validity": {"from": "2021-01-01 01:00"},
+        "validity": {"from": "2021-01-01 01:00", "to": None},
         "person": {"uuid": uuid},
+        "visibility": {"uuid": uuid},
     }
 
     # Note that 'Address' requires 'person' to be a dict
@@ -499,6 +500,8 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     # While graphQL returns it as a list with length 1
     address_dict["person"] = [{"cpr_no": "0101012002", "uuid": uuid}]
     address_dict["address_type"]["name"] = "address"
+    address_dict["value2"] = None
+    address_dict["visibility_uuid"] = uuid
 
     gql_client.execute.return_value = {
         "addresses": [
@@ -597,6 +600,18 @@ async def test_load_mo_employee_addresses(
     load_mo_address.assert_any_call(address2_uuid)
 
 
+async def test_load_mo_employee_addresses_not_found(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    gql_client.execute.return_value = {"employees": []}
+
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(
+            dataloader.load_mo_employee_addresses(uuid4(), uuid4()),
+        )
+
+
 async def test_find_mo_employee_uuid(
     dataloader: DataLoader, gql_client: AsyncMock, gql_client_sync: MagicMock
 ):
@@ -651,3 +666,127 @@ async def test_load_mo_address_types_not_found(
 
     output = dataloader.load_mo_address_types()
     assert output == {}
+
+
+def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
+    uuid1 = uuid4()
+    uuid2 = uuid4()
+
+    return_value = {
+        "itsystems": [
+            {"user_key": "AD", "uuid": uuid1},
+            {"user_key": "Office365", "uuid": uuid2},
+        ]
+    }
+
+    gql_client_sync.execute.return_value = return_value
+
+    output = dataloader.load_mo_it_systems()
+    assert output["AD"]["uuid"] == uuid1
+    assert output["Office365"]["uuid"] == uuid2
+
+
+def test_load_mo_it_systems_not_found(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+):
+
+    return_value: dict = {"itsystems": []}
+    gql_client_sync.execute.return_value = return_value
+
+    output = dataloader.load_mo_it_systems()
+    assert output == {}
+
+
+async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
+    uuid1 = uuid4()
+    uuid2 = uuid4()
+    return_value = {
+        "itusers": [
+            {
+                "objects": [
+                    {
+                        "user_key": "foo",
+                        "validity": {"from": "2021-01-01", "to": None},
+                        "employee_uuid": uuid1,
+                        "itsystem_uuid": uuid2,
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    output = await asyncio.gather(
+        dataloader.load_mo_it_user(uuid4()),
+    )
+    assert output[0].user_key == "foo"
+    assert output[0].itsystem.uuid == uuid2
+    assert output[0].person.uuid == uuid1
+    assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+    assert len(output) == 1
+
+
+async def test_load_mo_it_user_not_found(dataloader: DataLoader, gql_client: AsyncMock):
+    return_value: dict = {"itusers": []}
+
+    gql_client.execute.return_value = return_value
+
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(
+            dataloader.load_mo_it_user(uuid4()),
+        )
+
+
+async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: AsyncMock):
+
+    uuid1 = uuid4()
+    uuid2 = uuid4()
+    employee_uuid = uuid4()
+    it_system_uuid = uuid4()
+
+    return_value = {
+        "employees": [
+            {
+                "objects": [
+                    {
+                        "itusers": [
+                            {
+                                "uuid": uuid1,
+                                "itsystem_uuid": str(it_system_uuid),
+                            },
+                            {
+                                "uuid": uuid2,
+                                "itsystem_uuid": str(uuid4()),
+                            },
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    load_mo_it_user = AsyncMock()
+    dataloader.load_mo_it_user = load_mo_it_user  # type: ignore
+
+    await asyncio.gather(
+        dataloader.load_mo_employee_it_users(employee_uuid, it_system_uuid),
+    )
+
+    load_mo_it_user.assert_called_once_with(uuid1)
+
+
+async def test_load_mo_employee_it_users_not_found(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    return_value: dict = {"employees": []}
+
+    gql_client.execute.return_value = return_value
+
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(
+            dataloader.load_mo_employee_it_users(uuid4(), uuid4()),
+        )

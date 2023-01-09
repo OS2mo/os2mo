@@ -12,6 +12,7 @@ from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
 from .exceptions import CprNoNotFound
@@ -331,6 +332,28 @@ class DataLoader:
 
         return Employee(**entry)
 
+    def load_mo_it_systems(self) -> dict:
+        query = gql(
+            """
+            query ItSystems {
+              itsystems {
+                user_key
+                uuid
+                name
+              }
+            }
+            """
+        )
+        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
+        result = graphql_session.execute(query)
+
+        if len(result["itsystems"]) == 0:
+            output = {}
+        else:
+            output = {d["user_key"]: d for d in result["itsystems"]}
+
+        return output
+
     def load_mo_address_types(self) -> dict:
         query = gql(
             """
@@ -355,6 +378,46 @@ class DataLoader:
 
         return output
 
+    async def load_mo_it_user(self, uuid: UUID):
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        query = gql(
+            """
+            query MyQuery {
+              itusers(uuids: "%s") {
+                objects {
+                  user_key
+                  validity {
+                    from
+                    to
+                  }
+                  employee_uuid
+                  itsystem_uuid
+                }
+              }
+            }
+            """
+            % (uuid)
+        )
+
+        result = await graphql_session.execute(query)
+        if len(result["itusers"]) == 0:
+            raise NoObjectsReturnedException(
+                (
+                    "No valid it user found. "
+                    "The uuid does not exist, or belongs to a future/past it user"
+                )
+            )
+
+        entry = result["itusers"][0]["objects"][0]
+        return ITUser.from_simplified_fields(
+            user_key=entry["user_key"],
+            itsystem_uuid=entry["itsystem_uuid"],
+            from_date=entry["validity"]["from"],
+            uuid=uuid,
+            to_date=entry["validity"]["to"],
+            person_uuid=entry["employee_uuid"],
+        )
+
     async def load_mo_address(self, uuid: UUID) -> tuple[Address, dict]:
         """
         Loads a mo address
@@ -371,13 +434,16 @@ class DataLoader:
               addresses(uuids: "{%s}") {
                 objects {
                   value: name
+                  value2
                   uuid
+                  visibility_uuid
                   person: employee {
                     cpr_no
                     uuid
                   }
                   validity {
                       from
+                      to
                     }
                   address_type {
                       name
@@ -401,11 +467,14 @@ class DataLoader:
         entry = result["addresses"][0]["objects"][0]
 
         address = Address.from_simplified_fields(
-            entry["value"],
-            entry["address_type"]["uuid"],
-            entry["validity"]["from"],
-            person_uuid=entry["person"][0]["uuid"],
+            value=entry["value"],
+            address_type_uuid=entry["address_type"]["uuid"],
+            from_date=entry["validity"]["from"],
             uuid=entry["uuid"],
+            to_date=entry["validity"]["to"],
+            value2=entry["value2"],
+            person_uuid=entry["person"][0]["uuid"],
+            visibility_uuid=entry["visibility_uuid"],
         )
 
         # We make a dict with meta-data because ramodels Address does not support
@@ -440,6 +509,10 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
+
+        if len(result["employees"]) == 0:
+            raise NoObjectsReturnedException("No employees with uuid = {employee_uuid}")
+
         address_uuids = [
             d["uuid"] for d in result["employees"][0]["objects"][0]["addresses"]
         ]
@@ -448,6 +521,36 @@ class DataLoader:
         for address_uuid in address_uuids:
             mo_address = await self.load_mo_address(address_uuid)
             output.append(mo_address)
+        return output
+
+    async def load_mo_employee_it_users(self, employee_uuid, it_system_uuid):
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        query = gql(
+            """
+            query ItUserQuery {
+              employees(uuids: "%s") {
+                objects {
+                  itusers {
+                    uuid
+                    itsystem_uuid
+                  }
+                }
+              }
+            }
+            """
+            % employee_uuid
+        )
+
+        result = await graphql_session.execute(query)
+
+        if len(result["employees"]) == 0:
+            raise NoObjectsReturnedException("No employees with uuid = {employee_uuid}")
+
+        output = []
+        for it_user_dict in result["employees"][0]["objects"][0]["itusers"]:
+            if it_user_dict["itsystem_uuid"] == str(it_system_uuid):
+                it_user = await self.load_mo_it_user(it_user_dict["uuid"])
+                output.append(it_user)
         return output
 
     async def upload_mo_objects(self, objects: list[Any]):
