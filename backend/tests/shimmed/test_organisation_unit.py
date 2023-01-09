@@ -1,5 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
+from uuid import UUID
+
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
@@ -311,7 +314,14 @@ class TestOrganisationUnitWrite:
         } in org_children.json()
 
 
-async def test_list_equivalence(service_client: TestClient):
+# @patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
+# async def test_create_mutator_fails(create_address: AsyncMock, given_mutator_args):
+# @patch("mora.util.context", new_callable=AsyncMock)
+
+
+async def test_list_equivalence(
+    service_client: TestClient,
+):
     """Verify the org-unit list endpoint handler respond with the same as the legacy logic.
 
     We need to verify that the new shimmed endpoint handler, which uses GraphQL, returns the same
@@ -320,24 +330,24 @@ async def test_list_equivalence(service_client: TestClient):
 
     # TODO: Create a test dataset to use for both legacy-logic and api-endpoint
     org_id = "3b866d97-0b1f-48e0-8078-686d96f430b3"
-    start = None
-    limit = None
+    start = 0
+    limit = 0
     query = None
     root = None
     hierarchy_uuids = None
     only_primary_uuid = None
 
-    # TODO: Invoke the legacy logic as the old endpoint would to get the old response
-    legacy_response = await list_orgunits(
-        org_id, start, limit, query, root, hierarchy_uuids, only_primary_uuid
-    )
-    print(legacy_response)
+    # Invoke the legacy logic as the old endpoint would to get the old response
+    with patch("mora.util.get_query_args") as mock_get_query_args:
+        mock_get_query_args.return_value = {}
+        legacy_response = await list_orgunits(
+            UUID(org_id), start, limit, query, root, hierarchy_uuids, only_primary_uuid
+        )
 
-    # TODO: Make a request to the org_units list endpoint which contains the new response
+    # Make a request to the org_units list endpoint which contains the new response
     response = service_client.get(f"/service/o/{org_id}/ou/")
     assert response.status_code == 200
     response_dict = response.json()
-    print(response_dict)
 
-    # TODO: Verify the two responses are equal
+    # Verify the two responses are equal
     assert legacy_response == response_dict
