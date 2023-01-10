@@ -89,7 +89,7 @@ async def legacy_auth_adapter(request: Request) -> Token:
         logger.warning("Legacy session token used")
         if validate_session(session_id):
             return await legacyauth()
-    return fetch_keycloak_token(request)
+    return await fetch_keycloak_token(request)
 
 
 # TODO: Remove this, once a proper auth solution is in place,

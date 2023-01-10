@@ -5,6 +5,8 @@ from uuid import UUID
 
 import pytest
 from hypothesis import given
+from hypothesis import HealthCheck
+from hypothesis import settings as hypothesis_settings
 from more_itertools import first
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
@@ -137,6 +139,7 @@ def test_itsystem_create(graphapi_post) -> None:
     assert itsystem["user_key"] == "my_user_key"
 
 
+@hypothesis_settings(suppress_health_check=(HealthCheck.function_scoped_fixture,))
 @given(uuid=..., user_key=..., name=...)
 def test_itsystem_create_mocked(
     uuid: UUID,
