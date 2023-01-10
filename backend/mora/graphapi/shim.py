@@ -186,6 +186,7 @@ class MOAddress(AddressRead):
     address_type_uuid: UUID | None
     address_type: None | MOAddressType | UUIDObject
     person: None | list[MOEmployee] | UUIDObject
+    engagement_uuid: UUID | None
     org_unit: None | OrgUnitType | UUIDObject
     visibility: VisibilityRead | None
     validity: ValidityDates

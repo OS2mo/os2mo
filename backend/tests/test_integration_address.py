@@ -375,6 +375,7 @@ async def test_add_employee_address(service_client: TestClient) -> None:
             "address_type": {
                 "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
             },
+            "engagement_uuid": None,
             "href": "mailto:root@example.com",
             "name": "root@example.com",
             "person": {
@@ -1313,6 +1314,7 @@ def test_reading(service_client: TestClient) -> None:
             "address_type": {
                 "uuid": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
             },
+            "engagement_uuid": None,
             "href": "mailto:goofy@example.com",
             "name": "goofy@example.com",
             "value": "goofy@example.com",
@@ -1331,6 +1333,7 @@ def test_reading(service_client: TestClient) -> None:
             "address_type": {
                 "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
             },
+            "engagement_uuid": None,
             "href": "https://www.openstreetmap.org/?mlon="
             "10.19938084&mlat=56.17102843&zoom=16",
             "name": "Nordre Ringgade 1, 8000 Aarhus C",
