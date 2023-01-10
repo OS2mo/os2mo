@@ -56,7 +56,7 @@ class Settings(BaseSettings):
 
     amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@localhost:5672")
     amqp_exchange: str = "os2mo"
-    listen_to_changes: bool = Field(
+    listen_to_changes_in_mo: bool = Field(
         True, description="Whether to write to AD, when changes in MO are registered"
     )
 

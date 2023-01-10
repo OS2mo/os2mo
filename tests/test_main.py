@@ -105,7 +105,7 @@ def load_settings_overrides_not_listening(
     Yields:
         Minimal set of overrides.
     """
-    overrides = {**settings_overrides, "LISTEN_TO_CHANGES": "False"}
+    overrides = {**settings_overrides, "LISTEN_TO_CHANGES_IN_MO": "False"}
     for key, value in overrides.items():
         if os.environ.get(key) is None:
             monkeypatch.setenv(key, value)

@@ -92,7 +92,7 @@ async def listen_to_changes_in_employees(
         return None
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
-    elif not Settings().listen_to_changes:
+    elif not Settings().listen_to_changes_in_mo:
         raise RejectMessage()
 
     routing_key = kwargs["mo_routing_key"]
