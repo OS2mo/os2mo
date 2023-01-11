@@ -13,6 +13,7 @@ stages:
   - lint
   - test
   - coverage
+  - build
   - release
   - deploy
 
@@ -40,6 +41,10 @@ include:
   # Includes til at køre config-updateren, se anvendelse længere nede
   #- project: labs/salt-automation
   #  file: /gitlab-ci-templates/common/config-updater-meta.v1.yml
+
+  # Kører build
+  - project: labs/salt-automation
+    file: /gitlab-ci-templates/common/docker-build.v1.yml
 
   # Kører automatisk release
   - project: labs/salt-automation
