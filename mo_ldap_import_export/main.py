@@ -91,6 +91,10 @@ async def listen_to_changes_in_employees(
         uuids_to_ignore.remove(payload.object_uuid)
         return None
 
+    # If we are not supposed to listen: reject and turn the message into a dead letter.
+    elif not Settings().listen_to_changes_in_mo:
+        raise RejectMessage()
+
     routing_key = kwargs["mo_routing_key"]
     logger.info("[MO] Registered change in the employee model")
     logger.info(f"[MO] Routing key: {routing_key}")
