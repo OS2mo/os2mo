@@ -319,6 +319,7 @@ class TestOrganisationUnitWrite:
 # @patch("mora.util.context", new_callable=AsyncMock)
 
 
+@pytest.mark.integration_test
 async def test_list_equivalence(
     service_client: TestClient,
 ):
