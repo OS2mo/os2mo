@@ -38,12 +38,12 @@ include:
   #  file: /gitlab-ci-templates/common/autopub.v1.yml
 
   # Includes til at køre config-updateren, se anvendelse længere nede
-  - project: labs/salt-automation
-    file: /gitlab-ci-templates/common/config-updater-meta.v1.yml
+  #- project: labs/salt-automation
+  #  file: /gitlab-ci-templates/common/config-updater-meta.v1.yml
 
   # Kører automatisk release
-  #- project: labs/salt-automation
-  #  file: /gitlab-ci-templates/common/docker-release.v1.yml
+  - project: labs/salt-automation
+    file: /gitlab-ci-templates/common/docker-release.v1.yml
 
 
 
