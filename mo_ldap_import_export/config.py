@@ -95,3 +95,12 @@ class Settings(BaseSettings):
     auth_realm: str = Field("mo", description="Realm to authenticate against")
 
     graphql_timeout: int = 120
+
+    admin_password: SecretStr = Field(
+        ...,
+        description="Password to use when authenticating to FastAPI docs",
+    )
+    authentication_secret: SecretStr = Field(
+        ...,
+        description="secret key for FastAPI docs login manager",
+    )
