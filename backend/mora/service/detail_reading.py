@@ -153,6 +153,7 @@ async def list_addresses_employee(
                     }
                     address_type_uuid
                     employee_uuid
+                    engagement_uuid
                   }
                 }
               }
@@ -210,6 +211,7 @@ async def list_addresses_employee(
                       uuid
                       seniority
                     }
+                    engagement_uuid
                   }
                 }
               }
