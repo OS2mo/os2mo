@@ -794,7 +794,7 @@ def get_details_from_query_args(args):
     return UnitDetails.MINIMAL
 
 
-@router.get("/o/{orgid}/ou-old/")
+# @router.get("/o/{orgid}/ou/")
 async def list_orgunits(
     orgid: UUID,
     start: int | None = 0,

@@ -67,7 +67,9 @@ class OrgUnitReader(reading.ReadingHandler):
         }
         also = {}
 
-        return await c.organisationenhed.get_effects(obj, relevant, also, **params)
+        result = await c.organisationenhed.get_effects(obj, relevant, also, **params)
+        return  result
+        # return await c.organisationenhed.get_effects(obj, relevant, also, **params)
 
     @classmethod
     async def _get_mo_object_from_effect(
@@ -79,7 +81,7 @@ class OrgUnitReader(reading.ReadingHandler):
         if is_graphql():
             details = orgunit.UnitDetails.MINIMAL
 
-        return await orgunit.get_one_orgunit(
+        result = await orgunit.get_one_orgunit(
             c,
             obj_id,
             effect,
@@ -90,3 +92,15 @@ class OrgUnitReader(reading.ReadingHandler):
             },
             only_primary_uuid=only_primary_uuid,
         )
+        return result
+        # return await orgunit.get_one_orgunit(
+        #     c,
+        #     obj_id,
+        #     effect,
+        #     details=details,
+        #     validity={
+        #         mapping.FROM: util.to_iso_date(start),
+        #         mapping.TO: util.to_iso_date(end, is_end=True),
+        #     },
+        #     only_primary_uuid=only_primary_uuid,
+        # )

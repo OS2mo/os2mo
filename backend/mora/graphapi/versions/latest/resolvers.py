@@ -77,7 +77,9 @@ class StaticResolver:
             escaped_user_keys = (re.escape(k) for k in user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
 
-        return await info.context[self.getter](**kwargs)
+        result = await info.context[self.getter](**kwargs)
+        return result
+        # return await info.context[self.getter](**kwargs)
 
     @staticmethod
     # type: ignore[no-untyped-def]

@@ -112,7 +112,7 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
-        return await gather(
+        result = await gather(
             *[
                 create_task(
                     cls._get_mo_object_from_effect(
@@ -123,6 +123,18 @@ class ReadingHandler:
                 if util.is_reg_valid(effect)
             ]
         )
+        return result
+        # return await gather(
+        #     *[
+        #         create_task(
+        #             cls._get_mo_object_from_effect(
+        #                 effect, start, end, function_id, flat
+        #             )
+        #         )
+        #         for start, end, effect in (await cls._get_effects(c, function_obj))
+        #         if util.is_reg_valid(effect)
+        #     ]
+        # )
 
     @classmethod
     async def _get_obj_effects(
@@ -138,7 +150,7 @@ class ReadingHandler:
         :param object_tuples: An iterable of (UUID, object) tuples
         """
         # flatten a bunch of nested tasks
-        return [
+        result = [
             x
             for sublist in await gather(
                 *[
@@ -152,6 +164,21 @@ class ReadingHandler:
             )
             for x in sublist
         ]
+        return result
+        # return [
+        #     x
+        #     for sublist in await gather(
+        #         *[
+        #             create_task(
+        #                 cls.__async_get_mo_object_from_effect(
+        #                     c, function_id, function_obj, flat
+        #                 )
+        #             )
+        #             for function_id, function_obj in object_tuples
+        #         ]
+        #     )
+        #     for x in sublist
+        # ]
 
 
 class OrgFunkReadingHandler(ReadingHandler):
