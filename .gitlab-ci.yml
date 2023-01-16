@@ -308,7 +308,8 @@ Integration-test:
       --cov=mora
       --cov=oio_rest
       --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
+      --splits $CI_NODE_TOTAL | true
+    - sleep 5432
   artifacts:
     when: always
     paths:
