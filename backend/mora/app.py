@@ -5,6 +5,7 @@ from itertools import chain
 from pathlib import Path
 from typing import Any
 
+import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
@@ -242,6 +243,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     if not settings.is_under_test():
         setup_metrics(app)
+
+    if settings.sentry_dsn:
+        sentry_sdk.init(dsn=settings.sentry_dsn)
 
     app.add_middleware(log.AccesslogMiddleware)
 
