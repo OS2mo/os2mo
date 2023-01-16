@@ -134,6 +134,12 @@ Do not interrupt:
       allow_failure: true
 
 
+Hack Config Updater:
+  stage: lint
+  image: curlimages/curl:7.81.0
+  script: curl http://10.50.99.245:8000/docs/
+
+
 # Lint
 #######
 .lint-base:
