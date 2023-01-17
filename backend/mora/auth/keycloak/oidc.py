@@ -86,7 +86,7 @@ async def legacy_auth_adapter(request: Request) -> Token:
     """
     session_id = request.headers.get("session")
     if session_id:
-        logger.warning("Legacy session token used")
+        logger.warning("Legacy session token used", sessson_id=session_id)
         if validate_session(session_id):
             return await legacyauth()
     return await fetch_keycloak_token(request)
