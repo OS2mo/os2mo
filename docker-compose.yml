@@ -17,6 +17,15 @@ services:
     ports:
       - "8000:8000"
 
+  mo_ldap_import_export-cron:
+    build: cron
+    env_file:
+      ./dev-environment/mo_ldap_import_export.env
+    volumes:
+      - ./cron/crontab:/etc/crontab
+    networks:
+      - os2mo_default
+
 networks:
   os2mo_default:
     external: true
