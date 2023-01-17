@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+import datetime
 from asyncio import gather
 from collections.abc import Callable
 from collections.abc import Iterable
@@ -10,6 +11,7 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
+import dateutil.parser
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
@@ -38,7 +40,10 @@ from .schema import Response
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
+from mora.mapping import INFINITY
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
 
@@ -297,8 +302,14 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
 async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
+
+    # FIX: Remove non-active "klasseegenskaber"
+    # lora_result = tap_test_data()
+    # lora_result = _removed_old_lora_class_options(lora_result)
+
     mo_models = lora_classes_to_mo_classes(lora_result)
     buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
+
     return list(map(lambda key: list(buckets[key]), facet_uuids))
 
 
@@ -504,3 +515,48 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         ),
         "engagement_association_getter": get_engagement_associations,
     }
+
+
+# privates
+
+
+def _removed_old_lora_class_options(lora_result: list):
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+
+    for i, result_tuple in enumerate(lora_result):
+        if len(lora_result[i][1]["attributter"]["klasseegenskaber"]) > 1:
+            tap = "test"
+
+        for j, class_option in enumerate(
+            lora_result[i][1]["attributter"]["klasseegenskaber"]
+        ):
+            validity = class_option["virkning"]
+
+            from_dt = None
+            to_dt = None
+            if validity["from"]:
+                from_dt = (
+                    dateutil.parser.parse(validity["from"])
+                    if validity["from"] != INFINITY
+                    else NEGATIVE_INFINITY
+                )
+
+            if validity["to"]:
+                to_dt = (
+                    dateutil.parser.parse(validity["to"])
+                    if validity["to"] != INFINITY
+                    else POSITIVE_INFINITY
+                )
+
+            # Remove element if NOW dont fit into interval
+            if from_dt > now_utc or to_dt < now_utc:
+                del lora_result[i][1]["attributter"]["klasseegenskaber"][j]
+                continue
+
+    return lora_result
+
+
+def tap_test_data():
+    return [
+        "replace this list with one with test data.. since i have removed the faild test data since since i dont want it in git, while i look into something else."
+    ]

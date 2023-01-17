@@ -13,6 +13,7 @@ from collections.abc import Coroutine
 from collections.abc import ItemsView
 from collections.abc import Iterable
 from datetime import datetime
+from datetime import timezone
 from enum import Enum
 from enum import unique
 from functools import partial
@@ -23,6 +24,7 @@ from typing import NoReturn
 from typing import Optional
 from typing import TypeVar
 
+import dateutil.parser
 import httpx
 import lora_utils
 from fastapi import FastAPI
@@ -35,8 +37,11 @@ from . import config
 from . import exceptions
 from . import util
 from .graphapi.middleware import is_graphql
+from .mapping import INFINITY
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
+from .util import NEGATIVE_INFINITY
+from .util import POSITIVE_INFINITY
 from oio_rest.config import get_settings as get_lora_settings
 
 
@@ -601,6 +606,10 @@ class Scope(BaseScope):
         assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
         response = await self.load(**params)
+
+        response2 = _tap_test_data()
+        response2 = _removed_old_lora_class_options(response2)
+
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
         return filter_registrations(
             response=response, wantregs=wantregs, changed_since=changed_since
@@ -745,3 +754,48 @@ class AutocompleteScope(BaseScope):
         response = await client.get(url=self.path, params=params)
         await _check_response(response)
         return {"items": response.json()["results"]}
+
+
+# Private helpers
+
+
+def _removed_old_lora_class_options(lora_result: list):
+    now_utc = datetime.now(timezone.utc)
+
+    for i, _ in enumerate(lora_result):
+        # if len(lora_result[i][1]["attributter"]["klasseegenskaber"]) > 1:
+        #     tap="test"
+
+        for j, class_option in enumerate(
+            lora_result[i][1]["attributter"]["klasseegenskaber"]
+        ):
+            validity = class_option["virkning"]
+
+            from_dt = None
+            to_dt = None
+            if validity["from"]:
+                from_dt = (
+                    dateutil.parser.parse(validity["from"])
+                    if validity["from"] != INFINITY
+                    else NEGATIVE_INFINITY
+                )
+
+            if validity["to"]:
+                to_dt = (
+                    dateutil.parser.parse(validity["to"])
+                    if validity["to"] != INFINITY
+                    else POSITIVE_INFINITY
+                )
+
+            # Remove element if NOW dont fit into interval
+            if from_dt > now_utc or to_dt < now_utc:
+                del lora_result[i][1]["attributter"]["klasseegenskaber"][j]
+                continue
+
+    return lora_result
+
+
+def _tap_test_data():
+    return [
+        "replace this list with one with test data.. since i have removed the faild test data since since i dont want it in git, while i look into something else."
+    ]
