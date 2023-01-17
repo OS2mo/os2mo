@@ -6,7 +6,6 @@ from functools import lru_cache
 from sqlalchemy import Column
 from sqlalchemy import create_engine
 from sqlalchemy import DateTime
-from sqlalchemy import exists
 from sqlalchemy import Integer
 from sqlalchemy import LargeBinary
 from sqlalchemy import String
@@ -79,13 +78,10 @@ def validate_session(session_id: str) -> bool:
     engine = _get_engine()
     with Session(engine) as session:
         # Mark session as used by setting expiry to max
-        session.execute(
+        result = session.execute(
             update(SessionModel)
             .values(expiry=datetime.max)
             .where(SessionModel.session_id == store_id)
+            .returning(SessionModel.id)
         )
-
-        # Issue a "SELECT EXISTS(...)" query (which is slightly faster than a
-        # "SELECT COUNT() ...".)
-        result = session.query(exists().where(SessionModel.session_id == store_id))
-        return result.scalar()
+        return result.scalar() is not None
