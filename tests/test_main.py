@@ -17,8 +17,10 @@ from uuid import uuid4
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
@@ -31,8 +33,10 @@ from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.main import get_matching_address_uuid
+from mo_ldap_import_export.main import format_converted_objects
+from mo_ldap_import_export.main import listen_to_changes
 from mo_ldap_import_export.main import listen_to_changes_in_employees
+from mo_ldap_import_export.main import listen_to_changes_in_org_units
 from mo_ldap_import_export.main import open_ldap_connection
 
 
@@ -54,6 +58,8 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
         "ADMIN_PASSWORD": "admin",
         "AUTHENTICATION_SECRET": "foo",
+        "DEFAULT_ORG_UNIT_LEVEL": "foo",
+        "DEFAULT_ORG_UNIT_TYPE": "foo",
     }
     yield overrides
 
@@ -371,6 +377,22 @@ def test_ldap_get_organizationalUser_endpoint(
     assert response.status_code == 202
 
 
+async def test_listen_to_changes_in_org_units(converter: MagicMock):
+
+    org_unit_info = {uuid4(): {"name": "Magenta Aps"}}
+
+    dataloader = MagicMock()
+    dataloader.load_mo_org_units.return_value = org_unit_info
+
+    payload = MagicMock()
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+
+    await listen_to_changes_in_org_units(context, payload)
+    assert converter.org_unit_info == org_unit_info
+
+
 async def test_listen_to_changes_in_employees(
     dataloader: AsyncMock, load_settings_overrides: dict[str, str]
 ) -> None:
@@ -388,19 +410,21 @@ async def test_listen_to_changes_in_employees(
     converted_ldap_object = LdapObject(dn="Foo")
     converter.to_ldap.return_value = converted_ldap_object
     converter.mapping = {"mo_to_ldap": {"Email": 2}}
-    converter.get_it_system.return_value = {"name": "AD"}
+    converter.get_it_system_name.return_value = "AD"
 
     address_type_name = "Email"
     it_system_type_name = "AD"
 
-    context = {
-        "user_context": {
-            "settings": settings_mock,
-            "mapping": mapping,
-            "converter": converter,
-            "dataloader": dataloader,
+    context = Context(
+        {
+            "user_context": {
+                "settings": settings_mock,
+                "mapping": mapping,
+                "converter": converter,
+                "dataloader": dataloader,
+            }
         }
-    }
+    )
     payload = MagicMock()
     payload.uuid = uuid4()
     payload.object_uuid = uuid4()
@@ -452,6 +476,27 @@ async def test_listen_to_changes_in_employees(
         converted_ldap_object, it_system_type_name
     )
 
+    # Simulate a created engagement
+    converter.from_ldap.return_value = [
+        Engagement.from_simplified_fields(
+            org_unit_uuid=uuid4(),
+            person_uuid=uuid4(),
+            job_function_uuid=uuid4(),
+            engagement_type_uuid=uuid4(),
+            user_key="foo",
+            from_date="2021-01-01",
+        ),
+    ]
+
+    mo_routing_key = MORoutingKey.build("employee.engagement.create")
+    await asyncio.gather(
+        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+    )
+    assert dataloader.load_mo_engagement.called
+    dataloader.upload_ldap_object.assert_called_with(
+        converted_ldap_object, "Engagement"
+    )
+
     # Simulate case where no cleanup is needed
     converter.from_ldap.return_value = [
         Address.from_simplified_fields("foo@bar.dk", uuid4(), "2021-01-01"),
@@ -488,9 +533,7 @@ async def test_listen_to_changes_in_employees(
     ):
         with capture_logs() as cap_logs:
             await asyncio.gather(
-                listen_to_changes_in_employees(
-                    context, payload, mo_routing_key=mo_routing_key
-                ),
+                listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
             )
 
             entries = [w for w in cap_logs if w["log_level"] == "info"]
@@ -514,7 +557,34 @@ def test_ldap_get_populated_overview_endpoint(
     assert response.status_code == 202
 
 
-async def test_listen_to_changes_in_employees_not_supported(
+async def test_listen_to_changes(load_settings_overrides: dict[str, str]):
+
+    listen_to_changes_in_employees_mock = AsyncMock()
+    listen_to_changes_in_org_units_mock = AsyncMock()
+
+    with patch(
+        "mo_ldap_import_export.main.listen_to_changes_in_employees",
+        listen_to_changes_in_employees_mock,
+    ), patch(
+        "mo_ldap_import_export.main.listen_to_changes_in_org_units",
+        listen_to_changes_in_org_units_mock,
+    ):
+
+        context = None
+        payload = MagicMock()
+        payload.uuid = uuid4()
+        payload.object_uuid = uuid4()
+
+        mo_routing_key = MORoutingKey.build("employee.*.*")
+        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+        listen_to_changes_in_employees_mock.assert_awaited_once()
+
+        mo_routing_key = MORoutingKey.build("org_unit.*.*")
+        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+        listen_to_changes_in_org_units_mock.assert_awaited_once()
+
+
+async def test_listen_to_changes_not_supported(
     load_settings_overrides: dict[str, str]
 ) -> None:
 
@@ -523,7 +593,7 @@ async def test_listen_to_changes_in_employees_not_supported(
     context: dict = {}
     payload = MagicMock()
 
-    original_function = listen_to_changes_in_employees.__wrapped__
+    original_function = listen_to_changes.__wrapped__
 
     # Which means the message should be rejected
     with pytest.raises(NotSupportedException):
@@ -533,13 +603,11 @@ async def test_listen_to_changes_in_employees_not_supported(
 
     with pytest.raises(RejectMessage):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context, payload, mo_routing_key=mo_routing_key
-            ),
+            listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
         )
 
 
-async def test_listen_to_changes_in_employees_not_listening(
+async def test_listen_to_changes_not_listening(
     load_settings_overrides_not_listening: dict[str, str]
 ) -> None:
 
@@ -549,9 +617,7 @@ async def test_listen_to_changes_in_employees_not_listening(
 
     with pytest.raises(RejectMessage):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context, payload, mo_routing_key=mo_routing_key
-            ),
+            listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
         )
 
 
@@ -585,19 +651,6 @@ def test_load_address_types_from_MO_endpoint(test_client: TestClient, headers: d
 def test_load_it_systems_from_MO_endpoint(test_client: TestClient, headers: dict):
     response = test_client.get("/MO/IT_systems", headers=headers)
     assert response.status_code == 202
-
-
-def test_get_address_uuid():
-    uuid1 = uuid4()
-    uuid2 = uuid4()
-
-    address1 = Address.from_simplified_fields("Aldersrovej 1", uuid1, "2021-01-01")
-    address2 = Address.from_simplified_fields("Aldersrovej 2", uuid2, "2021-01-01")
-
-    addresses_in_mo = {uuid1: address1, uuid2: address2}
-
-    assert get_matching_address_uuid("Aldersrovej 1", addresses_in_mo) == uuid1
-    assert get_matching_address_uuid("Aldersrovej 2", addresses_in_mo) == uuid2
 
 
 async def test_import_all_objects_from_LDAP_first_20(
@@ -787,3 +840,111 @@ def test_invalid_username(test_client: TestClient):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
+
+
+async def test_format_converted_engagement_objects(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.get_mo_attributes.return_value = ["user_key"]
+    converter.find_mo_object_class.return_value = "Engagement"
+    converter.import_mo_object_class.return_value = Engagement
+
+    engagement1 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2020-01-01",
+    )
+
+    engagement2 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="foo",
+        from_date="2021-01-01",
+    )
+
+    # We do not expect this one the be uploaded, because its user_key exists twice in MO
+    engagement3 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="duplicate_key",
+        from_date="2021-01-01",
+    )
+
+    engagement1_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2021-01-01",
+    )
+
+    engagement2_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="duplicate_key",
+        from_date="2021-01-01",
+    )
+
+    engagement3_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=uuid4(),
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="duplicate_key",
+        from_date="2021-01-01",
+    )
+
+    dataloader.load_mo_employee_engagements.return_value = [
+        engagement1_in_mo,
+        engagement2_in_mo,
+        engagement3_in_mo,
+    ]
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+
+    json_key = "Engagement"
+
+    employee_uuid = uuid4()
+
+    converted_objects = [engagement1, engagement2, engagement3]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, json_key, employee_uuid, user_context
+    )
+
+    assert len(formatted_objects) == 2
+    assert engagement3 not in formatted_objects
+    assert formatted_objects[1] == engagement2
+    assert formatted_objects[0].uuid == engagement1_in_mo.uuid
+    assert formatted_objects[0].user_key == engagement1.user_key
+
+
+async def test_format_converted_employee_objects(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.find_mo_object_class.return_value = "Employee"
+    user_context = {"converter": converter, "dataloader": dataloader}
+
+    employee1 = Employee(cpr_no="1212121234")
+    employee2 = Employee(cpr_no="1212121235")
+
+    converted_objects = [employee1, employee2]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, "Employee", uuid4(), user_context
+    )
+
+    assert formatted_objects[0] == employee1
+    assert formatted_objects[1] == employee2

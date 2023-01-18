@@ -4,35 +4,40 @@
       "objectClass": "ramodels.mo.employee.Employee",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
-      "cpr_no": "{{ldap.employeeID|strip_non_digits or None}}",
-      "seniority": "{{None}}",
-      "nickname_givenname": "{{None}}",
-      "nickname_surname": "{{None}}"
+      "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
+      "seniority": "{{NONE}}",
+      "nickname_givenname": "{{NONE}}",
+      "nickname_surname": "{{NONE}}"
     },
     // Note: This key needs to be a valid MO address type name*
     "Email": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ldap.mail or None}}",
+      "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-
-      // Note: Get valid address type uuids by using GET MO/address_types
       "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
     },
     // Note: This key needs to be a valid MO address type name*
     "Lokation": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ ldap.postalAddress or None }}",
+      "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-
-      // Note: Get valid address type uuids by using GET MO/address_types
       "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
     },
+    // Note: This key needs to be a valid MO IT-system name*
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "user_key": "{{ ldap.msSFU30Name or None }}",
+      "user_key": "{{ ldap.msSFU30Name or NONE }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+    },
+    "Engagement": {
+      "objectClass": "ramodels.mo.details.engagement.Engagement",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
+      "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
+      "user_key": "{{ ldap.personalTitle or uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}"
     }
   },
@@ -43,8 +48,8 @@
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
-      "employeeID": "{{mo_employee.cpr_no or None}}",
-      "department": "{{None}}"
+      "employeeID": "{{mo_employee.cpr_no or NONE}}",
+      "department": "{{NONE}}"
     },
     // Note: This key needs to be a valid MO address type name*
     "Email": {
@@ -58,10 +63,24 @@
       "postalAddress": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
+    // Note: This key needs to be a valid MO IT-system name*
     "Active Directory": {
       "objectClass": "user",
       "msSFU30Name" : "{{mo_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
+    },
+    "Engagement" : {
+      "objectClass": "user",
+      "employeeID": "{{mo_employee.cpr_no}}",
+      "department": "{{NONE}}",
+      "company": "{{NONE}}",
+      "departmentNumber": "{{NONE}}",
+      "division": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
+      "primaryGroupID": "{{NONE}}",
+      "employeeType": "{{get_engagement_type_name(mo_engagement.engagement_type.uuid)}}",
+      "memberOf": "{{NONE}}",
+      "personalTitle": "{{mo_engagement.user_key}}",
+      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}"
     }
   },
   "username_generator": {
@@ -409,8 +428,8 @@
 // *Valid address type names can be obtained by making a new address and folding out the
 // 'Addressetype' listbox
 
+// *Valid it system names can be obtained by making a new it-user and folding out the
+// 'IT-systemer' listbox
+
 // Note: Only keys in the relevant mo_to_ldap dicts are retrieved when requesting an
 // ldap object
-
-// Developer note: The app needs to be restarted manually after making changes in this
-// file.

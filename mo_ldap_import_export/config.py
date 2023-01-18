@@ -104,3 +104,15 @@ class Settings(BaseSettings):
         ...,
         description="secret key for FastAPI docs login manager",
     )
+
+    default_org_unit_type: str = Field(
+        ..., description="Type to set onto imported organization units"
+    )
+
+    default_org_unit_level: str = Field(
+        ..., description="Level to set onto imported organization units"
+    )
+
+    token_expiry_time: float = Field(
+        8, description="Time in hours until a FastAPI auth token expires"
+    )

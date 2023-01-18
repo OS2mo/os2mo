@@ -11,7 +11,9 @@ import structlog
 from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
+from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
@@ -37,6 +39,11 @@ class DataLoader:
         self.single_value = {
             a: self.attribute_types[a].single_value for a in self.attribute_types.keys()
         }
+
+    def _check_if_empty(self, result: dict):
+        for key, value in result.items():
+            if len(value) == 0:
+                raise NoObjectsReturnedException(f"query_result['{key}'] is empty")
 
     def load_ldap_object(self, dn, attributes):
         searchParameters = {
@@ -95,6 +102,10 @@ class DataLoader:
                 for a in ldap_object.dict().keys()
                 if a != "dn" and not self.single_value[a]
             ]
+
+            if not attributes_to_clean:
+                self.logger.info("No cleanable attributes found")
+
             dn = ldap_object.dn
             for attribute in attributes_to_clean:
                 value_to_delete = ldap_object.dict()[attribute]
@@ -189,7 +200,12 @@ class DataLoader:
                 changes = {parameter_to_upload: [("MODIFY_ADD", value_to_upload)]}
 
             self.logger.info(f"Uploading the following changes: {changes}")
-            self.ldap_connection.modify(dn, changes)
+            try:
+                self.ldap_connection.modify(dn, changes)
+            except LDAPInvalidValueError as e:
+                self.logger.warning(e)
+                failed += 1
+                continue
             response = self.ldap_connection.result
 
             # If the user does not exist, create him/her/hir
@@ -326,18 +342,56 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
-        if len(result["employees"]) == 0:
-            raise NoObjectsReturnedException(f"Employee with uuid={uuid} not found")
+        self._check_if_empty(result)
         entry = result["employees"][0]["objects"][0]
 
         return Employee(**entry)
+
+    def load_mo_facet(self, user_key) -> dict:
+        query = gql(
+            """
+            query FacetQuery {
+              facets(user_keys: "%s") {
+                classes {
+                  name
+                  uuid
+                  scope
+                }
+              }
+            }
+            """
+            % user_key
+        )
+        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
+        result = graphql_session.execute(query)
+
+        if len(result["facets"]) == 0:
+            output = {}
+        else:
+            output = {d["uuid"]: d for d in result["facets"][0]["classes"]}
+
+        return output
+
+    def load_mo_address_types(self) -> dict:
+        return self.load_mo_facet("employee_address_type")
+
+    def load_mo_job_functions(self) -> dict:
+        return self.load_mo_facet("engagement_job_function")
+
+    def load_mo_engagement_types(self) -> dict:
+        return self.load_mo_facet("engagement_type")
+
+    def load_mo_org_unit_types(self) -> dict:
+        return self.load_mo_facet("org_unit_type")
+
+    def load_mo_org_unit_levels(self) -> dict:
+        return self.load_mo_facet("org_unit_level")
 
     def load_mo_it_systems(self) -> dict:
         query = gql(
             """
             query ItSystems {
               itsystems {
-                user_key
                 uuid
                 name
               }
@@ -350,19 +404,22 @@ class DataLoader:
         if len(result["itsystems"]) == 0:
             output = {}
         else:
-            output = {d["user_key"]: d for d in result["itsystems"]}
+            output = {d["uuid"]: d for d in result["itsystems"]}
 
         return output
 
-    def load_mo_address_types(self) -> dict:
+    def load_mo_org_units(self) -> dict:
         query = gql(
             """
-            query AddressTypes {
-              facets(user_keys: "employee_address_type") {
-                classes {
-                  name
+            query OrgUnit {
+              org_units {
+                objects {
                   uuid
-                  scope
+                  name
+                  parent {
+                    uuid
+                    name
+                  }
                 }
               }
             }
@@ -371,10 +428,12 @@ class DataLoader:
         graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
         result = graphql_session.execute(query)
 
-        if len(result["facets"]) == 0:
+        if len(result["org_units"]) == 0:
             output = {}
         else:
-            output = {d["name"]: d for d in result["facets"][0]["classes"]}
+            output = {
+                d["objects"][0]["uuid"]: d["objects"][0] for d in result["org_units"]
+            }
 
         return output
 
@@ -400,13 +459,7 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
-        if len(result["itusers"]) == 0:
-            raise NoObjectsReturnedException(
-                (
-                    "No valid it user found. "
-                    "The uuid does not exist, or belongs to a future/past it user"
-                )
-            )
+        self._check_if_empty(result)
 
         entry = result["itusers"][0]["objects"][0]
         return ITUser.from_simplified_fields(
@@ -457,13 +510,8 @@ class DataLoader:
 
         self.logger.info(f"Loading address={uuid}")
         result = await graphql_session.execute(query)
-        if len(result["addresses"]) == 0:
-            raise NoObjectsReturnedException(
-                (
-                    "No valid address found. "
-                    "The uuid does not exist, or belongs to a future/past address"
-                )
-            )
+        self._check_if_empty(result)
+
         entry = result["addresses"][0]["objects"][0]
 
         address = Address.from_simplified_fields(
@@ -485,6 +533,70 @@ class DataLoader:
         }
 
         return (address, address_metadata)
+
+    async def load_mo_engagement(self, uuid: UUID) -> Engagement:
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        query = gql(
+            """
+            query SingleEngagement {
+              engagements(uuids: "%s") {
+                objects {
+                  user_key
+                  extension_1
+                  extension_2
+                  extension_3
+                  extension_4
+                  extension_5
+                  extension_6
+                  extension_7
+                  extension_8
+                  extension_9
+                  extension_10
+                  leave_uuid
+                  primary_uuid
+                  job_function_uuid
+                  org_unit_uuid
+                  engagement_type_uuid
+                  employee_uuid
+                  validity {
+                    from
+                    to
+                  }
+                }
+              }
+            }
+            """
+            % (uuid)
+        )
+
+        self.logger.info(f"Loading engagement={uuid}")
+        result = await graphql_session.execute(query)
+        self._check_if_empty(result)
+
+        entry = result["engagements"][0]["objects"][0]
+
+        engagement = Engagement.from_simplified_fields(
+            org_unit_uuid=entry["org_unit_uuid"],
+            person_uuid=entry["employee_uuid"],
+            job_function_uuid=entry["job_function_uuid"],
+            engagement_type_uuid=entry["engagement_type_uuid"],
+            user_key=entry["user_key"],
+            from_date=entry["validity"]["from"],
+            to_date=entry["validity"]["to"],
+            uuid=uuid,
+            primary_uuid=entry["primary_uuid"],
+            extension_1=entry["extension_1"],
+            extension_2=entry["extension_2"],
+            extension_3=entry["extension_3"],
+            extension_4=entry["extension_4"],
+            extension_5=entry["extension_5"],
+            extension_6=entry["extension_6"],
+            extension_7=entry["extension_7"],
+            extension_8=entry["extension_8"],
+            extension_9=entry["extension_9"],
+            extension_10=entry["extension_10"],
+        )
+        return engagement
 
     async def load_mo_employee_addresses(
         self, employee_uuid, address_type_uuid
@@ -509,9 +621,7 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
-
-        if len(result["employees"]) == 0:
-            raise NoObjectsReturnedException("No employees with uuid = {employee_uuid}")
+        self._check_if_empty(result)
 
         address_uuids = [
             d["uuid"] for d in result["employees"][0]["objects"][0]["addresses"]
@@ -542,15 +652,41 @@ class DataLoader:
         )
 
         result = await graphql_session.execute(query)
-
-        if len(result["employees"]) == 0:
-            raise NoObjectsReturnedException("No employees with uuid = {employee_uuid}")
+        self._check_if_empty(result)
 
         output = []
         for it_user_dict in result["employees"][0]["objects"][0]["itusers"]:
             if it_user_dict["itsystem_uuid"] == str(it_system_uuid):
                 it_user = await self.load_mo_it_user(it_user_dict["uuid"])
                 output.append(it_user)
+        return output
+
+    async def load_mo_employee_engagements(
+        self, employee_uuid: UUID
+    ) -> list[Engagement]:
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        query = gql(
+            """
+            query EngagementQuery {
+              employees(uuids: "%s") {
+                objects {
+                  engagements {
+                    uuid
+                  }
+                }
+              }
+            }
+            """
+            % employee_uuid
+        )
+
+        result = await graphql_session.execute(query)
+        self._check_if_empty(result)
+
+        output = []
+        for engagement_dict in result["employees"][0]["objects"][0]["engagements"]:
+            engagement = await self.load_mo_engagement(engagement_dict["uuid"])
+            output.append(engagement)
         return output
 
     async def upload_mo_objects(self, objects: list[Any]):
