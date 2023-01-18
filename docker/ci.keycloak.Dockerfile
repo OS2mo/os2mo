@@ -9,13 +9,6 @@ FROM quay.io/keycloak/keycloak:14.0.0
 ENV KEYCLOAK_USER=admin
 ENV KEYCLOAK_PASSWORD=admin
 ENV KEYCLOAK_IMPORT="/srv/keycloak-realm.json"
-ENV DB_VENDOR: POSTGRES
-ENV DB_ADDR: "keycloak-db"
-ENV DB_PORT: 2345
-ENV DB_USER: keycloak
-ENV DB_PASSWORD: keycloak
-ENV DB_SCHEMA: public
-ENV DB_DATABASE: keycloak
 
 COPY ./keycloak-realm.json /srv/keycloak-realm.json
 
