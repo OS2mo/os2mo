@@ -15,7 +15,6 @@ stages:
 
 variables:
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
-  KEYCLOAK_DB_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak-db:${CI_COMMIT_SHA}
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
@@ -222,13 +221,6 @@ Build Keycloak:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
 
-Build Keycloak DB:
-  extends:
-    - .build:test-image
-    - .build-docker
-  variables:
-    CI_IMAGE: ${KEYCLOAK_DB_IMAGE_SHA}
-    DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak-db.Dockerfile
 
 # Tests
 ########
@@ -280,7 +272,6 @@ Integration-test:
     - .services:use-mo
   needs:
     - Build OS2mo
-    - Build Keycloak DB
     - Build Keycloak
   variables:
     HYPOTHESIS_PROFILE: "ci"
@@ -294,8 +285,6 @@ Integration-test:
         DB_USER: mox
         DB_PASSWORD: mox
     # Keycloak
-    - name: $KEYCLOAK_DB_IMAGE_SHA
-      alias: keycloak-db
     - name: $KEYCLOAK_IMAGE_SHA
       alias: keycloak
   parallel: 8
