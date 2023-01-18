@@ -5,6 +5,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
 import asyncio
+import re
 from collections.abc import Iterator
 from typing import Collection
 from unittest.mock import AsyncMock
@@ -14,8 +15,10 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
+from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
+from structlog.testing import capture_logs
 
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
@@ -81,6 +84,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
     monkeypatch.setenv("ADMIN_PASSWORD", "admin")
     monkeypatch.setenv("AUTHENTICATION_SECRET", "foo")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
 
     return Settings()
 
@@ -308,6 +313,31 @@ async def test_append_data_to_ldap_object(
     assert ldap_connection.modify.called_once_with(dn, changes)
 
 
+async def test_upoad_ldap_object_invalid_value(
+    ldap_connection: MagicMock,
+    dataloader: DataLoader,
+    cpr_field: str,
+):
+    ldap_object = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        postalAddress="foo",
+        **{cpr_field: "123"},
+    )
+
+    ldap_connection.modify.side_effect = LDAPInvalidValueError("Invalid value")
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(
+            dataloader.upload_ldap_object(ldap_object, "user"),
+        )
+
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+        assert re.match(
+            "Invalid value",
+            str(warnings[-1]["event"]),
+        )
+
+
 async def test_create_ldap_employee(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
@@ -469,7 +499,75 @@ async def test_load_mo_address_types(
     }
 
     output = dataloader.load_mo_address_types()
-    assert output[name]["uuid"] == uuid
+    assert output[uuid]["name"] == name
+
+
+async def test_load_mo_job_functions(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "Manager"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
+    }
+
+    output = dataloader.load_mo_job_functions()
+    assert output[uuid]["name"] == name
+
+
+async def test_load_mo_engagement_types(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "Ansat"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
+    }
+
+    output = dataloader.load_mo_engagement_types()
+    assert output[uuid]["name"] == name
+
+
+async def test_load_mo_org_unit_types(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "Direktørområde"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
+    }
+
+    output = dataloader.load_mo_org_unit_types()
+    assert output[uuid]["name"] == name
+
+
+async def test_load_mo_org_unit_levels(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "N1"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
+    }
+
+    output = dataloader.load_mo_org_unit_levels()
+    assert output[uuid]["name"] == name
 
 
 async def test_load_mo_address_no_valid_addresses(
@@ -564,6 +662,17 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
     ):
         with pytest.raises(Exception):
             dataloader.cleanup_attributes_in_ldap(ldap_objects)
+
+    with capture_logs() as cap_logs:
+
+        ldap_objects = [LdapObject(dn="foo")]
+        dataloader.cleanup_attributes_in_ldap(ldap_objects)
+
+        infos = [w for w in cap_logs if w["log_level"] == "info"]
+        assert re.match(
+            "No cleanable attributes found",
+            infos[-1]["event"],
+        )
 
 
 async def test_load_mo_employee_addresses(
@@ -684,8 +793,47 @@ def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
     gql_client_sync.execute.return_value = return_value
 
     output = dataloader.load_mo_it_systems()
-    assert output["AD"]["uuid"] == uuid1
-    assert output["Office365"]["uuid"] == uuid2
+    assert output[uuid1]["user_key"] == "AD"
+    assert output[uuid2]["user_key"] == "Office365"
+
+
+def test_load_mo_org_units(dataloader: DataLoader, gql_client_sync: MagicMock):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
+
+    return_value = {
+        "org_units": [
+            {"objects": [{"name": "Magenta Aps", "uuid": uuid1}]},
+            {
+                "objects": [
+                    {
+                        "name": "Magenta Aarhus",
+                        "uuid": uuid2,
+                        "parent": {"uuid": uuid1, "name": "Magenta Aps"},
+                    }
+                ]
+            },
+        ]
+    }
+
+    gql_client_sync.execute.return_value = return_value
+
+    output = dataloader.load_mo_org_units()
+    assert output[uuid1]["name"] == "Magenta Aps"
+    assert output[uuid2]["name"] == "Magenta Aarhus"
+    assert output[uuid2]["parent"]["uuid"] == uuid1
+
+
+def test_load_mo_org_units_empty_response(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+):
+
+    return_value: dict = {"org_units": []}
+
+    gql_client_sync.execute.return_value = return_value
+
+    output = dataloader.load_mo_org_units()
+    assert output == {}
 
 
 def test_load_mo_it_systems_not_found(
@@ -726,6 +874,48 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
     assert output[0].itsystem.uuid == uuid2
     assert output[0].person.uuid == uuid1
     assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+    assert len(output) == 1
+
+
+async def test_load_mo_engagement(dataloader: DataLoader, gql_client: AsyncMock):
+    return_value = {
+        "engagements": [
+            {
+                "objects": [
+                    {
+                        "user_key": "foo",
+                        "validity": {"from": "2021-01-01", "to": None},
+                        "extension_1": "extra info",
+                        "extension_2": "more extra info",
+                        "extension_3": None,
+                        "extension_4": None,
+                        "extension_5": None,
+                        "extension_6": None,
+                        "extension_7": None,
+                        "extension_8": None,
+                        "extension_9": None,
+                        "extension_10": None,
+                        "leave_uuid": uuid4(),
+                        "primary_uuid": uuid4(),
+                        "job_function_uuid": uuid4(),
+                        "org_unit_uuid": uuid4(),
+                        "engagement_type_uuid": uuid4(),
+                        "employee_uuid": uuid4(),
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    output = await asyncio.gather(
+        dataloader.load_mo_engagement(uuid4()),
+    )
+    assert output[0].user_key == "foo"
+    assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
+    assert output[0].extension_1 == "extra info"
+    assert output[0].extension_2 == "more extra info"
     assert len(output) == 1
 
 
@@ -778,6 +968,41 @@ async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: Asy
     )
 
     load_mo_it_user.assert_called_once_with(uuid1)
+
+
+async def test_load_mo_employee_engagements(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    uuid1 = uuid4()
+    employee_uuid = uuid4()
+
+    return_value = {
+        "employees": [
+            {
+                "objects": [
+                    {
+                        "engagements": [
+                            {
+                                "uuid": uuid1,
+                            },
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    load_mo_engagement = AsyncMock()
+    dataloader.load_mo_engagement = load_mo_engagement  # type: ignore
+
+    await asyncio.gather(
+        dataloader.load_mo_employee_engagements(employee_uuid),
+    )
+
+    load_mo_engagement.assert_called_once_with(uuid1)
 
 
 async def test_load_mo_employee_it_users_not_found(

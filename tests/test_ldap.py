@@ -68,6 +68,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_ORGANIZATIONAL_UNIT", "OU=Magenta")
     monkeypatch.setenv("ADMIN_PASSWORD", "admin")
     monkeypatch.setenv("AUTHENTICATION_SECRET", "foo")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
+    monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
 
     return Settings()
 
@@ -120,6 +122,8 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
         "ADMIN_PASSWORD": "admin",
         "AUTHENTICATION_SECRET": "foo",
+        "DEFAULT_ORG_UNIT_LEVEL": "foo",
+        "DEFAULT_ORG_UNIT_TYPE": "foo",
     }
     yield overrides
 

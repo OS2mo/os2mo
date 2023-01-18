@@ -259,7 +259,66 @@ And the other way around:
 
 Note that we have specified the json key equal to `Active Directory`. This key needs
 to be an IT system name in MO. IT system names can be retrieved using
-[GET:MO/IT_systems][get_it_systems]
+[GET:MO/IT_systems][get_it_systems].
+
+#### Engagement conversion
+Engagement conversion follows the same logic as address conversion. An example of
+an engagement conversion dict is as follows:
+
+```
+  [...]
+  "mo_to_ldap": {
+    "Engagement" : {
+      "objectClass": "user",
+      "employeeID": "{{mo_employee.cpr_no}}",
+      "department": "{{NONE}}",
+      "company": "{{NONE}}",
+      "departmentNumber": "{{mo_engagement.user_key}}",
+      "division": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
+      "primaryGroupID": "{{NONE}}",
+      "employeeType": "{{get_engagement_type_name(mo_engagement.engagement_type.uuid)}}",
+      "memberOf": "{{NONE}}",
+      "personalTitle": "{{NONE}}",
+      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}"
+    }
+  }
+  [...]
+```
+
+Note the `get_org_unit_path_string` function which we use for ldap.division. This will
+write full organizational paths to ldap, rather than just the name of an organizational
+unit. Converting the other way around can be done like this:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "Engagement": {
+      "objectClass": "ramodels.mo.details.engagement.Engagement",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
+      "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
+      "user_key": "{{ ldap.departmentNumber or uuid4() }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+    }
+  }
+  [...]
+```
+
+Note that `get_or_create_org_unit_uuid` supports full organization paths as input. This
+means, that if the `ldap.division` field contains a string which reads
+`Magenta Aps->Magenta Aarhus`, it will try to get the uuid of the organizational unit
+called `Magenta Aarhus`. In case there are multiple organizational units with this name,
+it will find the right one. If this unit does not exist, it will create it, with
+`Magenta Aps` as its parent. It is important that `ldap.division` contains full paths
+to its organizational unit. This is important because organizational units can
+have duplicate names. For example: Every sub-organizational unit in most companies has
+an `IT Support` department.
+
+Created organizational units are called `IMPORTED FROM LDAP: {name}`. They have a
+default organizational unit type and level specified in the environment variables with
+`DEFAULT_ORG_UNIT_TYPE` and `DEFAULT_ORG_UNIT_LEVEL`. The idea is that users manually go
+in and remove the `IMPORTED FROM LDAP` tag. While they are doing this they can also set
+the proper level and type for the organization.
 
 #### Filters and globals
 
@@ -268,11 +327,12 @@ the following filters are available:
 
 * `splitfirst`: Splits a string at the first space, returning two elements
   This is convenient for splitting a name into a givenName and a surname
-  and works for names with no spaces (surname will then be empty)
+  and works for names with no spaces (surname will then be empty).
 * `splitlast`: Splits a string at the last space, returning two elements
   This is convenient for splitting a name into a givenName and a surname
-  and works for names with no spaces (givenname will then be empty)
-* `mo_datestring`: Accepts a datetime object and formats it as a string
+  and works for names with no spaces (givenname will then be empty).
+* `mo_datestring`: Accepts a datetime object and formats it as a string.
+* `strip_non_digits`: Removes all but digits from a string.
 
 In addition to filters, a few methods have been made available for the templates.
 These are called using the normal function call syntax:
@@ -281,10 +341,23 @@ These are called using the normal function call syntax:
   "key": "{{ nonejoin(ldap.postalCode, ldap.streetAddress) }}"
 }
 ```
-* `nonejoin`: Joins two or more strings together with comma, omitting any Falsy values 
-  (`None`, `""`, `0`, `False`, `{}` or `[]`)
 * `now`: Returns current datetime
+* `nonejoin`: Joins two or more strings together with comma, omitting any Falsy values
+  (`None`, `""`, `0`, `False`, `{}` or `[]`)
 * `get_address_type_uuid`: Returns the address type uuid for an address type string
+* `get_it_system_uuid`: Returns the it system uuid for an it system string
+* `get_or_create_org_unit_uuid`: Returns the organization unit uuid for an organization
+  unit path string. Note that the input string needs to be the full path to the
+  organization unit, separated by `->`. If this organization unit does not exist, it
+  is created.
+* `get_job_function_uuid`: Returns the job function uuid for a job function string
+* `get_engagement_type_uuid`: Returns the engagement type uuid for an engagement type
+  string
+* `uuid4`: Returns an uuid4
+* `get_org_unit_path_string`: Returns the full path string to an organization unit,
+  given its uuid
+* `get_engagement_type_name`: Returns the name of an engagement type, given its uuid
+* `get_job_function_name`: Returns the name of a job function, given its uuid
 
 
 #### Username generation

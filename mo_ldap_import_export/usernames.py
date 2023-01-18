@@ -76,7 +76,7 @@ class UserNameGeneratorBase:
                 raise IncorrectMapping(
                     (
                         f"Incorrect combination found: '{combination}' username "
-                        "combinations can only contain {accepted_characters}"
+                        f"combinations can only contain {accepted_characters}"
                     )
                 )
 

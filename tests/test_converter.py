@@ -4,16 +4,15 @@ import os.path
 import re
 import uuid
 from typing import Any
+from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
-from jinja2 import Environment
-from jinja2 import Undefined
 from ramodels.mo import Employee
-from ramodels.mo.details.address import Address
+from ramodels.mo.details.engagement import Engagement
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import find_cpr_field
@@ -24,6 +23,7 @@ from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
+from mo_ldap_import_export.exceptions import UUIDNotFoundException
 
 
 @pytest.fixture
@@ -69,16 +69,19 @@ def context() -> Context:
     settings_mock = MagicMock()
     settings_mock.ldap_organizational_unit = "foo"
     settings_mock.ldap_search_base = "bar"
+    settings_mock.default_org_unit_type = "Afdeling"
+    settings_mock.default_org_unit_level = "N1"
 
     dataloader = MagicMock()
     mo_address_types = {
-        "Email": {"uuid": "uuid1", "scope": "MAIL"},
-        "Post": {"uuid": "uuid2", "scope": "TEXT"},
+        "uuid1": {"uuid": "uuid1", "scope": "MAIL", "name": "Email"},
+        "uuid2": {"uuid": "uuid2", "scope": "TEXT", "name": "Post"},
     }
 
     load_mo_address_types = MagicMock()
     load_mo_address_types.return_value = mo_address_types
     dataloader.load_mo_address_types = load_mo_address_types
+    dataloader.upload_mo_objects = AsyncMock()
     dataloader.single_value = {
         "givenName": True,
         "sn": True,
@@ -99,6 +102,14 @@ def context() -> Context:
     overview = {"user": {"attributes": list(dataloader.single_value.keys())}}
 
     dataloader.load_ldap_overview.return_value = overview
+    org_unit_type_uuid = uuid4()
+    org_unit_level_uuid = uuid4()
+    dataloader.load_mo_org_unit_types.return_value = {
+        org_unit_type_uuid: {"uuid": org_unit_type_uuid, "name": "Afdeling"}
+    }
+    dataloader.load_mo_org_unit_levels.return_value = {
+        org_unit_level_uuid: {"uuid": org_unit_level_uuid, "name": "N1"}
+    }
 
     context: Context = {
         "user_context": {
@@ -127,7 +138,7 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
             givenName="Tester",
             sn="Testersen",
             objectGUID="{" + str(uuid.uuid4()) + "}",
-            cpr="0101011234",
+            employeeID="0101011234",
         ),
         "Employee",
         employee_uuid=employee_uuid,
@@ -461,7 +472,7 @@ def test_check_attributes(converter: LdapConverter):
 
 def test_get_accepted_json_keys(converter: LdapConverter):
     output = converter.get_accepted_json_keys()
-    assert output == ["Employee", "Email", "Post"]
+    assert output == ["Employee", "Engagement", "Email", "Post"]
 
 
 def test_nonejoin(converter: LdapConverter):
@@ -549,10 +560,10 @@ async def test_check_mo_attributes(converter: LdapConverter):
         return_value=["foo"],
     ), patch(
         "mo_ldap_import_export.converters.LdapConverter.import_mo_object_class",
-        return_value=Address,
+        return_value=Engagement,
     ), patch(
         "mo_ldap_import_export.converters.LdapConverter.get_mo_attributes",
-        return_value=["value"],
+        return_value=["user_key"],
     ):
         with pytest.raises(
             IncorrectMapping,
@@ -602,26 +613,28 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
 
     dataloader = MagicMock()
     dataloader.load_ldap_overview.return_value = {
-        "user": {"attributes": ["attr1", "attr2"]}
+        "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
     }
-    dataloader.single_value = {"attr1": True, "cpr_field": False}
-    converter.dataloader = dataloader
-    environment = Environment(undefined=Undefined)
 
     mapping = {
         "mo_to_ldap": {
-            "foo": {"attr1": "{{ mo_address.value }}", "cpr_field": "{{ foo }}"}
+            "Address": {"attr1": "{{ mo_address.value }}", "cpr_field": "{{ foo }}"},
+            "AD": {"attr1": "{{ mo_it_user.user_key }}", "cpr_field": "{{ foo }}"},
+            "Engagement": {
+                "attr1": "{{ mo_engagement.user_key }}",
+                "attr2": "{{ mo_engagement.org_unit.uuid }}",
+                "attr3": "{{ mo_engagement.engagement_type.uuid }}",
+                "attr4": "{{ mo_engagement.job_function.uuid }}",
+                "cpr_field": "{{ foo }}",
+            },
         }
     }
-    converter.mapping = converter._populate_mapping_with_templates(mapping, environment)
+    converter.raw_mapping = mapping.copy()
+    converter.mapping = mapping.copy()
+    converter.mo_address_types = ["Address"]
+    converter.mo_it_systems = ["AD"]
 
     with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_to_ldap_json_keys",
-        return_value=["foo"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_attributes",
-        return_value=["attr1", "cpr_field"],
-    ), patch(
         "mo_ldap_import_export.converters.find_cpr_field",
         return_value="cpr_field",
     ), patch(
@@ -632,19 +645,60 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
         return_value="user",
     ):
         with capture_logs() as cap_logs:
+
+            dataloader.single_value = {
+                "attr1": True,
+                "cpr_field": False,
+                "attr2": True,
+                "attr3": True,
+                "attr4": True,
+            }
+            converter.dataloader = dataloader
+
             converter.check_ldap_attributes()
 
             warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-            assert len(warnings) == 1
-            assert re.match(
-                ".*LDAP attribute cannot contain multiple values.*",
-                warnings[0]["event"],
-            )
+            assert len(warnings) == 6
+            for warning in warnings:
+                assert re.match(
+                    ".*LDAP attribute cannot contain multiple values.*",
+                    warning["event"],
+                )
+        with pytest.raises(IncorrectMapping, match="LDAP Attributes .* are a mix"):
+            dataloader.single_value = {
+                "attr1": True,
+                "cpr_field": False,
+                "attr2": True,
+                "attr3": True,
+                "attr4": False,
+            }
+            converter.dataloader = dataloader
+
+            converter.check_ldap_attributes()
+
+        with pytest.raises(IncorrectMapping, match="Could not find all attributes"):
+
+            mapping = {
+                "mo_to_ldap": {
+                    "Engagement": {
+                        "attr1": "{{ mo_engagement.user_key }}",
+                        "attr2": "{{ mo_engagement.org_unit.uuid }}",
+                        "attr3": "{{ mo_engagement.engagement_type.uuid }}",
+                        "cpr_field": "{{ foo }}",
+                    },
+                }
+            }
+            converter.raw_mapping = mapping.copy()
+            converter.mapping = mapping.copy()
+            converter.check_ldap_attributes()
 
 
 async def test_check_dar_scope(converter: LdapConverter):
 
-    address_type_info = {"foo": {"scope": "TEXT"}, "bar": {"scope": "DAR"}}
+    address_type_info = {
+        "uuid1": {"scope": "TEXT", "name": "foo", "uuid": "uuid1"},
+        "uuid2": {"scope": "DAR", "name": "bar", "uuid": "uuid2"},
+    }
     converter.address_type_info = address_type_info
 
     with patch(
@@ -663,7 +717,10 @@ async def test_check_dar_scope(converter: LdapConverter):
 
 async def test_get_address_type_uuid(converter: LdapConverter):
 
-    address_type_info = {"foo": {"uuid": "uuid1"}, "bar": {"uuid": "uuid2"}}
+    address_type_info = {
+        "uuid1": {"uuid": "uuid1", "name": "foo"},
+        "uuid2": {"uuid": "uuid2", "name": "bar"},
+    }
     converter.address_type_info = address_type_info
 
     assert converter.get_address_type_uuid("foo") == "uuid1"
@@ -671,22 +728,69 @@ async def test_get_address_type_uuid(converter: LdapConverter):
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
-    it_system_info = {"AD": {"uuid": "uuid1"}, "Office365": {"uuid": "uuid2"}}
+    it_system_info = {
+        "uuid1": {"uuid": "uuid1", "name": "AD"},
+        "uuid2": {"uuid": "uuid2", "name": "Office365"},
+    }
     converter.it_system_info = it_system_info
 
     assert converter.get_it_system_uuid("AD") == "uuid1"
     assert converter.get_it_system_uuid("Office365") == "uuid2"
 
 
-def test_get_it_system(converter: LdapConverter):
+async def test_get_job_function_uuid(converter: LdapConverter):
+    job_function_info = {
+        "uuid1": {"uuid": "uuid1", "name": "Major"},
+        "uuid2": {"uuid": "uuid2", "name": "Secretary"},
+    }
+    converter.job_function_info = job_function_info
+
+    assert converter.get_job_function_uuid("Major") == "uuid1"
+    assert converter.get_job_function_uuid("Secretary") == "uuid2"
+
+
+async def test_get_engagement_type_uuid(converter: LdapConverter):
+    engagement_type_info = {
+        "uuid1": {"uuid": "uuid1", "name": "Ansat"},
+        "uuid2": {"uuid": "uuid2", "name": "Vikar"},
+    }
+    converter.engagement_type_info = engagement_type_info
+
+    assert converter.get_engagement_type_uuid("Ansat") == "uuid1"
+    assert converter.get_engagement_type_uuid("Vikar") == "uuid2"
+
+
+def test_get_it_system_name(converter: LdapConverter):
     it_system_info = {
-        "AD": {"uuid": "uuid1", "name": "AD"},
-        "Office365": {"uuid": "uuid2", "name": "Office365"},
+        "uuid1": {"uuid": "uuid1", "name": "AD"},
+        "uuid2": {"uuid": "uuid2", "name": "Office365"},
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system("uuid1")["name"] == "AD"
-    assert converter.get_it_system("uuid2")["name"] == "Office365"
+    assert converter.get_it_system_name("uuid1") == "AD"
+    assert converter.get_it_system_name("uuid2") == "Office365"
+
+
+def test_get_engagement_type_name(converter: LdapConverter):
+    engagement_type_info = {
+        "uuid1": {"uuid": "uuid1", "name": "Ansat"},
+        "uuid2": {"uuid": "uuid2", "name": "Vikar"},
+    }
+    converter.engagement_type_info = engagement_type_info
+
+    assert converter.get_engagement_type_name("uuid1") == "Ansat"
+    assert converter.get_engagement_type_name("uuid2") == "Vikar"
+
+
+def test_get_job_function_name(converter: LdapConverter):
+    job_function_info = {
+        "uuid1": {"uuid": "uuid1", "name": "Major"},
+        "uuid2": {"uuid": "uuid2", "name": "Secretary"},
+    }
+    converter.job_function_info = job_function_info
+
+    assert converter.get_job_function_name("uuid1") == "Major"
+    assert converter.get_job_function_name("uuid2") == "Secretary"
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
@@ -707,3 +811,70 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
             match="Non existing attribute detected",
         ):
             converter.check_ldap_to_mo_references()
+
+
+def test_get_object_uuid_from_name(converter: LdapConverter):
+
+    uuid = uuid4()
+    name = "Skt. Joseph Skole"
+    info_dict = {uuid: {"uuid": uuid, "name": name}}
+    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+
+    with pytest.raises(UUIDNotFoundException):
+        info_dict = {
+            uuid: {"uuid": uuid, "name": name},
+            uuid4(): {"uuid": uuid4(), "name": name},
+        }
+        converter.get_object_uuid_from_name(info_dict, name)
+
+    with pytest.raises(UUIDNotFoundException):
+        info_dict = {uuid: {"uuid": uuid, "name": name}}
+        converter.get_object_uuid_from_name(info_dict, "bar")
+
+
+def test_create_org_unit(converter: LdapConverter):
+    uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
+    org_units = ["Magenta Aps", "Magenta Aarhus", "GrønlandsTeam"]
+    org_unit_infos = [
+        {"name": org_units[i], "uuid": uuids[i]} for i in range(len(uuids))
+    ]
+
+    converter.org_unit_info = {
+        uuids[0]: {**org_unit_infos[0], "parent": None},
+        uuids[1]: {**org_unit_infos[1], "parent": org_unit_infos[0]},
+        # uuids[2]: {**org_unit_infos[2],"parent":org_unit_infos[1]},
+    }
+
+    org_unit_path_string = converter.org_unit_path_string_separator.join(org_units)
+    org_units = [info["name"] for info in converter.org_unit_info.values()]
+
+    assert "Magenta Aps" in org_units
+    assert "Magenta Aarhus" in org_units
+    assert "GrønlandsTeam" not in org_units
+
+    # Create a unit with parents
+    converter.create_org_unit(org_unit_path_string)
+
+    org_units = [info["name"] for info in converter.org_unit_info.values()]
+    assert "GrønlandsTeam" in org_units
+
+    # Try to create a unit without parents
+    converter.create_org_unit("Ørsted")
+    org_units = [info["name"] for info in converter.org_unit_info.values()]
+    assert "Ørsted" in org_units
+
+
+def test_get_or_create_org_unit_uuid(converter: LdapConverter):
+
+    uuid = str(uuid4())
+    converter.org_unit_info = {
+        uuid: {"name": "Magenta Aps", "uuid": uuid, "parent": None}
+    }
+
+    # Get an organization UUID
+    assert converter.get_or_create_org_unit_uuid("Magenta Aps") == uuid
+
+    # Create a new organization and return its UUID
+    converter.get_or_create_org_unit_uuid("Magenta Aarhus")
+    org_units = [info["name"] for info in converter.org_unit_info.values()]
+    assert "Magenta Aarhus" in org_units

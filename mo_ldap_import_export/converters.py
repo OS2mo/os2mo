@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from __future__ import annotations
 
+import asyncio
 import copy
 import datetime
 import json
@@ -10,17 +11,20 @@ import re
 import string
 from typing import Any
 from typing import Dict
+from uuid import uuid4
 
 import structlog
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
 from ldap3.utils.ciDict import CaseInsensitiveDict
+from ramodels.mo.organisation_unit import OrganisationUnit
 
 from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
+from .exceptions import UUIDNotFoundException
 from .ldap_classes import LdapObject
 from .utils import delete_keys_from_dict
 from .utils import import_class
@@ -75,21 +79,45 @@ class LdapConverter:
         self.raw_mapping = self.user_context["mapping"]
         self.dataloader = self.user_context["dataloader"]
 
-        # Note: If new address types or IT systems are added to MO, this app needs
-        # to be rebooted
+        # Note: If new address types or IT systems are added to MO, this class needs
+        # to be re-initialized
         self.address_type_info = self.dataloader.load_mo_address_types()
         self.it_system_info = self.dataloader.load_mo_it_systems()
 
+        self.org_unit_info = self.dataloader.load_mo_org_units()
+        self.org_unit_type_info = self.dataloader.load_mo_org_unit_types()
+        self.org_unit_level_info = self.dataloader.load_mo_org_unit_levels()
+
+        self.engagement_type_info = self.dataloader.load_mo_engagement_types()
+        self.job_function_info = self.dataloader.load_mo_job_functions()
+
+        self.mo_address_types = [a["name"] for a in self.address_type_info.values()]
+        self.mo_it_systems = [a["name"] for a in self.it_system_info.values()]
+
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
+
+        self.org_unit_path_string_separator = "->"
+
+        # Set this to an empty string if we do not need to know which org units
+        # were imported by this program. For now this is useful to know because
+        # we do not import details such as the org-unit level and the type.
+        self.imported_org_unit_tag = "IMPORTED FROM LDAP: "
+
+        self.default_org_unit_type_uuid = self.get_org_unit_type_uuid(
+            self.settings.default_org_unit_type
+        )
+        self.default_org_unit_level_uuid = self.get_org_unit_level_uuid(
+            self.settings.default_org_unit_level
+        )
 
         mapping = delete_keys_from_dict(
             copy.deepcopy(self.raw_mapping), ["objectClass"]
         )
 
         environment = Environment(undefined=Undefined)
-        environment.filters["splitlast"] = LdapConverter.filter_splitlast
         environment.filters["splitfirst"] = LdapConverter.filter_splitfirst
+        environment.filters["splitlast"] = LdapConverter.filter_splitlast
         environment.filters["mo_datestring"] = LdapConverter.filter_mo_datestring
         environment.filters["strip_non_digits"] = LdapConverter.filter_strip_non_digits
         self.mapping = self._populate_mapping_with_templates(
@@ -145,10 +173,9 @@ class LdapConverter:
         return self.get_json_keys("mo_to_ldap")
 
     def get_accepted_json_keys(self) -> list[str]:
-
-        mo_address_types = list(self.address_type_info.keys())
-        mo_it_systems = list(self.it_system_info.keys())
-        accepted_json_keys = ["Employee"] + mo_address_types + mo_it_systems
+        accepted_json_keys = (
+            ["Employee", "Engagement"] + self.mo_address_types + self.mo_it_systems
+        )
 
         return accepted_json_keys
 
@@ -219,6 +246,10 @@ class LdapConverter:
             detected_attributes = self.get_mo_attributes(json_key)
             self.check_attributes(detected_attributes, accepted_attributes)
             required_attributes = self.get_required_attributes(mo_class)
+
+            # Person uuid is always set automatically and should not be in the template
+            if "person" in required_attributes:
+                required_attributes.remove("person")
             for attribute in required_attributes:
                 if attribute not in detected_attributes:
                     raise IncorrectMapping(
@@ -242,6 +273,10 @@ class LdapConverter:
             detected_attributes = self.get_ldap_attributes(json_key)
             self.check_attributes(detected_attributes, accepted_attributes)
 
+            detected_single_value_attributes = [
+                a for a in detected_attributes if self.dataloader.single_value[a]
+            ]
+
             # Check that the CPR field is present. Otherwise we do not know who an
             # Address/Employee/... belongs to.
             if cpr_field not in detected_attributes:
@@ -249,41 +284,91 @@ class LdapConverter:
                     f"'{cpr_field}' attribute not present in mo_to_ldap['{json_key}']"
                 )
 
-            # Check single value fields which map to MO address data.
-            # We like fields which map to MO address data to be multi-value fields,
-            # to avoid data being overwritten if two addresses of the same type are
+            # Check single value fields which map to MO address/it-user/... objects.
+            # We like fields which map to these MO objects to be multi-value fields,
+            # to avoid data being overwritten if two objects of the same type are
             # added in MO
-            detected_single_value_attributes = [
-                a for a in detected_attributes if self.dataloader.single_value[a]
-            ]
+            if json_key in self.mo_address_types:
+                fields_to_check = ["mo_address.value"]
+            elif json_key in self.mo_it_systems:
+                fields_to_check = ["mo_it_user.user_key"]
+            elif json_key == "Engagement":
+                fields_to_check = [
+                    "mo_engagement.user_key",
+                    "mo_engagement.org_unit.uuid",
+                    "mo_engagement.engagement_type.uuid",
+                    "mo_engagement.job_function.uuid",
+                ]
+            else:
+                fields_to_check = []
 
             for attribute in detected_single_value_attributes:
-                template = self.mapping["mo_to_ldap"][json_key][attribute]
-                dummy_dict = {
-                    "mo_address": {"value": 123},
-                    "mo_it_user": {"user_key": 123},
-                    "mo_employee": None,
-                }
-                if template.render(dummy_dict) == "123":
-                    self.logger.warning(
+                template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
+                for field_to_check in fields_to_check:
+                    if field_to_check in template:
+                        self.logger.warning(
+                            (
+                                f"[json check] {object_class}['{attribute}'] LDAP "
+                                "attribute cannot contain multiple values. "
+                                "Values in LDAP will be overwritten if "
+                                f"multiple objects of the '{json_key}' type are "
+                                "added in MO."
+                            )
+                        )
+
+            # Make sure that all attributes are single-value or multi-value. Not a mix.
+            if len(fields_to_check) > 1:
+                matching_attributes = []
+                for field_to_check in fields_to_check:
+                    for attribute in detected_attributes:
+                        template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
+                        if field_to_check in template:
+                            matching_attributes.append(attribute)
+                            break
+
+                if len(matching_attributes) != len(fields_to_check):
+                    raise IncorrectMapping(
                         (
-                            f"[json check] {object_class}['{attribute}'] LDAP "
-                            "attribute cannot contain multiple values. "
-                            "Values in LDAP will be overwritten if "
-                            f"multiple objects of the '{json_key}' type are "
-                            "added in MO."
+                            "Could not find all attributes belonging to "
+                            f"{fields_to_check}. Only found the following "
+                            f"attributes: {matching_attributes}."
+                        )
+                    )
+
+                matching_single_value_attributes = [
+                    a
+                    for a in matching_attributes
+                    if a in detected_single_value_attributes
+                ]
+                matching_multi_value_attributes = [
+                    a
+                    for a in matching_attributes
+                    if a not in detected_single_value_attributes
+                ]
+
+                if len(matching_single_value_attributes) not in [
+                    0,
+                    len(fields_to_check),
+                ]:
+                    raise IncorrectMapping(
+                        (
+                            f"LDAP Attributes mapping to '{json_key}' are a mix "
+                            "of multi- and single-value. The following attributes are "
+                            f"single-value: {matching_single_value_attributes} "
+                            "while the following are multi-value attributes: "
+                            f"{matching_multi_value_attributes}"
                         )
                     )
 
     def check_dar_scope(self):
-        address_type_info = self.address_type_info
-
+        self.logger.info("[json check] checking DAR scope")
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
 
         for json_key in ldap_to_mo_json_keys:
             mo_class = self.find_mo_object_class(json_key)
             if ".Address" in mo_class:
-                if address_type_info[json_key]["scope"] == "DAR":
+                uuid = self.get_object_uuid_from_name(self.address_type_info, json_key)
+                if self.address_type_info[uuid]["scope"] == "DAR":
                     raise IncorrectMapping(
                         f"'{json_key}' maps to an address with scope = 'DAR'"
                     )
@@ -378,17 +463,136 @@ class LdapConverter:
         items_to_join = [a for a in args if a]
         return ", ".join(items_to_join)
 
-    def get_address_type_uuid(self, address_type):
-        address_type_info = self.address_type_info
-        return address_type_info[address_type]["uuid"]
+    def get_object_name_from_uuid(self, info_dict: dict, uuid: str, name_key="name"):
+        return info_dict[str(uuid)][name_key]
 
-    def get_it_system_uuid(self, it_system):
-        return self.it_system_info[it_system]["uuid"]
+    def get_object_uuid_from_name(self, info_dict: dict, name: str, name_key="name"):
+        names = [info[name_key] for info in info_dict.values()]
+        if name not in names:
+            raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
+        elif len(set(names)) != len(names):
+            raise UUIDNotFoundException(
+                f"Duplicate values with key='{name_key}' found in {info_dict}"
+            )
 
-    def get_it_system(self, uuid):
-        for it_system in self.it_system_info.values():
-            if it_system["uuid"] == str(uuid):
-                return it_system
+        for info in info_dict.values():
+            if info[name_key] == name:
+                return info["uuid"]
+
+    def get_address_type_uuid(self, address_type: str):
+        return self.get_object_uuid_from_name(self.address_type_info, address_type)
+
+    def get_it_system_uuid(self, it_system: str):
+        return self.get_object_uuid_from_name(self.it_system_info, it_system)
+
+    def get_job_function_uuid(self, job_function: str):
+        return self.get_object_uuid_from_name(self.job_function_info, job_function)
+
+    def get_engagement_type_uuid(self, engagement_type: str):
+        return self.get_object_uuid_from_name(
+            self.engagement_type_info, engagement_type
+        )
+
+    def get_org_unit_type_uuid(self, org_unit_type: str):
+        return self.get_object_uuid_from_name(self.org_unit_type_info, org_unit_type)
+
+    def get_org_unit_level_uuid(self, org_unit_level: str):
+        return self.get_object_uuid_from_name(self.org_unit_level_info, org_unit_level)
+
+    def get_it_system_name(self, uuid: str):
+        return self.get_object_name_from_uuid(self.it_system_info, uuid)
+
+    def get_engagement_type_name(self, uuid: str):
+        return self.get_object_name_from_uuid(self.engagement_type_info, uuid)
+
+    def get_job_function_name(self, uuid: str):
+        return self.get_object_name_from_uuid(self.job_function_info, uuid)
+
+    def create_org_unit(self, org_unit_path_string: str):
+        """
+        Create the parent org. in the hierarchy (if it does not exist),
+        then create the next one and keep doing that
+        until we've reached the final child.
+        """
+
+        org_unit_path = org_unit_path_string.split(self.org_unit_path_string_separator)
+
+        for nesting_level in range(len(org_unit_path)):
+            partial_path = org_unit_path[: nesting_level + 1]
+            partial_path_string = self.org_unit_path_string_separator.join(partial_path)
+
+            try:
+                self.get_org_unit_uuid_from_path(partial_path_string)
+            except UUIDNotFoundException:
+                self.logger.info(f"Importing {partial_path_string}")
+
+                if nesting_level == 0:
+                    parent_uuid = None
+                    parent = None
+                else:
+                    parent_path = org_unit_path[:nesting_level]
+                    parent_path_string = self.org_unit_path_string_separator.join(
+                        parent_path
+                    )
+                    parent_uuid = self.get_org_unit_uuid_from_path(parent_path_string)
+                    parent = {"uuid": str(parent_uuid), "name": parent_path[-1]}
+
+                uuid = uuid4()
+                name = partial_path[-1]
+
+                org_unit = OrganisationUnit.from_simplified_fields(
+                    user_key=str(uuid4()),
+                    name=self.imported_org_unit_tag + name,
+                    org_unit_type_uuid=self.default_org_unit_type_uuid,
+                    org_unit_level_uuid=self.default_org_unit_level_uuid,
+                    from_date=datetime.datetime.now().strftime("%Y-%m-%dT00:00:00"),
+                    parent_uuid=parent_uuid,
+                    uuid=uuid,
+                )
+
+                asyncio.gather(self.dataloader.upload_mo_objects([org_unit]))
+                self.org_unit_info[str(uuid)] = {
+                    "uuid": str(uuid),
+                    "name": name,
+                    "parent": parent,
+                }
+
+    def get_org_unit_uuid_from_path(self, org_unit_path_string: str):
+        clean_org_unit_path_string = org_unit_path_string.replace(
+            self.imported_org_unit_tag, ""
+        )
+        for info in self.org_unit_info.values():
+            path_string = self.get_org_unit_path_string(info["uuid"])
+            if path_string == clean_org_unit_path_string:
+                return info["uuid"]
+        raise UUIDNotFoundException(
+            f"'{org_unit_path_string}' not found in self.org_unit_info"
+        )
+
+    def get_org_unit_path_string(self, uuid: str):
+        org_unit_info = self.org_unit_info[str(uuid)]
+        object_name = org_unit_info["name"]
+        parent = org_unit_info["parent"]
+
+        path_string = object_name
+        while parent:
+            parent_object_name = parent["name"]
+            path_string = (
+                parent_object_name + self.org_unit_path_string_separator + path_string
+            )
+            parent = self.org_unit_info[str(parent["uuid"])]["parent"]
+
+        return path_string.replace(self.imported_org_unit_tag, "")
+
+    def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
+        try:
+            return self.get_org_unit_uuid_from_path(org_unit_path_string)
+        except UUIDNotFoundException:
+            self.logger.info(
+                (f"Could not find '{org_unit_path_string}'. " "Creating organisation.")
+            )
+            self.create_org_unit(org_unit_path_string)
+            return self.get_org_unit_uuid_from_path(org_unit_path_string)
 
     @staticmethod
     def str_to_dict(text):
@@ -435,12 +639,21 @@ class LdapConverter:
         for key, value in mapping.items():
             if type(value) == str:
                 mapping[key] = environment.from_string(value)
-                mapping[key].globals["now"] = datetime.datetime.utcnow
-                mapping[key].globals["nonejoin"] = self.nonejoin
-                mapping[key].globals[
-                    "get_address_type_uuid"
-                ] = self.get_address_type_uuid
-                mapping[key].globals["get_it_system_uuid"] = self.get_it_system_uuid
+                mapping[key].globals.update(
+                    {
+                        "now": datetime.datetime.utcnow,
+                        "nonejoin": self.nonejoin,
+                        "get_address_type_uuid": self.get_address_type_uuid,
+                        "get_it_system_uuid": self.get_it_system_uuid,
+                        "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
+                        "get_job_function_uuid": self.get_job_function_uuid,
+                        "get_engagement_type_uuid": self.get_engagement_type_uuid,
+                        "uuid4": uuid4,
+                        "get_org_unit_path_string": self.get_org_unit_path_string,
+                        "get_engagement_type_name": self.get_engagement_type_name,
+                        "get_job_function_name": self.get_job_function_name,
+                    }
+                )
 
             elif type(value) == dict:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
@@ -477,7 +690,8 @@ class LdapConverter:
 
         for ldap_field_name, template in object_mapping.items():
             rendered_item = template.render(mo_object_dict)
-            ldap_object[ldap_field_name] = rendered_item
+            if rendered_item:
+                ldap_object[ldap_field_name] = rendered_item
 
         if not dn:
             mo_employee_object = mo_object_dict["mo_employee"]
@@ -551,7 +765,7 @@ class LdapConverter:
                 if "{" in value and ":" in value and "}" in value:
                     value = self.str_to_dict(value)
 
-                if (value != "None") and value:
+                if value:
                     mo_dict[mo_field_name] = value
 
             mo_class: Any = self.import_mo_object_class(json_key)

@@ -5,6 +5,7 @@
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import timedelta
 from typing import Any
 from typing import Callable
 from typing import Literal
@@ -25,15 +26,16 @@ from fastapi_login import LoginManager
 from fastapi_login.exceptions import InvalidCredentialsException
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
+from gql.transport.exceptions import TransportQueryError
 from ldap3 import Connection
 from pydantic import ValidationError
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
-from ramodels.mo.details.address import Address
 from ramqp.mo import MORouter
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
+from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from tqdm import tqdm
 
@@ -73,44 +75,20 @@ def reject_on_failure(func):
     async def modified_func(*args, **kwargs):
         try:
             await func(*args, **kwargs)
-        except (NotSupportedException, IncorrectMapping):
+        except (NotSupportedException, IncorrectMapping, TransportQueryError) as e:
+            logger.exception(e)
             raise RejectMessage()
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
 
 
-@amqp_router.register("employee.*.*")
-@reject_on_failure
 async def listen_to_changes_in_employees(
     context: Context, payload: PayloadType, **kwargs: Any
 ) -> None:
 
-    global uuids_to_ignore
-
-    # If the object was uploaded by us, it does not need to be synchronized.
-    if payload.object_uuid in uuids_to_ignore:
-        logger.info(f"[listen_to_changes] Ignoring {payload.object_uuid}")
-
-        # Remove uuid so it does not get ignored twice.
-        uuids_to_ignore.remove(payload.object_uuid)
-        return None
-
-    # If we are not supposed to listen: reject and turn the message into a dead letter.
-    elif not Settings().listen_to_changes_in_mo:
-        raise RejectMessage()
-
     routing_key = kwargs["mo_routing_key"]
     logger.info("[MO] Registered change in the employee model")
-    logger.info(f"[MO] Routing key: {routing_key}")
-    logger.info(f"[MO] Payload: {payload}")
-
-    # TODO: Add support for deleting users / fields from LDAP
-    if routing_key.request_type == RequestType.TERMINATE:
-        # Note: Deleting an object is not straightforward, because MO specifies a future
-        # date, on which the object is to be deleted. We would need a job which runs
-        # daily and checks for users/addresses/etc... that need to be deleted
-        raise NotSupportedException("Terminations are not supported")
 
     user_context = context["user_context"]
     dataloader = user_context["dataloader"]
@@ -130,7 +108,9 @@ async def listen_to_changes_in_employees(
         )
 
         # Convert to MO so the two are easy to compare
-        mo_objects_in_ldap = converter.from_ldap(loaded_ldap_object, json_key)
+        mo_objects_in_ldap = converter.from_ldap(
+            loaded_ldap_object, json_key, employee_uuid=changed_employee.uuid
+        )
 
         # Format as lists
         values_in_ldap = sorted([getattr(a, value_key) for a in mo_objects_in_ldap])
@@ -181,11 +161,9 @@ async def listen_to_changes_in_employees(
         address_type = json_key = meta_info["address_type_name"]
 
         logger.info(f"Obtained address type = {address_type}")
-
-        # Convert to LDAP
         mo_object_dict["mo_address"] = changed_address
 
-        # Upload to LDAP
+        # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
             converter.to_ldap(mo_object_dict, json_key), json_key
         )
@@ -202,16 +180,12 @@ async def listen_to_changes_in_employees(
         # Get MO IT-user
         changed_it_user = await dataloader.load_mo_it_user(payload.object_uuid)
         it_system_type_uuid = changed_it_user.itsystem.uuid
-        it_system_type = converter.get_it_system(it_system_type_uuid)
-
-        it_system_name = json_key = it_system_type["name"]
+        it_system_name = json_key = converter.get_it_system_name(it_system_type_uuid)
 
         logger.info(f"Obtained IT system name = {it_system_name}")
-
-        # Convert to LDAP
         mo_object_dict["mo_it_user"] = changed_it_user
 
-        # Upload to LDAP
+        # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
             converter.to_ldap(mo_object_dict, json_key), json_key
         )
@@ -222,6 +196,76 @@ async def listen_to_changes_in_employees(
         )
 
         cleanup(json_key, "user_key", "mo_it_user", it_users_in_mo)
+
+    elif routing_key.object_type == ObjectType.ENGAGEMENT:
+        logger.info("[MO] Change registered in the Engagement object type")
+
+        # Get MO Engagement
+        changed_engagement = await dataloader.load_mo_engagement(payload.object_uuid)
+
+        json_key = "Engagement"
+        mo_object_dict["mo_engagement"] = changed_engagement
+
+        # Convert & Upload to LDAP
+        await dataloader.upload_ldap_object(
+            converter.to_ldap(mo_object_dict, json_key), json_key
+        )
+
+        engagements_in_mo = await dataloader.load_mo_employee_engagements(
+            changed_employee.uuid
+        )
+
+        cleanup(json_key, "user_key", "mo_engagement", engagements_in_mo)
+
+
+async def listen_to_changes_in_org_units(
+    context: Context, payload: PayloadType, **kwargs: Any
+) -> None:
+
+    user_context = context["user_context"]
+    dataloader = user_context["dataloader"]
+    converter = user_context["converter"]
+
+    # When an org-unit is changed we need to update the org unit info. So we
+    # know the new name of the org unit in case it was changed
+    logger.info("Updating org unit info")
+    converter.org_unit_info = dataloader.load_mo_org_units()
+
+
+@amqp_router.register("*.*.*")
+@reject_on_failure
+async def listen_to_changes(
+    context: Context, payload: PayloadType, **kwargs: Any
+) -> None:
+    global uuids_to_ignore
+
+    # If the object was uploaded by us, it does not need to be synchronized.
+    if payload.object_uuid in uuids_to_ignore:
+        logger.info(f"[listen_to_changes] Ignoring {payload.object_uuid}")
+
+        # Remove uuid so it does not get ignored twice.
+        uuids_to_ignore.remove(payload.object_uuid)
+        return None
+
+    # If we are not supposed to listen: reject and turn the message into a dead letter.
+    elif not Settings().listen_to_changes_in_mo:
+        raise RejectMessage()
+
+    routing_key = kwargs["mo_routing_key"]
+    logger.info(f"[MO] Routing key: {routing_key}")
+    logger.info(f"[MO] Payload: {payload}")
+
+    # TODO: Add support for deleting users / fields from LDAP
+    if routing_key.request_type == RequestType.TERMINATE:
+        # Note: Deleting an object is not straightforward, because MO specifies a future
+        # date, on which the object is to be deleted. We would need a job which runs
+        # daily and checks for users/addresses/etc... that need to be deleted
+        raise NotSupportedException("Terminations are not supported")
+
+    if routing_key.service_type == ServiceType.EMPLOYEE:
+        await listen_to_changes_in_employees(context, payload, **kwargs)
+    elif routing_key.service_type == ServiceType.ORG_UNIT:
+        await listen_to_changes_in_org_units(context, payload, **kwargs)
 
 
 @asynccontextmanager
@@ -354,28 +398,99 @@ def encode_result(result):
     return json_compatible_result
 
 
-def get_matching_address_uuid(
-    lookup_value: str, addresses_in_mo_dict: dict[UUID, Address]
+async def format_converted_objects(
+    converted_objects, json_key, employee_uuid, user_context
 ):
     """
-    Returns the address uuid belonging to an address value.
-
-    Parameters
-    ---------------
-    lookup_value: str
-        Address value to look for
-    address_values_in_mo: dict
-        Dictionary where keys are MO address UUIDs and values are the values belonging
-        to the addresses
-
-    Notes
-    ------
-    If multiple addresses match this value, returns the first match.
+    for Address and Engagement objects:
+        Loops through the objects, and sets the uuid if an existing matching object is
+        found
+    for ITUser objects:
+        Loops through the objects and removes it if an existing matchin object is found
+    for all other objects:
+        returns the input list of converted_objects
     """
-    for uuid, address in addresses_in_mo_dict.items():
-        value = address.value
-        if value == lookup_value:
-            return uuid
+
+    converter = user_context["converter"]
+    dataloader = user_context["dataloader"]
+    mo_object_class = converter.find_mo_object_class(json_key).split(".")[-1]
+
+    # Load addresses already in MO
+    if mo_object_class == "Address":
+        addresses_in_mo = await dataloader.load_mo_employee_addresses(
+            employee_uuid, converted_objects[0].address_type.uuid
+        )
+        value_key = "value"
+        objects_in_mo = [o[0] for o in addresses_in_mo]
+    # Load engagements already in MO
+    elif mo_object_class == "Engagement":
+        objects_in_mo = await dataloader.load_mo_employee_engagements(employee_uuid)
+        value_key = "user_key"
+
+    elif mo_object_class == "ITUser":
+        # If an ITUser already exists, MO throws an error - it cannot be updated if the
+        # key is identical to an existing key.
+        it_users_in_mo = await dataloader.load_mo_employee_it_users(
+            employee_uuid, converted_objects[0].itsystem.uuid
+        )
+        user_keys_in_mo = [a.user_key for a in it_users_in_mo]
+
+        return [
+            converted_object
+            for converted_object in converted_objects
+            if converted_object.user_key not in user_keys_in_mo
+        ]
+
+    else:
+        return converted_objects
+
+    objects_in_mo_dict = {a.uuid: a for a in objects_in_mo}
+    mo_attributes = converter.get_mo_attributes(json_key)
+
+    # Set uuid if a matching one is found. so an object gets updated
+    # instead of duplicated
+    converted_objects_uuid_checked = []
+    for converted_object in converted_objects:
+        values_in_mo = [getattr(a, value_key) for a in objects_in_mo_dict.values()]
+        converted_object_value = getattr(converted_object, value_key)
+
+        if values_in_mo.count(converted_object_value) == 1:
+            logger.info(
+                (
+                    f"Found matching MO '{json_key}' with "
+                    f"value='{getattr(converted_object,value_key)}'"
+                )
+            )
+
+            for uuid, mo_object in objects_in_mo_dict.items():
+                value = getattr(mo_object, value_key)
+                if value == converted_object_value:
+                    matching_object_uuid = uuid
+                    break
+
+            matching_object = objects_in_mo_dict[matching_object_uuid]
+            converted_mo_object_dict = converted_object.dict()
+
+            mo_object_dict_to_upload = matching_object.dict()
+            for key in mo_attributes:
+                if (
+                    key not in ["validity", "uuid", "objectClass"]
+                    and key in converted_mo_object_dict.keys()
+                ):
+                    logger.info(f"Setting {key} = {converted_mo_object_dict[key]}")
+                    mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
+
+            mo_class = converter.import_mo_object_class(json_key)
+            converted_objects_uuid_checked.append(mo_class(**mo_object_dict_to_upload))
+        elif values_in_mo.count(converted_object_value) == 0:
+            converted_objects_uuid_checked.append(converted_object)
+        else:
+            logger.warning(
+                f"Could not determine which '{json_key}' MO object "
+                f"{value_key}='{converted_object_value}' belongs to. Skipping"
+            )
+
+    return converted_objects_uuid_checked
 
 
 def create_app(**kwargs: Any) -> FastAPI:
@@ -391,7 +506,9 @@ def create_app(**kwargs: Any) -> FastAPI:
     app.include_router(fastapi_router)
 
     login_manager = LoginManager(
-        settings.authentication_secret.get_secret_value(), "/login"
+        settings.authentication_secret.get_secret_value(),
+        "/login",
+        default_expiry=timedelta(hours=settings.token_expiry_time),
     )
 
     user_database = {
@@ -490,67 +607,16 @@ def create_app(**kwargs: Any) -> FastAPI:
             if len(converted_objects) == 0:
                 continue
 
-            mo_object_class = converter.find_mo_object_class(json_key).split(".")[-1]
-            if mo_object_class == "Address":
-                # Load addresses already in MO
-                addresses_in_mo = await dataloader.load_mo_employee_addresses(
-                    employee_uuid, converted_objects[0].address_type.uuid
-                )
-                addresses_in_mo_dict = {a[0].uuid: a[0] for a in addresses_in_mo}
+            converted_objects = await format_converted_objects(
+                converted_objects, json_key, employee_uuid, user_context
+            )
 
-                mo_attributes = converter.get_mo_attributes(json_key)
+            if len(converted_objects) > 0:
+                logger.info(f"Importing {converted_objects}")
 
-                # Set uuid if a matching one is found. so an address gets updated
-                # instead of duplicated
-                converted_objects_uuid_checked = []
-                for converted_object in converted_objects:
-                    values_in_mo = [a.value for a in addresses_in_mo_dict.values()]
-                    if converted_object.value in values_in_mo:
-                        logger.info(
-                            (
-                                f"Found matching MO '{json_key}' address with "
-                                f"value='{converted_object.value}'"
-                            )
-                        )
-                        matching_address_uuid = get_matching_address_uuid(
-                            converted_object.value, addresses_in_mo_dict
-                        )
-                        matching_address = addresses_in_mo_dict[matching_address_uuid]
-                        converted_address_dict = converted_object.dict()
-
-                        address_dict = matching_address.dict()
-                        for key in mo_attributes:
-                            if (
-                                key not in ["validity", "uuid", "objectClass"]
-                                and key in converted_address_dict.keys()
-                            ):
-                                address_dict[key] = converted_address_dict[key]
-
-                        mo_class = converter.import_mo_object_class(json_key)
-                        converted_objects_uuid_checked.append(mo_class(**address_dict))
-                    else:
-                        converted_objects_uuid_checked.append(converted_object)
-
-                converted_objects = converted_objects_uuid_checked
-
-            elif mo_object_class == "ITUser":
-                # If an ITUser already exists, MO throws an error
-                it_users_in_mo = await dataloader.load_mo_employee_it_users(
-                    employee_uuid, converted_objects[0].itsystem.uuid
-                )
-                user_keys_in_mo = [a.user_key for a in it_users_in_mo]
-
-                converted_objects = [
-                    converted_object
-                    for converted_object in converted_objects
-                    if converted_object.user_key not in user_keys_in_mo
-                ]
-
-            logger.info(f"Importing {converted_objects}")
-
-            for mo_object in converted_objects:
-                uuids_to_ignore.append(mo_object.uuid)
-            await dataloader.upload_mo_objects(converted_objects)
+                for mo_object in converted_objects:
+                    uuids_to_ignore.append(mo_object.uuid)
+                await dataloader.upload_mo_objects(converted_objects)
 
     # Get all objects from LDAP - Converted to MO
     @app.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
