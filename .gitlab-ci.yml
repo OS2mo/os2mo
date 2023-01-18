@@ -246,7 +246,7 @@ Unit-test:
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   parallel: 2
   script:
-    - pip install poetry
+    - pip install poetry==1.3.2
     - poetry config virtualenvs.in-project true
     - poetry install --with ci
     - poetry run pytest backend/tests/
@@ -444,7 +444,7 @@ Export Changelog:
     - Export Changelog
   image: python:3.10
   variables:
-    POETRY_VERSION: 1.1.12
+    POETRY_VERSION: 1.3.2
     POETRY_VIRTUALENVS_CREATE: "false"
   before_script:
     - pip3 install poetry==${POETRY_VERSION}
