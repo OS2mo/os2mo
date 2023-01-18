@@ -31,7 +31,7 @@ Jinja2 = "^3.1.2"
 starlette-context = "^0.3.4"
 Werkzeug = "^2.2.2"
 click = "^8.1.3"
-os2mo-fastapi-utils = "^1.1.0"
+os2mo-fastapi-utils = "^1.3.0"
 structlog = "^22.1.0"
 python-multipart = "^0.0.5"
 service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "0.2.0"}

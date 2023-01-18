@@ -16,7 +16,7 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=on \
     # We don't install the backend as a package, so we add it to PYTHONPATH.
     PYTHONPATH=/app:/app/backend \
-    POETRY_VERSION="1.2.0" \
+    POETRY_VERSION="1.3.2" \
     POETRY_HOME=/opt/poetry \
     ALEMBIC_CONFIG=/app/backend/alembic.ini
 
