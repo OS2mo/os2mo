@@ -122,7 +122,12 @@ def context() -> Context:
     )
     dataloader.find_mo_employee_uuid_sync = find_mo_employee_uuid_sync
 
-    overview = {"user": {"attributes": list(dataloader.single_value.keys())}}
+    attribute_dict = {
+        a: {"single_value": dataloader.single_value[a]}
+        for a in dataloader.single_value.keys()
+    }
+
+    overview = {"user": {"attributes": attribute_dict}}
 
     dataloader.load_ldap_overview.return_value = overview
     org_unit_type_uuid = uuid4()
