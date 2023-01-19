@@ -4,6 +4,7 @@ services:
 
   mo_ldap_import_export:
     container_name: mo_ldap_ie
+    image: mo_ldap_ie
     build: .
     command: ["uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--reload", "--reload-include", "*.json"]
 
@@ -18,11 +19,13 @@ services:
       - "8000:8000"
 
   mo_ldap_import_export-cron:
-    build: cron
+    container_name: mo_ldap_ie-cron
+    image: mo_ldap_ie
     env_file:
       ./dev-environment/mo_ldap_import_export.env
     volumes:
       - ./cron/crontab:/etc/crontab
+    command: ["supercronic", "/cron/crontab"]
     networks:
       - os2mo_default
 
