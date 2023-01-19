@@ -48,6 +48,12 @@ def context() -> Context:
                     "{{ dict(uuid=" "'f376deb8-4743-4ca6-a047-3241de8fe9d2') }}"
                 ),
             },
+            "Active Directory": {
+                "objectClass": "ramodels.mo.details.it_system.ITUser",
+                "user_key": "{{ ldap.msSFU30Name or NONE }}",
+                "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
+                "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+            },
         },
         "mo_to_ldap": {
             "Employee": {
@@ -63,6 +69,11 @@ def context() -> Context:
                 "objectClass": "user",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
+            "Active Directory": {
+                "objectClass": "user",
+                "msSFU30Name": "{{mo_it_user.user_key}}",
+                "employeeID": "{{mo_employee.cpr_no}}",
+            },
         },
     }
 
@@ -77,10 +88,20 @@ def context() -> Context:
         "uuid1": {"uuid": "uuid1", "scope": "MAIL", "name": "Email"},
         "uuid2": {"uuid": "uuid2", "scope": "TEXT", "name": "Post"},
     }
+    ad_uuid = str(uuid4())
+    mo_it_systems = {
+        ad_uuid: {"uuid": ad_uuid, "name": "Active Directory"},
+    }
 
     load_mo_address_types = MagicMock()
+    load_mo_it_systems = MagicMock()
+
     load_mo_address_types.return_value = mo_address_types
+    load_mo_it_systems.return_value = mo_it_systems
+
     dataloader.load_mo_address_types = load_mo_address_types
+    dataloader.load_mo_it_systems = load_mo_it_systems
+
     dataloader.upload_mo_objects = AsyncMock()
     dataloader.single_value = {
         "givenName": True,
@@ -91,6 +112,8 @@ def context() -> Context:
         "employeeID": True,
         "postalAddress": False,
         "mail": True,
+        "msSFU30Name": True,
+        "itSystemName": True,
     }
 
     find_mo_employee_uuid_sync = MagicMock()
@@ -185,6 +208,38 @@ def test_ldap_to_mo_no_uuid(context: Context) -> None:
     assert employee.uuid != employee_uuid
     # Same uuid as in fixture
     assert employee.uuid == uuid.UUID(hex="{135c46ae-3b0e-4679-8318-40b73d9cedf3}")
+
+
+def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
+    converter = LdapConverter(context)
+    it_users_with_typo = converter.from_ldap(
+        LdapObject(
+            dn="",
+            msSFU30Name=["foo", "bar"],
+            itSystemName=["Active Directory", "Active Directory_typo"],
+        ),
+        "Active Directory",
+    )
+
+    it_users = converter.from_ldap(
+        LdapObject(
+            dn="",
+            msSFU30Name=["foo", "bar"],
+            itSystemName=["Active Directory", "Active Directory"],
+        ),
+        "Active Directory",
+    )
+
+    assert it_users[0].user_key == "foo"
+    assert it_users[1].user_key == "bar"
+    ad_uuid = converter.get_it_system_uuid("Active Directory")
+    assert str(it_users[0].itsystem.uuid) == ad_uuid
+    assert str(it_users[1].itsystem.uuid) == ad_uuid
+
+    # Only one it user should be converted. The second one cannot be found because
+    # "Active Directory_typo" does not exist as an it system in MO
+    assert len(it_users_with_typo) == 1
+    assert len(it_users) == 2
 
 
 def test_mo_to_ldap(converter: LdapConverter) -> None:
@@ -472,7 +527,7 @@ def test_check_attributes(converter: LdapConverter):
 
 def test_get_accepted_json_keys(converter: LdapConverter):
     output = converter.get_accepted_json_keys()
-    assert output == ["Employee", "Engagement", "Email", "Post"]
+    assert output == ["Employee", "Engagement", "Email", "Post", "Active Directory"]
 
 
 def test_nonejoin(converter: LdapConverter):
@@ -831,6 +886,9 @@ def test_get_object_uuid_from_name(converter: LdapConverter):
         info_dict = {uuid: {"uuid": uuid, "name": name}}
         converter.get_object_uuid_from_name(info_dict, "bar")
 
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_object_uuid_from_name(info_dict, "")
+
 
 def test_create_org_unit(converter: LdapConverter):
     uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
@@ -878,3 +936,6 @@ def test_get_or_create_org_unit_uuid(converter: LdapConverter):
     converter.get_or_create_org_unit_uuid("Magenta Aarhus")
     org_units = [info["name"] for info in converter.org_unit_info.values()]
     assert "Magenta Aarhus" in org_units
+
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_or_create_org_unit_uuid("")
