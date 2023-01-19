@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
 
 from . import util
 from mora.config import Settings
+from mora.service.shimmed import cpr as cpr_shim
 
 
 @pytest.mark.parametrize(
@@ -83,3 +86,41 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
     _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
 
     Settings()
+
+
+@pytest.mark.parametrize(
+    "sp_api_version,expected_exception",
+    [
+        (1, ValueError),
+        ("", ValueError),
+        (4, None),
+        (5, None),
+    ],
+)
+def test_serviceplatformen_api_version_validation(
+    monkeypatch,
+    sp_api_version,
+    expected_exception,
+):
+    _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
+    if expected_exception:
+        with pytest.raises(expected_exception):
+            Settings()
+    else:
+        settings = Settings()
+        assert settings.sp_settings.sp_api_version == sp_api_version
+
+
+def test_get_citizen_uses_version_kwarg(monkeypatch):
+    # Test that the `version` kwargs is actually used in the call to
+    # `service_person_stamdata_udvidet.get_citizen`.
+    _sp_config(monkeypatch, SP_API_VERSION="4")
+    with patch("service_person_stamdata_udvidet.get_citizen") as mock_get_citizen_impl:
+        # This calls `service_person_stamdata_udvidet.get_citizen`
+        cpr_shim.get_citizen("0101010101")
+        # Assert that our mock `service_person_stamdata_udvidet.get_citizen` is called
+        # using the expected `version` kwarg.
+        mock_get_citizen_impl.assert_called_once()
+        call_args = mock_get_citizen_impl.call_args
+        version = call_args.kwargs["version"]
+        assert version == 4

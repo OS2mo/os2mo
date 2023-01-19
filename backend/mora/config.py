@@ -45,11 +45,20 @@ class ServicePlatformenSettings(BaseSettings):
     sp_system_uuid: UUID
     sp_certificate_path: FilePath
     sp_production: bool = False
+    sp_api_version: int = 4
 
     @validator("sp_certificate_path")
     def validate_certificate_not_empty(cls, v):
         if not v.stat().st_size:
             raise ValueError("Serviceplatformen certificate can not be empty")
+        return v
+
+    @validator("sp_api_version")
+    def validate_api_version(cls, v):
+        if v not in {4, 5}:
+            raise ValueError(
+                f"Serviceplatformen API version must be either 4 or 5 (not {v!r})"
+            )
         return v
 
 
