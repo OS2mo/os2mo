@@ -527,6 +527,9 @@ def create_app(**kwargs: Any) -> FastAPI:
     converter = user_context["converter"]
     dataloader = user_context["dataloader"]
 
+    ldap_classes = tuple(sorted(converter.overview.keys()))
+    default_ldap_class = converter.raw_mapping["mo_to_ldap"]["Employee"]["objectClass"]
+
     accepted_json_keys = tuple(converter.get_accepted_json_keys())
     detected_json_keys = converter.get_ldap_to_mo_json_keys()
 
@@ -708,15 +711,23 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     # Get LDAP overview
     @app.get("/LDAP_overview", status_code=202, tags=["LDAP"])
-    async def load_overview_from_LDAP(user=Depends(login_manager)) -> Any:
-        result = dataloader.load_ldap_overview()
-        return result
+    async def load_overview_from_LDAP(
+        user=Depends(login_manager),
+        ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
+    ) -> Any:
+        ldap_overview = dataloader.load_ldap_overview()
+        return ldap_overview[ldap_class]
 
     # Get populated LDAP overview
     @app.get("/LDAP_overview/populated", status_code=202, tags=["LDAP"])
-    async def load_populated_overview_from_LDAP(user=Depends(login_manager)) -> Any:
-        result = dataloader.load_ldap_populated_overview()
-        return result
+    async def load_populated_overview_from_LDAP(
+        user=Depends(login_manager),
+        ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
+    ) -> Any:
+        ldap_overview = dataloader.load_ldap_populated_overview(
+            ldap_classes=[ldap_class]
+        )
+        return encode_result(ldap_overview[ldap_class])
 
     # Get MO address types
     @app.get("/MO/Address_types", status_code=202, tags=["MO"])
