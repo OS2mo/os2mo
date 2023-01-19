@@ -193,6 +193,118 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
     return execute_query(decorated_hits, phrase=phrase)
 
 
+def find_org_units_matching_new(phrase: str, class_uuids: list[UUID] | None = None):
+    # Bind parameters
+    phrase_param = bindparam("phrase", type_=String)
+
+    # Tables
+    enhed_reg = get_table("organisationenhed_registrering")
+    enhed_att = get_table("organisationenhed_attr_egenskaber")
+    enhed_rel = get_table("organisationenhed_relation")
+
+    orgfunk_reg = get_table("organisationfunktion_registrering")
+    orgfunk_rel = get_table("organisationfunktion_relation")
+    orgfunk_att = get_table("organisationfunktion_attr_egenskaber")
+
+    # Different pre SELECTs
+    enhed_reg_uuid = enhed_reg.c.organisationenhed_id.label("uuid")
+
+    # Find hits on related value (addresses, it systems)
+    orgfunk_rel_a = orgfunk_rel.alias()
+    orgfunk_rel_b = orgfunk_rel.alias()
+    enhed_uuid_rel = orgfunk_rel_a.c.rel_maal_uuid.label("uuid")
+    search_query_relations = (
+        select(enhed_uuid_rel)
+        .outerjoin(
+            enhed_reg,
+            enhed_reg.c.organisationenhed_id == orgfunk_rel_a.c.rel_maal_uuid,
+        )
+        .outerjoin(
+            enhed_att,
+            enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+        )
+        .outerjoin(
+            orgfunk_rel_b,
+            orgfunk_rel_a.c.organisationfunktion_registrering_id
+            == orgfunk_rel_b.c.organisationfunktion_registrering_id,
+        )
+        .outerjoin(
+            orgfunk_reg,
+            orgfunk_rel_a.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+        )
+        .outerjoin(
+            orgfunk_att,
+            orgfunk_att.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+        )
+        .where(
+            orgfunk_rel_a.c.rel_maal_uuid != None,  # noqa: E711
+            orgfunk_rel_a.c.rel_type.in_(["tilknyttedeenheder"]),
+            orgfunk_rel_b.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
+            orgfunk_att.c.brugervendtnoegle.ilike(phrase_param),
+        )
+        .cte()
+    )
+
+    # Custom QUERY params
+    current_org_units_only = text(
+        "(organisationenhed_attr_egenskaber.virkning).timeperiod @> now()"
+    )
+    current_org_unit_name = func.jsonb_agg(
+        enhed_att.c.enhedsnavn, type_=postgresql.JSONB
+    ).filter(current_org_units_only)
+
+    # Search queries
+    search_query_name = (
+        select(enhed_reg_uuid)
+        .join(
+            enhed_att,
+            enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+        )
+        .where(
+            enhed_reg.c.organisationenhed_id != None,  # noqa: E711
+            (
+                enhed_att.c.enhedsnavn.ilike(phrase_param)
+                | enhed_att.c.brugervendtnoegle.ilike(phrase_param)
+            ),
+        )
+        .cte()
+    )
+
+    selects = [
+        select(cte.c.uuid) for cte in (search_query_name, search_query_relations)
+    ]
+    search_query_all = union(*selects).cte()
+
+    # Combine an execute the different parts
+    return execute_query(
+        (
+            select(
+                enhed_reg_uuid,
+                # enhed_att.c.enhedsnavn.label('enhedsnavn'),
+                current_org_unit_name.label("name"),
+                func.json_agg(
+                    func.jsonb_build_array(
+                        enhed_rel.c.id, enhed_rel.c.organisationenhed_registrering_id
+                    )
+                ),
+            )
+            .join(
+                enhed_att,
+                enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+            )
+            .join(
+                enhed_rel,
+                enhed_rel.c.organisationenhed_registrering_id == enhed_reg.c.id,
+            )
+            .where(enhed_reg_uuid == search_query_all.c.uuid)
+            .group_by(enhed_reg_uuid, enhed_att.c.enhedsnavn.label("enhedsnavn"))
+        ),
+        phrase=phrase,
+    )
+
+    # return execute_query(decorated_hits, phrase=phrase)
+
+
 def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""

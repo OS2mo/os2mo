@@ -62,11 +62,11 @@ class Query:
 
     # Addresses
     # ---------
-    addresses: list[Response[Address]] = strawberry.field(
-        resolver=AddressResolver().resolve,
-        description="Get a list of all addresses, optionally by uuid(s)",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
-    )
+    # addresses: list[Response[Address]] = strawberry.field(
+    #     resolver=AddressResolver().resolve,
+    #     description="Get a list of all addresses, optionally by uuid(s)",
+    #     permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
+    # )
 
     # Associations
     # ------------

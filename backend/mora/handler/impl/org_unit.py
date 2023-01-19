@@ -26,7 +26,9 @@ class OrgUnitReader(reading.ReadingHandler):
         object_tuples = await cls._get_lora_object(
             c=c, search_fields=search_fields, changed_since=changed_since
         )
-        return await cls._get_obj_effects(c, object_tuples)
+        res = await cls._get_obj_effects(c, object_tuples)
+        return res
+        # return await cls._get_obj_effects(c, object_tuples)
 
     @classmethod
     async def get_from_type(cls, c, type, objid, changed_since: datetime | None = None):
