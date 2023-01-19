@@ -72,7 +72,6 @@ class Settings(BaseSettings):
     # Misc OS2mo settings
     environment: Environment = Environment.PRODUCTION
     os2mo_log_level: str = "WARNING"
-    enable_cors: bool = False
     navlinks: list[NavLink] = []
 
     # File Store settings
