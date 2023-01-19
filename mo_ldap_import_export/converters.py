@@ -467,6 +467,8 @@ class LdapConverter:
         return info_dict[str(uuid)][name_key]
 
     def get_object_uuid_from_name(self, info_dict: dict, name: str, name_key="name"):
+        if not name:
+            raise UUIDNotFoundException("object type name is empty")
         names = [info[name_key] for info in info_dict.values()]
         if name not in names:
             raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
@@ -585,6 +587,8 @@ class LdapConverter:
         return path_string.replace(self.imported_org_unit_tag, "")
 
     def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
+        if not org_unit_path_string:
+            raise UUIDNotFoundException("Organization unit string is empty")
         try:
             return self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
@@ -757,9 +761,10 @@ class LdapConverter:
             except KeyError:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
             for mo_field_name, template in object_mapping.items():
-
-                value = template.render({"ldap": ldap_dict}).strip()
-
+                try:
+                    value = template.render({"ldap": ldap_dict}).strip()
+                except UUIDNotFoundException:
+                    continue
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
                 if "{" in value and ":" in value and "}" in value:
