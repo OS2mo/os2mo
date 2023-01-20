@@ -5,6 +5,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
 import asyncio
+import datetime
 import os
 import re
 from collections.abc import Iterator
@@ -527,10 +528,20 @@ async def test_listen_to_changes_in_employees(
         )
 
     # Simulate an uuid which should be skipped
-    with patch(
-        "mo_ldap_import_export.main.uuids_to_ignore",
-        [payload.object_uuid],
-    ):
+    # And an uuid which is too old, so it will be removed from the list
+    old_uuid = uuid4()
+    uuid_which_should_remain = uuid4()
+
+    uuids_to_ignore = {
+        # This uuid should be ignored (once)
+        payload.object_uuid: [datetime.datetime.now(), datetime.datetime.now()],
+        # This uuid has been here for too long, and should be removed
+        old_uuid: [datetime.datetime(2020, 1, 1)],
+        # This uuid should remain in the list
+        uuid_which_should_remain: [datetime.datetime.now()],
+    }
+
+    with patch("mo_ldap_import_export.main.uuids_to_ignore", uuids_to_ignore):
         with capture_logs() as cap_logs:
             await asyncio.gather(
                 listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
@@ -538,7 +549,15 @@ async def test_listen_to_changes_in_employees(
 
             entries = [w for w in cap_logs if w["log_level"] == "info"]
 
-            assert re.match(f".*Ignoring {payload.object_uuid}", entries[0]["event"])
+            assert re.match(
+                f"Removing timestamp belonging to {old_uuid} from uuids_to_ignore.",
+                entries[0]["event"],
+            )
+            assert re.match(f".*Ignoring .*{payload.object_uuid}", entries[1]["event"])
+            assert len(uuids_to_ignore) == 3
+            assert len(uuids_to_ignore[old_uuid]) == 0
+            assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
+            assert len(uuids_to_ignore[payload.object_uuid]) == 1
 
 
 def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
@@ -674,6 +693,26 @@ async def test_import_single_object_from_LDAP(
 ) -> None:
     response = test_client.get("/Import/0101011234", headers=headers)
     assert response.status_code == 202
+
+
+async def test_import_single_object_from_LDAP_ignore_twice(
+    test_client: TestClient, headers: dict, converter: MagicMock
+) -> None:
+    """
+    When an uuid already is in the uuids_to_ignore dict, it should be added once more
+    so it is ignored twice.
+    """
+
+    uuid = uuid4()
+    mo_object_mock = MagicMock
+    mo_object_mock.uuid = uuid
+    converter.from_ldap.return_value = [mo_object_mock]
+
+    uuids_to_ignore = {uuid: [datetime.datetime.now()]}
+    with patch("mo_ldap_import_export.main.uuids_to_ignore", uuids_to_ignore):
+        response = test_client.get("/Import/0101011234", headers=headers)
+        assert response.status_code == 202
+        assert len(uuids_to_ignore[uuid]) == 2
 
 
 async def test_import_single_object_from_LDAP_non_existing_employee(
