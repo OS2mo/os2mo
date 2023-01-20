@@ -36,7 +36,7 @@ def get_citizen(cpr: str) -> dict[str, Any]:
             certificate,
             cpr,
             production=sp_production,
-            version=sp_api_version,
+            api_version=sp_api_version,
         )
     except requests.HTTPError as e:
         if "PNRNotFound" in e.response.text:

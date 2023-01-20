@@ -119,8 +119,8 @@ def test_get_citizen_uses_version_kwarg(monkeypatch):
         # This calls `service_person_stamdata_udvidet.get_citizen`
         cpr_shim.get_citizen("0101010101")
         # Assert that our mock `service_person_stamdata_udvidet.get_citizen` is called
-        # using the expected `version` kwarg.
+        # using the expected `api_version` kwarg.
         mock_get_citizen_impl.assert_called_once()
         call_args = mock_get_citizen_impl.call_args
-        version = call_args.kwargs["version"]
-        assert version == 4
+        api_version = call_args.kwargs["api_version"]
+        assert api_version == 4
