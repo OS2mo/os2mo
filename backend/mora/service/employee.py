@@ -106,10 +106,12 @@ class EmployeeRequestHandler(handlers.RequestHandler):
 
         valid_to = util.POSITIVE_INFINITY
 
-        if cpr:
+        if cpr and (
             await does_employee_with_cpr_already_exist(
                 cpr, valid_from, valid_to, org_uuid, userid
             )
+        ):
+            raise exceptions.HTTPException(exceptions.ErrorCodes.V_EXISTING_CPR)
 
         user = common.create_bruger_payload(
             valid_from=valid_from,

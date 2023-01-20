@@ -5,6 +5,7 @@ from fastapi import Body
 
 from . import validator
 from .. import facet
+from ... import exceptions
 from ... import lora
 from ... import mapping
 from ... import util
@@ -123,9 +124,10 @@ async def check_cpr(req: dict = Body(...)):
     cpr = util.checked_get(req, mapping.CPR_NO, "", required=True)
     org_uuid = util.get_mapping_uuid(req, mapping.ORG, required=True)
 
-    await validator.does_employee_with_cpr_already_exist(
+    if await validator.does_employee_with_cpr_already_exist(
         cpr, util.NEGATIVE_INFINITY, util.POSITIVE_INFINITY, org_uuid
-    )
+    ):
+        raise exceptions.HTTPException(exceptions.ErrorCodes.V_EXISTING_CPR)
 
     return {"success": True}
 

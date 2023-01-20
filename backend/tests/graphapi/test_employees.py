@@ -329,7 +329,7 @@ async def test_create_employee_integration_test(
 ) -> None:
     """Test that employees can be created in LoRa via GraphQL."""
 
-    does_employee_with_cpr_already_exist.return_value = None
+    does_employee_with_cpr_already_exist.return_value = False
 
     mutate_query = """
         mutation CreateEmployee($input: EmployeeCreateInput!) {
