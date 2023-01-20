@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Event handling."""
+import datetime
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -64,7 +65,7 @@ help(RequestType)
 """
 
 # UUIDs in this list will be ignored by listen_to_changes ONCE
-uuids_to_ignore: list[UUID] = []
+uuids_to_ignore: dict[UUID, list[datetime.datetime]] = {}
 
 
 def reject_on_failure(func):
@@ -238,20 +239,39 @@ async def listen_to_changes(
     context: Context, payload: PayloadType, **kwargs: Any
 ) -> None:
     global uuids_to_ignore
+    routing_key = kwargs["mo_routing_key"]
+
+    # Remove all timestamps which have been in this dict for more than 60 seconds.
+    now = datetime.datetime.now()
+    for uuid, timestamps in uuids_to_ignore.items():
+        for timestamp in timestamps:
+            age_in_seconds = (now - timestamp).total_seconds()
+            if age_in_seconds > 60:
+                logger.info(
+                    (
+                        f"Removing {uuid} from uuids_to_ignore. "
+                        f"It is {age_in_seconds} seconds old"
+                    )
+                )
+                timestamps.remove(timestamp)
 
     # If the object was uploaded by us, it does not need to be synchronized.
-    if payload.object_uuid in uuids_to_ignore:
-        logger.info(f"[listen_to_changes] Ignoring {payload.object_uuid}")
+    if (
+        payload.object_uuid in uuids_to_ignore
+        and uuids_to_ignore[payload.object_uuid]
+        and routing_key.service_type == ServiceType.EMPLOYEE
+    ):
+        logger.info(f"[listen_to_changes] Ignoring {routing_key}-{payload.object_uuid}")
 
-        # Remove uuid so it does not get ignored twice.
-        uuids_to_ignore.remove(payload.object_uuid)
+        # Remove timestamp so it does not get ignored twice.
+        oldest_timestamp = min(uuids_to_ignore[payload.object_uuid])
+        uuids_to_ignore[payload.object_uuid].remove(oldest_timestamp)
         return None
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
     elif not Settings().listen_to_changes_in_mo:
         raise RejectMessage()
 
-    routing_key = kwargs["mo_routing_key"]
     logger.info(f"[MO] Routing key: {routing_key}")
     logger.info(f"[MO] Payload: {payload}")
 
@@ -618,7 +638,10 @@ def create_app(**kwargs: Any) -> FastAPI:
                 logger.info(f"Importing {converted_objects}")
 
                 for mo_object in converted_objects:
-                    uuids_to_ignore.append(mo_object.uuid)
+                    if mo_object.uuid in uuids_to_ignore:
+                        uuids_to_ignore[mo_object.uuid].append(datetime.datetime.now())
+                    else:
+                        uuids_to_ignore[mo_object.uuid] = [datetime.datetime.now()]
                 await dataloader.upload_mo_objects(converted_objects)
 
     # Get all objects from LDAP - Converted to MO
