@@ -249,7 +249,7 @@ async def listen_to_changes(
             if age_in_seconds > 60:
                 logger.info(
                     (
-                        f"Removing {uuid} from uuids_to_ignore. "
+                        f"Removing timestamp belonging to {uuid} from uuids_to_ignore. "
                         f"It is {age_in_seconds} seconds old"
                     )
                 )
