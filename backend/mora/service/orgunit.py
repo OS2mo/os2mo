@@ -11,6 +11,7 @@ units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
 import copy
+import datetime
 import enum
 import locale
 import logging
@@ -203,7 +204,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
-            attributes = mapping.ORG_UNIT_EGENSKABER_FIELD(original)[-1].copy()
+            attributes = list(
+                filter(
+                    lambda a: _valid_attr_filter(a, new_from, new_to),
+                    mapping.ORG_UNIT_EGENSKABER_FIELD(original),
+                )
+            )[-1].copy()
         except (TypeError, LookupError):
             attributes = {}
 
@@ -1133,3 +1139,12 @@ async def terminate_org_unit_validation(unitid, request):
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
+
+
+def _valid_attr_filter(
+    attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
+) -> bool:
+    attr_from_date, attr_to_date = util.get_validities_lora(attr)
+    return (attr_from_date >= from_date and attr_from_date <= to_date) and (
+        attr_to_date <= attr_to_date and attr_to_date >= from_date
+    )

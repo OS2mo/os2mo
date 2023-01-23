@@ -653,6 +653,12 @@ def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.date
     return valid_from, valid_to
 
 
+def get_validities_lora(obj) -> tuple[datetime.datetime, datetime.datetime]:
+    return parse_lora_date_field(obj["virkning"]["from"]), parse_lora_date_field(
+        obj["virkning"]["to"]
+    )
+
+
 def get_validity_object(start, end):
     return {mapping.FROM: to_iso_date(start), mapping.TO: to_iso_date(end, is_end=True)}
 
@@ -730,3 +736,10 @@ def query_to_search_phrase(query: str):
         query = re.sub(r"[^\d]", "", query)
     # Substring match
     return f"%{query}%"
+
+
+def parse_lora_date_field(date_field: str) -> datetime.datetime:
+    if date_field not in (mapping.INFINITY, f"-{mapping.INFINITY}"):
+        return dateutil.parser.parse(date_field)
+
+    return POSITIVE_INFINITY if date_field == mapping.INFINITY else NEGATIVE_INFINITY
