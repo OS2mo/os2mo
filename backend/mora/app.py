@@ -169,14 +169,38 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         middleware=middleware,
         openapi_tags=list(tags_metadata),
     )
-    if settings.enable_cors:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["*"],
-            allow_credentials=False,
-            allow_methods=["*"],
-            allow_headers=["*"],
-        )
+
+    # CORS headers describe which origins are permitted to contact the server, and
+    # specify which authentication credentials (e.g. cookies or headers) should be
+    # sent. CORS is NOT a server-side security mechanism, but relies on the browser
+    # itself to enforce it.
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+    # https://www.starlette.io/middleware/#corsmiddleware
+    app.add_middleware(
+        CORSMiddleware,
+        # Allow any website to contact the API. The MO frontend is not special in any
+        # way, and we want to allow the customer to use the API from their own sites
+        # without any additional configuration in the backend - it should be agnostic.
+        # Note that setting this to wildcard blocks Set-Cookie headers by the browser.
+        allow_origins=["*"],
+        # Allow the HTTP methods needed by the REST and GraphQL APIs.
+        # https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods
+        allow_methods=["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        # Allow JavaScript to set the following HTTP headers. The headers `Accept`,
+        # `Accept-Language`, `Content-Language`, and `Content-Type` are always allowed.
+        allow_headers=["Authorization"],
+        # Allow JavaScript to access the following HTTP headers from requests.
+        expose_headers=["Link", "Location"],
+        # Don't allow the browser to send cookies with the request. Allowing
+        # credentials is incompatible with the settings above, as the browser blocks
+        # credentialed requests if the server allows wildcard origin, methods, or
+        # headers. Even so, we would not want to allow cookies anyway, as they offer
+        # dangerous automatic, implicit authentication. This allows any website to make
+        # requests to the API on behalf of an already-logged in user. The API requires
+        # the explicit usage of JWTs through the Authorization header instead, which
+        # requires the requesting JavaScript to obtain access tokens directly.
+        allow_credentials=False,
+    )
 
     @app.middleware("http")
     async def manage_request_scoped_globals(request: Request, call_next):
