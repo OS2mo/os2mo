@@ -1145,6 +1145,6 @@ def _valid_attr_filter(
     attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
 ) -> bool:
     attr_from_date, attr_to_date = util.get_validities_lora(attr)
-    return (attr_from_date >= from_date and attr_from_date <= to_date) and (
-        attr_to_date <= attr_to_date and attr_to_date >= from_date
+    return (attr_from_date <= from_date and attr_from_date <= to_date) and (
+        attr_to_date <= to_date and attr_to_date >= from_date
     )
