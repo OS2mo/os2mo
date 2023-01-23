@@ -13,6 +13,7 @@ stages:
   - deploy
   - docs
 
+
 variables:
   KEYCLOAK_IMAGE_SHA: ${CI_REGISTRY_IMAGE}/keycloak:${CI_COMMIT_SHA}
 
