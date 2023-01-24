@@ -4,7 +4,24 @@
       "objectClass": "ramodels.mo.employee.Employee",
       "givenname": "{{ldap.givenName}}",
       "surname": "{{ldap.name|splitlast|last}}",
-      "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}"
+      "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}",
+      "seniority": "{{msDS-HABSeniorityIndex}}", // Måske. Eller bare {{NONE}}.
+      "nickname_givenname": "{{NONE}}",
+      "nickname_surname": "{{NONE}}"
+    },
+    "Email": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.mail or NONE}}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
+    },
+    "Lokation": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.streetAddress or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
     }
   },
   "mo_to_ldap": {
@@ -12,7 +29,20 @@
       "objectClass": "user",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "givenName" : "{{mo_employee.givenname}}",
-      "name" : "{{mo_employee.surname}}"
+      "sn": "{{mo_employee.surname}}",
+      "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
+      "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
+      "department": "{{NONE}}"
+    },
+    "Email": {
+      "objectClass": "user",
+      "mail": "{{mo_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}"
+    },
+    "Lokation": {
+      "objectClass": "user",
+      "streetAddress": "{{mo_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}"
     }
   },
   "username_generator": {
