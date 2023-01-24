@@ -81,7 +81,7 @@ class CustomGraphQLRouter(GraphQLRouter):
         # Show deprecation notice at the top of the page if accessing an old version
         # of GraphQL.
         if not self.is_latest:
-            html = html.replace("<body>", f"{DEPRECATION_NOTICE}<body>")
+            html = html.replace("<body>", f"<body>{DEPRECATION_NOTICE}")
 
         # Inject script for authentication if auth is enabled. The script is added just
         # before closing the <body> so it is executed after the normal GraphiQL
