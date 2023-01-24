@@ -22,7 +22,16 @@
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+    },
+    "Engagement": {
+      "objectClass": "ramodels.mo.details.engagement.Engagement",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName)) }}",
+      "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
+      "user_key": "{{ uuid4() }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
     }
+
   },
   "mo_to_ldap": {
     "Employee": {
@@ -43,6 +52,18 @@
       "objectClass": "user",
       "streetAddress": "{{mo_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
+    },
+    "Engagement" : {
+      "objectClass": "user",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "department": "{{NONE}}",
+      "company": "{{NONE}}",
+      "departmentNumber": "{{NONE}}",
+      "physicalDeliveryOfficeName": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
+      "primaryGroupID": "{{NONE}}",
+      "employeeType": "{{get_engagement_type_name(mo_engagement.engagement_type.uuid)}}",
+      "memberOf": "{{NONE}}",
+      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}"
     }
   },
   "username_generator": {
