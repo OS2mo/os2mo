@@ -30,7 +30,18 @@
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}"
-    }
+    },
+    "OrgUnit": {
+      // See https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/backend/ramodels/mo/organisation_unit.py#L71
+      "objectClass": "ramodels.mo.organisation_unit.OrganisationUnit",
+      "user_key": "{{ get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "name": "{{ ldap.physicalDeliveryOfficeName }}",
+      "parent":
+      "org_unit_hierarchy":
+      "org_unit_type":
+      "org_unit_level":
+}
 
   },
   "mo_to_ldap": {
