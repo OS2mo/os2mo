@@ -264,10 +264,17 @@ def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
 def lora_facets_to_mo_facets(
     lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[FacetRead]:
+    # for t in lora_result:
+    #     uuid, entry = t
+    #     test=parse_obj_as(LFacetRead, entry)
+    #     tap="test"
+
     lora_facets = starmap(
         lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(LFacetRead, entry)),
         lora_result,
     )
+    # result = map(lora_facet_to_mo_facet, lora_facets)
+
     return map(lora_facet_to_mo_facet, lora_facets)
 
 
