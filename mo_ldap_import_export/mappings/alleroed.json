@@ -2,17 +2,17 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "givenname": "{{ldap.GivenName}}",
-      "surname": "{{ldap.Surname}}",
-      "cpr_no": "{{ldap.EmployeeNumber|strip_non_digits}}"
+      "givenname": "{{ldap.givenName}}",
+      "surname": "{{ldap.name|splitlast|last}}",
+      "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}"
     }
   },
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "EmployeeNumber": "{{mo_employee.cpr_no}}",
-      "GivenName" : "{{mo_employee.givenname}}",
-      "Surname" : "{{mo_employee.surname}}"
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "givenName" : "{{mo_employee.givenname}}",
+      "name" : "{{mo_employee.surname}}"
     }
   },
   "username_generator": {
