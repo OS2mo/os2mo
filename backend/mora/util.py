@@ -653,9 +653,14 @@ def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.date
     return valid_from, valid_to
 
 
-def get_validities_lora(obj) -> tuple[datetime.datetime, datetime.datetime]:
-    return parse_lora_date_field(obj["virkning"]["from"]), parse_lora_date_field(
-        obj["virkning"]["to"]
+def get_validities_lora(lora_dict: dict) -> tuple[datetime.datetime, datetime.datetime]:
+    """Returns from and to dates for a LoRa dict.
+
+    Looks for "lora_dict.get("virkning").get("from|to")", which exists on multiple LoRa objects.
+    """
+    return (
+        parse_lora_date_field(lora_dict["virkning"]["from"]),
+        parse_lora_date_field(lora_dict["virkning"]["to"]),
     )
 
 

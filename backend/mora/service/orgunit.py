@@ -27,6 +27,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from more_itertools import last
 from more_itertools import unzip
 
 from . import autocomplete
@@ -204,12 +205,12 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
-            attributes = list(
+            attributes = last(
                 filter(
                     lambda a: _valid_attr_filter(a, new_from, new_to),
                     mapping.ORG_UNIT_EGENSKABER_FIELD(original),
                 )
-            )[-1].copy()
+            ).copy()
         except (TypeError, LookupError):
             attributes = {}
 
@@ -1144,5 +1145,6 @@ async def terminate_org_unit_validation(unitid, request):
 def _valid_attr_filter(
     attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
 ) -> bool:
+    """Checks if a LoRa-attribute's dates are inside a given date-interval"""
     attr_from_date, attr_to_date = util.get_validities_lora(attr)
     return attr_from_date <= to_date and attr_to_date >= from_date
