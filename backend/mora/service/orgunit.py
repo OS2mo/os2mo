@@ -17,6 +17,7 @@ import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
+from datetime import datetime
 from itertools import chain
 from typing import Any
 from uuid import UUID
@@ -1136,7 +1137,7 @@ async def terminate_org_unit_validation(unitid, request):
         )
 
 
-def get_lora_dict_current_attr(lora_dict, from_date, to_date):
+def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: datetime):
     """Returns the current active attribute for a LoRa dict/obj."""
     return last(
         filter(
