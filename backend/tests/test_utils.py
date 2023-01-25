@@ -445,6 +445,7 @@ def test_checked_get_exception(key, default, required):
 def test_get_validities_lora():
     now = datetime.datetime.now(tz=util.DEFAULT_TIMEZONE).replace(hour=0)
     tomorrow = (now + datetime.timedelta(days=1)).replace(hour=0)
+    tomorrow_str = tomorrow.isoformat().replace("T", " ")
 
     def create_test_lora_dict(from_date: str, to_date: str):
         return {
@@ -459,14 +460,14 @@ def test_get_validities_lora():
         }
 
     validity_from, validity_to = util.get_validities_lora(
-        create_test_lora_dict(tomorrow.isoformat().replace("T", " "), "infinity")
+        create_test_lora_dict(tomorrow_str, "infinity")
     )
     assert validity_from is not None and validity_to is not None
     assert validity_from == tomorrow
     assert validity_to == util.POSITIVE_INFINITY
 
     validity_from, validity_to = util.get_validities_lora(
-        create_test_lora_dict("-infinity", tomorrow.isoformat().replace("T", " "))
+        create_test_lora_dict("-infinity", tomorrow_str)
     )
     assert validity_from is not None and validity_to is not None
     assert validity_from == util.NEGATIVE_INFINITY
