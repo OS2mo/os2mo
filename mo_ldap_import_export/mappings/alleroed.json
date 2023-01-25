@@ -18,7 +18,7 @@
     },
     "Lokation": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ ldap.streetAddress or NONE }}",
+      "value": "{{ ldap.streetAddress or NONE }}\n{{ ldap.postalCode }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
@@ -29,20 +29,44 @@
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ uuid4() }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+      "validity": "{{ dict(from_date=now()|mo_datestring, to_date=extensionattribute7) }}"// TODO: check to_date
     },
     "OrgUnit": {
       // See https://git.magenta.dk/rammearkitektur/os2mo/-/blob/master/backend/ramodels/mo/organisation_unit.py#L71
       "objectClass": "ramodels.mo.organisation_unit.OrganisationUnit",
       "user_key": "{{ get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "name": "{{ ldap.physicalDeliveryOfficeName }}",
-      "parent":
-      "org_unit_hierarchy":
-      "org_unit_type":
-      "org_unit_level":
-}
-
+      "name": "{{ ldap.physicalDeliveryOfficeName }}"
+      //"parent":
+      //"org_unit_hierarchy":
+      //"org_unit_type":
+      //"org_unit_level":
+    },
+    "OrgUnitAddress": {
+      // Vil dette fungere? Vi skal vel også kunne reverse mapningen.
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.streetAddress }}\n{{ ldap.postalCode }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}",
+      "org_unit": "{{ get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName) }}"
+    },
+    "OrgUnitPublicEmail": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.extensionattribute5 or NONE}}", // TODO: Opdatér efter møde, hvor vi spørger om feltnavnet er korrekt
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}",
+      "org_unit": "{{ get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName) }}"
+    },
+    "OrgUnitSecureEmail": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.extensionattribute4 or NONE}}", // TODO: Opdatér efter møde, hvor vi spørger om feltnavnet er korrekt
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}",
+      "org_unit": "{{ get_or_create_org_unit_uuid(ldap.physicalDeliveryOfficeName) }}"
+    }
   },
   "mo_to_ldap": {
     "Employee": {
