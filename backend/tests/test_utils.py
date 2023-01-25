@@ -439,36 +439,3 @@ def test_checked_get_exception(key, default, required):
     with pytest.raises(exceptions.HTTPException) as err:
         util.checked_get(mapping, key, default, required=required, can_be_empty=False)
     assert output == err.value.detail
-
-
-@freezegun.freeze_time("2023-01-25T00:00:00")
-def test_get_validities_lora():
-    now = datetime.datetime.now(tz=util.DEFAULT_TIMEZONE).replace(hour=0)
-    tomorrow = (now + datetime.timedelta(days=1)).replace(hour=0)
-    tomorrow_str = tomorrow.isoformat().replace("T", " ")
-
-    def create_test_lora_dict(from_date: str, to_date: str):
-        return {
-            "brugervendtnoegle": "00000000-0000-0000-0000-000000000000",
-            "enhedsnavn": "test-1",
-            "virkning": {
-                "from": from_date,
-                "to": to_date,
-                "from_included": True,
-                "to_included": False,
-            },
-        }
-
-    validity_from, validity_to = util.get_validities_lora(
-        create_test_lora_dict(tomorrow_str, "infinity")
-    )
-    assert validity_from is not None and validity_to is not None
-    assert validity_from == tomorrow
-    assert validity_to == util.POSITIVE_INFINITY
-
-    validity_from, validity_to = util.get_validities_lora(
-        create_test_lora_dict("-infinity", tomorrow_str)
-    )
-    assert validity_from is not None and validity_to is not None
-    assert validity_from == util.NEGATIVE_INFINITY
-    assert validity_to == tomorrow

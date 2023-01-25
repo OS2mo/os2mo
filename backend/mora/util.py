@@ -653,17 +653,6 @@ def get_validities(obj, fallback=None) -> tuple[datetime.datetime, datetime.date
     return valid_from, valid_to
 
 
-def get_validities_lora(lora_dict: dict) -> tuple[datetime.datetime, datetime.datetime]:
-    """Returns from and to dates for a LoRa dict.
-
-    Looks for "lora_dict.get("virkning").get("from|to")", which exists on multiple LoRa objects.
-    """
-    return (
-        get_effect_from(lora_dict),
-        get_effect_to(lora_dict),
-    )
-
-
 def get_validity_object(start, end):
     return {mapping.FROM: to_iso_date(start), mapping.TO: to_iso_date(end, is_end=True)}
 
@@ -747,5 +736,4 @@ def filter_valid_lora_dict_attrs(
     attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
 ) -> bool:
     """Checks if a LoRa-attribute's dates are inside a given date-interval"""
-    attr_from_date, attr_to_date = get_validities_lora(attr)
-    return attr_from_date <= to_date and attr_to_date > from_date
+    return get_effect_from(attr) <= to_date and get_effect_to(attr) > from_date
