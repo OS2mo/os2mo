@@ -730,10 +730,3 @@ def query_to_search_phrase(query: str):
         query = re.sub(r"[^\d]", "", query)
     # Substring match
     return f"%{query}%"
-
-
-def filter_valid_lora_dict_attrs(
-    attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
-) -> bool:
-    """Checks if a LoRa-attribute's dates are inside a given date-interval"""
-    return get_effect_from(attr) <= to_date and get_effect_to(attr) > from_date

@@ -1139,9 +1139,18 @@ async def terminate_org_unit_validation(unitid, request):
 
 def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: datetime):
     """Returns the current active attribute for a LoRa dict/obj."""
+
+    # NOTE: We use use last(), where we prev. used `[-1]`, since the lora-dict can
+    # contain multiple attributes. Ex The dict that comes from
+    # "lora.Connector().c.organisationenhed.get(uuid=unitid)".
+    # The old logic assumed the last element was the current active one, but in this
+    # module for OrgUnitRequestHandler.prepare_edit, this is not the chase, which is
+    # why we need the filter.
     return last(
         filter(
-            lambda a: util.filter_valid_lora_dict_attrs(a, from_date, to_date),
+            lambda a: (
+                util.get_effect_from(a) <= to_date and util.get_effect_to(a) > from_date
+            ),
             mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
         )
     ).copy()
