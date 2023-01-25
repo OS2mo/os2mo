@@ -659,8 +659,8 @@ def get_validities_lora(lora_dict: dict) -> tuple[datetime.datetime, datetime.da
     Looks for "lora_dict.get("virkning").get("from|to")", which exists on multiple LoRa objects.
     """
     return (
-        parse_lora_date_field(lora_dict["virkning"]["from"]),
-        parse_lora_date_field(lora_dict["virkning"]["to"]),
+        get_effect_from(lora_dict),
+        get_effect_to(lora_dict),
     )
 
 
@@ -749,10 +749,3 @@ def filter_valid_lora_dict_attrs(
     """Checks if a LoRa-attribute's dates are inside a given date-interval"""
     attr_from_date, attr_to_date = get_validities_lora(attr)
     return attr_from_date <= to_date and attr_to_date > from_date
-
-
-def parse_lora_date_field(date_field: str) -> datetime.datetime:
-    if date_field not in (mapping.INFINITY, f"-{mapping.INFINITY}"):
-        return dateutil.parser.parse(date_field)
-
-    return POSITIVE_INFINITY if date_field == mapping.INFINITY else NEGATIVE_INFINITY
