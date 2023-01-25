@@ -11,7 +11,6 @@ units, refer to http:get:`/service/(any:type)/(uuid:id)/details/`
 
 """
 import copy
-import datetime
 import enum
 import locale
 import logging
@@ -205,12 +204,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
-            attributes = last(
-                filter(
-                    lambda a: _valid_attr_filter(a, new_from, new_to),
-                    mapping.ORG_UNIT_EGENSKABER_FIELD(original),
-                )
-            ).copy()
+            attributes = get_lora_dict_current_attr(original, new_from, new_to)
         except (TypeError, LookupError):
             attributes = {}
 
@@ -1142,9 +1136,11 @@ async def terminate_org_unit_validation(unitid, request):
         )
 
 
-def _valid_attr_filter(
-    attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
-) -> bool:
-    """Checks if a LoRa-attribute's dates are inside a given date-interval"""
-    attr_from_date, attr_to_date = util.get_validities_lora(attr)
-    return attr_from_date <= to_date and attr_to_date >= from_date
+def get_lora_dict_current_attr(lora_dict, from_date, to_date):
+    """Returns the current active attribute for a LoRa dict/obj."""
+    return last(
+        filter(
+            lambda a: util.filter_valid_lora_dict_attrs(a, from_date, to_date),
+            mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
+        )
+    ).copy()

@@ -743,6 +743,14 @@ def query_to_search_phrase(query: str):
     return f"%{query}%"
 
 
+def filter_valid_lora_dict_attrs(
+    attr: dict, from_date: datetime.datetime, to_date: datetime.datetime
+) -> bool:
+    """Checks if a LoRa-attribute's dates are inside a given date-interval"""
+    attr_from_date, attr_to_date = get_validities_lora(attr)
+    return attr_from_date <= to_date and attr_to_date > from_date
+
+
 def parse_lora_date_field(date_field: str) -> datetime.datetime:
     if date_field not in (mapping.INFINITY, f"-{mapping.INFINITY}"):
         return dateutil.parser.parse(date_field)
