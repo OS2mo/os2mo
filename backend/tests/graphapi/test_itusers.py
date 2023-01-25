@@ -106,8 +106,6 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
             }
         }
     """
-    created_uuid = uuid4()
-    create_ituser.return_value = UUIDReturn(uuid=created_uuid)
 
     # TODO: Why isn't this two different tests?
     should_test_employee = data.draw(st.booleans())
@@ -127,6 +125,8 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
         )
     )
 
+    create_ituser.return_value = UUIDReturn(uuid=test_data.uuid)
+
     payload = jsonable_encoder(test_data)
 
     response = await execute_graphql(
@@ -134,7 +134,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
     )
 
     assert response.errors is None
-    assert response.data == {"ituser_create": {"uuid": str(created_uuid)}}
+    assert response.data == {"ituser_create": {"uuid": str(test_data.uuid)}}
 
 
 @patch(
@@ -207,6 +207,7 @@ async def test_create_ituser_integration_test(
         st.builds(
             ITUserCreate,
             type=st.just("it"),
+            uuid=st.none() | st.uuids(),
             user_key=st.text(
                 alphabet=st.characters(whitelist_categories=("L",)), min_size=1
             ),

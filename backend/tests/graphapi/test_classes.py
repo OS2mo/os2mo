@@ -96,6 +96,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
 
 OPTIONAL = {
+    "uuid": st.uuids(),
     "published": st.none() | st.from_regex(PrintableStr.regex),
     "scope": st.none() | st.from_regex(PrintableStr.regex),
     "parent_uuid": st.none() | st.uuids(),
@@ -107,7 +108,6 @@ OPTIONAL = {
 @st.composite
 def write_strat(draw):
     required = {
-        "uuid": st.uuids(),
         "type": st.just("class"),
         "user_key": st.from_regex(PrintableStr.regex),
         "name": st.from_regex(PrintableStr.regex),
@@ -185,7 +185,6 @@ async def test_integration_create_class(test_data, graphapi_post):
     """Query data to check that it actually gets written to database"""
     query_query = """
         query ($uuid: [UUID!]!) {
-          __typename
           classes(uuids: $uuid) {
             uuid
             type
@@ -206,7 +205,8 @@ async def test_integration_create_class(test_data, graphapi_post):
     """Assert response returned by mutation."""
     assert mut_response.errors is None
     assert mut_response.data
-    assert response_uuid == test_data["uuid"]
+    if test_data.get("uuid"):
+        assert response_uuid == test_data["uuid"]
 
     """Assert response returned by quering data written."""
     assert query_response.errors is None
@@ -224,13 +224,16 @@ async def test_unit_create_class(
     """Unit test for create class mutator."""
 
     mutate_query = """
-            mutation CreateClass($input: ClassCreateInput!){
-                class_create(input: $input){
-                                            uuid
-                                            }
+        mutation CreateClass($input: ClassCreateInput!){
+            class_create(input: $input){
+                uuid
             }
-            """
-    created_uuid = uuid4()
+        }
+    """
+    if test_data.get("uuid"):
+        created_uuid = test_data["uuid"]
+    else:
+        created_uuid = uuid4()
     create_class.return_value = UUIDReturn(uuid=created_uuid)
 
     payload = jsonable_encoder(test_data)

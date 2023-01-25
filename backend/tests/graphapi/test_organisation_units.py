@@ -101,7 +101,6 @@ async def test_create_org_unit(
             }
         }
     """
-
     created_uuid = uuid4()
     create_org_unit.return_value = UUIDReturn(uuid=created_uuid)
 
@@ -144,6 +143,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
     test_data = data.draw(
         st.builds(
             OrganisationUnitCreate,
+            uuid=st.uuids(),
             # TODO: Allow all text
             name=st.text(
                 alphabet=st.characters(whitelist_categories=("L",)), min_size=1
@@ -179,6 +179,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
         query VerifyQuery($uuid: UUID!) {
             org_units(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
+                    uuid
                     user_key
                     name
                     parent_uuid
