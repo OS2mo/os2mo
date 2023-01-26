@@ -110,13 +110,6 @@ class Settings(BaseSettings):
 
     # airgapped options
     enable_dar: bool = True
-    enable_sp: bool = True
-
-    # `dummy_mode` is different from airgapped although it also stops MO from
-    # making some Internet connections. For now, the difference is that DAR
-    # still works in dummy mode and SP generates fake date. With
-    # `enable_sp=False` no fake data is generated.
-    dummy_mode: bool = False
 
     # Legacy auth
     os2mo_legacy_session_support: bool = False
@@ -141,6 +134,8 @@ class Settings(BaseSettings):
     amqp_enable: bool = False
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
+
+    enable_sp: bool = False
     sp_settings: ServicePlatformenSettings | None = None
 
     @root_validator
@@ -148,13 +143,6 @@ class Settings(BaseSettings):
         # If SP is not enabled, no reason to check configuration
         if not values.get("enable_sp"):
             return values
-        # If SP is in dummy mode, no reason to check configuration
-        # NOTE: This code is kinda similar to is_dummy_mode
-        if values.get("environment") is not Environment.PRODUCTION:
-            return values
-        if values.get("dummy_mode"):
-            return values
-
         values["sp_settings"] = ServicePlatformenSettings()
         return values
 
@@ -226,14 +214,6 @@ class Settings(BaseSettings):
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
 
-    def is_dummy_mode(self) -> bool:
-        """Return whether serviceplatform is in dummy mode."""
-        # Force dummy-mode during tests and development,
-        # but make it configurable in production.
-        if not self.is_production():
-            return True
-        return self.dummy_mode
-
     def is_under_test(self) -> bool:
         return os.environ.get("PYTEST_RUNNING") is not None
 
@@ -253,7 +233,6 @@ def get_public_settings() -> set[str]:
         "commit_tag",
         "commit_sha",
         "environment",
-        "dummy_mode",
         "navlinks",
         "show_it_associations_tab",
         "keycloak_rbac_enabled",
