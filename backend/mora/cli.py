@@ -11,11 +11,14 @@ import sys
 import time
 
 import click
+from more_itertools import last
 from ra_utils.async_to_sync import async_to_sync
+from strawberry.printer import print_schema
 from structlog import get_logger
 
 from . import config
 from . import log
+from mora.graphapi.main import graphql_versions
 
 logger = get_logger()
 
@@ -79,6 +82,16 @@ def wait_for_rabbitmq(seconds):
         seconds,
     )
     return 8
+
+
+@group.command()
+def export_schema() -> None:
+    """Export GraphQL Schema in the GraphQL schema definition language (SDL).
+
+    See https://strawberry.rocks/docs/guides/schema-export.
+    """
+    latest = last(graphql_versions)
+    print(print_schema(latest.schema.get()))
 
 
 if __name__ == "__main__":
