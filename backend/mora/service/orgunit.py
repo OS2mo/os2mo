@@ -17,6 +17,7 @@ import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
+from datetime import datetime
 from itertools import chain
 from typing import Any
 from uuid import UUID
@@ -26,6 +27,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from more_itertools import last
 from more_itertools import unzip
 
 from . import autocomplete
@@ -203,7 +205,7 @@ class OrgUnitRequestHandler(handlers.RequestHandler):
         update_fields.append((mapping.ORG_UNIT_GYLDIGHED_FIELD, {"gyldighed": "Aktiv"}))
 
         try:
-            attributes = mapping.ORG_UNIT_EGENSKABER_FIELD(original)[-1].copy()
+            attributes = get_lora_dict_current_attr(original, new_from, new_to)
         except (TypeError, LookupError):
             attributes = {}
 
@@ -1133,3 +1135,22 @@ async def terminate_org_unit_validation(unitid, request):
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
+
+
+def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: datetime):
+    """Returns the current active attribute for a LoRa dict/obj.
+
+    LoRa-Connector-Scopes returns objects with atrributes, and others, which are
+    unordered lists. The old logic assumed the last element was the current element,
+    which we still implement through last(), but now also filter the attributes based
+    on its date related to the given "from_date" and "to_date".
+    """
+
+    return last(
+        filter(
+            lambda a: (
+                util.get_effect_from(a) <= to_date and util.get_effect_to(a) > from_date
+            ),
+            mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
+        )
+    ).copy()
