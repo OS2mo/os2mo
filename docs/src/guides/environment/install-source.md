@@ -161,7 +161,7 @@ role="file"}, with the following content. More options are available
 here: `Settings`{.interpreted-text role="ref"}.
 
 ``` {.toml}
-dummy_mode = true
+enable_sp = true
 ```
 
 Finally, set the configuration file and flask app environment variables

@@ -166,7 +166,6 @@ export LORA_AUTH=false;
 export DB_NAME=mox;
 export AMQP_ENABLE=false;
 export HYPOTHESIS_PROFILE=ci;
-export DUMMY_MODE=true;
 export QUERY_EXPORT_DIR=/tmp;
 export FF_USE_FASTZIP=false;
 export TESTING_API=true;
