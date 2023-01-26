@@ -13,6 +13,7 @@ from typing import Any
 from typing import Dict
 from uuid import uuid4
 
+import pandas as pd
 import structlog
 from fastramqpi.context import Context
 from jinja2 import Environment
@@ -22,6 +23,7 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 
 from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
+from .exceptions import InvalidNameException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
@@ -97,7 +99,9 @@ class LdapConverter:
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
 
-        self.org_unit_path_string_separator = "->"
+        self.org_unit_path_string_separator = (
+            self.settings.org_unit_path_string_separator
+        )
 
         # Set this to an empty string if we do not need to know which org units
         # were imported by this program. For now this is useful to know because
@@ -119,6 +123,7 @@ class LdapConverter:
         environment.filters["splitfirst"] = LdapConverter.filter_splitfirst
         environment.filters["splitlast"] = LdapConverter.filter_splitlast
         environment.filters["mo_datestring"] = LdapConverter.filter_mo_datestring
+        environment.filters["parse_datetime"] = LdapConverter.filter_parse_datetime
         environment.filters["strip_non_digits"] = LdapConverter.filter_strip_non_digits
         self.mapping = self._populate_mapping_with_templates(
             mapping,
@@ -126,6 +131,7 @@ class LdapConverter:
         )
 
         self.check_mapping()
+        self.check_info_dicts()
         self.cpr_field = find_cpr_field(self.mapping)
 
     def find_object_class(self, json_key, conversion):
@@ -443,6 +449,42 @@ class LdapConverter:
 
         self.logger.info("[json check] Attributes OK")
 
+    def check_info_dict_for_duplicates(self, info_dict, name_key="name"):
+        """
+        Check that we do not see the same name twice in one info dict
+        """
+        names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
+        if len(set(names)) != len(names):
+            raise UUIDNotFoundException(
+                f"Duplicate values with key='{name_key}' found in {info_dict}"
+            )
+
+    def check_org_unit_info_dict(self):
+        """
+        Check if the org unit separator is not in any of the org unit names
+        """
+        separator = self.org_unit_path_string_separator
+        for org_unit_name in [info["name"] for info in self.org_unit_info.values()]:
+            if separator in org_unit_name:
+                raise InvalidNameException(
+                    f"Found {separator} in '{org_unit_name}'. This is not allowed."
+                )
+
+    def check_info_dicts(self):
+        self.logger.info("[info dict check] Checking info dicts")
+
+        for info_dict in [
+            self.address_type_info,
+            self.it_system_info,
+            self.org_unit_type_info,
+            self.org_unit_level_info,
+            self.engagement_type_info,
+            self.job_function_info,
+        ]:
+            self.check_info_dict_for_duplicates(info_dict)
+
+        self.check_org_unit_info_dict()
+
     @staticmethod
     def filter_splitfirst(text):
         """
@@ -468,19 +510,20 @@ class LdapConverter:
     def get_object_name_from_uuid(self, info_dict: dict, uuid: str, name_key="name"):
         return info_dict[str(uuid)][name_key]
 
+    @staticmethod
+    def name_normalizer(name):
+        return name.lower().replace("-", " ")
+
     def get_object_uuid_from_name(self, info_dict: dict, name: str, name_key="name"):
         if not name:
             raise UUIDNotFoundException("object type name is empty")
-        names = [info[name_key] for info in info_dict.values()]
+        names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
+        name = self.name_normalizer(name)
         if name not in names:
             raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
-        elif len(set(names)) != len(names):
-            raise UUIDNotFoundException(
-                f"Duplicate values with key='{name_key}' found in {info_dict}"
-            )
 
         for info in info_dict.values():
-            if info[name_key] == name:
+            if self.name_normalizer(info[name_key]) == name:
                 return info["uuid"]
 
     def get_address_type_uuid(self, address_type: str):
@@ -606,6 +649,10 @@ class LdapConverter:
         Converts a string to a dictionary
         """
         return json.loads(text.replace("'", '"'))
+
+    @staticmethod
+    def filter_parse_datetime(datestring):
+        return pd.to_datetime(datestring, dayfirst=False)
 
     @staticmethod
     def filter_mo_datestring(datetime_object):

@@ -25,6 +25,7 @@ pytest-split = "^0.8.0"
 ldap3 = "^2.9.1"
 strawberry-graphql = "^0.116.4"
 pycryptodome = "^3.9.8"
+pandas = "^1.5.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
