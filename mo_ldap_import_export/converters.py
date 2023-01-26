@@ -13,12 +13,12 @@ from typing import Any
 from typing import Dict
 from uuid import uuid4
 
+import pandas as pd
 import structlog
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
 from ldap3.utils.ciDict import CaseInsensitiveDict
-from pandas import to_datetime
 from ramodels.mo.organisation_unit import OrganisationUnit
 
 from .exceptions import CprNoNotFound
@@ -652,7 +652,14 @@ class LdapConverter:
 
     @staticmethod
     def filter_parse_datetime(datestring):
-        return to_datetime(datestring, dayfirst=False)
+        try:
+            return pd.to_datetime(datestring, dayfirst=False)
+        except pd.errors.OutOfBoundsDatetime:
+            year = int(datestring.split("-")[0])
+            if year > 2000:
+                return pd.Timestamp.max
+            else:
+                return pd.Timestamp.min
 
     @staticmethod
     def filter_mo_datestring(datetime_object):

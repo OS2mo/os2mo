@@ -9,6 +9,7 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
+import pandas as pd
 import pytest
 from fastramqpi.context import Context
 from ramodels.mo import Employee
@@ -964,3 +965,6 @@ def test_check_org_unit_info_dict(converter: LdapConverter):
 def test_filter_parse_datetime(converter: LdapConverter):
     date = converter.filter_parse_datetime("2021-01-01")
     assert date.strftime("%Y-%m-%d") == "2021-01-01"
+
+    assert converter.filter_parse_datetime("9999-12-31") == pd.Timestamp.max
+    assert converter.filter_parse_datetime("200-12-31") == pd.Timestamp.min
