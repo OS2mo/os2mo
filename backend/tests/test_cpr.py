@@ -102,6 +102,8 @@ def test_serviceplatformen_api_version_validation(
     sp_api_version,
     expected_exception,
 ):
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("DUMMY_MODE", "False")
     _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
     if expected_exception:
         with pytest.raises(expected_exception):
@@ -114,7 +116,7 @@ def test_serviceplatformen_api_version_validation(
 def test_get_citizen_uses_version_kwarg(monkeypatch):
     # Test that the `version` kwargs is actually used in the call to
     # `service_person_stamdata_udvidet.get_citizen`.
-    _sp_config(monkeypatch, SP_API_VERSION="4")
+    _sp_config(monkeypatch, SP_API_VERSION="4", CPR_VALIDATE_BIRTHDATE="False")
     with patch("service_person_stamdata_udvidet.get_citizen") as mock_get_citizen_impl:
         # This calls `service_person_stamdata_udvidet.get_citizen`
         cpr_shim.get_citizen("0101010101")
