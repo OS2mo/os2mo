@@ -135,7 +135,7 @@ class Settings(BaseSettings):
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
 
-    enable_sp: bool = True
+    enable_sp: bool = False
     sp_settings: ServicePlatformenSettings | None = None
 
     @root_validator

@@ -14,7 +14,6 @@ from mora.config import Settings
         "1337",
         "111111111",
         "1234567890123",
-        "2222222222",
         "C3-PO",
         "R2D2",
     ],
@@ -38,7 +37,7 @@ def test_birthdate_validation_disabled(service_client: TestClient) -> None:
     with util.override_config(Settings(cpr_validate_birthdate=False)):
         response = service_client.get("/service/e/cpr_lookup/?q=0121501234")
         assert response.status_code == 200
-        assert response.json() == {"name": "Naja Hansen", "cpr_no": "0121501234"}
+        assert response.json() == {}
 
 
 def _sp_config(monkeypatch, **overrides):
@@ -56,7 +55,7 @@ def _sp_config(monkeypatch, **overrides):
 
 
 def test_serviceplatformen_missing_path(monkeypatch):
-    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("ENABLE_SP", "true")
     _sp_config(monkeypatch)
 
     with pytest.raises(ValueError) as exc_info:
@@ -68,7 +67,7 @@ def test_serviceplatformen_empty_file(monkeypatch, tmp_path):
     tmp_file = tmp_path / "testfile"
     tmp_file.write_text("")
 
-    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("ENABLE_SP", "true")
     _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
 
     with pytest.raises(ValueError) as exc_info:
