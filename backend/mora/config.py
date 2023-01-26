@@ -110,7 +110,6 @@ class Settings(BaseSettings):
 
     # airgapped options
     enable_dar: bool = True
-    enable_sp: bool = True
 
     # Legacy auth
     os2mo_legacy_session_support: bool = False
@@ -135,6 +134,8 @@ class Settings(BaseSettings):
     amqp_enable: bool = False
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
+
+    enable_sp: bool = False
     sp_settings: ServicePlatformenSettings | None = None
 
     @root_validator
