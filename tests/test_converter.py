@@ -21,6 +21,7 @@ from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import IncorrectMapping
+from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
@@ -938,3 +939,28 @@ def test_get_or_create_org_unit_uuid(converter: LdapConverter):
 
     with pytest.raises(UUIDNotFoundException):
         converter.get_or_create_org_unit_uuid("")
+
+
+def test_check_info_dict_for_duplicates(converter: LdapConverter):
+
+    info_dict_with_duplicates = {
+        uuid4(): {"name": "foo"},
+        uuid4(): {"name": "foo"},
+    }
+
+    with pytest.raises(InvalidNameException):
+        converter.check_info_dict_for_duplicates(info_dict_with_duplicates)
+
+
+def test_check_org_unit_info_dict(converter: LdapConverter):
+
+    # This name is invalid because it contains backslashes;
+    # Because the org unit path separator is also a backslash.
+    converter.org_unit_info = {uuid4(): {"name": "invalid\\name"}}
+    with pytest.raises(InvalidNameException):
+        converter.check_org_unit_info_dict()
+
+
+def test_filter_parse_datetime(converter: LdapConverter):
+    date = converter.filter_parse_datetime("2021-01-01")
+    assert date.strftime("%Y-%m-%d") == "2021-01-01"

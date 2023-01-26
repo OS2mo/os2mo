@@ -455,7 +455,7 @@ class LdapConverter:
         """
         names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
         if len(set(names)) != len(names):
-            raise UUIDNotFoundException(
+            raise InvalidNameException(
                 f"Duplicate values with key='{name_key}' found in {info_dict}"
             )
 
