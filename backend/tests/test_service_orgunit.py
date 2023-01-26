@@ -9,7 +9,7 @@ from mora.service.orgunit import get_lora_dict_current_attr
 
 
 @freezegun.freeze_time("2023-01-25T00:00:00")
-async def test_orgunit_handler_prepare_edit_lora_attr_filter():
+async def test_service_orgunit_edit_lora_attr_filter():
     now = datetime.datetime.now(tz=util.DEFAULT_TIMEZONE).replace(hour=0)
     tomorrow = (now + datetime.timedelta(days=1)).replace(hour=0)
 
