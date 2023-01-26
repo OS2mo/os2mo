@@ -1138,14 +1138,14 @@ async def terminate_org_unit_validation(unitid, request):
 
 
 def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: datetime):
-    """Returns the current active attribute for a LoRa dict/obj."""
+    """Returns the current active attribute for a LoRa dict/obj.
 
-    # NOTE: We use use last(), where we prev. used `[-1]`, since the lora-dict can
-    # contain multiple attributes. Ex The dict that comes from
-    # "lora.Connector().c.organisationenhed.get(uuid=unitid)".
-    # The old logic assumed the last element was the current active one, but in this
-    # module for OrgUnitRequestHandler.prepare_edit, this is not the chase, which is
-    # why we need the filter.
+    LoRa-Connector-Scopes returns objects with atrributes, and others, which are
+    unordered lists. The old logic assumed the last element was the current element,
+    which we still implement through last(), but now also filter the attributes based
+    on its date related to the given "from_date" and "to_date".
+    """
+
     return last(
         filter(
             lambda a: (
