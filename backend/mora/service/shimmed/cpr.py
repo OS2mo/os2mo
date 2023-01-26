@@ -83,12 +83,12 @@ def search_cpr(
         An empty dict if Serviceplatformen is disabled (`ENABLE_SP=false`).
         A SearchCPRReturn model if Serviceplatform is enabled.
     """
+    if not config.get_settings().enable_sp:
+        return {}
+
     cpr = q
     if not util.is_cpr_number(cpr):
         exceptions.ErrorCodes.V_CPR_NOT_VALID(cpr=cpr)
-
-    if not config.get_settings().enable_sp:
-        return {}
 
     try:
         sp_data = get_citizen(cpr)
