@@ -786,6 +786,15 @@ class Tests(tests.cases.LoRATestCase):
         ).json()
         assert [] == engagement, "No engagement should have been created"
 
+    def test_cpr_lookup_prod_mode_false(self):
+        # Arrange
+        cpr = "0101501234"
+
+        expected = {"name": "Merle Mortensen", "cpr_no": cpr}
+
+        # Act
+        self.assertRequestResponse(f"/service/e/cpr_lookup/?q={cpr}", expected)
+
     def test_cpr_lookup_raises_on_wrong_length(self):
         # Arrange
 
