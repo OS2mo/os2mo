@@ -103,20 +103,6 @@ class UserNameGeneratorBase:
         ]
         return existing_usernames
 
-    @property
-    def ou(self):
-        """
-        Return LDAPs OU (Organizational Unit)
-        """
-        return self.settings.ldap_organizational_unit
-
-    @property
-    def dc(self):
-        """
-        Return LDAPs DC (Domain Component)
-        """
-        return self.settings.ldap_search_base  # Domain Component
-
     def _make_cn(self, username_string: str):
 
         return f"CN={username_string}"
@@ -124,9 +110,7 @@ class UserNameGeneratorBase:
     def _make_dn(self, username_string: str) -> str:
 
         cn = self._make_cn(username_string)
-        ou = self.ou
-        dc = self.dc
-        dn = ",".join([cn, ou, dc])  # Distinguished Name
+        dn = ",".join([cn, self.settings.ldap_search_base])  # Distinguished Name
         return dn
 
     def _name_fixer(self, name: list[str]) -> list[str]:

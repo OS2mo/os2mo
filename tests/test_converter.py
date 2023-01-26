@@ -83,7 +83,6 @@ def context() -> Context:
     }
 
     settings_mock = MagicMock()
-    settings_mock.ldap_organizational_unit = "foo"
     settings_mock.ldap_search_base = "bar"
     settings_mock.default_org_unit_type = "Afdeling"
     settings_mock.default_org_unit_level = "N1"
