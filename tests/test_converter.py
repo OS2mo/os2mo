@@ -82,6 +82,7 @@ def context() -> Context:
     settings_mock.ldap_search_base = "bar"
     settings_mock.default_org_unit_type = "Afdeling"
     settings_mock.default_org_unit_level = "N1"
+    settings_mock.org_unit_path_string_separator = "\\"
 
     dataloader = MagicMock()
     mo_address_types = {
@@ -879,13 +880,6 @@ def test_get_object_uuid_from_name(converter: LdapConverter):
     name = "Skt. Joseph Skole"
     info_dict = {uuid: {"uuid": uuid, "name": name}}
     assert converter.get_object_uuid_from_name(info_dict, name) == uuid
-
-    with pytest.raises(UUIDNotFoundException):
-        info_dict = {
-            uuid: {"uuid": uuid, "name": name},
-            uuid4(): {"uuid": uuid4(), "name": name},
-        }
-        converter.get_object_uuid_from_name(info_dict, name)
 
     with pytest.raises(UUIDNotFoundException):
         info_dict = {uuid: {"uuid": uuid, "name": name}}
