@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date
-
 from fastapi import APIRouter
 from fastapi import FastAPI
 from more_itertools import first
@@ -41,12 +39,7 @@ def setup_graphql(
         return RedirectResponse(f"/graphql/v{newest.version}")
 
     # Active routers
-    active_versions = (
-        v
-        for v in versions
-        if v.deprecation_date is None or v.deprecation_date > date.today()
-    )
-    for version in active_versions:
+    for version in versions:
         # TODO: Add deprecation header as per the decision log (link/successor)
         router.include_router(version.get_router(is_latest=version is newest))
 

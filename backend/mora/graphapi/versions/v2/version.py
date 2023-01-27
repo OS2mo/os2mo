@@ -1,7 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date
-
 from ..v3.version import GraphQLSchema3
 from ..v3.version import GraphQLVersion3
 from .query import Query
@@ -21,5 +19,4 @@ class GraphQLVersion2(GraphQLVersion3):
     """Latest GraphQL version."""
 
     version = 2
-    deprecation_date = date(2023, 4, 1)
     schema = GraphQLSchema2

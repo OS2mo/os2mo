@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Iterable
 from collections.abc import Sequence
-from datetime import date
 from typing import Any
 
 from fastapi import APIRouter
@@ -65,7 +64,6 @@ class BaseGraphQLVersion:
     """Base container for a versioned GraphQL API."""
 
     version: int
-    deprecation_date: date | None = None
     schema: type[BaseGraphQLSchema]
 
     @classmethod
