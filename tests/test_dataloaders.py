@@ -625,7 +625,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     )
 
     address_metadata = {
-        "address_type_name": address_dict["address_type"]["user_key"],
+        "address_type_user_key": address_dict["address_type"]["user_key"],
         "employee_cpr_no": address_dict["person"][0]["cpr_no"],
     }
 

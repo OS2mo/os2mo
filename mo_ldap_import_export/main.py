@@ -159,7 +159,7 @@ async def listen_to_changes_in_employees(
         changed_address, meta_info = await dataloader.load_mo_address(
             payload.object_uuid
         )
-        address_type = json_key = meta_info["address_type_name"]
+        address_type = json_key = meta_info["address_type_user_key"]
 
         logger.info(f"Obtained address type = {address_type}")
         mo_object_dict["mo_address"] = changed_address

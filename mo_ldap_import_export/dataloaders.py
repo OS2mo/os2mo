@@ -554,7 +554,7 @@ class DataLoader:
         # We make a dict with meta-data because ramodels Address does not support
         # (among others) address_type names. It only supports uuids
         address_metadata = {
-            "address_type_name": entry["address_type"]["user_key"],
+            "address_type_user_key": entry["address_type"]["user_key"],
             "employee_cpr_no": entry["person"][0]["cpr_no"],
         }
 
