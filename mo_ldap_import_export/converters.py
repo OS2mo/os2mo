@@ -93,8 +93,8 @@ class LdapConverter:
         self.engagement_type_info = self.dataloader.load_mo_engagement_types()
         self.job_function_info = self.dataloader.load_mo_job_functions()
 
-        self.mo_address_types = [a["name"] for a in self.address_type_info.values()]
-        self.mo_it_systems = [a["name"] for a in self.it_system_info.values()]
+        self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
+        self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
 
         self.overview = self.dataloader.load_ldap_overview()
         self.username_generator = self.user_context["username_generator"]
@@ -449,10 +449,11 @@ class LdapConverter:
 
         self.logger.info("[json check] Attributes OK")
 
-    def check_info_dict_for_duplicates(self, info_dict, name_key="name"):
+    def check_info_dict_for_duplicates(self, info_dict):
         """
         Check that we do not see the same name twice in one info dict
         """
+        name_key = "user_key"
         names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
         if len(set(names)) != len(names):
             raise InvalidNameException(
@@ -507,14 +508,15 @@ class LdapConverter:
         items_to_join = [a for a in args if a]
         return ", ".join(items_to_join)
 
-    def get_object_name_from_uuid(self, info_dict: dict, uuid: str, name_key="name"):
-        return info_dict[str(uuid)][name_key]
+    def get_object_name_from_uuid(self, info_dict: dict, uuid: str):
+        return info_dict[str(uuid)]["user_key"]
 
     @staticmethod
     def name_normalizer(name):
         return name.lower().replace("-", " ")
 
-    def get_object_uuid_from_name(self, info_dict: dict, name: str, name_key="name"):
+    def get_object_uuid_from_name(self, info_dict: dict, name: str):
+        name_key = "user_key"
         if not name:
             raise UUIDNotFoundException("object type name is empty")
         names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
@@ -848,5 +850,12 @@ class LdapConverter:
             # If all required attributes are present:
             if all(a in mo_dict for a in required_attributes):
                 converted_objects.append(mo_class(**mo_dict))
+            else:
+                self.logger.info(
+                    (
+                        f"Could not convert {mo_dict}. "
+                        f"The following attributes are required: {required_attributes}"
+                    )
+                )
 
         return converted_objects

@@ -167,14 +167,14 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
     dataloader.load_mo_employee.return_value = test_mo_employee
     dataloader.load_mo_address.return_value = (
         test_mo_address,
-        {"address_type_name": "Email"},
+        {"address_type_user_key": "EmailEmployee"},
     )
     dataloader.load_mo_it_user.return_value = test_mo_it_user
     dataloader.load_mo_address_types = sync_dataloader
     dataloader.load_mo_it_systems = sync_dataloader
     dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [
-        (test_mo_address, {"address_type_name": "Email"})
+        (test_mo_address, {"address_type_user_key": "EmailEmployee"})
     ] * 2
 
     return dataloader
@@ -183,7 +183,11 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
 @pytest.fixture
 def converter() -> MagicMock:
     converter = MagicMock()
-    converter.get_accepted_json_keys.return_value = ["Employee", "Address", "Email"]
+    converter.get_accepted_json_keys.return_value = [
+        "Employee",
+        "Address",
+        "EmailEmployee",
+    ]
     converter.cpr_field = "EmployeeID"
     return converter
 
@@ -410,10 +414,10 @@ async def test_listen_to_changes_in_employees(
     converter.cpr_field = "EmployeeID"
     converted_ldap_object = LdapObject(dn="Foo")
     converter.to_ldap.return_value = converted_ldap_object
-    converter.mapping = {"mo_to_ldap": {"Email": 2}}
+    converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
     converter.get_it_system_name.return_value = "AD"
 
-    address_type_name = "Email"
+    address_type_user_key = "EmailEmployee"
     it_system_type_name = "AD"
 
     context = Context(
@@ -459,7 +463,7 @@ async def test_listen_to_changes_in_employees(
     )
     assert dataloader.load_mo_address.called
     dataloader.upload_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_name
+        converted_ldap_object, address_type_user_key
     )
 
     # Simulate a created IT user

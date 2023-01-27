@@ -8,19 +8,19 @@
       "nickname_givenname": "{{ldap.displayName|splitlast|first}}",
       "nickname_surname": "{{ldap.displayName|splitlast|last}}"
     },
-    "Email": {
+    "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}"
     },
-    "Lokation": {
+    "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ ldap.streetAddress or NONE }}\n{{ ldap.postalCode or NONE }} {{ ldap.l or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -39,12 +39,12 @@
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.nickname_givenname}} {{mo_employee.nickname_surname}}"
     },
-    "Email": {
+    "EmailEmployee": {
       "objectClass": "user",
       "mail": "{{mo_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
-    "Lokation": {
+    "LocationEmployee": {
       "objectClass": "user",
       "streetAddress": "{{mo_address.value}}",
       "postalCode": "{{mo_address.value}}",

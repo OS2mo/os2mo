@@ -379,7 +379,7 @@ class DataLoader:
             query FacetQuery {
               facets(user_keys: "%s") {
                 classes {
-                  name
+                  user_key
                   uuid
                   scope
                 }
@@ -419,7 +419,7 @@ class DataLoader:
             query ItSystems {
               itsystems {
                 uuid
-                name
+                user_key
               }
             }
             """
@@ -525,7 +525,7 @@ class DataLoader:
                       to
                     }
                   address_type {
-                      name
+                      user_key
                       uuid}
                 }
               }
@@ -554,7 +554,7 @@ class DataLoader:
         # We make a dict with meta-data because ramodels Address does not support
         # (among others) address_type names. It only supports uuids
         address_metadata = {
-            "address_type_name": entry["address_type"]["name"],
+            "address_type_user_key": entry["address_type"]["user_key"],
             "employee_cpr_no": entry["person"][0]["cpr_no"],
         }
 
