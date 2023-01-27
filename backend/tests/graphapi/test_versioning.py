@@ -1,9 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import itertools
-from datetime import date
 
-import freezegun
 import pytest
 from fastapi import FastAPI
 from starlette.testclient import TestClient
@@ -46,40 +44,11 @@ def test_increasing_version_numbers():
         assert b.version == a.version + 1
 
 
-def test_all_previous_versions_have_deprecation_date():
-    """All but the last should have a deprecation date."""
-    *previous_versions, last_version = graphql_versions
-
-    for version in previous_versions:
-        assert version.deprecation_date is not None
-    assert last_version.deprecation_date is None
-
-
-def test_increasing_deprecation_date():
-    for a, b in itertools.pairwise(graphql_versions[:-1]):
-        assert b.deprecation_date > a.deprecation_date
-
-
 def test_unversioned_get_redirects_to_newest(test_client: TestClient):
     newest = graphql_versions[-1]
     response = test_client.get("/graphql", allow_redirects=False)
     assert response.is_redirect
     assert response.headers["location"] == f"/graphql/v{newest.version}"
-
-
-@freezegun.freeze_time("2022-02-02")
-def test_deprecated_version_not_routed():
-    class DeprecatedGraphQLVersion(LatestGraphQLVersion):
-        version = 1
-        deprecation_date = date(2021, 1, 1)  # in the past
-
-    test_client = get_test_client(
-        versions=[
-            DeprecatedGraphQLVersion,
-        ]
-    )
-    response = test_client.get("/graphql/v1")
-    assert response.status_code == 410
 
 
 def test_non_existent():

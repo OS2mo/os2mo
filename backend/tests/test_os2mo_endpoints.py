@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from datetime import date
-from operator import attrgetter
-
 from mora.app import create_app
 from mora.graphapi.main import graphql_versions
 
@@ -73,13 +70,7 @@ service_api = {
     "/service/{type}/{id}/details/",
     "/service/{type}/{id}/details/{function}",
 }
-# This mirrors the implementation a little too much, but we need it to be dynamic for
-# when routes are dropped automatically due to deprecation.
-graphql_endpoints = {
-    f"/graphql/v{version.version}"
-    for version in graphql_versions
-    if version.deprecation_date is None or version.deprecation_date > date.today()
-}
+graphql_endpoints = {f"/graphql/v{version.version}" for version in graphql_versions}
 
 
 all_endpoints = (
@@ -100,5 +91,5 @@ all_endpoints = (
 
 def test_all_endpoints():
     app = create_app()
-    routes = set(map(attrgetter("path"), app.routes)) | {""}
+    routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints
