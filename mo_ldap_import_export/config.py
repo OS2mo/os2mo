@@ -116,3 +116,7 @@ class Settings(BaseSettings):
     token_expiry_time: float = Field(
         8, description="Time in hours until a FastAPI auth token expires"
     )
+
+    org_unit_path_string_separator: str = Field(
+        "//", description="separator for full paths to org units in LDAP"
+    )

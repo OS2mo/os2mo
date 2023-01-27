@@ -231,6 +231,7 @@ async def listen_to_changes_in_org_units(
     # know the new name of the org unit in case it was changed
     logger.info("Updating org unit info")
     converter.org_unit_info = dataloader.load_mo_org_units()
+    converter.check_org_unit_info_dict()
 
 
 @amqp_router.register("*.*.*")

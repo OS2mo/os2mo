@@ -37,6 +37,12 @@ class NotSupportedException(HTTPException):
         logger.exception(message)
 
 
+class InvalidNameException(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)
+        logger.exception(message)
+
+
 class UUIDNotFoundException(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)

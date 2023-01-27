@@ -333,6 +333,8 @@ the following filters are available:
   and works for names with no spaces (givenname will then be empty).
 * `mo_datestring`: Accepts a datetime object and formats it as a string.
 * `strip_non_digits`: Removes all but digits from a string.
+* `parse_datetime`: Converts a date string to a datetime object. The year needs to be
+  first. For example `2021-01-01`.
 
 In addition to filters, a few methods have been made available for the templates.
 These are called using the normal function call syntax:
