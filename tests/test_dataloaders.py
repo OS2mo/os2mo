@@ -610,7 +610,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
 
     # While graphQL returns it as a list with length 1
     address_dict["person"] = [{"cpr_no": "0101012002", "uuid": uuid}]
-    address_dict["address_type"]["name"] = "address"
+    address_dict["address_type"]["user_key"] = "address"
     address_dict["value2"] = None
     address_dict["visibility_uuid"] = uuid
 
@@ -625,7 +625,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     )
 
     address_metadata = {
-        "address_type_name": address_dict["address_type"]["name"],
+        "address_type_name": address_dict["address_type"]["user_key"],
         "employee_cpr_no": address_dict["person"][0]["cpr_no"],
     }
 

@@ -9,23 +9,23 @@
       "nickname_givenname": "{{NONE}}",
       "nickname_surname": "{{NONE}}"
     },
-    // Note: This key needs to be a valid MO address type name*
-    "Email": {
+    // Note: This key needs to be a valid MO address type user_key*
+    "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
     },
-    // Note: This key needs to be a valid MO address type name*
-    "Lokation": {
+    // Note: This key needs to be a valid MO address type user_key*
+    "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
     },
-    // Note: This key needs to be a valid MO IT-system name*
+    // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "user_key": "{{ ldap.msSFU30Name or NONE }}",
@@ -52,13 +52,13 @@
       "department": "{{NONE}}"
     },
     // Note: This key needs to be a valid MO address type name*
-    "Email": {
+    "EmailEmployee": {
       "objectClass": "user",
       "mail": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type name*
-    "Lokation": {
+    "LocationEmployee": {
       "objectClass": "user",
       "postalAddress": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
