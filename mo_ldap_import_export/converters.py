@@ -850,5 +850,12 @@ class LdapConverter:
             # If all required attributes are present:
             if all(a in mo_dict for a in required_attributes):
                 converted_objects.append(mo_class(**mo_dict))
+            else:
+                self.logger.info(
+                    (
+                        f"Could not convert {mo_dict}. "
+                        f"The following attributes are required: {required_attributes}"
+                    )
+                )
 
         return converted_objects

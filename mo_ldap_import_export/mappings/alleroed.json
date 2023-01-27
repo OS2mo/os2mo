@@ -13,14 +13,14 @@
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}"
     },
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ ldap.streetAddress or NONE }}\n{{ ldap.postalCode or NONE }} {{ ldap.l or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",

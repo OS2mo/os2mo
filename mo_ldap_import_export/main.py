@@ -629,6 +629,7 @@ def create_app(**kwargs: Any) -> FastAPI:
             )
 
             if len(converted_objects) == 0:
+                logger.info("No converted objects")
                 continue
 
             converted_objects = await format_converted_objects(

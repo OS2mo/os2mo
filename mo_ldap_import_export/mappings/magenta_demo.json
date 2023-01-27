@@ -15,7 +15,7 @@
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
@@ -23,7 +23,7 @@
       "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}"
     },
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
