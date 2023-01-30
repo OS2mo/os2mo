@@ -452,10 +452,10 @@ class LdapConverter:
         Check that we do not see the same name twice in one info dict
         """
         name_key = "user_key"
-        names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
+        names = [info[name_key] for info in info_dict.values()]
         if len(set(names)) != len(names):
             raise InvalidNameException(
-                f"Duplicate values with key='{name_key}' found in {info_dict}"
+                f"Duplicate values found in info_dict['{name_key}'] = {sorted(names)}"
             )
 
     def check_org_unit_info_dict(self):
