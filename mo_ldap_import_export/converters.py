@@ -11,6 +11,7 @@ import re
 import string
 from typing import Any
 from typing import Dict
+from uuid import UUID
 from uuid import uuid4
 
 import pandas as pd
@@ -253,9 +254,6 @@ class LdapConverter:
             self.check_attributes(detected_attributes, accepted_attributes)
             required_attributes = self.get_required_attributes(mo_class)
 
-            # Person uuid is always set automatically and should not be in the template
-            if "person" in required_attributes:
-                required_attributes.remove("person")
             for attribute in required_attributes:
                 if attribute not in detected_attributes:
                     raise IncorrectMapping(
@@ -785,7 +783,7 @@ class LdapConverter:
         return number_of_entries_in_this_ldap_object
 
     def from_ldap(
-        self, ldap_object: LdapObject, json_key: str, employee_uuid=None
+        self, ldap_object: LdapObject, json_key: str, employee_uuid: UUID
     ) -> Any:
         """
         uuid : UUID
@@ -810,6 +808,7 @@ class LdapConverter:
                 }
             )
             mo_dict = {}
+            context = {"ldap": ldap_dict, "employee_uuid": str(employee_uuid)}
             try:
                 mapping = self.mapping["ldap_to_mo"]
             except KeyError:
@@ -820,7 +819,7 @@ class LdapConverter:
                 raise IncorrectMapping(f"Missing '{json_key}' in mapping 'ldap_to_mo'")
             for mo_field_name, template in object_mapping.items():
                 try:
-                    value = template.render({"ldap": ldap_dict}).strip()
+                    value = template.render(context).strip()
                 except UUIDNotFoundException:
                     continue
                 # TODO: Is it possible to render a dictionary directly?
@@ -832,19 +831,6 @@ class LdapConverter:
                     mo_dict[mo_field_name] = value
 
             mo_class: Any = self.import_mo_object_class(json_key)
-
-            if not employee_uuid:
-                cpr = mo_dict.get("cpr_no")
-                if cpr:
-                    dataloader = self.context["user_context"]["dataloader"]
-                    employee_uuid = dataloader.find_mo_employee_uuid_sync(cpr)
-
-            if employee_uuid:
-                if "person" in mo_class.schema()["properties"].keys():
-                    mo_dict["person"] = {"uuid": employee_uuid}
-                else:
-                    mo_dict["uuid"] = employee_uuid
-
             required_attributes = self.get_required_attributes(mo_class)
 
             # If all required attributes are present:

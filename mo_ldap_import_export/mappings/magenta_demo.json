@@ -7,7 +7,8 @@
       "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
       "seniority": "{{NONE}}",
       "nickname_givenname": "{{NONE}}",
-      "nickname_surname": "{{NONE}}"
+      "nickname_surname": "{{NONE}}",
+      "uuid": "{{ employee_uuid or NONE }}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
@@ -15,7 +16,8 @@
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
@@ -23,14 +25,16 @@
       "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "user_key": "{{ ldap.msSFU30Name or NONE }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -38,7 +42,8 @@
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.personalTitle or uuid4() }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     }
   },
   "mo_to_ldap": {
