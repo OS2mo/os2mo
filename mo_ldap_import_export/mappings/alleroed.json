@@ -45,22 +45,22 @@
     },
     "EmailEmployee": {
       "objectClass": "user",
-      "mail": "{{mo_address.value}}",
+      "mail": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "LocationEmployee": {
       "objectClass": "user",
-      "streetAddress": "{{mo_address.value}}",
-      "postalCode": "{{mo_address.value}}",
-      "l": "{{mo_address.value}}",
+      "streetAddress": "{{mo_employee_address.value}}",
+      "postalCode": "{{mo_employee_address.value}}",
+      "l": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "Engagement" : {
       "objectClass": "user",
       "employeeNumber": "{{mo_employee.cpr_no}}",
-      "extensionAttribute3": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
-      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}",
-      "extensionattribute7": "{{mo_engagement.validity.to_date}}"
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
+      "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}",
+      "extensionattribute7": "{{mo_employee_engagement.validity.to_date}}"
     }
   },
   "username_generator": {
