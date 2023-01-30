@@ -56,19 +56,19 @@
       "employeeID": "{{mo_employee.cpr_no or NONE}}",
       "department": "{{NONE}}"
     },
-    // Note: This key needs to be a valid MO address type name*
+    // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "user",
       "mail": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
-    // Note: This key needs to be a valid MO address type name*
+    // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
       "objectClass": "user",
       "postalAddress": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
-    // Note: This key needs to be a valid MO IT-system name*
+    // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "user",
       "msSFU30Name" : "{{mo_employee_it_user.user_key}}",
