@@ -6,21 +6,24 @@
       "surname": "{{ldap.sn}}",
       "cpr_no": "{{ldap.extensionAttribute15|strip_non_digits}}",  // Set to employeeNumber later
       "nickname_givenname": "{{ldap.displayName|splitlast|first}}",
-      "nickname_surname": "{{ldap.displayName|splitlast|last}}"
+      "nickname_surname": "{{ldap.displayName|splitlast|last}}",
+      "uuid": "{{ employee_uuid or NONE }}"
     },
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ ldap.streetAddress or NONE }}\n{{ ldap.postalCode or NONE }} {{ ldap.l or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -28,7 +31,8 @@
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Medarbejder (månedsløn)')) }}",
       "user_key": "{{ ldap.employeeID }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring, to_date=extensionattribute7|parse_datetime|mo_datestring or NONE) }}"// TODO: check to_date
+      "validity": "{{ dict(from_date=now()|mo_datestring, to_date=extensionattribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     }
   },
   "mo_to_ldap": {

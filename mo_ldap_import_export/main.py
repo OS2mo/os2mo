@@ -656,7 +656,9 @@ def create_app(**kwargs: Any) -> FastAPI:
         converted_results = []
         for r in result:
             try:
-                converted_results.extend(converter.from_ldap(r, json_key))
+                converted_results.extend(
+                    converter.from_ldap(r, json_key, employee_uuid=uuid4())
+                )
             except ValidationError as e:
                 logger.error(f"Cannot convert {r} to MO {json_key}: {e}")
         return converted_results
@@ -681,7 +683,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     ) -> Any:
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:
-            return converter.from_ldap(result, json_key)
+            return converter.from_ldap(result, json_key, employee_uuid=uuid4())
         except ValidationError as e:
             logger.error(f"Cannot convert {result} to MO {json_key}: {e}")
             response.status_code = (

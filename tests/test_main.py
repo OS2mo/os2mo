@@ -647,7 +647,7 @@ async def test_listen_to_changes_not_listening(
 def test_ldap_get_all_converted_endpoint_failure(
     test_client: TestClient, converter: MagicMock, headers: dict
 ) -> None:
-    def from_ldap(ldap_object, json_key):
+    def from_ldap(ldap_object, json_key, employee_uuid=None):
         # This will raise a validationError because the ldap_object is not converted
         return Employee(**ldap_object.dict())
 
