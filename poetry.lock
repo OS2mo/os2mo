@@ -391,6 +391,18 @@ files = [
 ]
 
 [[package]]
+name = "chardet"
+version = "3.0.4"
+description = "Universal encoding detector for Python 2 and 3"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
+    {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
+]
+
+[[package]]
 name = "charset-normalizer"
 version = "2.1.1"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -2386,8 +2398,8 @@ tornado = ["tornado (>=5)"]
 
 [[package]]
 name = "service-person-stamdata-udvidet"
-version = "0.2.0"
-description = "Integration module for serviceplatforment CPR service"
+version = "1.0.0"
+description = "PersonBaseExtendedService integration for the PersonBaseExtendedService webservice which is a part of SF1520 API (https://digitaliseringskataloget.dk/integration/sf1520)"
 category = "main"
 optional = false
 python-versions = "*"
@@ -2395,15 +2407,21 @@ files = []
 develop = false
 
 [package.dependencies]
-Jinja2 = ">=2.10"
-requests = ">=2.18.4"
-xmltodict = ">=0.11.0"
+certifi = "2022.12.7"
+chardet = "3.0.4"
+charset-normalizer = "2.1.1"
+idna = "3.4"
+Jinja2 = "3.1.2"
+MarkupSafe = "2.1.2"
+requests = "2.28.2"
+urllib3 = "1.26.14"
+xmltodict = "0.13.0"
 
 [package.source]
 type = "git"
 url = "https://github.com/magenta-aps/service_person_stamdata_udvidet"
-reference = "0.2.0"
-resolved_reference = "e8fd6884cdcc753e8189feb4910cf225f7f936d9"
+reference = "1.0.3"
+resolved_reference = "8df09f7d13589a4b81f66bd384c411392386deb6"
 
 [[package]]
 name = "setuptools"
@@ -2514,7 +2532,7 @@ greenlet = {version = "!=0.4.17", markers = "python_version >= \"3\" and (platfo
 
 [package.extras]
 aiomysql = ["aiomysql", "greenlet (!=0.4.17)"]
-aiosqlite = ["aiosqlite", "greenlet (!=0.4.17)", "typing-extensions (!=3.10.0.1)"]
+aiosqlite = ["aiosqlite", "greenlet (!=0.4.17)", "typing_extensions (!=3.10.0.1)"]
 asyncio = ["greenlet (!=0.4.17)"]
 asyncmy = ["asyncmy (>=0.2.3,!=0.2.4)", "greenlet (!=0.4.17)"]
 mariadb-connector = ["mariadb (>=1.0.1,!=1.1.2)"]
@@ -2524,14 +2542,14 @@ mssql-pyodbc = ["pyodbc"]
 mypy = ["mypy (>=0.910)", "sqlalchemy2-stubs"]
 mysql = ["mysqlclient (>=1.4.0)", "mysqlclient (>=1.4.0,<2)"]
 mysql-connector = ["mysql-connector-python"]
-oracle = ["cx-oracle (>=7)", "cx-oracle (>=7,<8)"]
+oracle = ["cx_oracle (>=7)", "cx_oracle (>=7,<8)"]
 postgresql = ["psycopg2 (>=2.7)"]
 postgresql-asyncpg = ["asyncpg", "greenlet (!=0.4.17)"]
 postgresql-pg8000 = ["pg8000 (>=1.16.6,!=1.29.0)"]
 postgresql-psycopg2binary = ["psycopg2-binary"]
 postgresql-psycopg2cffi = ["psycopg2cffi"]
 pymysql = ["pymysql", "pymysql (<1)"]
-sqlcipher = ["sqlcipher3-binary"]
+sqlcipher = ["sqlcipher3_binary"]
 
 [[package]]
 name = "sqlalchemy-utils"
@@ -2993,4 +3011,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "afd6e2ddb082d1ab69b3c847542d0ba52a4744fa59a17f9b1e754ab0fa76be6f"
+content-hash = "61adf811987f5016ab81d724984c257444820db75463137c3c996d201d09879d"

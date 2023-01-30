@@ -29,9 +29,14 @@ def get_citizen(cpr: str) -> dict[str, Any]:
     }
     certificate = str(settings.sp_settings.sp_certificate_path)
     sp_production = settings.sp_settings.sp_production
+    sp_api_version = settings.sp_settings.sp_api_version
     try:
         return service_person_stamdata_udvidet.get_citizen(
-            sp_uuids, certificate, cpr, production=sp_production
+            sp_uuids,
+            certificate,
+            cpr,
+            production=sp_production,
+            api_version=sp_api_version,
         )
     except requests.HTTPError as e:
         if "PNRNotFound" in e.response.text:
