@@ -517,14 +517,20 @@ class LdapConverter:
         name_key = "user_key"
         if not name:
             raise UUIDNotFoundException("object type name is empty")
-        names = [self.name_normalizer(info[name_key]) for info in info_dict.values()]
-        name = self.name_normalizer(name)
-        if name not in names:
-            raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
 
-        for info in info_dict.values():
-            if self.name_normalizer(info[name_key]) == name:
-                return info["uuid"]
+        normalized_name = self.name_normalizer(name)
+
+        candidates = {
+            info[name_key]: info["uuid"]
+            for info in info_dict.values()
+            if self.name_normalizer(info[name_key]) == normalized_name
+        }
+        if len(candidates) > 0:
+            if name in candidates:
+                return candidates[name]
+            return list(candidates.values())[0]
+        else:
+            raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
 
     def get_address_type_uuid(self, address_type: str):
         return self.get_object_uuid_from_name(self.address_type_info, address_type)
