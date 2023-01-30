@@ -880,6 +880,21 @@ def test_get_object_uuid_from_name(converter: LdapConverter):
     with pytest.raises(UUIDNotFoundException):
         converter.get_object_uuid_from_name(info_dict, "")
 
+    uuid2 = uuid4()
+    # Check that a perfect match will be preferred over a normalized match
+    info_dict = {
+        uuid2: {"uuid": uuid2, "user_key": name.lower()},
+        uuid: {"uuid": uuid, "user_key": name},
+    }
+    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+
+    # Check that if no perfect matches exist, use the first match
+    info_dict = {
+        uuid: {"uuid": uuid, "user_key": name.upper()},
+        uuid2: {"uuid": uuid2, "user_key": name.lower()},
+    }
+    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+
 
 def test_create_org_unit(converter: LdapConverter):
     uuids = [str(uuid4()), str(uuid4()), str(uuid4())]
