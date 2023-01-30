@@ -48,6 +48,7 @@ from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NotSupportedException
+from .ldap import cleanup
 from .ldap import configure_ldap_connection
 from .ldap import ldap_healthcheck
 from .ldap_classes import LdapObject
@@ -99,47 +100,6 @@ async def listen_to_changes_in_employees(
     changed_employee = await dataloader.load_mo_employee(payload.uuid)
     logger.info(f"Found Employee in MO: {changed_employee}")
 
-    def cleanup(
-        json_key: str, value_key: str, mo_dict_key: str, mo_objects_in_mo: list[Any]
-    ):
-        # Get all matching objects for this user in LDAP (note that LDAP can contain
-        # multiple entries in one object.)
-        loaded_ldap_object = dataloader.load_ldap_cpr_object(
-            changed_employee.cpr_no, json_key
-        )
-
-        # Convert to MO so the two are easy to compare
-        mo_objects_in_ldap = converter.from_ldap(
-            loaded_ldap_object, json_key, employee_uuid=changed_employee.uuid
-        )
-
-        # Format as lists
-        values_in_ldap = sorted([getattr(a, value_key) for a in mo_objects_in_ldap])
-        values_in_mo = sorted([getattr(a, value_key) for a in mo_objects_in_mo])
-
-        logger.info(f"Found following '{json_key}' values in LDAP: {values_in_ldap}")
-        logger.info(f"Found following '{json_key}' values in MO: {values_in_mo}")
-
-        # Clean from LDAP as needed
-        ldap_objects_to_clean = []
-        for mo_object in mo_objects_in_ldap:
-            if getattr(mo_object, value_key) not in values_in_mo:
-                ldap_objects_to_clean.append(
-                    converter.to_ldap(
-                        {
-                            "mo_employee": changed_employee,
-                            mo_dict_key: mo_object,
-                        },
-                        json_key,
-                        dn=loaded_ldap_object.dn,
-                    )
-                )
-
-        if len(ldap_objects_to_clean) == 0:
-            logger.info("No synchronization required")
-        else:
-            dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
-
     mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
 
     if routing_key.object_type == ObjectType.EMPLOYEE:
@@ -174,7 +134,12 @@ async def listen_to_changes_in_employees(
         )
 
         cleanup(
-            json_key, "value", "mo_employee_address", [a[0] for a in addresses_in_mo]
+            json_key,
+            "value",
+            "mo_employee_address",
+            [a[0] for a in addresses_in_mo],
+            user_context,
+            changed_employee,
         )
 
     elif routing_key.object_type == ObjectType.IT:
@@ -198,7 +163,14 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid, it_system_type_uuid
         )
 
-        cleanup(json_key, "user_key", "mo_employee_it_user", it_users_in_mo)
+        cleanup(
+            json_key,
+            "user_key",
+            "mo_employee_it_user",
+            it_users_in_mo,
+            user_context,
+            changed_employee,
+        )
 
     elif routing_key.object_type == ObjectType.ENGAGEMENT:
         logger.info("[MO] Change registered in the Engagement object type")
@@ -218,7 +190,14 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid
         )
 
-        cleanup(json_key, "user_key", "mo_employee_engagement", engagements_in_mo)
+        cleanup(
+            json_key,
+            "user_key",
+            "mo_employee_engagement",
+            engagements_in_mo,
+            user_context,
+            changed_employee,
+        )
 
 
 async def listen_to_changes_in_org_units(

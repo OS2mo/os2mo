@@ -20,6 +20,7 @@ from ldap3 import ServerPool
 from ldap3 import Tls
 from more_itertools import always_iterable
 from more_itertools import only
+from ramodels.mo.employee import Employee
 
 from .config import ServerConfig
 from .config import Settings
@@ -314,3 +315,67 @@ def get_attribute_types(ldap_connection):
     Returns a dictionary with attribute type information for all attributes in LDAP
     """
     return ldap_connection.server.schema.attribute_types
+
+
+def cleanup(
+    json_key: str,
+    value_key: str,
+    mo_dict_key: str,
+    mo_objects_in_mo: list[Any],
+    user_context: dict,
+    employee: Employee,
+):
+    """
+    Cleans entries from LDAP
+
+    json_key : str
+        json key to clean for
+    value_key : str
+        name of the MO attribute that contains the value to be cleaned
+    mo_dict_key : str
+        name of the key in the conversion dict. i.e. 'mo_employee'
+        or 'mo_employee_address'
+    mo_objects_in_mo: list
+        List of objects already in MO
+    user_context : dict
+        user context dictionary with the configured dataloader and converter
+    """
+    dataloader = user_context["dataloader"]
+    converter = user_context["converter"]
+    logger = structlog.get_logger()
+
+    # Get all matching objects for this user in LDAP (note that LDAP can contain
+    # multiple entries in one object.)
+    loaded_ldap_object = dataloader.load_ldap_cpr_object(employee.cpr_no, json_key)
+
+    # Convert to MO so the two are easy to compare
+    mo_objects_in_ldap = converter.from_ldap(
+        loaded_ldap_object, json_key, employee_uuid=employee.uuid
+    )
+
+    # Format as lists
+    values_in_ldap = sorted([getattr(a, value_key) for a in mo_objects_in_ldap])
+    values_in_mo = sorted([getattr(a, value_key) for a in mo_objects_in_mo])
+
+    logger.info(f"Found following '{json_key}' values in LDAP: {values_in_ldap}")
+    logger.info(f"Found following '{json_key}' values in MO: {values_in_mo}")
+
+    # Clean from LDAP as needed
+    ldap_objects_to_clean = []
+    for mo_object in mo_objects_in_ldap:
+        if getattr(mo_object, value_key) not in values_in_mo:
+            ldap_objects_to_clean.append(
+                converter.to_ldap(
+                    {
+                        "mo_employee": employee,
+                        mo_dict_key: mo_object,
+                    },
+                    json_key,
+                    dn=loaded_ldap_object.dn,
+                )
+            )
+
+    if len(ldap_objects_to_clean) == 0:
+        logger.info("No synchronization required")
+    else:
+        dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
