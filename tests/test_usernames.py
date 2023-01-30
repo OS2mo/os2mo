@@ -25,7 +25,6 @@ def context() -> Context:
     }
 
     settings_mock = MagicMock()
-    settings_mock.ldap_organizational_unit = "OU=foo"
     settings_mock.ldap_search_base = "DC=bar"
 
     context: Context = {
@@ -127,7 +126,7 @@ def test_create_username(username_generator: UserNameGenerator):
 def test_generate_dn(username_generator: UserNameGenerator):
     employee = Employee(givenname="Nick Gerardus Cornelis", surname="Janssen")
     dn = username_generator.generate_dn(employee)
-    assert dn == "CN=ngcja,OU=foo,DC=bar"
+    assert dn == "CN=ngcja,DC=bar"
 
 
 def test_create_from_combi(username_generator: UserNameGenerator):

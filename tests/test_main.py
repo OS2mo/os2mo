@@ -56,7 +56,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
-        "LDAP_ORGANIZATIONAL_UNIT": "OU=Magenta",
         "ADMIN_PASSWORD": "admin",
         "AUTHENTICATION_SECRET": "foo",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
@@ -403,7 +402,6 @@ async def test_listen_to_changes_in_employees(
 ) -> None:
 
     settings_mock = MagicMock()
-    settings_mock.ldap_organizational_unit = "foo"
     settings_mock.ldap_search_base = "bar"
 
     mapping = read_mapping_json(
@@ -435,7 +433,6 @@ async def test_listen_to_changes_in_employees(
     payload.object_uuid = uuid4()
 
     settings = MagicMock()
-    settings.ldap_organizational_unit = "OU=foo"
     settings.ldap_search_base = "DC=bar"
 
     # Simulate a created employee
