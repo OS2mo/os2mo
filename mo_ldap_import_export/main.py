@@ -162,7 +162,7 @@ async def listen_to_changes_in_employees(
         address_type = json_key = meta_info["address_type_user_key"]
 
         logger.info(f"Obtained address type = {address_type}")
-        mo_object_dict["mo_address"] = changed_address
+        mo_object_dict["mo_employee_address"] = changed_address
 
         # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
@@ -173,7 +173,9 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid, changed_address.address_type.uuid
         )
 
-        cleanup(json_key, "value", "mo_address", [a[0] for a in addresses_in_mo])
+        cleanup(
+            json_key, "value", "mo_employee_address", [a[0] for a in addresses_in_mo]
+        )
 
     elif routing_key.object_type == ObjectType.IT:
         logger.info("[MO] Change registered in the IT object type")
@@ -184,7 +186,7 @@ async def listen_to_changes_in_employees(
         it_system_name = json_key = converter.get_it_system_name(it_system_type_uuid)
 
         logger.info(f"Obtained IT system name = {it_system_name}")
-        mo_object_dict["mo_it_user"] = changed_it_user
+        mo_object_dict["mo_employee_it_user"] = changed_it_user
 
         # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
@@ -196,7 +198,7 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid, it_system_type_uuid
         )
 
-        cleanup(json_key, "user_key", "mo_it_user", it_users_in_mo)
+        cleanup(json_key, "user_key", "mo_employee_it_user", it_users_in_mo)
 
     elif routing_key.object_type == ObjectType.ENGAGEMENT:
         logger.info("[MO] Change registered in the Engagement object type")
@@ -205,7 +207,7 @@ async def listen_to_changes_in_employees(
         changed_engagement = await dataloader.load_mo_engagement(payload.object_uuid)
 
         json_key = "Engagement"
-        mo_object_dict["mo_engagement"] = changed_engagement
+        mo_object_dict["mo_employee_engagement"] = changed_engagement
 
         # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
@@ -216,7 +218,7 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid
         )
 
-        cleanup(json_key, "user_key", "mo_engagement", engagements_in_mo)
+        cleanup(json_key, "user_key", "mo_employee_engagement", engagements_in_mo)
 
 
 async def listen_to_changes_in_org_units(

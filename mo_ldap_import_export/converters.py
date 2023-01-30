@@ -293,15 +293,15 @@ class LdapConverter:
             # to avoid data being overwritten if two objects of the same type are
             # added in MO
             if json_key in self.mo_address_types:
-                fields_to_check = ["mo_address.value"]
+                fields_to_check = ["mo_employee_address.value"]
             elif json_key in self.mo_it_systems:
-                fields_to_check = ["mo_it_user.user_key"]
+                fields_to_check = ["mo_employee_it_user.user_key"]
             elif json_key == "Engagement":
                 fields_to_check = [
-                    "mo_engagement.user_key",
-                    "mo_engagement.org_unit.uuid",
-                    "mo_engagement.engagement_type.uuid",
-                    "mo_engagement.job_function.uuid",
+                    "mo_employee_engagement.user_key",
+                    "mo_employee_engagement.org_unit.uuid",
+                    "mo_employee_engagement.engagement_type.uuid",
+                    "mo_employee_engagement.job_function.uuid",
                 ]
             else:
                 fields_to_check = []

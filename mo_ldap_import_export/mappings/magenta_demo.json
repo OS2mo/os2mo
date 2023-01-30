@@ -59,19 +59,19 @@
     // Note: This key needs to be a valid MO address type name*
     "EmailEmployee": {
       "objectClass": "user",
-      "mail": "{{mo_address.value}}",
+      "mail": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type name*
     "LocationEmployee": {
       "objectClass": "user",
-      "postalAddress": "{{mo_address.value}}",
+      "postalAddress": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO IT-system name*
     "Active Directory": {
       "objectClass": "user",
-      "msSFU30Name" : "{{mo_it_user.user_key}}",
+      "msSFU30Name" : "{{mo_employee_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     "Engagement" : {
@@ -80,12 +80,12 @@
       "department": "{{NONE}}",
       "company": "{{NONE}}",
       "departmentNumber": "{{NONE}}",
-      "division": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
+      "division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "primaryGroupID": "{{NONE}}",
-      "employeeType": "{{get_engagement_type_name(mo_engagement.engagement_type.uuid)}}",
+      "employeeType": "{{get_engagement_type_name(mo_employee_engagement.engagement_type.uuid)}}",
       "memberOf": "{{NONE}}",
-      "personalTitle": "{{mo_engagement.user_key}}",
-      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}"
+      "personalTitle": "{{mo_employee_engagement.user_key}}",
+      "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}"
     }
   },
   "username_generator": {

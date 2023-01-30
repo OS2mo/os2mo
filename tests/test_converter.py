@@ -76,7 +76,7 @@ def context() -> Context:
             },
             "Active Directory": {
                 "objectClass": "user",
-                "msSFU30Name": "{{mo_it_user.user_key}}",
+                "msSFU30Name": "{{mo_employee_it_user.user_key}}",
                 "employeeID": "{{mo_employee.cpr_no}}",
             },
         },
@@ -241,7 +241,7 @@ def test_mo_to_ldap(converter: LdapConverter) -> None:
     assert ldap_object.dn == "foo"
 
     with pytest.raises(NotSupportedException):
-        obj_dict = {"mo_address": "foo"}
+        obj_dict = {"mo_employee_address": "foo"}
         converter.to_ldap(obj_dict, "Employee")
 
 
@@ -665,13 +665,19 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
 
     mapping = {
         "mo_to_ldap": {
-            "Address": {"attr1": "{{ mo_address.value }}", "cpr_field": "{{ foo }}"},
-            "AD": {"attr1": "{{ mo_it_user.user_key }}", "cpr_field": "{{ foo }}"},
+            "Address": {
+                "attr1": "{{ mo_employee_address.value }}",
+                "cpr_field": "{{ foo }}",
+            },
+            "AD": {
+                "attr1": "{{ mo_employee_it_user.user_key }}",
+                "cpr_field": "{{ foo }}",
+            },
             "Engagement": {
-                "attr1": "{{ mo_engagement.user_key }}",
-                "attr2": "{{ mo_engagement.org_unit.uuid }}",
-                "attr3": "{{ mo_engagement.engagement_type.uuid }}",
-                "attr4": "{{ mo_engagement.job_function.uuid }}",
+                "attr1": "{{ mo_employee_engagement.user_key }}",
+                "attr2": "{{ mo_employee_engagement.org_unit.uuid }}",
+                "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
+                "attr4": "{{ mo_employee_engagement.job_function.uuid }}",
                 "cpr_field": "{{ foo }}",
             },
         }
@@ -728,9 +734,9 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
             mapping = {
                 "mo_to_ldap": {
                     "Engagement": {
-                        "attr1": "{{ mo_engagement.user_key }}",
-                        "attr2": "{{ mo_engagement.org_unit.uuid }}",
-                        "attr3": "{{ mo_engagement.engagement_type.uuid }}",
+                        "attr1": "{{ mo_employee_engagement.user_key }}",
+                        "attr2": "{{ mo_employee_engagement.org_unit.uuid }}",
+                        "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
                         "cpr_field": "{{ foo }}",
                     },
                 }
