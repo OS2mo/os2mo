@@ -50,6 +50,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
 from .ldap import configure_ldap_connection
+from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
 from .ldap_classes import LdapObject
 
@@ -528,6 +529,10 @@ def create_app(**kwargs: Any) -> FastAPI:
     user_context = context["user_context"]
     converter = user_context["converter"]
     dataloader = user_context["dataloader"]
+    ldap_connection = user_context["ldap_connection"]
+
+    attribute_types = get_attribute_types(ldap_connection)
+    accepted_attributes = tuple(sorted(attribute_types.keys()))
 
     ldap_classes = tuple(sorted(converter.overview.keys()))
     default_ldap_class = converter.raw_mapping["mo_to_ldap"]["Employee"]["objectClass"]
@@ -736,6 +741,14 @@ def create_app(**kwargs: Any) -> FastAPI:
             ldap_classes=[ldap_class]
         )
         return encode_result(ldap_overview.get(ldap_class))
+
+    # Get LDAP attribute details
+    @app.get("/LDAP_overview/attribute/{attribute}", status_code=202, tags=["LDAP"])
+    async def load_attribute_details_from_LDAP(
+        attribute: Literal[accepted_attributes],  # type: ignore
+        user=Depends(login_manager),
+    ) -> Any:
+        return attribute_types[attribute]
 
     # Get MO address types
     @app.get("/MO/Address_types", status_code=202, tags=["MO"])
