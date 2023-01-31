@@ -735,7 +735,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         ldap_overview = dataloader.load_ldap_populated_overview(
             ldap_classes=[ldap_class]
         )
-        return encode_result(ldap_overview[ldap_class])
+        return encode_result(ldap_overview.get(ldap_class))
 
     # Get MO address types
     @app.get("/MO/Address_types", status_code=202, tags=["MO"])
