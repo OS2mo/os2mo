@@ -159,7 +159,9 @@ class LdapConverter:
 
     def check_attributes(self, detected_attributes, accepted_attributes):
         for attribute in detected_attributes:
-            if attribute not in accepted_attributes:
+            if attribute not in accepted_attributes and not attribute.startswith(
+                "extensionAttribute"
+            ):
                 raise IncorrectMapping(
                     (
                         f"attribute '{attribute}' not allowed."

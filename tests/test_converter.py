@@ -516,6 +516,10 @@ def test_check_attributes(converter: LdapConverter):
     with pytest.raises(IncorrectMapping):
         converter.check_attributes(detected_attributes, accepted_attributes)
 
+    detected_attributes = ["bar", "extensionAttribute14"]
+    accepted_attributes = ["bar"]
+    converter.check_attributes(detected_attributes, accepted_attributes)
+
 
 def test_get_accepted_json_keys(converter: LdapConverter):
     output = converter.get_accepted_json_keys()
