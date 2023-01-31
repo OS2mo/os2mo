@@ -480,7 +480,14 @@ async def test_get_populated_overview(dataloader: DataLoader):
                 "attr2": None,  # But not this one
                 "objectClass": ["top", "person", "user"],
             }
-        }
+        },
+        {
+            "attributes": {
+                "attr1": "foo",
+                "attr2": "bar",  # We still do not expect this one; wrong object class
+                "objectClass": ["top", "person", "user", "computer"],
+            }
+        },
     ]
 
     with patch(
