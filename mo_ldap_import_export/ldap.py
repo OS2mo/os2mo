@@ -174,10 +174,12 @@ def paged_search(context: Context, searchParameters: dict) -> list:
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
         responses.extend(entries)
 
-        # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
-        cookie = ldap_connection.result["controls"]["1.2.840.113556.1.4.319"]["value"][
-            "cookie"
-        ]
+        try:
+            # TODO: Skal "1.2.840.113556.1.4.319" være Configurerbar?
+            extension = "1.2.840.113556.1.4.319"
+            cookie = ldap_connection.result["controls"][extension]["value"]["cookie"]
+        except KeyError:
+            break
 
         if cookie and type(cookie) is bytes:
             searchParameters["paged_cookie"] = cookie

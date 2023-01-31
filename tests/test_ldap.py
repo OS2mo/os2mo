@@ -9,6 +9,8 @@ import asyncio
 import os
 from collections.abc import Iterator
 from typing import Any
+from typing import Dict
+from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -326,6 +328,47 @@ async def test_paged_search(
     output = paged_search(context, searchParameters)
 
     assert output == expected_results * len(cookies)
+
+
+async def test_paged_search_no_results(
+    context: Context, ldap_attributes: dict, ldap_connection: MagicMock
+):
+
+    # Mock data
+    dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
+
+    expected_results: List[Dict] = []
+
+    # Mock LDAP connection
+    ldap_connection.response = expected_results
+
+    results = iter(
+        [
+            {
+                "result": 32,
+                "description": "noSuchObject",
+                "dn": dn,
+                "message": "0000208D: NameErr: DSID-03100245, problem 2001 "
+                f"(NO_OBJECT), data 0, best match of:\n\t'{dn}'\n\x00",
+                "referrals": None,
+                "type": "searchResDone",
+            }
+        ]
+    )
+
+    def set_new_result(*args, **kwargs) -> None:
+        ldap_connection.result = next(results)
+
+    # Every time a search is performed, point to the next page.
+    ldap_connection.search.side_effect = set_new_result
+
+    searchParameters = {
+        "search_filter": "(objectclass=organizationalPerson)",
+        "attributes": ["foo", "bar"],
+    }
+    output = paged_search(context, searchParameters)
+
+    assert output == expected_results
 
 
 async def test_invalid_paged_search(
