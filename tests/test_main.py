@@ -159,6 +159,7 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
     load_ldap_cpr_object.return_value = test_ldap_object
 
     dataloader = AsyncMock()
+    dataloader.load_ldap_object = sync_dataloader
     dataloader.load_ldap_populated_overview = sync_dataloader
     dataloader.load_ldap_overview = sync_dataloader
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
@@ -305,7 +306,9 @@ async def test_open_ldap_connection() -> None:
 def test_ldap_get_all_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee", headers=headers)
+    response = test_client.get(
+        "/LDAP/Employee", headers=headers, params={"entries_to_return": 20}
+    )
     assert response.status_code == 202
 
 
@@ -585,6 +588,13 @@ def test_ldap_get_attribute_details_endpoint(
     """Test the LDAP get endpoint on our app."""
 
     response = test_client.get("/LDAP_overview/attribute/foo", headers=headers)
+    assert response.status_code == 202
+
+
+def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/LDAP_overview/object/CN=foo,DC=bar", headers=headers)
     assert response.status_code == 202
 
 
