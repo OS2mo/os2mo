@@ -52,7 +52,9 @@ class DataLoader:
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
         }
-        search_result = single_object_search(searchParameters, self.ldap_connection)
+        search_result = single_object_search(
+            searchParameters, self.ldap_connection, exact_dn_match=True
+        )
         return make_ldap_object(search_result, self.context)
 
     def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
@@ -286,6 +288,11 @@ class DataLoader:
             }
 
             responses = paged_search(self.context, searchParameters)
+            responses = [
+                r
+                for r in responses
+                if r["attributes"]["objectClass"][-1].lower() == ldap_class.lower()
+            ]
 
             populated_attributes = []
             example_value_dict = {}
