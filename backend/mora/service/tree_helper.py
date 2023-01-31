@@ -4,6 +4,7 @@ import collections
 from asyncio import create_task
 from queue import Empty
 from queue import Queue
+from uuid import UUID
 
 from ..lora import Scope
 from ..mapping import (
@@ -26,7 +27,7 @@ def queue_iterator(queue):
 async def prepare_ancestor_tree(
     connector_entry: Scope,
     mapping_parent: FieldTuple,
-    uuids,
+    uuids: list[UUID],
     get_children_args,
     with_siblings=False,
 ):
@@ -67,7 +68,7 @@ async def prepare_ancestor_tree(
         cache[uuid] = obj
         return obj
 
-    async def get_bulk(uuids):
+    async def get_bulk(uuids: list[UUID]):
         objs = dict(await connector_entry.get_all_by_uuid(uuids=uuids))
         cache.update(objs)
         return objs
@@ -96,7 +97,7 @@ async def prepare_ancestor_tree(
     # Initialize our queue
     task_queue = Queue()
 
-    async def process_parent(uuid):
+    async def process_parent(uuid: UUID):
         # Fetch parent, if no parent is found, we must be a root node
         parent_uuid = await get_parent(uuid)
         if not parent_uuid:
