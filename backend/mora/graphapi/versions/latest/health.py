@@ -57,10 +57,10 @@ async def dataset() -> bool:
     """
     try:
         await ConfiguredOrganisation.validate()
-    except HTTPException as e:
-        logger.exception("Failure in LoRa dataset:", exception=e)
-    except aiohttp.ClientError as e:
-        logger.exception("Error fetching data from LoRa", exception=e)
+    except HTTPException:
+        logger.warning("Failure in LoRa dataset:", exc_info=True)
+    except aiohttp.ClientError:
+        logger.warning("Error fetching data from LoRa", exc_info=True)
     return ConfiguredOrganisation.valid
 
 
