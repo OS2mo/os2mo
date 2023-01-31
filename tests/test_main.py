@@ -213,6 +213,8 @@ def fastramqpi(
         "mo_ldap_import_export.main.DataLoader", return_value=dataloader
     ), patch(
         "mo_ldap_import_export.main.LdapConverter", return_value=converter
+    ), patch(
+        "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
     ):
         yield create_fastramqpi()
 
@@ -574,6 +576,15 @@ def test_ldap_get_populated_overview_endpoint(
     """Test the LDAP get endpoint on our app."""
 
     response = test_client.get("/LDAP_overview/populated", headers=headers)
+    assert response.status_code == 202
+
+
+def test_ldap_get_attribute_details_endpoint(
+    test_client: TestClient, headers: dict
+) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/LDAP_overview/attribute/foo", headers=headers)
     assert response.status_code == 202
 
 
