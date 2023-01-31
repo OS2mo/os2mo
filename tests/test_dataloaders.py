@@ -136,6 +136,7 @@ def get_attribute_types() -> dict:
         "name": MagicMock(),
         "employeeID": MagicMock(),
         "postalAddress": MagicMock(),
+        "objectClass": MagicMock(),
     }
 
 
@@ -469,7 +470,7 @@ async def test_get_overview(dataloader: DataLoader):
 async def test_get_populated_overview(dataloader: DataLoader):
 
     overview = {
-        "object1": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
+        "user": {"attributes": ["attr1", "attr2"], "superiors": ["sup1", "sup2"]}
     }
 
     responses = [
@@ -477,6 +478,7 @@ async def test_get_populated_overview(dataloader: DataLoader):
             "attributes": {
                 "attr1": "foo",  # We expect this attribute in the output
                 "attr2": None,  # But not this one
+                "objectClass": ["top", "person", "user"],
             }
         }
     ]
@@ -490,9 +492,11 @@ async def test_get_populated_overview(dataloader: DataLoader):
     ):
         output = dataloader.load_ldap_populated_overview()
 
-    assert list(output["object1"]["attributes"].keys()) == ["attr1"]
-    assert output["object1"]["superiors"] == ["sup1", "sup2"]
-    assert output["object1"]["attributes"]["attr1"]["single_value"] is False
+    assert sorted(list(output["user"]["attributes"].keys())) == sorted(
+        ["attr1", "objectClass"]
+    )
+    assert output["user"]["superiors"] == ["sup1", "sup2"]
+    assert output["user"]["attributes"]["attr1"]["single_value"] is False
 
 
 async def test_load_mo_address_types(

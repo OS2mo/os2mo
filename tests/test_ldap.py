@@ -395,7 +395,8 @@ async def test_invalid_paged_search(
 
 async def test_single_object_search(ldap_connection: MagicMock):
 
-    search_entry = {"type": "searchResEntry"}
+    dn = "CN=foo,DC=bar"
+    search_entry = {"type": "searchResEntry", "dn": dn}
 
     ldap_connection.response = [search_entry]
     output = single_object_search({}, ldap_connection)
@@ -410,3 +411,17 @@ async def test_single_object_search(ldap_connection: MagicMock):
     with pytest.raises(NoObjectsReturnedException):
         ldap_connection.response = [search_entry] * 0
         output = single_object_search({}, ldap_connection)
+
+    ldap_connection.response = [search_entry]
+    output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
+    assert output == search_entry
+    output = single_object_search(
+        {"search_base": "CN=moo,CN=foo,DC=bar"}, ldap_connection
+    )
+    assert output == search_entry
+    with pytest.raises(NoObjectsReturnedException):
+        output = single_object_search(
+            {"search_base": "CN=moo,CN=foo,DC=bar"},
+            ldap_connection,
+            exact_dn_match=True,
+        )

@@ -189,7 +189,7 @@ def paged_search(context: Context, searchParameters: dict) -> list:
     return responses
 
 
-def single_object_search(searchParameters, ldap_connection):
+def single_object_search(searchParameters, ldap_connection, exact_dn_match=False):
     """
     Performs an LDAP search and throws an exception if there are multiple or no search
     results.
@@ -214,6 +214,11 @@ def single_object_search(searchParameters, ldap_connection):
     logger = structlog.get_logger()
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
+
+    if exact_dn_match:
+        search_entries = [
+            s for s in search_entries if s["dn"] == searchParameters["search_base"]
+        ]
 
     if len(search_entries) > 1:
         logger.info(response)
@@ -261,7 +266,9 @@ def get_ldap_object(dn, context, nest=True):
         "search_filter": "(objectclass=*)",
         "attributes": ["*"],
     }
-    search_result = single_object_search(searchParameters, ldap_connection)
+    search_result = single_object_search(
+        searchParameters, ldap_connection, exact_dn_match=True
+    )
     dn = search_result["dn"]
     logger.info(f"[get_ldap_object] Found {dn}")
     return make_ldap_object(search_result, context, nest=nest)
