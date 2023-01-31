@@ -105,6 +105,9 @@ async def get_class_ancestor_tree(
      }]
     """
 
+    if uuid is None:
+        return []
+
     c = common.get_connector()
     classids = uuid
 
@@ -114,7 +117,7 @@ async def get_class_ancestor_tree(
 
 
 async def get_class_tree(
-    c, classids, with_siblings=False, only_primary_uuid: bool = False
+    c, classids: list[UUID], with_siblings=False, only_primary_uuid: bool = False
 ):
     """Return a tree, bounded by the given classid.
 
