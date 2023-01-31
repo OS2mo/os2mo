@@ -280,7 +280,7 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
 
     if nest is True, also makes ldap objects of related objects.
     """
-    attributes = list(response["attributes"].keys())
+    attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
     logger = structlog.get_logger()
 
