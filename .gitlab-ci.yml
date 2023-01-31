@@ -254,8 +254,10 @@ Unit-test:
       --color=yes
       --show-capture=stdout
       --cov=mora
-      --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
+      --group=$CI_NODE_INDEX
+      --splits=$CI_NODE_TOTAL
+      --splitting-algorithm=least_duration
+      --randomly-seed=$CI_PIPELINE_IID
   cache:
     paths:
       - ${PIP_CACHE_DIR}
@@ -295,8 +297,8 @@ Integration-test:
       --show-capture=stdout
       --cov=mora
       --cov=oio_rest
-      --group $CI_NODE_INDEX
-      --splits $CI_NODE_TOTAL
+      --group=$CI_NODE_INDEX
+      --splits=$CI_NODE_TOTAL
   artifacts:
     when: always
     paths:
