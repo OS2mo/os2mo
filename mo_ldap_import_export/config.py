@@ -54,7 +54,7 @@ class Settings(BaseSettings):
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings"
     )
 
-    amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@localhost:5672")
+    amqp_url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
     amqp_exchange: str = "os2mo"
     listen_to_changes_in_mo: bool = Field(
         True, description="Whether to write to AD, when changes in MO are registered"
