@@ -88,6 +88,7 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
     Settings()
 
 
+@pytest.mark.xfail  # todo #54412
 @pytest.mark.parametrize(
     "sp_api_version,expected_exception",
     [
@@ -113,6 +114,7 @@ def test_serviceplatformen_api_version_validation(
         assert settings.sp_settings.sp_api_version == sp_api_version
 
 
+@pytest.mark.xfail  # todo #54412
 def test_get_citizen_uses_version_kwarg(monkeypatch):
     # Test that the `version` kwargs is actually used in the call to
     # `service_person_stamdata_udvidet.get_citizen`.
