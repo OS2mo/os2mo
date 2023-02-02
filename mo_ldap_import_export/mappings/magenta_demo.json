@@ -22,11 +22,20 @@
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ ldap.postalAddress or NONE }}",
+      "value": "{{ ldap.homePostalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
+    // Note: This key needs to be a valid MO address type user_key*
+    "LocationUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.postalAddress or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
     },
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
@@ -65,8 +74,14 @@
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
       "objectClass": "user",
-      "postalAddress": "{{mo_employee_address.value}}",
+      "homePostalAddress": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
+    },
+    "LocationUnit": {
+      "objectClass": "user",
+      "postalAddress": "{{mo_org_unit_address.value}}",
+      "employeeID": "{{mo_employee.cpr_no}}",
+      "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     },
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {

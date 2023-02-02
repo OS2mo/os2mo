@@ -48,6 +48,7 @@ from .converters import read_mapping_json
 from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
 from .exceptions import MultipleObjectsReturnedException
+from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
 from .ldap import configure_ldap_connection
@@ -79,7 +80,12 @@ def reject_on_failure(func):
     async def modified_func(*args, **kwargs):
         try:
             await func(*args, **kwargs)
-        except (NotSupportedException, IncorrectMapping, TransportQueryError) as e:
+        except (
+            NotSupportedException,  # For features that are not supported: Abort
+            IncorrectMapping,  # If the json dict is incorrectly configured: Abort
+            TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
+            NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
+        ) as e:
             logger.exception(e)
             raise RejectMessage()
 
@@ -209,12 +215,63 @@ async def listen_to_changes_in_org_units(
     user_context = context["user_context"]
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
+    routing_key = kwargs["mo_routing_key"]
 
     # When an org-unit is changed we need to update the org unit info. So we
     # know the new name of the org unit in case it was changed
     logger.info("Updating org unit info")
     converter.org_unit_info = dataloader.load_mo_org_units()
     converter.check_org_unit_info_dict()
+
+    if routing_key.object_type == ObjectType.ADDRESS:
+        logger.info("[MO] Change registered in the address object type")
+
+        # Get MO address
+        changed_address, meta_info = await dataloader.load_mo_address(
+            payload.object_uuid
+        )
+        address_type = json_key = meta_info["address_type_user_key"]
+        logger.info(f"Obtained address type = {address_type}")
+
+        ldap_object_class = converter.find_ldap_object_class(json_key)
+        employee_object_class = converter.find_ldap_object_class("Employee")
+
+        if ldap_object_class != employee_object_class:
+            raise NotSupportedException(
+                (
+                    "Mapping organization unit addresses "
+                    "to non-employee objects is not supported"
+                )
+            )
+
+        affected_employees = await dataloader.load_mo_employees_in_org_unit(
+            payload.uuid
+        )
+        logger.info(f"[MO] Found {len(affected_employees)} affected employees")
+
+        for affected_employee in affected_employees:
+            mo_object_dict = {
+                "mo_employee": affected_employee,
+                "mo_org_unit_address": changed_address,
+            }
+
+            # Convert & Upload to LDAP
+            await dataloader.upload_ldap_object(
+                converter.to_ldap(mo_object_dict, json_key), json_key
+            )
+
+            addresses_in_mo = await dataloader.load_mo_org_unit_addresses(
+                payload.uuid, changed_address.address_type.uuid
+            )
+
+            cleanup(
+                json_key,
+                "value",
+                "mo_org_unit_address",
+                [a[0] for a in addresses_in_mo],
+                user_context,
+                affected_employee,
+            )
 
 
 @amqp_router.register("*.*.*")
@@ -240,6 +297,7 @@ async def listen_to_changes(
                 timestamps.remove(timestamp)
 
     # If the object was uploaded by us, it does not need to be synchronized.
+    # Unless the serviceType is org_unit: Those potentially map to multiple employees.
     if (
         payload.object_uuid in uuids_to_ignore
         and uuids_to_ignore[payload.object_uuid]
@@ -402,9 +460,7 @@ def encode_result(result):
     return json_compatible_result
 
 
-async def format_converted_objects(
-    converted_objects, json_key, employee_uuid, user_context
-):
+async def format_converted_objects(converted_objects, json_key, user_context):
     """
     for Address and Engagement objects:
         Loops through the objects, and sets the uuid if an existing matching object is
@@ -421,21 +477,37 @@ async def format_converted_objects(
 
     # Load addresses already in MO
     if mo_object_class == "Address":
-        addresses_in_mo = await dataloader.load_mo_employee_addresses(
-            employee_uuid, converted_objects[0].address_type.uuid
-        )
+        if converted_objects[0].person:
+            addresses_in_mo = await dataloader.load_mo_employee_addresses(
+                converted_objects[0].person.uuid, converted_objects[0].address_type.uuid
+            )
+        elif converted_objects[0].org_unit:
+            addresses_in_mo = await dataloader.load_mo_org_unit_addresses(
+                converted_objects[0].org_unit.uuid,
+                converted_objects[0].address_type.uuid,
+            )
+        else:
+            logger.info(
+                (
+                    "Could not format converted objects: "
+                    "An address needs to have either a person uuid OR an org unit uuid"
+                )
+            )
+            return []
         value_key = "value"
         objects_in_mo = [o[0] for o in addresses_in_mo]
     # Load engagements already in MO
     elif mo_object_class == "Engagement":
-        objects_in_mo = await dataloader.load_mo_employee_engagements(employee_uuid)
+        objects_in_mo = await dataloader.load_mo_employee_engagements(
+            converted_objects[0].person.uuid
+        )
         value_key = "user_key"
 
     elif mo_object_class == "ITUser":
         # If an ITUser already exists, MO throws an error - it cannot be updated if the
         # key is identical to an existing key.
         it_users_in_mo = await dataloader.load_mo_employee_it_users(
-            employee_uuid, converted_objects[0].itsystem.uuid
+            converted_objects[0].person.uuid, converted_objects[0].itsystem.uuid
         )
         user_keys_in_mo = [a.user_key for a in it_users_in_mo]
 
@@ -485,7 +557,17 @@ async def format_converted_objects(
                     mo_object_dict_to_upload[key] = converted_mo_object_dict[key]
 
             mo_class = converter.import_mo_object_class(json_key)
-            converted_objects_uuid_checked.append(mo_class(**mo_object_dict_to_upload))
+            converted_object_uuid_checked = mo_class(**mo_object_dict_to_upload)
+
+            # If an object is identical to the one already there, it does not need
+            # to be uploaded.
+            if converted_object_uuid_checked == matching_object:
+                logger.info(
+                    "Converted object is identical to existing object. Skipping."
+                )
+            else:
+                converted_objects_uuid_checked.append(converted_object_uuid_checked)
+
         elif values_in_mo.count(converted_object_value) == 0:
             converted_objects_uuid_checked.append(converted_object)
         else:
@@ -620,7 +702,7 @@ def create_app(**kwargs: Any) -> FastAPI:
                 continue
 
             converted_objects = await format_converted_objects(
-                converted_objects, json_key, employee_uuid, user_context
+                converted_objects, json_key, user_context
             )
 
             if len(converted_objects) > 0:

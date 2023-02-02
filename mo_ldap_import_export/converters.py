@@ -595,12 +595,18 @@ class LdapConverter:
                 uuid = uuid4()
                 name = partial_path[-1]
 
+                # Note: 1902 seems to be the earliest accepted year by OS2mo
+                # We pick 1960 because MO's dummy data also starts all organizations
+                # in 1960...
+                # We just want a very early date here, to avoid that imported employee
+                # engagements start before the org-unit existed.
+                from_date = datetime.datetime(1960, 1, 1).strftime("%Y-%m-%dT00:00:00")
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
                     name=self.imported_org_unit_tag + name,
                     org_unit_type_uuid=self.default_org_unit_type_uuid,
                     org_unit_level_uuid=self.default_org_unit_level_uuid,
-                    from_date=datetime.datetime.now().strftime("%Y-%m-%dT00:00:00"),
+                    from_date=from_date,
                     parent_uuid=parent_uuid,
                     uuid=uuid,
                 )

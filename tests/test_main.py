@@ -398,8 +398,79 @@ async def test_listen_to_changes_in_org_units(converter: MagicMock):
         {"user_context": {"dataloader": dataloader, "converter": converter}}
     )
 
-    await listen_to_changes_in_org_units(context, payload)
+    mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
+
+    await listen_to_changes_in_org_units(
+        context, payload, mo_routing_key=mo_routing_key
+    )
     assert converter.org_unit_info == org_unit_info
+
+
+async def test_listen_to_change_in_org_unit_address(
+    dataloader: AsyncMock, load_settings_overrides: dict[str, str], converter: MagicMock
+):
+    mo_routing_key = MORoutingKey.build("org_unit.address.edit")
+
+    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
+    employee1 = Employee(cpr_no="0101011234")
+    employee2 = Employee(cpr_no="0101011235")
+
+    dataloader = MagicMock()
+
+    load_mo_address = AsyncMock()
+    load_mo_employees_in_org_unit = AsyncMock()
+    load_mo_org_unit_addresses = AsyncMock()
+    upload_ldap_object = AsyncMock()
+
+    load_mo_address.return_value = [address, {"address_type_user_key": "LocationUnit"}]
+    load_mo_employees_in_org_unit.return_value = [employee1, employee2]
+    load_mo_org_unit_addresses.return_value = [(address, {})]
+
+    dataloader.upload_ldap_object = upload_ldap_object
+    dataloader.load_mo_address = load_mo_address
+    dataloader.load_mo_employees_in_org_unit = load_mo_employees_in_org_unit
+    dataloader.load_mo_org_unit_addresses = load_mo_org_unit_addresses
+
+    converter.find_ldap_object_class.return_value = "user"
+
+    payload = MagicMock()
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+
+    await listen_to_changes_in_org_units(
+        context, payload, mo_routing_key=mo_routing_key
+    )
+
+    # Assert that an address was uploaded to two ldap objects.
+    assert upload_ldap_object.await_count == 2
+
+
+async def test_listen_to_change_in_org_unit_address_not_supported(
+    dataloader: AsyncMock, load_settings_overrides: dict[str, str], converter: MagicMock
+):
+    mo_routing_key = MORoutingKey.build("org_unit.address.edit")
+    payload = MagicMock()
+    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
+
+    def find_ldap_object_class(json_key):
+        d = {"Employee": "user", "LocationUnit": "address"}
+        return d[json_key]
+
+    converter.find_ldap_object_class.side_effect = find_ldap_object_class
+
+    load_mo_address = AsyncMock()
+    load_mo_address.return_value = [address, {"address_type_user_key": "LocationUnit"}]
+    dataloader.load_mo_address = load_mo_address
+
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+
+    with pytest.raises(NotSupportedException):
+        await listen_to_changes_in_org_units(
+            context, payload, mo_routing_key=mo_routing_key
+        )
 
 
 async def test_listen_to_changes_in_employees(
@@ -773,33 +844,30 @@ async def test_import_address_objects(
     converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
 
     address_type_uuid = uuid4()
+    person_uuid = uuid4()
 
     converted_objects = [
-        Address.from_simplified_fields("foo@bar.dk", address_type_uuid, "2021-01-01"),
-        Address.from_simplified_fields("foo2@bar.dk", address_type_uuid, "2021-01-01"),
-        Address.from_simplified_fields("foo3@bar.dk", address_type_uuid, "2021-01-01"),
+        Address.from_simplified_fields(
+            "foo@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        Address.from_simplified_fields(
+            "foo2@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        Address.from_simplified_fields(
+            "foo3@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
     ]
 
     converter.from_ldap.return_value = converted_objects
 
-    address_in_mo = Address.from_simplified_fields(
-        "foo@bar.dk", address_type_uuid, "2021-01-01"
-    )
+    with patch(
+        "mo_ldap_import_export.main.format_converted_objects",
+        return_value=converted_objects,
+    ):
+        response = test_client.get("/Import/0101011234", headers=headers)
+        assert response.status_code == 202
 
-    addresses_in_mo = [(address_in_mo, None)]
-
-    dataloader.load_mo_employee_addresses.return_value = addresses_in_mo
-
-    response = test_client.get("/Import/0101011234", headers=headers)
-    assert response.status_code == 202
-
-    converted_objects_uuid_checked = [
-        address_in_mo,
-        converted_objects[1],
-        converted_objects[2],
-    ]
-
-    dataloader.upload_mo_objects.assert_called_with(converted_objects_uuid_checked)
+        dataloader.upload_mo_objects.assert_called_with(converted_objects)
 
 
 async def test_import_it_user_objects(
@@ -811,17 +879,24 @@ async def test_import_it_user_objects(
 
     it_system_type1_uuid = uuid4()
     it_system_type2_uuid = uuid4()
+    person_uuid = uuid4()
 
     converted_objects = [
-        ITUser.from_simplified_fields("Username1", it_system_type1_uuid, "2021-01-01"),
-        ITUser.from_simplified_fields("Username2", it_system_type2_uuid, "2021-01-01"),
-        ITUser.from_simplified_fields("Username3", it_system_type2_uuid, "2021-01-01"),
+        ITUser.from_simplified_fields(
+            "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        ITUser.from_simplified_fields(
+            "Username2", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        ITUser.from_simplified_fields(
+            "Username3", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
     ]
 
     converter.from_ldap.return_value = converted_objects
 
     it_user_in_mo = ITUser.from_simplified_fields(
-        "Username1", it_system_type1_uuid, "2021-01-01"
+        "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
     )
 
     it_users_in_mo = [it_user_in_mo]
@@ -907,13 +982,15 @@ async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock
 ):
 
-    converter.get_mo_attributes.return_value = ["user_key"]
+    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
     converter.find_mo_object_class.return_value = "Engagement"
     converter.import_mo_object_class.return_value = Engagement
 
+    employee_uuid = uuid4()
+
     engagement1 = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="123",
@@ -922,7 +999,7 @@ async def test_format_converted_engagement_objects(
 
     engagement2 = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="foo",
@@ -932,7 +1009,7 @@ async def test_format_converted_engagement_objects(
     # We do not expect this one the be uploaded, because its user_key exists twice in MO
     engagement3 = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="duplicate_key",
@@ -941,7 +1018,7 @@ async def test_format_converted_engagement_objects(
 
     engagement1_in_mo = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="123",
@@ -950,7 +1027,7 @@ async def test_format_converted_engagement_objects(
 
     engagement2_in_mo = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="duplicate_key",
@@ -959,7 +1036,7 @@ async def test_format_converted_engagement_objects(
 
     engagement3_in_mo = Engagement.from_simplified_fields(
         org_unit_uuid=uuid4(),
-        person_uuid=uuid4(),
+        person_uuid=employee_uuid,
         job_function_uuid=uuid4(),
         engagement_type_uuid=uuid4(),
         user_key="duplicate_key",
@@ -976,12 +1053,10 @@ async def test_format_converted_engagement_objects(
 
     json_key = "Engagement"
 
-    employee_uuid = uuid4()
-
     converted_objects = [engagement1, engagement2, engagement3]
 
     formatted_objects = await format_converted_objects(
-        converted_objects, json_key, employee_uuid, user_context
+        converted_objects, json_key, user_context
     )
 
     assert len(formatted_objects) == 2
@@ -1004,8 +1079,145 @@ async def test_format_converted_employee_objects(
     converted_objects = [employee1, employee2]
 
     formatted_objects = await format_converted_objects(
-        converted_objects, "Employee", uuid4(), user_context
+        converted_objects, "Employee", user_context
     )
 
     assert formatted_objects[0] == employee1
     assert formatted_objects[1] == employee2
+
+
+async def test_format_converted_employee_address_objects(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.get_mo_attributes.return_value = ["value", "address_type"]
+    converter.find_mo_object_class.return_value = "Address"
+    converter.import_mo_object_class.return_value = Address
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+
+    person_uuid = uuid4()
+    address1 = Address.from_simplified_fields(
+        "foo", uuid4(), "2021-01-01", person_uuid=person_uuid
+    )
+    address2 = Address.from_simplified_fields(
+        "bar", uuid4(), "2021-01-01", person_uuid=person_uuid
+    )
+
+    address1_in_mo = Address.from_simplified_fields(
+        "foo", uuid4(), "2021-01-01", person_uuid=person_uuid
+    )
+
+    converted_objects = [address1, address2]
+
+    dataloader.load_mo_employee_addresses.return_value = [
+        (address1_in_mo, {}),
+    ]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, "Address", user_context
+    )
+
+    assert formatted_objects[1] == address2
+
+    assert formatted_objects[0].uuid == address1_in_mo.uuid
+    assert formatted_objects[0].value == "foo"
+
+
+async def test_format_converted_org_unit_address_objects(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.get_mo_attributes.return_value = ["value", "address_type"]
+    converter.find_mo_object_class.return_value = "Address"
+    converter.import_mo_object_class.return_value = Address
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+    org_unit_uuid = uuid4()
+    address1 = Address.from_simplified_fields(
+        "foo", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+    address2 = Address.from_simplified_fields(
+        "bar", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+
+    address1_in_mo = Address.from_simplified_fields(
+        "foo", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+
+    converted_objects = [address1, address2]
+
+    dataloader.load_mo_org_unit_addresses.return_value = [
+        (address1_in_mo, {}),
+    ]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, "Address", user_context
+    )
+
+    assert formatted_objects[1] == address2
+
+    assert formatted_objects[0].uuid == address1_in_mo.uuid
+    assert formatted_objects[0].value == "foo"
+
+
+async def test_format_converted_org_unit_address_objects_identical_to_mo(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.get_mo_attributes.return_value = ["value", "address_type"]
+    converter.find_mo_object_class.return_value = "Address"
+    converter.import_mo_object_class.return_value = Address
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+    org_unit_uuid = uuid4()
+    address_type_uuid = uuid4()
+    address1 = Address.from_simplified_fields(
+        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+    address2 = Address.from_simplified_fields(
+        "bar", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+
+    # This one is identical to the one which we are trying to upload
+    address1_in_mo = Address.from_simplified_fields(
+        "foo", address_type_uuid, "2021-01-01", org_unit_uuid=org_unit_uuid
+    )
+
+    converted_objects = [address1, address2]
+
+    dataloader.load_mo_org_unit_addresses.return_value = [
+        (address1_in_mo, {}),
+    ]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, "Address", user_context
+    )
+
+    assert formatted_objects[0].value == "bar"
+    assert len(formatted_objects) == 1
+
+
+async def test_format_converted_address_objects_without_person_or_org_unit(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    converter.get_mo_attributes.return_value = ["value", "address_type"]
+    converter.find_mo_object_class.return_value = "Address"
+    converter.import_mo_object_class.return_value = Address
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+
+    # These addresses have neither an org unit uuid or person uuid. we cannot convert
+    # them
+    address_type_uuid = uuid4()
+    address1 = Address.from_simplified_fields("foo", address_type_uuid, "2021-01-01")
+    address2 = Address.from_simplified_fields("bar", address_type_uuid, "2021-01-01")
+
+    converted_objects = [address1, address2]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, "Address", user_context
+    )
+
+    assert len(formatted_objects) == 0
