@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
@@ -88,7 +89,6 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
     Settings()
 
 
-@pytest.mark.xfail  # todo #54412
 @pytest.mark.parametrize(
     "sp_api_version,expected_exception",
     [
@@ -100,11 +100,11 @@ def test_serviceplatformen_happy_path(monkeypatch, tmp_path):
 )
 def test_serviceplatformen_api_version_validation(
     monkeypatch,
+    sp_configuration,
     sp_api_version,
     expected_exception,
 ):
-    monkeypatch.setenv("ENVIRONMENT", "production")
-    monkeypatch.setenv("DUMMY_MODE", "False")
+    """Test validation in `ServicePlatformenSettings.validate_api_version`"""
     _sp_config(monkeypatch, SP_API_VERSION=str(sp_api_version))
     if expected_exception:
         with pytest.raises(expected_exception):
@@ -114,17 +114,19 @@ def test_serviceplatformen_api_version_validation(
         assert settings.sp_settings.sp_api_version == sp_api_version
 
 
-@pytest.mark.xfail  # todo #54412
-def test_get_citizen_uses_version_kwarg(monkeypatch):
+def test_get_citizen_uses_version_kwarg():
     # Test that the `version` kwargs is actually used in the call to
     # `service_person_stamdata_udvidet.get_citizen`.
-    _sp_config(monkeypatch, SP_API_VERSION="4", CPR_VALIDATE_BIRTHDATE="False")
-    with patch("service_person_stamdata_udvidet.get_citizen") as mock_get_citizen_impl:
-        # This calls `service_person_stamdata_udvidet.get_citizen`
-        cpr_shim.get_citizen("0101010101")
-        # Assert that our mock `service_person_stamdata_udvidet.get_citizen` is called
-        # using the expected `api_version` kwarg.
-        mock_get_citizen_impl.assert_called_once()
-        call_args = mock_get_citizen_impl.call_args
-        api_version = call_args.kwargs["api_version"]
-        assert api_version == 4
+    settings = MagicMock()
+    settings.sp_settings = MagicMock()
+    settings.sp_settings.sp_api_version = 4
+    with util.override_config(settings):
+        with patch("service_person_stamdata_udvidet.get_citizen") as mock_get_citizen:
+            # This calls `service_person_stamdata_udvidet.get_citizen`
+            cpr_shim.get_citizen("0101010101")
+            # Assert that our mock `service_person_stamdata_udvidet.get_citizen` is
+            # called using the expected `api_version` kwarg.
+            mock_get_citizen.assert_called_once()
+            call_args = mock_get_citizen.call_args
+            api_version = call_args.kwargs["api_version"]
+            assert api_version == settings.sp_settings.sp_api_version

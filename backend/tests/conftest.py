@@ -581,3 +581,14 @@ def token():
 @pytest.fixture(scope="session")
 def auth_headers(token: str):
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def sp_configuration(monkeypatch, tmp_path) -> None:
+    """Configure minimal environment variables to test Serviceplatformen integration."""
+    tmp_file = tmp_path / "testfile"
+    tmp_file.write_text("This is a certificate")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    monkeypatch.setenv("ENABLE_SP", "True")
+    monkeypatch.setenv("SP_CERTIFICATE_PATH", str(tmp_file))
+    yield
