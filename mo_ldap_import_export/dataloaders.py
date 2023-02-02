@@ -542,7 +542,7 @@ class DataLoader:
             person_uuid=entry["employee_uuid"],
         )
 
-    async def load_mo_address(self, uuid: UUID) -> tuple[Address, dict]:
+    async def load_mo_address(self, uuid: UUID) -> Address:
         """
         Loads a mo address
 
@@ -598,13 +598,7 @@ class DataLoader:
             org_unit_uuid=entry["org_unit_uuid"],
         )
 
-        # We make a dict with meta-data because ramodels Address does not support
-        # (among others) address_type names. It only supports uuids
-        address_metadata = {"address_type_user_key": entry["address_type"]["user_key"]}
-        if entry["person"]:
-            address_metadata.update({"employee_cpr_no": entry["person"][0]["cpr_no"]})
-
-        return (address, address_metadata)
+        return address
 
     async def load_mo_engagement(self, uuid: UUID) -> Engagement:
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
@@ -672,7 +666,7 @@ class DataLoader:
 
     async def load_mo_employee_addresses(
         self, employee_uuid, address_type_uuid
-    ) -> list[tuple[Address, dict]]:
+    ) -> list[Address]:
         """
         Loads all current addresses of a specific type for an employee
         """
@@ -703,7 +697,7 @@ class DataLoader:
 
     async def load_mo_org_unit_addresses(
         self, org_unit_uuid, address_type_uuid
-    ) -> list[tuple[Address, dict]]:
+    ) -> list[Address]:
         """
         Loads all current addresses of a specific type for an org unit
         """

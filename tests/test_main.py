@@ -144,15 +144,21 @@ def sync_dataloader() -> MagicMock:
 
 
 @pytest.fixture
-def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
+def test_mo_address() -> Address:
+    test_mo_address = Address.from_simplified_fields(
+        "foo@bar.dk", uuid4(), "2021-01-01"
+    )
+    return test_mo_address
+
+
+@pytest.fixture
+def dataloader(sync_dataloader: MagicMock, test_mo_address: Address) -> AsyncMock:
 
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
     )
     test_mo_employee = Employee(cpr_no="1212121234")
-    test_mo_address = Address.from_simplified_fields(
-        "foo@bar.dk", uuid4(), "2021-01-01"
-    )
+
     test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
     load_ldap_cpr_object = MagicMock()
@@ -165,17 +171,12 @@ def dataloader(sync_dataloader: MagicMock) -> AsyncMock:
     dataloader.load_ldap_cpr_object = load_ldap_cpr_object
     dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
     dataloader.load_mo_employee.return_value = test_mo_employee
-    dataloader.load_mo_address.return_value = (
-        test_mo_address,
-        {"address_type_user_key": "EmailEmployee"},
-    )
+    dataloader.load_mo_address.return_value = test_mo_address
     dataloader.load_mo_it_user.return_value = test_mo_it_user
     dataloader.load_mo_address_types = sync_dataloader
     dataloader.load_mo_it_systems = sync_dataloader
     dataloader.cleanup_attributes_in_ldap = sync_dataloader
-    dataloader.load_mo_employee_addresses.return_value = [
-        (test_mo_address, {"address_type_user_key": "EmailEmployee"})
-    ] * 2
+    dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
 
     return dataloader
 
@@ -422,9 +423,9 @@ async def test_listen_to_change_in_org_unit_address(
     load_mo_org_unit_addresses = AsyncMock()
     upload_ldap_object = AsyncMock()
 
-    load_mo_address.return_value = [address, {"address_type_user_key": "LocationUnit"}]
+    load_mo_address.return_value = address
     load_mo_employees_in_org_unit.return_value = [employee1, employee2]
-    load_mo_org_unit_addresses.return_value = [(address, {})]
+    load_mo_org_unit_addresses.return_value = [address]
 
     dataloader.upload_ldap_object = upload_ldap_object
     dataloader.load_mo_address = load_mo_address
@@ -460,8 +461,12 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     converter.find_ldap_object_class.side_effect = find_ldap_object_class
 
     load_mo_address = AsyncMock()
-    load_mo_address.return_value = [address, {"address_type_user_key": "LocationUnit"}]
+    load_mo_address.return_value = address
     dataloader.load_mo_address = load_mo_address
+
+    converter.address_type_info = {
+        address.address_type.uuid: {"user_key": "LocationUnit"}
+    }
 
     context = Context(
         {"user_context": {"dataloader": dataloader, "converter": converter}}
@@ -474,7 +479,9 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
 
 
 async def test_listen_to_changes_in_employees(
-    dataloader: AsyncMock, load_settings_overrides: dict[str, str]
+    dataloader: AsyncMock,
+    load_settings_overrides: dict[str, str],
+    test_mo_address: Address,
 ) -> None:
 
     settings_mock = MagicMock()
@@ -492,6 +499,10 @@ async def test_listen_to_changes_in_employees(
     converter.get_it_system_name.return_value = "AD"
 
     address_type_user_key = "EmailEmployee"
+    converter.address_type_info = {
+        test_mo_address.address_type.uuid: {"user_key": address_type_user_key}
+    }
+
     it_system_type_name = "AD"
 
     context = Context(
@@ -1110,9 +1121,7 @@ async def test_format_converted_employee_address_objects(
 
     converted_objects = [address1, address2]
 
-    dataloader.load_mo_employee_addresses.return_value = [
-        (address1_in_mo, {}),
-    ]
+    dataloader.load_mo_employee_addresses.return_value = [address1_in_mo]
 
     formatted_objects = await format_converted_objects(
         converted_objects, "Address", user_context
@@ -1147,9 +1156,7 @@ async def test_format_converted_org_unit_address_objects(
 
     converted_objects = [address1, address2]
 
-    dataloader.load_mo_org_unit_addresses.return_value = [
-        (address1_in_mo, {}),
-    ]
+    dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
     formatted_objects = await format_converted_objects(
         converted_objects, "Address", user_context
@@ -1186,9 +1193,7 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
     converted_objects = [address1, address2]
 
-    dataloader.load_mo_org_unit_addresses.return_value = [
-        (address1_in_mo, {}),
-    ]
+    dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
     formatted_objects = await format_converted_objects(
         converted_objects, "Address", user_context
