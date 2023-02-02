@@ -612,6 +612,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
         "address_type": {"uuid": uuid},
         "validity": {"from": "2021-01-01 01:00", "to": None},
         "person": {"uuid": uuid},
+        "org_unit": {"uuid": uuid},
         "visibility": {"uuid": uuid},
     }
 
@@ -619,10 +620,12 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
     expected_result = Address(**address_dict.copy())
 
     # While graphQL returns it as a list with length 1
-    address_dict["person"] = [{"cpr_no": "0101012002", "uuid": uuid}]
+    address_dict["person"] = [{"cpr_no": "0101012002"}]
     address_dict["address_type"]["user_key"] = "address"
     address_dict["value2"] = None
     address_dict["visibility_uuid"] = uuid
+    address_dict["employee_uuid"] = uuid
+    address_dict["org_unit_uuid"] = uuid
 
     gql_client.execute.return_value = {
         "addresses": [
@@ -989,6 +992,82 @@ async def test_load_mo_employee_it_users(dataloader: DataLoader, gql_client: Asy
     )
 
     load_mo_it_user.assert_called_once_with(uuid1)
+
+
+async def test_load_mo_employees_in_org_unit(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    employee_uuid1 = uuid4()
+    employee_uuid2 = uuid4()
+    return_value = {
+        "org_units": [
+            {
+                "objects": [
+                    {
+                        "engagements": [
+                            {
+                                "employee_uuid": employee_uuid1,
+                            },
+                            {
+                                "employee_uuid": employee_uuid2,
+                            },
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    load_mo_employee = AsyncMock()
+    dataloader.load_mo_employee = load_mo_employee  # type: ignore
+
+    await asyncio.gather(
+        dataloader.load_mo_employees_in_org_unit(uuid4()),
+    )
+
+    load_mo_employee.assert_any_call(employee_uuid1)
+    load_mo_employee.assert_any_call(employee_uuid2)
+
+
+async def test_load_mo_org_unit_addresses(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    address_uuid1 = uuid4()
+    address_uuid2 = uuid4()
+    return_value = {
+        "org_units": [
+            {
+                "objects": [
+                    {
+                        "addresses": [
+                            {
+                                "uuid": address_uuid1,
+                            },
+                            {
+                                "uuid": address_uuid2,
+                            },
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+
+    gql_client.execute.return_value = return_value
+
+    load_mo_address = AsyncMock()
+    dataloader.load_mo_address = load_mo_address  # type: ignore
+
+    await asyncio.gather(
+        dataloader.load_mo_org_unit_addresses(uuid4(), uuid4()),
+    )
+
+    load_mo_address.assert_any_call(address_uuid1)
+    load_mo_address.assert_any_call(address_uuid2)
 
 
 async def test_load_mo_employee_engagements(

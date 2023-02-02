@@ -226,6 +226,49 @@ For post addresses, it is required to use an address type in MO with `scope` != 
 The reason for this is that we cannot expect an LDAP server to have the same address
 format as DAR.
 
+##### Organization unit address conversion
+
+An address in an OS2mo organizational unit maps to every LDAP employee object who is
+engaged at the organizational unit. This can be set up as follows:
+
+```
+  [...]
+  "mo_to_ldap": {
+    "LocationUnit": {
+      "objectClass": "user",
+      "postalAddress": "{{mo_org_unit_address.value}}",
+      "employeeID": "{{mo_employee.cpr_no}}",
+      "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+    }
+  }
+  [...]
+```
+
+And the other way around:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "LocationUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.postalAddress or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
+    },
+  }
+  [...]
+```
+
+Note that an organizational unit address needs to have an `org_unit` attribute. In
+contrast to an employee address, which needs a `person` attribute. For details regarding
+`get_org_unit_path_string` and `get_or_create_org_unit_uuid`, see the chapter on
+[engagement conversion](#engagement-conversion).
+
+Mapping org unit addresses to LDAP objects other than `employee` objects (i.e. objects
+with a cpr number field) is currently not supported.
+
 #### IT user conversion
 It user conversion follows the same logic as address conversion. An example of an IT
 user conversion dict is as follows:
@@ -361,6 +404,9 @@ These are called using the normal function call syntax:
 * `get_engagement_type_name`: Returns the name of an engagement type, given its uuid
 * `get_job_function_name`: Returns the name of a job function, given its uuid
 
+Finally, the following global variables can be used:
+
+* `employee_uuid`: uuid of the employee matching the converted object's cpr number.
 
 #### Username generation
 If a user is created in MO, the tool will try to find the matching user in LDAP using
