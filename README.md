@@ -263,7 +263,7 @@ And the other way around:
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-            }
+    }
   }
   [...]
 ```
