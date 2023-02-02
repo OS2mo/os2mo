@@ -75,7 +75,7 @@ to MO, and takes the form:
 Note that the `Employee` key must always be present in the conversion file.
 
 Here the `Employee` class is specified to take the class `ramodels.mo.employee.Employee`
-when creating or updating a OS2mo object, and to take the class `user` when creating or
+when creating or updating an OS2mo object, and to take the class `user` when creating or
 updating an LDAP object. If the LDAP schema uses a different class for the employee
 object, specify that class here.
 
