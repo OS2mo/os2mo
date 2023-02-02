@@ -20,7 +20,7 @@ You can get the coverage report like this:
 
 ### Using the app
 
-First make sure that os2mo is up and running.
+First make sure that OS2mo is up and running.
 
 Then, create a `docker-compose.override.yml` file based on the
 `docker-compose.override.template.yml` file
@@ -33,28 +33,24 @@ poetry install
 docker-compose up
 ```
 
-You can use the app like this:
+To use the app, you can go to [the swagger documentation][swagger].
 
-```
-import requests
-r = requests.get("http://0.0.0.0:8000/LDAP/all")
-print(r.json()[-2])
-```
-
-Or you can go to [the swagger documentation][swagger] for a more
-graphic interface
-
-### Setting up conversion file
+### Setting up the conversion file
 
 The conversion dictionary is the heart of the application. New fields can be synchronized
 solely by adding entries to this dictionary, without the need to change code elsewhere.
 
-Currently only MO addresses and employees are supported for conversion. All address types
-are supported.
+Currently the following objects are supported for conversion:
+
+* Employees
+* Employee addresses
+* Employee IT users
+* Employee engagements
+* Organization unit addresses
 
 #### Employee conversion
 
-The conversion file specifies in json how to map attributes from MO to LDAP and from LDAP
+The conversion file specifies in json how to map attributes from OS2mo to LDAP and from LDAP
 to MO, and takes the form:
 
 ```
@@ -79,24 +75,24 @@ to MO, and takes the form:
 Note that the `Employee` key must always be present in the conversion file.
 
 Here the `Employee` class is specified to take the class `ramodels.mo.employee.Employee`
-when creating or updating a MO object, and to take the class `user` when creating or
+when creating or updating a OS2mo object, and to take the class `user` when creating or
 updating an LDAP object. If the LDAP schema uses a different class for the employee
 object, specify that class here.
 
-
-
 Each entry in the conversion file _must_ specify:
 * An "objectClass" attribute.
-    * MO: Any MO class from ramodels should be acceptable.
+    * OS2mo: Any OS2mo class from ramodels should be acceptable.
     * LDAP: Available LDAP classes and their attributes can be retrieved by calling
     [GET:LDAP_overview][get_overview].
-* An attribute that corresponds to the cpr number for the MO or LDAP class.
-* Attributes for all required fields in the MO or LDAP class to be written
-* For LDAP classes: a link to mo_employee.cpr_no must be present.
-Otherwise we do not know who the address belongs to.
+* An attribute that corresponds to the cpr number for the OS2mo or LDAP class.
+* Attributes for all required fields in the OS2mo or LDAP class to be written
+* For LDAP classes: A link to mo_employee.cpr_no must be present. Otherwise we do not
+  know who the address belongs to.
+* For OS2mo classes: A link to the employee or organization unit's uuid must be present.
 
-
-Note that all attributes MUST be accepted by the destination class in MO or LDAP.
+Note that all attributes MUST be accepted by the destination class in OS2mo or LDAP.
+Exceptions for this are the LDAP `extensionAttribute` attributes. These attributes
+can be present on LDAP classes, without being explicitly specified in the schema.
 
 Values in the json structure may be normal strings, or a string containing one or more
 jinja2 templates, to be used for extracting values. For example:
@@ -106,13 +102,13 @@ jinja2 templates, to be used for extracting values. For example:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
     }
   }
   [...]
 ```
 Here, `employeeID` in the resulting LDAP object will be set to the `cpr_no` value from
-the MO object. The `mo_employee` object will be added to the template context by adding
+the OS2mo object. The `mo_employee` object will be added to the template context by adding
 to the `mo_object_dict` in `mo_import_export.main.listen_to_changes_in_employees`.
 
 More advanced template strings may be constructed, such as:
@@ -122,67 +118,32 @@ More advanced template strings may be constructed, such as:
     "Employee": {
       "objectClass": "user",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
+      "uuid": "{{ employee_uuid or NONE }}"
     }
   }
   [...]
 ```
-Here, the MO object's `givenname` attribute will be set to the givenName attribute from
+Here, the OS2mo object's `givenname` attribute will be set to the givenName attribute from
 LDAP, if it exists, or if it does not, to the name attribute modified to be split by the
-last space and using the first part of the result.
+last space and using the first part of the result. Note also the `uuid` field, which
+must be present to map the employee to the proper object in OS2mo. In this case, the
+uuid attribute links to a [global](#filters-and-globals) variable called `employee_uuid`.
 
 #### Address conversion
 
-MO can contain multiple addresses of the same type for a single user. It is therefore
-recommended that the LDAP field corresponding to MO's address value can contain multiple
+OS2mo can contain multiple addresses of the same type for a single user. It is therefore
+recommended that the LDAP field corresponding to OS2mo's address value can contain multiple
 values. If this is not the case, the address in LDAP will be overwritten every time a
-new address of an existing type is added in MO. Information about whether an LDAP field
-can contain multiple values can be found by calling [GET:LDAP_overview][get_overview].
-and inspecting the `single_value` attribute
-in `["{class_name}"]["attribute_types"]["{attribute_name}"]`. For example:
-
-```
-r = requests.get("http://0.0.0.0:8000/LDAP_overview")
-overview = r.json()
-print("Here is the attribute type info for the 'postalAddress' field:")
-print(overview["user"]["attribute_types"]["postalAddress"])
-```
-
-Returns:
-
-```
->>> {'oid': '2.5.4.16',
-     'name': ['postalAddress'],
-     'description': None,
-     'obsolete': False,
-     'extensions': None,
-     'experimental': None,
-     'raw_definition': "( 2.5.4.16 NAME 'postalAddress' SYNTAX '1.3.6.1.4.1.1466.115.121.1.15' )",
-     '_oid_info': None,
-     'superior': None,
-     'equality': None,
-     'ordering': None,
-     'substring': None,
-     'syntax': '1.3.6.1.4.1.1466.115.121.1.15',
-     'min_length': None,
-     'single_value': False,
-     'collective': False,
-     'no_user_modification': False,
-     'usage': None,
-     'mandatory_in': [],
-     'optional_in': ['organizationalUnit',
-      'organizationalPerson',
-      'organization',
-      'residentialPerson',
-      'rFC822LocalPart',
-      'organizationalRole']}
-```
+new address of an existing type is added in OS2mo. Information about whether an LDAP field
+can contain multiple values, can be found by calling [GET:LDAP_overview][get_overview].
+and inspecting the `single_value` attribute.
 
 An example of an address conversion dict is as follows:
 
 ```
   [...]
   "mo_to_ldap": {
-    "Email": {
+    "EmailEmployee": {
       "objectClass": "user",
       "mail": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
@@ -193,7 +154,7 @@ An example of an address conversion dict is as follows:
 
 Note the presence of the `mo_employee.cpr_no` field. This field must be present, for the
 application to know who this address belongs to. Furthermore, the `Email` key must be a
-valid MO address type name. MO address types can be retrieved by calling
+valid OS2mo address type name. OS2mo address types can be retrieved by calling
 [GET:MO/Address_types][get_address_types]. Finally it is recommended that LDAP's `mail`
 attribute is a multi-value field.
 
@@ -202,29 +163,35 @@ Converting the other way around can be done as follows:
 ```
   [...]
   "ldap_to_mo": {
-    "Email": {
+    "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.mail or None}}",
       "type": "address",
       "validity": "{{ dict(from_date = ldap.mail_validity_from or now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}"
+      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
   }
   [...]
 ```
 
-Note the uuid in the `address_type` field. This value must be a dict, as specified by
+Note the `address_type` field. This attribute must contain a dict, as specified by
 `ramodels.mo.details.address.Address`. Furthermore the uuid must be a valid address type
 uuid. Valid address type uuids can be obtained by calling
-[GET:MO/Address_types][get_address_types] or by using the `get_address_type_uuid` global
-function in the template.
+[GET:MO/Address_types][get_address_types] or by using the `get_address_type_uuid`
+[global](#filters-and-globals) function in the template.
+
+Furthermore, the object must contain a `person` entry, which refers to the employee uuid
+for this which address is to be imported. In this example, we use the `employee_uuid`
+[global](#filters-and-globals) variable.
 
 
 ##### Post Address conversion
 
-For post addresses, it is required to use an address type in MO with `scope` != `DAR`.
+For post addresses, it is required to use an address type in OS2mo with `scope` != `DAR`.
 The reason for this is that we cannot expect an LDAP server to have the same address
-format as DAR.
+format as DAR. The scope of address types in OS2mo can be retrieved using
+[GET:MO/Address_types][get_address_types].
 
 ##### Organization unit address conversion
 
@@ -262,7 +229,7 @@ And the other way around:
 ```
 
 Note that an organizational unit address needs to have an `org_unit` attribute. In
-contrast to an employee address, which needs a `person` attribute. For details regarding
+contrast to an employee object, which needs a `person` attribute. For details regarding
 `get_org_unit_path_string` and `get_or_create_org_unit_uuid`, see the chapter on
 [engagement conversion](#engagement-conversion).
 
@@ -294,14 +261,15 @@ And the other way around:
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "user_key": "{{ ldap.msSFU30Name or None }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
             }
   }
   [...]
 ```
 
 Note that we have specified the json key equal to `Active Directory`. This key needs
-to be an IT system name in MO. IT system names can be retrieved using
+to be an IT system user key in OS2mo. IT system user keys can be retrieved using
 [GET:MO/IT_systems][get_it_systems].
 
 #### Engagement conversion
@@ -328,9 +296,12 @@ an engagement conversion dict is as follows:
   [...]
 ```
 
-Note the `get_org_unit_path_string` function which we use for ldap.division. This will
+Note the `get_org_unit_path_string` function which we use for `ldap.division`. This will
 write full organizational paths to ldap, rather than just the name of an organizational
-unit. Converting the other way around can be done like this:
+unit. The organizational unit path is separated by the character specified in the
+`ORG_UNIT_PATH_STRING_SEPARATOR` environment variable.
+
+Converting the other way around can be done like this:
 
 ```
   [...]
@@ -341,7 +312,8 @@ unit. Converting the other way around can be done like this:
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.departmentNumber or uuid4() }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}"
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     }
   }
   [...]
@@ -380,7 +352,7 @@ the following filters are available:
   first. For example `2021-01-01`.
 
 In addition to filters, a few methods have been made available for the templates.
-These are called using the normal function call syntax:
+These are called using the normal function call syntax. For example:
 ```
 {
   "key": "{{ nonejoin(ldap.postalCode, ldap.streetAddress) }}"
@@ -407,6 +379,7 @@ These are called using the normal function call syntax:
 Finally, the following global variables can be used:
 
 * `employee_uuid`: uuid of the employee matching the converted object's cpr number.
+  Can only be used in `ldap_to_mo` mapping.
 
 #### Username generation
 If a user is created in MO, the tool will try to find the matching user in LDAP using
