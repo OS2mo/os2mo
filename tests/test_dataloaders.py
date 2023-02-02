@@ -637,13 +637,7 @@ async def test_load_mo_address(dataloader: DataLoader, gql_client: AsyncMock) ->
         dataloader.load_mo_address(uuid),
     )
 
-    address_metadata = {
-        "address_type_user_key": address_dict["address_type"]["user_key"],
-        "employee_cpr_no": address_dict["person"][0]["cpr_no"],
-    }
-
-    assert output[0][0] == expected_result
-    assert output[0][1] == address_metadata
+    assert output[0] == expected_result
 
 
 def test_load_ldap_object(dataloader: DataLoader):

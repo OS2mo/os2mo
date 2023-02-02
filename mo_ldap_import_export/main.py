@@ -124,12 +124,11 @@ async def listen_to_changes_in_employees(
         logger.info("[MO] Change registered in the address object type")
 
         # Get MO address
-        changed_address, meta_info = await dataloader.load_mo_address(
-            payload.object_uuid
-        )
-        address_type = json_key = meta_info["address_type_user_key"]
+        changed_address = await dataloader.load_mo_address(payload.object_uuid)
+        address_type_uuid = str(changed_address.address_type.uuid)
+        json_key = converter.address_type_info[address_type_uuid]["user_key"]
 
-        logger.info(f"Obtained address type = {address_type}")
+        logger.info(f"Obtained address type user key = {json_key}")
         mo_object_dict["mo_employee_address"] = changed_address
 
         # Convert & Upload to LDAP
@@ -145,7 +144,7 @@ async def listen_to_changes_in_employees(
             json_key,
             "value",
             "mo_employee_address",
-            [a[0] for a in addresses_in_mo],
+            addresses_in_mo,
             user_context,
             changed_employee,
         )
@@ -227,11 +226,11 @@ async def listen_to_changes_in_org_units(
         logger.info("[MO] Change registered in the address object type")
 
         # Get MO address
-        changed_address, meta_info = await dataloader.load_mo_address(
-            payload.object_uuid
-        )
-        address_type = json_key = meta_info["address_type_user_key"]
-        logger.info(f"Obtained address type = {address_type}")
+        changed_address = await dataloader.load_mo_address(payload.object_uuid)
+        address_type_uuid = str(changed_address.address_type.uuid)
+        json_key = converter.address_type_info[address_type_uuid]["user_key"]
+
+        logger.info(f"Obtained address type user key = {json_key}")
 
         ldap_object_class = converter.find_ldap_object_class(json_key)
         employee_object_class = converter.find_ldap_object_class("Employee")
@@ -268,7 +267,7 @@ async def listen_to_changes_in_org_units(
                 json_key,
                 "value",
                 "mo_org_unit_address",
-                [a[0] for a in addresses_in_mo],
+                addresses_in_mo,
                 user_context,
                 affected_employee,
             )
@@ -478,11 +477,11 @@ async def format_converted_objects(converted_objects, json_key, user_context):
     # Load addresses already in MO
     if mo_object_class == "Address":
         if converted_objects[0].person:
-            addresses_in_mo = await dataloader.load_mo_employee_addresses(
+            objects_in_mo = await dataloader.load_mo_employee_addresses(
                 converted_objects[0].person.uuid, converted_objects[0].address_type.uuid
             )
         elif converted_objects[0].org_unit:
-            addresses_in_mo = await dataloader.load_mo_org_unit_addresses(
+            objects_in_mo = await dataloader.load_mo_org_unit_addresses(
                 converted_objects[0].org_unit.uuid,
                 converted_objects[0].address_type.uuid,
             )
@@ -495,7 +494,7 @@ async def format_converted_objects(converted_objects, json_key, user_context):
             )
             return []
         value_key = "value"
-        objects_in_mo = [o[0] for o in addresses_in_mo]
+
     # Load engagements already in MO
     elif mo_object_class == "Engagement":
         objects_in_mo = await dataloader.load_mo_employee_engagements(
