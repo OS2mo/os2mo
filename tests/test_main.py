@@ -465,7 +465,7 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     dataloader.load_mo_address = load_mo_address
 
     converter.address_type_info = {
-        address.address_type.uuid: {"user_key": "LocationUnit"}
+        str(address.address_type.uuid): {"user_key": "LocationUnit"}
     }
 
     context = Context(
@@ -500,7 +500,7 @@ async def test_listen_to_changes_in_employees(
 
     address_type_user_key = "EmailEmployee"
     converter.address_type_info = {
-        test_mo_address.address_type.uuid: {"user_key": address_type_user_key}
+        str(test_mo_address.address_type.uuid): {"user_key": address_type_user_key}
     }
 
     it_system_type_name = "AD"
