@@ -125,7 +125,7 @@ async def listen_to_changes_in_employees(
 
         # Get MO address
         changed_address = await dataloader.load_mo_address(payload.object_uuid)
-        address_type_uuid = changed_address.address_type.uuid
+        address_type_uuid = str(changed_address.address_type.uuid)
         json_key = converter.address_type_info[address_type_uuid]["user_key"]
 
         logger.info(f"Obtained address type user key = {json_key}")
@@ -227,7 +227,7 @@ async def listen_to_changes_in_org_units(
 
         # Get MO address
         changed_address = await dataloader.load_mo_address(payload.object_uuid)
-        address_type_uuid = changed_address.address_type.uuid
+        address_type_uuid = str(changed_address.address_type.uuid)
         json_key = converter.address_type_info[address_type_uuid]["user_key"]
 
         logger.info(f"Obtained address type user key = {json_key}")
