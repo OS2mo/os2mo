@@ -496,12 +496,10 @@ async def test_listen_to_changes_in_employees(
     converted_ldap_object = LdapObject(dn="Foo")
     converter.to_ldap.return_value = converted_ldap_object
     converter.mapping = {"mo_to_ldap": {"EmailEmployee": 2}}
-    converter.get_it_system_name.return_value = "AD"
+    converter.get_it_system_user_key.return_value = "AD"
 
     address_type_user_key = "EmailEmployee"
-    converter.address_type_info = {
-        str(test_mo_address.address_type.uuid): {"user_key": address_type_user_key}
-    }
+    converter.get_address_type_user_key.return_value = address_type_user_key
 
     it_system_type_name = "AD"
 

@@ -508,7 +508,7 @@ class LdapConverter:
         items_to_join = [a for a in args if a]
         return ", ".join(items_to_join)
 
-    def get_object_name_from_uuid(self, info_dict: dict, uuid: str):
+    def get_object_user_key_from_uuid(self, info_dict: dict, uuid: str):
         return info_dict[str(uuid)]["user_key"]
 
     @staticmethod
@@ -554,14 +554,17 @@ class LdapConverter:
     def get_org_unit_level_uuid(self, org_unit_level: str):
         return self.get_object_uuid_from_name(self.org_unit_level_info, org_unit_level)
 
-    def get_it_system_name(self, uuid: str):
-        return self.get_object_name_from_uuid(self.it_system_info, uuid)
+    def get_address_type_user_key(self, uuid: str):
+        return self.get_object_user_key_from_uuid(self.address_type_info, uuid)
 
-    def get_engagement_type_name(self, uuid: str):
-        return self.get_object_name_from_uuid(self.engagement_type_info, uuid)
+    def get_it_system_user_key(self, uuid: str):
+        return self.get_object_user_key_from_uuid(self.it_system_info, uuid)
 
-    def get_job_function_name(self, uuid: str):
-        return self.get_object_name_from_uuid(self.job_function_info, uuid)
+    def get_engagement_type_user_key(self, uuid: str):
+        return self.get_object_user_key_from_uuid(self.engagement_type_info, uuid)
+
+    def get_job_function_user_key(self, uuid: str):
+        return self.get_object_user_key_from_uuid(self.job_function_info, uuid)
 
     def create_org_unit(self, org_unit_path_string: str):
         """
@@ -710,24 +713,23 @@ class LdapConverter:
     def _populate_mapping_with_templates(
         self, mapping: Dict[str, Any], environment: Environment
     ):
+        globals_dict = {
+            "now": datetime.datetime.utcnow,
+            "nonejoin": self.nonejoin,
+            "get_address_type_uuid": self.get_address_type_uuid,
+            "get_it_system_uuid": self.get_it_system_uuid,
+            "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
+            "get_job_function_uuid": self.get_job_function_uuid,
+            "get_engagement_type_uuid": self.get_engagement_type_uuid,
+            "uuid4": uuid4,
+            "get_org_unit_path_string": self.get_org_unit_path_string,
+            "get_engagement_type_user_key": self.get_engagement_type_user_key,
+            "get_job_function_user_key": self.get_job_function_user_key,
+        }
         for key, value in mapping.items():
             if type(value) == str:
                 mapping[key] = environment.from_string(value)
-                mapping[key].globals.update(
-                    {
-                        "now": datetime.datetime.utcnow,
-                        "nonejoin": self.nonejoin,
-                        "get_address_type_uuid": self.get_address_type_uuid,
-                        "get_it_system_uuid": self.get_it_system_uuid,
-                        "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
-                        "get_job_function_uuid": self.get_job_function_uuid,
-                        "get_engagement_type_uuid": self.get_engagement_type_uuid,
-                        "uuid4": uuid4,
-                        "get_org_unit_path_string": self.get_org_unit_path_string,
-                        "get_engagement_type_name": self.get_engagement_type_name,
-                        "get_job_function_name": self.get_job_function_name,
-                    }
-                )
+                mapping[key].globals.update(globals_dict)
 
             elif type(value) == dict:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)

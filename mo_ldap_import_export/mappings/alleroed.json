@@ -59,7 +59,7 @@
       "objectClass": "user",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
-      "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}",
+      "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
       "extensionattribute7": "{{mo_employee_engagement.validity.to_date}}"
     }
   },
