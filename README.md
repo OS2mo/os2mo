@@ -313,7 +313,8 @@ Converting the other way around can be done like this:
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.departmentNumber or uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
     }
   }
   [...]
@@ -334,6 +335,12 @@ default organizational unit type and level specified in the environment variable
 `DEFAULT_ORG_UNIT_TYPE` and `DEFAULT_ORG_UNIT_LEVEL`. The idea is that users manually go
 in and remove the `IMPORTED FROM LDAP` tag. While they are doing this they can also set
 the proper level and type for the organization.
+
+Note the `primary` attribute. If you want, you can set this to a dictionary with an
+uuid that refers to OS2mo's `primary` class. `primary` is not just a True/False value,
+but can contain entries like for example `primary`, `not-primary`, `explicitly-primary`.
+To inspect all possible values, which the `primary` class can take, use
+[GET:MO/Primary_types][get_primary_types].
 
 #### Filters and globals
 
@@ -487,4 +494,5 @@ will only be used if everything else fails.
 [get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
 [get_address_types]:http://localhost:8000/docs#/MO/load_address_types_from_MO_MO_Address_types_get
 [get_it_systems]:http://localhost:8000/docs#/MO/load_it_systems_from_MO_MO_IT_systems_get
+[get_primary_types]:http://localhost:8000/docs#/MO/load_primary_types_from_MO_MO_Primary_types_get
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters

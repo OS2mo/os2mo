@@ -828,6 +828,17 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
     assert converter.get_engagement_type_uuid("Vikar") == "uuid2"
 
 
+async def test_get_primary_type_uuid(converter: LdapConverter):
+    primary_type_info = {
+        "uuid1": {"uuid": "uuid1", "user_key": "primary"},
+        "uuid2": {"uuid": "uuid2", "user_key": "non-primary"},
+    }
+    converter.primary_type_info = primary_type_info
+
+    assert converter.get_primary_type_uuid("primary") == "uuid1"
+    assert converter.get_primary_type_uuid("non-primary") == "uuid2"
+
+
 def test_get_it_system_user_key(converter: LdapConverter):
     it_system_info = {
         "uuid1": {"uuid": "uuid1", "user_key": "AD"},

@@ -189,6 +189,9 @@ async def listen_to_changes_in_employees(
         mo_object_dict["mo_employee_engagement"] = changed_engagement
 
         # Convert & Upload to LDAP
+        # Note: We upload an engagement to LDAP regardless of its 'primary' attribute.
+        # Because it looks like you cannot set 'primary' when creating an engagement
+        # in the OS2mo GUI.
         await dataloader.upload_ldap_object(
             converter.to_ldap(mo_object_dict, json_key), json_key
         )
@@ -501,6 +504,31 @@ async def format_converted_objects(converted_objects, json_key, user_context):
             converted_objects[0].person.uuid
         )
         value_key = "user_key"
+        user_keys = [o.user_key for o in objects_in_mo]
+
+        # If we have duplicate user_keys, remove those which are the same as the primary
+        # engagement's user_key
+        if len(set(user_keys)) < len(user_keys):
+            primary = [await dataloader.is_primary(o.uuid) for o in objects_in_mo]
+
+            # There can be only one primary unit. Not sure what to do if there are
+            # multiple, so better just do nothing.
+            if sum(primary) == 1:
+                primary_engagement = objects_in_mo[primary.index(True)]
+                logger.info(
+                    (
+                        f"Found primary engagement with "
+                        f"uuid={primary_engagement.uuid},"
+                        f"user_key='{primary_engagement.user_key}'"
+                    )
+                )
+                logger.info("Removing engagements with identical user keys")
+                objects_in_mo = [
+                    o
+                    for o in objects_in_mo
+                    if o == primary_engagement
+                    or o.user_key != primary_engagement.user_key
+                ]
 
     elif mo_object_class == "ITUser":
         # If an ITUser already exists, MO throws an error - it cannot be updated if the
@@ -849,5 +877,10 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def load_it_systems_from_MO(user=Depends(login_manager)) -> Any:
         result = dataloader.load_mo_it_systems()
         return result
+
+    # Get MO primary types
+    @app.get("/MO/Primary_types", status_code=202, tags=["MO"])
+    async def load_primary_types_from_MO(user=Depends(login_manager)) -> Any:
+        return dataloader.load_mo_primary_types()
 
     return app

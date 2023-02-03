@@ -52,7 +52,8 @@
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
       "user_key": "{{ ldap.personalTitle or uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
     }
   },
   "mo_to_ldap": {
