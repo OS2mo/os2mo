@@ -881,7 +881,6 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get MO primary types
     @app.get("/MO/Primary_types", status_code=202, tags=["MO"])
     async def load_primary_types_from_MO(user=Depends(login_manager)) -> Any:
-        result = dataloader.load_mo_primary_types()
-        return result
+        return dataloader.load_mo_primary_types()
 
     return app
