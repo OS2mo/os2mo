@@ -175,6 +175,7 @@ def dataloader(sync_dataloader: MagicMock, test_mo_address: Address) -> AsyncMoc
     dataloader.load_mo_it_user.return_value = test_mo_it_user
     dataloader.load_mo_address_types = sync_dataloader
     dataloader.load_mo_it_systems = sync_dataloader
+    dataloader.load_mo_primary_types = sync_dataloader
     dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
 
@@ -774,6 +775,11 @@ def test_load_it_systems_from_MO_endpoint(test_client: TestClient, headers: dict
     assert response.status_code == 202
 
 
+def test_load_primary_types_from_MO_endpoint(test_client: TestClient, headers: dict):
+    response = test_client.get("/MO/Primary_types", headers=headers)
+    assert response.status_code == 202
+
+
 async def test_import_all_objects_from_LDAP_first_20(
     test_client: TestClient, headers: dict
 ) -> None:
@@ -1224,3 +1230,77 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
     )
 
     assert len(formatted_objects) == 0
+
+
+async def test_format_converted_primary_engagement_objects(
+    converter: MagicMock, dataloader: AsyncMock
+):
+
+    employee_uuid = uuid4()
+    primary_uuid = uuid4()
+    engagement1_in_mo_uuid = uuid4()
+    engagement2_in_mo_uuid = uuid4()
+
+    converter.get_mo_attributes.return_value = ["user_key", "job_function"]
+    converter.find_mo_object_class.return_value = "Engagement"
+    converter.import_mo_object_class.return_value = Engagement
+
+    def is_primary(uuid):
+        if uuid == engagement1_in_mo_uuid:
+            return True
+        else:
+            return False
+
+    dataloader.is_primary.side_effect = is_primary
+
+    engagement1 = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2020-01-01",
+    )
+
+    engagement1_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2021-01-01",
+        primary_uuid=primary_uuid,
+        uuid=engagement1_in_mo_uuid,
+    )
+
+    # Engagement with the same user key. We should not update this one because it is
+    # not primary.
+    engagement2_in_mo = Engagement.from_simplified_fields(
+        org_unit_uuid=uuid4(),
+        person_uuid=employee_uuid,
+        job_function_uuid=uuid4(),
+        engagement_type_uuid=uuid4(),
+        user_key="123",
+        from_date="2021-01-01",
+        primary_uuid=None,
+        uuid=engagement2_in_mo_uuid,
+    )
+
+    dataloader.load_mo_employee_engagements.return_value = [
+        engagement1_in_mo,
+        engagement2_in_mo,
+    ]
+
+    user_context = {"converter": converter, "dataloader": dataloader}
+
+    json_key = "Engagement"
+
+    converted_objects = [engagement1]
+
+    formatted_objects = await format_converted_objects(
+        converted_objects, json_key, user_context
+    )
+
+    assert len(formatted_objects) == 1
+    assert formatted_objects[0].primary.uuid is not None
+    assert formatted_objects[0].user_key == "123"

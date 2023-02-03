@@ -523,6 +523,23 @@ async def test_load_mo_address_types(
     assert output[uuid]["name"] == name
 
 
+async def test_load_mo_primary_types(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    value_key = "primary"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "value_key": value_key}]},
+        ]
+    }
+
+    output = dataloader.load_mo_primary_types()
+    assert output[uuid]["value_key"] == value_key
+
+
 async def test_load_mo_job_functions(
     dataloader: DataLoader, gql_client_sync: MagicMock
 ) -> None:
@@ -1111,3 +1128,13 @@ async def test_load_mo_employee_it_users_not_found(
         await asyncio.gather(
             dataloader.load_mo_employee_it_users(uuid4(), uuid4()),
         )
+
+
+async def test_is_primary(dataloader: DataLoader, gql_client: AsyncMock):
+
+    return_value: dict = {"engagements": [{"objects": [{"is_primary": True}]}]}
+
+    gql_client.execute.return_value = return_value
+
+    primary = await asyncio.gather(dataloader.is_primary(uuid4()))
+    assert primary == [True]
