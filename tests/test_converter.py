@@ -389,7 +389,12 @@ def test_find_cpr_field(context: Context) -> None:
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             }
         },
-        "ldap_to_mo": {"Employee": {"objectClass": "ramodels.mo.employee.Employee"}},
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "uuid": "{{ employee_uuid }}",
+            }
+        },
     }
 
     # This mapping does not contain the mo_employee.cpr_no field
@@ -400,7 +405,12 @@ def test_find_cpr_field(context: Context) -> None:
                 "givenName": "{{mo_employee.givenname}}",
             }
         },
-        "ldap_to_mo": {"Employee": {"objectClass": "ramodels.mo.employee.Employee"}},
+        "ldap_to_mo": {
+            "Employee": {
+                "objectClass": "ramodels.mo.employee.Employee",
+                "uuid": "{{ employee_uuid }}",
+            }
+        },
     }
 
     # Test both cases
@@ -436,6 +446,7 @@ def test_template_lenience(context: Context) -> None:
                 "objectClass": "ramodels.mo.employee.Employee",
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
+                "uuid": "{{ employee_uuid }}",
             }
         },
         "mo_to_ldap": {
@@ -988,3 +999,69 @@ def test_filter_parse_datetime(converter: LdapConverter):
 
     assert converter.filter_parse_datetime("9999-12-31") == pd.Timestamp.max
     assert converter.filter_parse_datetime("200-12-31") == pd.Timestamp.min
+
+
+def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
+
+    with pytest.raises(
+        IncorrectMapping, match="Either 'person' or 'org_unit' key needs to be present"
+    ):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "EmailEmployee": {
+                    "objectClass": "ramodels.mo.details.address.Address",
+                }
+            }
+        }
+        converter.check_uuid_refs_in_mo_objects()
+
+    with pytest.raises(
+        IncorrectMapping,
+        match="Either 'person' or 'org_unit' key needs to be present.*Not both",
+    ):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "EmailEmployee": {
+                    "objectClass": "ramodels.mo.details.address.Address",
+                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                    "org_unit": "{{ dict(uuid=employee_uuid or NONE) }}",
+                }
+            }
+        }
+        converter.check_uuid_refs_in_mo_objects()
+
+    with pytest.raises(
+        IncorrectMapping, match="needs to be a dict with 'uuid' as one of it's keys"
+    ):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "EmailEmployee": {
+                    "objectClass": "ramodels.mo.details.address.Address",
+                    "person": "{{ employee_uuid }}",
+                }
+            }
+        }
+        converter.check_uuid_refs_in_mo_objects()
+
+    with pytest.raises(IncorrectMapping, match="needs to contain a key called 'uuid'"):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "Employee": {
+                    "objectClass": "ramodels.mo.employee.Employee",
+                }
+            }
+        }
+        converter.check_uuid_refs_in_mo_objects()
+
+    with pytest.raises(
+        IncorrectMapping, match="needs to contain a reference to 'employee_uuid'"
+    ):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "Employee": {
+                    "objectClass": "ramodels.mo.employee.Employee",
+                    "uuid": "{{ uuid4() }}",
+                }
+            }
+        }
+        converter.check_uuid_refs_in_mo_objects()
