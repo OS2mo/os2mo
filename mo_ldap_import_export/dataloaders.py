@@ -449,6 +449,9 @@ class DataLoader:
     def load_mo_job_functions(self) -> dict:
         return self.load_mo_facet("engagement_job_function")
 
+    def load_mo_primary_types(self) -> dict:
+        return self.load_mo_facet("primary_type")
+
     def load_mo_engagement_types(self) -> dict:
         return self.load_mo_facet("engagement_type")
 
@@ -599,6 +602,30 @@ class DataLoader:
         )
 
         return address
+
+    async def is_primary(self, engagement_uuid: UUID) -> bool:
+        """
+        Determine if an engagement is the primary engagement or not.
+        """
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+
+        query = gql(
+            """
+            query IsPrimary {
+              engagements(uuids: "%s") {
+                objects {
+                  is_primary
+                }
+              }
+            }
+            """
+            % (engagement_uuid)
+        )
+
+        result = await graphql_session.execute(query)
+        self._check_if_empty(result)
+
+        return True if result["engagements"][0]["objects"][0]["is_primary"] else False
 
     async def load_mo_engagement(self, uuid: UUID) -> Engagement:
         graphql_session: AsyncClientSession = self.user_context["gql_client"]

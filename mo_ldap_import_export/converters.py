@@ -94,6 +94,8 @@ class LdapConverter:
         self.engagement_type_info = self.dataloader.load_mo_engagement_types()
         self.job_function_info = self.dataloader.load_mo_job_functions()
 
+        self.primary_type_info = self.dataloader.load_mo_primary_types()
+
         self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
 
@@ -606,6 +608,9 @@ class LdapConverter:
     def get_job_function_uuid(self, job_function: str):
         return self.get_object_uuid_from_name(self.job_function_info, job_function)
 
+    def get_primary_type_uuid(self, primary: str):
+        return self.get_object_uuid_from_name(self.primary_type_info, primary)
+
     def get_engagement_type_uuid(self, engagement_type: str):
         return self.get_object_uuid_from_name(
             self.engagement_type_info, engagement_type
@@ -783,6 +788,7 @@ class LdapConverter:
             "get_it_system_uuid": self.get_it_system_uuid,
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
             "get_job_function_uuid": self.get_job_function_uuid,
+            "get_primary_type_uuid": self.get_primary_type_uuid,
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
