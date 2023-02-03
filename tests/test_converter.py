@@ -817,37 +817,48 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
     assert converter.get_engagement_type_uuid("Vikar") == "uuid2"
 
 
-def test_get_it_system_name(converter: LdapConverter):
+def test_get_it_system_user_key(converter: LdapConverter):
     it_system_info = {
         "uuid1": {"uuid": "uuid1", "user_key": "AD"},
         "uuid2": {"uuid": "uuid2", "user_key": "Office365"},
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system_name("uuid1") == "AD"
-    assert converter.get_it_system_name("uuid2") == "Office365"
+    assert converter.get_it_system_user_key("uuid1") == "AD"
+    assert converter.get_it_system_user_key("uuid2") == "Office365"
 
 
-def test_get_engagement_type_name(converter: LdapConverter):
+def test_get_address_type_user_key(converter: LdapConverter):
+    address_type_info = {
+        "uuid1": {"uuid": "uuid1", "user_key": "EmailUnit"},
+        "uuid2": {"uuid": "uuid2", "user_key": "EmailEmployee"},
+    }
+    converter.address_type_info = address_type_info
+
+    assert converter.get_address_type_user_key("uuid1") == "EmailUnit"
+    assert converter.get_address_type_user_key("uuid2") == "EmailEmployee"
+
+
+def test_get_engagement_type_user_key(converter: LdapConverter):
     engagement_type_info = {
         "uuid1": {"uuid": "uuid1", "user_key": "Ansat"},
         "uuid2": {"uuid": "uuid2", "user_key": "Vikar"},
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_name("uuid1") == "Ansat"
-    assert converter.get_engagement_type_name("uuid2") == "Vikar"
+    assert converter.get_engagement_type_user_key("uuid1") == "Ansat"
+    assert converter.get_engagement_type_user_key("uuid2") == "Vikar"
 
 
-def test_get_job_function_name(converter: LdapConverter):
+def test_get_job_function_user_key(converter: LdapConverter):
     job_function_info = {
         "uuid1": {"uuid": "uuid1", "user_key": "Major"},
         "uuid2": {"uuid": "uuid2", "user_key": "Secretary"},
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_name("uuid1") == "Major"
-    assert converter.get_job_function_name("uuid2") == "Secretary"
+    assert converter.get_job_function_user_key("uuid1") == "Major"
+    assert converter.get_job_function_user_key("uuid2") == "Secretary"
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):

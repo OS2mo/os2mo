@@ -287,10 +287,10 @@ an engagement conversion dict is as follows:
       "departmentNumber": "{{mo_engagement.user_key}}",
       "division": "{{get_org_unit_path_string(mo_engagement.org_unit.uuid)}}",
       "primaryGroupID": "{{NONE}}",
-      "employeeType": "{{get_engagement_type_name(mo_engagement.engagement_type.uuid)}}",
+      "employeeType": "{{get_engagement_type_user_key(mo_engagement.engagement_type.uuid)}}",
       "memberOf": "{{NONE}}",
       "personalTitle": "{{NONE}}",
-      "title": "{{get_job_function_name(mo_engagement.job_function.uuid)}}"
+      "title": "{{get_job_function_user_key(mo_engagement.job_function.uuid)}}"
     }
   }
   [...]
@@ -373,8 +373,8 @@ These are called using the normal function call syntax. For example:
 * `uuid4`: Returns an uuid4
 * `get_org_unit_path_string`: Returns the full path string to an organization unit,
   given its uuid
-* `get_engagement_type_name`: Returns the name of an engagement type, given its uuid
-* `get_job_function_name`: Returns the name of a job function, given its uuid
+* `get_engagement_type_user_key`: Returns the name of an engagement type, given its uuid
+* `get_job_function_user_key`: Returns the name of a job function, given its uuid
 
 Finally, the following global variables can be used:
 
