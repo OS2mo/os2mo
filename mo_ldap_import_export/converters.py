@@ -415,6 +415,66 @@ class LdapConverter:
                                 )
                             )
 
+    def check_uuid_refs_in_mo_objects(self):
+        raw_mapping = self.raw_mapping["ldap_to_mo"]
+        for json_key in self.get_ldap_to_mo_json_keys():
+            object_class = self.import_mo_object_class(json_key)
+            mapping_dict = raw_mapping[json_key]
+            schema = object_class.schema()
+            if "required" in schema:
+                required_attributes = object_class.schema()["required"]
+            else:
+                required_attributes = []
+
+            # If we are dealing with an object that links to a person/org_unit
+            if "person" in schema["properties"]:
+                # either person or org_unit needs to be in the dict
+                if "person" not in mapping_dict and "org_unit" not in mapping_dict:
+                    raise IncorrectMapping(
+                        (
+                            "Either 'person' or 'org_unit' key needs to be present in "
+                            f"ldap_to_mo['{json_key}']"
+                        )
+                    )
+                if "person" in mapping_dict and "org_unit" in mapping_dict:
+                    if not (
+                        "person" in required_attributes
+                        and "org_unit" in required_attributes
+                    ):
+                        raise IncorrectMapping(
+                            (
+                                "Either 'person' or 'org_unit' key needs to be present "
+                                f"in ldap_to_mo['{json_key}']. Not both"
+                            )
+                        )
+                uuid_key = "person" if "person" in mapping_dict else "org_unit"
+
+                # And the corresponding item needs to be a dict with an uuid key
+                if "dict(uuid=" not in mapping_dict[uuid_key].replace(" ", ""):
+                    raise IncorrectMapping(
+                        (
+                            f"ldap_to_mo['{json_key}']['{uuid_key}'] needs to be a "
+                            f"dict with 'uuid' as one of it's keys"
+                        )
+                    )
+
+            # Otherwise: We are dealing with the org_unit/person itself.
+            else:
+                # A field called 'uuid' needs to be present
+                if "uuid" not in mapping_dict:
+                    raise IncorrectMapping(
+                        f"ldap_to_mo['{json_key}'] needs to contain a key called 'uuid'"
+                    )
+
+                # And it needs to contain a reference to the employee_uuid global
+                if "employee_uuid" not in mapping_dict["uuid"]:
+                    raise IncorrectMapping(
+                        (
+                            f"ldap_to_mo['{json_key}']['uuid'] needs to contain a "
+                            "reference to 'employee_uuid'"
+                        )
+                    )
+
     def check_mapping(self):
         self.logger.info("[json check] Checking json file")
 
@@ -446,6 +506,9 @@ class LdapConverter:
 
         # Check that fields referred to in ldap_to_mo actually exist in LDAP
         self.check_ldap_to_mo_references()
+
+        # Check that MO objects have a uuid field
+        self.check_uuid_refs_in_mo_objects()
 
         self.logger.info("[json check] Attributes OK")
 
