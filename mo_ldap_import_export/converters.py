@@ -416,7 +416,10 @@ class LdapConverter:
                     for ldap_ref in ldap_refs:
                         ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
 
-                        if ldap_attribute not in accepted_attributes:
+                        if (
+                            ldap_attribute not in accepted_attributes
+                            and not ldap_attribute.startswith("extensionAttribute")
+                        ):
                             accepted_attributes_string = "\n".join(accepted_attributes)
                             raise IncorrectMapping(
                                 (
