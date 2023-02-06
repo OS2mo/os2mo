@@ -19,14 +19,15 @@
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
     },
-    "LocationUnit": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ ldap.streetAddress + ' ' + ldap.postalCode }}",
-      "type": "address",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
-    },
+// Vi skal bruge et felt, som ikke er DAR.
+//    "LocationUnit": {
+//      "objectClass": "ramodels.mo.details.address.Address",
+//      "value": "{{ ldap.streetAddress + ' ' + ldap.postalCode }}",
+//      "type": "address",
+//      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+//      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
+//      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+//    },
     "EmailUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.extensionAttribute5}}",
@@ -34,16 +35,16 @@
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('EmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
-    },
-    "FaxUnit": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ldap.extensionAttribute4}}",
-      "type": "address",
-      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('FaxUnit')) }}",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     }
-
+// Vi skal bruge et 'secure email' felt
+//    "FaxUnit": {
+//      "objectClass": "ramodels.mo.details.address.Address",
+//      "value": "{{ldap.extensionAttribute4}}",
+//      "type": "address",
+//      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+//      "address_type": "{{ dict(uuid=get_address_type_uuid('FaxUnit')) }}",
+//      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+//    }
   },
   "mo_to_ldap": {
     "Employee": {
@@ -60,25 +61,25 @@
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
       "extensionAttribute7": "{{mo_employee_engagement.validity.to_date}}"
     },
-    "LocationUnit": {
-      "objectClass": "user",
-      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
-      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
-      "employeeNumber": "{{mo_employee.cpr_no}}",
-      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-    },
+//    "LocationUnit": {
+//      "objectClass": "user",
+//      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
+//      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
+//      "employeeNumber": "{{mo_employee.cpr_no}}",
+//      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+//    },
     "EmailUnit": {
       "objectClass": "user",
       "extensionAttribute5": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-    },
-    "FaxUnit": {
-      "objectClass": "user",
-      "extensionAttribute4": "{{mo_org_unit_address.value}}",
-      "employeeNumber": "{{mo_employee.cpr_no}}",
-      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     }
+//    "FaxUnit": {
+//      "objectClass": "user",
+//      "extensionAttribute4": "{{mo_org_unit_address.value}}",
+//      "employeeNumber": "{{mo_employee.cpr_no}}",
+//      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+//    }
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
