@@ -752,6 +752,8 @@ class LdapConverter:
 
     @staticmethod
     def filter_parse_datetime(datestring):
+        if not datestring:
+            return None
         try:
             return pd.to_datetime(datestring, dayfirst=False)
         except pd.errors.OutOfBoundsDatetime:
@@ -770,6 +772,8 @@ class LdapConverter:
         -------
         MO only accepts date objects dated at midnight.
         """
+        if not datetime_object:
+            return None
         return datetime_object.strftime("%Y-%m-%dT00:00:00")
 
     @staticmethod
