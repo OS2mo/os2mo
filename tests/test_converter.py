@@ -69,6 +69,7 @@ def context() -> Context:
                 "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
                 "dn": "",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
+                "__non_existing_field": "{{mo_employee.givenname}}",
             },
             "Email": {
                 "objectClass": "user",
@@ -498,14 +499,19 @@ def test_find_mo_object_class(converter: LdapConverter):
 
 def test_get_ldap_attributes(converter: LdapConverter, context: Context):
     attributes = converter.get_ldap_attributes("Employee")
+    raw_attributes = converter.get_ldap_attributes("Employee", raw=True)
 
     all_attributes = list(
         context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
     )
 
-    expected_attributes = [a for a in all_attributes if a != "objectClass"]
+    expected_attributes = [
+        a for a in all_attributes if a != "objectClass" and not a.startswith("__")
+    ]
+    expected_raw_attributes = [a for a in all_attributes if a != "objectClass"]
 
     assert attributes == expected_attributes
+    assert raw_attributes == expected_raw_attributes
 
 
 def test_get_mo_attributes(converter: LdapConverter, context: Context):
