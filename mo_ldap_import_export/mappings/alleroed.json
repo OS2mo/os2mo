@@ -4,26 +4,10 @@
       "objectClass": "ramodels.mo.employee.Employee",
       "givenname": "{{ldap.givenName}}",
       "surname": "{{ldap.sn}}",
-      "cpr_no": "{{ldap.extensionAttribute15|strip_non_digits}}",  // Set to employeeNumber later
+      "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}",
       "nickname_givenname": "{{ldap.displayName|splitlast|first}}",
       "nickname_surname": "{{ldap.displayName|splitlast|last}}",
       "uuid": "{{ employee_uuid or NONE }}"
-    },
-    "EmailEmployee": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ldap.mail or NONE}}",
-      "type": "address",
-      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
-    "LocationEmployee": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ ldap.streetAddress or NONE }}\n{{ ldap.postalCode or NONE }} {{ ldap.l or NONE }}",
-      "type": "address",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -31,37 +15,69 @@
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Medarbejder (månedsløn)')) }}",
       "user_key": "{{ ldap.employeeID }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring, to_date=extensionattribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
+      "validity": "{{ dict(from_date=now()|mo_datestring, to_date=extensionAttribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
+    },
+    "LocationUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.streetAddress + ' ' + ldap.postalCode }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    },
+    "EmailUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.extensionAttribute5}}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    },
+    "FaxUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.extensionAttribute4}}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('FaxUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     }
+
   },
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "extensionAttribute15": "{{mo_employee.cpr_no}}", // Set to employeeNumber later
+      "employeeNumber": "{{mo_employee.cpr_no}}",
       "givenName" : "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.nickname_givenname}} {{mo_employee.nickname_surname}}"
-    },
-    "EmailEmployee": {
-      "objectClass": "user",
-      "mail": "{{mo_employee_address.value}}",
-      "employeeNumber": "{{mo_employee.cpr_no}}"
-    },
-    "LocationEmployee": {
-      "objectClass": "user",
-      "streetAddress": "{{mo_employee_address.value}}",
-      "postalCode": "{{mo_employee_address.value}}",
-      "l": "{{mo_employee_address.value}}",
-      "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "Engagement" : {
       "objectClass": "user",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
-      "extensionattribute7": "{{mo_employee_engagement.validity.to_date}}"
+      "extensionAttribute7": "{{mo_employee_engagement.validity.to_date}}"
+    },
+    "LocationUnit": {
+      "objectClass": "user",
+      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
+      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+    },
+    "EmailUnit": {
+      "objectClass": "user",
+      "extensionAttribute5": "{{mo_org_unit_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+    },
+    "FaxUnit": {
+      "objectClass": "user",
+      "extensionAttribute4": "{{mo_org_unit_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     }
   },
   "username_generator": {
