@@ -34,7 +34,7 @@
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('PublicEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
-    }
+    },
     "SecureEmailUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.extensionAttribute4}}",
@@ -73,7 +73,7 @@
       "extensionAttribute5": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-    }
+    },
     "SecureEmailUnit": {
       "objectClass": "user",
       "extensionAttribute4": "{{mo_org_unit_address.value}}",
