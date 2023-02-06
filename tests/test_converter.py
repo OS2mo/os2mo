@@ -12,6 +12,8 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 from fastramqpi.context import Context
+from jinja2 import Environment
+from jinja2 import Undefined
 from ramodels.mo import Employee
 from ramodels.mo.details.engagement import Engagement
 from structlog.testing import capture_logs
@@ -231,6 +233,35 @@ def test_ldap_to_mo_uuid_not_found(context: Context) -> None:
     # "Active Directory_typo" does not exist as an it system in MO
     assert len(it_users_with_typo) == 1
     assert len(it_users) == 2
+
+
+def test_ldap_to_mo_dict_error(context: Context) -> None:
+
+    converter = LdapConverter(context)
+    converter.mapping = converter._populate_mapping_with_templates(
+        {
+            "ldap_to_mo": {
+                "Active Directory": {
+                    "objectClass": "ramodels.mo.details.it_system.ITUser",
+                    "user_key": "{{ ldap.msSFU30Name or NONE }}",
+                    "itsystem": "{ 'hep': 'hey }",  # provokes json error in str_to_dict
+                    "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+                }
+            }
+        },
+        Environment(undefined=Undefined),
+    )
+
+    with pytest.raises(IncorrectMapping):
+        converter.from_ldap(
+            LdapObject(
+                dn="",
+                msSFU30Name=["foo", "bar"],
+                itSystemName=["Active Directory", "Active Directory"],
+            ),
+            "Active Directory",
+            employee_uuid=uuid4(),
+        )
 
 
 def test_mo_to_ldap(converter: LdapConverter) -> None:

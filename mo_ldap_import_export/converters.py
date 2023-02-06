@@ -9,6 +9,7 @@ import datetime
 import json
 import re
 import string
+from json.decoder import JSONDecodeError
 from typing import Any
 from typing import Dict
 from uuid import UUID
@@ -935,7 +936,15 @@ class LdapConverter:
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
                 if "{" in value and ":" in value and "}" in value:
-                    value = self.str_to_dict(value)
+                    try:
+                        value = self.str_to_dict(value)
+                    except JSONDecodeError:
+                        raise IncorrectMapping(
+                            (
+                                f"Could not convert {value} in "
+                                f"{json_key}['{mo_field_name}'] to dict"
+                            )
+                        )
 
                 if value:
                     mo_dict[mo_field_name] = value
