@@ -21,7 +21,7 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ (ldap.streetAddress or '') + ' ' + (ldap.postalCode or '') }}",
+      "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode) }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('PostAdresseTextUnit')) }}",
@@ -63,7 +63,7 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "user",
-      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
+      "streetAddress": "{{mo_org_unit_address.value|splitlast|first[:-1]}}",
       "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
