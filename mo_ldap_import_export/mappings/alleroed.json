@@ -17,7 +17,7 @@
       "user_key": "{{ ldap.employeeID }}",
       "validity": "{{ dict(from_date=now()|mo_datestring, to_date=ldap.extensionAttribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
+      "primary": "{{ dict(uuid=get_primary_type_uuid('Ansat')) }}"
     },
     "PostAdresseTextUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
