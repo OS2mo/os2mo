@@ -753,7 +753,7 @@ class LdapConverter:
         """
         Converts a string to a dictionary
         """
-        return json.loads(text.replace("'", '"'))
+        return json.loads(text.replace("'", '"').replace("Undefined", "null"))
 
     @staticmethod
     def filter_parse_datetime(datestring):

@@ -583,6 +583,9 @@ def test_str_to_dict(converter: LdapConverter):
     output = converter.str_to_dict("{'foo':2}")
     assert output == {"foo": 2}
 
+    output = converter.str_to_dict("{'foo':Undefined}")
+    assert output == {"foo": None}
+
 
 def test_filter_mo_datestring(converter: LdapConverter):
     output = converter.filter_mo_datestring(datetime.datetime(2019, 4, 13, 20, 10, 10))
