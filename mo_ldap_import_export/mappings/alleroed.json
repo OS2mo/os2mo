@@ -19,32 +19,30 @@
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
     },
-// Vi skal bruge et felt, som ikke er DAR.
-//    "LocationUnit": {
-//      "objectClass": "ramodels.mo.details.address.Address",
-//      "value": "{{ ldap.streetAddress + ' ' + ldap.postalCode }}",
-//      "type": "address",
-//      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-//      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
-//      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
-//    },
-    "EmailUnit": {
+    "PostAdresseTextUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ ldap.streetAddress + ' ' + ldap.postalCode }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('PostAdresseTextUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    },
+    "PublicEmailUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "value": "{{ldap.extensionAttribute5}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailUnit')) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('PublicEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     }
-// Vi skal bruge et 'secure email' felt
-//    "FaxUnit": {
-//      "objectClass": "ramodels.mo.details.address.Address",
-//      "value": "{{ldap.extensionAttribute4}}",
-//      "type": "address",
-//      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-//      "address_type": "{{ dict(uuid=get_address_type_uuid('FaxUnit')) }}",
-//      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
-//    }
+    "SecureEmailUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "value": "{{ldap.extensionAttribute4}}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('SecureEmailUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    }
   },
   "mo_to_ldap": {
     "Employee": {
@@ -63,25 +61,25 @@
       "employeeID" : "{{ mo_employee_engagement.user_key }}",
       "__engagementTypeDummy__" : "{{ get_engagement_type_user_key(mo_employee_engagement.engagement_type.uuid) }}"
     },
-//    "LocationUnit": {
-//      "objectClass": "user",
-//      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
-//      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
-//      "employeeNumber": "{{mo_employee.cpr_no}}",
-//      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-//    },
-    "EmailUnit": {
+    "PostAdresseTextUnit": {
+      "objectClass": "user",
+      "streetAddress": "{{mo_org_unit_address.value|splitlast|first}}",
+      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+    },
+    "PublicEmailUnit": {
       "objectClass": "user",
       "extensionAttribute5": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     }
-//    "FaxUnit": {
-//      "objectClass": "user",
-//      "extensionAttribute4": "{{mo_org_unit_address.value}}",
-//      "employeeNumber": "{{mo_employee.cpr_no}}",
-//      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-//    }
+    "SecureEmailUnit": {
+      "objectClass": "user",
+      "extensionAttribute4": "{{mo_org_unit_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
+    }
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
