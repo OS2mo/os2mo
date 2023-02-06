@@ -1,5 +1,8 @@
 {
-  // Comments are written like this
+  // Line comments are written like this
+  /*
+   Block comments are written like this
+  */
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
@@ -9,7 +12,7 @@
       "seniority": "{{ldap.seniority or None}}",
       "nickname_givenname": "{{ldap.nickname_givenname or None}}",
       "nickname_surname": "{{ldap.nickname_surname or None}}"
-    }
+    }, // Preprocessor allows trailing comma
   },
   "mo_to_ldap": {
     "Employee": {
