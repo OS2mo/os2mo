@@ -783,7 +783,7 @@ class LdapConverter:
         return "".join(c for c in input_string if c in string.digits)
 
     @staticmethod
-    def filter_splitlast(text):
+    def filter_splitlast(text, separator=" "):
         """
         Splits a string at the last space, returning two elements
         This is convenient for splitting a name into a givenName and a surname
@@ -793,8 +793,8 @@ class LdapConverter:
             text = str(text)
             if text != "":
                 text = str(text)
-                s = text.split(" ")
-                return [" ".join(s[:-1]), s[-1]]
+                s = text.split(separator)
+                return [separator.join(s[:-1]), s[-1]]
         return ["", ""]
 
     def _populate_mapping_with_templates(
