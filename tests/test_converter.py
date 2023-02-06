@@ -557,6 +557,9 @@ def test_filter_mo_datestring(converter: LdapConverter):
     output = converter.filter_mo_datestring(datetime.datetime(2019, 4, 13, 20, 10, 10))
     # Note: Dates are always at midnight in MO
     assert output == "2019-04-13T00:00:00"
+    assert converter.filter_mo_datestring([]) is None
+    assert converter.filter_mo_datestring("") is None
+    assert converter.filter_mo_datestring(None) is None
 
 
 def test_get_number_of_entries(converter: LdapConverter):
@@ -1016,6 +1019,9 @@ def test_filter_parse_datetime(converter: LdapConverter):
 
     assert converter.filter_parse_datetime("9999-12-31") == pd.Timestamp.max
     assert converter.filter_parse_datetime("200-12-31") == pd.Timestamp.min
+    assert converter.filter_parse_datetime("") is None
+    assert converter.filter_parse_datetime([]) is None
+    assert converter.filter_parse_datetime(None) is None
 
 
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
