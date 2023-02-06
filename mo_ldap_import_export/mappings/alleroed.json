@@ -63,8 +63,8 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "user",
-      "streetAddress": "{{mo_org_unit_address.value|splitlast|first[:-1]}}",
-      "postalCode": "{{mo_org_unit_address.value|splitlast|last}}",
+      "streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|trim}}",
+      "postalCode": "{{mo_org_unit_address.value|splitlast(',')|last|trim}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     },
