@@ -71,7 +71,6 @@ def context() -> Context:
                 "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
                 "dn": "",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
-                "__non_existing_field": "{{mo_employee.givenname}}",
             },
             "Email": {
                 "objectClass": "user",
@@ -530,7 +529,6 @@ def test_find_mo_object_class(converter: LdapConverter):
 
 def test_get_ldap_attributes(converter: LdapConverter, context: Context):
     attributes = converter.get_ldap_attributes("Employee")
-    raw_attributes = converter.get_ldap_attributes("Employee", raw=True)
 
     all_attributes = list(
         context["user_context"]["mapping"]["mo_to_ldap"]["Employee"].keys()
@@ -539,10 +537,8 @@ def test_get_ldap_attributes(converter: LdapConverter, context: Context):
     expected_attributes = [
         a for a in all_attributes if a != "objectClass" and not a.startswith("__")
     ]
-    expected_raw_attributes = [a for a in all_attributes if a != "objectClass"]
 
     assert attributes == expected_attributes
-    assert raw_attributes == expected_raw_attributes
 
 
 def test_get_mo_attributes(converter: LdapConverter, context: Context):
@@ -738,7 +734,17 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
                 "attr4": "{{ mo_employee_engagement.job_function.uuid }}",
                 "cpr_field": "{{ foo }}",
             },
-        }
+        },
+        "ldap_to_mo": {
+            "Address": {"value": "ldap.value"},
+            "AD": {"user_key": "ldap.user_key"},
+            "Engagement": {
+                "user_key": "ldap.user_key",
+                "org_unit": "ldap.org_unit",
+                "engagement_type": "ldap.engagement_type",
+                "job_function": "ldap.job_function",
+            },
+        },
     }
     converter.raw_mapping = mapping.copy()
     converter.mapping = mapping.copy()
@@ -797,11 +803,99 @@ async def test_check_ldap_attributes_single_value_fields(converter: LdapConverte
                         "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
                         "cpr_field": "{{ foo }}",
                     },
-                }
+                },
+                "ldap_to_mo": {
+                    "Engagement": {
+                        "user_key": "ldap.user_key",
+                        "org_unit": "ldap.org_unit",
+                        "engagement_type": "ldap.engagement_type",
+                        "job_function": "ldap.job_function",
+                    },
+                },
             }
             converter.raw_mapping = mapping.copy()
             converter.mapping = mapping.copy()
             converter.check_ldap_attributes()
+
+
+async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
+
+    dataloader = MagicMock()
+    dataloader.load_ldap_overview.return_value = {
+        "user": {"attributes": ["attr1", "attr2", "attr3", "attr4"]}
+    }
+
+    with patch(
+        "mo_ldap_import_export.converters.find_cpr_field",
+        return_value="cpr_field",
+    ), patch(
+        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
+        return_value=None,
+    ), patch(
+        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
+        return_value="user",
+    ):
+
+        dataloader.single_value = {
+            "attr1": True,
+            "cpr_field": True,
+            "attr2": True,
+            "attr3": True,
+            "attr4": True,
+        }
+        converter.dataloader = dataloader
+
+        # This mapping is not allowed - because mo_employee_engagement.org_unit.uuid is
+        # not in the mo_to_ldap templates
+        with pytest.raises(IncorrectMapping):
+            mapping = {
+                "ldap_to_mo": {
+                    "Engagement": {
+                        "user_key": "ldap.user_key",
+                        "org_unit": "ldap.org_unit",
+                        "engagement_type": "ldap.engagement_type",
+                        "job_function": "ldap.job_function",
+                    },
+                },
+                "mo_to_ldap": {
+                    "Engagement": {
+                        "attr1": "{{ mo_employee_engagement.user_key }}",
+                        # "attr2": "{{ mo_employee_engagement.org_unit.uuid }}",
+                        "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
+                        "attr4": "{{ mo_employee_engagement.job_function.uuid }}",
+                        "cpr_field": "{{ foo }}",
+                    },
+                },
+            }
+            converter.raw_mapping = mapping.copy()
+            converter.mapping = mapping.copy()
+            converter.check_ldap_attributes()
+
+        # This mapping is OK. mo_employee_engagement.org_unit.uuid no longer needs to be
+        # in the mo_to_ldap templates. Because the value does not come from LDAP in the
+        # first place.
+        mapping = {
+            "ldap_to_mo": {
+                "Engagement": {
+                    "user_key": "ldap.user_key",
+                    "org_unit": "fixed org unit",
+                    "engagement_type": "ldap.engagement_type",
+                    "job_function": "ldap.job_function",
+                },
+            },
+            "mo_to_ldap": {
+                "Engagement": {
+                    "attr1": "{{ mo_employee_engagement.user_key }}",
+                    # "attr2": "{{ mo_employee_engagement.org_unit.uuid }}",
+                    "attr3": "{{ mo_employee_engagement.engagement_type.uuid }}",
+                    "attr4": "{{ mo_employee_engagement.job_function.uuid }}",
+                    "cpr_field": "{{ foo }}",
+                },
+            },
+        }
+        converter.raw_mapping = mapping.copy()
+        converter.mapping = mapping.copy()
+        converter.check_ldap_attributes()
 
 
 async def test_check_dar_scope(converter: LdapConverter):
