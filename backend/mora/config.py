@@ -219,6 +219,10 @@ class Settings(BaseSettings):
     # MO disables/enables IT System Entry form-fields when in edit mode.
     confdb_it_system_entry_edit_fields_disabled: bool = False
 
+    # The flag is used by the frontend to hide employee association columns in the details table
+    # Ex. CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS=["org_unit", "third_party_association_type"]
+    confdb_employee_hide_association_columns: list[str] | None
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
