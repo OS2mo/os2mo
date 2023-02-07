@@ -263,7 +263,12 @@ class LdapConverter:
             accepted_attributes = list(mo_class.schema()["properties"].keys())
             detected_attributes = self.get_mo_attributes(json_key)
             self.check_attributes(detected_attributes, accepted_attributes)
-            required_attributes = self.get_required_attributes(mo_class)
+            required_attributes = self.get_required_attributes(mo_class).copy()
+
+            if json_key == "Engagement":
+                # We require a primary attribute. If primary is not desired you can set
+                # it to {{ NONE }} in the json dict
+                required_attributes.append("primary")
 
             for attribute in required_attributes:
                 if attribute not in detected_attributes:

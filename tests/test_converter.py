@@ -658,7 +658,7 @@ async def test_check_for_objectClass(converter: LdapConverter):
 async def test_check_mo_attributes(converter: LdapConverter):
     with patch(
         "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
-        return_value=["foo"],
+        return_value=["Engagement"],
     ), patch(
         "mo_ldap_import_export.converters.LdapConverter.import_mo_object_class",
         return_value=Engagement,
@@ -669,7 +669,10 @@ async def test_check_mo_attributes(converter: LdapConverter):
         with pytest.raises(
             IncorrectMapping,
             match=(
-                "attribute .* is mandatory. The following attributes are mandatory: .*"
+                (
+                    "attribute .* is mandatory. "
+                    "The following attributes are mandatory: .*primary.*"
+                )
             ),
         ):
             converter.check_mo_attributes()
