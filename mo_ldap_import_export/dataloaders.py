@@ -70,6 +70,7 @@ class DataLoader:
             - 'Employee'
             - a MO address type name
         """
+        cpr_no = cpr_no.replace("-", "")
         cpr_field = self.user_context["cpr_field"]
         settings = self.user_context["settings"]
 
@@ -325,6 +326,7 @@ class DataLoader:
             return uuid
 
     async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
+        cpr_no = cpr_no.replace("-", "")
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
 
         query = gql(
@@ -342,6 +344,7 @@ class DataLoader:
         return self._return_mo_employee_uuid_result(result)
 
     def find_mo_employee_uuid_sync(self, cpr_no: str) -> Union[None, UUID]:
+        cpr_no = cpr_no.replace("-", "")
         graphql_session: AsyncClientSession = self.user_context["gql_client_sync"]
 
         query = gql(
