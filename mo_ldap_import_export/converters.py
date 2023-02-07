@@ -586,20 +586,6 @@ class LdapConverter:
         self.check_org_unit_info_dict()
 
     @staticmethod
-    def filter_splitfirst(text):
-        """
-        Splits a string at the first space, returning two elements
-        This is convenient for splitting a name into a givenName and a surname
-        and works for names with no spaces (surname will then be empty)
-        """
-        if text is not None:
-            text = str(text)
-            if text != "":
-                s = text.split(" ", 1)
-                return s if len(s) > 1 else (s + [""])
-        return ["", ""]
-
-    @staticmethod
     def nonejoin(*args):
         """
         Joins items together if they are not None or emtpy lists
@@ -800,6 +786,20 @@ class LdapConverter:
         if type(input_string) is not str:
             return None
         return "".join(c for c in input_string if c in string.digits)
+
+    @staticmethod
+    def filter_splitfirst(text, separator=" "):
+        """
+        Splits a string at the first space, returning two elements
+        This is convenient for splitting a name into a givenName and a surname
+        and works for names with no spaces (surname will then be empty)
+        """
+        if text is not None:
+            text = str(text)
+            if text != "":
+                s = text.split(separator, 1)
+                return s if len(s) > 1 else (s + [""])
+        return ["", ""]
 
     @staticmethod
     def filter_splitlast(text, separator=" "):
