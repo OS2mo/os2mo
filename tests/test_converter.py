@@ -1227,3 +1227,26 @@ def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
             }
         }
         converter.check_uuid_refs_in_mo_objects()
+
+
+def test_check_get_uuid_functions(converter: LdapConverter):
+    converter.check_get_uuid_functions()
+
+    converter.raw_mapping = converter.mapping = {
+        "ldap_to_mo": {
+            "Email": {
+                "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}",
+            }
+        }
+    }
+    converter.check_get_uuid_functions()
+
+    with pytest.raises(IncorrectMapping):
+        converter.raw_mapping = converter.mapping = {
+            "ldap_to_mo": {
+                "Email": {
+                    "address_type": "{{ dict(uuid=get_address_type_uuid('typo')) }}",
+                }
+            }
+        }
+        converter.check_get_uuid_functions()

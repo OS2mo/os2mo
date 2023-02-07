@@ -493,6 +493,7 @@ class DataLoader:
                 objects {
                   uuid
                   name
+                  user_key
                   parent {
                     uuid
                     name
