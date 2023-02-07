@@ -8,10 +8,25 @@ Denne integration gør det muligt at sende data fra OS2MO til
 [OS2Sync](https://www.os2sync.dk/). OS2Sync er i stand til at sende data videre til FK ORG, såfremt det er installeret og konfigureret.
 Integrationen læser flg. oplysninger i OS2MO, og sender dem til OS2Sync:
 
-OS2MO | Oplysninger
-|- | -
-| Organisationsenheder | <ul><li>UUID</li><li>Parent UUID</li><li>Navn</li><li>IT-systemer</li><li>Adresser</li><li>KLE-opmærkninger</li><li>Leder UUID (Optionelt)</li></ul> |
-| Ansatte| <ul><li>UUID</li><li>UserId</li><li>Navn (eller kaldenavn - se under os2sync.templates)</li><li>CPR-nummer (Optionelt)</li><li>Adresser (Email, Mobil, Fastnet)</li><li>Engagementer</li></ul>                              |
+
+Organisationsenheder:
+
+* Navn
+* UUID
+* UUID på overenhed
+* IT-systemer
+* Adresser
+* KLE-opmærkninger
+* Leder UUID (Optionelt)
+
+Ansatte:
+
+* Navn (eller kaldenavn - se under os2sync.templates)
+* UUID
+* UserId
+* CPR-nummer (Optionelt)
+* Adresser (Email, Mobil, Fastnet)
+* Engagementer
 
 Der synkroniseres altid kun adreser hvis synlighed er angivet som 'Må vises eksternt'.
 
