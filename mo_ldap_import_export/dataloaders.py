@@ -51,7 +51,7 @@ class DataLoader:
                     )
                 )
 
-    def load_ldap_object(self, dn, attributes):
+    def load_ldap_object(self, dn, attributes, nest=True):
         searchParameters = {
             "search_base": dn,
             "search_filter": "(objectclass=*)",
@@ -60,7 +60,7 @@ class DataLoader:
         search_result = single_object_search(
             searchParameters, self.ldap_connection, exact_dn_match=True
         )
-        return make_ldap_object(search_result, self.context)
+        return make_ldap_object(search_result, self.context, nest=nest)
 
     def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
         """
