@@ -513,15 +513,17 @@ class LdapConverter:
 
     def check_get_uuid_functions(self):
 
-        # List of all 'get_uuid' functions. For example "get_address_type_uuid()"
+        # List of all 'get_uuid' functions. For example "get_address_type_uuid("
         get_uuid_function_strings = [
             f + "(" for f in dir(self) if f.startswith("get_") and f.endswith("_uuid")
         ]
 
         # List all user keys from the different info-dicts
         all_user_keys = []
-        for info_dict in [f for f in dir(self) if f.endswith("_info")]:
-            user_keys = [v["user_key"] for v in getattr(self, info_dict).values()]
+        for info_dict_string in [f for f in dir(self) if f.endswith("_info")]:
+            info_dict = getattr(self, info_dict_string)
+            if type(info_dict) is dict:
+                user_keys = [v["user_key"] for v in info_dict.values()]
             all_user_keys.extend(list(user_keys))
 
         # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
