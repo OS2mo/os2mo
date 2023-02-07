@@ -391,6 +391,10 @@ def test_splitfirst() -> None:
         "Testersen med test",
     ]
     assert LdapConverter.filter_splitfirst("") == ["", ""]
+    assert LdapConverter.filter_splitfirst("foo,bar,pub", separator=",") == [
+        "foo",
+        "bar,pub",
+    ]
 
 
 def test_splitlast() -> None:
@@ -401,6 +405,10 @@ def test_splitlast() -> None:
         "test",
     ]
     assert LdapConverter.filter_splitlast("") == ["", ""]
+    assert LdapConverter.filter_splitlast("foo,bar,pub", separator=",") == [
+        "foo,bar",
+        "pub",
+    ]
 
 
 def test_strip_non_digits() -> None:

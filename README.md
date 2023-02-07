@@ -349,10 +349,13 @@ the following filters are available:
 
 * `splitfirst`: Splits a string at the first space, returning two elements
   This is convenient for splitting a name into a givenName and a surname
-  and works for names with no spaces (surname will then be empty).
+  and works for names with no spaces (surname will then be empty). Takes a single
+  separator argument which defaults to a whitespace. For example, you can write:
+  `"streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|trim}}"`
 * `splitlast`: Splits a string at the last space, returning two elements
   This is convenient for splitting a name into a givenName and a surname
-  and works for names with no spaces (givenname will then be empty).
+  and works for names with no spaces (givenname will then be empty). Takes a single
+  separator argument which defaults to a whitespace.
 * `mo_datestring`: Accepts a datetime object and formats it as a string.
 * `strip_non_digits`: Removes all but digits from a string.
 * `parse_datetime`: Converts a date string to a datetime object. The year needs to be
