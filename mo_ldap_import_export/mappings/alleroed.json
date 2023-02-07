@@ -21,7 +21,7 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode) }}",
+      "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.postalCode or 'ukendt postnummer') }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('PostAdresseTextUnit')) }}",
