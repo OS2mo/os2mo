@@ -58,8 +58,7 @@
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
       "extensionAttribute7": "{{mo_employee_engagement.validity.to_date}}",
-      "employeeID" : "{{ mo_employee_engagement.user_key }}",
-      "__engagementTypeDummy__" : "{{ get_engagement_type_user_key(mo_employee_engagement.engagement_type.uuid) }}"
+      "employeeID" : "{{ mo_employee_engagement.user_key }}"
     },
     "PostAdresseTextUnit": {
       "objectClass": "user",

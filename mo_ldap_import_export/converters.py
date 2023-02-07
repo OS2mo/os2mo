@@ -158,12 +158,8 @@ class LdapConverter:
     def import_mo_object_class(self, json_key):
         return import_class(self.find_mo_object_class(json_key))
 
-    def get_ldap_attributes(self, json_key, raw=False):
-        attributes = list(self.mapping["mo_to_ldap"][json_key].keys())
-        if raw:
-            return attributes
-        else:
-            return [a for a in attributes if not a.startswith("__")]
+    def get_ldap_attributes(self, json_key):
+        return list(self.mapping["mo_to_ldap"][json_key].keys())
 
     def get_mo_attributes(self, json_key):
         return list(self.mapping["ldap_to_mo"][json_key].keys())
@@ -290,11 +286,6 @@ class LdapConverter:
 
             accepted_attributes = self.overview[object_class]["attributes"].keys()
             detected_attributes = self.get_ldap_attributes(json_key)
-            raw_detected_attributes = self.get_ldap_attributes(json_key, raw=True)
-
-            number_of_dunder_attributes = len(raw_detected_attributes) - len(
-                detected_attributes
-            )
 
             self.check_attributes(detected_attributes, accepted_attributes)
 
@@ -313,17 +304,35 @@ class LdapConverter:
             # We like fields which map to these MO objects to be multi-value fields,
             # to avoid data being overwritten if two objects of the same type are
             # added in MO
+            def filter_fields_to_check(fields_to_check):
+                """
+                A field only needs to be checked if we use information from LDAP in
+                the 'ldap_to_mo' mapping. If we do not, we also do not need to make
+                sure that we are writing information to LDAP for this field.
+                """
+                fields_with_ldap_reference = []
+                for field in fields_to_check:
+                    mo_field = field.split(".")[1]
+                    if "ldap." in self.raw_mapping["ldap_to_mo"][json_key][mo_field]:
+                        fields_with_ldap_reference.append(field)
+
+                return fields_with_ldap_reference
+
             if json_key in self.mo_address_types:
-                fields_to_check = ["mo_employee_address.value"]
+                fields_to_check = filter_fields_to_check(["mo_employee_address.value"])
             elif json_key in self.mo_it_systems:
-                fields_to_check = ["mo_employee_it_user.user_key"]
+                fields_to_check = filter_fields_to_check(
+                    ["mo_employee_it_user.user_key"]
+                )
             elif json_key == "Engagement":
-                fields_to_check = [
-                    "mo_employee_engagement.user_key",
-                    "mo_employee_engagement.org_unit.uuid",
-                    "mo_employee_engagement.engagement_type.uuid",
-                    "mo_employee_engagement.job_function.uuid",
-                ]
+                fields_to_check = filter_fields_to_check(
+                    [
+                        "mo_employee_engagement.user_key",
+                        "mo_employee_engagement.org_unit.uuid",
+                        "mo_employee_engagement.engagement_type.uuid",
+                        "mo_employee_engagement.job_function.uuid",
+                    ]
+                )
             else:
                 fields_to_check = []
 
@@ -345,7 +354,7 @@ class LdapConverter:
             if len(fields_to_check) > 1:
                 matching_attributes = []
                 for field_to_check in fields_to_check:
-                    for attribute in raw_detected_attributes:
+                    for attribute in detected_attributes:
                         template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
                         if field_to_check in template:
                             matching_attributes.append(attribute)
@@ -373,7 +382,7 @@ class LdapConverter:
 
                 if len(matching_single_value_attributes) not in [
                     0,
-                    len(fields_to_check) - number_of_dunder_attributes,
+                    len(fields_to_check),
                 ]:
                     raise IncorrectMapping(
                         (
@@ -858,8 +867,6 @@ class LdapConverter:
             )
 
         for ldap_field_name, template in object_mapping.items():
-            if ldap_field_name.startswith("__"):
-                continue
             rendered_item = template.render(mo_object_dict)
             if rendered_item:
                 ldap_object[ldap_field_name] = rendered_item
