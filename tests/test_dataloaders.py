@@ -173,13 +173,14 @@ async def test_load_ldap_cpr_object(
 ) -> None:
     # Mock data
     dn = "CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev"
-    cpr_no = "0101012002"
 
     expected_result = LdapObject(dn=dn, **ldap_attributes)
     ldap_connection.response = [mock_ldap_response(ldap_attributes, dn)]
 
-    output = dataloader.load_ldap_cpr_object(cpr_no, "Employee")
+    output = dataloader.load_ldap_cpr_object("0101012002", "Employee")
+    assert output == expected_result
 
+    output = dataloader.load_ldap_cpr_object("010101-2002", "Employee")
     assert output == expected_result
 
 
@@ -776,7 +777,15 @@ async def test_find_mo_employee_uuid(
     )
     assert output[0] == uuid
 
+    output = await asyncio.gather(
+        dataloader.find_mo_employee_uuid("010101-1221"),
+    )
+    assert output[0] == uuid
+
     output_sync = dataloader.find_mo_employee_uuid_sync("0101011221")
+    assert output_sync == uuid
+
+    output_sync = dataloader.find_mo_employee_uuid_sync("010101-1221")
     assert output_sync == uuid
 
 
