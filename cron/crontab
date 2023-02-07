@@ -1,1 +1,2 @@
+0 23 * * *  /cron/re_initialize_converter.sh
 0 0 * * *  /cron/import_all.sh

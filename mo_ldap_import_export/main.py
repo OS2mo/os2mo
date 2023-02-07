@@ -662,6 +662,14 @@ def create_app(**kwargs: Any) -> FastAPI:
         access_token = login_manager.create_access_token(data={"sub": user_id})
         return {"access_token": access_token}
 
+    @app.post("/re_initialize_converter", status_code=202, tags=["maintenance"])
+    async def re_initialize_converter(user=Depends(login_manager)):
+        """
+        Endpoint to re-initialize the converter. To make sure that info-dicts are
+        up-to-date
+        """
+        converter.__init__(context)
+
     # Load all users from LDAP, and import them into MO
     @app.get("/Import/all", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(

@@ -29,6 +29,7 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
  && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 COPY ./cron /cron
 RUN chmod -R 100 "/cron/import_all.sh"
+RUN chmod -R 100 "/cron/re_initialize_converter.sh"
 RUN chmod -R 400 "/cron/crontab"
 
 
