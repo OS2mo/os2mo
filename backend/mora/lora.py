@@ -12,7 +12,9 @@ from collections.abc import Container
 from collections.abc import Coroutine
 from collections.abc import ItemsView
 from collections.abc import Iterable
+from datetime import date
 from datetime import datetime
+from datetime import time
 from enum import Enum
 from enum import unique
 from functools import partial
@@ -212,10 +214,18 @@ def param_exotics_to_strings(
     return ret
 
 
-def validity_tuple(validity: ValidityLiteral, now=None) -> (datetime, datetime):
+def validity_tuple(
+    validity: ValidityLiteral, now: date | datetime = None
+) -> tuple[datetime, datetime]:
     """Return (start, end) tuple of datetimes for Lora."""
     if now is None:
         now = util.parsedatetime(util.now())
+
+    # NOTE: We must explicitly convert date to datetime since the minimum resolution of date is
+    # one day, which means that the addition of timedelta(microseconds=1) later will silently
+    # be ignored.
+    if type(now) is date:
+        now = datetime.combine(now, time.min)
 
     if validity == "past":
         return util.NEGATIVE_INFINITY, now

@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import datetime
 import json
 
 import freezegun
@@ -625,3 +626,49 @@ def test_raise_on_status_detects_noop_change():
         "error_key": "E_INVALID_INPUT",
         "description": msg_other,
     }
+
+
+@pytest.mark.parametrize(
+    "validity_literal,now,expected",
+    [
+        (
+            "past",
+            datetime.date(2023, 1, 5),
+            (
+                datetime.datetime.min.replace(tzinfo=datetime.timezone.utc),
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 0),
+            ),
+        ),
+        (
+            "present",
+            datetime.date(2023, 1, 5),
+            (
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 0),
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 1),
+            ),
+        ),
+        (
+            "present",
+            datetime.datetime(2023, 1, 5, 0, 0, 0, 0),
+            (
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 0),
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 1),
+            ),
+        ),
+        (
+            "future",
+            datetime.date(2023, 1, 5),
+            (
+                datetime.datetime(2023, 1, 5, 0, 0, 0, 0),
+                datetime.datetime.max.replace(tzinfo=datetime.timezone.utc),
+            ),
+        ),
+    ],
+)
+async def test_validity_tuple(
+    validity_literal: lora.ValidityLiteral,
+    now: datetime.date | datetime.datetime,
+    expected: tuple[datetime.datetime, datetime.datetime],
+):
+    result = lora.validity_tuple(validity_literal, now=now)
+    assert result == expected

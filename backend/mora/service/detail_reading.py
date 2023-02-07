@@ -346,7 +346,8 @@ async def list_addresses_ou(
     if at is not None:
         args["from_date"] = at
     if validity is not None:
-        start, end = validity_tuple(validity)
+        start, end = validity_tuple(validity, now=at)
+
         args["from_date"] = start
         args["to_date"] = end
     r = await execute_graphql(
