@@ -662,7 +662,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         access_token = login_manager.create_access_token(data={"sub": user_id})
         return {"access_token": access_token}
 
-    @app.post("/re_initialize_converter", status_code=202, tags=["maintenance"])
+    @app.post("/re_initialize_converter", status_code=202, tags=["Maintenance"])
     async def re_initialize_converter(user=Depends(login_manager)):
         """
         Endpoint to re-initialize the converter. To make sure that info-dicts are
