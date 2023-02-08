@@ -50,6 +50,13 @@ from ramodels.lora._shared import Published
 from ramodels.lora._shared import Relation
 from ramodels.lora._shared import Responsible
 
+
+zero_item_error = partial(
+    pytest.raises,
+    ValidationError,
+    match=r"ensure this value has at least 1 items",
+)
+
 single_item_error = partial(
     pytest.raises,
     ValidationError,
@@ -823,7 +830,7 @@ def valid_klasse_relations(draw):
 
 @st.composite
 def klasse_attr_strat(draw):
-    required = {"properties": st.lists(valid_klsprop(), min_size=1, max_size=1)}
+    required = {"properties": st.lists(valid_klsprop(), min_size=1, max_size=5)}
     st_dict = draw(st.fixed_dictionaries(required))
     return st_dict
 
@@ -835,13 +842,13 @@ class TestKlasseAttributes:
 
     # Max size explicitly set for faster data generation
     invalid_klsprop = st.lists(valid_klsprop(), max_size=0) | st.lists(
-        valid_klsprop(), min_size=2, max_size=5
+        valid_klsprop(), min_size=0, max_size=0
     )
 
     @given(klasse_attr_strat(), invalid_klsprop)
     def test_validators(self, model_dict, invalid_klsprop):
         model_dict["properties"] = invalid_klsprop
-        with single_item_error():
+        with zero_item_error():
             KlasseAttributes(**model_dict)
 
 
@@ -865,13 +872,13 @@ class TestKlasseStates:
 
     # Max size explicitly set for faster data generation
     invalid_pub = st.lists(valid_pub(), max_size=0) | st.lists(
-        valid_pub(), min_size=2, max_size=5
+        valid_pub(), min_size=0, max_size=0
     )
 
     @given(klasse_states_strat(), invalid_pub)
     def test_validators(self, model_dict, invalid_pub):
         model_dict["published_state"] = invalid_pub
-        with single_item_error():
+        with zero_item_error():
             KlasseStates(**model_dict)
 
 

@@ -1333,6 +1333,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": None,
                             "user_key": "afd",
                             "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                            "published": "Publiceret",
                         },
                         {
                             "example": None,
@@ -1341,6 +1342,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": None,
                             "user_key": "fak",
                             "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                            "published": "Publiceret",
                         },
                         {
                             "example": None,
@@ -1349,6 +1351,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": None,
                             "user_key": "inst",
                             "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                            "published": "Publiceret",
                         },
                     ],
                 },
@@ -1377,6 +1380,7 @@ class Tests(tests.cases.LoRATestCase):
                             "top_level_facet": org_unit_type_facet,
                             "user_key": "afd",
                             "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+                            "published": "Publiceret",
                         },
                         {
                             "example": None,
@@ -1388,6 +1392,7 @@ class Tests(tests.cases.LoRATestCase):
                             "top_level_facet": org_unit_type_facet,
                             "user_key": "fak",
                             "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+                            "published": "Publiceret",
                         },
                         {
                             "example": None,
@@ -1399,6 +1404,7 @@ class Tests(tests.cases.LoRATestCase):
                             "top_level_facet": org_unit_type_facet,
                             "user_key": "inst",
                             "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+                            "published": "Publiceret",
                         },
                     ],
                 },
@@ -1424,6 +1430,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": "PHONE",
                             "user_key": "OrgEnhedTelefon",
                             "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                            "published": "Publiceret",
                         },
                         {
                             "example": "<UUID>",
@@ -1432,6 +1439,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": "DAR",
                             "user_key": "OrgEnhedPostadresse",
                             "uuid": "28d71012-2919-4b67-a2f0-7b59ed52561e",
+                            "published": "Publiceret",
                         },
                         {
                             "example": "test@example.com",
@@ -1440,6 +1448,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": "EMAIL",
                             "user_key": "OrgEnhedEmail",
                             "uuid": "73360db1-bad3-4167-ac73-8d827c0c8751",
+                            "published": "Publiceret",
                         },
                         {
                             "example": "5712345000014",
@@ -1448,6 +1457,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": "EAN",
                             "user_key": "EAN",
                             "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+                            "published": "Publiceret",
                         },
                         {
                             "example": "Åbningstider:\n"
@@ -1458,6 +1468,7 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": "TEXT",
                             "user_key": "ContactOpenHours",
                             "uuid": "e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b",
+                            "published": "Publiceret",
                         },
                     ],
                 },

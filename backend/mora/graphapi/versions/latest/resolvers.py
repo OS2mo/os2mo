@@ -145,6 +145,22 @@ class FacetResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__("facet_getter", "facet_loader")
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+    ):
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            from_date=from_date,
+            to_date=to_date,
+        )
+
 
 class ClassResolver(StaticResolver):
     def __init__(self) -> None:

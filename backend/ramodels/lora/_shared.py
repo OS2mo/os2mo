@@ -551,7 +551,6 @@ class KlasseAttributes(RABase):
     properties: list[KlasseProperties] = Field(
         alias="klasseegenskaber",
         min_items=1,
-        max_items=1,
         description="Properties denoting the klasse attributes.",
     )
 
@@ -564,7 +563,6 @@ class KlasseStates(RABase):
     published_state: list[Published] = Field(
         alias="klassepubliceret",
         min_items=1,
-        max_items=1,
         description="Published state objects. ",
     )
 
