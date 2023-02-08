@@ -141,6 +141,7 @@ class LdapConverter:
 
         self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
+        self.all_info_dict_strings = [f for f in dir(self) if f.endswith("_info")]
 
         self.check_info_dicts()
         self.logger.info("[info dict loader] Info dicts loaded successfully")
@@ -523,7 +524,7 @@ class LdapConverter:
 
         # List all user keys from the different info-dicts
         all_user_keys = []
-        for info_dict_string in [f for f in dir(self) if f.endswith("_info")]:
+        for info_dict_string in self.all_info_dict_strings:
             info_dict = getattr(self, info_dict_string)
             if type(info_dict) is dict:
                 user_keys = [v["user_key"] for v in info_dict.values()]
@@ -624,16 +625,9 @@ class LdapConverter:
 
     def check_info_dicts(self):
         self.logger.info("[info dict check] Checking info dicts")
-
-        for info_dict in [
-            self.address_type_info,
-            self.it_system_info,
-            self.org_unit_type_info,
-            self.org_unit_level_info,
-            self.engagement_type_info,
-            self.job_function_info,
-        ]:
-            self.check_info_dict_for_duplicates(info_dict)
+        for info_dict in self.all_info_dict_strings:
+            if info_dict != "org_unit_info":
+                self.check_info_dict_for_duplicates(getattr(self, info_dict))
 
         self.check_org_unit_info_dict()
 
