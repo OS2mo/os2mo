@@ -511,6 +511,52 @@ class LdapConverter:
                         )
                     )
 
+    def check_get_uuid_functions(self):
+
+        # List of all 'get_uuid' functions. For example "get_address_type_uuid("
+        get_uuid_function_strings = [
+            f + "(" for f in dir(self) if f.startswith("get_") and f.endswith("_uuid")
+        ]
+
+        # List all user keys from the different info-dicts
+        all_user_keys = []
+        for info_dict_string in [f for f in dir(self) if f.endswith("_info")]:
+            info_dict = getattr(self, info_dict_string)
+            if type(info_dict) is dict:
+                user_keys = [v["user_key"] for v in info_dict.values()]
+            all_user_keys.extend(list(user_keys))
+
+        # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
+        # functions because we can just extract the uuid from a mo object directly.
+        for json_key in self.get_json_keys("ldap_to_mo"):
+            for mo_attribute, template in self.raw_mapping["ldap_to_mo"][
+                json_key
+            ].items():
+
+                for get_uuid_function_string in get_uuid_function_strings:
+
+                    # If we are using a 'get_uuid' function in this template:
+                    if get_uuid_function_string in template:
+                        argument = template.split(get_uuid_function_string)[1].split(
+                            ")"
+                        )[0]
+
+                        # And if the argument is a hard-coded string:
+                        if argument.startswith("'") and argument.endswith("'"):
+                            self.logger.info(f"[json check] Checking {template}")
+
+                            # Check if the argument is a valid user_key
+                            user_key = argument.replace("'", "")
+                            if user_key not in all_user_keys:
+                                raise IncorrectMapping(
+                                    (
+                                        f"'{user_key}' not found in any info dict. "
+                                        "Please check "
+                                        f"ldap_to_mo['{json_key}']['{mo_attribute}']"
+                                        f"={template}"
+                                    )
+                                )
+
     def check_mapping(self):
         self.logger.info("[json check] Checking json file")
 
@@ -545,6 +591,9 @@ class LdapConverter:
 
         # Check that MO objects have a uuid field
         self.check_uuid_refs_in_mo_objects()
+
+        # Check that get_..._uuid functions have valid input strings
+        self.check_get_uuid_functions()
 
         self.logger.info("[json check] Attributes OK")
 
