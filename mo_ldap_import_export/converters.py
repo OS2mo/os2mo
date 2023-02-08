@@ -126,7 +126,7 @@ class LdapConverter:
     def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
-
+        self.logger.info("[info dict loader] Loading info dicts")
         self.address_type_info = self.dataloader.load_mo_address_types()
         self.it_system_info = self.dataloader.load_mo_it_systems()
 
@@ -143,6 +143,7 @@ class LdapConverter:
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
 
         self.check_info_dicts()
+        self.logger.info("[info dict loader] Info dicts loaded successfully")
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
