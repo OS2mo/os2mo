@@ -142,6 +142,12 @@ class LdapConverter:
         self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
 
+        self.all_info_dicts = {
+            f: getattr(self, f)
+            for f in dir(self)
+            if f.endswith("_info") and type(getattr(self, f)) is dict
+        }
+
         self.check_info_dicts()
         self.logger.info("[info dict loader] Info dicts loaded successfully")
 
@@ -523,11 +529,9 @@ class LdapConverter:
 
         # List all user keys from the different info-dicts
         all_user_keys = []
-        for info_dict_string in [f for f in dir(self) if f.endswith("_info")]:
-            info_dict = getattr(self, info_dict_string)
-            if type(info_dict) is dict:
-                user_keys = [v["user_key"] for v in info_dict.values()]
-            all_user_keys.extend(list(user_keys))
+        for info_dict in self.all_info_dicts.values():
+            user_keys = [v["user_key"] for v in info_dict.values()]
+            all_user_keys.extend(user_keys)
 
         # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
         # functions because we can just extract the uuid from a mo object directly.
@@ -624,16 +628,9 @@ class LdapConverter:
 
     def check_info_dicts(self):
         self.logger.info("[info dict check] Checking info dicts")
-
-        for info_dict in [
-            self.address_type_info,
-            self.it_system_info,
-            self.org_unit_type_info,
-            self.org_unit_level_info,
-            self.engagement_type_info,
-            self.job_function_info,
-        ]:
-            self.check_info_dict_for_duplicates(info_dict)
+        for info_dict_name, info_dict in self.all_info_dicts.items():
+            if info_dict_name != "org_unit_info":
+                self.check_info_dict_for_duplicates(info_dict)
 
         self.check_org_unit_info_dict()
 
