@@ -141,6 +141,7 @@ class LdapConverter:
 
         self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
         self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
+
         self.all_info_dict_strings = [f for f in dir(self) if f.endswith("_info")]
 
         self.check_info_dicts()
