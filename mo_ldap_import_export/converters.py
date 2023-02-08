@@ -86,30 +86,12 @@ class LdapConverter:
         self.settings = self.user_context["settings"]
         self.raw_mapping = self.user_context["mapping"]
         self.dataloader = self.user_context["dataloader"]
-
-        # Note: If new address types or IT systems are added to MO, this class needs
-        # to be re-initialized
-        self.address_type_info = self.dataloader.load_mo_address_types()
-        self.it_system_info = self.dataloader.load_mo_it_systems()
-
-        self.org_unit_info = self.dataloader.load_mo_org_units()
-        self.org_unit_type_info = self.dataloader.load_mo_org_unit_types()
-        self.org_unit_level_info = self.dataloader.load_mo_org_unit_levels()
-
-        self.engagement_type_info = self.dataloader.load_mo_engagement_types()
-        self.job_function_info = self.dataloader.load_mo_job_functions()
-
-        self.primary_type_info = self.dataloader.load_mo_primary_types()
-
-        self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
-        self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
-
-        self.overview = self.dataloader.load_ldap_overview()
-        self.username_generator = self.user_context["username_generator"]
-
         self.org_unit_path_string_separator = (
             self.settings.org_unit_path_string_separator
         )
+        self.load_info_dicts()
+        self.overview = self.dataloader.load_ldap_overview()
+        self.username_generator = self.user_context["username_generator"]
 
         # Set this to an empty string if we do not need to know which org units
         # were imported by this program. For now this is useful to know because
@@ -139,8 +121,28 @@ class LdapConverter:
         )
 
         self.check_mapping()
-        self.check_info_dicts()
         self.cpr_field = find_cpr_field(self.mapping)
+
+    def load_info_dicts(self):
+        # Note: If new address types or IT systems are added to MO, these dicts need
+        # to be re-initialized
+
+        self.address_type_info = self.dataloader.load_mo_address_types()
+        self.it_system_info = self.dataloader.load_mo_it_systems()
+
+        self.org_unit_info = self.dataloader.load_mo_org_units()
+        self.org_unit_type_info = self.dataloader.load_mo_org_unit_types()
+        self.org_unit_level_info = self.dataloader.load_mo_org_unit_levels()
+
+        self.engagement_type_info = self.dataloader.load_mo_engagement_types()
+        self.job_function_info = self.dataloader.load_mo_job_functions()
+
+        self.primary_type_info = self.dataloader.load_mo_primary_types()
+
+        self.mo_address_types = [a["user_key"] for a in self.address_type_info.values()]
+        self.mo_it_systems = [a["user_key"] for a in self.it_system_info.values()]
+
+        self.check_info_dicts()
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]

@@ -12,4 +12,4 @@ TOKEN=$(
 
 # Use token to start import
 curl -X 'POST' -k -H "Authorization: Bearer ${TOKEN}" \
-    http://mo_ldap_import_export:8000/re_initialize_converter
+    http://mo_ldap_import_export:8000/reload_info_dicts

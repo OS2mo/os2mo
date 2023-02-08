@@ -775,8 +775,8 @@ def test_load_it_systems_from_MO_endpoint(test_client: TestClient, headers: dict
     assert response.status_code == 202
 
 
-def test_re_initialize_converter_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.post("/re_initialize_converter", headers=headers)
+def test_reload_info_dicts_endpoint(test_client: TestClient, headers: dict):
+    response = test_client.post("/reload_info_dicts", headers=headers)
     assert response.status_code == 202
 
 
