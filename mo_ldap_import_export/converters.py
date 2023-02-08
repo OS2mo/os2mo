@@ -531,7 +531,7 @@ class LdapConverter:
         all_user_keys = []
         for info_dict in self.all_info_dicts.values():
             user_keys = [v["user_key"] for v in info_dict.values()]
-            all_user_keys.extend(list(user_keys))
+            all_user_keys.extend(user_keys)
 
         # Check ldap_to_mo mapping only. in mo_to_ldap mapping we do not need 'get_uuid'
         # functions because we can just extract the uuid from a mo object directly.
