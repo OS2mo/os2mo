@@ -48,7 +48,7 @@ oplysningen til feltet angivet i "OS2Sync-felt":
 
 
 ### Brugere
-I FK-org kan en person have en bruger pr. AD-konto, og når fk-org brugerens uuid matcher ObjectGUID i AD vil denne AD-konto være adgangsgivende til de støttesystemer der henter data fra FK-Org. For at sikre konsistente uuid'er og brugernavne kan både organisationsenheder og brugere konfigureres til at bruge uuid'et fra IT konti (IT-fanen i OS2MO). Brugerens UserId vil ligeledes blive hentet fra en "Active Directory" it-konto hvis en sådan findes.
+I FK-org kan en person have en bruger pr. AD-konto, og når fk-org brugerens uuid matcher ObjectGUID i AD vil denne AD-konto være adgangsgivende til de støttesystemer der henter data fra FK-Org. For at sikre konsistente uuid'er og brugernavne kan både organisationsenheder og brugere konfigureres til at bruge uuid'et fra IT konti (IT-fanen i OS2MO). Brugerens UserId vil ligeledes blive hentet fra en "Active Directory" it-konto hvis en sådan findes, ellers bruges UUID'et fra OS2MO.
 
 Når integrationen sender brugere til OS2Sync, sker det efter
 nedenstående skema:
