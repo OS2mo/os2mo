@@ -665,8 +665,8 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
     async def reload_info_dicts(user=Depends(login_manager)):
         """
-        Endpoint to re-initialize the converter. To make sure that info-dicts are
-        up-to-date
+        Endpoint to reload info dicts on the converter. To make sure that they are
+        up-to-date and represent the information in OS2mo.
         """
         converter.load_info_dicts()
 
