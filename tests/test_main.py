@@ -775,6 +775,11 @@ def test_load_it_systems_from_MO_endpoint(test_client: TestClient, headers: dict
     assert response.status_code == 202
 
 
+def test_reload_info_dicts_endpoint(test_client: TestClient, headers: dict):
+    response = test_client.post("/reload_info_dicts", headers=headers)
+    assert response.status_code == 202
+
+
 def test_load_primary_types_from_MO_endpoint(test_client: TestClient, headers: dict):
     response = test_client.get("/MO/Primary_types", headers=headers)
     assert response.status_code == 202

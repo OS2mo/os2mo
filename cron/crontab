@@ -1,1 +1,2 @@
+0 23 * * *  /cron/reload_info_dicts.sh
 0 0 * * *  /cron/import_all.sh

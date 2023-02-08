@@ -662,6 +662,14 @@ def create_app(**kwargs: Any) -> FastAPI:
         access_token = login_manager.create_access_token(data={"sub": user_id})
         return {"access_token": access_token}
 
+    @app.post("/reload_info_dicts", status_code=202, tags=["Maintenance"])
+    async def reload_info_dicts(user=Depends(login_manager)):
+        """
+        Endpoint to reload info dicts on the converter. To make sure that they are
+        up-to-date and represent the information in OS2mo.
+        """
+        converter.load_info_dicts()
+
     # Load all users from LDAP, and import them into MO
     @app.get("/Import/all", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
