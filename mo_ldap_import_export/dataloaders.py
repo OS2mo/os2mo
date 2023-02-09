@@ -325,10 +325,21 @@ class DataLoader:
             uuid: UUID = result["employees"][0]["uuid"]
             return uuid
 
-    async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
-        cpr_no = cpr_no.replace("-", "")
+    async def query_mo(self, query, raise_if_empty=True):
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        result = await graphql_session.execute(query)
+        if raise_if_empty:
+            self._check_if_empty(result)
+        return result
 
+    def query_mo_sync(self, query, raise_if_empty=True):
+        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
+        result = graphql_session.execute(query)
+        if raise_if_empty:
+            self._check_if_empty(result)
+        return result
+
+    async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
         query = gql(
             """
             query FindEmployeeUUID {
@@ -337,16 +348,13 @@ class DataLoader:
               }
             }
             """
-            % cpr_no
+            % cpr_no.replace("-", "")
         )
 
-        result = await graphql_session.execute(query)
+        result = await self.query_mo(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
 
     def find_mo_employee_uuid_sync(self, cpr_no: str) -> Union[None, UUID]:
-        cpr_no = cpr_no.replace("-", "")
-        graphql_session: AsyncClientSession = self.user_context["gql_client_sync"]
-
         query = gql(
             """
             query FindEmployeeUUID {
@@ -355,15 +363,13 @@ class DataLoader:
               }
             }
             """
-            % cpr_no
+            % cpr_no.replace("-", "")
         )
 
-        result = graphql_session.execute(query)
+        result = self.query_mo_sync(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
 
     async def load_mo_employee(self, uuid: UUID) -> Employee:
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
-
         query = gql(
             """
             query SinlgeEmployee {
@@ -382,8 +388,7 @@ class DataLoader:
             % uuid
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
         entry = result["employees"][0]["objects"][0]
 
         return Employee(**entry)
@@ -394,8 +399,6 @@ class DataLoader:
         """
         Load all current employees engaged to an org unit
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
-
         query = gql(
             """
             query EmployeeOrgUnitUUIDs {
@@ -411,8 +414,7 @@ class DataLoader:
             % org_unit_uuid
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
         output = []
         for engagement_entry in result["org_units"][0]["objects"][0]["engagements"]:
             employee = await self.load_mo_employee(engagement_entry["employee_uuid"])
@@ -434,8 +436,7 @@ class DataLoader:
             """
             % user_key
         )
-        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
-        result = graphql_session.execute(query)
+        result = self.query_mo_sync(query, raise_if_empty=False)
 
         if len(result["facets"]) == 0:
             output = {}
@@ -475,8 +476,7 @@ class DataLoader:
             }
             """
         )
-        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
-        result = graphql_session.execute(query)
+        result = self.query_mo_sync(query, raise_if_empty=False)
 
         if len(result["itsystems"]) == 0:
             output = {}
@@ -503,8 +503,7 @@ class DataLoader:
             }
             """
         )
-        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
-        result = graphql_session.execute(query)
+        result = self.query_mo_sync(query, raise_if_empty=False)
 
         if len(result["org_units"]) == 0:
             output = {}
@@ -516,7 +515,6 @@ class DataLoader:
         return output
 
     async def load_mo_it_user(self, uuid: UUID):
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query MyQuery {
@@ -535,9 +533,7 @@ class DataLoader:
             """
             % (uuid)
         )
-
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         entry = result["itusers"][0]["objects"][0]
         return ITUser.from_simplified_fields(
@@ -557,8 +553,6 @@ class DataLoader:
         ---------
         Only returns addresses which are valid today. Meaning the to/from date is valid.
         """
-
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query SingleAddress {
@@ -588,8 +582,7 @@ class DataLoader:
         )
 
         self.logger.info(f"Loading address={uuid}")
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         entry = result["addresses"][0]["objects"][0]
 
@@ -611,8 +604,6 @@ class DataLoader:
         """
         Determine if an engagement is the primary engagement or not.
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
-
         query = gql(
             """
             query IsPrimary {
@@ -626,13 +617,10 @@ class DataLoader:
             % (engagement_uuid)
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
-
+        result = await self.query_mo(query)
         return True if result["engagements"][0]["objects"][0]["is_primary"] else False
 
     async def load_mo_engagement(self, uuid: UUID) -> Engagement:
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query SingleEngagement {
@@ -667,8 +655,7 @@ class DataLoader:
         )
 
         self.logger.info(f"Loading engagement={uuid}")
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         entry = result["engagements"][0]["objects"][0]
 
@@ -701,7 +688,6 @@ class DataLoader:
         """
         Loads all current addresses of a specific type for an employee
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query GetEmployeeAddresses {
@@ -717,8 +703,7 @@ class DataLoader:
             % (employee_uuid, address_type_uuid)
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         output = []
         for address_entry in result["employees"][0]["objects"][0]["addresses"]:
@@ -732,7 +717,6 @@ class DataLoader:
         """
         Loads all current addresses of a specific type for an org unit
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query GetOrgUnitAddresses {
@@ -748,8 +732,7 @@ class DataLoader:
             % (org_unit_uuid, address_type_uuid)
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         output = []
         for address_entry in result["org_units"][0]["objects"][0]["addresses"]:
@@ -761,7 +744,6 @@ class DataLoader:
         """
         Load all current it users of a specific type linked to an employee
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query ItUserQuery {
@@ -778,8 +760,7 @@ class DataLoader:
             % employee_uuid
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         output = []
         for it_user_dict in result["employees"][0]["objects"][0]["itusers"]:
@@ -794,7 +775,6 @@ class DataLoader:
         """
         Load all current engagements linked to an employee
         """
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
         query = gql(
             """
             query EngagementQuery {
@@ -810,8 +790,7 @@ class DataLoader:
             % employee_uuid
         )
 
-        result = await graphql_session.execute(query)
-        self._check_if_empty(result)
+        result = await self.query_mo(query)
 
         output = []
         for engagement_dict in result["employees"][0]["objects"][0]["engagements"]:

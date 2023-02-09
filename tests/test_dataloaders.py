@@ -15,6 +15,7 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
+from gql import gql
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
@@ -1147,3 +1148,51 @@ async def test_is_primary(dataloader: DataLoader, gql_client: AsyncMock):
 
     primary = await asyncio.gather(dataloader.is_primary(uuid4()))
     assert primary == [True]
+
+
+async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
+    expected_output: dict = {"objects": "items"}
+    gql_client.execute.return_value = expected_output
+
+    query = gql(
+        """
+        query TestQuery {
+          employees {
+            uuid
+          }
+        }
+        """
+    )
+
+    dataloader._check_if_empty = MagicMock()  # type: ignore
+    output = await asyncio.gather(dataloader.query_mo(query, raise_if_empty=False))
+    assert output == [expected_output]
+    dataloader._check_if_empty.assert_not_called()
+
+    output = await asyncio.gather(dataloader.query_mo(query))
+    assert output == [expected_output]
+    dataloader._check_if_empty.assert_called_once()
+
+
+def test_query_mo_sync(dataloader: DataLoader, gql_client_sync: MagicMock):
+    expected_output: dict = {"objects": "items"}
+    gql_client_sync.execute.return_value = expected_output
+
+    query = gql(
+        """
+        query TestQuery {
+          employees {
+            uuid
+          }
+        }
+        """
+    )
+
+    dataloader._check_if_empty = MagicMock()  # type: ignore
+    output = dataloader.query_mo_sync(query, raise_if_empty=False)
+    assert output == expected_output
+    dataloader._check_if_empty.assert_not_called()
+
+    output = dataloader.query_mo_sync(query)
+    assert output == expected_output
+    dataloader._check_if_empty.assert_called_once()
