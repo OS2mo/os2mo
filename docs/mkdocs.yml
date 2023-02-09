@@ -89,7 +89,6 @@ nav:
           - data-import-export/integrations/sdloen.md
           - data-import-export/integrations/opusloen.md
           - data-import-export/integrations/ad.md
-          - data-import-export/integrations/os2sync.md
           - data-import-export/integrations/aarhus-los.md
       - Exporter:
           - data-import-export/exporters/exporters.md
@@ -98,6 +97,7 @@ nav:
           - data-import-export/exporters/emus.md
           - data-import-export/exporters/os2phonebook.md
           - data-import-export/exporters/os2rollekatalog.md
+          - data-import-export/exporters/os2sync.md
       - OS2MO Data Import:
           - data-import-export/os2mo_data_import/import-tool.md
           - data-import-export/os2mo_data_import/integration-abstraction.md
