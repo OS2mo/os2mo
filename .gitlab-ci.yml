@@ -7,6 +7,7 @@ variables:
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   PYTEST_COV_MODULE: mo_ldap_import_export
   PYTEST_COV_FAIL_UNDER: 100
+  PYTEST_EXTRA_FLAGS: "-n auto"
   PRECOMMIT_USE_POETRY: "true"
 
 stages:
