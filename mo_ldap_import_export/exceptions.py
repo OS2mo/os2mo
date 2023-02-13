@@ -46,3 +46,8 @@ class InvalidNameException(HTTPException):
 class UUIDNotFoundException(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)
+
+
+class InvalidQueryResponse(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)

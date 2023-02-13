@@ -30,6 +30,7 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
 COPY ./cron /cron
 RUN chmod -R 100 "/cron/import_all.sh"
 RUN chmod -R 100 "/cron/reload_info_dicts.sh"
+RUN chmod -R 100 "/cron/synchronize_todays_events.sh"
 RUN chmod -R 400 "/cron/crontab"
 
 

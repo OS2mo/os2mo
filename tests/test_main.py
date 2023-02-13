@@ -17,6 +17,7 @@ from uuid import uuid4
 
 import pytest
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
@@ -25,6 +26,9 @@ from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
+from ramqp.mo.models import ObjectType
+from ramqp.mo.models import PayloadType
+from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from structlog.testing import capture_logs
 
@@ -152,7 +156,51 @@ def test_mo_address() -> Address:
 
 
 @pytest.fixture
-def dataloader(sync_dataloader: MagicMock, test_mo_address: Address) -> AsyncMock:
+def test_mo_objects() -> list:
+    return [
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "to": None,
+            },
+        },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": "2021-01-01",
+                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+            },
+        },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": "2021-01-01",
+                "to": "2021-05-01",
+            },
+        },
+    ]
+
+
+@pytest.fixture
+def dataloader(
+    sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
+) -> AsyncMock:
 
     test_ldap_object = LdapObject(
         name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
@@ -178,6 +226,7 @@ def dataloader(sync_dataloader: MagicMock, test_mo_address: Address) -> AsyncMoc
     dataloader.load_mo_primary_types = sync_dataloader
     dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
+    dataloader.load_all_mo_objects.return_value = test_mo_objects
 
     return dataloader
 
@@ -195,12 +244,18 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture
+def internal_amqpsystem() -> AsyncMock:
+    return AsyncMock()
+
+
+@pytest.fixture
 def fastramqpi(
     disable_metrics: None,
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     dataloader: AsyncMock,
     converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
 ) -> Iterator[FastRAMQPI]:
     """Fixture to construct a FastRAMQPI system.
 
@@ -218,6 +273,8 @@ def fastramqpi(
         "mo_ldap_import_export.main.LdapConverter", return_value=converter
     ), patch(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
+    ), patch(
+        "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
     ):
         yield create_fastramqpi()
 
@@ -1309,3 +1366,37 @@ async def test_format_converted_primary_engagement_objects(
     assert len(formatted_objects) == 1
     assert formatted_objects[0].primary.uuid is not None
     assert formatted_objects[0].user_key == "123"
+
+
+async def test_synchronize_todays_events(
+    test_client: TestClient,
+    headers: dict,
+    internal_amqpsystem: AsyncMock,
+    test_mo_objects: list,
+):
+    today = datetime.datetime.today().strftime("%Y-%m-%d")
+    json = {
+        "date": today,
+        "publish_amqp_messages": True,
+    }
+    response = test_client.post(
+        "/Synchronize_todays_events", headers=headers, json=json
+    )
+    assert response.status_code == 202
+
+    n = 0
+    for mo_object in test_mo_objects:
+        payload = jsonable_encoder(mo_object["payload"])
+
+        if str(mo_object["validity"]["from"]).startswith(today):
+            routing_key = "employee.employee.refresh"
+        elif str(mo_object["validity"]["to"]).startswith(today):
+            routing_key = "employee.employee.terminate"
+        else:
+            routing_key = None
+
+        if routing_key:
+            internal_amqpsystem.publish_message.assert_any_await(routing_key, payload)
+            n += 1
+
+    assert internal_amqpsystem.publish_message.await_count == n
