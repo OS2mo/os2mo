@@ -1285,3 +1285,41 @@ def test__import__and__export__(converter: LdapConverter):
     assert converter.__import__("OrgUnit") is True
     assert converter.__export__("Employee") is True
     assert converter.__export__("OrgUnit") is False
+
+
+def test_check_import_and_export_flags(converter: LdapConverter):
+    converter.raw_mapping = converter.mapping = {
+        "mo_to_ldap": {
+            "Employee": {"__export__": "True"},
+        },
+        "ldap_to_mo": {
+            "Employee": {"__import__": False},
+        },
+    }
+
+    with pytest.raises(IncorrectMapping, match="not a boolean"):
+        converter.check_import_and_export_flags()
+
+    converter.raw_mapping = converter.mapping = {
+        "mo_to_ldap": {
+            "Employee": {"__export__": True},
+        },
+        "ldap_to_mo": {
+            "Employee": {},
+        },
+    }
+
+    with pytest.raises(IncorrectMapping, match="Missing '__import__' key"):
+        converter.check_import_and_export_flags()
+
+    converter.raw_mapping = converter.mapping = {
+        "mo_to_ldap": {
+            "Employee": {},
+        },
+        "ldap_to_mo": {
+            "Employee": {"__import__": True},
+        },
+    }
+
+    with pytest.raises(IncorrectMapping, match="Missing '__export__' key"):
+        converter.check_import_and_export_flags()
