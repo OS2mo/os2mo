@@ -37,6 +37,7 @@ def context() -> Context:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
+                "__import__": True,
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "cpr_no": "{{ldap.employeeID or None}}",
@@ -44,6 +45,7 @@ def context() -> Context:
             },
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
+                "__import__": True,
                 "value": "{{ldap.mail or None}}",
                 "type": "{{'address'}}",
                 "validity": (
@@ -56,6 +58,7 @@ def context() -> Context:
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
+                "__import__": True,
                 "user_key": "{{ ldap.msSFU30Name or NONE }}",
                 "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
                 "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -65,6 +68,7 @@ def context() -> Context:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
+                "__export__": True,
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -74,10 +78,12 @@ def context() -> Context:
             },
             "Email": {
                 "objectClass": "user",
+                "__export__": True,
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Active Directory": {
                 "objectClass": "user",
+                "__export__": True,
                 "msSFU30Name": "{{mo_employee_it_user.user_key}}",
                 "employeeID": "{{mo_employee.cpr_no}}",
             },
@@ -556,7 +562,9 @@ def test_get_mo_attributes(converter: LdapConverter, context: Context):
         context["user_context"]["mapping"]["ldap_to_mo"]["Employee"].keys()
     )
 
-    expected_attributes = [a for a in all_attributes if a != "objectClass"]
+    expected_attributes = [
+        a for a in all_attributes if a != "objectClass" and not a.startswith("__")
+    ]
 
     assert attributes == expected_attributes
 
@@ -1250,3 +1258,22 @@ def test_check_get_uuid_functions(converter: LdapConverter):
             }
         }
         converter.check_get_uuid_functions()
+
+
+def test__import__and__export__(converter: LdapConverter):
+
+    converter.raw_mapping = {
+        "mo_to_ldap": {
+            "Employee": {"__export__": True},
+            "OrgUnit": {"__export__": False},
+        },
+        "ldap_to_mo": {
+            "Employee": {"__import__": False},
+            "OrgUnit": {"__import__": True},
+        },
+    }
+
+    assert converter.__import__("Employee") is False
+    assert converter.__import__("OrgUnit") is True
+    assert converter.__export__("Employee") is True
+    assert converter.__export__("OrgUnit") is False
