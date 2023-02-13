@@ -98,6 +98,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
 def converter() -> MagicMock:
     converter_mock = MagicMock()
     converter_mock.find_ldap_object_class.return_value = "user"
+    converter_mock.__export__ = MagicMock()
+    converter_mock.__export__.return_value = True
     return converter_mock
 
 

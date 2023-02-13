@@ -733,6 +733,9 @@ def create_app(**kwargs: Any) -> FastAPI:
         json_keys = ["Employee"] + [k for k in detected_json_keys if k != "Employee"]
 
         for json_key in json_keys:
+            if not converter.__import__(json_key):
+                logger.info(f"__import__ == False for json_key = '{json_key}'")
+                continue
             logger.info(f"Loading {json_key} object")
             try:
                 loaded_object = dataloader.load_ldap_cpr_object(cpr, json_key)

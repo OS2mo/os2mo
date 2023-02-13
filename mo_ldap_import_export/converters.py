@@ -151,6 +151,12 @@ class LdapConverter:
         self.check_info_dicts()
         self.logger.info("[info dict loader] Info dicts loaded successfully")
 
+    def __import__(self, json_key):
+        return self.raw_mapping["ldap_to_mo"][json_key]["__import__"]
+
+    def __export__(self, json_key):
+        return self.raw_mapping["mo_to_ldap"][json_key]["__export__"]
+
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
         if json_key not in mapping.keys():

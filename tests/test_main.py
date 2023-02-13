@@ -240,6 +240,9 @@ def converter() -> MagicMock:
         "EmailEmployee",
     ]
     converter.cpr_field = "EmployeeID"
+    converter.__import__ = MagicMock()
+    converter.__import__.return_value = True
+
     return converter
 
 
