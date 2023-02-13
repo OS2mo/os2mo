@@ -580,6 +580,26 @@ class LdapConverter:
                                     )
                                 )
 
+    def check_import_and_export_flags(self):
+        """
+        Checks that '__import__' and '__export__' keys are present in the json dict
+        """
+
+        expected_key_dict = {"ldap_to_mo": "__import__", "mo_to_ldap": "__export__"}
+
+        for conversion in ["ldap_to_mo", "mo_to_ldap"]:
+            ie_key = expected_key_dict[conversion]
+
+            for json_key in self.get_json_keys(conversion):
+                if ie_key not in self.raw_mapping[conversion][json_key]:
+                    raise IncorrectMapping(
+                        f"Missing '{ie_key}' key in {conversion}['{json_key}']"
+                    )
+                if type(self.raw_mapping[conversion][json_key][ie_key]) is not bool:
+                    raise IncorrectMapping(
+                        f"{conversion}['{json_key}']['{ie_key}'] is not a boolean"
+                    )
+
     def check_mapping(self):
         self.logger.info("[json check] Checking json file")
 
@@ -617,6 +637,9 @@ class LdapConverter:
 
         # Check that get_..._uuid functions have valid input strings
         self.check_get_uuid_functions()
+
+        # Check for import and export flags
+        self.check_import_and_export_flags()
 
         self.logger.info("[json check] Attributes OK")
 
