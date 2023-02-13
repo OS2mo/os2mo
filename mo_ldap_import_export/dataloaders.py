@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Dataloaders to bulk requests."""
+import datetime
 from typing import Any
 from typing import cast
 from typing import Union
@@ -17,8 +18,12 @@ from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
+from ramqp.mo.models import ObjectType
+from ramqp.mo.models import PayloadType
+from ramqp.mo.models import ServiceType
 
 from .exceptions import CprNoNotFound
+from .exceptions import InvalidQueryResponse
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
@@ -796,6 +801,126 @@ class DataLoader:
         for engagement_dict in result["employees"][0]["objects"][0]["engagements"]:
             engagement = await self.load_mo_engagement(engagement_dict["uuid"])
             output.append(engagement)
+        return output
+
+    async def load_all_mo_objects(self, add_validity=True) -> list[dict]:
+        """
+        Returns a list of dictionaries. One for each object in MO of one of the
+        following types:
+            - employee
+            - org_unit
+            - address (either employee or org unit addresses)
+            - itusers
+            - engagements
+
+        Also adds AMQP object type, service type and payload to the dicts.
+        """
+
+        if add_validity:
+            validity_query = """
+                            validity {
+                                from
+                                to
+                            }
+                            """
+        else:
+            validity_query = ""
+
+        query = gql(
+            """
+                query AllObjects {
+                  employees {
+                    objects {
+                      uuid
+                      %s
+                    }
+                  }
+                  org_units {
+                    objects {
+                      uuid
+                      %s
+                    }
+                  }
+                  addresses {
+                    objects {
+                      uuid
+                      employee_uuid
+                      org_unit_uuid
+                      %s
+                    }
+                  }
+                  itusers {
+                    objects {
+                      uuid
+                      org_unit_uuid
+                      employee_uuid
+                      %s
+                    }
+                  }
+                  engagements {
+                    objects {
+                      uuid
+                      org_unit_uuid
+                      employee_uuid
+                      %s
+                    }
+                  }
+                }
+                """
+            % tuple([validity_query] * 5)
+        )
+
+        object_type_dict = {
+            "employees": ObjectType.EMPLOYEE,
+            "org_units": ObjectType.ORG_UNIT,
+            "addresses": ObjectType.ADDRESS,
+            "itusers": ObjectType.IT,
+            "engagements": ObjectType.ENGAGEMENT,
+        }
+
+        result = await self.query_mo(query, raise_if_empty=False)
+        output = []
+
+        # Determine payload, service type, object type for use in amqp-messages
+        for object_type, mo_object_dicts in result.items():
+            for mo_object_dict in mo_object_dicts:
+                mo_object = mo_object_dict["objects"][0]
+                uuid = mo_object["uuid"]
+
+                # Note that engagements have both employee_uuid and org_unit uuid. But
+                # belong to an employee. We handle that by checking for employee_uuid
+                # first
+                if "employee_uuid" in mo_object and mo_object["employee_uuid"]:
+                    parent_uuid = mo_object["employee_uuid"]
+                    service_type = ServiceType.EMPLOYEE
+                elif "org_unit_uuid" in mo_object and mo_object["org_unit_uuid"]:
+                    parent_uuid = mo_object["org_unit_uuid"]
+                    service_type = ServiceType.ORG_UNIT
+                else:
+                    parent_uuid = uuid
+                    if object_type == "employees":
+                        service_type = ServiceType.EMPLOYEE
+                    elif object_type == "org_units":
+                        service_type = ServiceType.ORG_UNIT
+                    else:
+                        raise InvalidQueryResponse(
+                            (
+                                f"{mo_object} object type '{object_type}' is "
+                                "neither 'employees' nor 'org_units'"
+                            )
+                        )
+
+                mo_object["payload"] = PayloadType(
+                    uuid=parent_uuid,
+                    object_uuid=uuid,
+                    time=datetime.datetime.now(),
+                )
+
+                mo_object["object_type"] = object_type_dict[object_type]
+                mo_object["service_type"] = service_type
+
+                output.append(mo_object)
+
         return output
 
     async def upload_mo_objects(self, objects: list[Any]):

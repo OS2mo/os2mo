@@ -33,7 +33,9 @@ from ldap3 import Connection
 from pydantic import ValidationError
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
+from ramqp import AMQPSystem
 from ramqp.mo import MORouter
+from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
@@ -59,6 +61,7 @@ from .ldap_classes import LdapObject
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
 amqp_router = MORouter()
+internal_amqp_router = MORouter()
 
 """
 Employee.schema()
@@ -276,6 +279,7 @@ async def listen_to_changes_in_org_units(
             )
 
 
+@internal_amqp_router.register("*.*.*")
 @amqp_router.register("*.*.*")
 @reject_on_failure
 async def listen_to_changes(
@@ -450,6 +454,15 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     converter = LdapConverter(fastramqpi.get_context())
     fastramqpi.add_context(cpr_field=converter.cpr_field)
     fastramqpi.add_context(converter=converter)
+
+    logger.info("Initializing internal AMQP system")
+    internal_amqpsystem = AMQPSystem(
+        settings=settings.internal_amqp, router=internal_amqp_router  # type: ignore
+    )
+    fastramqpi.add_context(internal_amqpsystem=internal_amqpsystem)
+    fastramqpi.add_lifespan_manager(internal_amqpsystem)
+    internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
+    internal_amqpsystem.context = fastramqpi._context
 
     return fastramqpi
 
@@ -640,6 +653,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     converter = user_context["converter"]
     dataloader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
+    internal_amqpsystem = user_context["internal_amqpsystem"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -892,5 +906,50 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/MO/Primary_types", status_code=202, tags=["MO"])
     async def load_primary_types_from_MO(user=Depends(login_manager)) -> Any:
         return dataloader.load_mo_primary_types()
+
+    # Load all objects with to/from dates == today and send amqp messages for them
+    @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
+    async def synchronize_todays_events(
+        user=Depends(login_manager),
+        date: str = datetime.datetime.today().strftime("%Y-%m-%d"),
+        publish_amqp_messages: bool = True,  # For test purposes.
+    ) -> Any:
+
+        # Load all objects
+        all_objects = await dataloader.load_all_mo_objects(add_validity=True)
+
+        # Filter out all that is not from/to today and determine request type
+        # Note: It is not possible in graphql (yet?) To load just today's objects
+        todays_objects = []
+        for mo_object in all_objects:
+            if str(mo_object["validity"]["from"]).startswith(date):
+                mo_object["request_type"] = RequestType.REFRESH
+                todays_objects.append(mo_object)
+            elif str(mo_object["validity"]["to"]).startswith(date):
+                mo_object["request_type"] = RequestType.TERMINATE
+                todays_objects.append(mo_object)
+
+        logger.info(
+            f"Found {len(todays_objects)} objects which are valid from/to today"
+        )
+
+        for mo_object in todays_objects:
+            routing_key = MORoutingKey.build(
+                service_type=mo_object["service_type"],
+                object_type=mo_object["object_type"],
+                request_type=mo_object["request_type"],
+            )
+            payload = mo_object["payload"]
+
+            logger.info(f"Publishing {routing_key}")
+            logger.info(f"payload.uuid = {payload.uuid}")
+            logger.info(f"payload.object_uuid = {payload.object_uuid}")
+
+            # Note: OS2mo does not send out AMQP messages (yet) when objects become
+            # valid. That is why we have to do it ourselves.
+            if publish_amqp_messages:
+                await internal_amqpsystem.publish_message(
+                    str(routing_key), jsonable_encoder(payload)
+                )
 
     return app

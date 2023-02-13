@@ -12,6 +12,7 @@ from pydantic import ConstrainedList
 from pydantic import Field
 from pydantic import parse_obj_as
 from pydantic import SecretStr
+from ramqp.config import ConnectionSettings as AMQPConnectionSettings
 
 
 class ServerConfig(BaseModel):
@@ -45,10 +46,22 @@ class ServerList(ConstrainedList):
     __args__ = (ServerConfig,)
 
 
+class InternalAMQPConnectionSettings(AMQPConnectionSettings):
+    exchange = "ldap_ie"
+    queue_prefix = "ldap_ie"
+    prefetch_count = 1  # MO cannot handle too many requests
+    url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
+
+
 class Settings(BaseSettings):
     class Config:
         frozen = True
         env_nested_delimiter = "__"
+
+    internal_amqp: InternalAMQPConnectionSettings = Field(
+        default_factory=InternalAMQPConnectionSettings,
+        description="Internal amqp settings",
+    )
 
     fastramqpi: FastRAMQPISettings = Field(
         default_factory=FastRAMQPISettings, description="FastRAMQPI settings"
