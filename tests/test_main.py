@@ -888,6 +888,21 @@ async def test_import_single_object_from_LDAP_ignore_twice(
         assert len(uuids_to_ignore[uuid]) == 2
 
 
+async def test_import_single_object_from_LDAP_but_import_equals_false(
+    test_client: TestClient, headers: dict, converter: MagicMock
+):
+    converter.__import__.return_value = False
+    with capture_logs() as cap_logs:
+        test_client.get("/Import/0101011234", headers=headers)
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        for message in messages:
+            assert re.match(
+                "__import__ == False",
+                message["event"],
+            )
+
+
 async def test_import_single_object_from_LDAP_non_existing_employee(
     test_client: TestClient, dataloader: AsyncMock, headers: dict
 ) -> None:

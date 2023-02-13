@@ -348,6 +348,24 @@ async def test_upoad_ldap_object_invalid_value(
         )
 
 
+async def test_upload_ldap_object_but_export_equals_false(
+    dataloader: DataLoader, converter: MagicMock
+):
+
+    converter.__export__.return_value = False
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(
+            dataloader.upload_ldap_object(None, ""),
+        )
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert re.match(
+            "__export__ == False",
+            str(messages[-1]["event"]),
+        )
+
+
 async def test_create_ldap_employee(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
