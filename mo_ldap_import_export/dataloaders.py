@@ -51,6 +51,20 @@ class DataLoader:
                     )
                 )
 
+    async def query_mo(self, query, raise_if_empty=True):
+        graphql_session: AsyncClientSession = self.user_context["gql_client"]
+        result = await graphql_session.execute(query)
+        if raise_if_empty:
+            self._check_if_empty(result)
+        return result
+
+    def query_mo_sync(self, query, raise_if_empty=True):
+        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
+        result = graphql_session.execute(query)
+        if raise_if_empty:
+            self._check_if_empty(result)
+        return result
+
     def load_ldap_object(self, dn, attributes, nest=True):
         searchParameters = {
             "search_base": dn,
@@ -324,20 +338,6 @@ class DataLoader:
         else:
             uuid: UUID = result["employees"][0]["uuid"]
             return uuid
-
-    async def query_mo(self, query, raise_if_empty=True):
-        graphql_session: AsyncClientSession = self.user_context["gql_client"]
-        result = await graphql_session.execute(query)
-        if raise_if_empty:
-            self._check_if_empty(result)
-        return result
-
-    def query_mo_sync(self, query, raise_if_empty=True):
-        graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
-        result = graphql_session.execute(query)
-        if raise_if_empty:
-            self._check_if_empty(result)
-        return result
 
     async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
         query = gql(
