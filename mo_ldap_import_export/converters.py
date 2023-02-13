@@ -106,7 +106,7 @@ class LdapConverter:
         )
 
         mapping = delete_keys_from_dict(
-            copy.deepcopy(self.raw_mapping), ["objectClass"]
+            copy.deepcopy(self.raw_mapping), ["objectClass", "__import__", "__export__"]
         )
 
         environment = Environment(undefined=Undefined)
@@ -438,6 +438,8 @@ class LdapConverter:
                 self.overview[object_class]["attributes"].keys()
             )
             for key, value in raw_mapping[json_key].items():
+                if type(value) is not str:
+                    continue
                 if "ldap." in value:
                     ldap_refs = value.split("ldap.")[1:]
 
@@ -540,6 +542,8 @@ class LdapConverter:
                 json_key
             ].items():
 
+                if type(template) is not str:
+                    continue
                 for get_uuid_function_string in get_uuid_function_strings:
 
                     # If we are using a 'get_uuid' function in this template:
