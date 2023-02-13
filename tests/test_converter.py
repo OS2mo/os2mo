@@ -324,6 +324,7 @@ def test_mapping_loader() -> None:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
+                "__import__": True,
                 "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
                 "surname": "{{ldap.surname or ldap.sn or "
                 "ldap.name|splitlast|last or ''}}",
@@ -336,6 +337,7 @@ def test_mapping_loader() -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
+                "__export__": True,
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -431,12 +433,14 @@ def test_find_cpr_field(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
+                "__export__": True,
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             }
         },
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
+                "__import__": True,
                 "uuid": "{{ employee_uuid }}",
             }
         },
@@ -447,12 +451,14 @@ def test_find_cpr_field(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
+                "__export__": True,
                 "givenName": "{{mo_employee.givenname}}",
             }
         },
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
+                "__import__": True,
                 "uuid": "{{ employee_uuid }}",
             }
         },
@@ -489,6 +495,7 @@ def test_template_lenience(context: Context) -> None:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
+                "__import__": True,
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "uuid": "{{ employee_uuid }}",
@@ -497,6 +504,7 @@ def test_template_lenience(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
+                "__export__": True,
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
