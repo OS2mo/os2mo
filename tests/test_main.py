@@ -240,8 +240,8 @@ def converter() -> MagicMock:
         "EmailEmployee",
     ]
     converter.cpr_field = "EmployeeID"
-    converter.__import__ = MagicMock()
-    converter.__import__.return_value = True
+    converter.__import_to_mo__ = MagicMock()
+    converter.__import_to_mo__.return_value = True
 
     return converter
 
@@ -891,14 +891,14 @@ async def test_import_single_object_from_LDAP_ignore_twice(
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     test_client: TestClient, headers: dict, converter: MagicMock
 ):
-    converter.__import__.return_value = False
+    converter.__import_to_mo__.return_value = False
     with capture_logs() as cap_logs:
         test_client.get("/Import/0101011234", headers=headers)
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         for message in messages:
             assert re.match(
-                "__import__ == False",
+                "__import_to_mo__ == False",
                 message["event"],
             )
 

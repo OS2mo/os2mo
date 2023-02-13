@@ -2,7 +2,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import__": true,
+      "__import_to_mo__": true,
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
       "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
@@ -14,7 +14,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import__": true,
+      "__import_to_mo__": true,
       "value": "{{ldap.mail or NONE}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
@@ -24,7 +24,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import__": true,
+      "__import_to_mo__": true,
       "value": "{{ ldap.homePostalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -34,7 +34,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "LocationUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import__": true,
+      "__import_to_mo__": true,
       "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -44,7 +44,7 @@
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import__": true,
+      "__import_to_mo__": true,
       "user_key": "{{ ldap.msSFU30Name or NONE }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -52,7 +52,7 @@
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
-      "__import__": true,
+      "__import_to_mo__": true,
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
@@ -65,7 +65,7 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -76,20 +76,20 @@
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "mail": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "LocationEmployee": {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "homePostalAddress": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     "LocationUnit": {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
@@ -97,13 +97,13 @@
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "msSFU30Name" : "{{mo_employee_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     "Engagement" : {
       "objectClass": "user",
-      "__export__": true,
+      "__export_to_ldap__": true,
       "employeeID": "{{mo_employee.cpr_no}}",
       "department": "{{NONE}}",
       "company": "{{NONE}}",

@@ -98,8 +98,8 @@ def settings(monkeypatch: pytest.MonkeyPatch):
 def converter() -> MagicMock:
     converter_mock = MagicMock()
     converter_mock.find_ldap_object_class.return_value = "user"
-    converter_mock.__export__ = MagicMock()
-    converter_mock.__export__.return_value = True
+    converter_mock.__export_to_ldap__ = MagicMock()
+    converter_mock.__export_to_ldap__.return_value = True
     return converter_mock
 
 
@@ -352,7 +352,7 @@ async def test_upload_ldap_object_but_export_equals_false(
     dataloader: DataLoader, converter: MagicMock
 ):
 
-    converter.__export__.return_value = False
+    converter.__export_to_ldap__.return_value = False
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
@@ -361,7 +361,7 @@ async def test_upload_ldap_object_but_export_equals_false(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "__export__ == False",
+            "__export_to_ldap__ == False",
             str(messages[-1]["event"]),
         )
 

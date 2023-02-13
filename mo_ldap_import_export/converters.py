@@ -106,7 +106,8 @@ class LdapConverter:
         )
 
         mapping = delete_keys_from_dict(
-            copy.deepcopy(self.raw_mapping), ["objectClass", "__import__", "__export__"]
+            copy.deepcopy(self.raw_mapping),
+            ["objectClass", "__import_to_mo__", "__export_to_ldap__"],
         )
 
         environment = Environment(undefined=Undefined)
@@ -151,17 +152,17 @@ class LdapConverter:
         self.check_info_dicts()
         self.logger.info("[info dict loader] Info dicts loaded successfully")
 
-    def __import__(self, json_key):
+    def __import_to_mo__(self, json_key):
         """
         Returns True, when we need to import this json key. Otherwise False
         """
-        return self.raw_mapping["ldap_to_mo"][json_key]["__import__"]
+        return self.raw_mapping["ldap_to_mo"][json_key]["__import_to_mo__"]
 
-    def __export__(self, json_key):
+    def __export_to_ldap__(self, json_key):
         """
         Returns True, when we need to export this json key. Otherwise False
         """
-        return self.raw_mapping["mo_to_ldap"][json_key]["__export__"]
+        return self.raw_mapping["mo_to_ldap"][json_key]["__export_to_ldap__"]
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
@@ -582,10 +583,14 @@ class LdapConverter:
 
     def check_import_and_export_flags(self):
         """
-        Checks that '__import__' and '__export__' keys are present in the json dict
+        Checks that '__import_to_mo__' and '__export_to_ldap__' keys are present in
+        the json dict
         """
 
-        expected_key_dict = {"ldap_to_mo": "__import__", "mo_to_ldap": "__export__"}
+        expected_key_dict = {
+            "ldap_to_mo": "__import_to_mo__",
+            "mo_to_ldap": "__export_to_ldap__",
+        }
 
         for conversion in ["ldap_to_mo", "mo_to_ldap"]:
             ie_key = expected_key_dict[conversion]

@@ -733,8 +733,8 @@ def create_app(**kwargs: Any) -> FastAPI:
         json_keys = ["Employee"] + [k for k in detected_json_keys if k != "Employee"]
 
         for json_key in json_keys:
-            if not converter.__import__(json_key):
-                logger.info(f"__import__ == False for json_key = '{json_key}'")
+            if not converter.__import_to_mo__(json_key):
+                logger.info(f"__import_to_mo__ == False for json_key = '{json_key}'")
                 continue
             logger.info(f"Loading {json_key} object")
             try:
