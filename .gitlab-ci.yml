@@ -82,10 +82,6 @@ workflow:
 default:
   # All jobs are interruptible by default
   interruptible: true
-  # Opt in to running on kubernetes runners
-  # https://redmine.magenta-aps.dk/issues/42309
-  tags:
-    - kubernetes
 
 # Services
 ###########
