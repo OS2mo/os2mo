@@ -61,6 +61,7 @@ include:
       - gitlab-ci-templates/common/docker-release.v1.yml
       - gitlab-ci-templates/common/config-updater-salt.v1.yml
       - gitlab-ci-templates/common/config-updater-flux.v1.yml
+    ref: feature/52164_conventional_commits
   - project: labs/salt-automation
     file: gitlab-ci-templates/common/pre-commit.v1.yml
     rules:
