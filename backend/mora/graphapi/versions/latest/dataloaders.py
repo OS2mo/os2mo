@@ -11,6 +11,7 @@ from typing import TypeVar
 from uuid import UUID
 
 from more_itertools import bucket
+from more_itertools import last
 from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
@@ -37,11 +38,14 @@ from .schema import RelatedUnitRead
 from .schema import Response
 from .schema import RoleRead
 from mora.common import get_connector
+from mora.graphapi.middleware import get_graphql_dates
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
+from ramodels.lora._shared import InfiniteDatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
 
 MOModel = TypeVar(
     "MOModel",
@@ -177,10 +181,48 @@ async def load_itsystems(uuids: list[UUID]) -> list[ITSystemRead | None]:
 def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
     uuid, lora_class = lora_tuple
 
-    class_attributes = one(lora_class.attributes.properties)
-    class_state = one(lora_class.states.published_state)
-    class_relations = lora_class.relations
+    # Configure dates for attributes and states
+    from_date = InfiniteDatetime.from_value(NEGATIVE_INFINITY)
+    to_date = InfiniteDatetime.from_value(POSITIVE_INFINITY)
+    graphql_dates = get_graphql_dates()
+    if graphql_dates:
+        if graphql_dates.from_date:
+            from_date = InfiniteDatetime.from_value(graphql_dates.from_date)
+        if graphql_dates.to_date:
+            to_date = InfiniteDatetime.from_value(graphql_dates.to_date)
 
+    # NOTE:
+    # - filter() is used to remove elements which does not fit into the GraphQL
+    # dateinterval / time-machine dates.
+    # - sorted() is then used to make sure the both lists in the same order, so we
+    # so we can use last(), since "lora_class.attributes.properties" and
+    # "lora_class.states.published_state" are not sorted equally by LoRa.
+    class_attributes = last(
+        sorted(
+            filter(
+                lambda a: (
+                    a.effective_time.from_date <= to_date
+                    and a.effective_time.to_date > from_date
+                ),
+                lora_class.attributes.properties,
+            ),
+            key=lambda x: x.effective_time.from_date,
+        )
+    )
+    class_state = last(
+        sorted(
+            filter(
+                lambda a: (
+                    a.effective_time.from_date <= to_date
+                    and a.effective_time.to_date > from_date
+                ),
+                lora_class.states.published_state,
+            ),
+            key=lambda x: x.effective_time.from_date,
+        )
+    )
+
+    class_relations = lora_class.relations
     mo_class = {
         "uuid": uuid,
         "name": class_attributes.title,
