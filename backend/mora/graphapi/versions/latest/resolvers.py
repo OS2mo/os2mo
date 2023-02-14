@@ -18,6 +18,8 @@ from .dataloaders import MOModel
 from .schema import OpenValidityModel
 from .schema import Response
 from mora.util import CPR
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
 
 
 class StaticResolver:
@@ -144,22 +146,6 @@ class Resolver(StaticResolver):
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__("facet_getter", "facet_loader")
-
-    async def resolve(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-    ):
-        return await super()._resolve(
-            info=info,
-            uuids=uuids,
-            user_keys=user_keys,
-            from_date=from_date,
-            to_date=to_date,
-        )
 
 
 class ClassResolver(StaticResolver):
@@ -427,14 +413,20 @@ def get_date_interval(
         ValueError: If lower bound is none and upper bound is unset
         ValueError: If the interval is invalid, e.g. lower > upper
     """
-    if from_date is UNSET:
+    if from_date is None:
+        from_date = NEGATIVE_INFINITY
+    elif from_date is UNSET:
         from_date = datetime.now(tz=timezone.utc)
-    if to_date is UNSET:
+
+    if to_date is None:
+        to_date = POSITIVE_INFINITY
+    elif to_date is UNSET:
         if from_date is None:
             raise ValueError(
                 "Cannot infer UNSET to_date from interval starting at -infinity"
             )
         to_date = from_date + timedelta(milliseconds=1)
+
     try:
         interval = OpenValidityModel(from_date=from_date, to_date=to_date)
     except ValidationError as v_error:
