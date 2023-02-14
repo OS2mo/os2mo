@@ -12,6 +12,7 @@ import structlog
 from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
+from gql.transport.exceptions import TransportQueryError
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ramodels.mo.details.address import Address
@@ -803,7 +804,7 @@ class DataLoader:
             output.append(engagement)
         return output
 
-    async def load_all_mo_objects(self, add_validity=True) -> list[dict]:
+    async def load_all_mo_objects(self, add_validity=False, uuid="") -> list[dict]:
         """
         Returns a list of dictionaries. One for each object in MO of one of the
         following types:
@@ -814,61 +815,64 @@ class DataLoader:
             - engagements
 
         Also adds AMQP object type, service type and payload to the dicts.
+
+        If "uuid" is specified, only returns objects matching this uuid.
         """
+
+        query_template = """
+                         query AllObjects {
+                             %s %s {
+                                 objects {
+                                     uuid
+                                     %s
+                                     %s
+                                     }
+                                 }
+                             }
+                         """
 
         if add_validity:
             validity_query = """
-                            validity {
-                                from
-                                to
-                            }
-                            """
+                             validity {
+                                 from
+                                 to
+                             }
+                             """
         else:
             validity_query = ""
 
-        query = gql(
-            """
-                query AllObjects {
-                  employees {
-                    objects {
-                      uuid
-                      %s
-                    }
-                  }
-                  org_units {
-                    objects {
-                      uuid
-                      %s
-                    }
-                  }
-                  addresses {
-                    objects {
-                      uuid
-                      employee_uuid
-                      org_unit_uuid
-                      %s
-                    }
-                  }
-                  itusers {
-                    objects {
-                      uuid
-                      org_unit_uuid
-                      employee_uuid
-                      %s
-                    }
-                  }
-                  engagements {
-                    objects {
-                      uuid
-                      org_unit_uuid
-                      employee_uuid
-                      %s
-                    }
-                  }
-                }
-                """
-            % tuple([validity_query] * 5)
-        )
+        if uuid:
+            uuid_filter = f'(uuids: "{str(uuid)}")'
+        else:
+            uuid_filter = ""
+
+        result: dict = {}
+        for object_type in [
+            "employees",
+            "org_units",
+            "addresses",
+            "itusers",
+            "engagements",
+        ]:
+
+            if object_type in ["employees", "org_units"]:
+                additional_uuids = ""
+            else:
+                additional_uuids = """
+                                   org_unit_uuid
+                                   employee_uuid
+                                   """
+
+            query = gql(
+                query_template
+                % (object_type, uuid_filter, additional_uuids, validity_query)
+            )
+
+            try:
+                sub_result = await self.query_mo(query, raise_if_empty=False)
+                result = result | sub_result
+            except TransportQueryError as e:
+                self.logger.warning(e)
 
         object_type_dict = {
             "employees": ObjectType.EMPLOYEE,
@@ -878,7 +882,6 @@ class DataLoader:
             "engagements": ObjectType.ENGAGEMENT,
         }
 
-        result = await self.query_mo(query, raise_if_empty=False)
         output = []
 
         # Determine payload, service type, object type for use in amqp-messages
