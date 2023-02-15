@@ -10,7 +10,7 @@ import pytest
 import strawberry
 from dateutil.tz import tzutc
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given, reproduce_failure
+from hypothesis import given
 from hypothesis import strategies as st
 from starlette_context import context
 
@@ -123,7 +123,6 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
         )
 
 
-
 @given(
     dates=st.tuples(
         st.datetimes(timezones=st.just(timezone.utc)),
@@ -152,7 +151,6 @@ def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
     assert data is not None
     assert errors is None
     assert graphql_dates == validity
-
 
 
 @freezegun.freeze_time("1337-04-20")
