@@ -106,7 +106,8 @@ class LdapConverter:
         )
 
         mapping = delete_keys_from_dict(
-            copy.deepcopy(self.raw_mapping), ["objectClass"]
+            copy.deepcopy(self.raw_mapping),
+            ["objectClass", "__import_to_mo__", "__export_to_ldap__"],
         )
 
         environment = Environment(undefined=Undefined)
@@ -150,6 +151,18 @@ class LdapConverter:
 
         self.check_info_dicts()
         self.logger.info("[info dict loader] Info dicts loaded successfully")
+
+    def __import_to_mo__(self, json_key):
+        """
+        Returns True, when we need to import this json key. Otherwise False
+        """
+        return self.raw_mapping["ldap_to_mo"][json_key]["__import_to_mo__"]
+
+    def __export_to_ldap__(self, json_key):
+        """
+        Returns True, when we need to export this json key. Otherwise False
+        """
+        return self.raw_mapping["mo_to_ldap"][json_key]["__export_to_ldap__"]
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
@@ -438,6 +451,8 @@ class LdapConverter:
                 self.overview[object_class]["attributes"].keys()
             )
             for key, value in raw_mapping[json_key].items():
+                if type(value) is not str:
+                    continue
                 if "ldap." in value:
                     ldap_refs = value.split("ldap.")[1:]
 
@@ -540,6 +555,8 @@ class LdapConverter:
                 json_key
             ].items():
 
+                if type(template) is not str:
+                    continue
                 for get_uuid_function_string in get_uuid_function_strings:
 
                     # If we are using a 'get_uuid' function in this template:
@@ -563,6 +580,30 @@ class LdapConverter:
                                         f"={template}"
                                     )
                                 )
+
+    def check_import_and_export_flags(self):
+        """
+        Checks that '__import_to_mo__' and '__export_to_ldap__' keys are present in
+        the json dict
+        """
+
+        expected_key_dict = {
+            "ldap_to_mo": "__import_to_mo__",
+            "mo_to_ldap": "__export_to_ldap__",
+        }
+
+        for conversion in ["ldap_to_mo", "mo_to_ldap"]:
+            ie_key = expected_key_dict[conversion]
+
+            for json_key in self.get_json_keys(conversion):
+                if ie_key not in self.raw_mapping[conversion][json_key]:
+                    raise IncorrectMapping(
+                        f"Missing '{ie_key}' key in {conversion}['{json_key}']"
+                    )
+                if type(self.raw_mapping[conversion][json_key][ie_key]) is not bool:
+                    raise IncorrectMapping(
+                        f"{conversion}['{json_key}']['{ie_key}'] is not a boolean"
+                    )
 
     def check_mapping(self):
         self.logger.info("[json check] Checking json file")
@@ -601,6 +642,9 @@ class LdapConverter:
 
         # Check that get_..._uuid functions have valid input strings
         self.check_get_uuid_functions()
+
+        # Check for import and export flags
+        self.check_import_and_export_flags()
 
         self.logger.info("[json check] Attributes OK")
 

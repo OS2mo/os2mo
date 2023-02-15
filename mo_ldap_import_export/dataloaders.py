@@ -191,6 +191,9 @@ class DataLoader:
             - a MO address type name
         """
         converter = self.user_context["converter"]
+        if not converter.__export_to_ldap__(json_key):
+            self.logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
+            return None
         success = 0
         failed = 0
         cpr_field = self.user_context["cpr_field"]
