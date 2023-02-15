@@ -75,9 +75,8 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
             "Timeout while configuring LDAP connection. Try 'sudo tailscale up'?"
         )
 
-    signal.signal(signal.SIGALRM, alarm_handler)
-
     # Set a timeout alarm
+    signal.signal(signal.SIGALRM, alarm_handler)
     signal.alarm(max([c.timeout for c in settings.ldap_controllers]))
 
     servers = list(map(construct_server, settings.ldap_controllers))
