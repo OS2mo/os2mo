@@ -1400,3 +1400,24 @@ async def test_synchronize_todays_events(
             n += 1
 
     assert internal_amqpsystem.publish_message.await_count == n
+
+
+async def test_export_endpoint(
+    test_client: TestClient,
+    headers: dict,
+    internal_amqpsystem: AsyncMock,
+    test_mo_objects: list,
+):
+
+    json = {"publish_amqp_messages": True, "uuid": str(uuid4())}
+
+    response = test_client.post("/Export", headers=headers, json=json)
+    assert response.status_code == 202
+
+    for mo_object in test_mo_objects:
+        payload = jsonable_encoder(mo_object["payload"])
+        internal_amqpsystem.publish_message.assert_any_await(
+            "employee.employee.refresh", payload
+        )
+
+    assert internal_amqpsystem.publish_message.await_count == len(test_mo_objects)

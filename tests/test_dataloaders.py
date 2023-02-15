@@ -16,6 +16,7 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from gql import gql
+from gql.transport.exceptions import TransportQueryError
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
@@ -1203,47 +1204,66 @@ def test_query_mo_sync(dataloader: DataLoader, gql_client_sync: MagicMock):
 
 async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock):
 
-    return_value: dict = {
-        "employees": [{"objects": [{"uuid": uuid4()}]}],
-        "org_units": [{"objects": [{"uuid": uuid4()}]}],
-        "addresses": [
-            {
-                "objects": [
-                    {"uuid": uuid4(), "employee_uuid": uuid4(), "org_unit_uuid": None},
-                ]
-            },
-            {
-                "objects": [
-                    {"uuid": uuid4(), "employee_uuid": None, "org_unit_uuid": uuid4()},
-                ]
-            },
-        ],
-        "itusers": [
-            {
-                "objects": [
-                    {"uuid": uuid4(), "employee_uuid": uuid4(), "org_unit_uuid": None}
-                ]
-            }
-        ],
-        "engagements": [
-            {
-                "objects": [
-                    {
-                        "uuid": uuid4(),
-                        "employee_uuid": uuid4(),
-                        "org_unit_uuid": uuid4(),
-                    }
-                ]
-            }
-        ],
-    }
-    gql_client.execute.return_value = return_value
+    return_values: list = [
+        {"employees": [{"objects": [{"uuid": uuid4()}]}]},
+        {"org_units": [{"objects": [{"uuid": uuid4()}]}]},
+        {
+            "addresses": [
+                {
+                    "objects": [
+                        {
+                            "uuid": uuid4(),
+                            "employee_uuid": uuid4(),
+                            "org_unit_uuid": None,
+                        },
+                    ]
+                },
+                {
+                    "objects": [
+                        {
+                            "uuid": uuid4(),
+                            "employee_uuid": None,
+                            "org_unit_uuid": uuid4(),
+                        },
+                    ]
+                },
+            ]
+        },
+        {
+            "itusers": [
+                {
+                    "objects": [
+                        {
+                            "uuid": uuid4(),
+                            "employee_uuid": uuid4(),
+                            "org_unit_uuid": None,
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "engagements": [
+                {
+                    "objects": [
+                        {
+                            "uuid": uuid4(),
+                            "employee_uuid": uuid4(),
+                            "org_unit_uuid": uuid4(),
+                        }
+                    ]
+                }
+            ],
+        },
+    ]
+
+    gql_client.execute.side_effect = return_values
 
     output = await asyncio.gather(dataloader.load_all_mo_objects())
 
     all_objects = output[0]
 
-    uuid = return_value["employees"][0]["objects"][0]["uuid"]
+    uuid = return_values[0]["employees"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[0]["uuid"] == uuid
     assert all_objects[0]["object_type"] == ObjectType.EMPLOYEE
@@ -1251,7 +1271,7 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     assert all_objects[0]["payload"].uuid == parent_uuid
     assert all_objects[0]["payload"].object_uuid == uuid
 
-    uuid = return_value["org_units"][0]["objects"][0]["uuid"]
+    uuid = return_values[1]["org_units"][0]["objects"][0]["uuid"]
     parent_uuid = uuid
     assert all_objects[1]["uuid"] == uuid
     assert all_objects[1]["object_type"] == ObjectType.ORG_UNIT
@@ -1259,37 +1279,39 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
     assert all_objects[1]["payload"].uuid == parent_uuid
     assert all_objects[1]["payload"].object_uuid == uuid
 
-    uuid = return_value["addresses"][0]["objects"][0]["uuid"]
-    parent_uuid = return_value["addresses"][0]["objects"][0]["employee_uuid"]
+    uuid = return_values[2]["addresses"][0]["objects"][0]["uuid"]
+    parent_uuid = return_values[2]["addresses"][0]["objects"][0]["employee_uuid"]
     assert all_objects[2]["uuid"] == uuid
     assert all_objects[2]["object_type"] == ObjectType.ADDRESS
     assert all_objects[2]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[2]["payload"].uuid == parent_uuid
     assert all_objects[2]["payload"].object_uuid == uuid
 
-    uuid = return_value["addresses"][1]["objects"][0]["uuid"]
-    parent_uuid = return_value["addresses"][1]["objects"][0]["org_unit_uuid"]
+    uuid = return_values[2]["addresses"][1]["objects"][0]["uuid"]
+    parent_uuid = return_values[2]["addresses"][1]["objects"][0]["org_unit_uuid"]
     assert all_objects[3]["uuid"] == uuid
     assert all_objects[3]["object_type"] == ObjectType.ADDRESS
     assert all_objects[3]["service_type"] == ServiceType.ORG_UNIT
     assert all_objects[3]["payload"].uuid == parent_uuid
     assert all_objects[3]["payload"].object_uuid == uuid
 
-    uuid = return_value["itusers"][0]["objects"][0]["uuid"]
-    parent_uuid = return_value["itusers"][0]["objects"][0]["employee_uuid"]
+    uuid = return_values[3]["itusers"][0]["objects"][0]["uuid"]
+    parent_uuid = return_values[3]["itusers"][0]["objects"][0]["employee_uuid"]
     assert all_objects[4]["uuid"] == uuid
     assert all_objects[4]["object_type"] == ObjectType.IT
     assert all_objects[4]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[4]["payload"].uuid == parent_uuid
     assert all_objects[4]["payload"].object_uuid == uuid
 
-    uuid = return_value["engagements"][0]["objects"][0]["uuid"]
-    parent_uuid = return_value["engagements"][0]["objects"][0]["employee_uuid"]
+    uuid = return_values[4]["engagements"][0]["objects"][0]["uuid"]
+    parent_uuid = return_values[4]["engagements"][0]["objects"][0]["employee_uuid"]
     assert all_objects[5]["uuid"] == uuid
     assert all_objects[5]["object_type"] == ObjectType.ENGAGEMENT
     assert all_objects[5]["service_type"] == ServiceType.EMPLOYEE
     assert all_objects[5]["payload"].uuid == parent_uuid
     assert all_objects[5]["payload"].object_uuid == uuid
+
+    assert len(all_objects) == 6
 
 
 async def test_load_all_mo_objects_add_validity(
@@ -1309,6 +1331,25 @@ async def test_load_all_mo_objects_add_validity(
     await dataloader.load_all_mo_objects(add_validity=False)
     query = query_mo.call_args[0][0].to_dict()
     assert "validity" not in str(query)
+
+
+async def test_load_all_mo_objects_specify_uuid(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    query_mo = AsyncMock()
+    query_mo.return_value = {}
+    dataloader.query_mo = query_mo  # type: ignore
+
+    await dataloader.load_all_mo_objects(uuid="uuid_goes_here")
+    query = query_mo.call_args[0][0].to_dict()
+    assert "uuid_goes_here" in str(query)
+
+    query_mo.reset_mock()
+
+    await dataloader.load_all_mo_objects(uuid="")
+    query = query_mo.call_args[0][0].to_dict()
+    assert "uuid_goes_here" not in str(query)
 
 
 async def test_load_all_mo_objects_invalid_query(
@@ -1333,3 +1374,28 @@ async def test_load_all_mo_objects_invalid_query(
 
     with pytest.raises(InvalidQueryResponse):
         await asyncio.gather(dataloader.load_all_mo_objects())
+
+
+async def test_load_all_mo_objects_TransportQueryError(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    employee_uuid = uuid4()
+    org_unit_uuid = uuid4()
+    return_values = [
+        {"employees": [{"objects": [{"uuid": employee_uuid}]}]},
+        {"org_units": [{"objects": [{"uuid": org_unit_uuid}]}]},
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+    ]
+    gql_client.execute.side_effect = return_values
+    with capture_logs() as cap_logs:
+
+        output = await asyncio.gather(dataloader.load_all_mo_objects())
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+        assert len(warnings) == 3
+
+        assert output[0][0]["uuid"] == employee_uuid
+        assert output[0][1]["uuid"] == org_unit_uuid
+        assert len(output[0]) == 2

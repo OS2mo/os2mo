@@ -764,6 +764,51 @@ def create_app(**kwargs: Any) -> FastAPI:
                         uuids_to_ignore[mo_object.uuid] = [datetime.datetime.now()]
                 await dataloader.upload_mo_objects(converted_objects)
 
+    class ExportQueryParams:
+        def __init__(
+            self,
+            publish_amqp_messages: bool = Query(
+                True,
+                description=(
+                    "If False, do not publish anything, "
+                    "just inspect what would be published"
+                ),
+            ),
+            object_uuid: str = Query(
+                "", description="If specified, export only the object with this uuid"
+            ),
+        ):
+            self.publish_amqp_messages = publish_amqp_messages
+            self.object_uuid = object_uuid
+
+    # Export object(s) from MO to LDAP
+    @app.post("/Export", status_code=202, tags=["Export"])
+    async def export_mo_objects(
+        user=Depends(login_manager),
+        params: ExportQueryParams = Depends(),
+    ) -> Any:
+
+        # Load mo objects
+        mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
+        logger.info(f"Found {len(mo_objects)} objects")
+
+        for mo_object in mo_objects:
+            routing_key = MORoutingKey.build(
+                service_type=mo_object["service_type"],
+                object_type=mo_object["object_type"],
+                request_type=RequestType.REFRESH,
+            )
+            payload = mo_object["payload"]
+
+            logger.info(f"Publishing {routing_key}")
+            logger.info(f"payload.uuid = {payload.uuid}")
+            logger.info(f"payload.object_uuid = {payload.object_uuid}")
+
+            if params.publish_amqp_messages:
+                await internal_amqpsystem.publish_message(
+                    str(routing_key), jsonable_encoder(payload)
+                )
+
     # Get all objects from LDAP - Converted to MO
     @app.get("/LDAP/{json_key}/converted", status_code=202, tags=["LDAP"])
     async def convert_all_objects_from_ldap(
@@ -907,12 +952,25 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def load_primary_types_from_MO(user=Depends(login_manager)) -> Any:
         return dataloader.load_mo_primary_types()
 
+    class SyncQueryParams:
+        def __init__(
+            self,
+            publish_amqp_messages: bool = Query(
+                True,
+                description=(
+                    "If False, do not publish anything, "
+                    "just inspect what would be published"
+                ),
+            ),
+        ):
+            self.publish_amqp_messages = publish_amqp_messages
+
     # Load all objects with to/from dates == today and send amqp messages for them
     @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
     async def synchronize_todays_events(
         user=Depends(login_manager),
         date: str = datetime.datetime.today().strftime("%Y-%m-%d"),
-        publish_amqp_messages: bool = True,  # For test purposes.
+        params: SyncQueryParams = Depends(),
     ) -> Any:
 
         # Load all objects
@@ -947,7 +1005,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
             # Note: OS2mo does not send out AMQP messages (yet) when objects become
             # valid. That is why we have to do it ourselves.
-            if publish_amqp_messages:
+            if params.publish_amqp_messages:
                 await internal_amqpsystem.publish_message(
                     str(routing_key), jsonable_encoder(payload)
                 )
