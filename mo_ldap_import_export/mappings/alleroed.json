@@ -85,7 +85,6 @@
       "givenName" : "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.nickname_givenname}} {{mo_employee.nickname_surname}}",
-      "sAMAccountName": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "Engagement" : {
