@@ -127,21 +127,21 @@
       "objectClass": "user",
       "__export_to_ldap__": false,
       "mail": "{{mo_employee_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "MobilePhoneEmployee": {
       "objectClass": "user",
       "__export_to_ldap__": false,
       "mobile": "{{mo_employee_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "PhoneEmployee": {
       "objectClass": "user",
       "__export_to_ldap__": false,
       "telephoneNumber": "{{mo_employee_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
 
