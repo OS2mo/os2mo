@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Tests of dataloaders used in the GraphQL implementation."""
+import datetime
+import uuid
+
 import pytest
 from hypothesis import given
 from pytest import MonkeyPatch
@@ -8,6 +11,7 @@ from pytest import MonkeyPatch
 from .strategies import data_strat
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.dataloaders import lora_class_to_mo_class
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.graphapi.versions.latest.schema import EmployeeRead
@@ -19,6 +23,12 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
+from mora.util import NEGATIVE_INFINITY
+from mora.util import POSITIVE_INFINITY
+from ramodels.lora._shared import EffectiveTime
+from ramodels.lora._shared import InfiniteDatetime
+from ramodels.lora.klasse import KlasseRead
+from tests.hypothesis.strats_ramodels import valid_klasse_relations
 
 pytestmark = pytest.mark.asyncio
 
@@ -91,3 +101,61 @@ class TestDataloaders:
             assert set(result) == {None}
         else:
             assert set(result) == set()
+
+
+@given(valid_klasse_relations())
+async def test_lora_class_to_mo_class_filter_attrs_states(test_data_relations):
+    test_data_uuid = uuid.uuid4()
+
+    now = datetime.datetime.now(tz=datetime.timezone.utc)
+    test_data_from_dt = now - datetime.timedelta(days=5)
+    test_data_to_dt = now + datetime.timedelta(days=5)
+    effective_time_old = EffectiveTime(
+        from_date=NEGATIVE_INFINITY, to_date=test_data_from_dt
+    )
+    effective_time_current = EffectiveTime(
+        from_date=test_data_from_dt, to_date=POSITIVE_INFINITY
+    )
+
+    lora_class = KlasseRead(
+        **{
+            "uuid": test_data_uuid,
+            "attributes": {
+                "properties": [
+                    {
+                        "user_key": "some-user-key-attr-1",
+                        "title": "a fancy title attr 1",
+                        "effective_time": effective_time_old,
+                    },
+                    {
+                        "user_key": "-",
+                        "title": "-",
+                        "effective_time": effective_time_current,
+                    },
+                ]
+            },
+            "states": {
+                "published_state": [
+                    {"published": "Publiceret", "effective_time": effective_time_old},
+                    {
+                        "published": "ikkePubliceret",
+                        "effective_time": effective_time_current,
+                    },
+                ]
+            },
+            "relations": test_data_relations,
+            "fratidspunkt": {
+                "tidsstempeldatotid": InfiniteDatetime.from_value(test_data_from_dt),
+            },
+            "tiltidspunkt": {
+                "tidsstempeldatotid": InfiniteDatetime.from_value(test_data_to_dt)
+            },
+            "life_cycle_code": "",
+            "user_ref": uuid.uuid4(),
+        }
+    )
+
+    result = lora_class_to_mo_class((test_data_uuid, lora_class))
+    assert result.name == lora_class.attributes.properties[1].title
+    assert result.user_key == lora_class.attributes.properties[1].user_key
+    assert result.published == lora_class.states.published_state[1].published
