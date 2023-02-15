@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """LDAP Connection handling."""
+import signal
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
 from typing import Any
@@ -26,6 +27,7 @@ from .config import ServerConfig
 from .config import Settings
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 
 
@@ -67,6 +69,17 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
     Returns:
         ContextManager that can be opened to establish an LDAP connection.
     """
+
+    def alarm_handler(signum, frame):
+        raise TimeOutException(
+            "Timeout while configuring LDAP connection. Try 'sudo tailscale up'?"
+        )
+
+    signal.signal(signal.SIGALRM, alarm_handler)
+
+    # Set a timeout alarm
+    signal.alarm(max([c.timeout for c in settings.ldap_controllers]))
+
     servers = list(map(construct_server, settings.ldap_controllers))
 
     # Pick the next server to use at random, discard non-active servers
@@ -84,6 +97,9 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
         client_strategy=get_client_strategy(),
         auto_bind=True,
     )
+
+    # Turn off the alarm
+    signal.alarm(0)
 
     return cast(ContextManager, connection)
 
