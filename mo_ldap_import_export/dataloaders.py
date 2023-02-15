@@ -841,10 +841,7 @@ class DataLoader:
         else:
             validity_query = ""
 
-        if uuid:
-            uuid_filter = f'(uuids: "{str(uuid)}")'
-        else:
-            uuid_filter = ""
+        uuid_filter = f'(uuids: "{str(uuid)}")' if uuid else ""
 
         result: dict = {}
         for object_type in [
