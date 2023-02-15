@@ -3,18 +3,18 @@
 import re
 from datetime import datetime
 from datetime import timedelta
+from datetime import timezone
 
 import freezegun
 import pytest
 import strawberry
 from dateutil.tz import tzutc
 from fastapi.encoders import jsonable_encoder
-from hypothesis import given, reproduce_failure
+from hypothesis import given
 from hypothesis import strategies as st
 from starlette_context import context
 
 from mora.graphapi.versions.latest import dataloaders
-from ramodels.mo import OpenValidity
 
 
 @pytest.fixture(autouse=True)
@@ -83,7 +83,6 @@ def test_graphql_dates_default(graphapi_test, latest_graphql_url):
     assert graphql_dates["to_date"] == (now + timedelta(milliseconds=1)).isoformat()
 
 
-# @reproduce_failure('6.62.1', b'AA==')
 @given(
     dates=st.tuples(st.datetimes(), st.datetimes()).filter(lambda dts: dts[0] > dts[1]),
 )
@@ -123,30 +122,19 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
             error["message"],
         )
 
-    # # Test the specific case where from is None and to is UNSET
-    # response = graphapi_test_no_exc.post(
-    #     latest_graphql_url,
-    #     json={"query": query, "variables": {"from_date": None}},
-    # )
-    # data, errors = response.json().get("data"), response.json().get("errors")
-    # graphql_dates = response.json()["extensions"]["graphql_dates"]
-    # assert data is None
-    # assert errors is not None
-    # for error in errors:
-    #     assert re.match(
-    #         r"Cannot infer UNSET to_date from interval starting at -infinity",
-    #         error["message"],
-    #     )
 
-
-@freezegun.freeze_time("1337-04-20")
 @given(
-    dates=st.builds(OpenValidity).filter(
-        lambda ov: ov.from_date is not None
-    )
+    dates=st.tuples(
+        st.datetimes(timezones=st.just(timezone.utc)),
+        st.datetimes(timezones=st.just(timezone.utc)),
+    ).filter(lambda dts: dts[0] < dts[1])
 )
+@freezegun.freeze_time("1337-04-20")
 def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
     """Test explicit GraphQL date arguments."""
+
+    dates = jsonable_encoder(dates)
+    validity = {"from_date": dates[0], "to_date": dates[1]}
     query = """
             query TestQuery($from_date: DateTime, $to_date: DateTime) {
                 employees(from_date: $from_date, to_date: $to_date) {
@@ -156,16 +144,13 @@ def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
             """
     response = graphapi_test.post(
         latest_graphql_url,
-        json={
-            "query": query,
-            "variables": {"from_date": dates.from_date, "to_date": dates.to_date},
-        },
+        json={"query": query, "variables": validity},
     )
     data, errors = response.json().get("data"), response.json().get("errors")
     graphql_dates = response.json()["extensions"]["graphql_dates"]
     assert data is not None
     assert errors is None
-    assert graphql_dates == dates.dict()
+    assert graphql_dates == validity
 
 
 @freezegun.freeze_time("1337-04-20")
