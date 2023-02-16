@@ -223,6 +223,10 @@ class Settings(BaseSettings):
     # Ex. CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS=["org_unit", "third_party_association_type"]
     confdb_employee_hide_association_columns: list[str] | None
 
+    # String telling OS2Mo what DIPEX version is being used to import & export data
+    # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
+    confdb_dipex_version__do_not_use: str | None
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION

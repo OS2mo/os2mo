@@ -1182,7 +1182,7 @@ class Role:
 
 # Health & version
 # ----------------
-@strawberry.type(description="MO & LoRa versions")
+@strawberry.type(description="MO & LoRa & DIPEX versions")
 class Version:
     @strawberry.field(description="OS2mo Version")
     async def mo_version(self) -> str | None:
@@ -1210,6 +1210,10 @@ class Version:
             The version.
         """
         return await lora.get_version()
+
+    @strawberry.field(description="DIPEX version")
+    async def dipex_version(self) -> str | None:
+        return config.get_settings().confdb_dipex_version__do_not_use
 
 
 @strawberry.experimental.pydantic.type(

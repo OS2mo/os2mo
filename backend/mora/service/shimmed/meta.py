@@ -17,8 +17,9 @@ def meta_router():
         query VersionQuery {
           version {
             mo_hash
-            lora_version
             mo_version
+            lora_version
+            dipex_version
           }
         }
         """
