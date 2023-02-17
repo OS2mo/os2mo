@@ -507,9 +507,25 @@ If these patterns are highly undesirable, put them in the bottom of the list, an
 will only be used if everything else fails.
 
 
+#### CRON jobs
+The application is configured with three CRON jobs, which run on a periodic schedule:
+
+* Daily at 23:00: Info dicts are reloaded by calling
+  [POST:/reload_info_dicts][post_reload_info_dicts].
+* Daily at 00:00: All information in LDAP is imported to MO by calling
+  [GET:/Import/all][get_import_all]
+* Daily at 03:00: Objects which enter or leave validity are exported to OS2mo by calling
+  [POST:/synchronize_todays_events][post_synchronize_todays_events].
+
+
 [swagger]:http://localhost:8000/docs
 [get_overview]:http://localhost:8000/docs#/LDAP/load_overview_from_LDAP_LDAP_overview_get
 [get_address_types]:http://localhost:8000/docs#/MO/load_address_types_from_MO_MO_Address_types_get
 [get_it_systems]:http://localhost:8000/docs#/MO/load_it_systems_from_MO_MO_IT_systems_get
 [get_primary_types]:http://localhost:8000/docs#/MO/load_primary_types_from_MO_MO_Primary_types_get
+[post_reload_info_dicts]:http://localhost:8000/docs#/Maintenance/reload_info_dicts_reload_info_dicts_post
+[get_import_all]:http://localhost:8000/docs#/Import/import_all_objects_from_LDAP_Import_all_get
+[post_synchronize_todays_events]:http://localhost:8000/docs#/Maintenance/synchronize_todays_events_Synchronize_todays_events_post
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
+
+
