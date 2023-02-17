@@ -510,7 +510,7 @@ will only be used if everything else fails.
 #### CRON jobs
 The application is configured with three CRON jobs, which run on a periodic schedule:
 
-* Daily at 23:00: Info dicts are reloaded by calling
+* Daily at 23:00: Info dictionaries are reloaded by calling
   [POST:/reload_info_dicts][post_reload_info_dicts]. This is necessary, in case new
   object types are added to OS2mo. For example by using `OS2mo init`.
 * Daily at 00:00: All information in LDAP is imported to OS2mo by calling
