@@ -1419,6 +1419,16 @@ async def test_synchronize_todays_events(
 
     assert internal_amqpsystem.publish_message.await_count == n
 
+    # Test that terminations are published before refreshes
+    refreshes = 0
+    terminations = 0
+    for call in internal_amqpsystem.publish_message.mock_calls:
+        if "terminate" in call.args[0]:
+            terminations += 1
+            assert refreshes == 0
+        else:
+            refreshes += 1
+
 
 async def test_export_endpoint(
     test_client: TestClient,
