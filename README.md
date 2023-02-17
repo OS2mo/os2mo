@@ -512,9 +512,9 @@ The application is configured with three CRON jobs, which run on a periodic sche
 
 * Daily at 23:00: Info dicts are reloaded by calling
   [POST:/reload_info_dicts][post_reload_info_dicts].
-* Daily at 00:00: All information in LDAP is imported to MO by calling
+* Daily at 00:00: All information in LDAP is imported to OS2mo by calling
   [GET:/Import/all][get_import_all]
-* Daily at 03:00: Objects which enter or leave validity are exported to OS2mo by calling
+* Daily at 03:00: Objects which enter or leave validity are exported to LDAP by calling
   [POST:/synchronize_todays_events][post_synchronize_todays_events].
 
 
