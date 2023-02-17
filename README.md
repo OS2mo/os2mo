@@ -529,5 +529,3 @@ The application is configured with three CRON jobs, which run on a periodic sche
 [get_import_all]:http://localhost:8000/docs#/Import/import_all_objects_from_LDAP_Import_all_get
 [post_synchronize_todays_events]:http://localhost:8000/docs#/Maintenance/synchronize_todays_events_Synchronize_todays_events_post
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
-
-
