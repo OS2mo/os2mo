@@ -990,6 +990,13 @@ def create_app(**kwargs: Any) -> FastAPI:
                 mo_object["request_type"] = RequestType.TERMINATE
                 todays_objects.append(mo_object)
 
+        def sorting_key(mo_object):
+            return 0 if mo_object["request_type"] == RequestType.TERMINATE else 1
+
+        # Make sure that we send termination messages before other messages
+        # Otherwise we risk that newly exported information gets erased right away
+        todays_objects = sorted(todays_objects, key=sorting_key)
+
         logger.info(
             f"Found {len(todays_objects)} objects which are valid from/to today"
         )
