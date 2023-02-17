@@ -511,9 +511,11 @@ will only be used if everything else fails.
 The application is configured with three CRON jobs, which run on a periodic schedule:
 
 * Daily at 23:00: Info dicts are reloaded by calling
-  [POST:/reload_info_dicts][post_reload_info_dicts].
+  [POST:/reload_info_dicts][post_reload_info_dicts]. This is necessary, in case new
+  object types are added to OS2mo. For example by using `OS2mo init`.
 * Daily at 00:00: All information in LDAP is imported to OS2mo by calling
-  [GET:/Import/all][get_import_all]
+  [GET:/Import/all][get_import_all]. This will overwrite information in OS2mo, if LDAP
+  contains new information.
 * Daily at 03:00: Objects which enter or leave validity are exported to LDAP by calling
   [POST:/synchronize_todays_events][post_synchronize_todays_events].
 
