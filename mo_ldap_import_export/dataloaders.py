@@ -244,6 +244,8 @@ class DataLoader:
             if response["description"] == "noSuchObject":
                 self.logger.info(f"Received 'noSuchObject' response. Creating {dn}")
                 self.ldap_connection.add(dn, object_class)
+                response = self.ldap_connection.result
+                self.logger.info(f"Response: {response}")
                 self.ldap_connection.modify(dn, changes)
                 response = self.ldap_connection.result
 
