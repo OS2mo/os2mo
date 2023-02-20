@@ -1175,6 +1175,8 @@ def test_filter_parse_datetime(converter: LdapConverter):
     assert converter.filter_parse_datetime("9999-12-31") == pd.Timestamp.max
     assert converter.filter_parse_datetime("200-12-31") == pd.Timestamp.min
     assert converter.filter_parse_datetime("") is None
+    assert converter.filter_parse_datetime("None") is None
+    assert converter.filter_parse_datetime("NONE") is None
     assert converter.filter_parse_datetime([]) is None
     assert converter.filter_parse_datetime(None) is None
 

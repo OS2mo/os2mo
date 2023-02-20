@@ -93,7 +93,7 @@
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
-      "extensionAttribute7": "{{mo_employee_engagement.validity.to_date}}",
+      "extensionAttribute7": "{{mo_employee_engagement.validity.to_date or NONE}}",
       "employeeID" : "{{ mo_employee_engagement.user_key }}",
       "extensionAttribute2": "{{mo_employee_engagement.org_unit.uuid}}",
       "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}"

@@ -850,7 +850,7 @@ class LdapConverter:
 
     @staticmethod
     def filter_parse_datetime(datestring):
-        if not datestring:
+        if not datestring or datestring.lower() == "none":
             return None
         try:
             return pd.to_datetime(datestring, dayfirst=False)
