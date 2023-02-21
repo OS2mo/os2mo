@@ -51,7 +51,7 @@
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ ldap.mail }}",
+      "value": "{{ ldap.mail or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
@@ -60,7 +60,7 @@
     "MobilePhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ ldap.mobile }}",
+      "value": "{{ ldap.mobile or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('MobilePhoneEmployee')) }}",
@@ -69,7 +69,7 @@
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ ldap.telephoneNumber }}",
+      "value": "{{ ldap.telephoneNumber or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",

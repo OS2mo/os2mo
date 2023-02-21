@@ -1036,6 +1036,10 @@ class LdapConverter:
             for mo_field_name, template in object_mapping.items():
                 try:
                     value = template.render(context).strip()
+
+                    # Incorrect mapping can lead to the following rendered strings...
+                    if value.lower() == "none" or value == "[]":
+                        value = ""
                 except UUIDNotFoundException:
                     continue
                 # TODO: Is it possible to render a dictionary directly?
