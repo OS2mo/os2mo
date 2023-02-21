@@ -46,7 +46,7 @@ def context() -> Context:
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
                 "__import_to_mo__": True,
-                "value": "{{ldap.mail or None}}",
+                "value": "{{ldap.mail}}",
                 "type": "{{'address'}}",
                 "validity": (
                     "{{ dict(from_date = " "ldap.mail_validity_from|mo_datestring) }}"
@@ -204,6 +204,18 @@ def test_ldap_to_mo(converter: LdapConverter) -> None:
 
     # Note: Date is always at midnight in MO
     assert from_date == datetime.datetime(2019, 1, 1, 0, 0, 0)
+
+    mail = converter.from_ldap(
+        LdapObject(
+            dn="",
+            mail=[],
+            mail_validity_from=datetime.datetime(2019, 1, 1, 0, 10, 0),
+        ),
+        "Email",
+        employee_uuid=employee_uuid,
+    )
+
+    assert not mail
 
 
 def test_ldap_to_mo_uuid_not_found(context: Context) -> None:

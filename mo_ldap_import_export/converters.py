@@ -1036,6 +1036,15 @@ class LdapConverter:
             for mo_field_name, template in object_mapping.items():
                 try:
                     value = template.render(context).strip()
+
+                    # Sloppy mapping can lead to the following rendered strings:
+                    # - {{ldap.mail or None}} renders as "None"
+                    # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+                    #
+                    # Mapping with {{ldap.mail or NONE}} solves both, but let's check
+                    # for "none" or "[]" strings anyway to be more robust.
+                    if value.lower() == "none" or value == "[]":
+                        value = ""
                 except UUIDNotFoundException:
                     continue
                 # TODO: Is it possible to render a dictionary directly?
