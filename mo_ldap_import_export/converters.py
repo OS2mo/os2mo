@@ -1037,7 +1037,12 @@ class LdapConverter:
                 try:
                     value = template.render(context).strip()
 
-                    # Incorrect mapping can lead to the following rendered strings...
+                    # Sloppy mapping can lead to the following rendered strings:
+                    # - {{ldap.mail or None}} renders as "None"
+                    # - {{ldap.mail}} renders as "[]" if ldap.mail is empty
+                    #
+                    # Mapping with {{ldap.mail or NONE}} solves both, but let's check
+                    # for "none" or "[]" strings anyway to be more robust.
                     if value.lower() == "none" or value == "[]":
                         value = ""
                 except UUIDNotFoundException:
