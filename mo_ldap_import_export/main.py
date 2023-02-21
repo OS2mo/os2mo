@@ -224,9 +224,11 @@ async def listen_to_changes_in_org_units(
 
     # When an org-unit is changed we need to update the org unit info. So we
     # know the new name of the org unit in case it was changed
-    logger.info("Updating org unit info")
-    converter.org_unit_info = dataloader.load_mo_org_units()
-    converter.check_org_unit_info_dict()
+
+    if routing_key.object_type == ObjectType.ORG_UNIT:
+        logger.info("Updating org unit info")
+        converter.org_unit_info = dataloader.load_mo_org_units()
+        converter.check_org_unit_info_dict()
 
     if routing_key.object_type == ObjectType.ADDRESS:
         logger.info("[MO] Change registered in the address object type")
