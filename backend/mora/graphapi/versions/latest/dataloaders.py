@@ -308,10 +308,7 @@ async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
     lora_result_with_effects = []
     for uuid, obj in lora_result:
         for e in list(await c.klasse.get_effects(obj, relevant)):
-            e_from, e_to, e_reg = e
-            if e_from is None or e_to is None:
-                continue
-
+            _, _, e_reg = e
             obj_copy = obj.copy()
             obj_copy["attributter"] = e_reg["attributter"]
             obj_copy["tilstande"] = e_reg["tilstande"]
