@@ -38,6 +38,7 @@ from .schema import Response
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
+from mora.lora import Connector
 from mora.service import org
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
@@ -211,7 +212,16 @@ def lora_classes_to_mo_classes(
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all(**kwargs)
-    mo_models = lora_classes_to_mo_classes(lora_result)
+    lora_result_with_effects = await _enrich_lora_result_with_effects(
+        c,
+        lora_result,
+        {
+            "attributter": ("klasseegenskaber",),
+            "tilstande": ("klassepubliceret",),
+            "relationer": ("ejer", "ansvarlig", "facet"),
+        },
+    )
+    mo_models = lora_classes_to_mo_classes(lora_result_with_effects)
     return list(mo_models)
 
 
@@ -297,24 +307,15 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
 async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
     c = get_connector()
     lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
-
-    # Check for effects / multiple "states", "attributes" or "relations"
-    relevant = {
-        "attributter": ("klasseegenskaber",),
-        "tilstande": ("klassepubliceret",),
-        "relationer": ("ejer", "ansvarlig", "facet"),
-    }
-
-    lora_result_with_effects = []
-    for uuid, obj in lora_result:
-        for e in list(await c.klasse.get_effects(obj, relevant)):
-            _, _, e_reg = e
-            obj_copy = obj.copy()
-            obj_copy["attributter"] = e_reg["attributter"]
-            obj_copy["tilstande"] = e_reg["tilstande"]
-            obj_copy["relationer"] = e_reg["relationer"]
-            lora_result_with_effects.append((uuid, obj_copy))
-
+    lora_result_with_effects = await _enrich_lora_result_with_effects(
+        c,
+        lora_result,
+        {
+            "attributter": ("klasseegenskaber",),
+            "tilstande": ("klassepubliceret",),
+            "relationer": ("ejer", "ansvarlig", "facet"),
+        },
+    )
     mo_models = lora_classes_to_mo_classes(lora_result_with_effects)
     buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
     return list(map(lambda key: list(buckets[key]), facet_uuids))
@@ -521,3 +522,24 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         ),
         "engagement_association_getter": get_engagement_associations,
     }
+
+
+async def _enrich_lora_result_with_effects(
+    c: Connector,
+    lora_result: Iterable[tuple[str, dict]],
+    relevant: dict[str, Iterable[str]],
+) -> Iterable[tuple[str, dict]]:
+    """Apply effects to a lora result.
+
+    If there are multiple 'states', 'attributes', 'relations' etc., this method
+    wil create duplicates of the class, according to their datetime intervals.
+    """
+    lora_result_with_effects = []
+    for uuid, obj in lora_result:
+        for _, _, e_reg in list(await c.klasse.get_effects(obj, relevant)):
+            obj_copy = obj.copy()
+            for relevant_key in relevant.keys():
+                obj_copy[relevant_key] = e_reg[relevant_key]
+            lora_result_with_effects.append((uuid, obj_copy))
+
+    return lora_result_with_effects
