@@ -225,6 +225,9 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.VALUE in data:
+            user_key = data.get(mapping.USER_KEY, None)
+            if user_key is not None:
+                pass
 
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True
@@ -257,6 +260,8 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
 
             for prop in handler.get_lora_properties():
                 update_fields.append((mapping.VISIBILITY_FIELD, prop))
+
+            # TODO: Update user_key based on the value.
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
