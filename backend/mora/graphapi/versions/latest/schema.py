@@ -628,8 +628,7 @@ class Facet:
         Returns:
             The associated classes.
         """
-        loader: DataLoader = info.context["facet_classes_loader"]
-        return await loader.load(root.uuid)
+        return await info.context["class_getter"](facet=list(map(str, [root.uuid])))
 
 
 # IT

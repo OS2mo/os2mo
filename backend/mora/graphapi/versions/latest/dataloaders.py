@@ -294,14 +294,6 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
-    return list(map(lambda key: list(buckets[key]), facet_uuids))
-
-
 async def get_employee_details(
     employee_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
@@ -496,7 +488,6 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "class_children_loader": DataLoader(load_fn=load_class_children),
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
-        "facet_classes_loader": DataLoader(load_fn=load_facet_classes),
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
         "engagement_association_loader": DataLoader(
