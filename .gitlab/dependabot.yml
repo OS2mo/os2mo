@@ -3,6 +3,12 @@
 # SPDX-License-Identifier: MPL-2.0
 version: 2
 updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: daily
+    auto-merge: false
+    rebase-strategy: all
   - package-ecosystem: docker
     directory: /
     schedule:
