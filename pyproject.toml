@@ -36,7 +36,7 @@ structlog = "^22.1.0"
 python-multipart = "^0.0.5"
 service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "1.0.3"}
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
-prometheus-fastapi-instrumentator = {git = "https://github.com/AndreasPB/prometheus-fastapi-instrumentator"}
+prometheus-fastapi-instrumentator = "^5.10.0"
 pydantic = {extras = ["email"], version = "^1.10.2"}
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
