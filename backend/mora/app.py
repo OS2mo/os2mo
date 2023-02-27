@@ -254,6 +254,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @app.on_event("startup")
     async def startup():
+        if not settings.is_under_test():
+            setup_metrics(app)
+
         await triggers.register(app)
         if lora.client is not None:
             return
@@ -264,9 +267,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         await triggers.internal.amqp_trigger.stop_amqp()
         # Leaking intentional so the test suite will re-use the lora.client.
         # await lora.client.aclose()
-
-    if not settings.is_under_test():
-        setup_metrics(app)
 
     if settings.sentry_dsn:
         sentry_sdk.init(dsn=settings.sentry_dsn)
