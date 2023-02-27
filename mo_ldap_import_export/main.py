@@ -410,6 +410,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     gql_client, gql_client_sync, model_client = construct_clients(settings)
     fastramqpi.add_context(model_client=model_client)
     fastramqpi.add_context(gql_client=gql_client)
+    fastramqpi._context["graphql_client"] = gql_client
     fastramqpi.add_context(gql_client_sync=gql_client_sync)
 
     logger.info("Configuring LDAP connection")
