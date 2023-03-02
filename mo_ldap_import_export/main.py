@@ -57,6 +57,7 @@ from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
 from .ldap_classes import LdapObject
+from .utils import mo_datestring_to_utc
 
 logger = structlog.get_logger()
 fastapi_router = APIRouter()
@@ -88,27 +89,80 @@ def reject_on_failure(func):
             IncorrectMapping,  # If the json dict is incorrectly configured: Abort
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
-        ) as e:
-            logger.exception(e)
+        ):
             raise RejectMessage()
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
 
 
+async def get_delete_flag(
+    routing_key: MORoutingKey, payload: PayloadType, context: Context
+):
+    """
+    Determines if an object should be deleted based on the routing key and validity
+    to-date
+    """
+    dataloader = context["user_context"]["dataloader"]
+
+    if routing_key.request_type == RequestType.TERMINATE:
+
+        mo_object = await dataloader.load_mo_object(
+            payload.object_uuid, add_validity=True
+        )
+
+        if not mo_object:
+            # The object is not a current object AND request_type==TERMINATE.
+            # Meaning it was deleted and the date was set to a day before today
+            # In any case the object is not in MO and can therefore be deleted from LDAP
+            logger.info(
+                (
+                    "[get_delete_flag] Returning delete=True because "
+                    f"there is no current object with uuid={payload.object_uuid}"
+                )
+            )
+            return True
+
+        now = datetime.datetime.utcnow()
+        validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
+        if validity_to <= now:
+            logger.info(
+                (
+                    "[get_delete_flag] Returning delete=True because "
+                    f"to-date ({validity_to}) <= current date ({now})"
+                )
+            )
+            return True
+        else:
+            logger.info(
+                "[get_delete_flag] RequestType = TERMINATE but to_date is not <= today"
+            )
+            # Abort so we do not risk deleting an object.
+            # This is more safe, than returning 'False' and giving the caller the
+            # responsibility to abort.
+            raise RejectMessage()
+    else:
+        return False
+
+
 async def listen_to_changes_in_employees(
-    context: Context, payload: PayloadType, **kwargs: Any
+    context: Context,
+    payload: PayloadType,
+    routing_key: MORoutingKey,
+    delete: bool,
+    current_objects_only: bool,
 ) -> None:
 
-    routing_key = kwargs["mo_routing_key"]
     logger.info("[MO] Registered change in the employee model")
-
     user_context = context["user_context"]
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
 
     # Get MO employee
-    changed_employee = await dataloader.load_mo_employee(payload.uuid)
+    changed_employee = await dataloader.load_mo_employee(
+        payload.uuid,
+        current_objects_only=current_objects_only,
+    )
     logger.info(f"Found Employee in MO: {changed_employee}")
 
     mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
@@ -121,13 +175,21 @@ async def listen_to_changes_in_employees(
 
         # Upload to LDAP - overwrite because all employee fields are unique.
         # One person cannot have multiple names.
-        await dataloader.upload_ldap_object(ldap_employee, "Employee", overwrite=True)
+        await dataloader.upload_ldap_object(
+            ldap_employee,
+            "Employee",
+            overwrite=True,
+            delete=delete,
+        )
 
     elif routing_key.object_type == ObjectType.ADDRESS:
         logger.info("[MO] Change registered in the address object type")
 
         # Get MO address
-        changed_address = await dataloader.load_mo_address(payload.object_uuid)
+        changed_address = await dataloader.load_mo_address(
+            payload.object_uuid,
+            current_objects_only=current_objects_only,
+        )
         address_type_uuid = str(changed_address.address_type.uuid)
         json_key = converter.get_address_type_user_key(address_type_uuid)
 
@@ -136,14 +198,16 @@ async def listen_to_changes_in_employees(
 
         # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
-            converter.to_ldap(mo_object_dict, json_key), json_key
+            converter.to_ldap(mo_object_dict, json_key),
+            json_key,
+            delete=delete,
         )
 
         addresses_in_mo = await dataloader.load_mo_employee_addresses(
             changed_employee.uuid, changed_address.address_type.uuid
         )
 
-        cleanup(
+        await cleanup(
             json_key,
             "value",
             "mo_employee_address",
@@ -156,7 +220,10 @@ async def listen_to_changes_in_employees(
         logger.info("[MO] Change registered in the IT object type")
 
         # Get MO IT-user
-        changed_it_user = await dataloader.load_mo_it_user(payload.object_uuid)
+        changed_it_user = await dataloader.load_mo_it_user(
+            payload.object_uuid,
+            current_objects_only=current_objects_only,
+        )
         it_system_type_uuid = changed_it_user.itsystem.uuid
         json_key = converter.get_it_system_user_key(it_system_type_uuid)
 
@@ -165,7 +232,9 @@ async def listen_to_changes_in_employees(
 
         # Convert & Upload to LDAP
         await dataloader.upload_ldap_object(
-            converter.to_ldap(mo_object_dict, json_key), json_key
+            converter.to_ldap(mo_object_dict, json_key),
+            json_key,
+            delete=delete,
         )
 
         # Load IT users belonging to this employee
@@ -173,7 +242,7 @@ async def listen_to_changes_in_employees(
             changed_employee.uuid, it_system_type_uuid
         )
 
-        cleanup(
+        await cleanup(
             json_key,
             "user_key",
             "mo_employee_it_user",
@@ -186,7 +255,10 @@ async def listen_to_changes_in_employees(
         logger.info("[MO] Change registered in the Engagement object type")
 
         # Get MO Engagement
-        changed_engagement = await dataloader.load_mo_engagement(payload.object_uuid)
+        changed_engagement = await dataloader.load_mo_engagement(
+            payload.object_uuid,
+            current_objects_only=current_objects_only,
+        )
 
         json_key = "Engagement"
         mo_object_dict["mo_employee_engagement"] = changed_engagement
@@ -196,14 +268,16 @@ async def listen_to_changes_in_employees(
         # Because it looks like you cannot set 'primary' when creating an engagement
         # in the OS2mo GUI.
         await dataloader.upload_ldap_object(
-            converter.to_ldap(mo_object_dict, json_key), json_key
+            converter.to_ldap(mo_object_dict, json_key),
+            json_key,
+            delete=delete,
         )
 
         engagements_in_mo = await dataloader.load_mo_employee_engagements(
             changed_employee.uuid
         )
 
-        cleanup(
+        await cleanup(
             json_key,
             "user_key",
             "mo_employee_engagement",
@@ -214,17 +288,19 @@ async def listen_to_changes_in_employees(
 
 
 async def listen_to_changes_in_org_units(
-    context: Context, payload: PayloadType, **kwargs: Any
+    context: Context,
+    payload: PayloadType,
+    routing_key: MORoutingKey,
+    delete: bool,
+    current_objects_only: bool,
 ) -> None:
 
     user_context = context["user_context"]
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
-    routing_key = kwargs["mo_routing_key"]
 
     # When an org-unit is changed we need to update the org unit info. So we
     # know the new name of the org unit in case it was changed
-
     if routing_key.object_type == ObjectType.ORG_UNIT:
         logger.info("Updating org unit info")
         converter.org_unit_info = dataloader.load_mo_org_units()
@@ -234,7 +310,10 @@ async def listen_to_changes_in_org_units(
         logger.info("[MO] Change registered in the address object type")
 
         # Get MO address
-        changed_address = await dataloader.load_mo_address(payload.object_uuid)
+        changed_address = await dataloader.load_mo_address(
+            payload.object_uuid,
+            current_objects_only=current_objects_only,
+        )
         address_type_uuid = str(changed_address.address_type.uuid)
         json_key = converter.address_type_info[address_type_uuid]["user_key"]
 
@@ -264,14 +343,16 @@ async def listen_to_changes_in_org_units(
 
             # Convert & Upload to LDAP
             await dataloader.upload_ldap_object(
-                converter.to_ldap(mo_object_dict, json_key), json_key
+                converter.to_ldap(mo_object_dict, json_key),
+                json_key,
+                delete=delete,
             )
 
             addresses_in_mo = await dataloader.load_mo_org_unit_addresses(
                 payload.uuid, changed_address.address_type.uuid
             )
 
-            cleanup(
+            await cleanup(
                 json_key,
                 "value",
                 "mo_org_unit_address",
@@ -285,10 +366,9 @@ async def listen_to_changes_in_org_units(
 @amqp_router.register("*.*.*")
 @reject_on_failure
 async def listen_to_changes(
-    context: Context, payload: PayloadType, **kwargs: Any
+    context: Context, payload: PayloadType, mo_routing_key: MORoutingKey
 ) -> None:
     global uuids_to_ignore
-    routing_key = kwargs["mo_routing_key"]
 
     # Remove all timestamps which have been in this dict for more than 60 seconds.
     now = datetime.datetime.now()
@@ -309,9 +389,11 @@ async def listen_to_changes(
     if (
         payload.object_uuid in uuids_to_ignore
         and uuids_to_ignore[payload.object_uuid]
-        and routing_key.service_type == ServiceType.EMPLOYEE
+        and mo_routing_key.service_type == ServiceType.EMPLOYEE
     ):
-        logger.info(f"[listen_to_changes] Ignoring {routing_key}-{payload.object_uuid}")
+        logger.info(
+            f"[listen_to_changes] Ignoring {mo_routing_key}-{payload.object_uuid}"
+        )
 
         # Remove timestamp so it does not get ignored twice.
         oldest_timestamp = min(uuids_to_ignore[payload.object_uuid])
@@ -322,20 +404,24 @@ async def listen_to_changes(
     elif not Settings().listen_to_changes_in_mo:
         raise RejectMessage()
 
-    logger.info(f"[MO] Routing key: {routing_key}")
+    logger.info(f"[MO] Routing key: {mo_routing_key}")
     logger.info(f"[MO] Payload: {payload}")
 
-    # TODO: Add support for deleting users / fields from LDAP
-    if routing_key.request_type == RequestType.TERMINATE:
-        # Note: Deleting an object is not straightforward, because MO specifies a future
-        # date, on which the object is to be deleted. We would need a job which runs
-        # daily and checks for users/addresses/etc... that need to be deleted
-        raise NotSupportedException("Terminations are not supported")
+    delete = await get_delete_flag(mo_routing_key, payload, context)
+    current_objects_only = False if delete else True
 
-    if routing_key.service_type == ServiceType.EMPLOYEE:
-        await listen_to_changes_in_employees(context, payload, **kwargs)
-    elif routing_key.service_type == ServiceType.ORG_UNIT:
-        await listen_to_changes_in_org_units(context, payload, **kwargs)
+    args = dict(
+        context=context,
+        payload=payload,
+        routing_key=mo_routing_key,
+        delete=delete,
+        current_objects_only=current_objects_only,
+    )
+
+    if mo_routing_key.service_type == ServiceType.EMPLOYEE:
+        await listen_to_changes_in_employees(**args)
+    elif mo_routing_key.service_type == ServiceType.ORG_UNIT:
+        await listen_to_changes_in_org_units(**args)
 
 
 @asynccontextmanager
@@ -986,10 +1072,15 @@ def create_app(**kwargs: Any) -> FastAPI:
         # Note: It is not possible in graphql (yet?) To load just today's objects
         todays_objects = []
         for mo_object in all_objects:
-            if str(mo_object["validity"]["from"]).startswith(date):
-                mo_object["request_type"] = RequestType.REFRESH
+            from_date = str(mo_object["validity"]["from"])
+            to_date = str(mo_object["validity"]["to"])
+            if from_date.startswith(date):
+                if to_date.startswith(date):
+                    mo_object["request_type"] = RequestType.TERMINATE
+                else:
+                    mo_object["request_type"] = RequestType.REFRESH
                 todays_objects.append(mo_object)
-            elif str(mo_object["validity"]["to"]).startswith(date):
+            elif to_date.startswith(date):
                 mo_object["request_type"] = RequestType.TERMINATE
                 todays_objects.append(mo_object)
 

@@ -11,6 +11,7 @@ from typing import ContextManager
 from typing import Union
 
 import structlog
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from ldap3 import Connection
 from ldap3 import NTLM
@@ -22,6 +23,8 @@ from ldap3 import Tls
 from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
+from ramqp.mo.models import MORoutingKey
+from ramqp.mo.models import RequestType
 
 from .config import ServerConfig
 from .config import Settings
@@ -29,6 +32,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
+from .utils import mo_object_is_valid
 
 
 def construct_server(server_config: ServerConfig) -> Server:
@@ -341,7 +345,7 @@ def get_attribute_types(ldap_connection):
     return ldap_connection.server.schema.attribute_types
 
 
-def cleanup(
+async def cleanup(
     json_key: str,
     value_key: str,
     mo_dict_key: str,
@@ -366,6 +370,7 @@ def cleanup(
     """
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
+    internal_amqpsystem = user_context["internal_amqpsystem"]
     logger = structlog.get_logger()
 
     # Get all matching objects for this user in LDAP (note that LDAP can contain
@@ -373,9 +378,12 @@ def cleanup(
     loaded_ldap_object = dataloader.load_ldap_cpr_object(employee.cpr_no, json_key)
 
     # Convert to MO so the two are easy to compare
+    logger.info("[cleanup] Converting LDAP objects to MO")
     mo_objects_in_ldap = converter.from_ldap(
         loaded_ldap_object, json_key, employee_uuid=employee.uuid
     )
+
+    mo_objects_in_mo = [m for m in mo_objects_in_mo if mo_object_is_valid(m)]
 
     # Format as lists
     values_in_ldap = sorted([getattr(a, value_key) for a in mo_objects_in_ldap])
@@ -403,3 +411,25 @@ def cleanup(
         logger.info("No synchronization required")
     else:
         dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
+
+    # If MO contains more values than LDAP, send AMQP messages to export to LDAP
+    # This can happen, if we delete an address in MO, but another address already
+    # exists in MO. In that case the other address should be written to LDAP
+    if len(values_in_ldap) == 0 and len(values_in_mo) > 0:
+        for mo_object_in_mo in mo_objects_in_mo:
+            uuid = mo_object_in_mo.uuid
+            mo_object = await dataloader.load_mo_object(uuid=str(uuid))
+            routing_key = MORoutingKey.build(
+                service_type=mo_object["service_type"],
+                object_type=mo_object["object_type"],
+                request_type=RequestType.REFRESH,
+            )
+            payload = mo_object["payload"]
+
+            logger.info(f"Publishing {routing_key}")
+            logger.info(f"with payload.uuid = {payload.uuid}")
+            logger.info(f"and payload.object_uuid = {payload.object_uuid}")
+
+            await internal_amqpsystem.publish_message(
+                str(routing_key), jsonable_encoder(payload)
+            )

@@ -4,7 +4,6 @@
 from __future__ import annotations
 
 import asyncio
-import copy
 import datetime
 import json
 import re
@@ -106,7 +105,7 @@ class LdapConverter:
         )
 
         mapping = delete_keys_from_dict(
-            copy.deepcopy(self.raw_mapping),
+            self.raw_mapping,
             ["objectClass", "__import_to_mo__", "__export_to_ldap__"],
         )
 

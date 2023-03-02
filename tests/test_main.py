@@ -21,6 +21,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
+from gql.transport.exceptions import TransportQueryError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -28,21 +29,26 @@ from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
+from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import read_mapping_json
+from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
+from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import format_converted_objects
+from mo_ldap_import_export.main import get_delete_flag
 from mo_ldap_import_export.main import listen_to_changes
 from mo_ldap_import_export.main import listen_to_changes_in_employees
 from mo_ldap_import_export.main import listen_to_changes_in_org_units
 from mo_ldap_import_export.main import open_ldap_connection
+from mo_ldap_import_export.main import reject_on_failure
 
 
 @pytest.fixture
@@ -194,6 +200,18 @@ def test_mo_objects() -> list:
                 "to": "2021-05-01",
             },
         },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+            },
+        },
     ]
 
 
@@ -227,6 +245,7 @@ def dataloader(
     dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
+    dataloader.load_mo_object.return_value = test_mo_objects[0]
 
     return dataloader
 
@@ -463,21 +482,26 @@ async def test_listen_to_changes_in_org_units(converter: MagicMock):
     mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
 
     await listen_to_changes_in_org_units(
-        context, payload, mo_routing_key=mo_routing_key
+        context,
+        payload,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
     )
     assert converter.org_unit_info == org_unit_info
 
 
 async def test_listen_to_change_in_org_unit_address(
-    dataloader: AsyncMock, load_settings_overrides: dict[str, str], converter: MagicMock
+    dataloader: AsyncMock,
+    load_settings_overrides: dict[str, str],
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
 ):
     mo_routing_key = MORoutingKey.build("org_unit.address.edit")
 
     address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
     employee1 = Employee(cpr_no="0101011234")
     employee2 = Employee(cpr_no="0101011235")
-
-    dataloader = MagicMock()
 
     load_mo_address = AsyncMock()
     load_mo_employees_in_org_unit = AsyncMock()
@@ -497,11 +521,21 @@ async def test_listen_to_change_in_org_unit_address(
 
     payload = MagicMock()
     context = Context(
-        {"user_context": {"dataloader": dataloader, "converter": converter}}
+        {
+            "user_context": {
+                "dataloader": dataloader,
+                "converter": converter,
+                "internal_amqpsystem": internal_amqpsystem,
+            }
+        }
     )
 
     await listen_to_changes_in_org_units(
-        context, payload, mo_routing_key=mo_routing_key
+        context,
+        payload,
+        routing_key=mo_routing_key,
+        delete=False,
+        current_objects_only=True,
     )
 
     # Assert that an address was uploaded to two ldap objects.
@@ -535,7 +569,11 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
 
     with pytest.raises(NotSupportedException):
         await listen_to_changes_in_org_units(
-            context, payload, mo_routing_key=mo_routing_key
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
         )
 
 
@@ -543,6 +581,7 @@ async def test_listen_to_changes_in_employees(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     test_mo_address: Address,
+    internal_amqpsystem: AsyncMock,
 ) -> None:
 
     settings_mock = MagicMock()
@@ -571,6 +610,7 @@ async def test_listen_to_changes_in_employees(
                 "mapping": mapping,
                 "converter": converter,
                 "dataloader": dataloader,
+                "internal_amqpsystem": internal_amqpsystem,
             }
         }
     )
@@ -584,13 +624,19 @@ async def test_listen_to_changes_in_employees(
     # Simulate a created employee
     mo_routing_key = MORoutingKey.build("employee.employee.create")
     await asyncio.gather(
-        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+        listen_to_changes_in_employees(
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        ),
     )
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
     assert dataloader.upload_ldap_object.called
     dataloader.upload_ldap_object.assert_called_with(
-        converted_ldap_object, "Employee", overwrite=True
+        converted_ldap_object, "Employee", overwrite=True, delete=False
     )
     assert not dataloader.load_mo_address.called
 
@@ -602,11 +648,17 @@ async def test_listen_to_changes_in_employees(
 
     mo_routing_key = MORoutingKey.build("employee.address.create")
     await asyncio.gather(
-        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+        listen_to_changes_in_employees(
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        ),
     )
     assert dataloader.load_mo_address.called
     dataloader.upload_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_user_key
+        converted_ldap_object, address_type_user_key, delete=False
     )
 
     # Simulate a created IT user
@@ -617,11 +669,17 @@ async def test_listen_to_changes_in_employees(
 
     mo_routing_key = MORoutingKey.build("employee.it.create")
     await asyncio.gather(
-        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+        listen_to_changes_in_employees(
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        ),
     )
     assert dataloader.load_mo_it_user.called
     dataloader.upload_ldap_object.assert_called_with(
-        converted_ldap_object, it_system_type_name
+        converted_ldap_object, it_system_type_name, delete=False
     )
 
     # Simulate a created engagement
@@ -638,11 +696,17 @@ async def test_listen_to_changes_in_employees(
 
     mo_routing_key = MORoutingKey.build("employee.engagement.create")
     await asyncio.gather(
-        listen_to_changes_in_employees(context, payload, mo_routing_key=mo_routing_key),
+        listen_to_changes_in_employees(
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        ),
     )
     assert dataloader.load_mo_engagement.called
     dataloader.upload_ldap_object.assert_called_with(
-        converted_ldap_object, "Engagement"
+        converted_ldap_object, "Engagement", delete=False
     )
 
     # Simulate case where no cleanup is needed
@@ -658,13 +722,18 @@ async def test_listen_to_changes_in_employees(
             "mapping": mapping,
             "converter": converter,
             "dataloader": dataloader,
+            "internal_amqpsystem": internal_amqpsystem,
         }
     }
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
             listen_to_changes_in_employees(
-                context, payload, mo_routing_key=mo_routing_key
+                context,
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
             ),
         )
 
@@ -739,7 +808,10 @@ def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> Non
     assert response.status_code == 202
 
 
-async def test_listen_to_changes(load_settings_overrides: dict[str, str]):
+async def test_listen_to_changes(
+    load_settings_overrides: dict[str, str],
+    dataloader: AsyncMock,
+):
 
     listen_to_changes_in_employees_mock = AsyncMock()
     listen_to_changes_in_org_units_mock = AsyncMock()
@@ -752,7 +824,7 @@ async def test_listen_to_changes(load_settings_overrides: dict[str, str]):
         listen_to_changes_in_org_units_mock,
     ):
 
-        context = None
+        context = {"user_context": {"dataloader": dataloader}}
         payload = MagicMock()
         payload.uuid = uuid4()
         payload.object_uuid = uuid4()
@@ -764,29 +836,6 @@ async def test_listen_to_changes(load_settings_overrides: dict[str, str]):
         mo_routing_key = MORoutingKey.build("org_unit.*.*")
         await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
         listen_to_changes_in_org_units_mock.assert_awaited_once()
-
-
-async def test_listen_to_changes_not_supported(
-    load_settings_overrides: dict[str, str]
-) -> None:
-
-    # Terminating a user is currently not supported
-    mo_routing_key = MORoutingKey.build("employee.employee.terminate")
-    context: dict = {}
-    payload = MagicMock()
-
-    original_function = listen_to_changes.__wrapped__
-
-    # Which means the message should be rejected
-    with pytest.raises(NotSupportedException):
-        await asyncio.gather(
-            original_function(context, payload, mo_routing_key=mo_routing_key),
-        )
-
-    with pytest.raises(RejectMessage):
-        await asyncio.gather(
-            listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
-        )
 
 
 async def test_listen_to_changes_not_listening(
@@ -1406,9 +1455,15 @@ async def test_synchronize_todays_events(
     for mo_object in test_mo_objects:
         payload = jsonable_encoder(mo_object["payload"])
 
-        if str(mo_object["validity"]["from"]).startswith(today):
-            routing_key = "employee.employee.refresh"
-        elif str(mo_object["validity"]["to"]).startswith(today):
+        from_date = str(mo_object["validity"]["from"])
+        to_date = str(mo_object["validity"]["to"])
+
+        if from_date.startswith(today):
+            if to_date.startswith(today):
+                routing_key = "employee.employee.terminate"
+            else:
+                routing_key = "employee.employee.refresh"
+        elif to_date.startswith(today):
             routing_key = "employee.employee.terminate"
         else:
             routing_key = None
@@ -1449,3 +1504,80 @@ async def test_export_endpoint(
         )
 
     assert internal_amqpsystem.publish_message.await_count == len(test_mo_objects)
+
+
+async def test_reject_on_failure():
+    async def not_supported_func():
+        raise NotSupportedException("")
+
+    async def incorrect_mapping_func():
+        raise IncorrectMapping("")
+
+    async def transport_query_error_func():
+        raise TransportQueryError("")
+
+    async def no_objects_returned_func():
+        raise NoObjectsReturnedException("")
+
+    async def type_error_func():
+        raise TypeError("")
+
+    # These exceptions should result in rejectMessage exceptions()
+    for func in [
+        not_supported_func,
+        incorrect_mapping_func,
+        transport_query_error_func,
+        no_objects_returned_func,
+    ]:
+        with pytest.raises(RejectMessage):
+            await reject_on_failure(func)()
+
+    # But not this one
+    with pytest.raises(TypeError):
+        await reject_on_failure(type_error_func)()
+
+
+async def test_get_delete_flag(dataloader: AsyncMock):
+
+    payload = PayloadType(
+        uuid=uuid4(),
+        object_uuid=uuid4(),
+        time=datetime.datetime.now(),
+    )
+
+    # When the routing key != TERMINATE, do not delete anything
+    routing_key = MORoutingKey.build(
+        service_type=ServiceType.EMPLOYEE,
+        object_type=ObjectType.EMPLOYEE,
+        request_type=RequestType.REFRESH,
+    )
+    dataloader.load_mo_object.return_value = None
+    context = Context({"user_context": {"dataloader": dataloader}})
+    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
+    assert flag == [False]
+
+    # When there are no matching objects in MO any longer, delete
+    routing_key = MORoutingKey.build(
+        service_type=ServiceType.EMPLOYEE,
+        object_type=ObjectType.EMPLOYEE,
+        request_type=RequestType.TERMINATE,
+    )
+    dataloader.load_mo_object.return_value = None
+    context = Context({"user_context": {"dataloader": dataloader}})
+    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
+    assert flag == [True]
+
+    # When there are matching objects in MO, but the to-date is today, delete
+    dataloader.load_mo_object.return_value = {
+        "validity": {"to": datetime.datetime.today().strftime("%Y-%m-%d")}
+    }
+
+    context = Context({"user_context": {"dataloader": dataloader}})
+    flag = await asyncio.gather(get_delete_flag(routing_key, payload, context))
+    assert flag == [True]
+
+    # When there are matching objects in MO, but the to-date is not today, abort
+    dataloader.load_mo_object.return_value = {"validity": {"to": "2200-01-01"}}
+    context = Context({"user_context": {"dataloader": dataloader}})
+    with pytest.raises(RejectMessage):
+        await asyncio.gather(get_delete_flag(routing_key, payload, context))
