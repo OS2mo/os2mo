@@ -125,7 +125,7 @@ async def get_delete_flag(
 
         now = datetime.datetime.utcnow()
         validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
-        if validity_to <= now:
+        if validity_to and validity_to <= now:
             logger.info(
                 (
                     "[get_delete_flag] Returning delete=True because "
