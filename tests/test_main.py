@@ -959,7 +959,7 @@ async def test_import_address_objects(
         response = test_client.get("/Import/0101011234", headers=headers)
         assert response.status_code == 202
 
-        dataloader.modify_mo_objects.assert_called_with(converted_objects)
+        dataloader.upload_mo_objects.assert_called_with(converted_objects)
 
 
 async def test_import_it_user_objects(
@@ -1003,7 +1003,7 @@ async def test_import_it_user_objects(
         converted_objects[2],
     ]
 
-    dataloader.modify_mo_objects.assert_called_with(non_existing_converted_objects)
+    dataloader.upload_mo_objects.assert_called_with(non_existing_converted_objects)
 
 
 async def test_load_mapping_file_environment(
