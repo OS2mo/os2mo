@@ -1061,9 +1061,12 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
     async def synchronize_todays_events(
         user=Depends(login_manager),
-        date: datetime.date = datetime.date.today(),
+        date: datetime.date = None,
         params: SyncQueryParams = Depends(),
     ) -> Any:
+
+        if not date:
+            date = datetime.date.today()
 
         # Load all objects
         all_objects = await dataloader.load_all_mo_objects(add_validity=True)
