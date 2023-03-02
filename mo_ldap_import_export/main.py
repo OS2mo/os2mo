@@ -11,6 +11,7 @@ from typing import Any
 from typing import Callable
 from typing import Literal
 from typing import Tuple
+from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
@@ -1061,7 +1062,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
     async def synchronize_todays_events(
         user=Depends(login_manager),
-        date: datetime.date = None,
+        date: Union[datetime.date, None] = None,
         params: SyncQueryParams = Depends(),
     ) -> Any:
 
