@@ -242,7 +242,6 @@ def dataloader(
     dataloader.load_mo_address_types = sync_dataloader
     dataloader.load_mo_it_systems = sync_dataloader
     dataloader.load_mo_primary_types = sync_dataloader
-    dataloader.cleanup_attributes_in_ldap = sync_dataloader
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
     dataloader.load_mo_object.return_value = test_mo_objects[0]
@@ -495,7 +494,6 @@ async def test_listen_to_change_in_org_unit_address(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
 ):
     mo_routing_key = MORoutingKey.build("org_unit.address.edit")
 
@@ -525,18 +523,18 @@ async def test_listen_to_change_in_org_unit_address(
             "user_context": {
                 "dataloader": dataloader,
                 "converter": converter,
-                "internal_amqpsystem": internal_amqpsystem,
             }
         }
     )
 
-    await listen_to_changes_in_org_units(
-        context,
-        payload,
-        routing_key=mo_routing_key,
-        delete=False,
-        current_objects_only=True,
-    )
+    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+        await listen_to_changes_in_org_units(
+            context,
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        )
 
     # Assert that an address was uploaded to two ldap objects.
     assert modify_ldap_object.await_count == 2
@@ -545,6 +543,9 @@ async def test_listen_to_change_in_org_unit_address(
 async def test_listen_to_change_in_org_unit_address_not_supported(
     dataloader: AsyncMock, load_settings_overrides: dict[str, str], converter: MagicMock
 ):
+    """
+    Mapping an organization unit address to non-employee objects is not supported.
+    """
     mo_routing_key = MORoutingKey.build("org_unit.address.edit")
     payload = MagicMock()
     address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
@@ -581,7 +582,6 @@ async def test_listen_to_changes_in_employees(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     test_mo_address: Address,
-    internal_amqpsystem: AsyncMock,
 ) -> None:
 
     settings_mock = MagicMock()
@@ -610,7 +610,6 @@ async def test_listen_to_changes_in_employees(
                 "mapping": mapping,
                 "converter": converter,
                 "dataloader": dataloader,
-                "internal_amqpsystem": internal_amqpsystem,
             }
         }
     )
@@ -623,110 +622,7 @@ async def test_listen_to_changes_in_employees(
 
     # Simulate a created employee
     mo_routing_key = MORoutingKey.build("employee.employee.create")
-    await asyncio.gather(
-        listen_to_changes_in_employees(
-            context,
-            payload,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        ),
-    )
-    assert dataloader.load_mo_employee.called
-    assert converter.to_ldap.called
-    assert dataloader.modify_ldap_object.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, "Employee", overwrite=True, delete=False
-    )
-    assert not dataloader.load_mo_address.called
-
-    # Simulate a created address
-    converter.from_ldap.return_value = [
-        Address.from_simplified_fields("street1", uuid4(), "2021-01-01"),
-        Address.from_simplified_fields("street2", uuid4(), "2021-01-01"),
-    ]
-
-    mo_routing_key = MORoutingKey.build("employee.address.create")
-    await asyncio.gather(
-        listen_to_changes_in_employees(
-            context,
-            payload,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        ),
-    )
-    assert dataloader.load_mo_address.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, address_type_user_key, delete=False
-    )
-
-    # Simulate a created IT user
-    converter.from_ldap.return_value = [
-        ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01"),
-        ITUser.from_simplified_fields("bar", uuid4(), "2021-01-01"),
-    ]
-
-    mo_routing_key = MORoutingKey.build("employee.it.create")
-    await asyncio.gather(
-        listen_to_changes_in_employees(
-            context,
-            payload,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        ),
-    )
-    assert dataloader.load_mo_it_user.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, it_system_type_name, delete=False
-    )
-
-    # Simulate a created engagement
-    converter.from_ldap.return_value = [
-        Engagement.from_simplified_fields(
-            org_unit_uuid=uuid4(),
-            person_uuid=uuid4(),
-            job_function_uuid=uuid4(),
-            engagement_type_uuid=uuid4(),
-            user_key="foo",
-            from_date="2021-01-01",
-        ),
-    ]
-
-    mo_routing_key = MORoutingKey.build("employee.engagement.create")
-    await asyncio.gather(
-        listen_to_changes_in_employees(
-            context,
-            payload,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        ),
-    )
-    assert dataloader.load_mo_engagement.called
-    dataloader.modify_ldap_object.assert_called_with(
-        converted_ldap_object, "Engagement", delete=False
-    )
-
-    # Simulate case where no cleanup is needed
-    converter.from_ldap.return_value = [
-        Address.from_simplified_fields("foo@bar.dk", uuid4(), "2021-01-01"),
-        Address.from_simplified_fields("foo@bar.dk", uuid4(), "2021-01-01"),
-    ]
-
-    mo_routing_key = MORoutingKey.build("employee.address.create")
-    context = {
-        "user_context": {
-            "settings": settings_mock,
-            "mapping": mapping,
-            "converter": converter,
-            "dataloader": dataloader,
-            "internal_amqpsystem": internal_amqpsystem,
-        }
-    }
-
-    with capture_logs() as cap_logs:
+    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
         await asyncio.gather(
             listen_to_changes_in_employees(
                 context,
@@ -736,12 +632,64 @@ async def test_listen_to_changes_in_employees(
                 current_objects_only=True,
             ),
         )
+    assert dataloader.load_mo_employee.called
+    assert converter.to_ldap.called
+    assert dataloader.modify_ldap_object.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, "Employee", overwrite=True, delete=False
+    )
+    assert not dataloader.load_mo_address.called
 
-        log_messages = [log for log in cap_logs if log["log_level"] == "info"]
-        assert re.match(
-            "No synchronization required",
-            log_messages[-1]["event"],
+    # Simulate a created address
+    mo_routing_key = MORoutingKey.build("employee.address.create")
+    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+        await asyncio.gather(
+            listen_to_changes_in_employees(
+                context,
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            ),
         )
+    assert dataloader.load_mo_address.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, address_type_user_key, delete=False
+    )
+
+    # Simulate a created IT user
+    mo_routing_key = MORoutingKey.build("employee.it.create")
+    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+        await asyncio.gather(
+            listen_to_changes_in_employees(
+                context,
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            ),
+        )
+    assert dataloader.load_mo_it_user.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, it_system_type_name, delete=False
+    )
+
+    # Simulate a created engagement
+    mo_routing_key = MORoutingKey.build("employee.engagement.create")
+    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+        await asyncio.gather(
+            listen_to_changes_in_employees(
+                context,
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            ),
+        )
+    assert dataloader.load_mo_engagement.called
+    dataloader.modify_ldap_object.assert_called_with(
+        converted_ldap_object, "Engagement", delete=False
+    )
 
     # Simulate an uuid which should be skipped
     # And an uuid which is too old, so it will be removed from the list
@@ -1011,7 +959,7 @@ async def test_import_address_objects(
         response = test_client.get("/Import/0101011234", headers=headers)
         assert response.status_code == 202
 
-        dataloader.upload_mo_objects.assert_called_with(converted_objects)
+        dataloader.modify_mo_objects.assert_called_with(converted_objects)
 
 
 async def test_import_it_user_objects(
@@ -1055,7 +1003,7 @@ async def test_import_it_user_objects(
         converted_objects[2],
     ]
 
-    dataloader.upload_mo_objects.assert_called_with(non_existing_converted_objects)
+    dataloader.modify_mo_objects.assert_called_with(non_existing_converted_objects)
 
 
 async def test_load_mapping_file_environment(
