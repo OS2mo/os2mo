@@ -373,6 +373,10 @@ async def cleanup(
     internal_amqpsystem = user_context["internal_amqpsystem"]
     logger = structlog.get_logger()
 
+    if not converter.__export_to_ldap__(json_key):
+        logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
+        return
+
     # Get all matching objects for this user in LDAP (note that LDAP can contain
     # multiple entries in one object.)
     loaded_ldap_object = dataloader.load_ldap_cpr_object(employee.cpr_no, json_key)

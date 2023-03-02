@@ -475,6 +475,8 @@ def dataloader() -> AsyncMock:
 @pytest.fixture()
 def converter() -> MagicMock:
     converter = MagicMock()
+    converter.__export_to_ldap__ = MagicMock()
+    converter.__export_to_ldap__.return_value = True
     return converter
 
 
@@ -639,3 +641,29 @@ async def test_cleanup_refresh_mo_object(
     assert messages[0].args[0] == "employee.address.refresh"
     assert messages[0].args[1]["uuid"] == employee_uuid
     assert messages[0].args[1]["object_uuid"] == object_uuid
+
+
+async def test_cleanup_no_export_False(
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
+    user_context: dict,
+):
+    converter.__export_to_ldap__.return_value = False
+
+    args = dict(
+        json_key="Address",
+        value_key="value",
+        mo_dict_key="mo_employee_address",
+        mo_objects_in_mo=[],
+        user_context=user_context,
+        employee=Employee(cpr_no="0101011234"),
+    )
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(cleanup(**args))  # type:ignore
+        log_messages = [log for log in cap_logs if log["log_level"] == "info"]
+        assert re.match(
+            "__export_to_ldap__ == False",
+            log_messages[-1]["event"],
+        )
