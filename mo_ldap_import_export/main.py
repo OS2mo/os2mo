@@ -1066,8 +1066,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         params: SyncQueryParams = Depends(),
     ) -> Any:
 
-        if not date:
-            date = datetime.date.today()
+        date = date or datetime.date.today()
 
         # Load all objects
         all_objects = await dataloader.load_all_mo_objects(add_validity=True)
