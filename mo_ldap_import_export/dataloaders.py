@@ -259,9 +259,9 @@ class DataLoader:
         return output
 
     # TODO: Rename this function to 'modify_ldap_object' (#54906)
-    async def upload_ldap_object(
+    async def modify_ldap_object(
         self,
-        object_to_upload: LdapObject,
+        object_to_modify: LdapObject,
         json_key: str,
         overwrite: bool = False,
         delete: bool = False,
@@ -269,7 +269,7 @@ class DataLoader:
         """
         Parameters
         -------------
-        object_to_upload : LDAPObject
+        object_to_modify : LDAPObject
             object to upload to LDAP
         json_key : str
             json key to upload. e.g. 'Employee' or 'Engagement' or another key present
@@ -288,10 +288,10 @@ class DataLoader:
         cpr_field = self.user_context["cpr_field"]
 
         object_class = converter.find_ldap_object_class(json_key)
-        parameters_to_upload = list(object_to_upload.dict().keys())
+        parameters_to_modify = list(object_to_modify.dict().keys())
 
         # Check if the cpr field is present
-        if cpr_field not in parameters_to_upload:
+        if cpr_field not in parameters_to_modify:
             raise CprNoNotFound(f"cpr field '{cpr_field}' not found in ldap object")
 
         try:
@@ -299,16 +299,16 @@ class DataLoader:
             # attribute is not set. In that case this function will just set the cpr no.
             # attribute in LDAP.
             existing_object = self.load_ldap_cpr_object(
-                object_to_upload.dict()[cpr_field], json_key
+                object_to_modify.dict()[cpr_field], json_key
             )
-            object_to_upload.dn = existing_object.dn
+            object_to_modify.dn = existing_object.dn
             self.logger.info(f"Found existing object: {existing_object.dn}")
         except NoObjectsReturnedException:
             self.logger.info("Could not find existing object: An entry will be created")
 
-        self.logger.info(f"Uploading {object_to_upload}")
-        parameters_to_upload = [p for p in parameters_to_upload if p != "dn"]
-        dn = object_to_upload.dn
+        self.logger.info(f"Uploading {object_to_modify}")
+        parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
+        dn = object_to_modify.dn
         results = []
 
         if delete:
@@ -318,20 +318,20 @@ class DataLoader:
             #
             # If we would delete 'org-unit name' as a part of an org-unit address delete
             # operation, We would suddenly not be able to import engagements any more.
-            parameters_to_upload = [
-                p for p in parameters_to_upload if not self.shared_attribute(p)
+            parameters_to_modify = [
+                p for p in parameters_to_modify if not self.shared_attribute(p)
             ]
 
-        for parameter_to_upload in parameters_to_upload:
-            value = object_to_upload.dict()[parameter_to_upload]
-            value_to_upload = [] if value is None else [value]
+        for parameter_to_modify in parameters_to_modify:
+            value = object_to_modify.dict()[parameter_to_modify]
+            value_to_modify = [] if value is None else [value]
 
             if delete:
-                changes = {parameter_to_upload: [("MODIFY_DELETE", value_to_upload)]}
-            elif self.single_value[parameter_to_upload] or overwrite:
-                changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
+                changes = {parameter_to_modify: [("MODIFY_DELETE", value_to_modify)]}
+            elif self.single_value[parameter_to_modify] or overwrite:
+                changes = {parameter_to_modify: [("MODIFY_REPLACE", value_to_modify)]}
             else:
-                changes = {parameter_to_upload: [("MODIFY_ADD", value_to_upload)]}
+                changes = {parameter_to_modify: [("MODIFY_ADD", value_to_modify)]}
 
             self.logger.info(f"Uploading the following changes: {changes}")
             try:

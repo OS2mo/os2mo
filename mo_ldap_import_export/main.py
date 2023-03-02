@@ -175,7 +175,7 @@ async def listen_to_changes_in_employees(
 
         # Upload to LDAP - overwrite because all employee fields are unique.
         # One person cannot have multiple names.
-        await dataloader.upload_ldap_object(
+        await dataloader.modify_ldap_object(
             ldap_employee,
             "Employee",
             overwrite=True,
@@ -197,7 +197,7 @@ async def listen_to_changes_in_employees(
         mo_object_dict["mo_employee_address"] = changed_address
 
         # Convert & Upload to LDAP
-        await dataloader.upload_ldap_object(
+        await dataloader.modify_ldap_object(
             converter.to_ldap(mo_object_dict, json_key),
             json_key,
             delete=delete,
@@ -231,7 +231,7 @@ async def listen_to_changes_in_employees(
         mo_object_dict["mo_employee_it_user"] = changed_it_user
 
         # Convert & Upload to LDAP
-        await dataloader.upload_ldap_object(
+        await dataloader.modify_ldap_object(
             converter.to_ldap(mo_object_dict, json_key),
             json_key,
             delete=delete,
@@ -267,7 +267,7 @@ async def listen_to_changes_in_employees(
         # Note: We upload an engagement to LDAP regardless of its 'primary' attribute.
         # Because it looks like you cannot set 'primary' when creating an engagement
         # in the OS2mo GUI.
-        await dataloader.upload_ldap_object(
+        await dataloader.modify_ldap_object(
             converter.to_ldap(mo_object_dict, json_key),
             json_key,
             delete=delete,
@@ -342,7 +342,7 @@ async def listen_to_changes_in_org_units(
             }
 
             # Convert & Upload to LDAP
-            await dataloader.upload_ldap_object(
+            await dataloader.modify_ldap_object(
                 converter.to_ldap(mo_object_dict, json_key),
                 json_key,
                 delete=delete,
@@ -963,7 +963,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         ldap_object: LdapObject,
         user=Depends(login_manager),
     ) -> Any:
-        await dataloader.upload_ldap_object(ldap_object, json_key)
+        await dataloader.modify_ldap_object(ldap_object, json_key)
 
     # Post an object to MO
     @app.post("/MO/{json_key}", tags=["MO"])
