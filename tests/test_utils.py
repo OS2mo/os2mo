@@ -77,6 +77,9 @@ async def test_mo_datestring_to_utc():
     date = mo_datestring_to_utc("2023-02-27T01:02:03-03:00")
     assert date.strftime("%Y-%m-%d %H:%M:%S") == "2023-02-27 01:02:03"
 
+    date = mo_datestring_to_utc(None)
+    assert date is None
+
 
 async def test_mo_object_is_valid():
 

@@ -125,7 +125,7 @@ async def get_delete_flag(
 
         now = datetime.datetime.utcnow()
         validity_to = mo_datestring_to_utc(mo_object["validity"]["to"])
-        if validity_to <= now:
+        if validity_to and validity_to <= now:
             logger.info(
                 (
                     "[get_delete_flag] Returning delete=True because "
@@ -1061,7 +1061,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.post("/Synchronize_todays_events", status_code=202, tags=["Maintenance"])
     async def synchronize_todays_events(
         user=Depends(login_manager),
-        date: str = datetime.datetime.today().strftime("%Y-%m-%d"),
+        date: datetime.date = datetime.date.today(),
         params: SyncQueryParams = Depends(),
     ) -> Any:
 
@@ -1072,15 +1072,15 @@ def create_app(**kwargs: Any) -> FastAPI:
         # Note: It is not possible in graphql (yet?) To load just today's objects
         todays_objects = []
         for mo_object in all_objects:
-            from_date = str(mo_object["validity"]["from"])
-            to_date = str(mo_object["validity"]["to"])
-            if from_date.startswith(date):
-                if to_date.startswith(date):
+            from_date = mo_datestring_to_utc(mo_object["validity"]["from"])
+            to_date = mo_datestring_to_utc(mo_object["validity"]["to"])
+            if from_date and from_date.date() == date:
+                if to_date and to_date.date() == date:
                     mo_object["request_type"] = RequestType.TERMINATE
                 else:
                     mo_object["request_type"] = RequestType.REFRESH
                 todays_objects.append(mo_object)
-            elif to_date.startswith(date):
+            elif to_date and to_date.date() == date:
                 mo_object["request_type"] = RequestType.TERMINATE
                 todays_objects.append(mo_object)
 
