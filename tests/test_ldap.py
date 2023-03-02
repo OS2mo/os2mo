@@ -6,7 +6,9 @@ Created on Fri Oct 28 11:03:16 2022
 @author: nick
 """
 import asyncio
+import datetime
 import os
+import re
 import time
 from collections.abc import Iterator
 from typing import Any
@@ -15,6 +17,7 @@ from typing import List
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
@@ -22,12 +25,19 @@ from ldap3 import Connection
 from ldap3 import MOCK_SYNC
 from ldap3 import Server
 from more_itertools import collapse
+from ramodels.mo.details.address import Address
+from ramodels.mo.employee import Employee
+from ramqp.mo.models import ObjectType
+from ramqp.mo.models import PayloadType
+from ramqp.mo.models import ServiceType
+from structlog.testing import capture_logs
 
 from .test_dataloaders import mock_ldap_response
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
+from mo_ldap_import_export.ldap import cleanup
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
 from mo_ldap_import_export.ldap import get_client_strategy
@@ -452,3 +462,180 @@ async def test_single_object_search(ldap_connection: MagicMock):
             ldap_connection,
             exact_dn_match=True,
         )
+
+
+@pytest.fixture()
+def dataloader() -> AsyncMock:
+    dataloader = AsyncMock()
+    dataloader.cleanup_attributes_in_ldap = MagicMock()
+    dataloader.load_ldap_cpr_object = MagicMock()
+    return dataloader
+
+
+@pytest.fixture()
+def converter() -> MagicMock:
+    converter = MagicMock()
+    return converter
+
+
+@pytest.fixture()
+def internal_amqpsystem() -> AsyncMock:
+    internal_amqpsystem = AsyncMock()
+    return internal_amqpsystem
+
+
+@pytest.fixture()
+def user_context(
+    dataloader: AsyncMock, converter: MagicMock, internal_amqpsystem: AsyncMock
+) -> dict:
+
+    user_context = dict(
+        dataloader=dataloader,
+        converter=converter,
+        internal_amqpsystem=internal_amqpsystem,
+    )
+    return user_context
+
+
+async def test_cleanup(
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
+    user_context: dict,
+):
+
+    # There is one address in MO
+    mo_objects_in_mo = [
+        Address.from_simplified_fields(
+            "addr1",
+            uuid4(),
+            "2021-01-01",
+        )
+    ]
+
+    # but two in LDAP
+    converter.from_ldap.return_value = [
+        Address.from_simplified_fields(
+            "addr1",
+            uuid4(),
+            "2021-01-01",
+        ),
+        Address.from_simplified_fields(
+            "addr2",
+            uuid4(),
+            "2021-01-01",
+        ),
+    ]
+
+    # We would expect one of the addresses in LDAP to be cleaned
+    args = dict(
+        json_key="Address",
+        value_key="value",
+        mo_dict_key="mo_employee_address",
+        mo_objects_in_mo=mo_objects_in_mo,
+        user_context=user_context,
+        employee=Employee(cpr_no="0101011234"),
+    )
+
+    await asyncio.gather(cleanup(**args))  # type:ignore
+    ldap_objects_to_clean = dataloader.cleanup_attributes_in_ldap.call_args_list
+    assert len(ldap_objects_to_clean) == 1
+
+
+async def test_cleanup_no_sync_required(
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
+    user_context: dict,
+):
+
+    # There is one address in MO
+    mo_objects_in_mo = [
+        Address.from_simplified_fields(
+            "addr1",
+            uuid4(),
+            "2021-01-01",
+        )
+    ]
+
+    # And it is also in LDAP
+    converter.from_ldap.return_value = [
+        Address.from_simplified_fields(
+            "addr1",
+            uuid4(),
+            "2021-01-01",
+        )
+    ]
+
+    # We would expect that no synchronization is required
+    args = dict(
+        json_key="Address",
+        value_key="value",
+        mo_dict_key="mo_employee_address",
+        mo_objects_in_mo=mo_objects_in_mo,
+        user_context=user_context,
+        employee=Employee(cpr_no="0101011234"),
+    )
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(cleanup(**args))  # type:ignore
+        log_messages = [log for log in cap_logs if log["log_level"] == "info"]
+        assert re.match(
+            "No synchronization required",
+            log_messages[-1]["event"],
+        )
+
+
+async def test_cleanup_refresh_mo_object(
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
+    user_context: dict,
+):
+
+    # There is one address in MO
+    mo_objects_in_mo = [
+        Address.from_simplified_fields(
+            "addr1",
+            uuid4(),
+            "2021-01-01",
+        )
+    ]
+
+    # And None in LDAP
+    converter.from_ldap.return_value = []
+
+    # We would expect that an AMQP message is sent over the internal AMQP system
+    args = dict(
+        json_key="Address",
+        value_key="value",
+        mo_dict_key="mo_employee_address",
+        mo_objects_in_mo=mo_objects_in_mo,
+        user_context=user_context,
+        employee=Employee(cpr_no="0101011234"),
+    )
+
+    object_uuid = str(mo_objects_in_mo[0].uuid)
+    employee_uuid = str(uuid4())
+    dataloader.load_mo_object.return_value = {
+        "uuid": object_uuid,
+        "service_type": ServiceType.EMPLOYEE,
+        "payload": PayloadType(
+            uuid=employee_uuid,
+            object_uuid=object_uuid,
+            time=datetime.datetime.now(),
+        ),
+        "object_type": ObjectType.ADDRESS,
+        "validity": {
+            "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+            "to": None,
+        },
+    }
+
+    await asyncio.gather(cleanup(**args))  # type:ignore
+
+    messages = internal_amqpsystem.publish_message.await_args_list
+    assert len(messages) == 1
+    assert messages[0].args[0] == "employee.address.refresh"
+    assert messages[0].args[1]["uuid"] == employee_uuid
+    assert messages[0].args[1]["object_uuid"] == object_uuid

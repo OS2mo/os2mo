@@ -25,6 +25,12 @@ class CprNoNotFound(HTTPException):
         logger.exception(message)
 
 
+class AttributeNotFound(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)
+        logger.exception(message)
+
+
 class IncorrectMapping(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=400, detail=message)
@@ -49,6 +55,11 @@ class UUIDNotFoundException(HTTPException):
 
 
 class InvalidQueryResponse(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)
+
+
+class InvalidQuery(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)
 

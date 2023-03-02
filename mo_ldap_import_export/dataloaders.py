@@ -13,6 +13,7 @@ from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
 from gql.transport.exceptions import TransportQueryError
+from graphql import DocumentNode
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ramodels.mo.details.address import Address
@@ -23,8 +24,10 @@ from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 
+from .exceptions import AttributeNotFound
 from .exceptions import CprNoNotFound
 from .exceptions import InvalidQueryResponse
+from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
@@ -34,6 +37,7 @@ from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .utils import add_filter_to_query
 
 
 class DataLoader:
@@ -46,6 +50,7 @@ class DataLoader:
         self.single_value = {
             a: self.attribute_types[a].single_value for a in self.attribute_types.keys()
         }
+        self._mo_to_ldap_attributes = []
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
@@ -57,12 +62,94 @@ class DataLoader:
                     )
                 )
 
-    async def query_mo(self, query, raise_if_empty=True):
+    @property
+    def mo_to_ldap_attributes(self):
+        """
+        Populates self._mo_to_ldap_attributes and returns it.
+
+        self._mo_to_ldap_attributes is a list of all LDAP attribute names which
+        are synchronized to LDAP
+
+        Notes
+        -------
+        This is not done in __init__() because the converter is not initialized yet,
+        when we initialize the dataloader.
+        """
+        if not self._mo_to_ldap_attributes:
+            converter = self.user_context["converter"]
+            for json_dict in converter.mapping["mo_to_ldap"].values():
+                self._mo_to_ldap_attributes.extend(list(json_dict.keys()))
+        return self._mo_to_ldap_attributes
+
+    def shared_attribute(self, attribute: str):
+        """
+        Determine if an attribute is shared between multiple LDAP objects.
+
+        Parameters
+        ------------
+        attribute : str
+            LDAP attribute name
+
+        Returns
+        ----------
+        return_value : bool
+            True if the attribute is shared between different LDAP objects, False if it
+            is not.
+
+        Examples
+        -----------
+        >>> self.shared_attribute("cpr_no")
+        >>> True
+
+        The "cpr_no" attribute is generally shared between different LDAP objects.
+        Therefore the return value is "True"
+
+        >>> self.shared_attribute("mobile_phone_no")
+        >>> False
+
+        An attribute which contains a phone number is generally only used by a single
+        LDAP object. Therefore the return value is "False"
+
+        Notes
+        -------
+        The return value in above examples depends on the json dictionary.
+        """
+        occurences = self.mo_to_ldap_attributes.count(attribute)
+        if occurences == 1:
+            return False
+        elif occurences > 1:
+            return True
+        else:
+            raise AttributeNotFound(
+                f"'{attribute}' not found in 'mo_to_ldap' attributes"
+            )
+
+    async def query_mo(
+        self,
+        query: DocumentNode,
+        raise_if_empty: bool = True,
+    ):
         graphql_session: AsyncClientSession = self.user_context["gql_client"]
         result = await graphql_session.execute(query)
         if raise_if_empty:
             self._check_if_empty(result)
         return result
+
+    async def query_past_future_mo(
+        self, query: DocumentNode, current_objects_only: bool
+    ):
+        """
+        First queries MO. If no objects are returned, attempts to query past/future
+        objects as well
+        """
+        try:
+            return await self.query_mo(query)
+        except NoObjectsReturnedException as e:
+            if current_objects_only:
+                raise e
+            else:
+                query = add_filter_to_query(query, "to_date: null, from_date: null")
+                return await self.query_mo(query)
 
     def query_mo_sync(self, query, raise_if_empty=True):
         graphql_session: SyncClientSession = self.user_context["gql_client_sync"]
@@ -121,44 +208,31 @@ class DataLoader:
 
         Notes
         ----------
-        Only removes attribute values if there are still remaining values belonging to
-        the attribute. This function will not erase an attribute or its values entirely
+        Will not delete values belonging to attributes which are shared between multiple
+        ldap objects. Because deleting an LDAP object should not remove the possibility
+        to compile an LDAP object of a different type.
         """
         for ldap_object in ldap_objects:
             self.logger.info(f"Cleaning up attributes from {ldap_object.dn}")
             attributes_to_clean = [
                 a
                 for a in ldap_object.dict().keys()
-                if a != "dn" and not self.single_value[a]
+                if a != "dn" and not self.shared_attribute(a)
             ]
 
             if not attributes_to_clean:
                 self.logger.info("No cleanable attributes found")
+                return
 
             dn = ldap_object.dn
             for attribute in attributes_to_clean:
                 value_to_delete = ldap_object.dict()[attribute]
                 self.logger.info(f"Cleaning {value_to_delete} from '{attribute}'")
 
-                # Load current values for this attribute
-                current_values = self.load_ldap_object(dn, [attribute]).dict()[
-                    attribute
-                ]
-
-                if type(current_values) is not list:
-                    raise Exception(
-                        (
-                            "Something is wrong... Attribute values"
-                            " with single_value=False should always be lists"
-                        )
-                    )
-
-                # Never remove the only remaining value.
-                if len(current_values) > 1:
-                    changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
-                    self.ldap_connection.modify(dn, changes)
-                    response = self.ldap_connection.result
-                    self.logger.info(f"Response: {response}")
+                changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
+                self.ldap_connection.modify(dn, changes)
+                response = self.ldap_connection.result
+                self.logger.info(f"Response: {response}")
 
     async def load_ldap_objects(self, json_key: str) -> list[LdapObject]:
         """
@@ -184,11 +258,26 @@ class DataLoader:
 
         return output
 
-    async def upload_ldap_object(self, object_to_upload, json_key, overwrite=False):
+    # TODO: Rename this function to 'modify_ldap_object' (#54906)
+    async def upload_ldap_object(
+        self,
+        object_to_upload: LdapObject,
+        json_key: str,
+        overwrite: bool = False,
+        delete: bool = False,
+    ):
         """
-        Accepted json_keys are:
-            - 'Employee'
-            - a MO address type name
+        Parameters
+        -------------
+        object_to_upload : LDAPObject
+            object to upload to LDAP
+        json_key : str
+            json key to upload. e.g. 'Employee' or 'Engagement' or another key present
+            in the json dictionary.
+        overwrite: bool
+            Set to True to overwrite contents in LDAP
+        delete: bool
+            Set to True to delete contents in LDAP, instead of creating/modifying them
         """
         converter = self.user_context["converter"]
         if not converter.__export_to_ldap__(json_key):
@@ -222,11 +311,24 @@ class DataLoader:
         dn = object_to_upload.dn
         results = []
 
+        if delete:
+            # Only delete parameters which are not shared between different objects.
+            # For example: 'org-unit name' should not be deleted if both
+            # engagements and org unit addresses use it;
+            #
+            # If we would delete 'org-unit name' as a part of an org-unit address delete
+            # operation, We would suddenly not be able to import engagements any more.
+            parameters_to_upload = [
+                p for p in parameters_to_upload if not self.shared_attribute(p)
+            ]
+
         for parameter_to_upload in parameters_to_upload:
             value = object_to_upload.dict()[parameter_to_upload]
             value_to_upload = [] if value is None else [value]
 
-            if self.single_value[parameter_to_upload] or overwrite:
+            if delete:
+                changes = {parameter_to_upload: [("MODIFY_DELETE", value_to_upload)]}
+            elif self.single_value[parameter_to_upload] or overwrite:
                 changes = {parameter_to_upload: [("MODIFY_REPLACE", value_to_upload)]}
             else:
                 changes = {parameter_to_upload: [("MODIFY_ADD", value_to_upload)]}
@@ -380,7 +482,7 @@ class DataLoader:
         result = self.query_mo_sync(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
 
-    async def load_mo_employee(self, uuid: UUID) -> Employee:
+    async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
             """
             query SinlgeEmployee {
@@ -399,7 +501,7 @@ class DataLoader:
             % uuid
         )
 
-        result = await self.query_mo(query)
+        result = await self.query_past_future_mo(query, current_objects_only)
         entry = result["employees"][0]["objects"][0]
 
         return Employee(**entry)
@@ -525,7 +627,7 @@ class DataLoader:
 
         return output
 
-    async def load_mo_it_user(self, uuid: UUID):
+    async def load_mo_it_user(self, uuid: UUID, current_objects_only=True):
         query = gql(
             """
             query MyQuery {
@@ -544,8 +646,8 @@ class DataLoader:
             """
             % (uuid)
         )
-        result = await self.query_mo(query)
 
+        result = await self.query_past_future_mo(query, current_objects_only)
         entry = result["itusers"][0]["objects"][0]
         return ITUser.from_simplified_fields(
             user_key=entry["user_key"],
@@ -556,7 +658,9 @@ class DataLoader:
             person_uuid=entry["employee_uuid"],
         )
 
-    async def load_mo_address(self, uuid: UUID) -> Address:
+    async def load_mo_address(
+        self, uuid: UUID, current_objects_only: bool = True
+    ) -> Address:
         """
         Loads a mo address
 
@@ -593,7 +697,7 @@ class DataLoader:
         )
 
         self.logger.info(f"Loading address={uuid}")
-        result = await self.query_mo(query)
+        result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = result["addresses"][0]["objects"][0]
 
@@ -631,7 +735,11 @@ class DataLoader:
         result = await self.query_mo(query)
         return True if result["engagements"][0]["objects"][0]["is_primary"] else False
 
-    async def load_mo_engagement(self, uuid: UUID) -> Engagement:
+    async def load_mo_engagement(
+        self,
+        uuid: UUID,
+        current_objects_only: bool = True,
+    ) -> Engagement:
         query = gql(
             """
             query SingleEngagement {
@@ -666,7 +774,7 @@ class DataLoader:
         )
 
         self.logger.info(f"Loading engagement={uuid}")
-        result = await self.query_mo(query)
+        result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = result["engagements"][0]["objects"][0]
 
@@ -849,6 +957,7 @@ class DataLoader:
         uuid_filter = f'(uuids: "{str(uuid)}")' if uuid else ""
 
         result: dict = {}
+        warnings: list[str] = []
         for object_type in [
             "employees",
             "org_units",
@@ -874,7 +983,11 @@ class DataLoader:
                 sub_result = await self.query_mo(query, raise_if_empty=False)
                 result = result | sub_result
             except TransportQueryError as e:
-                self.logger.warning(e)
+                warnings.append(str(e))
+
+        if not result:
+            for warning in warnings:
+                self.logger.warning(warning)
 
         object_type_dict = {
             "employees": ObjectType.EMPLOYEE,
@@ -890,7 +1003,6 @@ class DataLoader:
         for object_type, mo_object_dicts in result.items():
             for mo_object_dict in mo_object_dicts:
                 mo_object = mo_object_dict["objects"][0]
-                uuid = mo_object["uuid"]
 
                 # Note that engagements have both employee_uuid and org_unit uuid. But
                 # belong to an employee. We handle that by checking for employee_uuid
@@ -902,7 +1014,7 @@ class DataLoader:
                     parent_uuid = mo_object["org_unit_uuid"]
                     service_type = ServiceType.ORG_UNIT
                 else:
-                    parent_uuid = uuid
+                    parent_uuid = mo_object["uuid"]
                     if object_type == "employees":
                         service_type = ServiceType.EMPLOYEE
                     elif object_type == "org_units":
@@ -917,7 +1029,7 @@ class DataLoader:
 
                 mo_object["payload"] = PayloadType(
                     uuid=parent_uuid,
-                    object_uuid=uuid,
+                    object_uuid=mo_object["uuid"],
                     time=datetime.datetime.now(),
                 )
 
@@ -926,7 +1038,30 @@ class DataLoader:
 
                 output.append(mo_object)
 
+        if uuid and len(output) > 1:
+            raise MultipleObjectsReturnedException(
+                f"Found multiple objects with uuid={uuid}"
+            )
+
         return output
+
+    async def load_mo_object(self, uuid: str, add_validity=False):
+        """
+        Returns a mo object as dictionary
+
+        Notes
+        -------
+        returns None if the object is not a current object
+        """
+        mo_objects = await self.load_all_mo_objects(
+            add_validity=add_validity,
+            uuid=str(uuid),
+        )
+        if mo_objects:
+            # Note: load_all_mo_objects checks if len==1
+            return mo_objects[0]
+        else:
+            return None
 
     async def upload_mo_objects(self, objects: list[Any]):
         """

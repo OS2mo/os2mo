@@ -17,6 +17,7 @@ import pytest
 from fastramqpi.context import Context
 from gql import gql
 from gql.transport.exceptions import TransportQueryError
+from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
 from ramodels.mo.employee import Employee
@@ -27,8 +28,10 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
+from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import InvalidQueryResponse
+from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 
 
@@ -323,6 +326,40 @@ async def test_append_data_to_ldap_object(
     assert ldap_connection.modify.called_once_with(dn, changes)
 
 
+async def test_delete_data_from_ldap_object(
+    ldap_connection: MagicMock,
+    dataloader: DataLoader,
+    ldap_attributes: dict,
+    cpr_field: str,
+):
+
+    address = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        postalAddress="foo",
+        sharedValue="bar",
+        **{cpr_field: "123"},
+    )
+
+    dataloader.single_value = {"postalAddress": False, cpr_field: True}
+
+    # Note: 'sharedValue' won't be deleted because it is shared with another ldap object
+    dataloader._mo_to_ldap_attributes = [
+        "postalAddress",
+        cpr_field,
+        cpr_field,
+        "sharedValue",
+        "sharedValue",
+    ]
+
+    await asyncio.gather(
+        dataloader.upload_ldap_object(address, "user", delete=True),
+    )
+
+    changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
+    dn = address.dn
+    assert ldap_connection.modify.called_once_with(dn, changes)
+
+
 async def test_upoad_ldap_object_invalid_value(
     ldap_connection: MagicMock,
     dataloader: DataLoader,
@@ -353,10 +390,14 @@ async def test_upload_ldap_object_but_export_equals_false(
 ):
 
     converter.__export_to_ldap__.return_value = False
+    ldap_object = LdapObject(
+        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
+        postalAddress="foo",
+    )
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
-            dataloader.upload_ldap_object(None, ""),
+            dataloader.upload_ldap_object(ldap_object, ""),
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
@@ -701,6 +742,9 @@ def test_load_ldap_object(dataloader: DataLoader):
 def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
     dataloader.single_value = {"value": False}
 
+    dataloader.shared_attribute = MagicMock()  # type: ignore
+    dataloader.shared_attribute.return_value = False
+
     ldap_objects = [
         # LdapObject(dn="foo", value="New address"),
         LdapObject(dn="foo", value="Old address"),
@@ -714,15 +758,6 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
 
         changes = {"value": [("MODIFY_DELETE", "Old address")]}
         assert dataloader.ldap_connection.modify.called_once_with("foo", changes)
-
-    # Simulate impossible case - where the value field of the ldap object on the server
-    # is not a list
-    with patch(
-        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="foo", value="New address"),
-    ):
-        with pytest.raises(Exception):
-            dataloader.cleanup_attributes_in_ldap(ldap_objects)
 
     with capture_logs() as cap_logs:
 
@@ -1175,7 +1210,7 @@ async def test_is_primary(dataloader: DataLoader, gql_client: AsyncMock):
 
 
 async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
-    expected_output: dict = {"objects": "items"}
+    expected_output: dict = {"objects": []}
     gql_client.execute.return_value = expected_output
 
     query = gql(
@@ -1188,14 +1223,43 @@ async def test_query_mo(dataloader: DataLoader, gql_client: AsyncMock):
         """
     )
 
-    dataloader._check_if_empty = MagicMock()  # type: ignore
     output = await asyncio.gather(dataloader.query_mo(query, raise_if_empty=False))
     assert output == [expected_output]
-    dataloader._check_if_empty.assert_not_called()
 
-    output = await asyncio.gather(dataloader.query_mo(query))
-    assert output == [expected_output]
-    dataloader._check_if_empty.assert_called_once()
+    with pytest.raises(NoObjectsReturnedException):
+        await asyncio.gather(dataloader.query_mo(query, raise_if_empty=True))
+
+
+async def test_query_mo_all_objects(dataloader: DataLoader, gql_client: AsyncMock):
+
+    query = gql(
+        """
+        query TestQuery {
+          employees (uuid:"uuid") {
+            uuid
+          }
+        }
+        """
+    )
+
+    expected_output: list = [{"objects": []}, {"objects": ["item1", "item2"]}]
+    gql_client.execute.side_effect = expected_output
+
+    output = await asyncio.gather(
+        dataloader.query_past_future_mo(query, current_objects_only=False)
+    )
+    assert output == [expected_output[1]]
+
+    query1 = print_ast(gql_client.execute.call_args_list[0].args[0])
+    query2 = print_ast(gql_client.execute.call_args_list[1].args[0])
+
+    # The first query attempts to request current objects only
+    assert "from_date" not in query1
+    assert "to_date" not in query1
+
+    # If that fails, all objects are requested
+    assert "from_date" in query2
+    assert "to_date" in query2
 
 
 def test_query_mo_sync(dataloader: DataLoader, gql_client_sync: MagicMock):
@@ -1357,19 +1421,39 @@ async def test_load_all_mo_objects_specify_uuid(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
 
-    query_mo = AsyncMock()
-    query_mo.return_value = {}
-    dataloader.query_mo = query_mo  # type: ignore
+    employee_uuid = uuid4()
+    return_values: list = [
+        {"employees": [{"objects": [{"uuid": employee_uuid}]}]},
+        {"org_units": []},
+        {"addresses": []},
+        {"engagements": []},
+        {"itusers": []},
+    ]
 
-    await dataloader.load_all_mo_objects(uuid="uuid_goes_here")
-    query = query_mo.call_args[0][0].to_dict()
-    assert "uuid_goes_here" in str(query)
+    gql_client.execute.side_effect = return_values
 
-    query_mo.reset_mock()
+    output = await asyncio.gather(dataloader.load_all_mo_objects(uuid=employee_uuid))
+    assert output[0][0]["uuid"] == employee_uuid
+    assert len(output[0]) == 1
 
-    await dataloader.load_all_mo_objects(uuid="")
-    query = query_mo.call_args[0][0].to_dict()
-    assert "uuid_goes_here" not in str(query)
+
+async def test_load_all_mo_objects_specify_uuid_multiple_results(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    uuid = uuid4()
+    return_values: list = [
+        {"employees": [{"objects": [{"uuid": uuid}]}]},
+        {"org_units": [{"objects": [{"uuid": uuid}]}]},
+        {"addresses": []},
+        {"engagements": []},
+        {"itusers": []},
+    ]
+
+    gql_client.execute.side_effect = return_values
+
+    with pytest.raises(MultipleObjectsReturnedException):
+        await dataloader.load_all_mo_objects(uuid=uuid)
 
 
 async def test_load_all_mo_objects_invalid_query(
@@ -1414,8 +1498,64 @@ async def test_load_all_mo_objects_TransportQueryError(
 
         output = await asyncio.gather(dataloader.load_all_mo_objects())
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert len(warnings) == 3
+        assert len(warnings) == 0
 
         assert output[0][0]["uuid"] == employee_uuid
         assert output[0][1]["uuid"] == org_unit_uuid
         assert len(output[0]) == 2
+
+
+async def test_load_all_mo_objects_only_TransportQueryErrors(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    return_values = [
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+        TransportQueryError("foo"),
+    ]
+    gql_client.execute.side_effect = return_values
+    with capture_logs() as cap_logs:
+        await asyncio.gather(dataloader.load_all_mo_objects())
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+        print("x" * 80)
+        print(warnings)
+        print("x" * 80)
+        assert len(warnings) == 5
+
+
+async def test_shared_attribute(dataloader: DataLoader):
+
+    converter = MagicMock()
+    converter.mapping = {
+        "mo_to_ldap": {
+            "Employee": {"cpr_no": None, "name": None},
+            "Address": {"cpr_no": None, "value": None},
+        }
+    }
+    dataloader.user_context["converter"] = converter
+
+    assert dataloader.shared_attribute("cpr_no") is True
+    assert dataloader.shared_attribute("name") is False
+    assert dataloader.shared_attribute("value") is False
+
+    with pytest.raises(AttributeNotFound):
+        dataloader.shared_attribute("non_existing_attribute")
+
+
+async def test_load_mo_object(dataloader: DataLoader):
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
+        return_value=["obj1"],
+    ):
+        result = await asyncio.gather(dataloader.load_mo_object("uuid"))
+        assert result[0] == "obj1"
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
+        return_value=[],
+    ):
+        result = await asyncio.gather(dataloader.load_mo_object("uuid"))
+        assert result[0] is None
