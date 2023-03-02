@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 import datetime
+from typing import Union
 
 import structlog
 from gql import gql
@@ -74,7 +75,7 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
     return gql(new_query_str)
 
 
-def mo_datestring_to_utc(datestring: str):
+def mo_datestring_to_utc(datestring: Union[str, None]):
     """
     Returns datetime object at UTC+0
 
@@ -83,7 +84,10 @@ def mo_datestring_to_utc(datestring: str):
     Mo datestrings are formatted like this: "2023-02-27T00:00:00+01:00"
     This function essentially removes the "+01:00" part, which gives a UTC+0 timestamp.
     """
-    return datetime.datetime.fromisoformat(datestring).replace(tzinfo=None)
+    if datestring:
+        return datetime.datetime.fromisoformat(datestring).replace(tzinfo=None)
+    else:
+        return None
 
 
 def mo_object_is_valid(mo_object):
