@@ -267,7 +267,7 @@ async def test_modify_ldap_employee(
         return_value=employee,
     ):
         output = await asyncio.gather(
-            dataloader.upload_ldap_object(employee, "user"),
+            dataloader.modify_ldap_object(employee, "user"),
         )
 
     assert output == [
@@ -295,7 +295,7 @@ async def test_create_invalid_ldap_employee(
     # Get result from dataloader
     try:
         await asyncio.gather(
-            dataloader.upload_ldap_object(employee, "user"),
+            dataloader.modify_ldap_object(employee, "user"),
         )
     except CprNoNotFound as e:
         assert e.status_code == 404
@@ -318,7 +318,7 @@ async def test_append_data_to_ldap_object(
     dataloader.single_value = {"postalAddress": False, cpr_field: True}
 
     await asyncio.gather(
-        dataloader.upload_ldap_object(address, "user"),
+        dataloader.modify_ldap_object(address, "user"),
     )
 
     changes = {"postalAddress": [("MODIFY_ADD", "foo")]}
@@ -352,7 +352,7 @@ async def test_delete_data_from_ldap_object(
     ]
 
     await asyncio.gather(
-        dataloader.upload_ldap_object(address, "user", delete=True),
+        dataloader.modify_ldap_object(address, "user", delete=True),
     )
 
     changes = {"postalAddress": [("MODIFY_DELETE", "foo")]}
@@ -375,7 +375,7 @@ async def test_upoad_ldap_object_invalid_value(
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
-            dataloader.upload_ldap_object(ldap_object, "user"),
+            dataloader.modify_ldap_object(ldap_object, "user"),
         )
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
@@ -385,7 +385,7 @@ async def test_upoad_ldap_object_invalid_value(
         )
 
 
-async def test_upload_ldap_object_but_export_equals_false(
+async def test_modify_ldap_object_but_export_equals_false(
     dataloader: DataLoader, converter: MagicMock
 ):
 
@@ -397,7 +397,7 @@ async def test_upload_ldap_object_but_export_equals_false(
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
-            dataloader.upload_ldap_object(ldap_object, ""),
+            dataloader.modify_ldap_object(ldap_object, ""),
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
@@ -449,7 +449,7 @@ async def test_create_ldap_employee(
 
     # Get result from dataloader
     output = await asyncio.gather(
-        dataloader.upload_ldap_object(employee, "user"),
+        dataloader.modify_ldap_object(employee, "user"),
     )
 
     assert output == [[good_response] * len(parameters_to_upload)]

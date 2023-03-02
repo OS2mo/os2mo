@@ -506,13 +506,13 @@ async def test_listen_to_change_in_org_unit_address(
     load_mo_address = AsyncMock()
     load_mo_employees_in_org_unit = AsyncMock()
     load_mo_org_unit_addresses = AsyncMock()
-    upload_ldap_object = AsyncMock()
+    modify_ldap_object = AsyncMock()
 
     load_mo_address.return_value = address
     load_mo_employees_in_org_unit.return_value = [employee1, employee2]
     load_mo_org_unit_addresses.return_value = [address]
 
-    dataloader.upload_ldap_object = upload_ldap_object
+    dataloader.modify_ldap_object = modify_ldap_object
     dataloader.load_mo_address = load_mo_address
     dataloader.load_mo_employees_in_org_unit = load_mo_employees_in_org_unit
     dataloader.load_mo_org_unit_addresses = load_mo_org_unit_addresses
@@ -539,7 +539,7 @@ async def test_listen_to_change_in_org_unit_address(
     )
 
     # Assert that an address was uploaded to two ldap objects.
-    assert upload_ldap_object.await_count == 2
+    assert modify_ldap_object.await_count == 2
 
 
 async def test_listen_to_change_in_org_unit_address_not_supported(
@@ -634,8 +634,8 @@ async def test_listen_to_changes_in_employees(
     )
     assert dataloader.load_mo_employee.called
     assert converter.to_ldap.called
-    assert dataloader.upload_ldap_object.called
-    dataloader.upload_ldap_object.assert_called_with(
+    assert dataloader.modify_ldap_object.called
+    dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, "Employee", overwrite=True, delete=False
     )
     assert not dataloader.load_mo_address.called
@@ -657,7 +657,7 @@ async def test_listen_to_changes_in_employees(
         ),
     )
     assert dataloader.load_mo_address.called
-    dataloader.upload_ldap_object.assert_called_with(
+    dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, address_type_user_key, delete=False
     )
 
@@ -678,7 +678,7 @@ async def test_listen_to_changes_in_employees(
         ),
     )
     assert dataloader.load_mo_it_user.called
-    dataloader.upload_ldap_object.assert_called_with(
+    dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, it_system_type_name, delete=False
     )
 
@@ -705,7 +705,7 @@ async def test_listen_to_changes_in_employees(
         ),
     )
     assert dataloader.load_mo_engagement.called
-    dataloader.upload_ldap_object.assert_called_with(
+    dataloader.modify_ldap_object.assert_called_with(
         converted_ldap_object, "Engagement", delete=False
     )
 
