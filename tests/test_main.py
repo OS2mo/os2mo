@@ -438,41 +438,6 @@ async def test_import_single_object_from_LDAP(
     assert response.status_code == 202
 
 
-async def test_import_single_object_from_LDAP_ignore_twice(
-    test_client: TestClient, headers: dict, converter: MagicMock
-) -> None:
-    """
-    When an uuid already is in the uuids_to_ignore dict, it should be added once more
-    so it is ignored twice.
-    """
-
-    uuid = uuid4()
-    mo_object_mock = MagicMock
-    mo_object_mock.uuid = uuid
-    converter.from_ldap.return_value = [mo_object_mock]
-
-    uuids_to_ignore = {uuid: [datetime.datetime.now()]}
-    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
-        response = test_client.get("/Import/0101011234", headers=headers)
-        assert response.status_code == 202
-        assert len(uuids_to_ignore[uuid]) == 2
-
-
-async def test_import_single_object_from_LDAP_but_import_equals_false(
-    test_client: TestClient, headers: dict, converter: MagicMock
-):
-    converter.__import_to_mo__.return_value = False
-    with capture_logs() as cap_logs:
-        test_client.get("/Import/0101011234", headers=headers)
-
-        messages = [w for w in cap_logs if w["log_level"] == "info"]
-        for message in messages:
-            assert re.match(
-                "__import_to_mo__ == False",
-                message["event"],
-            )
-
-
 async def test_import_single_object_from_LDAP_non_existing_employee(
     test_client: TestClient, dataloader: AsyncMock, headers: dict
 ) -> None:

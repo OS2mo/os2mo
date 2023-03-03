@@ -18,6 +18,7 @@ from structlog.testing import capture_logs
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import format_converted_objects
+from mo_ldap_import_export.import_export import import_single_user
 from mo_ldap_import_export.import_export import listen_to_changes_in_employees
 from mo_ldap_import_export.import_export import listen_to_changes_in_org_units
 from mo_ldap_import_export.ldap_classes import LdapObject
@@ -598,3 +599,45 @@ async def test_format_converted_primary_engagement_objects(
     assert len(formatted_objects) == 1
     assert formatted_objects[0].primary.uuid is not None
     assert formatted_objects[0].user_key == "123"
+
+
+async def test_import_single_object_from_LDAP_ignore_twice(
+    converter: MagicMock, dataloader: AsyncMock
+) -> None:
+    """
+    When an uuid already is in the uuids_to_ignore dict, it should be added once more
+    so it is ignored twice.
+    """
+
+    uuid = uuid4()
+    mo_object_mock = MagicMock
+    mo_object_mock.uuid = uuid
+    converter.from_ldap.return_value = [mo_object_mock]
+
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+
+    uuids_to_ignore = {uuid: [datetime.datetime.now()]}
+    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
+        await asyncio.gather(import_single_user("0101011234", context))
+        assert len(uuids_to_ignore[uuid]) == 2
+
+
+async def test_import_single_object_from_LDAP_but_import_equals_false(
+    converter: MagicMock, dataloader: AsyncMock
+):
+    converter.__import_to_mo__.return_value = False
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(import_single_user("0101011234", context))
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        for message in messages:
+            assert re.match(
+                "__import_to_mo__ == False",
+                message["event"],
+            )
