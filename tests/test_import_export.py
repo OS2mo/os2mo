@@ -1,6 +1,5 @@
 import asyncio
 import datetime
-import os
 import re
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
@@ -17,40 +16,40 @@ from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from structlog.testing import capture_logs
 
-from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
-from mo_ldap_import_export.import_export import format_converted_objects
-from mo_ldap_import_export.import_export import import_single_user
-from mo_ldap_import_export.import_export import listen_to_changes_in_employees
-from mo_ldap_import_export.import_export import listen_to_changes_in_org_units
+from mo_ldap_import_export.import_export import SyncTool
 from mo_ldap_import_export.ldap_classes import LdapObject
 
 
 @pytest.fixture
-def context(dataloader: AsyncMock, converter: MagicMock):
+def context(dataloader: AsyncMock, converter: MagicMock) -> Context:
     context = Context(
         {"user_context": {"dataloader": dataloader, "converter": converter}}
     )
     return context
 
 
-async def test_listen_to_changes_in_org_units(converter: MagicMock):
+@pytest.fixture
+def sync_tool(context: Context) -> SyncTool:
+    sync_tool = SyncTool(context)
+    return sync_tool
+
+
+async def test_listen_to_changes_in_org_units(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+):
 
     org_unit_info = {uuid4(): {"name": "Magenta Aps"}}
 
-    dataloader = MagicMock()
+    dataloader.load_mo_org_units = MagicMock()
     dataloader.load_mo_org_units.return_value = org_unit_info
 
     payload = MagicMock()
-    context = Context(
-        {"user_context": {"dataloader": dataloader, "converter": converter}}
-    )
 
     mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
 
-    await listen_to_changes_in_org_units(
-        context,
+    await sync_tool.listen_to_changes_in_org_units(
         payload,
         routing_key=mo_routing_key,
         delete=False,
@@ -63,6 +62,7 @@ async def test_listen_to_change_in_org_unit_address(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     converter: MagicMock,
+    sync_tool: SyncTool,
 ):
     mo_routing_key = MORoutingKey.build("org_unit.address.edit")
 
@@ -87,18 +87,9 @@ async def test_listen_to_change_in_org_unit_address(
     converter.find_ldap_object_class.return_value = "user"
 
     payload = MagicMock()
-    context = Context(
-        {
-            "user_context": {
-                "dataloader": dataloader,
-                "converter": converter,
-            }
-        }
-    )
 
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await listen_to_changes_in_org_units(
-            context,
+        await sync_tool.listen_to_changes_in_org_units(
             payload,
             routing_key=mo_routing_key,
             delete=False,
@@ -110,7 +101,10 @@ async def test_listen_to_change_in_org_unit_address(
 
 
 async def test_listen_to_change_in_org_unit_address_not_supported(
-    dataloader: AsyncMock, load_settings_overrides: dict[str, str], converter: MagicMock
+    dataloader: AsyncMock,
+    load_settings_overrides: dict[str, str],
+    converter: MagicMock,
+    sync_tool: SyncTool,
 ):
     """
     Mapping an organization unit address to non-employee objects is not supported.
@@ -133,13 +127,8 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
         str(address.address_type.uuid): {"user_key": "LocationUnit"}
     }
 
-    context = Context(
-        {"user_context": {"dataloader": dataloader, "converter": converter}}
-    )
-
     with pytest.raises(NotSupportedException):
-        await listen_to_changes_in_org_units(
-            context,
+        await sync_tool.listen_to_changes_in_org_units(
             payload,
             routing_key=mo_routing_key,
             delete=False,
@@ -151,16 +140,13 @@ async def test_listen_to_changes_in_employees(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     test_mo_address: Address,
+    sync_tool: SyncTool,
+    converter: MagicMock,
 ) -> None:
 
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "bar"
 
-    mapping = read_mapping_json(
-        os.path.join(os.path.dirname(__file__), "resources", "mapping.json")
-    )
-
-    converter = MagicMock()
     converter.cpr_field = "EmployeeID"
     converted_ldap_object = LdapObject(dn="Foo")
     converter.to_ldap.return_value = converted_ldap_object
@@ -172,16 +158,6 @@ async def test_listen_to_changes_in_employees(
 
     it_system_type_name = "AD"
 
-    context = Context(
-        {
-            "user_context": {
-                "settings": settings_mock,
-                "mapping": mapping,
-                "converter": converter,
-                "dataloader": dataloader,
-            }
-        }
-    )
     payload = MagicMock()
     payload.uuid = uuid4()
     payload.object_uuid = uuid4()
@@ -193,8 +169,7 @@ async def test_listen_to_changes_in_employees(
     mo_routing_key = MORoutingKey.build("employee.employee.create")
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context,
+            sync_tool.listen_to_changes_in_employees(
                 payload,
                 routing_key=mo_routing_key,
                 delete=False,
@@ -213,8 +188,7 @@ async def test_listen_to_changes_in_employees(
     mo_routing_key = MORoutingKey.build("employee.address.create")
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context,
+            sync_tool.listen_to_changes_in_employees(
                 payload,
                 routing_key=mo_routing_key,
                 delete=False,
@@ -230,8 +204,7 @@ async def test_listen_to_changes_in_employees(
     mo_routing_key = MORoutingKey.build("employee.it.create")
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context,
+            sync_tool.listen_to_changes_in_employees(
                 payload,
                 routing_key=mo_routing_key,
                 delete=False,
@@ -247,8 +220,7 @@ async def test_listen_to_changes_in_employees(
     mo_routing_key = MORoutingKey.build("employee.engagement.create")
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
-            listen_to_changes_in_employees(
-                context,
+            sync_tool.listen_to_changes_in_employees(
                 payload,
                 routing_key=mo_routing_key,
                 delete=False,
@@ -274,33 +246,33 @@ async def test_listen_to_changes_in_employees(
         uuid_which_should_remain: [datetime.datetime.now()],
     }
 
-    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
-        with capture_logs() as cap_logs:
-            await asyncio.gather(
-                listen_to_changes_in_employees(
-                    context,
-                    payload,
-                    routing_key=mo_routing_key,
-                    delete=False,
-                    current_objects_only=True,
-                ),
-            )
+    sync_tool.uuids_to_ignore = uuids_to_ignore
 
-            entries = [w for w in cap_logs if w["log_level"] == "info"]
+    with capture_logs() as cap_logs:
+        await asyncio.gather(
+            sync_tool.listen_to_changes_in_employees(
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            ),
+        )
 
-            assert re.match(
-                f"Removing timestamp belonging to {old_uuid} from uuids_to_ignore.",
-                entries[1]["event"],
-            )
-            assert re.match(f".*Ignoring .*{payload.object_uuid}", entries[2]["event"])
-            assert len(uuids_to_ignore) == 3
-            assert len(uuids_to_ignore[old_uuid]) == 0
-            assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
-            assert len(uuids_to_ignore[payload.object_uuid]) == 1
+        entries = [w for w in cap_logs if w["log_level"] == "info"]
+
+        assert re.match(
+            f"Removing timestamp belonging to {old_uuid} from uuids_to_ignore.",
+            entries[1]["event"],
+        )
+        assert re.match(f".*Ignoring .*{payload.object_uuid}", entries[2]["event"])
+        assert len(uuids_to_ignore) == 3
+        assert len(uuids_to_ignore[old_uuid]) == 0
+        assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
+        assert len(uuids_to_ignore[payload.object_uuid]) == 1
 
 
 async def test_format_converted_engagement_objects(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
@@ -370,14 +342,13 @@ async def test_format_converted_engagement_objects(
         engagement3_in_mo,
     ]
 
-    user_context = {"converter": converter, "dataloader": dataloader}
-
     json_key = "Engagement"
 
     converted_objects = [engagement1, engagement2, engagement3]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, json_key, user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        json_key,
     )
 
     assert len(formatted_objects) == 2
@@ -388,19 +359,18 @@ async def test_format_converted_engagement_objects(
 
 
 async def test_format_converted_employee_objects(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.find_mo_object_class.return_value = "Employee"
-    user_context = {"converter": converter, "dataloader": dataloader}
 
     employee1 = Employee(cpr_no="1212121234")
     employee2 = Employee(cpr_no="1212121235")
 
     converted_objects = [employee1, employee2]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, "Employee", user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects, "Employee"
     )
 
     assert formatted_objects[0] == employee1
@@ -408,14 +378,12 @@ async def test_format_converted_employee_objects(
 
 
 async def test_format_converted_employee_address_objects(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
-
-    user_context = {"converter": converter, "dataloader": dataloader}
 
     person_uuid = uuid4()
     address1 = Address.from_simplified_fields(
@@ -433,8 +401,9 @@ async def test_format_converted_employee_address_objects(
 
     dataloader.load_mo_employee_addresses.return_value = [address1_in_mo]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, "Address", user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        "Address",
     )
 
     assert formatted_objects[1] == address2
@@ -444,14 +413,13 @@ async def test_format_converted_employee_address_objects(
 
 
 async def test_format_converted_org_unit_address_objects(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    user_context = {"converter": converter, "dataloader": dataloader}
     org_unit_uuid = uuid4()
     address1 = Address.from_simplified_fields(
         "foo", uuid4(), "2021-01-01", org_unit_uuid=org_unit_uuid
@@ -468,8 +436,9 @@ async def test_format_converted_org_unit_address_objects(
 
     dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, "Address", user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        "Address",
     )
 
     assert formatted_objects[1] == address2
@@ -479,14 +448,13 @@ async def test_format_converted_org_unit_address_objects(
 
 
 async def test_format_converted_org_unit_address_objects_identical_to_mo(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
 
-    user_context = {"converter": converter, "dataloader": dataloader}
     org_unit_uuid = uuid4()
     address_type_uuid = uuid4()
     address1 = Address.from_simplified_fields(
@@ -505,8 +473,9 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
     dataloader.load_mo_org_unit_addresses.return_value = [address1_in_mo]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, "Address", user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        "Address",
     )
 
     assert formatted_objects[0].value == "bar"
@@ -514,14 +483,12 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 
 
 async def test_format_converted_address_objects_without_person_or_org_unit(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
-
-    user_context = {"converter": converter, "dataloader": dataloader}
 
     # These addresses have neither an org unit uuid or person uuid. we cannot convert
     # them
@@ -531,15 +498,16 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
 
     converted_objects = [address1, address2]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, "Address", user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        "Address",
     )
 
     assert len(formatted_objects) == 0
 
 
 async def test_format_converted_primary_engagement_objects(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
 
     employee_uuid = uuid4()
@@ -597,14 +565,13 @@ async def test_format_converted_primary_engagement_objects(
         engagement2_in_mo,
     ]
 
-    user_context = {"converter": converter, "dataloader": dataloader}
-
     json_key = "Engagement"
 
     converted_objects = [engagement1]
 
-    formatted_objects = await format_converted_objects(
-        converted_objects, json_key, user_context
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        json_key,
     )
 
     assert len(formatted_objects) == 1
@@ -613,7 +580,7 @@ async def test_format_converted_primary_engagement_objects(
 
 
 async def test_import_single_object_from_LDAP_ignore_twice(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     """
     When an uuid already is in the uuids_to_ignore dict, it should be added once more
@@ -630,13 +597,14 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     )
 
     uuids_to_ignore = {uuid: [datetime.datetime.now()]}
-    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
-        await asyncio.gather(import_single_user("0101011234", context))
-        assert len(uuids_to_ignore[uuid]) == 2
+    sync_tool.uuids_to_ignore = uuids_to_ignore
+
+    await asyncio.gather(sync_tool.import_single_user("0101011234", context))
+    assert len(sync_tool.uuids_to_ignore[uuid]) == 2
 
 
 async def test_import_single_object_from_LDAP_but_import_equals_false(
-    converter: MagicMock, dataloader: AsyncMock
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
     converter.__import_to_mo__.return_value = False
     context = Context(
@@ -644,7 +612,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
     )
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(import_single_user("0101011234", context))
+        await asyncio.gather(sync_tool.import_single_user("0101011234", context))
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         for message in messages:
@@ -655,7 +623,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
 
 
 async def test_import_single_object_from_LDAP_multiple_employees(
-    context: Context, dataloader: AsyncMock
+    context: Context, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
 
     dataloader.load_ldap_cpr_object.return_value = None
@@ -664,7 +632,7 @@ async def test_import_single_object_from_LDAP_multiple_employees(
     )
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(import_single_user("0101011234", context))
+        await asyncio.gather(sync_tool.import_single_user("0101011234", context))
 
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
 
@@ -675,7 +643,7 @@ async def test_import_single_object_from_LDAP_multiple_employees(
 
 
 async def test_import_address_objects(
-    context: Context, converter: MagicMock, dataloader: AsyncMock
+    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
     converter.import_mo_object_class.return_value = Address
@@ -699,10 +667,10 @@ async def test_import_address_objects(
     converter.from_ldap.return_value = converted_objects
 
     with patch(
-        "mo_ldap_import_export.import_export.format_converted_objects",
+        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
         return_value=converted_objects,
     ):
-        await asyncio.gather(import_single_user("0101011234", context))
+        await asyncio.gather(sync_tool.import_single_user("0101011234", context))
         # response = test_client.get("/Import/0101011234", headers=headers)
         # assert response.status_code == 202
 
@@ -710,7 +678,7 @@ async def test_import_address_objects(
 
 
 async def test_import_it_user_objects(
-    context: Context, converter: MagicMock, dataloader: AsyncMock
+    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
     converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
     converter.import_mo_object_class.return_value = ITUser
@@ -742,7 +710,7 @@ async def test_import_it_user_objects(
 
     dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
 
-    await asyncio.gather(import_single_user("0101011234", context))
+    await asyncio.gather(sync_tool.import_single_user("0101011234", context))
 
     non_existing_converted_objects = [
         converted_objects[1],
@@ -753,10 +721,10 @@ async def test_import_it_user_objects(
 
 
 async def test_import_single_object_from_LDAP_non_existing_employee(
-    context: Context, converter: MagicMock, dataloader: AsyncMock
+    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dataloader.find_mo_employee_uuid.return_value = None
-    await asyncio.gather(import_single_user("0101011234", context))
+    await asyncio.gather(sync_tool.import_single_user("0101011234", context))
 
     # Even though find_mo_employee_uuid does not return an uuid; it is generated
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID

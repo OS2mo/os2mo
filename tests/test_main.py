@@ -96,6 +96,11 @@ def internal_amqpsystem() -> AsyncMock:
 
 
 @pytest.fixture
+def sync_tool() -> AsyncMock:
+    return AsyncMock()
+
+
+@pytest.fixture
 def fastramqpi(
     disable_metrics: None,
     load_settings_overrides: dict[str, str],
@@ -103,6 +108,7 @@ def fastramqpi(
     dataloader: AsyncMock,
     converter: MagicMock,
     internal_amqpsystem: AsyncMock,
+    sync_tool: AsyncMock,
 ) -> Iterator[FastRAMQPI]:
     """Fixture to construct a FastRAMQPI system.
 
@@ -116,6 +122,8 @@ def fastramqpi(
         return_value=gql_client,
     ), patch(
         "mo_ldap_import_export.main.DataLoader", return_value=dataloader
+    ), patch(
+        "mo_ldap_import_export.main.SyncTool", return_value=sync_tool
     ), patch(
         "mo_ldap_import_export.main.LdapConverter", return_value=converter
     ), patch(
@@ -325,33 +333,21 @@ def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> Non
 
 
 async def test_listen_to_changes(
-    load_settings_overrides: dict[str, str],
-    dataloader: AsyncMock,
+    load_settings_overrides: dict[str, str], dataloader: AsyncMock, sync_tool: AsyncMock
 ):
 
-    listen_to_changes_in_employees_mock = AsyncMock()
-    listen_to_changes_in_org_units_mock = AsyncMock()
+    context = {"user_context": {"dataloader": dataloader, "sync_tool": sync_tool}}
+    payload = MagicMock()
+    payload.uuid = uuid4()
+    payload.object_uuid = uuid4()
 
-    with patch(
-        "mo_ldap_import_export.main.listen_to_changes_in_employees",
-        listen_to_changes_in_employees_mock,
-    ), patch(
-        "mo_ldap_import_export.main.listen_to_changes_in_org_units",
-        listen_to_changes_in_org_units_mock,
-    ):
+    mo_routing_key = MORoutingKey.build("employee.*.*")
+    await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+    sync_tool.listen_to_changes_in_employees.assert_awaited_once()
 
-        context = {"user_context": {"dataloader": dataloader}}
-        payload = MagicMock()
-        payload.uuid = uuid4()
-        payload.object_uuid = uuid4()
-
-        mo_routing_key = MORoutingKey.build("employee.*.*")
-        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-        listen_to_changes_in_employees_mock.assert_awaited_once()
-
-        mo_routing_key = MORoutingKey.build("org_unit.*.*")
-        await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
-        listen_to_changes_in_org_units_mock.assert_awaited_once()
+    mo_routing_key = MORoutingKey.build("org_unit.*.*")
+    await listen_to_changes(context, payload, mo_routing_key=mo_routing_key)
+    sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
 
 async def test_listen_to_changes_not_listening(
