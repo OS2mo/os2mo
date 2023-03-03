@@ -7,7 +7,6 @@
 import asyncio
 import datetime
 import os
-import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock
@@ -22,8 +21,6 @@ from fastapi.testclient import TestClient
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
-from ramodels.mo.details.address import Address
-from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
@@ -31,10 +28,8 @@ from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
-from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import IncorrectMapping
-from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.main import create_app
@@ -429,119 +424,6 @@ async def test_import_all_objects_from_LDAP(
 ) -> None:
     response = test_client.get("/Import/all", headers=headers)
     assert response.status_code == 202
-
-
-async def test_import_single_object_from_LDAP(
-    test_client: TestClient, headers: dict
-) -> None:
-    response = test_client.get("/Import/0101011234", headers=headers)
-    assert response.status_code == 202
-
-
-async def test_import_single_object_from_LDAP_non_existing_employee(
-    test_client: TestClient, dataloader: AsyncMock, headers: dict
-) -> None:
-    dataloader.find_mo_employee_uuid.return_value = None
-    response = test_client.get("/Import/0101011234", headers=headers)
-    assert response.status_code == 202
-
-
-async def test_import_single_object_from_LDAP_multiple_employees(
-    test_client: TestClient, dataloader: AsyncMock, headers: dict
-) -> None:
-    dataloader.load_ldap_cpr_object.return_value = None
-    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException(
-        "foo"
-    )
-
-    with capture_logs() as cap_logs:
-        response = test_client.get("/Import/0101011234", headers=headers)
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-
-        assert re.match(
-            ".*Could not upload .* object.*",
-            warnings[0]["event"],
-        )
-
-    assert response.status_code == 202
-
-
-async def test_import_address_objects(
-    test_client: TestClient, converter: MagicMock, dataloader: AsyncMock, headers: dict
-):
-    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
-    converter.import_mo_object_class.return_value = Address
-    converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
-
-    address_type_uuid = uuid4()
-    person_uuid = uuid4()
-
-    converted_objects = [
-        Address.from_simplified_fields(
-            "foo@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        Address.from_simplified_fields(
-            "foo2@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        Address.from_simplified_fields(
-            "foo3@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-    ]
-
-    converter.from_ldap.return_value = converted_objects
-
-    with patch(
-        "mo_ldap_import_export.import_export.format_converted_objects",
-        return_value=converted_objects,
-    ):
-        response = test_client.get("/Import/0101011234", headers=headers)
-        assert response.status_code == 202
-
-        dataloader.upload_mo_objects.assert_called_with(converted_objects)
-
-
-async def test_import_it_user_objects(
-    test_client: TestClient, converter: MagicMock, dataloader: AsyncMock, headers: dict
-):
-    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
-    converter.import_mo_object_class.return_value = ITUser
-    converter.get_mo_attributes.return_value = ["user_key", "validity"]
-
-    it_system_type1_uuid = uuid4()
-    it_system_type2_uuid = uuid4()
-    person_uuid = uuid4()
-
-    converted_objects = [
-        ITUser.from_simplified_fields(
-            "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        ITUser.from_simplified_fields(
-            "Username2", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-        ITUser.from_simplified_fields(
-            "Username3", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
-        ),
-    ]
-
-    converter.from_ldap.return_value = converted_objects
-
-    it_user_in_mo = ITUser.from_simplified_fields(
-        "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
-    )
-
-    it_users_in_mo = [it_user_in_mo]
-
-    dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
-
-    response = test_client.get("/Import/0101011234", headers=headers)
-    assert response.status_code == 202
-
-    non_existing_converted_objects = [
-        converted_objects[1],
-        converted_objects[2],
-    ]
-
-    dataloader.upload_mo_objects.assert_called_with(non_existing_converted_objects)
 
 
 async def test_load_mapping_file_environment(

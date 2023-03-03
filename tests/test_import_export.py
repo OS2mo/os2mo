@@ -5,23 +5,34 @@ import re
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
+from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import read_mapping_json
+from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import format_converted_objects
 from mo_ldap_import_export.import_export import import_single_user
 from mo_ldap_import_export.import_export import listen_to_changes_in_employees
 from mo_ldap_import_export.import_export import listen_to_changes_in_org_units
 from mo_ldap_import_export.ldap_classes import LdapObject
+
+
+@pytest.fixture
+def context(dataloader: AsyncMock, converter: MagicMock):
+    context = Context(
+        {"user_context": {"dataloader": dataloader, "converter": converter}}
+    )
+    return context
 
 
 async def test_listen_to_changes_in_org_units(converter: MagicMock):
@@ -641,3 +652,111 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                 "__import_to_mo__ == False",
                 message["event"],
             )
+
+
+async def test_import_single_object_from_LDAP_multiple_employees(
+    context: Context, dataloader: AsyncMock
+) -> None:
+
+    dataloader.load_ldap_cpr_object.return_value = None
+    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException(
+        "foo"
+    )
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(import_single_user("0101011234", context))
+
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+
+        assert re.match(
+            ".*Could not upload .* object.*",
+            warnings[0]["event"],
+        )
+
+
+async def test_import_address_objects(
+    context: Context, converter: MagicMock, dataloader: AsyncMock
+):
+    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.Address"
+    converter.import_mo_object_class.return_value = Address
+    converter.get_mo_attributes.return_value = ["value", "uuid", "validity"]
+
+    address_type_uuid = uuid4()
+    person_uuid = uuid4()
+
+    converted_objects = [
+        Address.from_simplified_fields(
+            "foo@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        Address.from_simplified_fields(
+            "foo2@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        Address.from_simplified_fields(
+            "foo3@bar.dk", address_type_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+    ]
+
+    converter.from_ldap.return_value = converted_objects
+
+    with patch(
+        "mo_ldap_import_export.import_export.format_converted_objects",
+        return_value=converted_objects,
+    ):
+        await asyncio.gather(import_single_user("0101011234", context))
+        # response = test_client.get("/Import/0101011234", headers=headers)
+        # assert response.status_code == 202
+
+        dataloader.upload_mo_objects.assert_called_with(converted_objects)
+
+
+async def test_import_it_user_objects(
+    context: Context, converter: MagicMock, dataloader: AsyncMock
+):
+    converter.find_mo_object_class.return_value = "ramodels.mo.details.address.ITUser"
+    converter.import_mo_object_class.return_value = ITUser
+    converter.get_mo_attributes.return_value = ["user_key", "validity"]
+
+    it_system_type1_uuid = uuid4()
+    it_system_type2_uuid = uuid4()
+    person_uuid = uuid4()
+
+    converted_objects = [
+        ITUser.from_simplified_fields(
+            "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        ITUser.from_simplified_fields(
+            "Username2", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+        ITUser.from_simplified_fields(
+            "Username3", it_system_type2_uuid, "2021-01-01", person_uuid=person_uuid
+        ),
+    ]
+
+    converter.from_ldap.return_value = converted_objects
+
+    it_user_in_mo = ITUser.from_simplified_fields(
+        "Username1", it_system_type1_uuid, "2021-01-01", person_uuid=person_uuid
+    )
+
+    it_users_in_mo = [it_user_in_mo]
+
+    dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
+
+    await asyncio.gather(import_single_user("0101011234", context))
+
+    non_existing_converted_objects = [
+        converted_objects[1],
+        converted_objects[2],
+    ]
+
+    dataloader.upload_mo_objects.assert_called_with(non_existing_converted_objects)
+
+
+async def test_import_single_object_from_LDAP_non_existing_employee(
+    context: Context, converter: MagicMock, dataloader: AsyncMock
+) -> None:
+    dataloader.find_mo_employee_uuid.return_value = None
+    await asyncio.gather(import_single_user("0101011234", context))
+
+    # Even though find_mo_employee_uuid does not return an uuid; it is generated
+    assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID
