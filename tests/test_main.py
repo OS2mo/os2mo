@@ -39,10 +39,10 @@ from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
+from mo_ldap_import_export.import_export import format_converted_objects
 from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
-from mo_ldap_import_export.main import format_converted_objects
 from mo_ldap_import_export.main import get_delete_flag
 from mo_ldap_import_export.main import listen_to_changes
 from mo_ldap_import_export.main import listen_to_changes_in_employees
@@ -527,7 +527,7 @@ async def test_listen_to_change_in_org_unit_address(
         }
     )
 
-    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await listen_to_changes_in_org_units(
             context,
             payload,
@@ -622,7 +622,7 @@ async def test_listen_to_changes_in_employees(
 
     # Simulate a created employee
     mo_routing_key = MORoutingKey.build("employee.employee.create")
-    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             listen_to_changes_in_employees(
                 context,
@@ -642,7 +642,7 @@ async def test_listen_to_changes_in_employees(
 
     # Simulate a created address
     mo_routing_key = MORoutingKey.build("employee.address.create")
-    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             listen_to_changes_in_employees(
                 context,
@@ -659,7 +659,7 @@ async def test_listen_to_changes_in_employees(
 
     # Simulate a created IT user
     mo_routing_key = MORoutingKey.build("employee.it.create")
-    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             listen_to_changes_in_employees(
                 context,
@@ -676,7 +676,7 @@ async def test_listen_to_changes_in_employees(
 
     # Simulate a created engagement
     mo_routing_key = MORoutingKey.build("employee.engagement.create")
-    with patch("mo_ldap_import_export.main.cleanup", AsyncMock()):
+    with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
         await asyncio.gather(
             listen_to_changes_in_employees(
                 context,
@@ -705,7 +705,7 @@ async def test_listen_to_changes_in_employees(
         uuid_which_should_remain: [datetime.datetime.now()],
     }
 
-    with patch("mo_ldap_import_export.main.uuids_to_ignore", uuids_to_ignore):
+    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
         with capture_logs() as cap_logs:
             await asyncio.gather(
                 listen_to_changes_in_employees(
@@ -885,7 +885,7 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     converter.from_ldap.return_value = [mo_object_mock]
 
     uuids_to_ignore = {uuid: [datetime.datetime.now()]}
-    with patch("mo_ldap_import_export.main.uuids_to_ignore", uuids_to_ignore):
+    with patch("mo_ldap_import_export.import_export.uuids_to_ignore", uuids_to_ignore):
         response = test_client.get("/Import/0101011234", headers=headers)
         assert response.status_code == 202
         assert len(uuids_to_ignore[uuid]) == 2
@@ -959,7 +959,7 @@ async def test_import_address_objects(
     converter.from_ldap.return_value = converted_objects
 
     with patch(
-        "mo_ldap_import_export.main.format_converted_objects",
+        "mo_ldap_import_export.import_export.format_converted_objects",
         return_value=converted_objects,
     ):
         response = test_client.get("/Import/0101011234", headers=headers)
