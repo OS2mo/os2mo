@@ -357,7 +357,6 @@ def create_app(**kwargs: Any) -> FastAPI:
     default_ldap_class = converter.raw_mapping["mo_to_ldap"]["Employee"]["objectClass"]
 
     accepted_json_keys = tuple(converter.get_accepted_json_keys())
-    # detected_json_keys = converter.get_ldap_to_mo_json_keys()
 
     @app.post("/login")
     def login(data: OAuth2PasswordRequestForm = Depends()):
