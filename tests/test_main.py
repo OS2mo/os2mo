@@ -708,16 +708,22 @@ async def test_listen_to_changes_in_employees(
     with patch("mo_ldap_import_export.main.uuids_to_ignore", uuids_to_ignore):
         with capture_logs() as cap_logs:
             await asyncio.gather(
-                listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
+                listen_to_changes_in_employees(
+                    context,
+                    payload,
+                    routing_key=mo_routing_key,
+                    delete=False,
+                    current_objects_only=True,
+                ),
             )
 
             entries = [w for w in cap_logs if w["log_level"] == "info"]
 
             assert re.match(
                 f"Removing timestamp belonging to {old_uuid} from uuids_to_ignore.",
-                entries[0]["event"],
+                entries[1]["event"],
             )
-            assert re.match(f".*Ignoring .*{payload.object_uuid}", entries[1]["event"])
+            assert re.match(f".*Ignoring .*{payload.object_uuid}", entries[2]["event"])
             assert len(uuids_to_ignore) == 3
             assert len(uuids_to_ignore[old_uuid]) == 0
             assert len(uuids_to_ignore[uuid_which_should_remain]) == 1

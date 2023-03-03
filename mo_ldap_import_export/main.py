@@ -158,6 +158,32 @@ async def listen_to_changes_in_employees(
     user_context = context["user_context"]
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
+    global uuids_to_ignore
+
+    # Remove all timestamps which have been in this dict for more than 60 seconds.
+    now = datetime.datetime.now()
+    for uuid, timestamps in uuids_to_ignore.items():
+        for timestamp in timestamps:
+            age_in_seconds = (now - timestamp).total_seconds()
+            if age_in_seconds > 60:
+                logger.info(
+                    (
+                        f"Removing timestamp belonging to {uuid} from uuids_to_ignore. "
+                        f"It is {age_in_seconds} seconds old"
+                    )
+                )
+                timestamps.remove(timestamp)
+
+    # If the object was uploaded by us, it does not need to be synchronized.
+    # Note that this is not necessary in listen_to_changes_in_org_units. Because those
+    # changes potentially map to multiple employees
+    if payload.object_uuid in uuids_to_ignore and uuids_to_ignore[payload.object_uuid]:
+        logger.info(f"[listen_to_changes] Ignoring {routing_key}-{payload.object_uuid}")
+
+        # Remove timestamp so it does not get ignored twice.
+        oldest_timestamp = min(uuids_to_ignore[payload.object_uuid])
+        uuids_to_ignore[payload.object_uuid].remove(oldest_timestamp)
+        return None
 
     # Get MO employee
     changed_employee = await dataloader.load_mo_employee(
@@ -369,40 +395,9 @@ async def listen_to_changes_in_org_units(
 async def listen_to_changes(
     context: Context, payload: PayloadType, mo_routing_key: MORoutingKey
 ) -> None:
-    global uuids_to_ignore
-
-    # Remove all timestamps which have been in this dict for more than 60 seconds.
-    now = datetime.datetime.now()
-    for uuid, timestamps in uuids_to_ignore.items():
-        for timestamp in timestamps:
-            age_in_seconds = (now - timestamp).total_seconds()
-            if age_in_seconds > 60:
-                logger.info(
-                    (
-                        f"Removing timestamp belonging to {uuid} from uuids_to_ignore. "
-                        f"It is {age_in_seconds} seconds old"
-                    )
-                )
-                timestamps.remove(timestamp)
-
-    # If the object was uploaded by us, it does not need to be synchronized.
-    # Unless the serviceType is org_unit: Those potentially map to multiple employees.
-    if (
-        payload.object_uuid in uuids_to_ignore
-        and uuids_to_ignore[payload.object_uuid]
-        and mo_routing_key.service_type == ServiceType.EMPLOYEE
-    ):
-        logger.info(
-            f"[listen_to_changes] Ignoring {mo_routing_key}-{payload.object_uuid}"
-        )
-
-        # Remove timestamp so it does not get ignored twice.
-        oldest_timestamp = min(uuids_to_ignore[payload.object_uuid])
-        uuids_to_ignore[payload.object_uuid].remove(oldest_timestamp)
-        return None
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
-    elif not Settings().listen_to_changes_in_mo:
+    if not Settings().listen_to_changes_in_mo:
         raise RejectMessage()
 
     logger.info(f"[MO] Routing key: {mo_routing_key}")
