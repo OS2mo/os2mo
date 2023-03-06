@@ -51,9 +51,7 @@ from .dataloaders import DataLoader
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
-from .import_export import import_single_user
-from .import_export import listen_to_changes_in_employees
-from .import_export import listen_to_changes_in_org_units
+from .import_export import SyncTool
 from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
@@ -156,12 +154,12 @@ async def listen_to_changes(
 
     logger.info(f"[MO] Routing key: {mo_routing_key}")
     logger.info(f"[MO] Payload: {payload}")
+    sync_tool = context["user_context"]["sync_tool"]
 
     delete = await get_delete_flag(mo_routing_key, payload, context)
     current_objects_only = False if delete else True
 
     args = dict(
-        context=context,
         payload=payload,
         routing_key=mo_routing_key,
         delete=delete,
@@ -169,9 +167,9 @@ async def listen_to_changes(
     )
 
     if mo_routing_key.service_type == ServiceType.EMPLOYEE:
-        await listen_to_changes_in_employees(**args)
+        await sync_tool.listen_to_changes_in_employees(**args)
     elif mo_routing_key.service_type == ServiceType.ORG_UNIT:
-        await listen_to_changes_in_org_units(**args)
+        await sync_tool.listen_to_changes_in_org_units(**args)
 
 
 @asynccontextmanager
@@ -303,6 +301,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
 
+    logger.info("Initializing Sync tool")
+    sync_tool = SyncTool(fastramqpi.get_context())
+    fastramqpi.add_context(sync_tool=sync_tool)
+
     return fastramqpi
 
 
@@ -349,6 +351,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     dataloader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
+    sync_tool = user_context["sync_tool"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -411,7 +414,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def import_single_user_from_LDAP(
         cpr: str, user=Depends(login_manager)
     ) -> Any:
-        await import_single_user(cpr, context)
+        await sync_tool.import_single_user(cpr, context)
 
     class ExportQueryParams:
         def __init__(
