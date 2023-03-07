@@ -223,6 +223,11 @@ class Settings(BaseSettings):
     # Ex. CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS=["org_unit", "third_party_association_type"]
     confdb_employee_hide_association_columns: list[str] | None
 
+    # This flag fixes the datepicker using different timezones, resulting in choosing
+    # 1 day before the picked date. This feature-flag is temporary,
+    # until feature is accepted by customers.
+    confdb_datepicker_fix_timezone: bool = False
+
     # String telling OS2Mo what DIPEX version is being used to import & export data
     # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
     confdb_dipex_version__do_not_use: str | None
