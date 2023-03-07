@@ -41,6 +41,9 @@ class MOClassReturn(BaseModel):
     example: str | None = Field(description="Example string.")
     scope: str | None = Field(description="Scope of the class.")
     owner: UUID | None = Field(description="Owner of the class.")
+    published: str | None = Field(
+        description="Published state of the class, represented as a string"
+    )
 
     # Selectable fields
     full_name: str | None = Field(description="Fullname of the class.")
@@ -585,6 +588,7 @@ async def get_classes(
           example
           scope
           owner
+          published
 
           full_name @include(if: $full_name)
 

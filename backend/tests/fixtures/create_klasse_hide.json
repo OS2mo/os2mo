@@ -7,7 +7,7 @@
                 "omfang": "TEXT",
                 "titel": "Skjult organisation",
                 "virkning": {
-                    "from": "1970-01-01 00:00:00+01",
+                    "from": "2016-01-01 00:00:00+01",
                     "from_included": true,
                     "to": "infinity",
                     "to_included": false
