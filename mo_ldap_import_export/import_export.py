@@ -447,7 +447,7 @@ class SyncTool:
 
         return converted_objects_uuid_checked
 
-    async def import_single_user(self, cpr: str, context: Context):
+    async def import_single_user(self, cpr: str):
         # Get the employee's uuid (if he exists)
         # Note: We could optimize this by loading all relevant employees once. But:
         # - What if an employee is created by someone else while this code is running?
