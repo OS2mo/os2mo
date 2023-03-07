@@ -48,6 +48,7 @@ from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
 from .dataloaders import DataLoader
+from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
@@ -85,7 +86,9 @@ def reject_on_failure(func):
             IncorrectMapping,  # If the json dict is incorrectly configured: Abort
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
-        ):
+            IgnoreChanges,  # In case changes should be ignored: Abort
+        ) as e:
+            logger.info(e)
             raise RejectMessage()
 
     modified_func.__wrapped__ = func  # type: ignore
