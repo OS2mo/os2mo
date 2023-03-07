@@ -348,8 +348,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     def query_user(user_id: str):
         return user_database.get(user_id)
 
-    context = fastramqpi._context
-    user_context = context["user_context"]
+    user_context = fastramqpi._context["user_context"]
     converter = user_context["converter"]
     dataloader = user_context["dataloader"]
     ldap_connection = user_context["ldap_connection"]
@@ -417,7 +416,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def import_single_user_from_LDAP(
         cpr: str, user=Depends(login_manager)
     ) -> Any:
-        await sync_tool.import_single_user(cpr, context)
+        await sync_tool.import_single_user(cpr)
 
     class ExportQueryParams:
         def __init__(
