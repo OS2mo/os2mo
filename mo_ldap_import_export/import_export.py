@@ -275,8 +275,8 @@ class SyncTool:
                     )
                 )
 
-            affected_employees = await self.dataloader.load_mo_employees_in_org_unit(
-                payload.uuid
+            affected_employees = set(
+                await self.dataloader.load_mo_employees_in_org_unit(payload.uuid)
             )
             self.logger.info(f"[MO] Found {len(affected_employees)} affected employees")
 
