@@ -78,7 +78,10 @@ async def test_listen_to_change_in_org_unit_address(
     modify_ldap_object = AsyncMock()
 
     load_mo_address.return_value = address
-    load_mo_employees_in_org_unit.return_value = [employee1, employee2]
+
+    # Note: The same employee is linked to this unit twice;
+    # The duplicate employee should not be modified twice
+    load_mo_employees_in_org_unit.return_value = [employee1, employee1, employee2]
     load_mo_org_unit_addresses.return_value = [address]
 
     dataloader.modify_ldap_object = modify_ldap_object
@@ -98,7 +101,8 @@ async def test_listen_to_change_in_org_unit_address(
             current_objects_only=True,
         )
 
-    # Assert that an address was uploaded to two ldap objects.
+    # Assert that an address was uploaded to two ldap objects
+    # (even though load_mo_employees_in_org_unit returned three employee objects)
     assert modify_ldap_object.await_count == 2
 
 
