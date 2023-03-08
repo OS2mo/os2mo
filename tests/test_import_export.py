@@ -269,7 +269,7 @@ async def test_listen_to_changes_in_employees(
             f"Removing .* belonging to {old_uuid} from ignore_dict",
             entries[1]["event"],
         )
-        assert len(uuids_to_ignore) == 3
+        assert len(uuids_to_ignore) == 2
         assert len(uuids_to_ignore[old_uuid]) == 0
         assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
         assert len(uuids_to_ignore[payload.object_uuid]) == 1
@@ -723,3 +723,32 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
 
     # Even though find_mo_employee_uuid does not return an uuid; it is generated
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID
+
+
+async def test_ignoreMe():
+
+    # Initialize empty ignore dict
+    strings_to_ignore = IgnoreMe()
+    assert len(strings_to_ignore) == 0
+
+    # Add a string which should be ignored
+    strings_to_ignore.add("ignore_me")
+    assert len(strings_to_ignore) == 1
+    assert len(strings_to_ignore["ignore_me"]) == 1
+
+    # Raise an ignore exception so the string gets removed
+    with pytest.raises(IgnoreChanges):
+        strings_to_ignore.check("ignore_me")
+    assert len(strings_to_ignore["ignore_me"]) == 0
+
+    # Add an out-dated entry
+    strings_to_ignore.ignore_dict = {
+        "old_ignore_string": [datetime.datetime(1900, 1, 1)]
+    }
+    assert len(strings_to_ignore) == 1
+    assert len(strings_to_ignore["old_ignore_string"]) == 1
+
+    # Validate that it is gone after we clean
+    strings_to_ignore.clean()
+    assert len(strings_to_ignore) == 0
+    assert len(strings_to_ignore["old_ignore_string"]) == 0
