@@ -269,7 +269,7 @@ async def test_listen_to_changes_in_employees(
             f"Removing .* belonging to {old_uuid} from ignore_dict",
             entries[1]["event"],
         )
-        assert len(uuids_to_ignore) == 2
+        assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
         assert len(uuids_to_ignore[old_uuid]) == 0
         assert len(uuids_to_ignore[uuid_which_should_remain]) == 1
         assert len(uuids_to_ignore[payload.object_uuid]) == 1
