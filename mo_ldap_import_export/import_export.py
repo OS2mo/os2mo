@@ -29,8 +29,12 @@ class IgnoreMe:
         self.ignore_dict: dict[str, list[datetime.datetime]] = {}
         self.logger = structlog.get_logger()
 
-    def __getitem__(self, key):
-        return self.ignore_dict[str(key)]
+    def __getitem__(self, key: Union[str, UUID]) -> list[datetime.datetime]:
+        key = str(key)
+        if key in self.ignore_dict:
+            return self.ignore_dict[key]
+        else:
+            return []
 
     def __len__(self):
         return len(self.ignore_dict)
@@ -51,6 +55,9 @@ class IgnoreMe:
                         )
                     )
                     timestamps.remove(timestamp)
+
+        # Remove keys with empty lists
+        self.ignore_dict = {k: v for k, v in self.ignore_dict.items() if v}
 
     def add(self, str_to_add: Union[str, UUID]):
         # Add a string to the ignore dict
