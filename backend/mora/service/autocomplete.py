@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
 from contextlib import suppress
+from datetime import date
 from itertools import starmap
 from uuid import UUID
 
@@ -11,7 +12,7 @@ from mora.lora import AutocompleteScope
 
 
 async def get_results(
-    entity: str, class_uuids: list[UUID], query: str
+    entity: str, class_uuids: list[UUID], query: str, at: date
 ) -> dict[str, list]:
     """Run an autocomplete search query.
 
@@ -39,8 +40,7 @@ async def get_results(
     # Fetch autocomplete results from LoRa
     scope = AutocompleteScope(connector, entity)
     results = await scope.fetch(
-        phrase=util.query_to_search_phrase(query),
-        class_uuids=class_uuids,
+        phrase=util.query_to_search_phrase(query), class_uuids=class_uuids, at=at
     )
 
     def convert_attrs(class_uuid, value):

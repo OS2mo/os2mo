@@ -748,8 +748,11 @@ class AutocompleteScope(BaseScope):
         self.connector = connector
         self.path = f"autocomplete/{path}"
 
-    async def fetch(self, phrase, class_uuids=None):
-        params = {"phrase": phrase}
+    async def fetch(self, phrase: str, at: date, class_uuids: list[uuid.UUID] = None):
+        params = {
+            "phrase": phrase,
+            "at": at.isoformat(),
+        }
         if class_uuids:
             params["class_uuids"] = list(map(str, class_uuids))
         response = await client.get(url=self.path, params=params)

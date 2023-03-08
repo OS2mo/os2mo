@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import os
+from datetime import date
 from operator import attrgetter
 from uuid import UUID
 
@@ -27,7 +28,6 @@ from oio_rest.db.testing import reset_testing_database
 from oio_rest.db.testing import stop_testing
 from oio_rest.kubernetes import kubernetes_router
 from oio_rest.mo.autocomplete import find_org_units_matching
-from oio_rest.mo.autocomplete import find_org_units_matching_thor
 from oio_rest.mo.autocomplete import find_users_matching
 
 logger = get_logger()
@@ -73,10 +73,9 @@ def setup_views(app):
 
     @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
     def autocomplete_org_unit(
-        phrase: str, class_uuids: list[UUID] | None = Query(None)
+        phrase: str, at: date, class_uuids: list[UUID] | None = Query(None)
     ):
-        return {"results": find_org_units_matching(phrase, class_uuids=class_uuids)}
-        # return {"results": find_org_units_matching_thor(phrase, class_uuids=class_uuids)}
+        return {"results": find_org_units_matching(phrase, at, class_uuids=class_uuids)}
 
     app.include_router(
         klassifikation.KlassifikationsHierarki.setup_api(),

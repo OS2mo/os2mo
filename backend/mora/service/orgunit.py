@@ -17,6 +17,7 @@ import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
+from datetime import date
 from datetime import datetime
 from itertools import chain
 from typing import Any
@@ -624,10 +625,10 @@ async def get_one_orgunit(
 
 
 @router.get("/ou/autocomplete/")
-async def autocomplete_orgunits(query: str):
+async def autocomplete_orgunits(query: str, at: date):
     settings = config.get_settings()
     return await autocomplete.get_results(
-        "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+        "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query, at
     )
 
 
