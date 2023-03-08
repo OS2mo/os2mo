@@ -258,7 +258,6 @@ class DataLoader:
 
         return output
 
-    # TODO: Rename this function to 'modify_ldap_object' (#54906)
     async def modify_ldap_object(
         self,
         object_to_modify: LdapObject,
