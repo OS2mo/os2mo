@@ -756,3 +756,19 @@ async def test_ignoreMe():
     strings_to_ignore.clean()
     assert len(strings_to_ignore) == 0
     assert len(strings_to_ignore["old_ignore_string"]) == 0
+
+    # Add multiple out-dated entries
+    strings_to_ignore.ignore_dict = {
+        "old_ignore_string": [
+            datetime.datetime(1900, 1, 1),
+            datetime.datetime(1901, 1, 1),
+            datetime.datetime(1902, 1, 1),
+        ]
+    }
+    assert len(strings_to_ignore) == 1
+    assert len(strings_to_ignore["old_ignore_string"]) == 3
+
+    # Validate that they are all gone after we clean
+    strings_to_ignore.clean()
+    assert len(strings_to_ignore) == 0
+    assert len(strings_to_ignore["old_ignore_string"]) == 0

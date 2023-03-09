@@ -45,7 +45,7 @@ class IgnoreMe:
         max_age = 60  # seconds
         cutoff = now - datetime.timedelta(seconds=max_age)
         for str_to_ignore, timestamps in self.ignore_dict.items():
-            for timestamp in timestamps:
+            for timestamp in timestamps.copy():
                 if timestamp < cutoff:
                     self.logger.info(
                         (
