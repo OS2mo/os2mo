@@ -114,6 +114,9 @@ class SyncTool:
             current_objects_only=current_objects_only,
         )
         self.logger.info(f"Found Employee in MO: {changed_employee}")
+        if not changed_employee.cpr_no:
+            self.logger.info("Employee does not have a cpr no")
+            return
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
 
@@ -281,6 +284,10 @@ class SyncTool:
             self.logger.info(f"[MO] Found {len(affected_employees)} affected employees")
 
             for affected_employee in affected_employees:
+                if not affected_employee.cpr_no:
+                    self.logger.info("Employee does not have a cpr no")
+                    continue
+
                 mo_object_dict = {
                     "mo_employee": affected_employee,
                     "mo_org_unit_address": changed_address,
