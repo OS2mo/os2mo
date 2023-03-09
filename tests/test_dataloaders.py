@@ -1520,9 +1520,6 @@ async def test_load_all_mo_objects_only_TransportQueryErrors(
     with capture_logs() as cap_logs:
         await asyncio.gather(dataloader.load_all_mo_objects())
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-        print("x" * 80)
-        print(warnings)
-        print("x" * 80)
         assert len(warnings) == 5
 
 
