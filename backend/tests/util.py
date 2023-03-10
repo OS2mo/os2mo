@@ -202,8 +202,6 @@ async def load_sample_structures(minimal=False):
                 "medlem": "62ec821f-4179-4758-bfdf-134529d186e9",
                 "projektleder": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
                 "teammedarbejder": "45751985-321f-4d4f-ae16-847f0a633360",
-                # association_type - CUSTOM / from CSV files
-                "databeskyttelsesudvalg": "8eea787c-c2c7-46ca-bd84-2dd50f47801f",
                 # engagement_job_function
                 "specialist": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
                 "skolepsykolog": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
