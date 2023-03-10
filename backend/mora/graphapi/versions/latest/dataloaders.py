@@ -62,7 +62,7 @@ RoleType = TypeVar("RoleType")
 
 
 def group_by_uuid(
-    models: list[MOModel], uuids: list[UUID] | None = None
+        models: list[MOModel], uuids: list[UUID] | None = None
 ) -> dict[UUID, list[MOModel]]:
     """Auxiliary function to group MOModels by their UUID.
 
@@ -142,7 +142,7 @@ get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
 def lora_itsystem_to_mo_itsystem(
-    lora_result: Iterable[tuple[str, dict]],
+        lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[ITSystemRead]:
     def convert(systemid: str, system: dict) -> dict[str, Any]:
         attrs = system["attributter"]["itsystemegenskaber"][0]
@@ -198,7 +198,7 @@ def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
 
 
 def lora_classes_to_mo_classes(
-    lora_result: Iterable[tuple[str, dict]],
+        lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[ClassRead]:
     mapped_result = starmap(
         lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(KlasseRead, entry)),
@@ -223,6 +223,35 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
             },
         )
     ]
+
+    # 55193
+    # Graphql assumes that all classes are static, because we have decided that they are
+    # However, they haven't always been, and that means that some old data makes gql cry
+    # and break down. Classes shouldn't be static as they at the very least can be
+    # published or non-published, which lead to the above being implemented, and
+    # breaking the Frederikshavn implementation. This fixes it.
+    keys = {"attributter": ["klasseegenskaber"], "tilstande": ["klassepubliceret"],
+            "relationer": ["ejer", "ansvarlig", "facet"]}
+
+    def clean_lists(lora_dict: dict, ok: str, ik: str):
+        if ok in lora_dict and ik in lora_dict[ok]:
+            if len(lora_dict[ok][ik]) == 0:
+                lora_dict[ok][ik] = None
+
+    # cleaned_lora_res = list(
+    #     starmap(lambda t1, t2: (t1, starmap(
+    #         lambda ok, inner_list: map(lambda ik: clean_lists(t2, ok, ik), inner_list),
+    #         keys)), lora_result))
+
+    for lr in len(lora_result):
+        for ok, inner_list in keys:
+            for ik in inner_list:
+                if ok not in lora_result[lr][1]:
+                    continue
+                if ik not in lora_result[lr][1][ok]:
+                    continue
+                if len(lora_result[lr][1][ok][ik]) == 0:
+                    lora_result[lr][1][ok][ik] = None
 
     return list(lora_classes_to_mo_classes(lora_result))
 
@@ -274,7 +303,7 @@ def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
 
 
 def lora_facets_to_mo_facets(
-    lora_result: Iterable[tuple[str, dict]],
+        lora_result: Iterable[tuple[str, dict]],
 ) -> Iterable[FacetRead]:
     lora_facets = starmap(
         lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(LFacetRead, entry)),
@@ -307,7 +336,7 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
 
 
 async def get_employee_details(
-    employee_uuid: UUID, role_type: str
+        employee_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
     """Non-bulk loader for employee details."""
     c = get_connector()
@@ -327,7 +356,7 @@ async def get_employee_details(
 
 
 async def load_employee_details(
-    keys: list[UUID], model: MOModel
+        keys: list[UUID], model: MOModel
 ) -> list[list[MOModel]]:
     """Non-bulk loader for employee details with bulk interface."""
     mo_type = model.__fields__["type_"].default
@@ -336,7 +365,7 @@ async def load_employee_details(
 
 
 async def get_engagement_details(
-    engagement_uuid: UUID, role_type: str
+        engagement_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
     c = get_connector()
     cls = get_handler_for_type(role_type)
@@ -355,7 +384,7 @@ async def get_engagement_details(
 
 
 async def load_engagement_details(
-    keys: list[UUID], model: MOModel
+        keys: list[UUID], model: MOModel
 ) -> list[list[MOModel]]:
     """Non-bulk loader for employee details with bulk interface."""
     mo_type = model.__fields__["type_"].default
@@ -364,7 +393,7 @@ async def load_engagement_details(
 
 
 async def get_org_unit_details(
-    org_unit_uuid: UUID, role_type: str
+        org_unit_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
     """Non-bulk loader for organisation unit details."""
     c = get_connector()
@@ -384,7 +413,7 @@ async def get_org_unit_details(
 
 
 async def load_org_unit_details(
-    keys: list[UUID], model: MOModel
+        keys: list[UUID], model: MOModel
 ) -> list[list[MOModel]]:
     """Non-bulk loader for org_unit details with bulk interface."""
     mo_type = model.__fields__["type_"].default
