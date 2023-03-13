@@ -129,12 +129,6 @@ def context() -> Context:
         "itSystemName": True,
     }
 
-    find_mo_employee_uuid_sync = MagicMock()
-    find_mo_employee_uuid_sync.return_value = uuid.UUID(
-        hex="{135c46ae-3b0e-4679-8318-40b73d9cedf3}"
-    )
-    dataloader.find_mo_employee_uuid_sync = find_mo_employee_uuid_sync
-
     attribute_dict = {
         a: {"single_value": dataloader.single_value[a]}
         for a in dataloader.single_value.keys()

@@ -530,21 +530,6 @@ class DataLoader:
         result = await self.query_mo(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
 
-    def find_mo_employee_uuid_sync(self, cpr_no: str) -> Union[None, UUID]:
-        query = gql(
-            """
-            query FindEmployeeUUID {
-              employees(cpr_numbers: "%s") {
-                uuid
-              }
-            }
-            """
-            % cpr_no.replace("-", "")
-        )
-
-        result = self.query_mo_sync(query, raise_if_empty=False)
-        return self._return_mo_employee_uuid_result(result)
-
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
             """
