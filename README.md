@@ -35,18 +35,18 @@ docker-compose up
 
 To interact with the app, you can go to [the swagger documentation][swagger].
 
-#### Importing from LDAP to MO
-Objects can be imported from LDAP to MO in two ways:
+#### Importing from LDAP to OS2mo
+Objects can be imported from LDAP to OS2mo in two ways:
 * A single user can be imported using [GET:/Import/cpr][get_import_single]
-* All users can be imported using [GET:/Import][get_import_all]
+* All users can be imported using [GET:/Import/all][get_import_all]
 
 Note that only employees with a cpr-number are recognized as employees.
 
-#### Exporting from MO to LDAP
+#### Exporting from OS2mo to LDAP
 Objects can be exported from OS2mo to LDAP by using [POST:/Export][post_export_all]
 
-#### Synchronization between MO and LDAP
-MO and LDAP are kept ajour by two seperate processes:
+#### Synchronization between OS2mo and LDAP
+OS2mo and LDAP are kept ajour by two seperate processes:
 * An LDAP listener runs in the background and listens to changes in LDAP. The listener
   will respond withing 5 seconds by calling [GET:/Import/cpr][get_import_single] on any
   changed employee.
@@ -71,7 +71,7 @@ Currently the following objects are supported for conversion:
 #### Employee conversion
 
 The conversion file specifies in json how to map attributes from OS2mo to LDAP and from LDAP
-to MO, and takes the form:
+to OS2mo, and takes the form:
 
 ```
 {
@@ -426,7 +426,7 @@ Finally, the following global variables can be used:
   Can only be used in `ldap_to_mo` mapping.
 
 #### Username generation
-If a user is created in MO, the tool will try to find the matching user in LDAP using
+If a user is created in OS2mo, the tool will try to find the matching user in LDAP using
 a CPR-number lookup. If the user does not exist in LDAP a username is generated and
 the user is created in LDAP. Username generation follows patterns set in the json file.
 For example:
