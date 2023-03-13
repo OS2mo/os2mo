@@ -33,7 +33,28 @@ poetry install
 docker-compose up
 ```
 
-To use the app, you can go to [the swagger documentation][swagger].
+To interact with the app, you can go to [the swagger documentation][swagger].
+
+#### Importing from LDAP to OS2mo
+Objects can be imported from LDAP to OS2mo in two ways:
+* A single user can be imported using [GET:/Import/cpr][get_import_single]
+* All users can be imported using [GET:/Import/all][get_import_all]
+
+Note that only employees with a cpr-number are recognized as employees.
+
+#### Exporting from OS2mo to LDAP
+Objects can be exported from OS2mo to LDAP by using [POST:/Export][post_export_all].
+Note that only objects which are properly defined in the conversion file are exported.
+
+#### Synchronization between OS2mo and LDAP
+OS2mo and LDAP are kept ajour by two seperate processes:
+* An LDAP listener runs in the background and listens to any changes in LDAP. The
+  listener will respond within 5 seconds by calling [GET:/Import/cpr][get_import_single]
+  on a changed employee, when any of its attributes are modified in LDAP.
+* An AMQP listener runs in the background and listens to AMQP messages sent out by
+  OS2mo. As soon as the listener receives an AMQP message, the matching OS2mo object is
+  exported to LDAP.
+
 
 ### Setting up the conversion file
 
@@ -51,7 +72,7 @@ Currently the following objects are supported for conversion:
 #### Employee conversion
 
 The conversion file specifies in json how to map attributes from OS2mo to LDAP and from LDAP
-to MO, and takes the form:
+to OS2mo, and takes the form:
 
 ```
 {
@@ -406,7 +427,7 @@ Finally, the following global variables can be used:
   Can only be used in `ldap_to_mo` mapping.
 
 #### Username generation
-If a user is created in MO, the tool will try to find the matching user in LDAP using
+If a user is created in OS2mo, the tool will try to find the matching user in LDAP using
 a CPR-number lookup. If the user does not exist in LDAP a username is generated and
 the user is created in LDAP. Username generation follows patterns set in the json file.
 For example:
@@ -527,5 +548,7 @@ The application is configured with three CRON jobs, which run on a periodic sche
 [get_primary_types]:http://localhost:8000/docs#/MO/load_primary_types_from_MO_MO_Primary_types_get
 [post_reload_info_dicts]:http://localhost:8000/docs#/Maintenance/reload_info_dicts_reload_info_dicts_post
 [get_import_all]:http://localhost:8000/docs#/Import/import_all_objects_from_LDAP_Import_all_get
+[get_import_single]:http://localhost:8000/docs#/Import/import_single_user_from_LDAP_Import__cpr__get
 [post_synchronize_todays_events]:http://localhost:8000/docs#/Maintenance/synchronize_todays_events_Synchronize_todays_events_post
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
+[post_export_all]:http://localhost:8000/docs#/Export/export_mo_objects_Export_post
