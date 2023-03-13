@@ -48,9 +48,9 @@ Note that only objects which are properly defined in the conversion file are exp
 
 #### Synchronization between OS2mo and LDAP
 OS2mo and LDAP are kept ajour by two seperate processes:
-* An LDAP listener runs in the background and listens to changes in LDAP. The listener
-  will respond withing 5 seconds by calling [GET:/Import/cpr][get_import_single] on any
-  changed employee.
+* An LDAP listener runs in the background and listens to any changes in LDAP. The
+  listener will respond within 5 seconds by calling [GET:/Import/cpr][get_import_single]
+  on a changed employee, when any of its attributes are modified in LDAP.
 * An AMQP listener runs in the background and listens to AMQP messages sent out by
   OS2mo. As soon as the listener receives an AMQP message, the matching OS2mo object is
   exported to LDAP.
