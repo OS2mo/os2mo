@@ -99,3 +99,34 @@ def mo_object_is_valid(mo_object):
         return True
     else:
         return False
+
+
+def datetime_to_ldap_timestamp(dt: datetime.datetime):
+    return "".join(
+        [
+            dt.strftime("%Y%m%d%H%M%S"),
+            ".",
+            str(int(dt.microsecond / 1000)),
+            (dt.strftime("%z") or "-0000"),
+        ]
+    )
+
+
+def listener(context, event):
+    """
+    Calls import_single_user if changes are registered
+    """
+
+    user_context = context["user_context"]
+    event_loop = user_context["event_loop"]
+    sync_tool = user_context["sync_tool"]
+    cpr_field = user_context["cpr_field"]
+    logger = structlog.get_logger()
+
+    cpr = event.get("attributes", {}).get(cpr_field, None)
+
+    if cpr:
+        logger.info(f"Registered change for LDAP object with cpr_no={cpr}")
+        event_loop.create_task(sync_tool.import_single_user(cpr))
+    else:
+        logger.info(f"Got event without cpr: {event}")

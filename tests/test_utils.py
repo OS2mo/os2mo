@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
+import datetime
+import re
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
+import pytz  # type: ignore
 from gql import gql
 from graphql import print_ast
 from ramodels.mo.details.address import Address
+from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery
 from mo_ldap_import_export.utils import add_filter_to_query
+from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import import_class
+from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
 from mo_ldap_import_export.utils import mo_object_is_valid
 
@@ -95,3 +102,51 @@ async def test_mo_object_is_valid():
         "foo", uuid4(), "2021-01-01", to_date="2021-02-01"
     )
     assert mo_object_is_valid(mo_object) is False
+
+
+async def test_datetime_to_ldap_timestamp():
+    date = datetime.datetime(2021, 1, 1, 10, 45, 20)
+    result = datetime_to_ldap_timestamp(date)
+    assert result == "20210101104520.0-0000"
+
+    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2000)
+    result = datetime_to_ldap_timestamp(date)
+    assert result == "20210101104520.2-0000"
+
+    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100)
+    result = datetime_to_ldap_timestamp(date)
+    assert result == "20210101104520.2-0000"
+
+    date = datetime.datetime(2021, 1, 1, 10, 45, 20, 2100, pytz.timezone("Cuba"))
+    result = datetime_to_ldap_timestamp(date)
+    assert result == "20210101104520.2-0529"
+
+
+async def test_listener():
+    event_loop = MagicMock()
+    sync_tool = MagicMock()
+    user_context = {
+        "event_loop": event_loop,
+        "sync_tool": sync_tool,
+        "cpr_field": "employeeID",
+    }
+
+    context = {"user_context": user_context}
+
+    event = {"attributes": {"employeeID": "010101-1234"}}
+    with capture_logs() as cap_logs:
+        listener(context, event)
+        listener(context, {})
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert re.match(
+            "Registered change for LDAP object",
+            str(messages[0]["event"]),
+        )
+        event_loop.create_task.assert_called()
+        sync_tool.import_single_user.assert_called_with("010101-1234")
+
+        assert re.match(
+            "Got event without cpr",
+            str(messages[1]["event"]),
+        )

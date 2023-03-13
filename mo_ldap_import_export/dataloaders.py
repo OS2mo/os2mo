@@ -26,6 +26,7 @@ from ramqp.mo.models import ServiceType
 
 from .exceptions import AttributeNotFound
 from .exceptions import CprNoNotFound
+from .exceptions import InvalidChangeDict
 from .exceptions import InvalidQueryResponse
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
@@ -51,6 +52,7 @@ class DataLoader:
             a: self.attribute_types[a].single_value for a in self.attribute_types.keys()
         }
         self._mo_to_ldap_attributes = []
+        self._sync_tool = None
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
@@ -61,6 +63,12 @@ class DataLoader:
                         "Does the object still exist as a current object?"
                     )
                 )
+
+    @property
+    def sync_tool(self):
+        if not self._sync_tool:
+            self._sync_tool = self.user_context["sync_tool"]
+        return self._sync_tool
 
     @property
     def mo_to_ldap_attributes(self):
@@ -202,6 +210,68 @@ class DataLoader:
 
         return ldap_object
 
+    def modify_ldap(
+        self,
+        dn: str,
+        changes: Union[
+            dict[str, list[tuple[str, list[str]]]],
+            dict[str, list[tuple[str, str]]],
+        ],
+    ):
+        """
+        Modifies LDAP and adds the dn to dns_to_ignore
+        """
+        # Checks
+        attributes = list(changes.keys())
+        if len(attributes) != 1:
+            raise InvalidChangeDict("Exactly one attribute can be changed at a time")
+
+        attribute = attributes[0]
+        list_of_changes = changes[attribute]
+        if len(list_of_changes) != 1:
+            raise InvalidChangeDict("Exactly one change can be submitted at a time")
+
+        ldap_command, value_to_modify = list_of_changes[0]
+        if type(value_to_modify) is list:
+            if len(value_to_modify) == 1:
+                value_to_modify = value_to_modify[0]
+            elif len(value_to_modify) == 0:
+                value_to_modify = ""
+            else:
+                raise InvalidChangeDict("Exactly one value can be changed at a time")
+
+        # Compare to LDAP
+        value_exists = self.ldap_connection.compare(dn, attribute, value_to_modify)
+
+        # Modify LDAP
+        if not value_exists or "DELETE" in ldap_command:
+            self.logger.info(
+                f"[modify_ldap] Uploading the following changes: {changes}"
+            )
+            self.ldap_connection.modify(dn, changes)
+            response = self.ldap_connection.result
+            self.logger.info(f"[modify_ldap] Response: {response}")
+
+            # If successful, the importer should ignore this DN
+            if response["description"] == "success":
+                # Clean all old entries
+                self.sync_tool.dns_to_ignore.clean()
+
+                # Only add if nothing is there yet. Otherwise we risk adding an
+                # ignore-command for every modified parameter
+                #
+                # Also: even if an LDAP attribute gets modified by us twice within a
+                # couple of seconds, it should still only be ignored once; Because we
+                # only retrieve the latest state of the LDAP object when polling
+                if not self.sync_tool.dns_to_ignore[dn]:
+                    self.sync_tool.dns_to_ignore.add(dn)
+
+            return response
+        else:
+            self.logger.info(
+                f"[modify_ldap] {attribute}['{value_to_modify}'] already exists"
+            )
+
     def cleanup_attributes_in_ldap(self, ldap_objects: list[LdapObject]):
         """
         Deletes the values belonging to the attributes in the given ldap objects.
@@ -230,9 +300,7 @@ class DataLoader:
                 self.logger.info(f"Cleaning {value_to_delete} from '{attribute}'")
 
                 changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
-                self.ldap_connection.modify(dn, changes)
-                response = self.ldap_connection.result
-                self.logger.info(f"Response: {response}")
+                self.modify_ldap(dn, changes)
 
     async def load_ldap_objects(self, json_key: str) -> list[LdapObject]:
         """
@@ -298,7 +366,7 @@ class DataLoader:
             # attribute is not set. In that case this function will just set the cpr no.
             # attribute in LDAP.
             existing_object = self.load_ldap_cpr_object(
-                object_to_modify.dict()[cpr_field], json_key
+                getattr(object_to_modify, cpr_field), json_key
             )
             object_to_modify.dn = existing_object.dn
             self.logger.info(f"Found existing object: {existing_object.dn}")
@@ -322,8 +390,8 @@ class DataLoader:
             ]
 
         for parameter_to_modify in parameters_to_modify:
-            value = object_to_modify.dict()[parameter_to_modify]
-            value_to_modify = [] if value is None else [value]
+            value = getattr(object_to_modify, parameter_to_modify)
+            value_to_modify: list[str] = [] if value is None else [value]
 
             if delete:
                 changes = {parameter_to_modify: [("MODIFY_DELETE", value_to_modify)]}
@@ -332,29 +400,25 @@ class DataLoader:
             else:
                 changes = {parameter_to_modify: [("MODIFY_ADD", value_to_modify)]}
 
-            self.logger.info(f"Uploading the following changes: {changes}")
             try:
-                self.ldap_connection.modify(dn, changes)
+                response = self.modify_ldap(dn, changes)
             except LDAPInvalidValueError as e:
                 self.logger.warning(e)
                 failed += 1
                 continue
-            response = self.ldap_connection.result
 
             # If the user does not exist, create him/her/hir
-            if response["description"] == "noSuchObject":
+            if response and response["description"] == "noSuchObject":
                 self.logger.info(f"Received 'noSuchObject' response. Creating {dn}")
                 self.ldap_connection.add(dn, object_class)
                 response = self.ldap_connection.result
                 self.logger.info(f"Response: {response}")
-                self.ldap_connection.modify(dn, changes)
-                response = self.ldap_connection.result
+                response = self.modify_ldap(dn, changes)
 
-            if response["description"] == "success":
+            if response and response["description"] == "success":
                 success += 1
-            else:
+            elif response:
                 failed += 1
-            self.logger.info(f"Response: {response}")
 
             results.append(response)
 

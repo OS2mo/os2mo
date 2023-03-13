@@ -1,5 +1,4 @@
 0 23 * * *  /cron/reload_info_dicts.sh
-0 0 * * *  /cron/import_all.sh
 
 # This should be removed when MO starts sending AMQP messages for objects that become
 # valid/invalid. Casper: start af uge 8

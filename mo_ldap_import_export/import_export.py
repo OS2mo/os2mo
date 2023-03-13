@@ -86,6 +86,7 @@ class SyncTool:
 
         # UUIDs in this list will be ignored by listen_to_changes ONCE
         self.uuids_to_ignore = IgnoreMe()
+        self.dns_to_ignore = IgnoreMe()
 
         self.logger = structlog.get_logger()
         self.context = context
@@ -490,6 +491,12 @@ class SyncTool:
             except MultipleObjectsReturnedException as e:
                 self.logger.warning(f"Could not upload {json_key} object: {e}")
                 break
+
+            try:
+                self.dns_to_ignore.check(loaded_object.dn)
+            except IgnoreChanges as e:
+                self.logger.info(e)
+                return
 
             self.logger.info(f"Loaded {loaded_object.dn}")
 

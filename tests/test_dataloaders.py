@@ -5,6 +5,7 @@
 # pylint: disable=unused-argument
 # pylint: disable=protected-access
 import asyncio
+import datetime
 import re
 from collections.abc import Iterator
 from typing import Collection
@@ -30,9 +31,11 @@ from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import CprNoNotFound
+from mo_ldap_import_export.exceptions import InvalidChangeDict
 from mo_ldap_import_export.exceptions import InvalidQueryResponse
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.import_export import IgnoreMe
 
 
 @pytest.fixture()
@@ -62,7 +65,9 @@ def ldap_connection(ldap_attributes: dict) -> Iterator[MagicMock]:
         "mo_ldap_import_export.dataloaders.get_ldap_attributes",
         return_value=ldap_attributes.keys(),
     ):
-        yield MagicMock()
+        ldap_connection = MagicMock()
+        ldap_connection.compare.return_value = False
+        yield ldap_connection
 
 
 @pytest.fixture
@@ -107,6 +112,13 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture
+def sync_tool() -> MagicMock:
+    sync_tool = MagicMock()
+    sync_tool.dns_to_ignore = IgnoreMe()
+    return sync_tool
+
+
+@pytest.fixture
 def context(
     ldap_connection: MagicMock,
     gql_client: AsyncMock,
@@ -115,6 +127,7 @@ def context(
     cpr_field: str,
     converter: MagicMock,
     gql_client_sync: MagicMock,
+    sync_tool: MagicMock,
 ) -> Context:
 
     return {
@@ -126,6 +139,7 @@ def context(
             "cpr_field": cpr_field,
             "converter": converter,
             "gql_client_sync": gql_client_sync,
+            "sync_tool": sync_tool,
         },
     }
 
@@ -1556,3 +1570,92 @@ async def test_load_mo_object(dataloader: DataLoader):
     ):
         result = await asyncio.gather(dataloader.load_mo_object("uuid"))
         assert result[0] is None
+
+
+async def test_modify_ldap(
+    dataloader: DataLoader,
+    sync_tool: MagicMock,
+    ldap_connection: MagicMock,
+):
+
+    ldap_connection.result = {"description": "success"}
+    dn = "CN=foo"
+    changes: dict = {"parameter_to_modify": [("MODIFY_ADD", "value_to_modify")]}
+
+    # Validate that the entry is not in the ignore dict
+    assert len(sync_tool.dns_to_ignore[dn]) == 0
+
+    # Modify the entry. Validate that it is added to the ignore dict
+    dataloader.modify_ldap(dn, changes)
+    assert len(sync_tool.dns_to_ignore[dn]) == 1
+
+    # Modify the same entry again. Validate that we still only ignore once
+    dataloader.modify_ldap(dn, changes)
+    assert len(sync_tool.dns_to_ignore[dn]) == 1
+
+    # Validate that any old entries get cleaned, and a new one gets added
+    sync_tool.dns_to_ignore.ignore_dict[dn] = [
+        datetime.datetime(1900, 1, 1),
+        datetime.datetime(1901, 1, 1),
+    ]
+    assert len(sync_tool.dns_to_ignore[dn]) == 2
+    dataloader.modify_ldap(dn, changes)
+    assert len(sync_tool.dns_to_ignore[dn]) == 1
+    assert sync_tool.dns_to_ignore[dn][0] > datetime.datetime(1950, 1, 1)
+
+    # Validate that our checks work
+    with pytest.raises(
+        InvalidChangeDict, match="Exactly one attribute can be changed at a time"
+    ):
+        changes = {
+            "parameter_to_modify": [("MODIFY_ADD", "value_to_modify")],
+            "another_parameter_to_modify": [("MODIFY_ADD", "value_to_modify")],
+        }
+        dataloader.modify_ldap(dn, changes)
+
+    # Validate that our checks work
+    with pytest.raises(
+        InvalidChangeDict, match="Exactly one change can be submitted at a time"
+    ):
+        changes = {
+            "parameter_to_modify": [
+                ("MODIFY_ADD", "value_to_modify"),
+                ("MODIFY_ADD", "another_value_to_modify"),
+            ],
+        }
+        dataloader.modify_ldap(dn, changes)
+
+    # Validate that our checks work
+    with pytest.raises(
+        InvalidChangeDict, match="Exactly one value can be changed at a time"
+    ):
+        changes = {
+            "parameter_to_modify": [
+                (
+                    "MODIFY_ADD",
+                    [
+                        "value_to_modify",
+                        "another_value_to_modify",
+                    ],
+                )
+            ],
+        }
+        dataloader.modify_ldap(dn, changes)
+
+    # Validate that empty lists are allowed
+    changes = {"parameter_to_modify": [("MODIFY_REPLACE", [])]}
+    dataloader.modify_ldap(dn, changes)
+    ldap_connection.compare.assert_called_with(dn, "parameter_to_modify", "")
+
+    # Simulate case where a value exists
+    ldap_connection.compare.return_value = True
+    with capture_logs() as cap_logs:
+        dataloader.modify_ldap(dn, changes)
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+
+        assert re.match(".*already exists.*", str(messages[-1]["event"]))
+
+    # DELETE statments should still be executed, even if a value exists
+    changes = {"parameter_to_modify": [("MODIFY_DELETE", "foo")]}
+    response = dataloader.modify_ldap(dn, changes)
+    assert response == {"description": "success"}

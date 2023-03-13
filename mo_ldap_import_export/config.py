@@ -130,3 +130,7 @@ class Settings(BaseSettings):
     org_unit_path_string_separator: str = Field(
         "//", description="separator for full paths to org units in LDAP"
     )
+
+    poll_time: float = Field(
+        5, description="Seconds between calls to LDAP to search for updates"
+    )

@@ -2,12 +2,17 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """LDAP Connection handling."""
+import datetime
 import signal
+import time
 from ssl import CERT_NONE
 from ssl import CERT_REQUIRED
+from threading import Thread
 from typing import Any
+from typing import Callable
 from typing import cast
 from typing import ContextManager
+from typing import Dict
 from typing import Union
 
 import structlog
@@ -32,6 +37,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
+from .utils import datetime_to_ldap_timestamp
 from .utils import mo_object_is_valid
 
 
@@ -437,3 +443,115 @@ async def cleanup(
             await internal_amqpsystem.publish_message(
                 str(routing_key), jsonable_encoder(payload)
             )
+
+
+def setup_listener(context: Context, callback: Callable):
+    user_context = context["user_context"]
+
+    # Note:
+    # We need the cpr-field attribute to trigger sync_tool.import_single_user()
+    # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
+    search_parameters = {
+        "search_base": user_context["settings"].ldap_search_base,
+        "search_filter": "(cn=*)",
+        "attributes": [user_context["cpr_field"], "modifyTimestamp"],
+    }
+
+    # Polling search
+    setup_poller(
+        context,
+        callback,
+        search_parameters,
+        datetime.datetime.utcnow(),
+        user_context["poll_time"],
+    )
+
+
+def setup_poller(
+    context: Context,
+    callback: Callable,
+    search_parameters: dict,
+    init_search_time: datetime.datetime,
+    poll_time: float,
+) -> Thread:
+    poll = Thread(
+        target=_poller,
+        args=(
+            context["user_context"]["ldap_connection"],
+            search_parameters,
+            callback,
+            init_search_time,
+            poll_time,
+        ),
+        daemon=True,
+    )
+    poll.start()
+    return poll
+
+
+def _poller(
+    ldap_connection: Connection,
+    search_parameters: dict,
+    callback: Callable,
+    init_search_time: datetime.datetime,
+    poll_time: float,
+) -> None:
+    """
+    Method to run in a thread that polls the LDAP server every poll_time seconds,
+    with a search that includes the timestamp for the last search
+    and calls the `callback` for each result found
+    """
+    last_search_time = init_search_time
+    logger = structlog.get_logger()
+    last_events: list[Any] = []
+
+    while True:
+        time.sleep(poll_time)
+        logger.debug(f"Searching for changes since {last_search_time}")
+        timed_search_parameters = set_search_params_modify_timestamp(
+            search_parameters,
+            last_search_time,
+        )
+        last_search_time = datetime.datetime.utcnow()
+        ldap_connection.search(**timed_search_parameters)
+
+        events_to_ignore = last_events.copy()
+        last_events = []
+
+        if ldap_connection.response:
+            for event in ldap_connection.response:
+                if event.get("type") == "searchResEntry":
+
+                    # We require modifyTimeStamp to determine if the event is duplicate
+                    if "modifyTimeStamp" not in event.get("attributes", {}):
+                        logger.warning(
+                            "'modifyTimeStamp' not found in event['attributes']"
+                        )
+                    else:
+                        if event not in events_to_ignore:
+                            callback(event)
+                            last_events.append(event)
+                        else:
+                            # Some events get detected twice, because LDAP's >= filter
+                            # does not quite work with millisecond precision.
+                            #
+                            # For example: When modifyTimeStamp == 20230307120826.0Z:
+                            # We get a hit for the following search filters:
+                            # - (modifyTimestamp>=20230307120825.256-0000)
+                            # - (modifyTimestamp>=20230307120826.341-0000)
+                            #
+                            # Even though you would expect the second one not to match
+                            logger.info(f"Ignored duplicate event: {event}")
+
+
+def set_search_params_modify_timestamp(
+    search_parameters: Dict, timestamp: datetime.datetime
+):
+    changed_str = f"(modifyTimestamp>={datetime_to_ldap_timestamp(timestamp)})"
+    search_filter = search_parameters["search_filter"]
+    if not search_filter.startswith("(") or not search_filter.endswith(")"):
+        search_filter = f"({search_filter})"
+    return {
+        **search_parameters,
+        "search_filter": "(&" + changed_str + search_filter + ")",
+    }

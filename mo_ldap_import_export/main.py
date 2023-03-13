@@ -2,11 +2,13 @@
 #
 # SPDX-License-Identifier: MPL-2.0
 """Event handling."""
+import asyncio
 import datetime
 import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
+from functools import partial
 from typing import Any
 from typing import Callable
 from typing import Literal
@@ -56,7 +58,9 @@ from .import_export import SyncTool
 from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
+from .ldap import setup_listener
 from .ldap_classes import LdapObject
+from .utils import listener
 from .utils import mo_datestring_to_utc
 
 logger = structlog.get_logger()
@@ -307,6 +311,15 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Initializing Sync tool")
     sync_tool = SyncTool(fastramqpi.get_context())
     fastramqpi.add_context(sync_tool=sync_tool)
+
+    logger.info("Starting LDAP listener")
+    fastramqpi.add_context(event_loop=asyncio.get_event_loop())
+    fastramqpi.add_context(poll_time=settings.poll_time)
+
+    setup_listener(
+        fastramqpi.get_context(),
+        partial(listener, fastramqpi.get_context()),
+    )
 
     return fastramqpi
 

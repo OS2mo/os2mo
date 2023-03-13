@@ -46,6 +46,8 @@ from mo_ldap_import_export.ldap import is_dn
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
+from mo_ldap_import_export.ldap import set_search_params_modify_timestamp
+from mo_ldap_import_export.ldap import setup_poller
 from mo_ldap_import_export.ldap import single_object_search
 from mo_ldap_import_export.ldap_classes import LdapObject
 
@@ -665,5 +667,112 @@ async def test_cleanup_no_export_False(
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
             "__export_to_ldap__ == False",
+            log_messages[-1]["event"],
+        )
+
+
+async def test_set_search_params_modify_timestamp():
+    for search_filter in ["(cn=*)", "cn=*"]:
+        search_params = {
+            "search_base": "foo",
+            "search_filter": search_filter,
+            "attributes": ["employeeID", "modifyTimestamp"],
+        }
+        timestamp = datetime.datetime(2021, 1, 1)
+
+        modified_search_params = set_search_params_modify_timestamp(
+            search_params,
+            timestamp,
+        )
+
+        assert (
+            modified_search_params["search_filter"]
+            == "(&(modifyTimestamp>=20210101000000.0-0000)(cn=*))"
+        )
+
+        assert modified_search_params["search_base"] == search_params["search_base"]
+        assert modified_search_params["attributes"] == search_params["attributes"]
+
+
+async def test_setup_poller(context: Context):
+    with patch("mo_ldap_import_export.ldap._poller", MagicMock()):
+
+        def callback():
+            return
+
+        search_parameters: dict = {}
+        init_search_time = datetime.datetime.utcnow()
+
+        poll = setup_poller(context, callback, search_parameters, init_search_time, 5)
+        assert poll._initialized is True  # type: ignore
+
+
+def test_poller(
+    load_settings_overrides: Dict[str, str], ldap_connection: MagicMock
+) -> None:
+    hits: List[str] = []
+
+    def listener(event):
+        cpr_no = event.get("attributes", {}).get("cpr_no", None)
+        hits.append(cpr_no)
+
+    event = {
+        "type": "searchResEntry",
+        "attributes": {
+            "modifyTimeStamp": datetime.datetime.utcnow(),
+            "cpr_no": "010101-1234",
+        },
+    }
+    ldap_connection.response = [event]
+
+    setup_poller(
+        context={"user_context": {"ldap_connection": ldap_connection}},
+        callback=listener,
+        search_parameters={
+            "search_base": "dc=ad",
+            "search_filter": "cn=*",
+            "attributes": ["cpr_no"],
+        },
+        init_search_time=datetime.datetime.utcnow(),
+        poll_time=0.1,
+    )
+    time.sleep(0.15)
+    assert hits == ["010101-1234"]
+
+
+def test_poller_invalidQuery(
+    load_settings_overrides: Dict[str, str], ldap_connection: MagicMock
+) -> None:
+    def listener(event):
+        pass
+
+    # Event without modifyTimeStamp makes it impossible to determine if it
+    # is duplicate - so we expect a warning
+    event = {
+        "type": "searchResEntry",
+        "attributes": {
+            "cpr_no": "010101-1234",
+        },
+    }
+    ldap_connection.response = [event]
+
+    with capture_logs() as cap_logs:
+        setup_poller(
+            context={"user_context": {"ldap_connection": ldap_connection}},
+            callback=listener,
+            search_parameters={
+                "search_base": "dc=ad",
+                "search_filter": "cn=*",
+                "attributes": ["cpr_no"],
+            },
+            init_search_time=datetime.datetime.utcnow(),
+            poll_time=0.1,
+        )
+        time.sleep(0.15)
+
+        log_messages = [log for log in cap_logs if log["log_level"] == "warning"]
+
+        assert re.match(
+            ".*modifyTimeStamp' not found.*",
             log_messages[-1]["event"],
         )
