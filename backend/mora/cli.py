@@ -9,10 +9,14 @@ which describes its arguments and options.
 import os
 import sys
 import time
+from pathlib import Path
 
 import click
 from more_itertools import last
 from ra_utils.async_to_sync import async_to_sync
+from strawberry.cli.commands.codegen import _load_plugins
+from strawberry.cli.commands.codegen import ConsolePlugin
+from strawberry.codegen import QueryCodegen
 from strawberry.printer import print_schema
 from structlog import get_logger
 
@@ -92,6 +96,34 @@ def export_schema() -> None:
     """
     latest = last(graphql_versions)
     print(print_schema(latest.schema.get()))
+
+
+@group.command()
+@click.option(
+    "--output-dir",
+    "-o",
+    default=".",
+    help="Output directory",
+    type=click.Path(path_type=Path, exists=False, dir_okay=True, file_okay=False),
+)
+@click.argument("query", type=click.Path(path_type=Path, exists=True))
+def codegen(
+    output_dir: Path,
+    query: Path,
+) -> None:
+    """Generate Python code from a GraphQL query based on the latest schema.
+
+    See https://strawberry.rocks/docs/codegen/query-codegen.
+    """
+
+    latest = last(graphql_versions)
+    schema = latest.schema.get()
+
+    plugins = _load_plugins(["python"])
+    plugins.append(ConsolePlugin(query, output_dir, plugins))
+
+    code_generator = QueryCodegen(schema, plugins=plugins)
+    code_generator.run(query.read_text())
 
 
 if __name__ == "__main__":
