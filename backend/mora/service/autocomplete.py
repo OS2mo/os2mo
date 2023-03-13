@@ -12,7 +12,7 @@ from mora.lora import AutocompleteScope
 
 
 async def get_results(
-    entity: str, class_uuids: list[UUID], query: str, at: date
+    entity: str, class_uuids: list[UUID], query: str, at: date | None = None
 ) -> dict[str, list]:
     """Run an autocomplete search query.
 
@@ -22,6 +22,8 @@ async def get_results(
             One of 'bruger' and 'organisationsenhed'.
         class_uuids:
             List of class UUIDs whose title and value will be displayed for match.
+        at:
+            Date representation of the date we want to search from (timemachine)
         query:
             The search query string.
 

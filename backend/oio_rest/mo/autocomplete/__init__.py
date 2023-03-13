@@ -20,6 +20,8 @@ from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
 from sqlalchemy.sql import text
 from sqlalchemy.sql import union
+from sqlalchemy.sql import column
+from sqlalchemy.sql import subquery
 
 from oio_rest.db.engine import get_engine
 from oio_rest.db.metadata import metadata
@@ -196,16 +198,17 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
     return execute_query(decorated_hits, phrase=phrase)
 
 
-def find_org_units_matching(
-    phrase: str, at: date, class_uuids: list[UUID] | None = None
+def find_org_units_matching_current(
+    phrase: str, at: date | None = None, class_uuids: list[UUID] | None = None
 ):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
-
-    at_datetime_str_sql = (
-        f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
-        "'YYYY-MM-DD HH24:MI:SS')"
-    )
+    at_datetime_str_sql = "now()"
+    if at is not None:
+        at_datetime_str_sql = (
+            f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
+            "'YYYY-MM-DD HH24:MI:SS')"
+        )
 
     # Bind parameters
     phrase_param = bindparam("phrase", type_=String)
@@ -310,10 +313,23 @@ def find_org_units_matching(
     ).filter(current_org_units_only)[0]
 
     orgfunk_rel_other = orgfunk_rel.alias()
-
     current_attrs_only = text(
-        f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+        # f"(organisationfunktion_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+        f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}"
     )
+
+    # attrs_orgfunk_rel = orgfunk_rel.alias()
+    # attrs_orgfunk_rel_urn = attrs_orgfunk_rel.c.rel_maal_urn.label("urn")
+    # attrs = (
+    #     select(attrs_orgfunk_rel_urn)
+    #     .where(
+    #         attrs_orgfunk_rel.c.organisationfunktion_registrering_id == orgfunk_rel.c.organisationfunktion_registrering_id,
+    #         attrs_orgfunk_rel.c.rel_type == "adresser",
+    #         text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}")
+    #     )
+    #     .limit(1)
+    # )
+
     attrs = func.jsonb_agg(
         func.distinct(
             func.jsonb_build_array(
@@ -322,22 +338,7 @@ def find_org_units_matching(
             )
         ),
     ).filter(current_attrs_only)
-    # attrs = func.jsonb_agg(
-    #     func.distinct(
-    #         func.jsonb_build_array(
-    #             orgfunk_rel_other.c.rel_maal_uuid,
-    #             orgfunk_att.c.brugervendtnoegle,
-    #         )
-    #     ),
-    # )
-    # attrs = func.jsonb_agg(
-    #     func.distinct(
-    #         func.jsonb_build_array(
-    #             orgfunk_rel_other.c.rel_maal_uuid,
-    #             orgfunk_att.c.brugervendtnoegle,
-    #         )
-    #     ),
-    # )
+
     if class_uuids:
         attrs = attrs.filter(
             orgfunk_rel_other.c.rel_maal_uuid.in_(map(str, class_uuids))
@@ -376,11 +377,317 @@ def find_org_units_matching(
                 )
             ),
         )
-        .where(enhed_uuid == all_hits.c.uuid)
+        # .where(enhed_uuid == all_hits.c.uuid)
+        .where(
+            enhed_uuid == all_hits.c.uuid,
+            text(
+                f"(organisationfunktion_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+            text(
+                f"(organisationfunktion_relation_3.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+        )
         .group_by(enhed_uuid)
     )
 
     return execute_query(decorated_hits, phrase=phrase)
+
+
+def find_org_units_matching(
+    phrase: str, at: date | None = None, class_uuids: list[UUID] | None = None
+):
+    """Search for organisation units matching `phrase`, returning a list of
+    database rows with `uuid` and `name` attributes."""
+    at_datetime_str_sql = "now()"
+    if at is not None:
+        at_datetime_str_sql = (
+            f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
+            "'YYYY-MM-DD HH24:MI:SS')"
+        )
+
+    # Bind parameters
+    phrase_param = bindparam("phrase", type_=String)
+
+    # Tables
+    enhed_reg = get_table("organisationenhed_registrering")
+    enhed_att = get_table("organisationenhed_attr_egenskaber")
+    orgfunk_reg = get_table("organisationfunktion_registrering")
+    orgfunk_rel = get_table("organisationfunktion_relation")
+    orgfunk_att = get_table("organisationfunktion_attr_egenskaber")
+
+    # UUID of org unit
+    enhed_uuid = enhed_reg.c.organisationenhed_id.label("uuid")
+    enhed_reg_id = enhed_reg.c.id.label("reg_id")
+
+    # Find hits on UUID
+    uuid_hits = (
+        select(enhed_uuid)
+        .join(
+            enhed_att,
+            enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+        )
+        .where(
+            func.char_length(phrase_param) > UUID_SEARCH_MIN_PHRASE_LENGTH,
+            enhed_reg.c.organisationenhed_id != None,  # noqa: E711
+            cast(enhed_reg.c.organisationenhed_id, Text).ilike(phrase_param),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+        )
+        .cte()
+    )
+
+    # Find hits on name
+    name_hits = (
+        select(enhed_uuid)
+        .join(
+            enhed_att,
+            enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+        )
+        .where(
+            enhed_reg.c.organisationenhed_id != None,  # noqa: E711
+            (
+                enhed_att.c.enhedsnavn.ilike(phrase_param)
+                | enhed_att.c.brugervendtnoegle.ilike(phrase_param)
+            ),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+        )
+        .cte()
+    )
+
+    # Find hits on related value (addresses, it systems)
+    # orgfunk_rel_a = orgfunk_rel.alias()
+    # # orgfunk_rel_b = orgfunk_rel.alias()
+    # # orgfunk_rel_a_orgunit_uuid = orgfunk_rel_a.c.rel_maal_uuid.label("uuid")
+    #
+    # rel_hits = (
+    #     select(
+    #         orgfunk_rel_a.c.rel_maal_uuid.label("uuid")
+    #     )
+    #     .where(
+    #         orgfunk_rel_a.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
+    #         orgfunk_rel_a.c.rel_maal_urn.ilike(phrase_param),
+    #     )
+    #     .cte()
+    # )
+
+    # # Find hits on related value (addresses, it systems)
+    # orgfunk_rel_a = orgfunk_rel.alias()
+    # orgfunk_rel_b = orgfunk_rel.alias()
+    # enhed_uuid_rel = orgfunk_rel_a.c.rel_maal_uuid.label("uuid")
+    # rel_hits = (
+    #     select(enhed_uuid_rel)
+    #     .outerjoin(
+    #         enhed_reg,
+    #         enhed_reg.c.organisationenhed_id == orgfunk_rel_a.c.rel_maal_uuid,
+    #     )
+    #     .outerjoin(
+    #         enhed_att,
+    #         enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+    #     )
+    #     .outerjoin(
+    #         orgfunk_rel_b,
+    #         orgfunk_rel_a.c.organisationfunktion_registrering_id
+    #         == orgfunk_rel_b.c.organisationfunktion_registrering_id,
+    #     )
+    #     .outerjoin(
+    #         orgfunk_reg,
+    #         orgfunk_rel_a.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+    #     )
+    #     .outerjoin(
+    #         orgfunk_att,
+    #         orgfunk_att.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+    #     )
+    #     .where(
+    #         orgfunk_rel_a.c.rel_maal_uuid != None,  # noqa: E711
+    #         orgfunk_rel_a.c.rel_type.in_(["tilknyttedeenheder"]),
+    #         orgfunk_rel_b.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
+    #         orgfunk_att.c.brugervendtnoegle.ilike(phrase_param),
+    #         text(
+    #             f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_datetime_str_sql}"
+    #         ),
+    #     )
+    #     .cte()
+    # )
+
+    # Union of hits on UUID, name, and related values
+    # selects = [select(cte.c.uuid) for cte in (uuid_hits, name_hits, rel_hits)]
+    selects = [select(cte.c.uuid) for cte in (uuid_hits, name_hits)]
+    all_hits = union(*selects).cte()
+
+    # Decorate results with unit's full name and selected related values
+    current_org_units_only = text(
+        f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+    )
+    current_org_unit_name = func.jsonb_agg(
+        enhed_att.c.enhedsnavn, type_=postgresql.JSONB
+    ).filter(current_org_units_only)[0]
+
+    # orgfunk_rel_other = orgfunk_rel.alias()
+    # current_attrs_only = text(
+    #     # f"(organisationfunktion_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+    #     f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}"
+    # )
+    #
+    # #
+    # # # attrs = func.jsonb_agg(
+    # # #     func.distinct(
+    # # #         func.jsonb_build_array(
+    # # #             orgfunk_rel_other.c.rel_maal_uuid,
+    # # #             orgfunk_rel.c.rel_maal_uuid
+    # # #             # orgfunk_att.c.brugervendtnoegle,
+    # # #         )
+    # # #     ),
+    # # # ).filter(current_attrs_only)
+    # # #
+    # # # if class_uuids:
+    # # #     attrs = attrs.filter(
+    # # #         orgfunk_rel_other.c.rel_maal_uuid.in_(map(str, class_uuids))
+    # # #     )
+    # #
+    # # decorated_hits = (
+    # #     select(
+    # #         enhed_uuid,
+    # #         current_org_unit_name.label("name"),
+    # #         _org_unit_path(all_hits, enhed_uuid, at_datetime_str_sql).label("path"),
+    # #         attrs.label("attrs"),
+    # #     )
+    # #     .join(
+    # #         enhed_att,
+    # #         enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+    # #     )
+    # #     .join(orgfunk_rel, enhed_uuid == orgfunk_rel.c.rel_maal_uuid)
+    # #     .join(
+    # #         orgfunk_reg,
+    # #         orgfunk_rel.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+    # #     )
+    # #     .join(
+    # #         orgfunk_att,
+    # #         orgfunk_att.c.organisationfunktion_registrering_id == orgfunk_reg.c.id,
+    # #     )
+    # #     .join(
+    # #         orgfunk_rel_other,
+    # #         (orgfunk_rel.c.id != orgfunk_rel_other.c.id)
+    # #         & (
+    # #             orgfunk_rel.c.organisationfunktion_registrering_id
+    # #             == orgfunk_rel_other.c.organisationfunktion_registrering_id
+    # #         )
+    # #         & (
+    # #             orgfunk_rel_other.c.rel_type.in_(
+    # #                 ["organisatoriskfunktionstype", "tilknyttedeitsystemer"]
+    # #             )
+    # #         ),
+    # #     )
+    # #     # .where(enhed_uuid == all_hits.c.uuid)
+    # #     .where(
+    # #         enhed_uuid == all_hits.c.uuid,
+    # #         text(
+    # #             f"(organisationfunktion_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+    # #         ),
+    # #         text(
+    # #             f"(organisationfunktion_relation_3.virkning).timeperiod @> {at_datetime_str_sql}"
+    # #         ),
+    # #     )
+    # #     .group_by(enhed_uuid)
+    # # )
+    #
+    # # BETTER ATTRS
+    # attrs_orgfunk_rel = orgfunk_rel.alias()
+    # attrs_orgfunk_rel_urn = attrs_orgfunk_rel.c.rel_maal_urn.label("urn")
+    # attrs = (
+    #     select(attrs_orgfunk_rel_urn)
+    #     .where(
+    #         attrs_orgfunk_rel.c.organisationfunktion_registrering_id == orgfunk_rel.c.organisationfunktion_registrering_id,
+    #         attrs_orgfunk_rel.c.rel_type == "adresser",
+    #         text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}")
+    #     )
+    #     .limit(1)
+    # )
+
+    current_attrs_only = text(
+        f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}"
+    )
+
+    match_attr_relations = func.jsonb_agg(
+        func.distinct(
+            func.jsonb_build_array(
+                orgfunk_rel.c.rel_maal_uuid,
+                orgfunk_att.c.organisationfunktion_registrering_id,
+            )
+        ),
+    ).filter(current_attrs_only)
+
+    # sub_rel = orgfunk_rel.alias()
+    # match_attr_addrs = (
+    #     select(
+    #         orgfunk_rel.c.organisationfunktion_registrering_id,
+    #         orgfunk_rel.c.rel_type,
+    #         subquery(
+    #             select(
+    #                 func.jsonb_agg(sub_rel.c.rel_maal_urn)
+    #             )
+    #             .where(
+    #                 sub_rel.c.organisationfunktion_registrering_id == orgfunk_rel.c.organisationfunktion_registrering_id,
+    #                 sub_rel.c.rel_type == 'adresser',
+    #                 text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_datetime_str_sql}")
+    #             )
+    #         )
+    #     )
+    #     .where(
+    #         orgfunk_rel.c.rel_maal_uuid == enhed_uuid,
+    #         text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}")
+    #     )
+    # )
+
+    # attrs_relations = (
+    #     select(enhed_uuid)
+    #     .join(
+    #         orgfunk_rel,
+    #         orgfunk_rel.c.rel_maal_uuid == enhed_uuid
+    #     )
+    #     .where(
+    #         orgfunk_rel.c.rel_type == "tilknyttedeenheder"
+    #     )
+    # )
+
+    # DECORATED HITS
+    decorated_hits = (
+        select(
+            enhed_uuid,
+            current_org_unit_name.label("name"),
+            # match_attr_relations.label('attrs')
+            # match_attr_addrs.label('attrs')
+        )
+        .join(
+            enhed_att,
+            enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
+        )
+        .where(
+            enhed_uuid == all_hits.c.uuid,
+        )
+        .group_by(enhed_uuid)
+    )
+
+    # decorated_hits = (
+    #     select(
+    #         enhed_uuid,
+    #         current_org_unit_name.label("name"),
+    #         attrs.label("attrs")
+    #     )
+    #     .join(
+    #         orgfunk_rel,
+    #         orgfunk_rel.c.rel_maal_uuid == enhed_uuid
+    #     )
+    #     .where(
+    #         text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}"),
+    #     )
+    #     .group_by(enhed_uuid)
+    # )
+
+    return execute_query(decorated_hits, phrase=phrase)
+
 
 
 def _org_unit_path(all_hits, enhed_uuid, at_datetime_str_sql):

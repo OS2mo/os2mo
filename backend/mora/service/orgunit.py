@@ -625,7 +625,7 @@ async def get_one_orgunit(
 
 
 @router.get("/ou/autocomplete/")
-async def autocomplete_orgunits(query: str, at: date):
+async def autocomplete_orgunits(query: str, at: date | None = None):
     settings = config.get_settings()
     return await autocomplete.get_results(
         "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query, at

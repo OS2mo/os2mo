@@ -73,7 +73,7 @@ def setup_views(app):
 
     @app.get("/autocomplete/organisationsenhed", dependencies=[Depends(auth)])
     def autocomplete_org_unit(
-        phrase: str, at: date, class_uuids: list[UUID] | None = Query(None)
+        phrase: str, at: date | None = None, class_uuids: list[UUID] | None = Query(None)
     ):
         return {"results": find_org_units_matching(phrase, at, class_uuids=class_uuids)}
 
