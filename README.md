@@ -43,7 +43,8 @@ Objects can be imported from LDAP to OS2mo in two ways:
 Note that only employees with a cpr-number are recognized as employees.
 
 #### Exporting from OS2mo to LDAP
-Objects can be exported from OS2mo to LDAP by using [POST:/Export][post_export_all]
+Objects can be exported from OS2mo to LDAP by using [POST:/Export][post_export_all].
+Note that only objects which are properly defined in the conversion file are exported.
 
 #### Synchronization between OS2mo and LDAP
 OS2mo and LDAP are kept ajour by two seperate processes:
