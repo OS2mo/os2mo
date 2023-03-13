@@ -234,11 +234,11 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
         ('(parents: "b1f69701-86d8-496e-a3f1-ccef18ac1958")', 1),
         (
             """
-                        (parents: [
-                            "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                            "b1f69701-86d8-496e-a3f1-ccef18ac1958"
-                        ])
-                    """,
+                            (parents: [
+                                "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+                            ])
+                        """,
             5,
         ),
     ],
@@ -274,11 +274,11 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
         # Filter 'linjeorg' + 'hidden'
         (
             """
-                        (hierarchies: [
-                            "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
-                            "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
-                        ])
-                        """,
+                            (hierarchies: [
+                                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
+                                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+                            ])
+                            """,
             3,
         ),
     ],
@@ -453,8 +453,9 @@ async def test_update_org_unit_mutation_unit_test(
     update_org_unit.assert_called_with(test_data)
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_get_org_unit_ancestors(graphapi_post):
+def test_get_org_unit_ancestors(graphapi_post):
     graphql_query = """
         query MyQuery {
           org_units {
