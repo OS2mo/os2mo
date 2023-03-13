@@ -2,10 +2,18 @@
     "attributter": {
         "klasseegenskaber": [
             {
-                "brugervendtnoegle": "projektleder",
-                "titel": "Projektleder",
+                "brugervendtnoegle": "databeskyttelsesudvalg",
+                "titel": "Databeskyttelsesudvalg",
                 "virkning": {
                     "from": "1900-01-01 00:00:00+01:00",
+                    "to": "2016-01-01 00:00:00+01:00"
+                }
+            },
+            {
+               "brugervendtnoegle": "-",
+                "titel": "-",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }
@@ -17,6 +25,13 @@
                 "publiceret": "Publiceret",
                 "virkning": {
                     "from": "1900-01-01 00:00:00+01:00",
+                    "to": "2016-01-01 00:00:00+01:00"
+                }
+            },
+            {
+                "publiceret": "IkkePubliceret",
+                "virkning": {
+                    "from": "2016-01-01 00:00:00+01:00",
                     "to": "infinity"
                 }
             }

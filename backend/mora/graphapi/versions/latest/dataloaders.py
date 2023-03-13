@@ -10,6 +10,7 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
+from dateutil import parser as date_parser
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
@@ -211,8 +212,31 @@ def lora_classes_to_mo_classes(
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all(**kwargs)
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    return list(mo_models)
+    lora_result = [
+        (uuid, {**mo_class, **effect_reg})
+        for uuid, mo_class in lora_result
+        for _, _, effect_reg in await c.klasse.get_effects(
+            mo_class,
+            {
+                "attributter": ("klasseegenskaber",),
+                "tilstande": ("klassepubliceret",),
+                "relationer": ("ejer", "ansvarlig", "facet"),
+            },
+        )
+    ]
+
+    # HACK: Find the newest element from the get_effects result.
+    # We need to do this, since our data is not yet parseable as bitemporal / is invalid.
+    # get_effects makes duplicates to make sure there are objects for all datetime-intervals,
+    # but this can, in some cases, end in "empty"/invalid objects, where ex.
+    # "obj.tilstande[{"id":"0123"....}]", but "obj.attributes = []" / is empty.
+    return list(
+        lora_classes_to_mo_classes(
+            _hack_get_newest_get_effect_lora_result_by_name_attr_interval_4_classes(
+                lora_result
+            )
+        )
+    )
 
 
 async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
@@ -495,3 +519,39 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         ),
         "engagement_association_getter": get_engagement_associations,
     }
+
+
+def _hack_get_newest_get_effect_lora_result_by_name_attr_interval_4_classes(
+    lora_result: list[tuple[str, dict]],
+) -> list[tuple[str, dict]]:
+    lora_classes_filtered: list[tuple[str, dict]] = []
+    for uuid, lora_class in lora_result:
+        found_lora_class_tuple = None
+        for i in range(len(lora_classes_filtered)):
+            filtered_uuid, filtered_lora_class = lora_classes_filtered[i]
+            if filtered_uuid == uuid:
+                found_lora_class_tuple = (filtered_uuid, filtered_lora_class)
+                continue
+
+        if found_lora_class_tuple is None:
+            lora_classes_filtered.append((uuid, lora_class))
+            continue
+
+        found_lora_class_idx, found_lora_class = found_lora_class_tuple
+
+        # Check if next one is newer than found one
+        current_from_dt = date_parser.parse(
+            lora_class["attributter"]["klasseegenskaber"][0]["virkning"]["from"]
+        )
+        existing_from_dt = date_parser.parse(
+            found_lora_class["attributter"]["klasseegenskaber"][0]["virkning"]["from"]
+        )
+
+        if current_from_dt <= existing_from_dt:
+            continue
+
+        # Remove current and append the newer one
+        lora_classes_filtered.remove(found_lora_class_tuple)
+        lora_classes_filtered.append((uuid, lora_class))
+
+    return lora_classes_filtered
