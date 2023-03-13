@@ -1,19 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Tests of dataloaders used in the GraphQL implementation."""
-import uuid
-from unittest.mock import AsyncMock
-from unittest.mock import patch
-
 import pytest
 from hypothesis import given
-from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import data_strat
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
-from mora.graphapi.versions.latest.dataloaders import get_classes
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.graphapi.versions.latest.schema import EmployeeRead
@@ -25,7 +19,6 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
-
 
 pytestmark = pytest.mark.asyncio
 
@@ -98,105 +91,3 @@ class TestDataloaders:
             assert set(result) == {None}
         else:
             assert set(result) == set()
-
-
-@patch("mora.lora.Scope.get_all", new_callable=AsyncMock)
-async def test_get_classes_with_effects(mock_get_all):
-    facet_assoc_type_uuid = uuid.UUID("9cbad2e8-8f3d-4549-b189-d10f745b912d")
-    not_published_name = "-"
-    not_published_state = "ikkePubliceret"
-
-    mock_get_all.return_value = [
-        (
-            "17e4d114-fdb7-4ff9-ae98-37d47589f557",
-            {
-                "fratidspunkt": {
-                    "tidsstempeldatotid": "2023-02-21T16:45:16.522349+01:00",
-                    "graenseindikator": True,
-                },
-                "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
-                "livscykluskode": "Rettet",
-                "brugerref": "42c432e8-9c4a-11e6-9f62-873cf34a735f",
-                "attributter": {
-                    "klasseegenskaber": [
-                        {
-                            "brugervendtnoegle": not_published_name,
-                            "omfang": "TEXT",
-                            "titel": not_published_name,
-                            "virkning": {
-                                "from": "1910-01-01 00:00:00+01",
-                                "to": "infinity",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                        },
-                        {
-                            "brugervendtnoegle": "Projektgruppemedlem",
-                            "omfang": "TEXT",
-                            "titel": "Projektgruppemedlem",
-                            "virkning": {
-                                "from": "1900-01-01 01:00:00+01",
-                                "to": "1910-01-01 00:00:00+01",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                        },
-                    ]
-                },
-                "tilstande": {
-                    "klassepubliceret": [
-                        {
-                            "virkning": {
-                                "from": "1900-01-01 01:00:00+01",
-                                "to": "1910-01-01 00:00:00+01",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                            "publiceret": "Publiceret",
-                        },
-                        {
-                            "virkning": {
-                                "from": "1910-01-01 00:00:00+01",
-                                "to": "infinity",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                            "publiceret": not_published_state,
-                        },
-                    ]
-                },
-                "relationer": {
-                    "ansvarlig": [
-                        {
-                            "virkning": {
-                                "from": "1900-01-01 01:00:00+01",
-                                "to": "infinity",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                            "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3",
-                            "objekttype": "organisation",
-                        }
-                    ],
-                    "facet": [
-                        {
-                            "virkning": {
-                                "from": "1900-01-01 01:00:00+01",
-                                "to": "infinity",
-                                "from_included": True,
-                                "to_included": False,
-                            },
-                            "uuid": str(facet_assoc_type_uuid),
-                            "objekttype": "facet",
-                        }
-                    ],
-                },
-            },
-        )
-    ]
-
-    response = await get_classes(facet_uuids=[facet_assoc_type_uuid])
-    mo_class = one(response)
-
-    assert mo_class.name == not_published_name
-    assert mo_class.published == not_published_state

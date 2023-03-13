@@ -42,6 +42,7 @@ from mora.service import org
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
 
+
 MOModel = TypeVar(
     "MOModel",
     AddressRead,
@@ -208,23 +209,10 @@ def lora_classes_to_mo_classes(
 
 
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
-    """Fetches the MO classes and run get_effects() on each class object."""
     c = get_connector()
     lora_result = await c.klasse.get_all(**kwargs)
-    lora_result = [
-        (uuid, {**mo_class, **effect_reg})
-        for uuid, mo_class in lora_result
-        for _, _, effect_reg in await c.klasse.get_effects(
-            mo_class,
-            {
-                "attributter": ("klasseegenskaber",),
-                "tilstande": ("klassepubliceret",),
-                "relationer": ("ejer", "ansvarlig", "facet"),
-            },
-        )
-    ]
-
-    return list(lora_classes_to_mo_classes(lora_result))
+    mo_models = lora_classes_to_mo_classes(lora_result)
+    return list(mo_models)
 
 
 async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
