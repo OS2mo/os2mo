@@ -72,3 +72,8 @@ class TimeOutException(HTTPException):
 class IgnoreChanges(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)
+
+
+class InvalidChangeDict(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)

@@ -665,6 +665,24 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     assert len(sync_tool.uuids_to_ignore[uuid]) == 2
 
 
+async def test_import_single_object_from_LDAP_ignore_dn(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    dn_to_ignore = "CN=foo"
+    ldap_object = LdapObject(dn=dn_to_ignore)
+    dataloader.load_ldap_cpr_object.return_value = ldap_object
+    sync_tool.dns_to_ignore.add(dn_to_ignore)
+
+    with capture_logs() as cap_logs:
+        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert re.match(
+            f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore}",
+            messages[-1]["event"].detail,
+        )
+
+
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
