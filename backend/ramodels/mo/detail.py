@@ -18,7 +18,6 @@ class Detail(UUIDBase):
 
 
 class DetailTermination(Detail):
-
     validity: dict | None = Field(
         description="MO unit validity, determining in what date-interval "
         "a unit is available."

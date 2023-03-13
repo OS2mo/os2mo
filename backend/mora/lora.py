@@ -417,6 +417,7 @@ class Scope(BaseScope):
         load(**params) == fetch(**params, list=1)
         load(uuid=uuid) == fetch(uuid=uuid)
         """
+
         # Fetch directly if feature flag turned off, or if we won't be able to map the
         # results back to the call params, or if using GraphQL, since we really don't
         # need nested DataLoaders in our life right now.

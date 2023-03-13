@@ -9,7 +9,6 @@ from mora.service.facet import ClassRequestHandler
 
 
 async def create_class(input: ClassCreate) -> UUIDReturn:
-
     req_dict = {"facet": str(input.facet_uuid), "class_model": input}
 
     handler = await ClassRequestHandler.construct(req_dict, mapping.RequestType.CREATE)

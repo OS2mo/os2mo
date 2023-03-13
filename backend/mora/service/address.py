@@ -225,7 +225,6 @@ class AddressRequestHandler(handlers.OrgFunkRequestHandler):
             )
 
         if mapping.VALUE in data:
-
             address_type_uuid = util.get_mapping_uuid(
                 data, mapping.ADDRESS_TYPE, required=True
             )

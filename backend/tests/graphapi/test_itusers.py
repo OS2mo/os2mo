@@ -152,7 +152,6 @@ async def test_create_ituser_integration_test(
     employee_uuids,
     org_uuids,
 ) -> None:
-
     validate_unique_constraint.return_value = None
 
     # Create bool to choose between creating ITuser for employee or org_unit
@@ -356,7 +355,6 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
     ],
 )
 async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
-
     uuid = test_data["uuid"]
 
     query = """

@@ -24,7 +24,6 @@ class TestParseAttribute(TestCase):
                     assert isinstance(inner_val, str)
 
     def test_from_attr_egenskaber(self):
-
         class_name = "bruger"
         valid_attr = Attribute.get_valid_attr(class_name)
 
@@ -136,7 +135,6 @@ class TestParseState(TestCase):
                     assert isinstance(inner_val, str)
 
     def test_from_state_dict(self):
-
         class_name = "bruger"
         valid_states = State.get_valid_states(class_name)
 
@@ -223,7 +221,6 @@ class TestParseRelation(TestCase):
                 assert isinstance(value, str)
 
     def test_from_relation_list(self):
-
         class_name = "organisationfunktion"
         valid_relations = Relation.get_valid_relations(class_name)
         key = "tilknyttedebrugere"

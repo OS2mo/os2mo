@@ -64,7 +64,6 @@ def expected_error_response(error_key, **overrides):
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 class AsyncTests(tests.cases.AsyncLoRATestCase):
-
     maxDiff = None
 
     async def test_edit_org_unit_overwrite(self):

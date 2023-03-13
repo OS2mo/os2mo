@@ -151,7 +151,6 @@ class HTTPException(fastapiHTTPException):
         cause=None,
         **extras
     ) -> None:
-
         if error_key is not None:
             self.key = error_key
 

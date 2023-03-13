@@ -11,7 +11,6 @@ from ramodels.lora.facet import Facet as LoraFacet
 
 
 async def create_facet(input: FacetCreate) -> UUIDReturn:
-
     input_dict = input.dict(by_alias=True)
 
     lora_facet = LoraFacet.from_simplified_fields(

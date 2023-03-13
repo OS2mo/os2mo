@@ -906,6 +906,7 @@ class OrganisationUnit:
         Returns:
             A list of all the ancestors.
         """
+
         async def rec(parent_uuid: UUID | None) -> list["OrganisationUnit"]:
             if parent_uuid is None:
                 return []

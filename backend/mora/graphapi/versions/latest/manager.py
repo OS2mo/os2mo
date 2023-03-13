@@ -41,7 +41,6 @@ async def update_manager(input: ManagerUpdate) -> UUIDReturn:
 
 
 async def terminate_manager(input: ManagerTerminate) -> UUIDReturn:
-
     trigger = input.get_manager_trigger()
     trigger_dict = trigger.to_trigger_dict()
 

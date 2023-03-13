@@ -397,7 +397,6 @@ async def test_add_employee_address(service_client: TestClient) -> None:
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_employee_with_address(service_client: TestClient) -> None:
-
     response = service_client.post(
         "/service/e/create",
         json={
@@ -565,7 +564,6 @@ async def test_create_engagement_with_address(service_client: TestClient) -> Non
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_create_org_unit_with_address(service_client: TestClient) -> None:
-
     response = service_client.post(
         "/service/ou/create",
         json={

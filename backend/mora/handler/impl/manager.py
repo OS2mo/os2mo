@@ -37,7 +37,6 @@ class ManagerReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def get_inherited_manager(cls, c, type, object_id):
-
         search_fields = {cls.SEARCH_FIELDS[type]: object_id}
 
         manager = list(await super().get(c, search_fields))
@@ -63,7 +62,6 @@ class ManagerReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
-
         person = mapping.USER_FIELD.get_uuid(effect)
         manager_type = mapping.ORG_FUNK_TYPE_FIELD.get_uuid(effect)
         manager_level = mapping.MANAGER_LEVEL_FIELD.get_uuid(effect)

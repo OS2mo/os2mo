@@ -43,7 +43,6 @@ def to_datetime(trigger_dict: dict) -> datetime:
 
 
 async def amqp_sender(trigger_dict: dict) -> None:
-
     object_type = ObjectType(trigger_dict[triggers.Trigger.ROLE_TYPE].lower())
     request_type = RequestType(trigger_dict[triggers.Trigger.REQUEST_TYPE].lower())
 

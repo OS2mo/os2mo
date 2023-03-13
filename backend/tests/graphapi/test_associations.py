@@ -368,7 +368,6 @@ async def test_create_association_integration_test(
 )
 async def test_update_association_integration_test(graphapi_post, test_data) -> None:
     async def query_data(uuid: str) -> GQLResponse:
-
         query = """
             query ($uuid: [UUID!]!) {
                 __typename

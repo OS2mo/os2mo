@@ -112,7 +112,6 @@ def write_strat(draw):
 
 
 def prepare_mutator_data(test_data):
-
     if "type_" in test_data:
         test_data["type"] = test_data.pop("type_")
 
@@ -125,7 +124,6 @@ def prepare_mutator_data(test_data):
 
 
 def prepare_query_data(test_data, query_response):
-
     entries_to_remove = OPTIONAL.keys()
     for k in entries_to_remove:
         test_data.pop(k, None)

@@ -8,7 +8,6 @@ class TestCreateBruger(TestCreateObject):
         super().setUp()
 
     def test_bruger(self):
-
         # test create
         facet = {
             "attributter": {
