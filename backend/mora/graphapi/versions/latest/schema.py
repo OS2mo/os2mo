@@ -895,6 +895,29 @@ class OrganisationUnit:
         return only((await loader.load(root.parent_uuid)).objects)
 
     @strawberry.field(
+        description="All ancestors in the organisation tree",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
+    async def ancestors(
+        self, root: OrganisationUnitRead, info: Info
+    ) -> list["OrganisationUnit"]:
+        """Get all ancestors in the organisation tree.
+
+        Returns:
+            A list of all the ancestors.
+        """
+        async def rec(parent_uuid: UUID | None) -> list["OrganisationUnit"]:
+            if parent_uuid is None:
+                return []
+            parent = only((await loader.load(parent_uuid)).objects)
+            if not parent:
+                return []
+            return [parent] + await rec(parent.parent_uuid)
+
+        loader: DataLoader = info.context["org_unit_loader"]
+        return await rec(root.parent_uuid)
+
+    @strawberry.field(
         description="The immediate descendants in the organisation tree",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
