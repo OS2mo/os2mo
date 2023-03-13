@@ -294,35 +294,6 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_facet_classes(facet_uuids: list[UUID]) -> list[list[ClassRead]]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(facet=list(map(str, facet_uuids)))
-
-    # Check for effects / multiple "states", "attributes" or "relations"
-    relevant = {
-        "attributter": ("klasseegenskaber",),
-        "tilstande": ("klassepubliceret",),
-        "relationer": ("ejer", "ansvarlig", "facet"),
-    }
-
-    lora_result_with_effects = []
-    for uuid, obj in lora_result:
-        for e in list(await c.klasse.get_effects(obj, relevant)):
-            e_from, e_to, e_reg = e
-            if e_from is None or e_to is None:
-                continue
-
-            obj_copy = obj.copy()
-            obj_copy["attributter"] = e_reg["attributter"]
-            obj_copy["tilstande"] = e_reg["tilstande"]
-            obj_copy["relationer"] = e_reg["relationer"]
-            lora_result_with_effects.append((uuid, obj_copy))
-
-    mo_models = lora_classes_to_mo_classes(lora_result_with_effects)
-    buckets = bucket(mo_models, key=lambda model: model.facet_uuid)
-    return list(map(lambda key: list(buckets[key]), facet_uuids))
-
-
 async def get_employee_details(
     employee_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
