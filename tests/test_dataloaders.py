@@ -856,12 +856,6 @@ async def test_find_mo_employee_uuid(
     )
     assert output[0] == uuid
 
-    output_sync = dataloader.find_mo_employee_uuid_sync("0101011221")
-    assert output_sync == uuid
-
-    output_sync = dataloader.find_mo_employee_uuid_sync("010101-1221")
-    assert output_sync == uuid
-
 
 async def test_find_mo_employee_uuid_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
