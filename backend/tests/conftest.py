@@ -37,10 +37,12 @@ from mora.auth.keycloak.oidc import Token
 from mora.auth.keycloak.oidc import token_getter
 from mora.auth.middleware import fetch_authenticated_user
 from mora.config import get_settings
+from mora.db import get_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.service.org import ConfiguredOrganisation
+from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
 from ramodels.mo import Validity
@@ -170,6 +172,13 @@ def test_app(**overrides: Any) -> FastAPI:
     app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = fake_auth
     app.dependency_overrides[token_getter] = fake_token_getter
+    lora_settings = lora_get_settings()
+    app.state.sessionmaker = get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name="mox_test",
+    )
     return app
 
 

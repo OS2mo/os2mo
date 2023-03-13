@@ -3,6 +3,7 @@
 import os
 
 from psycopg2.errors import UndefinedTable
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from . import get_connection
@@ -102,4 +103,4 @@ def apply_sql_from_file(relpath: str):
         Session = sessionmaker()
         bind = op.get_bind()
         session = Session(bind=bind)
-        session.execute(sql.read())
+        session.execute(text(sql.read()))

@@ -24,6 +24,7 @@ from . import service
 from . import triggers
 from .common import LoRaConnectorPlugin
 from .config import Environment
+from .db import get_sessionmaker
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
@@ -43,6 +44,7 @@ from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
 from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
+from oio_rest.config import get_settings as lora_get_settings
 
 
 basedir = os.path.dirname(__file__)
@@ -243,6 +245,14 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     # Mount all of Lora in
     lora_app = create_lora_app()
     app.mount("/lora", lora_app)
+
+    lora_settings = lora_get_settings()
+    app.state.sessionmaker = get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=lora_settings.db_name,
+    )
 
     # TODO: Deal with uncaught "Exception", #43826
     app.add_exception_handler(Exception, fallback_handler)
