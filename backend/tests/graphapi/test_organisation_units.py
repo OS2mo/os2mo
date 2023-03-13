@@ -234,11 +234,11 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
         ('(parents: "b1f69701-86d8-496e-a3f1-ccef18ac1958")', 1),
         (
             """
-                            (parents: [
-                                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
-                            ])
-                        """,
+                                            (parents: [
+                                                "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                                                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+                                            ])
+                                        """,
             5,
         ),
     ],
@@ -274,11 +274,11 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
         # Filter 'linjeorg' + 'hidden'
         (
             """
-                            (hierarchies: [
-                                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
-                                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
-                            ])
-                            """,
+                                            (hierarchies: [
+                                                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
+                                                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+                                            ])
+                                            """,
             3,
         ),
     ],
@@ -454,11 +454,92 @@ async def test_update_org_unit_mutation_unit_test(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_get_org_unit_ancestors(graphapi_post):
+@pytest.mark.parametrize(
+    "expected",
+    [
+        {
+            "user_key": "Viuf skole",
+            "uuid": "08eaf849-e9f9-53e0-b6b9-3cd45763ecbb",
+            "ancestors": [
+                {
+                    "uuid": "2665d8e0-435b-5bb6-a550-f275692984ef",
+                    "user_key": "Skoler og børnehaver",
+                    "name": "Skoler og børnehaver",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "7a8e45f7-4de0-44c8-990f-43c0565ee505",
+                    "user_key": "Skole og Børn",
+                    "name": "Skole og Børn",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                    "user_key": "Kolding Kommune",
+                    "name": "Kolding Kommune",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+            ],
+        },
+        {
+            "user_key": "Teknisk Support",
+            "uuid": "0c655440-867d-561e-8c28-2aa0ac8d1e20",
+            "ancestors": [
+                {
+                    "uuid": "327301c2-fdab-5773-9357-d0df0548258e",
+                    "user_key": "Christiansfeld børnehus",
+                    "name": "Christiansfeld børnehus",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "2665d8e0-435b-5bb6-a550-f275692984ef",
+                    "user_key": "Skoler og børnehaver",
+                    "name": "Skoler og børnehaver",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "7a8e45f7-4de0-44c8-990f-43c0565ee505",
+                    "user_key": "Skole og Børn",
+                    "name": "Skole og Børn",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                    "user_key": "Kolding Kommune",
+                    "name": "Kolding Kommune",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                },
+            ],
+        },
+        {
+            "user_key": "Borgmesterens Afdeling",
+            "uuid": "0a946185-4712-5c4b-9bbf-b0894603b9a3",
+            "ancestors": [
+                {
+                    "uuid": "fb2d158f-114e-5f67-8365-2c520cf10b58",
+                    "user_key": "Lønorganisation",
+                    "name": "Lønorganisation",
+                    "type": "org_unit",
+                    "validity": {"from": "1960-01-01T00:00:00+01:00", "to": None},
+                }
+            ],
+        },
+    ],
+)
+async def test_get_org_unit_ancestors(graphapi_post, expected):
+    """Tests that ancestors are properly returned on Organisation Units."""
+    uuid = expected["uuid"]
+
     graphql_query = """
-        query MyQuery {
-          org_units {
+        query MyAncestorQuery($uuid: UUID!) {
+          org_units(uuids: [$uuid]) {
             objects {
               user_key
               uuid
@@ -476,9 +557,15 @@ def test_get_org_unit_ancestors(graphapi_post):
           }
         }
     """
-    response: GQLResponse = graphapi_post(graphql_query)
 
+    response: GQLResponse = graphapi_post(
+        query=graphql_query, variables={"uuid": str(uuid)}
+    )
+
+    obj = one(one(response.data["org_units"])["objects"])
+
+    assert obj == expected
+    assert len(obj) == len(expected)
+    assert obj["ancestors"] == expected["ancestors"]
     assert response.errors is None
     assert response.status_code == 200
-    obj = response.data["org_units"]
-    assert "ancestors" in obj[0]["objects"][0]
