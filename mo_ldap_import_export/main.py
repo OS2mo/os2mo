@@ -60,6 +60,7 @@ from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
 from .ldap import setup_listener
 from .ldap_classes import LdapObject
+from .utils import countdown
 from .utils import listener
 from .utils import mo_datestring_to_utc
 
@@ -400,8 +401,12 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Load all users from LDAP, and import them into MO
     @app.get("/Import/all", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
-        test_on_first_20_entries: bool = False, user=Depends(login_manager)
+        test_on_first_20_entries: bool = False,
+        user=Depends(login_manager),
+        delay_in_hours: float = 0,
     ) -> Any:
+        await countdown(delay_in_hours * 60 * 60, "/Import/all")
+
         all_ldap_objects = await dataloader.load_ldap_objects("Employee")
         all_cpr_numbers = [o.dict()[converter.cpr_field] for o in all_ldap_objects]
         all_cpr_numbers = sorted(list(set([a for a in all_cpr_numbers if a])))
@@ -445,9 +450,13 @@ def create_app(**kwargs: Any) -> FastAPI:
             object_uuid: str = Query(
                 "", description="If specified, export only the object with this uuid"
             ),
+            delay_in_hours: float = Query(
+                0, description="Number of hours to wait before starting this job"
+            ),
         ):
             self.publish_amqp_messages = publish_amqp_messages
             self.object_uuid = object_uuid
+            self.delay_in_hours = delay_in_hours
 
     # Export object(s) from MO to LDAP
     @app.post("/Export", status_code=202, tags=["Export"])
@@ -455,6 +464,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
         params: ExportQueryParams = Depends(),
     ) -> Any:
+        await countdown(params.delay_in_hours * 60 * 60, "/Export")
 
         # Load mo objects
         mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
