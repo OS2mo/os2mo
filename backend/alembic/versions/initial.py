@@ -8,6 +8,7 @@ Create Date: 2022-02-01 16:54:19.119687
 """
 import os
 
+from sqlalchemy import text
 from sqlalchemy.orm import sessionmaker
 
 from alembic import op
@@ -27,7 +28,7 @@ schema_name = "actual_state"
 
 
 def downgrade():
-    drop_schema = f"drop schema if exists {schema_name} cascade"
+    drop_schema = text(f"drop schema if exists {schema_name} cascade")
     bind = op.get_bind()
     session = Session(bind=bind)
     session.execute(drop_schema)
@@ -48,9 +49,9 @@ def upgrade():
     session = Session(bind=bind)
 
     for prerequisite in prerequisites:
-        session.execute(prerequisite)
+        session.execute(text(prerequisite))
 
     with open(initial_schema_path) as initial_schema:
         session.execute(
-            initial_schema.read().replace("{{ mox_user }}", settings.db_user)
+            text(initial_schema.read().replace("{{ mox_user }}", settings.db_user))
         )
