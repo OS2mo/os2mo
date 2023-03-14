@@ -271,7 +271,6 @@ async def load_fixture_data() -> None:
 
 @pytest.fixture(scope="class")
 async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
-
     await load_fixture_data()
 
     conn = get_connection()
@@ -288,7 +287,6 @@ async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
 
 @pytest.fixture(scope="function")
 async def load_fixture_data_with_reset() -> YieldFixture[None]:
-
     await load_fixture_data()
 
     conn = get_connection()

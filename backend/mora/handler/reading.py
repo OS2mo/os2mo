@@ -292,7 +292,6 @@ class OrgFunkReadingHandler(ReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ) -> dict[str, Any]:
-
         properties = mapping.ORG_FUNK_EGENSKABER_FIELD(effect)[0]
         user_key = properties["brugervendtnoegle"]
 

@@ -46,7 +46,6 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         changed_since=Optional[datetime],
         inherit_owner: bool = False,
     ):
-
         if inherit_owner or util.get_args_flag("inherit_owner"):
             return await cls.get_inherited_owner(c, type, object_id)
 
@@ -56,7 +55,6 @@ class OwnerReader(reading.OrgFunkReadingHandler):
 
     @classmethod
     async def get_inherited_owner(cls, c, type, object_id):
-
         search_fields = {cls.SEARCH_FIELDS[type]: object_id}
 
         owner = list(await super().get(c, search_fields))
@@ -129,7 +127,6 @@ class OwnerReader(reading.OrgFunkReadingHandler):
         owned_person_uuid: UUID,
         inference_priority: OwnerInferencePriority,
     ) -> Awaitable[dict[str, Any]] | None:
-
         candidates = await cls.get_relation_candidates(
             owned_person_uuid=owned_person_uuid,
             inference_priority=inference_priority,
@@ -164,7 +161,6 @@ class OwnerReader(reading.OrgFunkReadingHandler):
     async def _get_mo_object_from_effect(
         cls, effect, start, end, funcid, flat: bool = False
     ):
-
         owned_person = mapping.USER_FIELD.get_uuid(effect)
         org_unit = mapping.ASSOCIATED_ORG_UNIT_FIELD.get_uuid(effect)
         owner_uuid = mapping.EMPLOYEE_PERSON_FIELD.get_uuid(effect)

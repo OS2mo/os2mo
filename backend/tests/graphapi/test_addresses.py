@@ -770,7 +770,6 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
 )
 async def test_update_address_integration_test(test_data, graphapi_post) -> None:
     async def query_data(uuid: str) -> GQLResponse:
-
         query = """
             query ($uuid: [UUID!]!){
                 __typename

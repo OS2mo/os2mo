@@ -45,7 +45,8 @@ async def test_feature_flag_employee_hide_association_columns(
 ):
     """Test feature flag CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS.
 
-    The flag is used by the frontend to hide employee association columns in the details table."""
+    The flag is used by the frontend to hide employee association columns in the details table.
+    """
     feature_flag_name = "CONFDB_EMPLOYEE_HIDE_ASSOCIATION_COLUMNS"
     feature_flag_name_computed = _compute_feature_flag_name(feature_flag_name)
     with util.set_settings_contextmanager(**{feature_flag_name: feature_flag_val}):

@@ -233,12 +233,12 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
         ('(parents: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 4),
         ('(parents: "b1f69701-86d8-496e-a3f1-ccef18ac1958")', 1),
         (
-            """
-            (parents: [
-                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
-            ])
-        """,
+            """(
+                                parents: [
+                                "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                                "b1f69701-86d8-496e-a3f1-ccef18ac1958"
+                                ]
+                                )""",
             5,
         ),
     ],
@@ -273,12 +273,12 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
         ('(hierarchies: "69de6410-bfe7-bea5-e6cc-376b3302189c")', 1),
         # Filter 'linjeorg' + 'hidden'
         (
-            """
-            (hierarchies: [
-                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
-                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
-            ])
-            """,
+            """(
+                                hierarchies: [
+                                "f805eb80-fdfe-8f24-9367-68ea955b9b9b"
+                                "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+                                ]
+                                )""",
             3,
         ),
     ],
@@ -451,3 +451,107 @@ async def test_update_org_unit_mutation_unit_test(
     assert response.data == {"org_unit_update": {"uuid": str(test_data.uuid)}}
 
     update_org_unit.assert_called_with(test_data)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "expected",
+    [
+        {
+            "user_key": "social_og_sundhed-løn",
+            "uuid": "5942ce50-2be8-476f-914b-6769a888a7c8",
+            "ancestors": [
+                {
+                    "uuid": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+                    "user_key": "løn",
+                    "name": "Lønorganisation",
+                    "type": "org_unit",
+                    "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
+                }
+            ],
+        },
+        {
+            "user_key": "social-sundhed",
+            "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+            "ancestors": [
+                {
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "user_key": "root",
+                    "name": "Overordnet Enhed",
+                    "type": "org_unit",
+                    "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
+                }
+            ],
+        },
+        {
+            "user_key": "fil",
+            "uuid": "85715fc7-925d-401b-822d-467eb4b163b6",
+            "ancestors": [
+                {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "user_key": "hum",
+                    "name": "Humanistisk fakultet",
+                    "type": "org_unit",
+                    "validity": {"from": "2016-12-31T00:00:00+01:00", "to": None},
+                },
+                {
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "user_key": "root",
+                    "name": "Overordnet Enhed",
+                    "type": "org_unit",
+                    "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
+                },
+            ],
+        },
+        {
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "ancestors": [
+                {
+                    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                    "user_key": "root",
+                    "name": "Overordnet Enhed",
+                    "type": "org_unit",
+                    "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
+                }
+            ],
+        },
+    ],
+)
+async def test_get_org_unit_ancestors(graphapi_post, expected):
+    """Tests that ancestors are properly returned on Organisation Units."""
+    uuid = expected["uuid"]
+
+    graphql_query = """
+        query MyAncestorQuery($uuid: UUID!) {
+          org_units(uuids: [$uuid]) {
+            objects {
+              user_key
+              uuid
+              ancestors {
+                uuid
+                user_key
+                name
+                type
+                validity {
+                  from
+                  to
+                }
+              }
+            }
+          }
+        }
+    """
+
+    response: GQLResponse = graphapi_post(
+        query=graphql_query, variables={"uuid": str(uuid)}
+    )
+
+    obj = one(one(response.data["org_units"])["objects"])
+
+    assert response.errors is None
+    assert response.status_code == 200
+    assert obj == expected
+    assert len(obj) == len(expected)
+    assert obj["ancestors"] == expected["ancestors"]

@@ -130,7 +130,6 @@ def test_query_is_primary(test_data, graphapi_post, patch_loader):
     assert response.errors is None
 
     for e in response.data["engagements"]:
-
         if test_data[0]["primary_uuid"]:
             # primary_uuid is optional.
             # If it exists the patched is_primary returns True
@@ -451,7 +450,6 @@ async def test_update_engagement_unit_test(
     ],
 )
 async def test_update_engagement_integration_test(graphapi_post, test_data) -> None:
-
     uuid = test_data["uuid"]
 
     query = """

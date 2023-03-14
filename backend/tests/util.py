@@ -327,7 +327,6 @@ async def load_sample_structures(minimal=False):
 
 @contextlib.contextmanager
 def override_config(config_obj: Settings):
-
     original = config.get_settings
     config.get_settings = lambda: config_obj
     try:

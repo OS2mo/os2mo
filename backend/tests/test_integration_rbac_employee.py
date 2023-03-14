@@ -101,7 +101,6 @@ class TestCreateEmployee(tests.cases.LoRATestCase):
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class TestCreateEmployeeDetailViaEmployee(TestCommon):
-
     # The "create details" endpoint is used for creating creating addresses,
     # it-systems, leaves and owners
 

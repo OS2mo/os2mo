@@ -464,7 +464,6 @@ class OIORestObject:
         # Assume the search operation if other params were specified or the
         # 'list' parameter is specified
         if not (valid_list_args.issuperset(args) and args.get("list") is None):
-
             # Only one uuid is supported through the search operation
             if uuid_param is not None and len(uuid_param) > 1:
                 raise BadRequestException(

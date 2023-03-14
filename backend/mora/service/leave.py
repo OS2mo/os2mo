@@ -24,7 +24,6 @@ class LeaveRequestHandler(handlers.OrgFunkRequestHandler):
     function_key = mapping.LEAVE_KEY
 
     async def prepare_create(self, req):
-
         employee = util.checked_get(req, mapping.PERSON, {}, required=True)
         employee_uuid = util.get_uuid(employee, required=True)
 
