@@ -143,6 +143,7 @@ class Settings(BaseSettings):
     amqp_enable: bool = False
     # AMQP connection settings are extracted from environment variables by the RAMQP
     # library directly.
+    amqp_enable_new_subsystem: bool = False
 
     enable_sp: bool = False
     sp_settings: ServicePlatformenSettings | None = None

@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import os
+from contextlib import asynccontextmanager
 from itertools import chain
 from pathlib import Path
 from typing import Any
@@ -32,6 +34,7 @@ from .metrics import setup_metrics
 from mora import config
 from mora import health
 from mora import log
+from mora.amqp import start_amqp_subsystem
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
@@ -167,10 +170,33 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             },
         ],
     )
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        if not settings.is_under_test():
+            setup_metrics(app)
+
+        await triggers.register(app)
+        if lora.client is None:
+            lora.client = await lora.create_lora_client(app)
+        # Make a strong reference. Otherwise, it can be cleared by the garbage
+        # collector mid-execution as the event loop only keeps weak references.
+        amqp_subsystem = asyncio.create_task(
+            start_amqp_subsystem(app.state.sessionmaker)
+        )
+
+        yield
+
+        amqp_subsystem.cancel("shutting down")
+        await triggers.internal.amqp_trigger.stop_amqp()
+        # Leaking intentional so the test suite will re-use the lora.client.
+        # await lora.client.aclose()
+
     app = FastAPI(
         middleware=middleware,
         openapi_tags=list(tags_metadata),
     )
+    app.router.lifespan_context = lifespan
 
     # CORS headers describe which origins are permitted to contact the server, and
     # specify which authentication credentials (e.g. cookies or headers) should be
@@ -261,22 +287,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app.add_exception_handler(HTTPException, http_exception_handler)
     app.add_exception_handler(AuthenticationError, get_auth_exception_handler(logger))
     app.add_exception_handler(AuthorizationError, authorization_exception_handler)
-
-    @app.on_event("startup")
-    async def startup():
-        if not settings.is_under_test():
-            setup_metrics(app)
-
-        await triggers.register(app)
-        if lora.client is not None:
-            return
-        lora.client = await lora.create_lora_client(app)
-
-    @app.on_event("shutdown")
-    async def shutdown():
-        await triggers.internal.amqp_trigger.stop_amqp()
-        # Leaking intentional so the test suite will re-use the lora.client.
-        # await lora.client.aclose()
 
     if settings.sentry_dsn:
         sentry_sdk.init(dsn=settings.sentry_dsn)
