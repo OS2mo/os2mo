@@ -151,5 +151,5 @@ async def countdown(seconds_to_sleep, task_description, update_interval=60):
                 f"{hours} hours, {minutes} min, {seconds} sec"
             )
         )
-        await asyncio.sleep(update_interval)
+        await asyncio.sleep(min(update_interval, seconds_remaining))
         seconds_remaining -= update_interval

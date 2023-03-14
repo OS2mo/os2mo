@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import datetime
 import re
+import time
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -13,6 +14,7 @@ from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery
 from mo_ldap_import_export.utils import add_filter_to_query
+from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
 from mo_ldap_import_export.utils import import_class
@@ -150,3 +152,10 @@ async def test_listener():
             "Got event without cpr",
             str(messages[1]["event"]),
         )
+
+
+async def test_countdown():
+    t1 = time.time()
+    await countdown(0.1, "foo")
+    t2 = time.time()
+    assert (t2 - t1) >= 0.1
