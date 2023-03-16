@@ -73,6 +73,10 @@ class Settings(BaseSettings):
         True, description="Whether to write to AD, when changes in MO are registered"
     )
 
+    listen_to_changes_in_ldap: bool = Field(
+        True, description="Whether to write to MO, when changes in LDAP are registered"
+    )
+
     ldap_controllers: ServerList = Field(
         ..., description="List of domain controllers to query"
     )
