@@ -228,6 +228,9 @@ class Settings(BaseSettings):
     # until feature is accepted by customers.
     confdb_datepicker_fix_timezone: bool = False
 
+    # This flag shows the birthday of an employee in the search bar
+    confdb_show_employee_birthday_in_search: bool = False
+
     # String telling OS2Mo what DIPEX version is being used to import & export data
     # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
     confdb_dipex_version__do_not_use: str | None
