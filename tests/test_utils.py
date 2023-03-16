@@ -164,3 +164,8 @@ async def test_countdown():
     t1 = time.time()
     t2 = time.time()
     assert (t2 - t1) < 0.1
+
+    t1 = time.time()
+    await countdown(0, "foo")
+    t2 = time.time()
+    assert (t2 - t1) < 0.1
