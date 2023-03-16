@@ -133,7 +133,11 @@ def listener(context, event):
         logger.info(f"Got event without cpr: {event}")
 
 
-async def countdown(seconds_to_sleep, task_description, update_interval=60):
+async def countdown(
+    seconds_to_sleep: float,
+    task_description: str,
+    update_interval: float = 60,
+):
     """
     Sleep for 'seconds_to_sleep' seconds.
     Print an update every 'update_interval' seconds
