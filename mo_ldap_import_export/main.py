@@ -405,7 +405,8 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
         delay_in_hours: float = 0,
     ) -> Any:
-        await countdown(delay_in_hours * 60 * 60, "/Import/all")
+        if delay_in_hours > 0:
+            await countdown(delay_in_hours * 60 * 60, "/Import/all")
 
         all_ldap_objects = await dataloader.load_ldap_objects("Employee")
         all_cpr_numbers = [o.dict()[converter.cpr_field] for o in all_ldap_objects]
@@ -464,7 +465,8 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
         params: ExportQueryParams = Depends(),
     ) -> Any:
-        await countdown(params.delay_in_hours * 60 * 60, "/Export")
+        if params.delay_in_hours > 0:
+            await countdown(params.delay_in_hours * 60 * 60, "/Export")
 
         # Load mo objects
         mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
