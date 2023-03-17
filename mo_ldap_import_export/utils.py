@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 #
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 import copy
 import datetime
 from typing import Union
@@ -130,3 +131,29 @@ def listener(context, event):
         event_loop.create_task(sync_tool.import_single_user(cpr))
     else:
         logger.info(f"Got event without cpr: {event}")
+
+
+async def countdown(
+    seconds_to_sleep: float,
+    task_description: str,
+    update_interval: float = 60,
+):
+    """
+    Sleep for 'seconds_to_sleep' seconds.
+    Print an update every 'update_interval' seconds
+
+    Note: We use asyncio.sleep because it is non-blocking
+    """
+    logger = structlog.get_logger()
+    seconds_remaining = seconds_to_sleep
+    while seconds_remaining > 0:
+        minutes, seconds = divmod(seconds_remaining, 60)
+        hours, minutes = divmod(minutes, 60)
+        logger.info(
+            (
+                f"Starting {task_description} in "
+                f"{hours} hours, {minutes} min, {seconds} sec"
+            )
+        )
+        await asyncio.sleep(min(update_interval, seconds_remaining))
+        seconds_remaining -= update_interval
