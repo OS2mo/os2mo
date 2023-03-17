@@ -316,10 +316,11 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(event_loop=asyncio.get_event_loop())
     fastramqpi.add_context(poll_time=settings.poll_time)
 
-    setup_listener(
-        fastramqpi.get_context(),
-        partial(listener, fastramqpi.get_context()),
-    )
+    if settings.listen_to_changes_in_ldap:
+        setup_listener(
+            fastramqpi.get_context(),
+            partial(listener, fastramqpi.get_context()),
+        )
 
     return fastramqpi
 
