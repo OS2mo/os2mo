@@ -24,6 +24,9 @@ metadata = Base.metadata
 class _OIOEntityMixin:
     id: Mapped[UUID] = mapped_column(primary_key=True)
 
+    def __repr__(self):
+        return f"{self.__class__.__name__}(id={self.id})"
+
 
 class _RegistreringMixin:
     __table_args__ = (
@@ -57,6 +60,9 @@ class _RegistreringMixin:
                 )
             ).scalar_subquery()
         )
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(id={self.id}, registreringstid_start={self.registreringstid_start!r}, registreringstid_slut={self.registreringstid_slut!r})"
 
 
 class _VirkningMixin:
@@ -109,6 +115,10 @@ class _RelationMixin(_VirkningMixin):
     rel_maal_uuid: Mapped[UUID | None]
     rel_maal_urn: Mapped[str | None]
     objekt_type: Mapped[str | None]
+    rel_type: Mapped[str]
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(id={self.id}, rel_maal_uuid={self.rel_maal_uuid!r}, rel_maal_urn={self.rel_maal_urn!r}, objekt_type={self.objekt_type!r}, rel_type={self.rel_type!r})"
 
 
 Gyldighed = Literal["Aktiv", "Inaktiv", ""]
@@ -124,5 +134,10 @@ def _TilsGyldighedMixin(oio_type):
             Enum(*Gyldighed.__args__, name=f"{oio_type}gyldighedtils"),
             index=True,
         )
+
+        def __repr__(self):
+            return (
+                f"{self.__class__.__name__}(id={self.id}, gyldighed={self.gyldighed!r})"
+            )
 
     return _Mixin
