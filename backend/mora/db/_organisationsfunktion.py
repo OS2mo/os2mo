@@ -31,11 +31,15 @@ class OrganisationFunktionRegistrering(_RegistreringMixin, Base):
 
 FunktionsNavn = Literal[
     "Adresse",
-    "IT-system",
-    "Tilknytning",
-    "Rolle",
-    "Leder",
     "Engagement",
+    "IT-system",
+    "KLE",
+    "Leder",
+    "Orlov",
+    "Relateret Enhed",
+    "Rolle",
+    "Tilknytning",
+    "owner",
 ]
 
 
@@ -50,18 +54,18 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
 
 OrganisationFunktionRelationKode = Literal[
+    "adresser",
+    "opgaver",
     "organisatoriskfunktionstype",
     "primær",
-    "opgaver",
+    "tilknyttedebrugere",
     "tilknyttedeenheder",
+    "tilknyttedefunktioner",
     "tilknyttedeinteressefaellesskaber",
     "tilknyttedeitsystemer",
-    "tilknyttedefunktioner",
-    "tilknyttedebrugere",
-    "adresser",
+    "tilknyttedeklasser",
     "tilknyttedeorganisationer",
     "tilknyttedepersoner",
-    "tilknyttedeklasser",
 ]
 
 

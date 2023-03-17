@@ -41,15 +41,6 @@ class ITSystemAttrEgenskaber(_AttrEgenskaberMixin, Base):
 ITSystemRelationKode = Literal[
     "tilhoerer",
     "tilknyttedeorganisationer",
-    "tilknyttedeenheder",
-    "tilknyttedefunktioner",
-    "tilknyttedebrugere",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeitsystemer",
-    "tilknyttedepersoner",
-    "systemtyper",
-    "opgaver",
-    "adresser",
 ]
 
 

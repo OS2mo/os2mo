@@ -43,16 +43,10 @@ class KlasseAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
 
 KlasseRelationKode = Literal[
-    "ejer",
     "ansvarlig",
-    "overordnetklasse",
+    "ejer",
     "facet",
-    "redaktoerer",
-    "sideordnede",
-    "mapninger",
-    "tilfoejelser",
-    "erstatter",
-    "lovligekombinationer",
+    "overordnetklasse",
 ]
 
 

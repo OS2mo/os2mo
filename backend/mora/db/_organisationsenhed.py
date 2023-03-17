@@ -36,24 +36,12 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
 
 OrganisationEnhedRelationKode = Literal[
-    "produktionsenhed",
-    "overordnet",
-    "niveau",
-    "branche",
-    "tilhoerer",
-    "skatteenhed",
     "enhedstype",
+    "niveau",
     "opgaver",
-    "tilknyttedeenheder",
-    "ansatte",
     "opmærkning",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeitsystemer",
-    "tilknyttedefunktioner",
-    "adresser",
-    "tilknyttedebrugere",
-    "tilknyttedeorganisationer",
-    "tilknyttedepersoner",
+    "overordnet",
+    "tilhoerer",
 ]
 
 
