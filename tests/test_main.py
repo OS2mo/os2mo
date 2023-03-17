@@ -242,7 +242,7 @@ def test_ldap_get_converted_endpoint(test_client: TestClient, headers: dict) -> 
     assert response.status_code == 202
 
     response = test_client.get("/LDAP/Employee/invalid_cpr/converted", headers=headers)
-    assert response.status_code == 404
+    assert response.status_code == 422
 
 
 def test_ldap_post_ldap_employee_endpoint(
@@ -303,7 +303,7 @@ def test_ldap_get_organizationalUser_endpoint(
     assert response.status_code == 202
 
     response = test_client.get("/LDAP/Employee/invalid_cpr", headers=headers)
-    assert response.status_code == 404
+    assert response.status_code == 422
 
 
 def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
