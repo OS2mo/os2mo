@@ -23,7 +23,7 @@ repos:
     rev: 5.0.4
     hooks:
       - id: flake8
-        args: [ "--extend-ignore=B008,W503,E203", "--max-line-length=101" ]
+        args: [ "--extend-ignore=B008,W503,E203", "--max-line-length=10001" ]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.0.1

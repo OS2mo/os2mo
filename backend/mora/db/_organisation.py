@@ -40,27 +40,7 @@ class OrganisationAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationRelationKode = Literal[
-    "branche",
-    "myndighed",
-    "myndighedstype",
-    "overordnet",
-    "produktionsenhed",
-    "skatteenhed",
-    "tilhoerer",
-    "virksomhed",
-    "virksomhedstype",
-    "adresser",
-    "ansatte",
-    "opgaver",
-    "tilknyttedebrugere",
-    "tilknyttedeenheder",
-    "tilknyttedefunktioner",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeorganisationer",
-    "tilknyttedepersoner",
-    "tilknyttedeitsystemer",
-]
+OrganisationRelationKode = Literal["myndighed"]
 
 
 class OrganisationRelation(_RelationMixin, Base):

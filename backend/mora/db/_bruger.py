@@ -52,15 +52,7 @@ class BrugerAttrUdvidelser(_VirkningMixin, Base):
 
 BrugerRelationKode = Literal[
     "tilhoerer",
-    "adresser",
-    "brugertyper",
-    "opgaver",
-    "tilknyttedeenheder",
-    "tilknyttedefunktioner",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeorganisationer",
     "tilknyttedepersoner",
-    "tilknyttedeitsystemer",
 ]
 
 

@@ -43,9 +43,7 @@ class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):
 
 FacetRelationKode = Literal[
     "ansvarlig",
-    "ejer",
     "facettilhoerer",
-    "redaktoerer",
 ]
 
 
