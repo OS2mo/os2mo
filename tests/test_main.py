@@ -238,7 +238,7 @@ def test_ldap_get_all_converted_endpoint(
 def test_ldap_get_converted_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/foo/converted", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234/converted", headers=headers)
     assert response.status_code == 202
 
 
@@ -296,7 +296,7 @@ def test_ldap_get_organizationalUser_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/foo", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234", headers=headers)
     assert response.status_code == 202
 
 
