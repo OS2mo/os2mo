@@ -411,7 +411,9 @@ async def test_import_all_objects_from_LDAP_first_20(
 ) -> None:
     params = {
         "test_on_first_20_entries": True,
-        "delay_in_hours": 0.1 / 60 / 60,
+        "delay_in_hours": 0,
+        "delay_in_minutes": 0,
+        "delay_in_seconds": 0.1,
     }
     response = test_client.get("/Import/all", headers=headers, params=params)
     assert response.status_code == 202
@@ -548,7 +550,9 @@ async def test_export_endpoint(
     params = {
         "publish_amqp_messages": True,
         "uuid": str(uuid4()),
-        "delay_in_hours": 0.1 / 60 / 60,
+        "delay_in_hours": 0,
+        "delay_in_minutes": 0,
+        "delay_in_seconds": 0.1,
     }
 
     response = test_client.post("/Export", headers=headers, params=params)

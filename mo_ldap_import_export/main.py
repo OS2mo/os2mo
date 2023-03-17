@@ -403,10 +403,13 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def import_all_objects_from_LDAP(
         test_on_first_20_entries: bool = False,
         user=Depends(login_manager),
-        delay_in_hours: float = 0,
+        delay_in_hours: int = 0,
+        delay_in_minutes: int = 0,
+        delay_in_seconds: float = 0,
     ) -> Any:
-        if delay_in_hours > 0:
-            await countdown(delay_in_hours * 60 * 60, "/Import/all")
+        delay = delay_in_hours * 60 * 60 + delay_in_minutes * 60 + delay_in_seconds
+        if delay > 0:
+            await countdown(delay, "/Import/all")
 
         all_ldap_objects = await dataloader.load_ldap_objects("Employee")
         all_cpr_numbers = [o.dict()[converter.cpr_field] for o in all_ldap_objects]
@@ -451,13 +454,24 @@ def create_app(**kwargs: Any) -> FastAPI:
             object_uuid: str = Query(
                 "", description="If specified, export only the object with this uuid"
             ),
-            delay_in_hours: float = Query(
-                0, description="Number of hours to wait before starting this job"
+            delay_in_hours: int = Query(
+                0,
+                description="Number of hours to wait before starting this job",
+            ),
+            delay_in_minutes: int = Query(
+                0,
+                description="Number of minutes to wait before starting this job",
+            ),
+            delay_in_seconds: float = Query(
+                0,
+                description="Number of seconds to wait before starting this job",
             ),
         ):
             self.publish_amqp_messages = publish_amqp_messages
             self.object_uuid = object_uuid
             self.delay_in_hours = delay_in_hours
+            self.delay_in_minutes = delay_in_minutes
+            self.delay_in_seconds = delay_in_seconds
 
     # Export object(s) from MO to LDAP
     @app.post("/Export", status_code=202, tags=["Export"])
@@ -465,8 +479,13 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
         params: ExportQueryParams = Depends(),
     ) -> Any:
-        if params.delay_in_hours > 0:
-            await countdown(params.delay_in_hours * 60 * 60, "/Export")
+        delay = (
+            params.delay_in_hours * 60 * 60
+            + params.delay_in_minutes * 60
+            + params.delay_in_seconds
+        )
+        if delay > 0:
+            await countdown(delay, "/Export")
 
         # Load mo objects
         mo_objects = await dataloader.load_all_mo_objects(uuid=params.object_uuid)
