@@ -50,6 +50,7 @@ from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
 from .dataloaders import DataLoader
+from .dependencies import valid_cpr
 from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
@@ -437,7 +438,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Load a single user from LDAP, and import him/her/hir into MO
     @app.get("/Import/{cpr}", status_code=202, tags=["Import"])
     async def import_single_user_from_LDAP(
-        cpr: str, user=Depends(login_manager)
+        cpr: str = Depends(valid_cpr), user=Depends(login_manager)
     ) -> Any:
         await sync_tool.import_single_user(cpr)
 
@@ -529,7 +530,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/LDAP/{json_key}/{cpr}", status_code=202, tags=["LDAP"])
     async def load_object_from_LDAP(
         json_key: Literal[accepted_json_keys],  # type: ignore
-        cpr: str,
+        cpr: str = Depends(valid_cpr),
         user=Depends(login_manager),
     ) -> Any:
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
@@ -539,9 +540,9 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/LDAP/{json_key}/{cpr}/converted", status_code=202, tags=["LDAP"])
     async def convert_object_from_LDAP(
         json_key: Literal[accepted_json_keys],  # type: ignore
-        cpr: str,
         response: Response,
         user=Depends(login_manager),
+        cpr: str = Depends(valid_cpr),
     ) -> Any:
         result = dataloader.load_ldap_cpr_object(cpr, json_key)
         try:

@@ -238,8 +238,11 @@ def test_ldap_get_all_converted_endpoint(
 def test_ldap_get_converted_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/foo/converted", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234/converted", headers=headers)
     assert response.status_code == 202
+
+    response = test_client.get("/LDAP/Employee/invalid_cpr/converted", headers=headers)
+    assert response.status_code == 422
 
 
 def test_ldap_post_ldap_employee_endpoint(
@@ -296,8 +299,11 @@ def test_ldap_get_organizationalUser_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/foo", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234", headers=headers)
     assert response.status_code == 202
+
+    response = test_client.get("/LDAP/Employee/invalid_cpr", headers=headers)
+    assert response.status_code == 422
 
 
 def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
@@ -374,7 +380,9 @@ def test_ldap_get_all_converted_endpoint_failure(
     converter.from_ldap = from_ldap
     with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
         response1 = test_client.get("/LDAP/Employee/converted", headers=headers)
-        response2 = test_client.get("/LDAP/Employee/foo/converted", headers=headers)
+        response2 = test_client.get(
+            "/LDAP/Employee/010101-1234/converted", headers=headers
+        )
 
     assert response1.status_code == 202
     assert response2.status_code == 404
