@@ -210,6 +210,7 @@ def lora_classes_to_mo_classes(
 
 
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
+    """Fetches the MO classes and run get_effects() on each class object."""
     c = get_connector()
     lora_results = await c.klasse.get_all(**kwargs)
     return list(

@@ -589,7 +589,7 @@ async def get_classes(
           scope
           owner
           published
-          
+
           full_name @include(if: $full_name)
 
           top_level_facet @include(if: $top_level_facet) {

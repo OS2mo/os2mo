@@ -13,7 +13,7 @@ class Tests(tests.cases.LoRATestCase):
             {
                 "data": {
                     "offset": 0,
-                    "total": 5,
+                    "total": 4,
                     "items": [
                         {
                             "uuid": "8eea787c-c2c7-46ca-bd84-2dd50f47801f",
@@ -23,15 +23,6 @@ class Tests(tests.cases.LoRATestCase):
                             "scope": None,
                             "owner": None,
                             "published": "IkkePubliceret",
-                        },
-                        {
-                            "uuid": "8eea787c-c2c7-46ca-bd84-2dd50f47801f",
-                            "name": "Databeskyttelsesudvalg",
-                            "user_key": "databeskyttelsesudvalg",
-                            "example": None,
-                            "scope": None,
-                            "owner": None,
-                            "published": "Publiceret",
                         },
                         {
                             "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
