@@ -18,7 +18,6 @@ import pytest
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
-from werkzeug.exceptions import BadRequest
 
 from oio_rest import db
 from oio_rest import oio_base
@@ -368,7 +367,7 @@ class TestOIORestObject(ExtTestCase):
             data=urlencode({"json": "{123123123}"}),
         )
 
-        with pytest.raises(BadRequest):
+        with pytest.raises(HTTPException):
             await self.testclass.get_json(request)
 
     @async_to_sync

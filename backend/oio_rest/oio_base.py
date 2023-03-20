@@ -17,7 +17,6 @@ from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
 from werkzeug.datastructures import ImmutableOrderedMultiDict
-from werkzeug.exceptions import BadRequest
 
 from . import config
 from . import db
@@ -373,7 +372,9 @@ class OIORestObject:
                 try:
                     return json.loads(data)
                 except ValueError:
-                    raise BadRequest()
+                    raise HTTPException(
+                        status_code=400, detail={"message": "unparsable json"}
+                    )
             else:
                 return None
 
