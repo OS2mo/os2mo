@@ -1,6 +1,11 @@
 ---
-title: AMQP Messages
+title: Legacy AMQP Messages
 ---
+
+
+!!! warning
+    This system is deprecated for [the new AMQP subsystem](./events.md).
+
 
 When a MO object is created, modified or deleted, an AMQP message is
 sent to the MO broker. The purpose of the message exchange is to make it

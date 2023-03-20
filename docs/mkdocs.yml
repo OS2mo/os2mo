@@ -34,10 +34,11 @@ nav:
           - drift-support/mocloud.md
           - drift-support/keycloak.md
       - API Dokumentation:
-          - api-dokumentation/amqp.md
+          - api-dokumentation/events.md
           - api-dokumentation/triggers.md
           - api-dokumentation/user-configuration.md
           - api-dokumentation/it-associations.md
+          - api-dokumentation/amqp-legacy.md
       - GraphQL:
           - graphql/intro.md
           - graphql/reads.md
