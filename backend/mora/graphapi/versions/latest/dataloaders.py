@@ -10,6 +10,7 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
+from dateutil import parser as date_parser
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
@@ -210,9 +211,19 @@ def lora_classes_to_mo_classes(
 
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
     c = get_connector()
-    lora_result = await c.klasse.get_all(**kwargs)
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    return list(mo_models)
+    lora_results = await c.klasse.get_all(**kwargs)
+    return list(
+        lora_classes_to_mo_classes(
+            _format_lora_results_only_newest_relevant_lists(
+                lora_results,
+                relevant_lists={
+                    "attributter": ("klasseegenskaber",),
+                    "tilstande": ("klassepubliceret",),
+                    "relationer": ("ejer", "ansvarlig", "facet"),
+                },
+            )
+        )
+    )
 
 
 async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
@@ -495,3 +506,31 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         ),
         "engagement_association_getter": get_engagement_associations,
     }
+
+
+def _format_lora_results_only_newest_relevant_lists(
+    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple]
+) -> list[tuple[str, dict]]:
+    lora_results_filtered_lists = []
+    for lora_result_uuid, lora_result_obj in lora_results:
+        for relevant_list_key in relevant_lists.keys():
+            if relevant_list_key not in relevant_lists:
+                continue
+
+            for section_list_name in relevant_lists[relevant_list_key]:
+                if section_list_name not in lora_result_obj[relevant_list_key]:
+                    continue
+
+                if len(lora_result_obj[relevant_list_key][section_list_name]) < 2:
+                    continue
+
+                lora_result_obj[relevant_list_key][section_list_name] = [
+                    max(
+                        lora_result_obj[relevant_list_key][section_list_name],
+                        key=lambda x: date_parser.parse(x["virkning"]["from"]),
+                    )
+                ]
+
+        lora_results_filtered_lists.append((lora_result_uuid, lora_result_obj))
+
+    return lora_results_filtered_lists
