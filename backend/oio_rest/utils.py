@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import itertools
 import uuid
-
-from werkzeug.datastructures import MultiDict
+from collections import defaultdict
 
 from oio_rest.db.db_helpers import DokumentDelEgenskaberType
 from oio_rest.db.db_helpers import DokumentVariantEgenskaberType
@@ -189,13 +188,13 @@ def build_registration(class_name, list_args):
 def restriction_to_registration(class_name, restriction):
     states, attributes, relations = restriction
 
-    all_fields = MultiDict(
-        itertools.chain(
-            states.items(),
-            attributes.items(),
-            relations.items(),
-        )
+    tuples = itertools.chain(
+        states.items(),
+        attributes.items(),
+        relations.items(),
     )
-    list_args = {k.lower(): all_fields.getlist(k) for k in all_fields}
+    list_args = defaultdict(list)
+    for key, value in tuples:
+        list_args[key.lower()].append(value)
 
-    return build_registration(class_name, list_args)
+    return build_registration(class_name, dict(list_args))
