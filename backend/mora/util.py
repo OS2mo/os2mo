@@ -176,68 +176,6 @@ def now() -> datetime.datetime:
     return datetime.datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
 
 
-# def restrictargs(*allowed: str, required: typing.Iterable[str] = None):
-#     '''Function decorator for checking and verifying Flask request arguments
-#
-#     If any argument other than those listed is set and has a value,
-#     the function logs an error and return HTTP 501.
-#
-#     '''
-#     if required is None:
-#         required = []
-#
-#     allowed_values = {v.lower() for v in allowed}
-#     required_values = {v.lower() for v in required}
-#     all_allowed_values = allowed_values | required_values
-#
-#     def wrap(f):
-#         @wraps(f)
-#         def wrapper(*args, **kwargs):
-#             if flask.g.get('are_args_valid'):
-#                 return f(*args, **kwargs)
-#
-#             invalidargs = {
-#                 k for k, v in flask.request.args.items()
-#                 if v and k.lower() not in all_allowed_values
-#             }
-#             missing = {
-#                 k for k in required_values
-#                 if not flask.request.args.get(k, None)
-#             }
-#
-#             flask.g.are_args_valid = not (missing or invalidargs)
-#
-#             if not flask.g.are_args_valid:
-#                 msg = '\n'.join((
-#                     'Unsupported request arguments:',
-#                     'URL: {}',
-#                     'Required: {}',
-#                     'Allowed: {}',
-#                     'Given: {}',
-#                     'Missing: {}',
-#                     'Unsupported: {}'
-#                 )).format(
-#                     flask.request.url,
-#                     ', '.join(sorted(required_values)),
-#                     ', '.join(sorted(allowed_values)),
-#                     ', '.join(sorted(flask.request.args)),
-#                     ', '.join(sorted(missing)),
-#                     ', '.join(sorted(invalidargs)),
-#                 )
-#
-#                 flask.current_app.logger.error(msg)
-#
-#                 return msg, 501
-#
-#             return f(*args, **kwargs)
-#
-#         wrapper.restricts_args = True
-#
-#         return wrapper
-#
-#     return wrap
-
-
 def is_uuid(v):
     try:
         uuid.UUID(v)
@@ -703,13 +641,6 @@ def get_args_flag(name: str):
     if v.lower() in ("", "0", "no", "n", "false"):
         return False
     return bool(v)
-
-
-# class StrUUIDConverter(werkzeug.routing.UUIDConverter):
-#     """Custom URL converter returning UUIDs as strings rather than UUIDs"""
-#
-#     def to_python(self, value):
-#         return str(value)
 
 
 def ensure_list(obj: T | list[T]) -> list[T]:
