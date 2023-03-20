@@ -211,29 +211,16 @@ def lora_classes_to_mo_classes(
 
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
     c = get_connector()
-    lora_result = await c.klasse.get_all(**kwargs)
-    lora_result = [
-        (uuid, {**mo_class, **effect_reg})
-        for uuid, mo_class in lora_result
-        for _, _, effect_reg in await c.klasse.get_effects(
-            mo_class,
-            {
-                "attributter": ("klasseegenskaber",),
-                "tilstande": ("klassepubliceret",),
-                "relationer": ("ejer", "ansvarlig", "facet"),
-            },
-        )
-    ]
-
-    # HACK: Find the newest element from the get_effects result.
-    # We need to do this, since our data is not yet parseable as bitemporal / is invalid.
-    # get_effects makes duplicates to make sure there are objects for all datetime-intervals,
-    # but this can, in some cases, end in "empty"/invalid objects, where ex.
-    # "obj.tilstande[{"id":"0123"....}]", but "obj.attributes = []" / is empty.
+    lora_results = await c.klasse.get_all(**kwargs)
     return list(
         lora_classes_to_mo_classes(
-            _hack_get_newest_get_effect_lora_result_by_name_attr_interval_4_classes(
-                lora_result
+            _format_lora_results_only_newest_relevant_lists(
+                lora_results,
+                relevant_lists={
+                    "attributter": ("klasseegenskaber",),
+                    "tilstande": ("klassepubliceret",),
+                    "relationer": ("ejer", "ansvarlig", "facet"),
+                },
             )
         )
     )
@@ -521,37 +508,29 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     }
 
 
-def _hack_get_newest_get_effect_lora_result_by_name_attr_interval_4_classes(
-    lora_result: list[tuple[str, dict]],
+def _format_lora_results_only_newest_relevant_lists(
+    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple]
 ) -> list[tuple[str, dict]]:
-    lora_classes_filtered: list[tuple[str, dict]] = []
-    for uuid, lora_class in lora_result:
-        found_lora_class_tuple = None
-        for i in range(len(lora_classes_filtered)):
-            filtered_uuid, filtered_lora_class = lora_classes_filtered[i]
-            if filtered_uuid == uuid:
-                found_lora_class_tuple = (filtered_uuid, filtered_lora_class)
+    lora_results_filtered_lists = []
+    for lora_result_uuid, lora_result_obj in lora_results:
+        for relevant_list_key in relevant_lists.keys():
+            if relevant_list_key not in relevant_lists:
                 continue
 
-        if found_lora_class_tuple is None:
-            lora_classes_filtered.append((uuid, lora_class))
-            continue
+            for section_list_name in relevant_lists[relevant_list_key]:
+                if section_list_name not in lora_result_obj[relevant_list_key]:
+                    continue
 
-        found_lora_class_idx, found_lora_class = found_lora_class_tuple
+                if len(lora_result_obj[relevant_list_key][section_list_name]) < 2:
+                    continue
 
-        # Check if next one is newer than found one
-        current_from_dt = date_parser.parse(
-            lora_class["attributter"]["klasseegenskaber"][0]["virkning"]["from"]
-        )
-        existing_from_dt = date_parser.parse(
-            found_lora_class["attributter"]["klasseegenskaber"][0]["virkning"]["from"]
-        )
+                lora_result_obj[relevant_list_key][section_list_name] = [
+                    max(
+                        lora_result_obj[relevant_list_key][section_list_name],
+                        key=lambda x: date_parser.parse(x["virkning"]["from"]),
+                    )
+                ]
 
-        if current_from_dt <= existing_from_dt:
-            continue
+        lora_results_filtered_lists.append((lora_result_uuid, lora_result_obj))
 
-        # Remove current and append the newer one
-        lora_classes_filtered.remove(found_lora_class_tuple)
-        lora_classes_filtered.append((uuid, lora_class))
-
-    return lora_classes_filtered
+    return lora_results_filtered_lists
