@@ -6,6 +6,7 @@ import datetime
 import json
 from abc import ABCMeta
 from abc import abstractmethod
+from collections import defaultdict
 from itertools import filterfalse
 from typing import Any
 from uuid import UUID
@@ -16,7 +17,6 @@ import more_itertools
 from fastapi import APIRouter
 from fastapi import HTTPException
 from fastapi import Request
-from werkzeug.datastructures import ImmutableOrderedMultiDict
 
 from . import config
 from . import db
@@ -71,11 +71,6 @@ CONSOLIDATE_PARAM = frozenset(
 
 """Some operations take no arguments; this makes it explicit."""
 NO_PARAMS = frozenset()
-
-"""Aliases that apply to all operations."""
-PARAM_ALIASES = {
-    "bvn": "brugervendtnoegle",
-}
 
 
 class Searcher(metaclass=ABCMeta):
@@ -276,27 +271,6 @@ def _remove_deleted(objects):
     return list(filterfalse(is_deleted, objects))
 
 
-class ArgumentDict(ImmutableOrderedMultiDict):
-    """
-    A Werkzeug multi dict that maintains the order, and maps alias
-    arguments.
-    """
-
-    @classmethod
-    def _process_item(cls, item):
-        (key, value) = item
-        key = to_lower_param(key)
-
-        return (PARAM_ALIASES.get(key, key), value)
-
-    def __init__(self, mapping):
-        # this code assumes that a) we always get a mapping and b)
-        # that mapping is specified as list of two-tuples -- which
-        # happens to be the case when contructing the dictionary from
-        # query arguments
-        super().__init__(list(map(self._process_item, mapping)))
-
-
 class Registration:
     def __init__(self, oio_class, states, attributes, relations):
         self.oio_class = oio_class
@@ -410,7 +384,7 @@ class OIORestObject:
         return {"uuid": uuid}
 
     @classmethod
-    async def _get_args(cls, request: Request, as_lists=False):
+    async def _get_args(cls, request: Request, as_lists: bool = False) -> dict:
         """
         Convert arguments to lowercase, optionally getting them as lists.
         If supplied, arguments will be extracted from the json body of GET requests.
@@ -426,9 +400,16 @@ class OIORestObject:
         else:
             args = request.query_params.multi_items()
 
-        items = ArgumentDict(args)
+        args_dict = defaultdict(list)
+        for key, value in args:
+            key = to_lower_param(key)
+            if key == "bvn":
+                key = "brugervendtnoegle"
+            args_dict[key].append(value)
 
-        return {k: items.getlist(k) if as_lists else items.get(k) for k in items}
+        if as_lists:
+            return dict(args_dict)
+        return {k: more_itertools.first(v) for k, v in args_dict.items()}
 
     @classmethod
     async def get_objects(cls, request: Request):
@@ -452,7 +433,7 @@ class OIORestObject:
         registreret_fra, registreret_til = get_registreret_dates(args)
         virkning_fra, virkning_til = get_virkning_dates(args)
 
-        uuid_param = list_args.get("uuid", None)
+        uuid_param = list_args.get("uuid")
 
         consolidate_param = list_args.get("konsolider") is not None
         if consolidate_param:
@@ -472,19 +453,19 @@ class OIORestObject:
                     "to search operation. Only one "
                     "uuid parameter is supported."
                 )
-            uuid_param = args.get("uuid", None)
-            first_result = args.get("foersteresultat", None)
+            uuid_param = args.get("uuid")
+            first_result = args.get("foersteresultat")
             if first_result is not None:
                 first_result = int(first_result)
-            max_results = args.get("maximalantalresultater", None)
+            max_results = args.get("maximalantalresultater")
             if max_results is not None:
                 max_results = int(max_results)
 
-            any_attr_value_arr = list_args.get("vilkaarligattr", None)
-            any_rel_uuid_arr = list_args.get("vilkaarligrel", None)
-            life_cycle_code = args.get("livscykluskode", None)
-            user_ref = args.get("brugerref", None)
-            note = args.get("notetekst", None)
+            any_attr_value_arr = list_args.get("vilkaarligattr")
+            any_rel_uuid_arr = list_args.get("vilkaarligrel")
+            life_cycle_code = args.get("livscykluskode")
+            user_ref = args.get("brugerref")
+            note = args.get("notetekst")
 
             # Fill out a registration object based on the query arguments
             registration = build_registration(cls.__name__, list_args)
@@ -521,7 +502,7 @@ class OIORestObject:
                 results = _remove_deleted(results)
 
         else:
-            uuid_param = list_args.get("uuid", None)
+            uuid_param = list_args.get("uuid")
             # request.api_operation = "List"
             results = await asyncio.to_thread(
                 list_fn,

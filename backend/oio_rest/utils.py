@@ -62,7 +62,7 @@ def split_param(value):
         return value, None
 
 
-def to_lower_param(s):
+def to_lower_param(s: str) -> str:
     """Return the colon-separated string with the first
     item in lowercase. The second item is left untouched."""
     try:
