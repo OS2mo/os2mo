@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
+import copy
 from asyncio import gather
 from collections.abc import Callable
 from collections.abc import Iterable
+from contextlib import suppress
 from functools import partial
 from itertools import starmap
 from typing import Any
@@ -217,7 +219,7 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
         lora_classes_to_mo_classes(
             _format_lora_results_only_newest_relevant_lists(
                 lora_results,
-                relevant_lora_class_lists={
+                relevant_lists={
                     "attributter": ("klasseegenskaber",),
                     "tilstande": ("klassepubliceret",),
                     "relationer": ("ejer", "ansvarlig", "facet"),
@@ -510,7 +512,7 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
 
 
 def _format_lora_results_only_newest_relevant_lists(
-    lora_results: list[tuple[str, dict]], relevant_lora_class_lists: dict[str, tuple]
+    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple]
 ) -> list[tuple[str, dict]]:
     """Filter LoRa results, so {lora-element}-lists only contains the newest element.
 
@@ -525,30 +527,23 @@ def _format_lora_results_only_newest_relevant_lists(
 
     Args:
         lora_results (list[tuple[str, dict]]): Lora results to be filtered
-        relevant_lora_class_lists (dict[str, tuple]): lora-class lists to filter on each element
+        relevant_lists (dict[str, tuple]): lora-class lists to filter on each element
 
     Returns:
         list[tuple[str, dict]]: Filtered version of the lora_results
     """
-    lora_results_filtered_lists = []
+    lora_results = copy.deepcopy(list(lora_results))  # noqa: FURB123
     for lora_result_uuid, lora_result_obj in lora_results:
-        for relevant_list_key in relevant_lora_class_lists.keys():
-            if relevant_list_key not in lora_result_obj:
-                continue
+        for relevant_list_key in relevant_lists.keys():
+            for section_list_name in relevant_lists[relevant_list_key]:
+                with suppress(KeyError):
+                    lora_result_obj[relevant_list_key][section_list_name] = [
+                        max(
+                            lora_result_obj[relevant_list_key][section_list_name],
+                            key=lambda x: date_parser.parse(x["virkning"]["from"])
+                            if x["virkning"]["from"] != "-infinity"
+                            else NEGATIVE_INFINITY,
+                        )
+                    ]
 
-            for section_list_name in relevant_lora_class_lists[relevant_list_key]:
-                if section_list_name not in lora_result_obj[relevant_list_key]:
-                    continue
-
-                lora_result_obj[relevant_list_key][section_list_name] = [
-                    max(
-                        lora_result_obj[relevant_list_key][section_list_name],
-                        key=lambda x: date_parser.parse(x["virkning"]["from"])
-                        if x["virkning"]["from"] != "-infinity"
-                        else NEGATIVE_INFINITY,
-                    )
-                ]
-
-        lora_results_filtered_lists.append((lora_result_uuid, lora_result_obj))
-
-    return lora_results_filtered_lists
+    return lora_results
