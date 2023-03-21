@@ -68,6 +68,11 @@ include:
   - project: labs/salt-automation
     file: /gitlab-ci-templates/common/docker-release.v1.yml
 
+  # Conventional commits
+  - project: labs/salt-automation
+    file: /gitlab-ci-templates/common/conventional-commits.v1.yml
+
+
 # Kører config-updater for dev. Kører på semantiske versioner
 Deploy to Dev:
   extends: .release-to-dev

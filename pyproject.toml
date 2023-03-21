@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mo_ldap_import_export"
-version = "0.1.0"
+version = "0.0.0" # versioning handled by conventional commits
 description = "Rammearkitektur AMQP service for making AMQP messages on changing effects in os2mo."
 authors = ["Magenta ApS <info@magenta.dk>"]
 license = "MPL-2.0"
