@@ -40,9 +40,9 @@ from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
 
 MOModel = TypeVar(
     "MOModel",
@@ -540,13 +540,12 @@ def _format_lora_results_only_newest_relevant_lists(
                 if section_list_name not in lora_result_obj[relevant_list_key]:
                     continue
 
-                if len(lora_result_obj[relevant_list_key][section_list_name]) < 2:
-                    continue
-
                 lora_result_obj[relevant_list_key][section_list_name] = [
                     max(
                         lora_result_obj[relevant_list_key][section_list_name],
-                        key=lambda x: date_parser.parse(x["virkning"]["from"]),
+                        key=lambda x: date_parser.parse(x["virkning"]["from"])
+                        if x["virkning"]["from"] != "-infinity"
+                        else NEGATIVE_INFINITY,
                     )
                 ]
 
