@@ -217,7 +217,7 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
         lora_classes_to_mo_classes(
             _format_lora_results_only_newest_relevant_lists(
                 lora_results,
-                relevant_lists={
+                relevant_lora_class_lists={
                     "attributter": ("klasseegenskaber",),
                     "tilstande": ("klassepubliceret",),
                     "relationer": ("ejer", "ansvarlig", "facet"),
@@ -510,15 +510,33 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
 
 
 def _format_lora_results_only_newest_relevant_lists(
-    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple]
+    lora_results: list[tuple[str, dict]], relevant_lora_class_lists: dict[str, tuple]
 ) -> list[tuple[str, dict]]:
+    """Filter LoRa results, so {lora-element}-lists only contains the newest element.
+
+    "relevant_lists" reference lists like:
+    lora_results[i]["attributter"]["klasseegenskaber"]
+
+    This method was created for "get_classes", which was assumed to only have 1 element in each array,
+    but due to our "LOS importer" breaking this view, we need to get the newest version of each list,
+    for the class element.
+    The root cause for this method can be found in: lora_class_to_mo_class(),
+    where we use "one()" on LoRa classes
+
+    Args:
+        lora_results (list[tuple[str, dict]]): Lora results to be filtered
+        relevant_lora_class_lists (dict[str, tuple]): lora-class lists to filter on each element
+
+    Returns:
+        list[tuple[str, dict]]: Filtered version of the lora_results
+    """
     lora_results_filtered_lists = []
     for lora_result_uuid, lora_result_obj in lora_results:
-        for relevant_list_key in relevant_lists.keys():
-            if relevant_list_key not in relevant_lists:
+        for relevant_list_key in relevant_lora_class_lists.keys():
+            if relevant_list_key not in lora_result_obj:
                 continue
 
-            for section_list_name in relevant_lists[relevant_list_key]:
+            for section_list_name in relevant_lora_class_lists[relevant_list_key]:
                 if section_list_name not in lora_result_obj[relevant_list_key]:
                     continue
 
