@@ -113,7 +113,7 @@ async def get_delete_flag(
     if routing_key.request_type == RequestType.TERMINATE:
 
         mo_object = await dataloader.load_mo_object(
-            payload.object_uuid, add_validity=True
+            payload.object_uuid, routing_key.object_type, add_validity=True
         )
 
         if not mo_object:

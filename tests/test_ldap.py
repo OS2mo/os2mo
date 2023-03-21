@@ -539,6 +539,7 @@ async def test_cleanup(
         mo_objects_in_mo=mo_objects_in_mo,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
+        object_type=ObjectType.ADDRESS,
     )
 
     await asyncio.gather(cleanup(**args))  # type:ignore
@@ -579,6 +580,7 @@ async def test_cleanup_no_sync_required(
         mo_objects_in_mo=mo_objects_in_mo,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
+        object_type=ObjectType.ADDRESS,
     )
 
     with capture_logs() as cap_logs:
@@ -617,6 +619,7 @@ async def test_cleanup_refresh_mo_object(
         mo_objects_in_mo=mo_objects_in_mo,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
+        object_type=ObjectType.ADDRESS,
     )
 
     object_uuid = str(mo_objects_in_mo[0].uuid)
@@ -660,6 +663,7 @@ async def test_cleanup_no_export_False(
         mo_objects_in_mo=[],
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
+        object_type=ObjectType.ADDRESS,
     )
 
     with capture_logs() as cap_logs:

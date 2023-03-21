@@ -168,6 +168,7 @@ class SyncTool:
                 addresses_in_mo,
                 self.user_context,
                 changed_employee,
+                routing_key.object_type,
             )
 
         elif routing_key.object_type == ObjectType.IT:
@@ -203,6 +204,7 @@ class SyncTool:
                 it_users_in_mo,
                 self.user_context,
                 changed_employee,
+                routing_key.object_type,
             )
 
         elif routing_key.object_type == ObjectType.ENGAGEMENT:
@@ -238,6 +240,7 @@ class SyncTool:
                 engagements_in_mo,
                 self.user_context,
                 changed_employee,
+                routing_key.object_type,
             )
 
     async def listen_to_changes_in_org_units(
@@ -312,6 +315,7 @@ class SyncTool:
                     addresses_in_mo,
                     self.user_context,
                     affected_employee,
+                    routing_key.object_type,
                 )
 
     async def format_converted_objects(self, converted_objects, json_key):

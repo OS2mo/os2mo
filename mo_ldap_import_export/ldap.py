@@ -29,6 +29,7 @@ from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
+from ramqp.mo.models import ObjectType
 from ramqp.mo.models import RequestType
 
 from .config import ServerConfig
@@ -358,6 +359,7 @@ async def cleanup(
     mo_objects_in_mo: list[Any],
     user_context: dict,
     employee: Employee,
+    object_type: ObjectType,
 ):
     """
     Cleans entries from LDAP
@@ -428,7 +430,7 @@ async def cleanup(
     if len(values_in_ldap) == 0 and len(values_in_mo) > 0:
         for mo_object_in_mo in mo_objects_in_mo:
             uuid = mo_object_in_mo.uuid
-            mo_object = await dataloader.load_mo_object(uuid=str(uuid))
+            mo_object = await dataloader.load_mo_object(str(uuid), object_type)
             routing_key = MORoutingKey.build(
                 service_type=mo_object["service_type"],
                 object_type=mo_object["object_type"],
