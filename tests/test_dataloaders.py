@@ -1440,7 +1440,9 @@ async def test_load_all_mo_objects_specify_uuid(
 
     gql_client.execute.side_effect = return_values
 
-    output = await asyncio.gather(dataloader.load_all_mo_objects(uuid=employee_uuid))
+    output = await asyncio.gather(
+        dataloader.load_all_mo_objects(uuid=str(employee_uuid))
+    )
     assert output[0][0]["uuid"] == employee_uuid
     assert len(output[0]) == 1
 
@@ -1461,7 +1463,7 @@ async def test_load_all_mo_objects_specify_uuid_multiple_results(
     gql_client.execute.side_effect = return_values
 
     with pytest.raises(MultipleObjectsReturnedException):
-        await dataloader.load_all_mo_objects(uuid=uuid)
+        await dataloader.load_all_mo_objects(uuid=str(uuid))
 
 
 async def test_load_all_mo_objects_invalid_query(
@@ -1531,6 +1533,17 @@ async def test_load_all_mo_objects_only_TransportQueryErrors(
         assert len(warnings) == 5
 
 
+async def test_load_all_mo_objects_invalid_object_type_to_try(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+    with pytest.raises(KeyError):
+        await asyncio.gather(
+            dataloader.load_all_mo_objects(
+                object_types_to_try=("non_existing_object_type",)
+            )
+        )
+
+
 async def test_shared_attribute(dataloader: DataLoader):
 
     converter = MagicMock()
@@ -1555,14 +1568,18 @@ async def test_load_mo_object(dataloader: DataLoader):
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=["obj1"],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid"))
+        result = await asyncio.gather(
+            dataloader.load_mo_object("uuid", ObjectType.EMPLOYEE)
+        )
         assert result[0] == "obj1"
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_all_mo_objects",
         return_value=[],
     ):
-        result = await asyncio.gather(dataloader.load_mo_object("uuid"))
+        result = await asyncio.gather(
+            dataloader.load_mo_object("uuid", ObjectType.EMPLOYEE)
+        )
         assert result[0] is None
 
 

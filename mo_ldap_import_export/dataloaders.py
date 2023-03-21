@@ -54,6 +54,19 @@ class DataLoader:
         self._mo_to_ldap_attributes = []
         self._sync_tool = None
 
+        # Relate graphQL object type names to AMQP routing key object types
+        self.object_type_dict = {
+            "employees": ObjectType.EMPLOYEE,
+            "org_units": ObjectType.ORG_UNIT,
+            "addresses": ObjectType.ADDRESS,
+            "itusers": ObjectType.IT,
+            "engagements": ObjectType.ENGAGEMENT,
+        }
+
+        self.object_type_dict_inv = {
+            str(v): k for k, v in self.object_type_dict.items()
+        }
+
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
             if len(value) == 0:
@@ -965,7 +978,12 @@ class DataLoader:
             output.append(engagement)
         return output
 
-    async def load_all_mo_objects(self, add_validity=False, uuid="") -> list[dict]:
+    async def load_all_mo_objects(
+        self,
+        add_validity: bool = False,
+        uuid: str = "",
+        object_types_to_try: tuple[str, ...] = (),
+    ) -> list[dict]:
         """
         Returns a list of dictionaries. One for each object in MO of one of the
         following types:
@@ -978,6 +996,9 @@ class DataLoader:
         Also adds AMQP object type, service type and payload to the dicts.
 
         If "uuid" is specified, only returns objects matching this uuid.
+        If "object_types_to_try" is also specified, only tries matching the given uuid
+        to these object types. "object_types_to_try" needs to be a tuple with strings
+        matching self.object_type_dict.keys()
         """
 
         query_template = """
@@ -1006,14 +1027,17 @@ class DataLoader:
 
         result: dict = {}
         warnings: list[str] = []
-        for object_type in [
-            "employees",
-            "org_units",
-            "addresses",
-            "itusers",
-            "engagements",
-        ]:
 
+        for object_type_to_try in object_types_to_try:
+            if object_type_to_try not in self.object_type_dict:
+                raise KeyError(
+                    f"{object_type_to_try} is not in {self.object_type_dict.keys()}"
+                )
+
+        if not object_types_to_try:
+            object_types_to_try = tuple(self.object_type_dict.keys())
+
+        for object_type in object_types_to_try:
             if object_type in ["employees", "org_units"]:
                 additional_uuids = ""
             else:
@@ -1036,14 +1060,6 @@ class DataLoader:
         if not result:
             for warning in warnings:
                 self.logger.warning(warning)
-
-        object_type_dict = {
-            "employees": ObjectType.EMPLOYEE,
-            "org_units": ObjectType.ORG_UNIT,
-            "addresses": ObjectType.ADDRESS,
-            "itusers": ObjectType.IT,
-            "engagements": ObjectType.ENGAGEMENT,
-        }
 
         output = []
 
@@ -1081,7 +1097,7 @@ class DataLoader:
                     time=datetime.datetime.now(),
                 )
 
-                mo_object["object_type"] = object_type_dict[object_type]
+                mo_object["object_type"] = self.object_type_dict[object_type]
                 mo_object["service_type"] = service_type
 
                 output.append(mo_object)
@@ -1093,7 +1109,12 @@ class DataLoader:
 
         return output
 
-    async def load_mo_object(self, uuid: str, add_validity=False):
+    async def load_mo_object(
+        self,
+        uuid: str,
+        object_type: ObjectType,
+        add_validity: bool = False,
+    ):
         """
         Returns a mo object as dictionary
 
@@ -1104,6 +1125,7 @@ class DataLoader:
         mo_objects = await self.load_all_mo_objects(
             add_validity=add_validity,
             uuid=str(uuid),
+            object_types_to_try=(self.object_type_dict_inv[str(object_type)],),
         )
         if mo_objects:
             # Note: load_all_mo_objects checks if len==1
