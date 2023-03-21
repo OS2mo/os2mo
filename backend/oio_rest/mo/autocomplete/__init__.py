@@ -7,11 +7,9 @@
 from uuid import UUID
 
 from sqlalchemy import cast
-from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.sql import bindparam
 from sqlalchemy.sql import func
 from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
@@ -33,25 +31,22 @@ def get_table(name):
     return Table(name, metadata, autoload_with=engine)
 
 
-def execute_query(query, limit=1000, **kwargs):
-    """Execute SQLAlchemy query `query` taking bind parameters from `kwargs`.
+def execute_query(query, limit=1000):
+    """Execute SQLAlchemy query `query`.
 
     Result set is limited to 1000 hits to avoid exhausting database resources
     (memory.)
     """
     engine = get_engine()
     with engine.connect() as conn:
-        result = conn.execute(query.limit(limit), **kwargs)
-        rows = result.fetchall()
+        result = conn.execute(query.limit(limit))
+        rows = result.mappings().fetchall()
         return rows
 
 
 def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
     """Search for users matching `phrase`, returning a list of database rows
     with `uuid` and `name` attributes."""
-
-    # Bind parameters
-    phrase_param = bindparam("phrase", type_=String)
 
     # Tables
     bruger_reg = get_table("bruger_registrering")
@@ -69,9 +64,9 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         select(bruger_uuid)
         .join(bruger_udv, bruger_udv.c.bruger_registrering_id == bruger_reg.c.id)
         .where(
-            func.char_length(phrase_param) > UUID_SEARCH_MIN_PHRASE_LENGTH,
+            func.char_length(phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             bruger_reg.c.bruger_id != None,  # noqa: E711
-            cast(bruger_reg.c.bruger_id, Text).ilike(phrase_param),
+            cast(bruger_reg.c.bruger_id, Text).ilike(phrase),
         )
         .cte()
     )
@@ -91,7 +86,7 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .join(bruger_udv, bruger_udv.c.bruger_registrering_id == bruger_reg.c.id)
         .where(
             bruger_reg.c.bruger_id != None,  # noqa: E711
-            name_concated.ilike(phrase_param),
+            name_concated.ilike(phrase),
         )
         .cte()
     )
@@ -103,7 +98,7 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .join(bruger_rel, bruger_rel.c.bruger_registrering_id == bruger_reg.c.id)
         .where(
             bruger_reg.c.bruger_id != None,  # noqa: E711
-            bruger_rel.c.rel_maal_urn.ilike(phrase_param),
+            bruger_rel.c.rel_maal_urn.ilike(phrase),
         )
         .cte()
     )
@@ -131,7 +126,7 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
             orgfunk_rel_a.c.rel_maal_uuid != None,  # noqa: E711
             orgfunk_rel_a.c.rel_type == "tilknyttedebrugere",
             orgfunk_rel_b.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
-            orgfunk_att.c.brugervendtnoegle.ilike(phrase_param),
+            orgfunk_att.c.brugervendtnoegle.ilike(phrase),
         )
         .cte()
     )
@@ -190,15 +185,12 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(bruger_uuid)
     )
 
-    return execute_query(decorated_hits, phrase=phrase)
+    return execute_query(decorated_hits)
 
 
 def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
-
-    # Bind parameters
-    phrase_param = bindparam("phrase", type_=String)
 
     # Tables
     enhed_reg = get_table("organisationenhed_registrering")
@@ -218,9 +210,9 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
             enhed_att.c.organisationenhed_registrering_id == enhed_reg.c.id,
         )
         .where(
-            func.char_length(phrase_param) > UUID_SEARCH_MIN_PHRASE_LENGTH,
+            func.char_length(phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             enhed_reg.c.organisationenhed_id != None,  # noqa: E711
-            cast(enhed_reg.c.organisationenhed_id, Text).ilike(phrase_param),
+            cast(enhed_reg.c.organisationenhed_id, Text).ilike(phrase),
         )
         .cte()
     )
@@ -235,8 +227,8 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .where(
             enhed_reg.c.organisationenhed_id != None,  # noqa: E711
             (
-                enhed_att.c.enhedsnavn.ilike(phrase_param)
-                | enhed_att.c.brugervendtnoegle.ilike(phrase_param)
+                enhed_att.c.enhedsnavn.ilike(phrase)
+                | enhed_att.c.brugervendtnoegle.ilike(phrase)
             ),
         )
         .cte()
@@ -273,7 +265,7 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
             orgfunk_rel_a.c.rel_maal_uuid != None,  # noqa: E711
             orgfunk_rel_a.c.rel_type.in_(["tilknyttedeenheder"]),
             orgfunk_rel_b.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
-            orgfunk_att.c.brugervendtnoegle.ilike(phrase_param),
+            orgfunk_att.c.brugervendtnoegle.ilike(phrase),
         )
         .cte()
     )
@@ -342,7 +334,7 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
         .group_by(enhed_uuid)
     )
 
-    return execute_query(decorated_hits, phrase=phrase)
+    return execute_query(decorated_hits)
 
 
 def _org_unit_path(all_hits, enhed_uuid):
