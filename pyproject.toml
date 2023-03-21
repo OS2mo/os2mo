@@ -46,7 +46,7 @@ strawberry-graphql = "^0.137.1"
 jsonschema = "^4.16.0"
 psycopg2-binary = "~2.8"
 pytest-timeouts = "^1.2.1"
-sentry-sdk = "^1.13.0"
+sentry-sdk = {extras = ["fastapi"], version = "^1.17.0"}
 psycopg = "^3.1.8"
 
 [tool.poetry.dev-dependencies]
