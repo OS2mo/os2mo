@@ -7,7 +7,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-from werkzeug.datastructures import ImmutableMultiDict
 
 from oio_rest.custom_exceptions import BadRequestException
 from oio_rest.db import db_helpers
@@ -805,7 +804,7 @@ class TestDBHelpers(ExtTestCase):
 
         # Act
         with app.test_request_context(data={}, method="POST"):
-            request.files = ImmutableMultiDict({"testfile": mockfile})
+            request.files = {"testfile": mockfile}
 
             actual_result = DokumentDelEgenskaberType._get_file_storage_for_content_url(
                 "field:testfile"

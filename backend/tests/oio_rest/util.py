@@ -83,8 +83,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        **kwargs is passed directly to the test client.
 
         One addition is that we support a 'json' argument that
         automatically posts the given JSON data.
@@ -129,8 +128,7 @@ class BaseTestCase(unittest.IsolatedAsyncioTestCase):
         """Issue a request and assert that it succeeds (and does not
         redirect) and yields the expected output.
 
-        **kwargs is passed directly to the test client -- see the
-        documentation for werkzeug.test.EnvironBuilder for details.
+        **kwargs is passed directly to the test client.
 
         One addition is that we support a 'json' argument that
         automatically posts the given JSON data.

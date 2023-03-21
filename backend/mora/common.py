@@ -16,7 +16,6 @@ import functools
 import uuid
 from typing import Any
 
-import werkzeug
 from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
@@ -190,9 +189,12 @@ def update_payload(
     payload: dict,
 ):
     relevant_fields = copy.deepcopy(relevant_fields)
-    combined_fields = werkzeug.datastructures.OrderedMultiDict(relevant_fields)
 
-    for field_tuple, vals in combined_fields.lists():
+    combined_fields = collections.defaultdict(list)
+    for key, value in relevant_fields:
+        combined_fields[key].append(value)
+
+    for field_tuple, vals in combined_fields.items():
         for val in vals:
             val["virkning"] = _create_virkning(valid_from, valid_to)
 
