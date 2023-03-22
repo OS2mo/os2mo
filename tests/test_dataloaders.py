@@ -204,9 +204,6 @@ async def test_load_ldap_cpr_object(
     output = dataloader.load_ldap_cpr_object("0101012002", "Employee")
     assert output == expected_result
 
-    output = dataloader.load_ldap_cpr_object("010101-2002", "Employee")
-    assert output == expected_result
-
 
 async def test_load_ldap_objects(
     ldap_connection: MagicMock, dataloader: DataLoader, ldap_attributes: dict
@@ -848,11 +845,6 @@ async def test_find_mo_employee_uuid(
 
     output = await asyncio.gather(
         dataloader.find_mo_employee_uuid("0101011221"),
-    )
-    assert output[0] == uuid
-
-    output = await asyncio.gather(
-        dataloader.find_mo_employee_uuid("010101-1221"),
     )
     assert output[0] == uuid
 

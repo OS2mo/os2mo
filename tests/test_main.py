@@ -7,6 +7,7 @@
 import asyncio
 import datetime
 import os
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from unittest.mock import AsyncMock
@@ -28,10 +29,12 @@ from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
+from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
+from mo_ldap_import_export.ldap_classes import LdapObject
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
@@ -432,6 +435,24 @@ async def test_import_all_objects_from_LDAP(
 ) -> None:
     response = test_client.get("/Import/all", headers=headers)
     assert response.status_code == 202
+
+
+async def test_import_all_objects_from_LDAP_invalid_cpr(
+    test_client: TestClient, headers: dict, dataloader: AsyncMock
+) -> None:
+    dataloader.load_ldap_objects.return_value = [
+        LdapObject(name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002")
+    ]
+
+    with capture_logs() as cap_logs:
+        response = test_client.get("/Import/all", headers=headers)
+        assert response.status_code == 202
+
+        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+        assert re.match(
+            ".*not a valid cpr number",
+            str(warnings[-1]["event"]),
+        )
 
 
 async def test_load_mapping_file_environment(
