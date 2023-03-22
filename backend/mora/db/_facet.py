@@ -9,6 +9,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import synonym
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -26,6 +27,7 @@ class Facet(_OIOEntityMixin, Base):
 class FacetRegistrering(_RegistreringMixin, Base):
     __tablename__ = "facet_registrering"
     facet_id = Column(ForeignKey("facet.id"), index=True)
+    uuid = synonym("facet_id")
 
 
 class FacetAttrEgenskaber(_AttrEgenskaberMixin, Base):

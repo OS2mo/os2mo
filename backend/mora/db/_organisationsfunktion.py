@@ -10,6 +10,7 @@ from sqlalchemy import Integer
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import synonym
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -27,6 +28,7 @@ class OrganisationFunktion(_OIOEntityMixin, Base):
 class OrganisationFunktionRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisationfunktion_registrering"
     organisationfunktion_id = Column(ForeignKey("organisationfunktion.id"), index=True)
+    uuid = synonym("organisationfunktion_id")
 
 
 FunktionsNavn = Literal[

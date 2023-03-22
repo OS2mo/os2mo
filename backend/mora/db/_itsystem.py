@@ -8,6 +8,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import synonym
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -24,6 +25,7 @@ class ITSystem(_OIOEntityMixin, Base):
 class ITSystemRegistrering(_RegistreringMixin, Base):
     __tablename__ = "itsystem_registrering"
     itsystem_id = Column(ForeignKey("itsystem.id"), index=True)
+    uuid = synonym("itsystem_id")
 
 
 class ITSystemAttrEgenskaber(_AttrEgenskaberMixin, Base):

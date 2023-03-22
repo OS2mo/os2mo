@@ -6,6 +6,8 @@ import re
 from base64 import b64encode
 from collections.abc import Awaitable
 from collections.abc import Callable
+from datetime import date
+from datetime import datetime
 from functools import partial
 from inspect import Parameter
 from inspect import signature
@@ -21,6 +23,7 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
+from sqlalchemy import select
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
@@ -40,6 +43,7 @@ from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import get_date_interval
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
@@ -53,9 +57,16 @@ from .types import Cursor
 from mora import common
 from mora import config
 from mora import lora
+from mora.db import BrugerRegistrering
+from mora.db import FacetRegistrering
+from mora.db import ITSystemRegistrering
+from mora.db import KlasseRegistrering
+from mora.db import OrganisationEnhedRegistrering
+from mora.db import OrganisationFunktionRegistrering
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
+from mora.util import parsedatetime
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -220,6 +231,36 @@ def uuid2list(uuid: UUID | None) -> list[UUID]:
     return [uuid]
 
 
+def model2dbregistration(model: Any) -> Any:
+    mapping = {
+        ClassRead: KlasseRegistrering,
+        EmployeeRead: BrugerRegistrering,
+        FacetRead: FacetRegistrering,
+        OrganisationUnitRead: OrganisationEnhedRegistrering,
+        AddressRead: OrganisationFunktionRegistrering,
+        AssociationRead: OrganisationFunktionRegistrering,
+        EngagementAssociationRead: OrganisationFunktionRegistrering,
+        EngagementRead: OrganisationFunktionRegistrering,
+        ITSystemRead: ITSystemRegistrering,
+        ITUserRead: OrganisationFunktionRegistrering,
+        KLERead: KlasseRegistrering,
+        LeaveRead: OrganisationFunktionRegistrering,
+        RoleRead: OrganisationFunktionRegistrering,
+        ManagerRead: OrganisationFunktionRegistrering,
+    }
+    return mapping[model]
+
+
+@strawberry.type
+class Registration:
+    registration_id: int
+    # TODO: Let datetimes be lazily resolved
+    start: datetime
+    end: datetime | None
+    # UUID of who made the change
+    actor: UUID
+
+
 @strawberry.type
 class Response(Generic[MOObject]):
     uuid: UUID
@@ -233,14 +274,66 @@ class Response(Generic[MOObject]):
     # provided explicitly.
     model: strawberry.Private[MOObject]
 
-    @strawberry.field(description="Validities for the current registration")
-    async def objects(self, root: Any, info: Info) -> list[MOObject]:
+    @strawberry.field(
+        description="Validities for the current registration",
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def objects(self, root: "Response", info: Info) -> list[MOObject]:
         # If the object_cache is filled our request has already been resolved elsewhere
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[root.model]["loader"]
         return (await info.context[resolver].load(root.uuid)).object_cache
+
+    # TODO: Implement using a dataloader
+    @strawberry.field(
+        description="Registrations for the current entity",
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def registrations(
+        self,
+        root: "Response",
+        info: Info,
+        actors: list[UUID] | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+    ) -> list[Registration]:
+        table = model2dbregistration(root.model)
+        dates = get_date_interval(start, end)
+        query = select(table).where(
+            table.uuid == root.uuid,
+            table.registreringstid_start.between(
+                dates.from_date or datetime(1, 1, 1),
+                dates.to_date or datetime(9999, 12, 31),
+            ),
+            table.registreringstid_slut.between(
+                dates.from_date or datetime(1, 1, 1),
+                dates.to_date or datetime(9999, 12, 31),
+            ),
+        )
+        if actors is not None:
+            query = query.where(table.actor.in_(actors))
+
+        def row2registration(res: Any) -> Registration:
+            start: datetime = parsedatetime(res.registreringstid_start)
+            end: datetime | None = parsedatetime(res.registreringstid_slut)
+            assert end is not None
+            if end.date() == date(9999, 12, 31):
+                end = None
+
+            return Registration(  # type: ignore
+                registration_id=res.id,
+                start=start,
+                end=end,
+                actor=res.actor,
+            )
+
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            result = await session.scalars(query)
+            result = list(map(row2registration, result))
+            return result
 
 
 LazySchema = strawberry.lazy(".schema")
