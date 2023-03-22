@@ -61,6 +61,13 @@ class _RegistreringMixin:
             ).scalar_subquery()
         )
 
+    # SQLAlchemy does not support composite types
+    @declared_attr
+    def actor(cls) -> Mapped[UUID]:
+        return column_property(
+            select(text("(registrering).brugerref")).scalar_subquery()
+        )
+
     def __repr__(self):
         return f"{self.__class__.__name__}(id={self.id}, registreringstid_start={self.registreringstid_start!r}, registreringstid_slut={self.registreringstid_slut!r})"
 

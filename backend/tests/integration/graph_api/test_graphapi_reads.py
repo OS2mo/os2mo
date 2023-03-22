@@ -78,15 +78,20 @@ class TestGraphAPI:
         """
         query = data.draw(
             gql_st.query(SCHEMA, fields=[field]).filter(
-                lambda query: "from_date: null" not in query
+                lambda query: (
+                    "from_date: null" not in query
+                    and
+                    # For details, see: backend/tests/graphapi/test_registration.py
+                    "registrations" not in query
+                )
             )
         )
 
         note(f"Failing query:\n{query}")
         response: GQLResponse = graphapi_post(query=query)
         assert response.status_code == 200
-        assert response.data
         assert response.errors is None
+        assert response.data
 
 
 @pytest.mark.integration_test
@@ -113,8 +118,8 @@ class TestManagerInheritance:
         """No inheritance - no manager for filins."""
         variables = {"uuids": [self.filins], "inherit": False}
         response: GQLResponse = graphapi_post(query=self.query, variables=variables)
-        assert response.data
         assert response.errors is None
+        assert response.data
         managers = flatten_data(response.data["org_units"])
         assert managers == [{"managers": []}]
 
@@ -122,8 +127,8 @@ class TestManagerInheritance:
         """Inheritance - Anders And is manager of both humfak & filins."""
         variables = {"uuids": [self.humfak, self.filins], "inherit": True}
         response: GQLResponse = graphapi_post(query=self.query, variables=variables)
-        assert response.data
         assert response.errors is None
+        assert response.data
         managers = flatten_data(response.data["org_units"])
         assert all_equal(managers)
 

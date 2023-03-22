@@ -38,6 +38,7 @@ repos:
           - structlog
           - prometheus_client
           - types-python-dateutil
+          - sqlalchemy
 
   - repo: https://github.com/pycqa/pydocstyle
     rev: 6.1.1

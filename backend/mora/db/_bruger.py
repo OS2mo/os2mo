@@ -9,6 +9,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import synonym
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -26,6 +27,7 @@ class Bruger(_OIOEntityMixin, Base):
 class BrugerRegistrering(_RegistreringMixin, Base):
     __tablename__ = "bruger_registrering"
     bruger_id: Mapped[UUID] = mapped_column(ForeignKey("bruger.id"), index=True)
+    uuid = synonym("bruger_id")
 
 
 class BrugerAttrEgenskaber(_AttrEgenskaberMixin, Base):
