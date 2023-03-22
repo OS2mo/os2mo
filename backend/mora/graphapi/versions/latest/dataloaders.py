@@ -1,11 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
-import copy
 from asyncio import gather
 from collections.abc import Callable
 from collections.abc import Iterable
-from contextlib import suppress
+from collections.abc import Iterator
 from functools import partial
 from itertools import starmap
 from typing import Any
@@ -217,7 +216,7 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
     lora_results = await c.klasse.get_all(**kwargs)
     return list(
         lora_classes_to_mo_classes(
-            _format_lora_results_only_newest_relevant_lists(
+            format_lora_results_only_newest_relevant_lists(
                 lora_results,
                 relevant_lists={
                     "attributter": ("klasseegenskaber",),
@@ -511,39 +510,45 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     }
 
 
-def _format_lora_results_only_newest_relevant_lists(
-    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple]
+def transform_lora_object_section(lora_value: list[dict]) -> list[dict]:
+    return [
+        max(
+            lora_value,
+            key=lambda x: date_parser.parse(x["virkning"]["from"])
+            if x["virkning"]["from"] != "-infinity"
+            else NEGATIVE_INFINITY,
+        )
+    ]
+
+
+def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterator[tuple[str, str]]:
+    for key, rel_lists in relevant_lists.items():
+        for list_name in rel_lists:
+            yield key, list_name
+
+
+def transform_lora_object(
+    relevant_paths: set[tuple[str, str]], lora_result_obj: dict
+) -> dict:
+    object_paths = set(gen_paths(lora_result_obj))
+    process_paths = relevant_paths.intersection(object_paths)
+    for key, list_name in process_paths:
+        lora_result_obj[key][list_name] = transform_lora_object_section(
+            lora_result_obj[key][list_name]
+        )
+
+    return lora_result_obj
+
+
+def format_lora_results_only_newest_relevant_lists(
+    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple[str, ...]]
 ) -> list[tuple[str, dict]]:
-    """Filter LoRa results, so {lora-element}-lists only contains the newest element.
+    if len(lora_results) < 1:
+        return []
 
-    "relevant_lists" reference lists like:
-    lora_results[i]["attributter"]["klasseegenskaber"]
-
-    This method was created for "get_classes", which was assumed to only have 1 element in each array,
-    but due to our "LOS importer" breaking this view, we need to get the newest version of each list,
-    for the class element.
-    The root cause for this method can be found in: lora_class_to_mo_class(),
-    where we use "one()" on LoRa classes
-
-    Args:
-        lora_results (list[tuple[str, dict]]): Lora results to be filtered
-        relevant_lists (dict[str, tuple]): lora-class lists to filter on each element
-
-    Returns:
-        list[tuple[str, dict]]: Filtered version of the lora_results
-    """
-    lora_results = copy.deepcopy(list(lora_results))  # noqa: FURB123
-    for lora_result_uuid, lora_result_obj in lora_results:
-        for relevant_list_key in relevant_lists.keys():
-            for section_list_name in relevant_lists[relevant_list_key]:
-                with suppress(KeyError):
-                    lora_result_obj[relevant_list_key][section_list_name] = [
-                        max(
-                            lora_result_obj[relevant_list_key][section_list_name],
-                            key=lambda x: date_parser.parse(x["virkning"]["from"])
-                            if x["virkning"]["from"] != "-infinity"
-                            else NEGATIVE_INFINITY,
-                        )
-                    ]
-
-    return lora_results
+    relevant_paths = set(gen_paths(relevant_lists))
+    uuids, lora_objects = zip(*lora_results)
+    transformed_lora_objects = map(
+        partial(transform_lora_object, relevant_paths), lora_objects
+    )
+    return list(zip(uuids, transformed_lora_objects))
