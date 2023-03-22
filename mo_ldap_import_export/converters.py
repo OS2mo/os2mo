@@ -15,7 +15,6 @@ from uuid import UUID
 from uuid import uuid4
 
 import pandas as pd
-import structlog
 from fastramqpi.context import Context
 from jinja2 import Environment
 from jinja2 import Undefined
@@ -29,6 +28,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap_classes import LdapObject
+from .logging import logger
 from .utils import delete_keys_from_dict
 from .utils import import_class
 
@@ -48,7 +48,7 @@ def find_cpr_field(mapping):
     """
     Get the field which contains the CPR number in LDAP
     """
-    logger = structlog.get_logger()
+
     mo_to_ldap = mapping["mo_to_ldap"]
     try:
         employee_mapping = mo_to_ldap["Employee"]
@@ -77,9 +77,6 @@ def find_cpr_field(mapping):
 
 class LdapConverter:
     def __init__(self, context: Context):
-
-        self.logger = structlog.get_logger()
-
         self.context = context
         self.user_context = context["user_context"]
         self.settings = self.user_context["settings"]
@@ -126,7 +123,7 @@ class LdapConverter:
     def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
         # to be re-initialized
-        self.logger.info("[info dict loader] Loading info dicts")
+        logger.info("[info dict loader] Loading info dicts")
         self.address_type_info = self.dataloader.load_mo_address_types()
         self.it_system_info = self.dataloader.load_mo_it_systems()
 
@@ -149,7 +146,7 @@ class LdapConverter:
         }
 
         self.check_info_dicts()
-        self.logger.info("[info dict loader] Info dicts loaded successfully")
+        logger.info("[info dict loader] Info dicts loaded successfully")
 
     def __import_to_mo__(self, json_key):
         """
@@ -239,8 +236,8 @@ class LdapConverter:
         json_keys = list(set(mo_to_ldap_json_keys + ldap_to_mo_json_keys))
         accepted_json_keys = self.get_accepted_json_keys()
 
-        self.logger.info(f"[json check] Accepted keys: {accepted_json_keys}")
-        self.logger.info(f"[json check] Detected keys: {json_keys}")
+        logger.info(f"[json check] Accepted keys: {accepted_json_keys}")
+        logger.info(f"[json check] Detected keys: {json_keys}")
 
         for key in json_keys:
             if key not in accepted_json_keys:
@@ -250,7 +247,7 @@ class LdapConverter:
                         f"Accepted keys are {accepted_json_keys}"
                     )
                 )
-        self.logger.info("[json check] Keys OK")
+        logger.info("[json check] Keys OK")
 
     def check_for_objectClass(self):
         for conversion in ["mo_to_ldap", "ldap_to_mo"]:
@@ -277,7 +274,7 @@ class LdapConverter:
 
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
         for json_key in ldap_to_mo_json_keys:
-            self.logger.info(f"[json check] checking ldap_to_mo[{json_key}]")
+            logger.info(f"[json check] checking ldap_to_mo[{json_key}]")
 
             mo_class = self.import_mo_object_class(json_key)
 
@@ -306,7 +303,7 @@ class LdapConverter:
 
         cpr_field = find_cpr_field(self.mapping)
         for json_key in mo_to_ldap_json_keys:
-            self.logger.info(f"[json check] checking mo_to_ldap['{json_key}']")
+            logger.info(f"[json check] checking mo_to_ldap['{json_key}']")
 
             object_class = self.find_ldap_object_class(json_key)
 
@@ -366,7 +363,7 @@ class LdapConverter:
                 template = self.raw_mapping["mo_to_ldap"][json_key][attribute]
                 for field_to_check in fields_to_check:
                     if field_to_check in template:
-                        self.logger.warning(
+                        logger.warning(
                             (
                                 f"[json check] {object_class}['{attribute}'] LDAP "
                                 "attribute cannot contain multiple values. "
@@ -421,7 +418,7 @@ class LdapConverter:
                     )
 
     def check_dar_scope(self):
-        self.logger.info("[json check] checking DAR scope")
+        logger.info("[json check] checking DAR scope")
         ldap_to_mo_json_keys = self.get_ldap_to_mo_json_keys()
 
         for json_key in ldap_to_mo_json_keys:
@@ -566,7 +563,7 @@ class LdapConverter:
 
                         # And if the argument is a hard-coded string:
                         if argument.startswith("'") and argument.endswith("'"):
-                            self.logger.info(f"[json check] Checking {template}")
+                            logger.info(f"[json check] Checking {template}")
 
                             # Check if the argument is a valid user_key
                             user_key = argument.replace("'", "")
@@ -605,7 +602,7 @@ class LdapConverter:
                     )
 
     def check_mapping(self):
-        self.logger.info("[json check] Checking json file")
+        logger.info("[json check] Checking json file")
 
         # Check that all mo_to_ldap keys are also in ldap_to_mo
         # Check that all ldap_to_mo keys are also in mo_to_ldap
@@ -645,7 +642,7 @@ class LdapConverter:
         # Check for import and export flags
         self.check_import_and_export_flags()
 
-        self.logger.info("[json check] Attributes OK")
+        logger.info("[json check] Attributes OK")
 
     def check_info_dict_for_duplicates(self, info_dict):
         """
@@ -670,7 +667,7 @@ class LdapConverter:
                 )
 
     def check_info_dicts(self):
-        self.logger.info("[info dict check] Checking info dicts")
+        logger.info("[info dict check] Checking info dicts")
         for info_dict_name, info_dict in self.all_info_dicts.items():
             if info_dict_name != "org_unit_info":
                 self.check_info_dict_for_duplicates(info_dict)
@@ -762,7 +759,7 @@ class LdapConverter:
             try:
                 self.get_org_unit_uuid_from_path(partial_path_string)
             except UUIDNotFoundException:
-                self.logger.info(f"Importing {partial_path_string}")
+                logger.info(f"Importing {partial_path_string}")
 
                 if nesting_level == 0:
                     parent_uuid = None
@@ -834,7 +831,7 @@ class LdapConverter:
         try:
             return self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
-            self.logger.info(
+            logger.info(
                 (f"Could not find '{org_unit_path_string}'. " "Creating organisation.")
             )
             self.create_org_unit(org_unit_path_string)
@@ -1069,7 +1066,7 @@ class LdapConverter:
             if all(a in mo_dict for a in required_attributes):
                 converted_objects.append(mo_class(**mo_dict))
             else:
-                self.logger.info(
+                logger.info(
                     (
                         f"Could not convert {mo_dict}. "
                         f"The following attributes are required: {required_attributes}"

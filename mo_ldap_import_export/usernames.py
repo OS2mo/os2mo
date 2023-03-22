@@ -1,12 +1,12 @@
 import re
 from typing import Union
 
-import structlog
 from fastramqpi.context import Context
 from ramodels.mo.employee import Employee
 
 from .exceptions import IncorrectMapping
 from .ldap import paged_search
+from .logging import logger
 
 
 class UserNameGeneratorBase:
@@ -18,9 +18,6 @@ class UserNameGeneratorBase:
     """
 
     def __init__(self, context: Context):
-
-        self.logger = structlog.get_logger()
-
         self.context = context
         self.user_context = context["user_context"]
         self.settings = self.user_context["settings"]
@@ -266,6 +263,6 @@ class UserNameGenerator(UserNameGeneratorBase):
         name = givenname.split(" ")[:4] + [surname]
         username = self._create_username(name)
 
-        self.logger.info(f"Generated username for {givenname} {surname}: '{username}'")
+        logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         return self._make_dn(username)

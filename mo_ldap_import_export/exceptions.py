@@ -1,10 +1,9 @@
 # SPDX-FileCopyrightText: 2019-2020 Magenta ApS
 #
 # SPDX-License-Identifier: MPL-2.0
-import structlog
 from fastapi import HTTPException
 
-logger = structlog.get_logger()
+from .logging import logger
 
 
 class MultipleObjectsReturnedException(HTTPException):

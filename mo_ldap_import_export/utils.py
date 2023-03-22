@@ -6,12 +6,12 @@ import copy
 import datetime
 from typing import Union
 
-import structlog
 from gql import gql
 from graphql import DocumentNode
 from graphql import print_ast
 
 from .exceptions import InvalidQuery
+from .logging import logger
 
 
 # https://stackoverflow.com/questions/547829/how-to-dynamically-load-a-python-class
@@ -58,7 +58,6 @@ def add_filter_to_query(query: DocumentNode, filter_to_add: str) -> DocumentNode
     objects which are valid now. That means that future and past object are returned
     as well as current ones.
     """
-    logger = structlog.get_logger()
     query_str = print_ast(query)
 
     try:
@@ -122,7 +121,6 @@ def listener(context, event):
     event_loop = user_context["event_loop"]
     sync_tool = user_context["sync_tool"]
     cpr_field = user_context["cpr_field"]
-    logger = structlog.get_logger()
 
     cpr = event.get("attributes", {}).get(cpr_field, None)
 
@@ -144,7 +142,6 @@ async def countdown(
 
     Note: We use asyncio.sleep because it is non-blocking
     """
-    logger = structlog.get_logger()
     seconds_remaining = seconds_to_sleep
     while seconds_remaining > 0:
         minutes, seconds = divmod(seconds_remaining, 60)
