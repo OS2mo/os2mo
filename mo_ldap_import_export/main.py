@@ -17,7 +17,6 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
-import structlog
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import FastAPI
@@ -61,11 +60,12 @@ from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
 from .ldap import setup_listener
 from .ldap_classes import LdapObject
+from .logging import logger
 from .utils import countdown
 from .utils import listener
 from .utils import mo_datestring_to_utc
 
-logger = structlog.get_logger()
+
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 internal_amqp_router = MORouter()

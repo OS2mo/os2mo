@@ -15,7 +15,6 @@ from typing import ContextManager
 from typing import Dict
 from typing import Union
 
-import structlog
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from ldap3 import Connection
@@ -38,6 +37,7 @@ from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
+from .logging import logger
 from .utils import datetime_to_ldap_timestamp
 from .utils import mo_object_is_valid
 
@@ -55,7 +55,6 @@ def construct_server(server_config: ServerConfig) -> Server:
         validate=CERT_NONE if server_config.insecure else CERT_REQUIRED
     )
 
-    logger = structlog.get_logger()
     host = server_config.host
     logger.info(f"Setting up server to {host}")
     return Server(
@@ -96,7 +95,6 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
     server_pool = ServerPool(servers, RANDOM, active=True, exhaust=True)
     client_strategy = get_client_strategy()
 
-    logger = structlog.get_logger()
     logger.info(f"Connecting to {server_pool}")
     logger.info(f"Client strategy: {client_strategy}")
     connection = Connection(
@@ -172,8 +170,6 @@ def paged_search(context: Context, searchParameters: dict) -> list:
             * attributes
     """
     responses = []
-    logger = structlog.get_logger()
-
     user_context = context["user_context"]
     search_base = user_context["settings"].ldap_search_base
     ldap_connection = user_context["ldap_connection"]
@@ -237,7 +233,6 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     """
     ldap_connection.search(**searchParameters)
     response = ldap_connection.response
-    logger = structlog.get_logger()
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
 
@@ -285,7 +280,6 @@ def get_ldap_object(dn, context, nest=True):
     """
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
-    logger = structlog.get_logger()
 
     searchParameters = {
         "search_base": dn,
@@ -308,7 +302,6 @@ def make_ldap_object(response: dict, context: Context, nest=True) -> Any:
     """
     attributes = sorted(list(response["attributes"].keys()))
     ldap_dict = {"dn": response["dn"]}
-    logger = structlog.get_logger()
 
     def get_nested_ldap_object(dn):
         """
@@ -379,7 +372,6 @@ async def cleanup(
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
-    logger = structlog.get_logger()
 
     if not converter.__export_to_ldap__(json_key):
         logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
@@ -504,7 +496,6 @@ def _poller(
     and calls the `callback` for each result found
     """
     last_search_time = init_search_time
-    logger = structlog.get_logger()
     last_events: list[Any] = []
 
     while True:

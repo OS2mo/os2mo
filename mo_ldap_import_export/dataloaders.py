@@ -8,7 +8,6 @@ from typing import cast
 from typing import Union
 from uuid import UUID
 
-import structlog
 from gql import gql
 from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
@@ -38,12 +37,12 @@ from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
+from .logging import logger
 from .utils import add_filter_to_query
 
 
 class DataLoader:
     def __init__(self, context):
-        self.logger = structlog.get_logger()
         self.context = context
         self.user_context = context["user_context"]
         self.ldap_connection = self.user_context["ldap_connection"]
@@ -219,7 +218,7 @@ class DataLoader:
         search_result = single_object_search(searchParameters, self.ldap_connection)
 
         ldap_object: LdapObject = make_ldap_object(search_result, self.context)
-        self.logger.info(f"Found {ldap_object.dn}")
+        logger.info(f"Found {ldap_object.dn}")
 
         return ldap_object
 
@@ -258,12 +257,10 @@ class DataLoader:
 
         # Modify LDAP
         if not value_exists or "DELETE" in ldap_command:
-            self.logger.info(
-                f"[modify_ldap] Uploading the following changes: {changes}"
-            )
+            logger.info(f"[modify_ldap] Uploading the following changes: {changes}")
             self.ldap_connection.modify(dn, changes)
             response = self.ldap_connection.result
-            self.logger.info(f"[modify_ldap] Response: {response}")
+            logger.info(f"[modify_ldap] Response: {response}")
 
             # If successful, the importer should ignore this DN
             if response["description"] == "success":
@@ -281,7 +278,7 @@ class DataLoader:
 
             return response
         else:
-            self.logger.info(
+            logger.info(
                 f"[modify_ldap] {attribute}['{value_to_modify}'] already exists"
             )
 
@@ -296,7 +293,7 @@ class DataLoader:
         to compile an LDAP object of a different type.
         """
         for ldap_object in ldap_objects:
-            self.logger.info(f"Cleaning up attributes from {ldap_object.dn}")
+            logger.info(f"Cleaning up attributes from {ldap_object.dn}")
             attributes_to_clean = [
                 a
                 for a in ldap_object.dict().keys()
@@ -304,13 +301,13 @@ class DataLoader:
             ]
 
             if not attributes_to_clean:
-                self.logger.info("No cleanable attributes found")
+                logger.info("No cleanable attributes found")
                 return
 
             dn = ldap_object.dn
             for attribute in attributes_to_clean:
                 value_to_delete = ldap_object.dict()[attribute]
-                self.logger.info(f"Cleaning {value_to_delete} from '{attribute}'")
+                logger.info(f"Cleaning {value_to_delete} from '{attribute}'")
 
                 changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
                 self.modify_ldap(dn, changes)
@@ -361,7 +358,7 @@ class DataLoader:
         """
         converter = self.user_context["converter"]
         if not converter.__export_to_ldap__(json_key):
-            self.logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
+            logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
             return None
         success = 0
         failed = 0
@@ -382,11 +379,11 @@ class DataLoader:
                 getattr(object_to_modify, cpr_field), json_key
             )
             object_to_modify.dn = existing_object.dn
-            self.logger.info(f"Found existing object: {existing_object.dn}")
+            logger.info(f"Found existing object: {existing_object.dn}")
         except NoObjectsReturnedException:
-            self.logger.info("Could not find existing object: An entry will be created")
+            logger.info("Could not find existing object: An entry will be created")
 
-        self.logger.info(f"Uploading {object_to_modify}")
+        logger.info(f"Uploading {object_to_modify}")
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
         dn = object_to_modify.dn
         results = []
@@ -416,16 +413,16 @@ class DataLoader:
             try:
                 response = self.modify_ldap(dn, changes)
             except LDAPInvalidValueError as e:
-                self.logger.warning(e)
+                logger.warning(e)
                 failed += 1
                 continue
 
             # If the user does not exist, create him/her/hir
             if response and response["description"] == "noSuchObject":
-                self.logger.info(f"Received 'noSuchObject' response. Creating {dn}")
+                logger.info(f"Received 'noSuchObject' response. Creating {dn}")
                 self.ldap_connection.add(dn, object_class)
                 response = self.ldap_connection.result
-                self.logger.info(f"Response: {response}")
+                logger.info(f"Response: {response}")
                 response = self.modify_ldap(dn, changes)
 
             if response and response["description"] == "success":
@@ -435,8 +432,8 @@ class DataLoader:
 
             results.append(response)
 
-        self.logger.info(f"Succeeded MODIFY_* operations: {success}")
-        self.logger.info(f"Failed MODIFY_* operations: {failed}")
+        logger.info(f"Succeeded MODIFY_* operations: {success}")
+        logger.info(f"Failed MODIFY_* operations: {failed}")
         return results
 
     def make_overview_entry(self, attributes, superiors, example_value_dict=None):
@@ -757,7 +754,7 @@ class DataLoader:
             % (uuid)
         )
 
-        self.logger.info(f"Loading address={uuid}")
+        logger.info(f"Loading address={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = result["addresses"][0]["objects"][0]
@@ -834,7 +831,7 @@ class DataLoader:
             % (uuid)
         )
 
-        self.logger.info(f"Loading engagement={uuid}")
+        logger.info(f"Loading engagement={uuid}")
         result = await self.query_past_future_mo(query, current_objects_only)
 
         entry = result["engagements"][0]["objects"][0]
@@ -1059,7 +1056,7 @@ class DataLoader:
 
         if not result:
             for warning in warnings:
-                self.logger.warning(warning)
+                logger.warning(warning)
 
         output = []
 
