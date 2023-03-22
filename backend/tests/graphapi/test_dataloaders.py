@@ -13,6 +13,9 @@ from pytest import MonkeyPatch
 from .strategies import data_strat
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.dataloaders import (
+    format_lora_results_only_newest_relevant_lists,
+)
 from mora.graphapi.versions.latest.dataloaders import get_classes
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
@@ -42,6 +45,73 @@ models = [
     RelatedUnitRead,
     RoleRead,
 ]
+
+# lora_objects
+lora_class_multiple_attrs_and_states = {
+    "brugerref": "00000000-0000-0000-0000-000000000000",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "-",
+                "omfang": "TEXT",
+                "titel": "-",
+                "virkning": {
+                    "from": "1910-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
+            },
+            {
+                "brugervendtnoegle": "Gruppemedlem",
+                "omfang": "TEXT",
+                "titel": "Gruppemedlem",
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "1910-01-01 00:00:00+01",
+                },
+            },
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "1910-01-01 00:00:00+01",
+                },
+                "publiceret": "Publiceret",
+            },
+            {
+                "virkning": {
+                    "from": "1910-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
+                "publiceret": "IkkePubliceret",
+            },
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                },
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "objekttype": "organisation",
+            }
+        ],
+        "facet": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                },
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "objekttype": "facet",
+            }
+        ],
+    },
+}
 
 
 @pytest.mark.skip(reason="We need a LoRa dataset for these to make sense")
@@ -200,3 +270,158 @@ async def test_get_classes_with_effects(mock_get_all):
 
     assert mo_class.name == not_published_name
     assert mo_class.published == not_published_state
+
+
+@pytest.mark.parametrize(
+    "lora_results,relevant_lists,expected",
+    [
+        (
+            [],
+            {},
+            [],
+        ),
+        (
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    lora_class_multiple_attrs_and_states,
+                ),
+                (
+                    "00000000-0000-0000-0000-000000000001",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "Gruppemedlem",
+                                    "omfang": "TEXT",
+                                    "titel": "Gruppemedlem",
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                }
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                    "publiceret": "Publiceret",
+                                },
+                            ]
+                        },
+                    },
+                ),
+            ],
+            {
+                "attributter": ("klasseegenskaber",),
+                "tilstande": ("klassepubliceret",),
+                "relationer": ("ejer", "ansvarlig", "facet"),
+            },
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "-",
+                                    "omfang": "TEXT",
+                                    "titel": "-",
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                },
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                    "publiceret": "IkkePubliceret",
+                                }
+                            ]
+                        },
+                    },
+                ),
+                (
+                    "00000000-0000-0000-0000-000000000001",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "Gruppemedlem",
+                                    "omfang": "TEXT",
+                                    "titel": "Gruppemedlem",
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                }
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                    "publiceret": "Publiceret",
+                                },
+                            ]
+                        },
+                    },
+                ),
+            ],
+        ),
+        (
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    lora_class_multiple_attrs_and_states,
+                )
+            ],
+            {
+                "attributter": ("klasseegenskaber",),
+            },
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "-",
+                                    "omfang": "TEXT",
+                                    "titel": "-",
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                },
+                            ]
+                        },
+                    },
+                )
+            ],
+        ),
+    ],
+)
+def test_format_lora_results_only_newest_relevant_lists(
+    lora_results, relevant_lists, expected
+):
+    assert expected == format_lora_results_only_newest_relevant_lists(
+        lora_results=lora_results, relevant_lists=relevant_lists
+    )
