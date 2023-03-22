@@ -35,6 +35,7 @@ from ldap3 import Connection
 from pydantic import ValidationError
 from raclients.graph.client import PersistentGraphQLClient
 from raclients.modelclient.mo import ModelClient
+from ramodels.mo._shared import validate_cpr
 from ramqp import AMQPSystem
 from ramqp.mo import MORouter
 from ramqp.mo.models import MORoutingKey
@@ -432,7 +433,13 @@ def create_app(**kwargs: Any) -> FastAPI:
             # - MO was observed to not handle that well either.
             # - We don't need the additional speed. This is meant as a one-time import
             for cpr in all_cpr_numbers:
-                await import_single_user_from_LDAP(cpr)
+                try:
+                    validate_cpr(cpr)
+                except ValueError:
+                    logger.warning(f"{cpr} is not a valid cpr number")
+                    continue
+                else:
+                    await import_single_user_from_LDAP(cpr)
                 progress_bar.update()
 
     # Load a single user from LDAP, and import him/her/hir into MO

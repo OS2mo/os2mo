@@ -197,7 +197,6 @@ class DataLoader:
             - 'Employee'
             - a MO address type name
         """
-        cpr_no = cpr_no.replace("-", "")
         cpr_field = self.user_context["cpr_field"]
         settings = self.user_context["settings"]
 
@@ -534,7 +533,7 @@ class DataLoader:
               }
             }
             """
-            % cpr_no.replace("-", "")
+            % cpr_no
         )
 
         result = await self.query_mo(query, raise_if_empty=False)
