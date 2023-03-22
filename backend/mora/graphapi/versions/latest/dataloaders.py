@@ -13,6 +13,7 @@ from uuid import UUID
 
 from dateutil import parser as date_parser
 from more_itertools import bucket
+from more_itertools import ilen
 from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
@@ -217,7 +218,7 @@ async def get_classes(**kwargs: Any) -> list[ClassRead]:
     return list(
         lora_classes_to_mo_classes(
             format_lora_results_only_newest_relevant_lists(
-                lora_results,
+                list(lora_results),
                 relevant_lists={
                     "attributter": ("klasseegenskaber",),
                     "tilstande": ("klassepubliceret",),
@@ -527,23 +528,22 @@ def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterator[tuple[str,
             yield key, list_name
 
 
-def transform_lora_object(
-    relevant_paths: set[tuple[str, str]], lora_result_obj: dict
-) -> dict:
-    object_paths = set(gen_paths(lora_result_obj))
+def transform_lora_object(relevant_paths: set[tuple[str, str]], lora_obj: dict) -> dict:
+    object_paths = set(gen_paths(lora_obj))
     process_paths = relevant_paths.intersection(object_paths)
     for key, list_name in process_paths:
-        lora_result_obj[key][list_name] = transform_lora_object_section(
-            lora_result_obj[key][list_name]
+        lora_obj[key][list_name] = transform_lora_object_section(
+            lora_obj[key][list_name]
         )
 
-    return lora_result_obj
+    return lora_obj
 
 
 def format_lora_results_only_newest_relevant_lists(
-    lora_results: list[tuple[str, dict]], relevant_lists: dict[str, tuple[str, ...]]
+    lora_results: Iterable[tuple[str, list[dict[str, Any]] | dict[str, Any]]],
+    relevant_lists: dict[str, tuple[str, ...]],
 ) -> list[tuple[str, dict]]:
-    if len(lora_results) < 1:
+    if ilen(lora_results) < 1:
         return []
 
     relevant_paths = set(gen_paths(relevant_lists))
