@@ -4,6 +4,9 @@
 # It assumes that the underlying LoRa database contains the MO extensions
 # defined in `mo-01.json`. Thus, it cannot be used with a basic LoRa database
 # where the MO extensions have not been installed.
+from datetime import date
+from datetime import datetime
+from datetime import time
 from uuid import UUID
 
 from sqlalchemy import cast
@@ -188,9 +191,17 @@ def find_users_matching(phrase: str, class_uuids: list[UUID] | None = None):
     return execute_query(decorated_hits)
 
 
-def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
+def find_org_units_matching(
+    phrase: str, class_uuids: list[UUID] | None = None, at: date | None = None
+):
     """Search for organisation units matching `phrase`, returning a list of
     database rows with `uuid` and `name` attributes."""
+    at_datetime_str_sql = "now()"
+    if at is not None:
+        at_datetime_str_sql = (
+            f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
+            "'YYYY-MM-DD HH24:MI:SS')"
+        )
 
     # Tables
     enhed_reg = get_table("organisationenhed_registrering")
@@ -213,6 +224,9 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
             func.char_length(phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             enhed_reg.c.organisationenhed_id != None,  # noqa: E711
             cast(enhed_reg.c.organisationenhed_id, Text).ilike(phrase),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
         )
         .cte()
     )
@@ -229,6 +243,9 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
             (
                 enhed_att.c.enhedsnavn.ilike(phrase)
                 | enhed_att.c.brugervendtnoegle.ilike(phrase)
+            ),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
             ),
         )
         .cte()
@@ -266,6 +283,9 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
             orgfunk_rel_a.c.rel_type.in_(["tilknyttedeenheder"]),
             orgfunk_rel_b.c.rel_type.in_(["adresser", "tilknyttedeitsystemer"]),
             orgfunk_att.c.brugervendtnoegle.ilike(phrase),
+            text(
+                f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
         )
         .cte()
     )
@@ -276,14 +296,16 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
 
     # Decorate results with unit's full name and selected related values
     current_org_units_only = text(
-        "(organisationenhed_attr_egenskaber.virkning).timeperiod @> now()"
+        f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
     )
     current_org_unit_name = func.jsonb_agg(
         enhed_att.c.enhedsnavn, type_=postgresql.JSONB
     ).filter(current_org_units_only)[0]
 
+    current_attrs_only = text(
+        f"(organisationfunktion_relation.virkning).timeperiod @> {at_datetime_str_sql}"
+    )
     orgfunk_rel_other = orgfunk_rel.alias()
-
     attrs = func.jsonb_agg(
         func.distinct(
             func.jsonb_build_array(
@@ -291,7 +313,8 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
                 orgfunk_att.c.brugervendtnoegle,
             )
         ),
-    )
+    ).filter(current_attrs_only)
+
     if class_uuids:
         attrs = attrs.filter(
             orgfunk_rel_other.c.rel_maal_uuid.in_(map(str, class_uuids))
@@ -330,7 +353,15 @@ def find_org_units_matching(phrase: str, class_uuids: list[UUID] | None = None):
                 )
             ),
         )
-        .where(enhed_uuid == all_hits.c.uuid)
+        .where(
+            enhed_uuid == all_hits.c.uuid,
+            text(
+                f"(organisationfunktion_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+            text(
+                f"(organisationfunktion_relation_3.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+        )
         .group_by(enhed_uuid)
     )
 
