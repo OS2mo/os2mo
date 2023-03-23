@@ -10,6 +10,7 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
+from dateutil import parser as date_parser
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
@@ -39,11 +40,9 @@ from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from mora.util import NEGATIVE_INFINITY
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
-from dateutil import parser as date_parser
-from mora.util import NEGATIVE_INFINITY
 
 
 MOModel = TypeVar(
