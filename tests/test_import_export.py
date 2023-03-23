@@ -683,6 +683,13 @@ async def test_import_single_object_from_LDAP_ignore_dn(
         )
 
 
+async def test_import_single_object_from_LDAP_invalid_cpr(sync_tool: SyncTool) -> None:
+    with capture_logs() as cap_logs:
+        await asyncio.gather(sync_tool.import_single_user("5001011234"))
+        messages = [w for w in cap_logs if w["log_level"] == "warning"]
+        assert re.match(".*not a valid cpr number", messages[-1]["event"])
+
+
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):

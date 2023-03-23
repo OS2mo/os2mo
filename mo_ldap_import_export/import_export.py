@@ -13,6 +13,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastramqpi.context import Context
+from ramodels.mo._shared import validate_cpr
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
@@ -463,14 +464,23 @@ class SyncTool:
         return converted_objects_uuid_checked
 
     async def import_single_user(self, cpr: str):
+        """
+        Imports a single user from LDAP
+        """
+        try:
+            validate_cpr(cpr)
+        except ValueError:
+            logger.warning(f"{cpr} is not a valid cpr number")
+            return
+
+        detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
+
         # Get the employee's uuid (if he exists)
         # Note: We could optimize this by loading all relevant employees once. But:
         # - What if an employee is created by someone else while this code is running?
         # - We don't need the additional speed. This is meant as a one-time import
         # - We won't gain much; This is an asynchronous request. The code moves on while
         #   we are waiting for MO's response
-        detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
-
         employee_uuid = await self.dataloader.find_mo_employee_uuid(cpr)
         if not employee_uuid:
             employee_uuid = uuid4()
