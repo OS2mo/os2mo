@@ -72,7 +72,8 @@ class DataLoader:
                 raise NoObjectsReturnedException(
                     (
                         f"query_result['{key}'] is empty. "
-                        "Does the object still exist as a current object?"
+                        f"Does the '{key}' object still exist as a current object? "
+                        f"Does the '{key}' object exist in MO?"
                     )
                 )
 
