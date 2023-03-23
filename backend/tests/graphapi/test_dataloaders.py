@@ -1,13 +1,21 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Tests of dataloaders used in the GraphQL implementation."""
+import uuid
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+
 import pytest
 from hypothesis import given
+from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import data_strat
 from .strategies import data_with_uuids_strat
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.dataloaders import (
+    format_lora_results_only_newest_relevant_lists,
+)
 from mora.graphapi.versions.latest.schema import AddressRead
 from mora.graphapi.versions.latest.schema import AssociationRead
 from mora.graphapi.versions.latest.schema import EmployeeRead
@@ -19,6 +27,7 @@ from mora.graphapi.versions.latest.schema import ManagerRead
 from mora.graphapi.versions.latest.schema import OrganisationUnitRead
 from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
+
 
 pytestmark = pytest.mark.asyncio
 
@@ -35,6 +44,78 @@ models = [
     RelatedUnitRead,
     RoleRead,
 ]
+
+lora_class_multiple_attrs_and_states = {
+    "brugerref": "00000000-0000-0000-0000-000000000000",
+    "fratidspunkt": {
+        "tidsstempeldatotid": "1900-01-01 01:00:00+01",
+        "graenseindikator": True,
+    },
+    "tiltidspunkt": {"tidsstempeldatotid": "infinity"},
+    "livscykluskode": "Rettet",
+    "attributter": {
+        "klasseegenskaber": [
+            {
+                "brugervendtnoegle": "-",
+                "omfang": "TEXT",
+                "titel": "-",
+                "virkning": {
+                    "from": "1910-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
+            },
+            {
+                "brugervendtnoegle": "Gruppemedlem",
+                "omfang": "TEXT",
+                "titel": "Gruppemedlem",
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "1910-01-01 00:00:00+01",
+                },
+            },
+        ]
+    },
+    "tilstande": {
+        "klassepubliceret": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "1910-01-01 00:00:00+01",
+                },
+                "publiceret": "Publiceret",
+            },
+            {
+                "virkning": {
+                    "from": "1910-01-01 00:00:00+01",
+                    "to": "infinity",
+                },
+                "publiceret": "IkkePubliceret",
+            },
+        ]
+    },
+    "relationer": {
+        "ansvarlig": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                },
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "objekttype": "organisation",
+            }
+        ],
+        "facet": [
+            {
+                "virkning": {
+                    "from": "1900-01-01 01:00:00+01",
+                    "to": "infinity",
+                },
+                "uuid": "00000000-0000-0000-0000-000000000000",
+                "objekttype": "facet",
+            }
+        ],
+    },
+}
 
 
 @pytest.mark.skip(reason="We need a LoRa dataset for these to make sense")
@@ -91,3 +172,172 @@ class TestDataloaders:
             assert set(result) == {None}
         else:
             assert set(result) == set()
+
+
+@patch("mora.lora.Scope.get_all", new_callable=AsyncMock)
+async def test_get_classes_formatted(mock_get_all):
+    lora_obj_uuid = lora_class_multiple_attrs_and_states["brugerref"]
+    mock_get_all.return_value = [(lora_obj_uuid, lora_class_multiple_attrs_and_states)]
+
+    response = await dataloaders.get_classes(facet_uuids=[uuid.UUID(lora_obj_uuid)])
+    mo_class = one(response)
+
+    assert mo_class.name == "-"
+    assert mo_class.published == "IkkePubliceret"
+
+
+@pytest.mark.parametrize(
+    "lora_results,relevant_lists,expected",
+    [
+        (
+            [],
+            {},
+            [],
+        ),
+        (
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    lora_class_multiple_attrs_and_states,
+                ),
+                (
+                    "00000000-0000-0000-0000-000000000001",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "brugerref": "00000000-0000-0000-0000-000000000001",
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "Gruppemedlem",
+                                    "omfang": "TEXT",
+                                    "titel": "Gruppemedlem",
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                }
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                    "publiceret": "Publiceret",
+                                },
+                            ]
+                        },
+                    },
+                ),
+            ],
+            {
+                "attributter": ("klasseegenskaber",),
+                "tilstande": ("klassepubliceret",),
+                "relationer": ("ejer", "ansvarlig", "facet"),
+            },
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "-",
+                                    "omfang": "TEXT",
+                                    "titel": "-",
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                },
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                    "publiceret": "IkkePubliceret",
+                                }
+                            ]
+                        },
+                    },
+                ),
+                (
+                    "00000000-0000-0000-0000-000000000001",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "brugerref": "00000000-0000-0000-0000-000000000001",
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "Gruppemedlem",
+                                    "omfang": "TEXT",
+                                    "titel": "Gruppemedlem",
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                }
+                            ]
+                        },
+                        "tilstande": {
+                            "klassepubliceret": [
+                                {
+                                    "virkning": {
+                                        "from": "1900-01-01 01:00:00+01",
+                                        "to": "1910-01-01 00:00:00+01",
+                                    },
+                                    "publiceret": "Publiceret",
+                                },
+                            ]
+                        },
+                    },
+                ),
+            ],
+        ),
+        (
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    lora_class_multiple_attrs_and_states,
+                )
+            ],
+            {
+                "attributter": ("klasseegenskaber",),
+            },
+            [
+                (
+                    "00000000-0000-0000-0000-000000000000",
+                    {
+                        **lora_class_multiple_attrs_and_states,
+                        "attributter": {
+                            "klasseegenskaber": [
+                                {
+                                    "brugervendtnoegle": "-",
+                                    "omfang": "TEXT",
+                                    "titel": "-",
+                                    "virkning": {
+                                        "from": "1910-01-01 00:00:00+01",
+                                        "to": "infinity",
+                                    },
+                                },
+                            ]
+                        },
+                    },
+                )
+            ],
+        ),
+    ],
+)
+def test_format_lora_results_only_newest_relevant_lists(
+    lora_results, relevant_lists, expected
+):
+    assert expected == format_lora_results_only_newest_relevant_lists(
+        lora_results=lora_results, relevant_lists=relevant_lists
+    )
