@@ -20,6 +20,7 @@ from ramqp.mo.models import PayloadType
 
 from .exceptions import IgnoreChanges
 from .exceptions import MultipleObjectsReturnedException
+from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
 from .logging import logger
@@ -467,6 +468,7 @@ class SyncTool:
         """
         Imports a single user from LDAP
         """
+        logger.info(f"Importing user with cpr={cpr}")
         try:
             validate_cpr(cpr)
         except ValueError:
@@ -483,6 +485,7 @@ class SyncTool:
         #   we are waiting for MO's response
         employee_uuid = await self.dataloader.find_mo_employee_uuid(cpr)
         if not employee_uuid:
+            logger.info("Employee not found in MO - generating employee uuid")
             employee_uuid = uuid4()
 
         # First import the Employee
@@ -506,7 +509,7 @@ class SyncTool:
                 logger.info(e)
                 return
 
-            logger.info(f"Loaded {loaded_object.dn}")
+            logger.info(f"Loaded {loaded_object}")
 
             converted_objects = self.converter.from_ldap(
                 loaded_object, json_key, employee_uuid=employee_uuid
@@ -515,10 +518,26 @@ class SyncTool:
             if len(converted_objects) == 0:
                 logger.info("No converted objects")
                 continue
+            else:
+                logger.info(f"Successfully converted {len(converted_objects)} objects ")
 
-            converted_objects = await self.format_converted_objects(
-                converted_objects, json_key
-            )
+            try:
+                converted_objects = await self.format_converted_objects(
+                    converted_objects, json_key
+                )
+            except NoObjectsReturnedException:
+                # If any of the objects which this object links to does not exist
+                # The dataloader will raise NoObjectsReturnedException
+                #
+                # This can happen, for example:
+                # If converter.__import_to_mo__('Address') = True
+                # And converter.__import_to_mo__('Employee') = False
+                #
+                # Because an address cannot be imported for an employee that does not
+                # exist. The non-existing employee is also not created because
+                # converter.__import_to_mo__('Employee') = False
+                logger.info("Could not format converted objects. Moving on.")
+                continue
 
             if len(converted_objects) > 0:
                 logger.info(f"Importing {converted_objects}")

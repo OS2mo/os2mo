@@ -18,6 +18,7 @@ from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
+from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import IgnoreMe
 from mo_ldap_import_export.import_export import SyncTool
@@ -476,6 +477,11 @@ async def test_format_converted_employee_address_objects(
     assert formatted_objects[0].uuid == address1_in_mo.uuid
     assert formatted_objects[0].value == "foo"
 
+    # Simulate that a matching employee for this address does not exist
+    dataloader.load_mo_employee_addresses.side_effect = NoObjectsReturnedException("f")
+    with pytest.raises(NoObjectsReturnedException):
+        await sync_tool.format_converted_objects(converted_objects, "Address")
+
 
 async def test_format_converted_org_unit_address_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
@@ -510,6 +516,11 @@ async def test_format_converted_org_unit_address_objects(
 
     assert formatted_objects[0].uuid == address1_in_mo.uuid
     assert formatted_objects[0].value == "foo"
+
+    # Simulate that a matching org unit for this address does not exist
+    dataloader.load_mo_org_unit_addresses.side_effect = NoObjectsReturnedException("f")
+    with pytest.raises(NoObjectsReturnedException):
+        await sync_tool.format_converted_objects(converted_objects, "Address")
 
 
 async def test_format_converted_org_unit_address_objects_identical_to_mo(
@@ -569,6 +580,44 @@ async def test_format_converted_address_objects_without_person_or_org_unit(
     )
 
     assert len(formatted_objects) == 0
+
+
+async def test_format_converted_it_user_objects(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+):
+    converter.get_mo_attributes.return_value = ["value", "address_type"]
+    converter.find_mo_object_class.return_value = "ITUser"
+    converter.import_mo_object_class.return_value = ITUser
+
+    it_user_in_mo = ITUser.from_simplified_fields(
+        "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
+    )
+
+    dataloader.load_mo_employee_it_users.return_value = [it_user_in_mo]
+
+    converted_objects = [
+        ITUser.from_simplified_fields(
+            "Username1", uuid4(), "2021-01-01", person_uuid=uuid4()
+        ),
+        ITUser.from_simplified_fields(
+            "Username2", uuid4(), "2021-01-01", person_uuid=uuid4()
+        ),
+    ]
+
+    formatted_objects = await sync_tool.format_converted_objects(
+        converted_objects,
+        "ITUser",
+    )
+
+    formatted_user_keys = [f.user_key for f in formatted_objects]
+    assert "Username1" not in formatted_user_keys
+    assert "Username2" in formatted_user_keys
+    assert len(formatted_objects) == 1
+
+    # Simulate that a matching employee for this it user does not exist
+    dataloader.load_mo_employee_it_users.side_effect = NoObjectsReturnedException("f")
+    with pytest.raises(NoObjectsReturnedException):
+        await sync_tool.format_converted_objects(converted_objects, "ITUser")
 
 
 async def test_format_converted_primary_engagement_objects(
@@ -643,6 +692,13 @@ async def test_format_converted_primary_engagement_objects(
     assert formatted_objects[0].primary.uuid is not None
     assert formatted_objects[0].user_key == "123"
 
+    # Simulate that a matching employee for this engagement does not exist
+    dataloader.load_mo_employee_engagements.side_effect = NoObjectsReturnedException(
+        "f"
+    )
+    with pytest.raises(NoObjectsReturnedException):
+        await sync_tool.format_converted_objects(converted_objects, json_key)
+
 
 async def test_import_single_object_from_LDAP_ignore_twice(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
@@ -699,7 +755,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         await asyncio.gather(sync_tool.import_single_user("0101011234"))
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
-        for message in messages:
+        for message in messages[1:]:
             assert re.match(
                 "__import_to_mo__ == False",
                 message["event"],
@@ -711,9 +767,7 @@ async def test_import_single_object_from_LDAP_multiple_employees(
 ) -> None:
 
     dataloader.load_ldap_cpr_object.return_value = None
-    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException(
-        "foo"
-    )
+    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException("f")
 
     with capture_logs() as cap_logs:
         await asyncio.gather(sync_tool.import_single_user("0101011234"))
@@ -756,6 +810,16 @@ async def test_import_address_objects(
     ):
         await asyncio.gather(sync_tool.import_single_user("0101011234"))
         dataloader.upload_mo_objects.assert_called_with(converted_objects)
+
+    with patch(
+        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+        side_effect=NoObjectsReturnedException("foo"),
+    ):
+        with capture_logs() as cap_logs:
+            await asyncio.gather(sync_tool.import_single_user("0101011234"))
+
+            messages = [w for w in cap_logs if w["log_level"] == "info"]
+            assert "Could not format converted objects. Moving on." in str(messages)
 
 
 async def test_import_it_user_objects(
