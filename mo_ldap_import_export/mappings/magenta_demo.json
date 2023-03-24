@@ -70,7 +70,6 @@
       "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
-
   },
   "mo_to_ldap": {
     "Employee": {
