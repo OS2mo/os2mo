@@ -60,7 +60,17 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
-    }
+    },
+    "PhoneEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ ldap.telephoneNumber or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
+
   },
   "mo_to_ldap": {
     "Employee": {
@@ -114,7 +124,13 @@
       "memberOf": "{{NONE}}",
       "personalTitle": "{{mo_employee_engagement.user_key}}",
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}"
-    }
+    },
+    "PhoneEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": false,
+      "telephoneNumber": "{{mo_employee_address.value}}",
+      "employeeID": "{{mo_employee.cpr_no}}",
+    },
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",

@@ -1,4 +1,5 @@
 import asyncio
+import copy
 import datetime
 import re
 from unittest.mock import AsyncMock
@@ -9,6 +10,7 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
+from httpx import HTTPStatusError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -821,6 +823,20 @@ async def test_import_address_objects(
             messages = [w for w in cap_logs if w["log_level"] == "info"]
             assert "Could not format converted objects. Moving on." in str(messages)
 
+    # Simulate invalid phone number
+    dataloader.upload_mo_objects.side_effect = HTTPStatusError(
+        "invalid phone number", request=MagicMock(), response=MagicMock()
+    )
+    with capture_logs() as cap_logs:
+        ignore_dict = copy.deepcopy(sync_tool.uuids_to_ignore.ignore_dict)
+        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+
+        messages = [w for w in cap_logs if w["log_level"] == "warning"]
+        assert "invalid phone number" in str(messages)
+
+        # Make sure that no uuids are added to the ignore dict, if the import fails
+        assert ignore_dict == sync_tool.uuids_to_ignore.ignore_dict
+
 
 async def test_import_it_user_objects(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
@@ -918,3 +934,24 @@ async def test_ignoreMe():
     strings_to_ignore.clean()
     assert len(strings_to_ignore) == 0
     assert len(strings_to_ignore["old_ignore_string"]) == 0
+
+
+async def test_remove_from_ignoreMe():
+
+    # Initialize empty ignore dict
+    strings_to_ignore = IgnoreMe()
+
+    uuid = uuid4()
+    strings_to_ignore.add(uuid)
+    strings_to_ignore.add(uuid)
+
+    timestamps = strings_to_ignore[uuid]
+
+    assert len(strings_to_ignore[uuid]) == 2
+
+    strings_to_ignore.remove(uuid)
+    assert len(strings_to_ignore[uuid]) == 1
+    assert strings_to_ignore[uuid][0] == min(timestamps)
+
+    strings_to_ignore.remove(uuid)
+    assert len(strings_to_ignore[uuid]) == 0

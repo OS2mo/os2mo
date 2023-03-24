@@ -13,6 +13,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastramqpi.context import Context
+from httpx import HTTPStatusError
 from ramodels.mo._shared import validate_cpr
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
@@ -68,6 +69,15 @@ class IgnoreMe:
             self.ignore_dict[str_to_add].append(datetime.datetime.now())
         else:
             self.ignore_dict[str_to_add] = [datetime.datetime.now()]
+
+    def remove(self, str_to_remove: Union[str, UUID]):
+        if type(str_to_remove) is not str:
+            str_to_remove = str(str_to_remove)
+
+        if str_to_remove in self.ignore_dict:
+            # Remove latest entry from the ignore dict
+            newest_timestamp = max(self.ignore_dict[str_to_remove])
+            self.ignore_dict[str_to_remove].remove(newest_timestamp)
 
     def check(self, str_to_check: Union[str, UUID]):
         # Raise ignoreChanges if the string to check is in self.ignore_dict
@@ -545,4 +555,10 @@ class SyncTool:
                 for mo_object in converted_objects:
                     self.uuids_to_ignore.add(mo_object.uuid)
 
-                await self.dataloader.upload_mo_objects(converted_objects)
+                try:
+                    await self.dataloader.upload_mo_objects(converted_objects)
+                except HTTPStatusError as e:
+                    # This can happen, for example if a phone number in LDAP is invalid
+                    logger.warning(e)
+                    for mo_object in converted_objects:
+                        self.uuids_to_ignore.remove(mo_object.uuid)
