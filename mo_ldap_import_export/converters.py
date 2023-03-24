@@ -424,7 +424,9 @@ class LdapConverter:
         for json_key in ldap_to_mo_json_keys:
             mo_class = self.find_mo_object_class(json_key)
             if ".Address" in mo_class:
-                uuid = self.get_object_uuid_from_name(self.address_type_info, json_key)
+                uuid = self.get_object_uuid_from_user_key(
+                    self.address_type_info, json_key
+                )
                 if self.address_type_info[uuid]["scope"] == "DAR":
                     raise IncorrectMapping(
                         f"'{json_key}' maps to an address with scope = 'DAR'"
@@ -689,12 +691,12 @@ class LdapConverter:
     def name_normalizer(name):
         return name.lower().replace("-", " ")
 
-    def get_object_uuid_from_name(self, info_dict: dict, name: str):
+    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str):
         name_key = "user_key"
-        if not name:
+        if not user_key:
             raise UUIDNotFoundException("object type name is empty")
 
-        normalized_name = self.name_normalizer(name)
+        normalized_name = self.name_normalizer(user_key)
 
         candidates = {
             info[name_key]: info["uuid"]
@@ -702,34 +704,38 @@ class LdapConverter:
             if self.name_normalizer(info[name_key]) == normalized_name
         }
         if len(candidates) > 0:
-            if name in candidates:
-                return candidates[name]
+            if user_key in candidates:
+                return candidates[user_key]
             return list(candidates.values())[0]
         else:
-            raise UUIDNotFoundException(f"'{name}' not found in '{info_dict}'")
+            raise UUIDNotFoundException(f"'{user_key}' not found in '{info_dict}'")
 
     def get_address_type_uuid(self, address_type: str):
-        return self.get_object_uuid_from_name(self.address_type_info, address_type)
+        return self.get_object_uuid_from_user_key(self.address_type_info, address_type)
 
     def get_it_system_uuid(self, it_system: str):
-        return self.get_object_uuid_from_name(self.it_system_info, it_system)
+        return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
     def get_job_function_uuid(self, job_function: str):
-        return self.get_object_uuid_from_name(self.job_function_info, job_function)
+        return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
 
     def get_primary_type_uuid(self, primary: str):
-        return self.get_object_uuid_from_name(self.primary_type_info, primary)
+        return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
 
     def get_engagement_type_uuid(self, engagement_type: str):
-        return self.get_object_uuid_from_name(
+        return self.get_object_uuid_from_user_key(
             self.engagement_type_info, engagement_type
         )
 
     def get_org_unit_type_uuid(self, org_unit_type: str):
-        return self.get_object_uuid_from_name(self.org_unit_type_info, org_unit_type)
+        return self.get_object_uuid_from_user_key(
+            self.org_unit_type_info, org_unit_type
+        )
 
     def get_org_unit_level_uuid(self, org_unit_level: str):
-        return self.get_object_uuid_from_name(self.org_unit_level_info, org_unit_level)
+        return self.get_object_uuid_from_user_key(
+            self.org_unit_level_info, org_unit_level
+        )
 
     def get_address_type_user_key(self, uuid: str):
         return self.get_object_user_key_from_uuid(self.address_type_info, uuid)
