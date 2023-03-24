@@ -1,0 +1,129 @@
+# SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+# SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+
+import pytest
+
+from tests.conftest import GQLResponse
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "resolver,limit,offset,expected_length",
+    [
+        # Addresses
+        ("addresses", None, None, 8),
+        ("addresses", 0, 0, 0),
+        ("addresses", 8, 0, 8),
+        ("addresses", 4, 0, 4),
+        ("addresses", 8, 1, 7),
+        ("addresses", 10, 8, 0),
+        # Associations
+        ("associations", None, None, 1),
+        ("associations", 0, 0, 0),
+        ("associations", 1, 0, 1),
+        ("associations", 10, 1, 0),
+        # Classes
+        ("classes", None, None, 38),
+        ("classes", 0, 0, 0),
+        ("classes", 38, 0, 38),
+        ("classes", 10, 0, 10),
+        ("classes", 38, 1, 37),
+        ("classes", 40, 38, 0),
+        # Employees
+        ("employees", None, None, 4),
+        ("employees", 0, 0, 0),
+        ("employees", 4, 0, 4),
+        ("employees", 2, 0, 2),
+        ("employees", 4, 1, 3),
+        ("employees", 10, 4, 0),
+        # Engagement Associations
+        ("engagement_associations", None, None, 1),
+        ("engagement_associations", 0, 0, 0),
+        ("engagement_associations", 1, 0, 1),
+        ("engagement_associations", 10, 1, 0),
+        # Engagements
+        ("engagements", None, None, 3),
+        ("engagements", 0, 0, 0),
+        ("engagements", 3, 0, 3),
+        ("engagements", 2, 0, 2),
+        ("engagements", 3, 1, 2),
+        ("engagements", 10, 3, 0),
+        # Facets
+        ("facets", None, None, 19),
+        ("facets", 0, 0, 0),
+        ("facets", 19, 0, 19),
+        ("facets", 10, 0, 10),
+        ("facets", 20, 19, 0),
+        # It Systems
+        ("itsystems", None, None, 3),
+        ("itsystems", 0, 0, 0),
+        ("itsystems", 3, 0, 3),
+        ("itsystems", 2, 0, 2),
+        ("itsystems", 3, 1, 2),
+        ("itsystems", 10, 3, 0),
+        # It Users
+        ("itusers", None, None, 1),
+        ("itusers", 0, 0, 0),
+        ("itusers", 1, 0, 1),
+        ("itusers", 10, 1, 0),
+        # KLEs
+        ("kles", None, None, 1),
+        ("kles", 0, 0, 0),
+        ("kles", 1, 0, 1),
+        ("kles", 10, 1, 0),
+        # Leaves
+        ("leaves", None, None, 1),
+        ("leaves", 0, 0, 0),
+        ("leaves", 1, 0, 1),
+        ("leaves", 10, 1, 0),
+        # Managers
+        ("managers", None, None, 1),
+        ("managers", 0, 0, 0),
+        ("managers", 1, 0, 1),
+        ("managers", 10, 1, 0),
+        # Org Units
+        ("org_units", None, None, 9),
+        ("org_units", 0, 0, 0),
+        # While OFFSET and LIMITing is done in LoRa/SQL, further filtering is sometimes
+        # applied in MO. Confusingly, this means that receiving a list shorter than the
+        # requested limit does not imply that we are at the end.
+        ("org_units", 9, 0, 7),
+        ("org_units", 11, 0, 9),
+        ("org_units", 10, 1, 9),
+        ("org_units", 10, 9, 2),
+        # Related Units
+        ("related_units", None, None, 1),
+        ("related_units", 0, 0, 0),
+        ("related_units", 1, 0, 1),
+        ("related_units", 1, 1, 0),
+        ("related_units", 10, 1, 0),
+        # Roles
+        ("roles", None, None, 1),
+        ("roles", 0, 0, 0),
+        ("roles", 1, 0, 1),
+        ("roles", 1, 1, 0),
+        ("roles", 10, 1, 0),
+        ("roles", 20, 10, 0),
+    ],
+)
+async def test_pagination(
+    graphapi_post: Callable,
+    resolver: str,
+    limit: int,
+    offset: int,
+    expected_length: int,
+) -> None:
+    """Test pagination."""
+    query = f"""
+        query PaginationTestQuery($limit: int, $offset: int) {{
+          {resolver}(limit: $limit, offset: $offset) {{
+            uuid
+          }}
+        }}
+    """
+    variables = dict(limit=limit, offset=offset)
+    response: GQLResponse = graphapi_post(query, variables)
+    assert response.errors is None
+    assert len(response.data[resolver]) == expected_length

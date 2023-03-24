@@ -8,6 +8,7 @@ from operator import attrgetter
 from typing import Any
 from uuid import UUID
 
+from pydantic import PositiveInt
 from pydantic import ValidationError
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
@@ -36,6 +37,8 @@ class StaticResolver:
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
     ):
         """Resolve queries with no validity, i.e. class/facet/itsystem.
 
@@ -45,6 +48,8 @@ class StaticResolver:
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=None,  # from -inf
             to_date=None,  # to inf
         )
@@ -54,15 +59,24 @@ class StaticResolver:
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
+        # Dates
         dates = get_date_interval(from_date, to_date)
         set_graphql_dates(dates)
+
+        # UUIDs
         if uuids is not None:
+            if limit is not None or offset is not None:
+                raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
             return await self.get_by_uuid(info.context[self.loader], uuids)
+
+        # User keys
         if user_keys is not None:
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
@@ -76,6 +90,13 @@ class StaticResolver:
             use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
             escaped_user_keys = (re.escape(k) for k in user_keys)
             kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+
+        # Pagination
+        if limit is not None:
+            kwargs["maximalantalresultater"] = limit
+        if offset is not None:
+            kwargs["foersteresultat"] = offset
+
         return await info.context[self.getter](**kwargs)
 
     @staticmethod
@@ -104,6 +125,8 @@ class Resolver(StaticResolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
     ):
@@ -112,10 +135,19 @@ class Resolver(StaticResolver):
         Args:
             uuids: Only retrieve these UUIDs. Defaults to None.
             user_keys: Only retrieve these user_keys. Defaults to None.
+            limit: The maximum number of elements to return. Fewer elements may be
+                returned if the query itself yields fewer elements.
+            offset: Skips this many elements before beginning to return elements. An
+                offset of 0 is the same as omitting offset, as is null.
             from_date: Lower bound of the object validity (bitemporal lookup).
                 Defaults to UNSET, in which case from_date is today.
             to_date: Upper bound of the object validity (bitemporal lookup).
                 Defaults to UNSET, in which case to_date is from_date + 1 ms.
+
+        Note:
+            While OFFSET and LIMITing is done in LoRa/SQL, further filtering is
+            sometimes applied in MO. Confusingly, this means that receiving a list
+            shorter than the requested limit does not imply that we are at the end.
 
         Returns:
             List of response objects based on getters/loaders.
@@ -128,6 +160,8 @@ class Resolver(StaticResolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
         )
@@ -155,6 +189,8 @@ class ClassResolver(StaticResolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
     ):
@@ -177,6 +213,8 @@ class ClassResolver(StaticResolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=None,  # from -inf
             to_date=None,  # to inf
             **kwargs,
@@ -192,6 +230,8 @@ class AddressResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         address_types: list[UUID] | None = None,
@@ -221,6 +261,8 @@ class AddressResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -236,6 +278,8 @@ class AssociationResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -267,6 +311,8 @@ class AssociationResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -282,6 +328,8 @@ class EmployeeResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         cpr_numbers: list[CPR] | None = None,
@@ -296,6 +344,8 @@ class EmployeeResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -311,6 +361,8 @@ class EngagementResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -326,6 +378,8 @@ class EngagementResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -341,6 +395,8 @@ class ManagerResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -356,6 +412,8 @@ class ManagerResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -371,6 +429,8 @@ class OrganisationUnitResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
@@ -392,6 +452,8 @@ class OrganisationUnitResolver(Resolver):
             info=info,
             uuids=uuids,
             user_keys=user_keys,
+            limit=limit,
+            offset=offset,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
