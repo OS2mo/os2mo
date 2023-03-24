@@ -36,7 +36,7 @@ RUN chmod -R 400 "/cron/crontab"
 
 
 # Default command
-CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
+CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--root-path", "/ldap_ie" ]
 
 
 # Add build version to the environment last to avoid build cache misses
