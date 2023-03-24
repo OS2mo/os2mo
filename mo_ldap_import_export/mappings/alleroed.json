@@ -15,7 +15,7 @@
       "__import_to_mo__": false,
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
-      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Medarbejder (månedsløn)')) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('månedsløn')) }}",
       "user_key": "{{ ldap.employeeID }}",
       "validity": "{{ dict(from_date=now()|mo_datestring, to_date=ldap.extensionAttribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",

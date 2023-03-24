@@ -1073,19 +1073,19 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
             converter.check_ldap_to_mo_references()
 
 
-def test_get_object_uuid_from_name(converter: LdapConverter):
+def test_get_object_uuid_from_user_key(converter: LdapConverter):
 
     uuid = uuid4()
     name = "Skt. Joseph Skole"
     info_dict = {uuid: {"uuid": uuid, "user_key": name}}
-    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
 
     with pytest.raises(UUIDNotFoundException):
         info_dict = {uuid: {"uuid": uuid, "user_key": name}}
-        converter.get_object_uuid_from_name(info_dict, "bar")
+        converter.get_object_uuid_from_user_key(info_dict, "bar")
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_object_uuid_from_name(info_dict, "")
+        converter.get_object_uuid_from_user_key(info_dict, "")
 
     uuid2 = uuid4()
     # Check that a perfect match will be preferred over a normalized match
@@ -1093,14 +1093,14 @@ def test_get_object_uuid_from_name(converter: LdapConverter):
         uuid2: {"uuid": uuid2, "user_key": name.lower()},
         uuid: {"uuid": uuid, "user_key": name},
     }
-    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
 
     # Check that if no perfect matches exist, use the first match
     info_dict = {
         uuid: {"uuid": uuid, "user_key": name.upper()},
         uuid2: {"uuid": uuid2, "user_key": name.lower()},
     }
-    assert converter.get_object_uuid_from_name(info_dict, name) == uuid
+    assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
 
 
 def test_create_org_unit(converter: LdapConverter):
