@@ -4,7 +4,9 @@ from collections.abc import Awaitable
 from collections.abc import Callable
 from typing import Any
 
+import strawberry
 from fastapi import Depends
+from pydantic import PositiveInt
 
 from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
@@ -26,6 +28,7 @@ class LatestGraphQLSchema(BaseGraphQLSchema):
 
     scalar_overrides = {
         CPR: CPRType,
+        PositiveInt: strawberry.scalar(int),
     }
 
 

@@ -410,8 +410,8 @@ class SearchQueryBuilder:
             WHERE sub.{self.__count_col_name}={len(distinct_relations)}"""
 
         order_by_stmt = f"ORDER BY {self.__id_col_name}"
-        limit_stmt = f"LIMIT {self.__limit}" if self.__limit else ""
-        offset_stmt = f"OFFSET {self.__offset}" if self.__offset else ""
+        limit_stmt = f"LIMIT {self.__limit}" if self.__limit is not None else ""
+        offset_stmt = f"OFFSET {self.__offset}" if self.__offset is not None else ""
 
         return f"""{select_from_stmt} {where_stmt}
         {order_by_stmt} {limit_stmt} {offset_stmt};"""
