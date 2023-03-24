@@ -32,7 +32,7 @@ starlette-context = "^0.3.6"
 click = "^8.1.3"
 os2mo-fastapi-utils = "^1.3.0"
 structlog = "^22.1.0"
-python-multipart = "^0.0.5"
+python-multipart = "^0.0.6"
 service-person-stamdata-udvidet = {git = "https://github.com/magenta-aps/service_person_stamdata_udvidet", rev = "1.0.3"}
 lora-utils = {git = "https://github.com/magenta-aps/lora-utils"}
 prometheus-fastapi-instrumentator = "^6.0.0"
