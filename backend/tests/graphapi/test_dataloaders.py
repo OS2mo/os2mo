@@ -102,7 +102,7 @@ lora_class_multiple_attrs_and_states = {
                 },
                 "uuid": "00000000-0000-0000-0000-000000000000",
                 "objekttype": "organisation",
-            }
+            },
         ],
         "facet": [
             {

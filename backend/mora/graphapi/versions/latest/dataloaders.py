@@ -13,7 +13,6 @@ from uuid import UUID
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
-from more_itertools import unzip
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
@@ -506,7 +505,7 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     }
 
 
-def transform_lora_object_section(lora_value: list[dict]) -> list[dict]:
+def convert_lora_object_section(lora_value: list[dict]) -> list[dict]:
     """Transforms a lora_object list, to only contain the newest element.
 
     Ex. transform_lora_object_section(lora_object["attributter"]["klasseegenskaber"])
@@ -544,9 +543,7 @@ def transform_lora_object(
     object_paths = set(gen_paths(lora_obj))
     process_paths = relevant_paths.intersection(object_paths)
     for key, list_name in process_paths:
-        lora_obj[key][list_name] = transform_lora_object_section(
-            lora_obj[key][list_name]
-        )
+        lora_obj[key][list_name] = convert_lora_object_section(lora_obj[key][list_name])
 
 
 def format_lora_results_only_newest_relevant_lists(
@@ -566,14 +563,14 @@ def format_lora_results_only_newest_relevant_lists(
 
     relevant_paths = set(gen_paths(relevant_lists))
     try:
-        uuids, lora_objects = unzip(lora_results)
+        uuids, lora_objects = zip(*lora_results)
     except ValueError:
         # Occurs when the "lora_results"-iterable is empty
         return []
 
     lora_objects_formatted: list[dict[str, Any]] = []
     for obj in lora_objects:
-        transform_lora_object(relevant_paths, obj)  # type: ignore
-        lora_objects_formatted.append(obj)  # type: ignore
+        transform_lora_object(relevant_paths, obj)
+        lora_objects_formatted.append(obj)
 
-    return list(zip(uuids, lora_objects_formatted))  # type: ignore
+    return list(zip(uuids, lora_objects_formatted))
