@@ -576,6 +576,21 @@ def create_app(**kwargs: Any) -> FastAPI:
         result = await dataloader.load_ldap_objects(json_key)
         return encode_result(result[-entries_to_return:])
 
+    # Get all objects from LDAP with invalid cpr numbers
+    @app.get("/LDAP_overview/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
+    async def get_invalid_cpr_numbers_from_LDAP(user=Depends(login_manager)) -> Any:
+        result = await dataloader.load_ldap_objects("Employee")
+
+        formatted_result = {}
+        for entry in result:
+            cpr = str(getattr(entry, converter.cpr_field))
+
+            try:
+                validate_cpr(cpr)
+            except ValueError:
+                formatted_result[entry.dn] = cpr
+        return formatted_result
+
     # Modify a person in LDAP
     @app.post("/LDAP/{json_key}", tags=["LDAP"])
     async def post_object_to_LDAP(
