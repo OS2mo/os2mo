@@ -186,158 +186,157 @@ async def test_get_classes_formatted(mock_get_all):
     assert mo_class.published == "IkkePubliceret"
 
 
-@pytest.mark.parametrize(
-    "lora_results,relevant_lists,expected",
-    [
+def test_format_lora_results_only_newest_relevant_lists_empty():
+    assert format_lora_results_only_newest_relevant_lists([], {}) == []
+
+
+def test_format_lora_results_only_newest_relevant_lists_multiple_relevant_lists():
+    relevant_lists = {
+        "attributter": ("klasseegenskaber",),
+        "tilstande": ("klassepubliceret",),
+        "relationer": ("ejer", "ansvarlig", "facet"),
+    }
+
+    lora_results = [
         (
-            [],
-            {},
-            [],
+            "00000000-0000-0000-0000-000000000000",
+            lora_class_multiple_attrs_and_states,
         ),
         (
-            [
-                (
-                    "00000000-0000-0000-0000-000000000000",
-                    lora_class_multiple_attrs_and_states,
-                ),
-                (
-                    "00000000-0000-0000-0000-000000000001",
-                    {
-                        **lora_class_multiple_attrs_and_states,
-                        "brugerref": "00000000-0000-0000-0000-000000000001",
-                        "attributter": {
-                            "klasseegenskaber": [
-                                {
-                                    "brugervendtnoegle": "Gruppemedlem",
-                                    "omfang": "TEXT",
-                                    "titel": "Gruppemedlem",
-                                    "virkning": {
-                                        "from": "1900-01-01 01:00:00+01",
-                                        "to": "1910-01-01 00:00:00+01",
-                                    },
-                                }
-                            ]
-                        },
-                        "tilstande": {
-                            "klassepubliceret": [
-                                {
-                                    "virkning": {
-                                        "from": "1900-01-01 01:00:00+01",
-                                        "to": "1910-01-01 00:00:00+01",
-                                    },
-                                    "publiceret": "Publiceret",
-                                },
-                            ]
-                        },
-                    },
-                ),
-            ],
+            "00000000-0000-0000-0000-000000000001",
             {
-                "attributter": ("klasseegenskaber",),
-                "tilstande": ("klassepubliceret",),
-                "relationer": ("ejer", "ansvarlig", "facet"),
+                **lora_class_multiple_attrs_and_states,
+                "brugerref": "00000000-0000-0000-0000-000000000001",
+                "attributter": {
+                    "klasseegenskaber": [
+                        {
+                            "brugervendtnoegle": "Gruppemedlem",
+                            "omfang": "TEXT",
+                            "titel": "Gruppemedlem",
+                            "virkning": {
+                                "from": "1900-01-01 01:00:00+01",
+                                "to": "1910-01-01 00:00:00+01",
+                            },
+                        }
+                    ]
+                },
+                "tilstande": {
+                    "klassepubliceret": [
+                        {
+                            "virkning": {
+                                "from": "1900-01-01 01:00:00+01",
+                                "to": "1910-01-01 00:00:00+01",
+                            },
+                            "publiceret": "Publiceret",
+                        },
+                    ]
+                },
             },
-            [
-                (
-                    "00000000-0000-0000-0000-000000000000",
-                    {
-                        **lora_class_multiple_attrs_and_states,
-                        "attributter": {
-                            "klasseegenskaber": [
-                                {
-                                    "brugervendtnoegle": "-",
-                                    "omfang": "TEXT",
-                                    "titel": "-",
-                                    "virkning": {
-                                        "from": "1910-01-01 00:00:00+01",
-                                        "to": "infinity",
-                                    },
-                                },
-                            ]
+        ),
+    ]
+    exptected_after_format = [
+        (
+            "00000000-0000-0000-0000-000000000000",
+            {
+                **lora_class_multiple_attrs_and_states,
+                "attributter": {
+                    "klasseegenskaber": [
+                        {
+                            "brugervendtnoegle": "-",
+                            "omfang": "TEXT",
+                            "titel": "-",
+                            "virkning": {
+                                "from": "1910-01-01 00:00:00+01",
+                                "to": "infinity",
+                            },
                         },
-                        "tilstande": {
-                            "klassepubliceret": [
-                                {
-                                    "virkning": {
-                                        "from": "1910-01-01 00:00:00+01",
-                                        "to": "infinity",
-                                    },
-                                    "publiceret": "IkkePubliceret",
-                                }
-                            ]
-                        },
-                    },
-                ),
-                (
-                    "00000000-0000-0000-0000-000000000001",
-                    {
-                        **lora_class_multiple_attrs_and_states,
-                        "brugerref": "00000000-0000-0000-0000-000000000001",
-                        "attributter": {
-                            "klasseegenskaber": [
-                                {
-                                    "brugervendtnoegle": "Gruppemedlem",
-                                    "omfang": "TEXT",
-                                    "titel": "Gruppemedlem",
-                                    "virkning": {
-                                        "from": "1900-01-01 01:00:00+01",
-                                        "to": "1910-01-01 00:00:00+01",
-                                    },
-                                }
-                            ]
-                        },
-                        "tilstande": {
-                            "klassepubliceret": [
-                                {
-                                    "virkning": {
-                                        "from": "1900-01-01 01:00:00+01",
-                                        "to": "1910-01-01 00:00:00+01",
-                                    },
-                                    "publiceret": "Publiceret",
-                                },
-                            ]
-                        },
-                    },
-                ),
-            ],
+                    ]
+                },
+                "tilstande": {
+                    "klassepubliceret": [
+                        {
+                            "virkning": {
+                                "from": "1910-01-01 00:00:00+01",
+                                "to": "infinity",
+                            },
+                            "publiceret": "IkkePubliceret",
+                        }
+                    ]
+                },
+            },
         ),
         (
-            [
-                (
-                    "00000000-0000-0000-0000-000000000000",
-                    lora_class_multiple_attrs_and_states,
-                )
-            ],
+            "00000000-0000-0000-0000-000000000001",
             {
-                "attributter": ("klasseegenskaber",),
-            },
-            [
-                (
-                    "00000000-0000-0000-0000-000000000000",
-                    {
-                        **lora_class_multiple_attrs_and_states,
-                        "attributter": {
-                            "klasseegenskaber": [
-                                {
-                                    "brugervendtnoegle": "-",
-                                    "omfang": "TEXT",
-                                    "titel": "-",
-                                    "virkning": {
-                                        "from": "1910-01-01 00:00:00+01",
-                                        "to": "infinity",
-                                    },
-                                },
-                            ]
+                **lora_class_multiple_attrs_and_states,
+                "brugerref": "00000000-0000-0000-0000-000000000001",
+                "attributter": {
+                    "klasseegenskaber": [
+                        {
+                            "brugervendtnoegle": "Gruppemedlem",
+                            "omfang": "TEXT",
+                            "titel": "Gruppemedlem",
+                            "virkning": {
+                                "from": "1900-01-01 01:00:00+01",
+                                "to": "1910-01-01 00:00:00+01",
+                            },
+                        }
+                    ]
+                },
+                "tilstande": {
+                    "klassepubliceret": [
+                        {
+                            "virkning": {
+                                "from": "1900-01-01 01:00:00+01",
+                                "to": "1910-01-01 00:00:00+01",
+                            },
+                            "publiceret": "Publiceret",
                         },
-                    },
-                )
-            ],
+                    ]
+                },
+            },
         ),
-    ],
-)
-def test_format_lora_results_only_newest_relevant_lists(
-    lora_results, relevant_lists, expected
-):
-    assert expected == format_lora_results_only_newest_relevant_lists(
-        lora_results=lora_results, relevant_lists=relevant_lists
+    ]
+
+    assert (
+        format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        == exptected_after_format
+    )
+
+
+def test_format_lora_results_only_newest_relevant_lists_single_relevant_lists():
+    relevant_lists = {"attributter": ("klasseegenskaber",)}
+
+    lora_results = [
+        (
+            "00000000-0000-0000-0000-000000000000",
+            lora_class_multiple_attrs_and_states,
+        )
+    ]
+
+    exptected_after_format = [
+        (
+            "00000000-0000-0000-0000-000000000000",
+            {
+                **lora_class_multiple_attrs_and_states,
+                "attributter": {
+                    "klasseegenskaber": [
+                        {
+                            "brugervendtnoegle": "-",
+                            "omfang": "TEXT",
+                            "titel": "-",
+                            "virkning": {
+                                "from": "1910-01-01 00:00:00+01",
+                                "to": "infinity",
+                            },
+                        },
+                    ]
+                },
+            },
+        )
+    ]
+
+    assert (
+        format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        == exptected_after_format
     )
