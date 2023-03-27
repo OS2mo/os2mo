@@ -348,6 +348,9 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
+
+    # Fix for for login manager not respecting root_path
+    # See https://github.com/tiangolo/fastapi/issues/5778
     app.mount("/ldap_ie", app)
 
     login_manager = LoginManager(
