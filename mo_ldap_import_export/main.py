@@ -160,6 +160,7 @@ async def listen_to_changes(
 
     # If we are not supposed to listen: reject and turn the message into a dead letter.
     if not Settings().listen_to_changes_in_mo:
+        logger.info("listen_to_changes_in_mo = False. Aborting.")
         raise RejectMessage()
 
     logger.info(f"[MO] Routing key: {mo_routing_key}")
