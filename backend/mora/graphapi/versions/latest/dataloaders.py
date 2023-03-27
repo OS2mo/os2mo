@@ -565,12 +565,14 @@ def format_lora_results_only_newest_relevant_lists(
         return []
 
     relevant_paths = set(gen_paths(relevant_lists))
-    uuids, lora_objects = unzip(lora_results)
+    try:
+        uuids, lora_objects = unzip(lora_results)
+    except ValueError:
+        # Occurs when the "lora_results"-iterable is empty
+        return []
 
     lora_objects_formatted: list[dict[str, Any]] = []
     for obj in lora_objects:
-        if isinstance(obj, str):
-            continue
         transform_lora_object(relevant_paths, obj)  # type: ignore
         lora_objects_formatted.append(obj)  # type: ignore
 
