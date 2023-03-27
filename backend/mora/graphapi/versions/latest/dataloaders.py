@@ -40,10 +40,11 @@ from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
-from mora.util import NEGATIVE_INFINITY
+from mora.util import NEGATIVE_INFINITY, parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
 
+from more_itertools import unzip
 
 MOModel = TypeVar(
     "MOModel",
@@ -515,14 +516,17 @@ def transform_lora_object_section(lora_value: list[dict]) -> list[dict]:
     return [
         max(
             lora_value,
-            key=lambda x: date_parser.parse(x["virkning"]["from"])
-            if x["virkning"]["from"] != "-infinity"
-            else NEGATIVE_INFINITY,
+            key=lambda x: parsedatetime(x["virkning"]["from"]),
         )
     ]
 
 
 def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterable[tuple[str, str]]:
+    """Converts a dict representing lora-object attribute-paths to a flat list.
+
+    Ex: `{"attributter": ("klasseegenskaber", "something",)}` becomes
+    `[("attributter", "klasseegenskaber"), ("attributter", "something")...]`
+    """
     for key, rel_lists in relevant_lists.items():
         for list_name in rel_lists:
             yield key, list_name
@@ -560,13 +564,13 @@ def format_lora_results_only_newest_relevant_lists(
     1 attribute and 1 state - but our importers break this assumption.
     """
     lora_results = list(lora_results)
-    if len(lora_results) < 1:
+    if not lora_results:
         return []
 
     relevant_paths = set(gen_paths(relevant_lists))
-    uuids, lora_objects = zip(*lora_results)
+    uuids, lora_objects = unzip(lora_results)
 
-    transformed_lora_objects = map(
-        partial(transform_lora_object, relevant_paths), lora_objects
+    transformed_lora_objects = (
+        transform_lora_object(relevant_paths, o) for o in lora_objects
     )
     return list(zip(uuids, transformed_lora_objects))
