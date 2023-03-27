@@ -253,6 +253,10 @@ class EmployeeRequestHandler(handlers.RequestHandler):
                 attrs = related[-1].copy()
                 attrs["urn"] = f"urn:dk:cpr:person:{data[mapping.CPR_NO]}"
                 update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
+            else:
+                attrs = {}
+                attrs["urn"] = f"urn:dk:cpr:person:{data[mapping.CPR_NO]}"
+                update_fields.append((mapping.EMPLOYEE_PERSON_FIELD, attrs))
 
         payload = common.update_payload(
             new_from, new_to, update_fields, original, payload
