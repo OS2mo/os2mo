@@ -671,3 +671,20 @@ async def test_get_delete_flag(dataloader: AsyncMock):
     context = Context({"user_context": {"dataloader": dataloader}})
     with pytest.raises(RejectMessage):
         await asyncio.gather(get_delete_flag(routing_key, payload, context))
+
+
+def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
+    test_client: TestClient,
+    headers: dict,
+    dataloader: AsyncMock,
+    converter: MagicMock,
+):
+    converter.cpr_field = "employeeID"
+    valid_object = LdapObject(dn="foo", employeeID="0101011234")
+    invalid_object = LdapObject(dn="bar", employeeID="ja")
+    dataloader.load_ldap_objects.return_value = [valid_object, invalid_object]
+    response = test_client.get("/LDAP_overview/invalid_cpr_numbers", headers=headers)
+    assert response.status_code == 202
+    result = response.json()
+    assert "bar" in result
+    assert result["bar"] == "ja"
