@@ -549,7 +549,7 @@ def transform_lora_object(
 def format_lora_results_only_newest_relevant_lists(
     lora_results: Iterable[tuple[str, dict[str, Any]]],
     relevant_lists: dict[str, tuple[str, ...]],
-) -> list[tuple[str, dict]]:
+) -> Iterable[tuple[str, dict]]:
     """Formats the LoRa results to only contain 1 element in list paths specified in relevant_lists.
 
     This method can take the result from `mora.lora.Scope.get_all()` and make sure the lora_objects
@@ -562,15 +562,6 @@ def format_lora_results_only_newest_relevant_lists(
         return []
 
     relevant_paths = set(gen_paths(relevant_lists))
-    try:
-        uuids, lora_objects = zip(*lora_results)
-    except ValueError:
-        # Occurs when the "lora_results"-iterable is empty
-        return []
-
-    lora_objects_formatted: list[dict[str, Any]] = []
-    for obj in lora_objects:
-        transform_lora_object(relevant_paths, obj)
-        lora_objects_formatted.append(obj)
-
-    return list(zip(uuids, lora_objects_formatted))
+    for uuid, lora_obj in lora_results:
+        transform_lora_object(relevant_paths, lora_obj)
+        yield uuid, lora_obj

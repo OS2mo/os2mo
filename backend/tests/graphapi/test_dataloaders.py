@@ -187,7 +187,7 @@ async def test_get_classes_formatted(mock_get_all):
 
 
 def test_format_lora_results_only_newest_relevant_lists_empty():
-    assert format_lora_results_only_newest_relevant_lists([], {}) == []
+    assert list(format_lora_results_only_newest_relevant_lists([], {})) == []
 
 
 def test_format_lora_results_only_newest_relevant_lists_multiple_relevant_lists():
@@ -299,7 +299,9 @@ def test_format_lora_results_only_newest_relevant_lists_multiple_relevant_lists(
     ]
 
     assert (
-        format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        list(
+            format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        )
         == exptected_after_format
     )
 
@@ -337,6 +339,8 @@ def test_format_lora_results_only_newest_relevant_lists_single_relevant_lists():
     ]
 
     assert (
-        format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        list(
+            format_lora_results_only_newest_relevant_lists(lora_results, relevant_lists)
+        )
         == exptected_after_format
     )
