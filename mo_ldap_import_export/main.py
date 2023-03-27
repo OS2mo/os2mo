@@ -347,10 +347,11 @@ def create_app(**kwargs: Any) -> FastAPI:
 
     app = fastramqpi.get_app()
     app.include_router(fastapi_router)
+    app.mount("/ldap_ie", app)
 
     login_manager = LoginManager(
         settings.authentication_secret.get_secret_value(),
-        "/login",
+        "/ldap_ie/login",
         default_expiry=timedelta(hours=settings.token_expiry_time),
     )
 
