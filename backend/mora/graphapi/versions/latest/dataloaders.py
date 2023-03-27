@@ -10,10 +10,10 @@ from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
-from dateutil import parser as date_parser
 from more_itertools import bucket
 from more_itertools import one
 from more_itertools import unique_everseen
+from more_itertools import unzip
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
@@ -40,11 +40,9 @@ from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
-from mora.util import NEGATIVE_INFINITY, parsedatetime
+from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
-from more_itertools import unzip
 
 MOModel = TypeVar(
     "MOModel",
@@ -532,7 +530,9 @@ def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterable[tuple[str,
             yield key, list_name
 
 
-def transform_lora_object(relevant_paths: set[tuple[str, str]], lora_obj: dict) -> dict:
+def transform_lora_object(
+    relevant_paths: set[tuple[str, str]], lora_obj: dict[str, Any]
+) -> None:
     """Filters LoRa object lists, based on relevant_paths, to a maximum of 1.
 
     Ex. {"attributter": {"klasseegenskaber": [ ELEMENT_1, ELEMENT_2 ]}} will be filtered to
@@ -548,11 +548,9 @@ def transform_lora_object(relevant_paths: set[tuple[str, str]], lora_obj: dict) 
             lora_obj[key][list_name]
         )
 
-    return lora_obj
-
 
 def format_lora_results_only_newest_relevant_lists(
-    lora_results: Iterable[tuple[str, list[dict[str, Any]] | dict[str, Any]]],
+    lora_results: Iterable[tuple[str, dict[str, Any]]],
     relevant_lists: dict[str, tuple[str, ...]],
 ) -> list[tuple[str, dict]]:
     """Formats the LoRa results to only contain 1 element in list paths specified in relevant_lists.
@@ -563,14 +561,17 @@ def format_lora_results_only_newest_relevant_lists(
     INFO: This was created due to the assumption that a "class/klasse" only have
     1 attribute and 1 state - but our importers break this assumption.
     """
-    lora_results = list(lora_results)
     if not lora_results:
         return []
 
     relevant_paths = set(gen_paths(relevant_lists))
     uuids, lora_objects = unzip(lora_results)
 
-    transformed_lora_objects = (
-        transform_lora_object(relevant_paths, o) for o in lora_objects
-    )
-    return list(zip(uuids, transformed_lora_objects))
+    lora_objects_formatted: list[dict[str, Any]] = []
+    for obj in lora_objects:
+        if isinstance(obj, str):
+            continue
+        transform_lora_object(relevant_paths, obj)  # type: ignore
+        lora_objects_formatted.append(obj)  # type: ignore
+
+    return list(zip(uuids, lora_objects_formatted))  # type: ignore
