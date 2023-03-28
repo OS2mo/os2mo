@@ -339,6 +339,7 @@ def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestCl
 class GQLResponse:
     data: dict | None
     errors: list[dict] | None
+    extensions: dict | None
     status_code: int
 
 
@@ -350,9 +351,13 @@ def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
         url: str = latest_graphql_url,
     ) -> GQLResponse:
         response = admin_client.post(url, json={"query": query, "variables": variables})
-        data, errors = response.json().get("data"), response.json().get("errors")
+        data = response.json().get("data")
+        errors = response.json().get("errors")
+        extensions = response.json().get("extensions")
         status_code = response.status_code
-        return GQLResponse(data=data, errors=errors, status_code=status_code)
+        return GQLResponse(
+            data=data, errors=errors, extensions=extensions, status_code=status_code
+        )
 
     yield _post
 

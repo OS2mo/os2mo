@@ -18,71 +18,59 @@ from tests.conftest import GQLResponse
         ("addresses", 8, 0, 8),
         ("addresses", 4, 0, 4),
         ("addresses", 8, 1, 7),
-        ("addresses", 10, 8, 0),
         # Associations
         ("associations", None, None, 1),
         ("associations", 0, 0, 0),
         ("associations", 1, 0, 1),
-        ("associations", 10, 1, 0),
         # Classes
         ("classes", None, None, 38),
         ("classes", 0, 0, 0),
         ("classes", 38, 0, 38),
         ("classes", 10, 0, 10),
         ("classes", 38, 1, 37),
-        ("classes", 40, 38, 0),
         # Employees
         ("employees", None, None, 4),
         ("employees", 0, 0, 0),
         ("employees", 4, 0, 4),
         ("employees", 2, 0, 2),
         ("employees", 4, 1, 3),
-        ("employees", 10, 4, 0),
         # Engagement Associations
         ("engagement_associations", None, None, 1),
         ("engagement_associations", 0, 0, 0),
         ("engagement_associations", 1, 0, 1),
-        ("engagement_associations", 10, 1, 0),
         # Engagements
         ("engagements", None, None, 3),
         ("engagements", 0, 0, 0),
         ("engagements", 3, 0, 3),
         ("engagements", 2, 0, 2),
         ("engagements", 3, 1, 2),
-        ("engagements", 10, 3, 0),
         # Facets
         ("facets", None, None, 19),
         ("facets", 0, 0, 0),
         ("facets", 19, 0, 19),
         ("facets", 10, 0, 10),
-        ("facets", 20, 19, 0),
         # It Systems
         ("itsystems", None, None, 3),
         ("itsystems", 0, 0, 0),
         ("itsystems", 3, 0, 3),
         ("itsystems", 2, 0, 2),
         ("itsystems", 3, 1, 2),
-        ("itsystems", 10, 3, 0),
         # It Users
         ("itusers", None, None, 1),
         ("itusers", 0, 0, 0),
         ("itusers", 1, 0, 1),
-        ("itusers", 10, 1, 0),
         # KLEs
         ("kles", None, None, 1),
         ("kles", 0, 0, 0),
         ("kles", 1, 0, 1),
-        ("kles", 10, 1, 0),
         # Leaves
         ("leaves", None, None, 1),
         ("leaves", 0, 0, 0),
         ("leaves", 1, 0, 1),
-        ("leaves", 10, 1, 0),
         # Managers
         ("managers", None, None, 1),
         ("managers", 0, 0, 0),
         ("managers", 1, 0, 1),
-        ("managers", 10, 1, 0),
         # Org Units
         ("org_units", None, None, 9),
         ("org_units", 0, 0, 0),
@@ -97,15 +85,10 @@ from tests.conftest import GQLResponse
         ("related_units", None, None, 1),
         ("related_units", 0, 0, 0),
         ("related_units", 1, 0, 1),
-        ("related_units", 1, 1, 0),
-        ("related_units", 10, 1, 0),
         # Roles
         ("roles", None, None, 1),
         ("roles", 0, 0, 0),
         ("roles", 1, 0, 1),
-        ("roles", 1, 1, 0),
-        ("roles", 10, 1, 0),
-        ("roles", 20, 10, 0),
     ],
 )
 async def test_pagination(
@@ -127,3 +110,62 @@ async def test_pagination(
     response: GQLResponse = graphapi_post(query, variables)
     assert response.errors is None
     assert len(response.data[resolver]) == expected_length
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "resolver,limit,offset",
+    [
+        # Addresses
+        ("addresses", 10, 8),
+        # Associations
+        ("associations", 10, 1),
+        # Classes
+        ("classes", 40, 38),
+        # Employees
+        ("employees", 10, 4),
+        # Engagement Associations
+        ("engagement_associations", 10, 1),
+        # Engagements
+        ("engagements", 10, 3),
+        # Facets
+        ("facets", 20, 19),
+        # It Systems
+        ("itsystems", 10, 3),
+        # It Users
+        ("itusers", 10, 1),
+        # KLEs
+        ("kles", 10, 1),
+        # Leaves
+        ("leaves", 10, 1),
+        # Managers
+        ("managers", 10, 1),
+        # Org Units
+        ("org_units", 1, 20),
+        # Related Units
+        ("related_units", 1, 1),
+        # Roles
+        ("roles", 1, 1),
+        ("roles", 10, 1),
+        ("roles", 20, 10),
+    ],
+)
+async def test_pagination_out_of_range(
+    graphapi_post: Callable, resolver: str, limit: int, offset: int
+) -> None:
+    """Test that out of range pagination returns None."""
+    query = f"""
+        query PaginationTestQuery($limit: int, $offset: int) {{
+          {resolver}(limit: $limit, offset: $offset) {{
+            uuid
+          }}
+        }}
+    """
+    variables = dict(limit=limit, offset=offset)
+    response: GQLResponse = graphapi_post(query, variables)
+    assert response.errors is None
+    assert response.data[resolver] == []
+    assert response.extensions == {
+        "__page_out_of_range": True,
+    }

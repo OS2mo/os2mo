@@ -12,6 +12,7 @@ from collections.abc import Container
 from collections.abc import Coroutine
 from collections.abc import ItemsView
 from collections.abc import Iterable
+from contextlib import suppress
 from datetime import date
 from datetime import datetime
 from datetime import time
@@ -30,6 +31,7 @@ import lora_utils
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
+from starlette_context import context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
@@ -578,21 +580,33 @@ class Scope(BaseScope):
         ).encode()
 
     async def fetch(self, **params):
-        params = self.encode_params({**self.connector.defaults, **params})
         response = await client.request(
             method="GET",
             url=self.path,
             # We send the parameters as JSON through the body of the GET request to
             # allow arbitrarily many, as opposed to being limited by the length of a
             # URL if we were using query parameters.
-            content=params,
+            content=self.encode_params({**self.connector.defaults, **params}),
         )
         await _check_response(response)
-        try:
-            ret = response.json()["results"][0]
-            return ret
-        except IndexError:
-            return []
+        with suppress(IndexError):
+            return response.json()["results"][0]
+
+        # The requested GraphQL pagination is out of range if LoRa returned no results
+        # _because_ of the provided pagination parameters. This check cannot easily be
+        # done at a higher level because the MO reading handlers filter (potentially
+        # all of) the results on top of the SQL filtering in LoRa.
+        # We don't do anything special here, but set a contextvar which can be read by
+        # the GraphQL middleware to return the error to the user.
+        limit = params.get("maximalantalresultater")
+        offset = params.get("foersteresultat", 0)
+        is_paged = is_graphql() and limit != 0 and offset > 0
+        if is_paged:
+            # There may be multiple LoRa fetches in one GraphQL request, so this cannot
+            # be refactored into always overwriting the value.
+            context["lora_page_out_of_range"] = True
+
+        return []
 
     async def get_all(self, changed_since: datetime | None = None, **params):
         """Perform a search on given params and return the result.
