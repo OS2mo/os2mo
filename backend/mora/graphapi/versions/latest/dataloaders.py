@@ -39,9 +39,9 @@ from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
 from mora.service import org
+from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
 from ramodels.lora.klasse import KlasseRead
-
 
 MOModel = TypeVar(
     "MOModel",
@@ -211,6 +211,14 @@ def lora_classes_to_mo_classes(
 async def get_classes(**kwargs: Any) -> list[ClassRead]:
     c = get_connector()
     lora_result = await c.klasse.get_all(**kwargs)
+    lora_result = format_lora_results_only_newest_relevant_lists(
+        lora_result,
+        relevant_lists={
+            "attributter": ("klasseegenskaber",),
+            "tilstande": ("klassepubliceret",),
+            "relationer": ("ejer", "ansvarlig", "facet"),
+        },
+    )
     mo_models = lora_classes_to_mo_classes(lora_result)
     return list(mo_models)
 
@@ -495,3 +503,65 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         ),
         "engagement_association_getter": get_engagement_associations,
     }
+
+
+def convert_lora_object_section(lora_value: list[dict]) -> list[dict]:
+    """Transforms a lora_object list, to only contain the newest element.
+
+    Ex. transform_lora_object_section(lora_object["attributter"]["klasseegenskaber"])
+    """
+    return [
+        max(
+            lora_value,
+            key=lambda x: parsedatetime(x["virkning"]["from"]),
+        )
+    ]
+
+
+def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterable[tuple[str, str]]:
+    """Converts a dict representing lora-object attribute-paths to a flat list.
+
+    Ex: `{"attributter": ("klasseegenskaber", "something",)}` becomes
+    `[("attributter", "klasseegenskaber"), ("attributter", "something")...]`
+    """
+    for key, rel_lists in relevant_lists.items():
+        for list_name in rel_lists:
+            yield key, list_name
+
+
+def transform_lora_object(
+    relevant_paths: set[tuple[str, str]], lora_obj: dict[str, Any]
+) -> None:
+    """Filters LoRa object lists, based on relevant_paths, to a maximum of 1.
+
+    Ex. {"attributter": {"klasseegenskaber": [ ELEMENT_1, ELEMENT_2 ]}} will be filtered to
+    have only one element, using relevant_paths={"attributter": ("klasseegenskaber",)}
+
+    The element choosen is the newest one, identified through the following date attr:
+    ELEMENT["virkning"]["from"]
+    """
+    object_paths = set(gen_paths(lora_obj))
+    process_paths = relevant_paths.intersection(object_paths)
+    for key, list_name in process_paths:
+        lora_obj[key][list_name] = convert_lora_object_section(lora_obj[key][list_name])
+
+
+def format_lora_results_only_newest_relevant_lists(
+    lora_results: Iterable[tuple[str, dict[str, Any]]],
+    relevant_lists: dict[str, tuple[str, ...]],
+) -> Iterable[tuple[str, dict]]:
+    """Formats the LoRa results to only contain 1 element in list paths specified in relevant_lists.
+
+    This method can take the result from `mora.lora.Scope.get_all()` and make sure the lora_objects
+    only contain 1 element inside the lists referenced in relevant_lists.
+
+    INFO: This was created due to the assumption that a "class/klasse" only have
+    1 attribute and 1 state - but our importers break this assumption.
+    """
+    if not lora_results:
+        return []
+
+    relevant_paths = set(gen_paths(relevant_lists))
+    for uuid, lora_obj in lora_results:
+        transform_lora_object(relevant_paths, lora_obj)
+        yield uuid, lora_obj
