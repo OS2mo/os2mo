@@ -236,6 +236,9 @@ class Settings(BaseSettings):
     # to and from the system - SHOULD ONLY BE USED IF FORCED TO BY CUSTOMER!
     confdb_dipex_version__do_not_use: str | None
 
+    # If flag is set, it will be possible to pick OrgUnit hierarchy for the new units
+    confdb_org_unit_hierarchy_in_create: bool = False
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
