@@ -8,6 +8,7 @@ from starlette.requests import Request
 from starlette_context import context
 from starlette_context.plugins import Plugin
 from strawberry.extensions import Extension
+from strawberry.utils.await_maybe import AwaitableOrValue
 
 from ramodels.mo import OpenValidity
 
@@ -43,6 +44,12 @@ class StarletteContextExtension(Extension):
 
     def on_request_end(self) -> None:
         context["is_graphql"] = context.get("is_graphql", 0) - 1
+
+    def get_results(self) -> AwaitableOrValue[dict[str, Any]]:
+        results = {}
+        if context.get("lora_page_out_of_range"):
+            results["__page_out_of_range"] = True
+        return results
 
 
 def is_graphql() -> bool:
