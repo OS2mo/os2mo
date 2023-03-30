@@ -19,16 +19,34 @@ from .dataloaders import MOModel
 from .schema import OpenValidityModel
 from .schema import Response
 from mora.util import CPR
+from ramodels.mo import ClassRead
+from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
+from ramodels.mo import OrganisationRead
+from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AddressRead
+from ramodels.mo.details import AssociationRead
+from ramodels.mo.details import EngagementAssociationRead
+from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITSystemRead
+from ramodels.mo.details import ITUserRead
+from ramodels.mo.details import KLERead
+from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RelatedUnitRead
+from ramodels.mo.details import RoleRead
+
 
 
 class StaticResolver:
-    def __init__(self, getter: str, loader: str) -> None:
+    def __init__(self, model: MOModel, getter: str, loader: str) -> None:
         """Create a field resolver by specifying getter and loader.
 
         Args:
             getter: Name of the getter to use.
             loader: Name of the loader to use.
         """
+        self.model = model
         self.getter = getter
         self.loader = loader
 
@@ -177,12 +195,12 @@ class Resolver(StaticResolver):
 
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
-        super().__init__("facet_getter", "facet_loader")
+        super().__init__(FacetRead, "facet_getter", "facet_loader")
 
 
 class ClassResolver(StaticResolver):
     def __init__(self) -> None:
-        super().__init__("class_getter", "class_loader")
+        super().__init__(ClassRead, "class_getter", "class_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -223,7 +241,7 @@ class ClassResolver(StaticResolver):
 
 class AddressResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("address_getter", "address_loader")
+        super().__init__(AddressRead, "address_getter", "address_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -271,7 +289,7 @@ class AddressResolver(Resolver):
 
 class AssociationResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("association_getter", "association_loader")
+        super().__init__(AssociationRead, "association_getter", "association_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -321,7 +339,7 @@ class AssociationResolver(Resolver):
 
 class EmployeeResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("employee_getter", "employee_loader")
+        super().__init__(EmployeeRead, "employee_getter", "employee_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -354,7 +372,7 @@ class EmployeeResolver(Resolver):
 
 class EngagementResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("engagement_getter", "engagement_loader")
+        super().__init__(EngagementRead, "engagement_getter", "engagement_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -388,7 +406,7 @@ class EngagementResolver(Resolver):
 
 class ManagerResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("manager_getter", "manager_loader")
+        super().__init__(ManagerRead, "manager_getter", "manager_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -422,7 +440,7 @@ class ManagerResolver(Resolver):
 
 class OrganisationUnitResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("org_unit_getter", "org_unit_loader")
+        super().__init__(OrganisationUnitRead, "org_unit_getter", "org_unit_loader")
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -457,6 +475,55 @@ class OrganisationUnitResolver(Resolver):
             from_date=from_date,
             to_date=to_date,
             **kwargs,
+        )
+
+
+class EngagementAssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            EngagementAssociationRead, "engagement_association_getter", "engagement_association_loader"
+        )
+
+
+class ITSystemResolver(StaticResolver):
+    def __init__(self) -> None:
+        super().__init__(
+            ITSystemRead, "itsystem_getter", "itsystem_loader"
+        )
+
+
+class ITUserResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            ITUserRead, "ituser_getter", "ituser_loader"
+        )
+
+
+class KLEResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            KLERead, "kle_getter", "kle_loader"
+        )
+
+
+class LeaveResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            LeaveRead, "leave_getter", "leave_loader"
+        )
+
+
+class RelatedUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            RelatedUnitRead, "rel_unit_getter", "rel_unit_loader"
+        )
+
+
+class RoleResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(
+            RoleRead, "role_getter", "role_loader"
         )
 
 
