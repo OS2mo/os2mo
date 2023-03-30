@@ -69,27 +69,23 @@ def get_resolver_map():
     from .resolvers import FacetResolver
     from .resolvers import ManagerResolver
     from .resolvers import OrganisationUnitResolver
-    from .resolvers import Resolver
-    from .resolvers import StaticResolver
- 
+    from .resolvers import EngagementAssociationResolver
+    from .resolvers import ITSystemResolver
+    from .resolvers import ITUserResolver
+    from .resolvers import KLEResolver
+    from .resolvers import LeaveResolver
+    from .resolvers import RelatedUnitResolver
+    from .resolvers import RoleResolver
+
+    resolvers = [
+        AddressResolver, AssociationResolver, ClassResolver, EmployeeResolver,
+        EngagementResolver, FacetResolver, ManagerResolver, OrganisationUnitResolver,
+        EngagementAssociationResolver, ITSystemResolver, ITUserResolver, KLEResolver,
+        LeaveResolver, RelatedUnitResolver, RoleResolver
+    ]
+    resolver_instances = [resolver() for resolver in resolvers]
     return {
-        AddressRead: AddressResolver(),
-        AssociationRead: AssociationResolver(),
-        ClassRead: ClassResolver(),
-        EmployeeRead: EmployeeResolver(),
-        EngagementRead: EngagementResolver(),
-        EngagementAssociationRead: Resolver(
-            "engagement_association_getter", "engagement_association_loader"
-        ),
-        FacetRead: FacetResolver(),
-        ITSystemRead: StaticResolver("itsystem_getter", "itsystem_loader"),
-        ITUserRead: Resolver("ituser_getter", "ituser_loader"),
-        KLERead: Resolver("kle_getter", "kle_loader"),
-        LeaveRead: Resolver("leave_getter", "leave_loader"),
-        ManagerRead: ManagerResolver(),
-        OrganisationUnitRead: OrganisationUnitResolver(),
-        RelatedUnitRead: Resolver("rel_unit_getter", "rel_unit_loader"),
-        RoleRead: Resolver("role_getter", "role_loader"),
+        resolver.model: resolver for resolver in resolver_instances
     }
 
 
@@ -99,10 +95,14 @@ class Response(Generic[MOObject]):
 
     uuid: UUID
 
+    object_cache: strawberry.Private[list[MOObject] | None] = None
     @strawberry.field(
         description="Temporal objects"
     )
     async def objects(self, root: Any, info: Info) -> list[MOObject]:
+        if root.object_cache:
+            return root.object_cache
+
         resolver_map = get_resolver_map()
         resolver = resolver_map[root.model]
         return await info.context[resolver.loader].load(root.uuid)

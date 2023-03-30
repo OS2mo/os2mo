@@ -92,7 +92,7 @@ class StaticResolver:
         if uuids is not None:
             if limit is not None or offset is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
-            return await self.get_by_uuid(info.context[self.loader], uuids)
+            return [Response(model=self.model, uuid=uuid) for uuid in uuids]
 
         # User keys
         if user_keys is not None:

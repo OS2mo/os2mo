@@ -99,7 +99,7 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     uuid_map = group_by_uuid(parsed_results)
     return list(
         starmap(
-            lambda uuid, _: Response(model=model, uuid=uuid),  # noqa: FURB111
+            lambda uuid, objects: Response(model=model, uuid=uuid, object_cache=objects),  # noqa: FURB111
             uuid_map.items(),
         )
     )
