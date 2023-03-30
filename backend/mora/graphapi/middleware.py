@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Starlette plugins to create context variables that can be used in the service app."""
+from time import monotonic
 from typing import Any
 
 from starlette.requests import HTTPConnection
@@ -41,15 +42,23 @@ class StarletteContextExtension(Extension):
         # Store reference counter, instead of simple boolean, to ensure we do not set
         # is_graphql=False as soon as the first nested schema execution exits.
         context["is_graphql"] = context.get("is_graphql", 0) + 1
+        context["starttime"] = context.get("starttime", monotonic())
 
     def on_request_end(self) -> None:
         context["is_graphql"] = context.get("is_graphql", 0) - 1
+        context["stoptime"] = monotonic()
 
     def get_results(self) -> AwaitableOrValue[dict[str, Any]]:
         # TODO: calling super() because of get_context_from_ext()
         results = super().get_results()
         if context.get("lora_page_out_of_range"):
             results["__page_out_of_range"] = True
+
+        # Includes GraphQL request runtime when the x-request-runtime header is set
+        request = self.execution_context.context.get("request")
+        if request and request.headers.get("x-request-runtime"):
+            results["runtime"] = context["stoptime"] - context["starttime"]
+
         return results
 
 
