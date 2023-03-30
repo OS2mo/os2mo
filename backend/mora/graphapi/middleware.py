@@ -33,6 +33,7 @@ class GraphQLContextPlugin(Plugin):
     async def process_request(self, request: Request | HTTPConnection) -> Any | None:
         return 0
 
+from time import monotonic
 
 class StarletteContextExtension(Extension):
     def on_request_start(self) -> None:
@@ -41,15 +42,19 @@ class StarletteContextExtension(Extension):
         # Store reference counter, instead of simple boolean, to ensure we do not set
         # is_graphql=False as soon as the first nested schema execution exits.
         context["is_graphql"] = context.get("is_graphql", 0) + 1
+        # Runtime
+        context["starttime"] = context.get("starttime", monotonic())
 
     def on_request_end(self) -> None:
         context["is_graphql"] = context.get("is_graphql", 0) - 1
+        context["stoptime"] = monotonic()
 
     def get_results(self) -> AwaitableOrValue[dict[str, Any]]:
         # TODO: calling super() because of get_context_from_ext()
         results = super().get_results()
         if context.get("lora_page_out_of_range"):
             results["__page_out_of_range"] = True
+        results["duration"] = context["stoptime"] - context["starttime"]
         return results
 
 

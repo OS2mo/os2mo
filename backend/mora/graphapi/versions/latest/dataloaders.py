@@ -91,7 +91,7 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
         kwargs (Any): Additional query arguments passed to LoRa.
 
     Returns:
-        list[MOModel]: List of parsed MO models.
+        list[Response[MOModel]]: List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
@@ -99,13 +99,13 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     uuid_map = group_by_uuid(parsed_results)
     return list(
         starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
+            lambda uuid, _: Response(model=model, uuid=uuid),  # noqa: FURB111
             uuid_map.items(),
         )
     )
 
 
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[MOModel | None]:
     """Load MO models from LoRa by UUID.
 
     Args:
@@ -121,7 +121,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     uuid_map = group_by_uuid(parsed_results, uuids)
     return list(
         starmap(
-            lambda uuid, objects: Response(uuid=uuid, objects=objects),  # noqa: FURB111
+            lambda _, objects: objects,  # noqa: FURB111
             uuid_map.items(),
         )
     )

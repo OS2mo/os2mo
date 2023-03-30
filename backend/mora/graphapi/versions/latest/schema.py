@@ -60,10 +60,53 @@ from ramodels.mo.details import RoleRead
 MOObject = TypeVar("MOObject")
 
 
+def get_resolver_map():
+    from .resolvers import AddressResolver
+    from .resolvers import AssociationResolver
+    from .resolvers import ClassResolver
+    from .resolvers import EmployeeResolver
+    from .resolvers import EngagementResolver
+    from .resolvers import FacetResolver
+    from .resolvers import ManagerResolver
+    from .resolvers import OrganisationUnitResolver
+    from .resolvers import Resolver
+    from .resolvers import StaticResolver
+ 
+    return {
+        AddressRead: AddressResolver(),
+        AssociationRead: AssociationResolver(),
+        ClassRead: ClassResolver(),
+        EmployeeRead: EmployeeResolver(),
+        EngagementRead: EngagementResolver(),
+        EngagementAssociationRead: Resolver(
+            "engagement_association_getter", "engagement_association_loader"
+        ),
+        FacetRead: FacetResolver(),
+        ITSystemRead: StaticResolver("itsystem_getter", "itsystem_loader"),
+        ITUserRead: Resolver("ituser_getter", "ituser_loader"),
+        KLERead: Resolver("kle_getter", "kle_loader"),
+        LeaveRead: Resolver("leave_getter", "leave_loader"),
+        ManagerRead: ManagerResolver(),
+        OrganisationUnitRead: OrganisationUnitResolver(),
+        RelatedUnitRead: Resolver("rel_unit_getter", "rel_unit_loader"),
+        RoleRead: Resolver("role_getter", "role_loader"),
+    }
+
+
 @strawberry.type
 class Response(Generic[MOObject]):
+    model: strawberry.Private[MOObject]
+
     uuid: UUID
-    objects: list[MOObject]
+
+    @strawberry.field(
+        description="Temporal objects"
+    )
+    async def objects(self, root: Any, info: Info) -> list[MOObject]:
+        resolver_map = get_resolver_map()
+        resolver = resolver_map[root.model]
+        return await info.context[resolver.loader].load(root.uuid)
+
 
 
 # Validities
