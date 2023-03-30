@@ -15,6 +15,7 @@ from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
+from starlette_context import context
 
 from .readers import _extract_search_params
 from .readers import get_role_type_by_uuid
@@ -95,6 +96,11 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
+    if context["lora_please_return_only_uuids"]:
+        return [
+            Response(model=model, uuid=uuid) for uuid in results
+        ]
+
     parsed_results = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
     return list(
@@ -117,11 +123,11 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[MOModel | None]:
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
-    parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
-    uuid_map = group_by_uuid(parsed_results, uuids)
+    parsed_results = parse_obj_as(list[model], results)  # type: ignore
+    uuid_map = group_by_uuid(parsed_results)
     return list(
         starmap(
-            lambda _, objects: objects,  # noqa: FURB111
+            lambda uuid, objects: Response(model=model, uuid=uuid, object_cache=objects),  # noqa: FURB111
             uuid_map.items(),
         )
     )

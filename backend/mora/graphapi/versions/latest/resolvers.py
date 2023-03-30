@@ -13,6 +13,7 @@ from pydantic import ValidationError
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
+from starlette_context import context
 
 from ...middleware import set_graphql_dates
 from .dataloaders import MOModel
@@ -112,8 +113,11 @@ class StaticResolver:
         if offset is not None:
             kwargs["foersteresultat"] = offset
 
+        context["lora_please_return_only_uuids"] = True
         resolver_name = resolver_map[self.model]["getter"]
-        return await info.context[resolver_name](**kwargs)
+        result = await info.context[resolver_name](**kwargs)
+        context["lora_please_return_only_uuids"] = False
+        return result
 
     @staticmethod
     # type: ignore[no-untyped-def]

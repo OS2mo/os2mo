@@ -9,6 +9,7 @@ from inspect import isawaitable
 from typing import Any
 
 from structlog import get_logger
+from starlette_context import context
 
 from .. import exceptions
 from .. import mapping
@@ -137,6 +138,9 @@ class ReadingHandler:
         :param c: A LoRa connector
         :param object_tuples: An iterable of (UUID, object) tuples
         """
+        if context["lora_please_return_only_uuids"]:
+            return object_tuples
+
         # flatten a bunch of nested tasks
         return [
             x

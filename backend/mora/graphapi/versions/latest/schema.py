@@ -83,7 +83,7 @@ class Response(Generic[MOObject]):
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[root.model]["loader"]
-        return await info.context[resolver].load(root.uuid)
+        return (await info.context[resolver].load(root.uuid)).object_cache
 
 
 

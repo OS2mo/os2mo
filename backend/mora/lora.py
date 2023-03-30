@@ -453,6 +453,10 @@ class Scope(BaseScope):
             # to add the parameter in this roundabout way.
             if params.keys() != {"uuid"}:
                 extra_fetch_params["list"] = True
+            if context.get("lora_please_return_only_uuids", False):
+                extra_fetch_params.pop("list")
+                if not params:
+                    extra_fetch_params["bvn"] = "%"
             return self.fetch(**params, **extra_fetch_params)
 
         # Convert parameters to ensure we can map the results back to the load() calls.
@@ -626,6 +630,9 @@ class Scope(BaseScope):
         assert "limit" not in params, ass_msg.format("limit", ", use 'paged_get'")
 
         response = await self.load(**params)
+        if context.get("lora_please_return_only_uuids", False):
+            return response
+
         wantregs = not params.keys().isdisjoint({"registreretfra", "registrerettil"})
         return filter_registrations(
             response=response, wantregs=wantregs, changed_since=changed_since
