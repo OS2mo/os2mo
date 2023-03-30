@@ -460,6 +460,41 @@ class OrganisationUnitResolver(Resolver):
         )
 
 
+class EngagementAssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("engagement_association_getter", "engagement_association_loader")
+
+
+class ITSystemResolver(StaticResolver):
+    def __init__(self) -> None:
+        super().__init__("itsystem_getter", "itsystem_loader")
+
+
+class ITUserResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("ituser_getter", "ituser_loader")
+
+
+class KLEResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("kle_getter", "kle_loader")
+
+
+class LeaveResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("leave_getter", "leave_loader")
+
+
+class RelatedUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("rel_unit_getter", "rel_unit_loader")
+
+
+class RoleResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__("role_getter", "role_loader")
+
+
 def get_date_interval(
     from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
 ) -> OpenValidityModel:
