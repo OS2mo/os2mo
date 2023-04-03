@@ -143,7 +143,7 @@ class Address:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Connected organisation unit. "
@@ -156,7 +156,7 @@ class Address:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
     @strawberry.field(
         description="Connected Engagement",
@@ -171,7 +171,7 @@ class Address:
         if root.engagement_uuid is None:
             return None
         loader: DataLoader = info.context["engagement_loader"]
-        return (await loader.load(root.engagement_uuid)).object_cache
+        return await loader.load(root.engagement_uuid)
 
     @strawberry.field(description="Name of address")
     async def name(self, root: AddressRead, info: Info) -> str | None:
@@ -279,7 +279,7 @@ class Association:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return []
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Connected organisation unit",
@@ -289,7 +289,7 @@ class Association:
         self, root: AssociationRead, info: Info
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
     @strawberry.field(
         description="Connected substitute employee",
@@ -298,7 +298,7 @@ class Association:
     async def substitute(self, root: AssociationRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
         if root.substitute_uuid:
-            return (await loader.load(root.substitute_uuid)).object_cache
+            return await loader.load(root.substitute_uuid)
         return []
 
     @strawberry.field(
@@ -320,7 +320,7 @@ class Association:
     async def it_user(self, root: AssociationRead, info: Info) -> list["ITUser"]:
         loader: DataLoader = info.context["ituser_loader"]
         if root.it_user_uuid:
-            return (await loader.load(root.it_user_uuid)).object_cache
+            return await loader.load(root.it_user_uuid)
         return []
 
 
@@ -556,7 +556,7 @@ class Engagement:
     )
     async def employee(self, root: EngagementRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Related organisation unit",
@@ -566,7 +566,7 @@ class Engagement:
         self, root: EngagementRead, info: Info
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
     @strawberry.field(
         description="Engagement associations",
@@ -600,7 +600,7 @@ class EngagementAssociation:
         self, root: EngagementAssociationRead, info: Info
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
     @strawberry.field(
         description="Related engagement",
@@ -613,7 +613,7 @@ class EngagementAssociation:
         self, root: EngagementAssociationRead, info: Info
     ) -> list["Engagement"]:
         loader: DataLoader = info.context["engagement_loader"]
-        return (await loader.load(root.engagement_uuid)).object_cache
+        return await loader.load(root.engagement_uuid)
 
     @strawberry.field(
         description="Related engagement association type",
@@ -676,7 +676,7 @@ class ITUser:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Connected organisation unit",
@@ -688,7 +688,7 @@ class ITUser:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
     @strawberry.field(
         description="Related engagement",
@@ -703,7 +703,7 @@ class ITUser:
         loader: DataLoader = info.context["engagement_loader"]
         if root.engagement_uuid is None:
             return None
-        return (await loader.load(root.engagement_uuid)).object_cache
+        return await loader.load(root.engagement_uuid)
 
     @strawberry.field(
         description="Connected itsystem",
@@ -750,7 +750,7 @@ class KLE:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.org_unit_uuid is None:
             return None
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
 
 # Leave
@@ -777,7 +777,7 @@ class Leave:
     )
     async def employee(self, root: LeaveRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Related engagement",
@@ -791,7 +791,7 @@ class Leave:
         if root.engagement_uuid is None:
             return None
         engagement = await loader.load(root.engagement_uuid)
-        return only(engagement.object_cache)
+        return only(engagement)
 
 
 # Manager
@@ -842,7 +842,7 @@ class Manager:
         loader: DataLoader = info.context["employee_loader"]
         if root.employee_uuid is None:
             return None
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Managed organisation unit",
@@ -850,7 +850,7 @@ class Manager:
     )
     async def org_unit(self, root: ManagerRead, info: Info) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
 
 # Organisation
@@ -910,7 +910,7 @@ class OrganisationUnit:
         loader: DataLoader = info.context["org_unit_loader"]
         if root.parent_uuid is None:
             return None
-        return only((await loader.load(root.parent_uuid)).object_cache)
+        return only(await loader.load(root.parent_uuid))
 
     @strawberry.field(
         description="All ancestors in the organisation tree",
@@ -928,7 +928,7 @@ class OrganisationUnit:
         async def rec(parent_uuid: UUID | None) -> list["OrganisationUnit"]:
             if parent_uuid is None:
                 return []
-            parent = only((await loader.load(parent_uuid)).object_cache)
+            parent = only(await loader.load(parent_uuid))
             if not parent:
                 return []
             return [parent] + await rec(parent.parent_uuid)
@@ -960,7 +960,7 @@ class OrganisationUnit:
         # same function call in the same function over and over.
         from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
 
-        responses = await OrganisationUnitResolver().resolve(
+        responses = await OrganisationUnitResolver().resolve_response(
             info=info,
             uuids=uuids,
             user_keys=user_keys,
@@ -1073,7 +1073,7 @@ class OrganisationUnit:
                 parent_uuid = parent.parent_uuid
                 tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
                 result, response = await asyncio.gather(*tasks)
-                potential_parent = only(response.object_cache, default=None)
+                potential_parent = only(response, default=None)
                 if potential_parent is None:
                     break
                 parent = potential_parent
@@ -1185,7 +1185,7 @@ class RelatedUnit:
     ) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
         results = await loader.load_many(root.org_unit_uuids)
-        return [one(result.object_cache) for result in results]
+        return [one(result) for result in results]
 
 
 # Role
@@ -1210,7 +1210,7 @@ class Role:
     )
     async def employee(self, root: RoleRead, info: Info) -> list["Employee"]:
         loader: DataLoader = info.context["employee_loader"]
-        return (await loader.load(root.employee_uuid)).object_cache
+        return await loader.load(root.employee_uuid)
 
     @strawberry.field(
         description="Connected organisation unit",
@@ -1218,7 +1218,7 @@ class Role:
     )
     async def org_unit(self, root: RoleRead, info: Info) -> list["OrganisationUnit"]:
         loader: DataLoader = info.context["org_unit_loader"]
-        return (await loader.load(root.org_unit_uuid)).object_cache
+        return await loader.load(root.org_unit_uuid)
 
 
 # Health & version

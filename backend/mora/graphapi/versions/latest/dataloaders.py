@@ -34,7 +34,6 @@ from .schema import ManagerRead
 from .schema import OrganisationRead
 from .schema import OrganisationUnitRead
 from .schema import RelatedUnitRead
-from .schema import Response
 from .schema import RoleRead
 from mora.common import get_connector
 from mora.handler.reading import get_handler_for_type
@@ -83,44 +82,38 @@ def group_by_uuid(
     return {key: list(buckets[key]) for key in keys}
 
 
-async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
+async def get_mo(model: MOModel, **kwargs: Any) -> dict[UUID, list[MOModel]]:
     """Get data from LoRa and parse into a list of MO models.
 
     Args:
-        model (MOModel): The MO model to parse into.
-        kwargs (Any): Additional query arguments passed to LoRa.
+        model: The MO model to parse into.
+        kwargs: Additional query arguments passed to LoRa.
 
     Returns:
-        list[Response[MOModel]]: List of parsed MO models.
+        Mapping from UUID to list of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
     results = await search_role_type(mo_type, **kwargs)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
-    return [
-        Response(model=model, uuid=uuid, object_cache=objects)  # noqa: FURB111
-        for uuid, objects in uuid_map.items()
-    ]
+    return uuid_map
 
 
-async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
+async def load_mo(uuids: list[UUID], model: MOModel) -> list[list[MOModel]]:
     """Load MO models from LoRa by UUID.
 
     Args:
-        uuids (List[UUID]): UUIDs to load.
-        model (MOModel): The MO model to parse into.
+        uuids: UUIDs to load.
+        model: The MO model to parse into.
 
     Returns:
-        list[Response[MOModel]]: List of parsed MO models.
+        List of parsed MO models.
     """
     mo_type = model.__fields__["type_"].default
     results = await get_role_type_by_uuid(mo_type, uuids)
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results, uuids)
-    return [
-        Response(model=model, uuid=uuid, object_cache=objects)  # noqa: FURB111
-        for uuid, objects in uuid_map.items()
-    ]
+    return list(map(uuid_map.get, uuids))  # type: ignore
 
 
 # get all models
