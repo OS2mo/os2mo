@@ -5,7 +5,7 @@ title: Export til FK-ORG via OS2Sync
 ### Indledning
 
 Denne integration gør det muligt at sende data fra OS2MO til
-[OS2Sync](https://www.os2sync.dk/). OS2Sync er i stand til at sende data videre til FK ORG, såfremt det er installeret og konfigureret.
+[OS2Sync](https://www.os2sync.dk/). OS2Sync er i stand til at sende data videre til FK ORG, såfremt det er installeret og konfigureret. Anvend os2sync version 3.0.8 eller derover.
 Integrationen læser flg. oplysninger i OS2MO, og sender dem til OS2Sync:
 
 
