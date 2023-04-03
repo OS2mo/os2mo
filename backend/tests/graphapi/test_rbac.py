@@ -45,7 +45,7 @@ async def load_all_org_units(**kwargs) -> list[Response[OrganisationUnitRead]]:
     return [
         Response(
             uuid=uuid,
-            objects=[
+            object_cache=[
                 OrganisationUnitRead.parse_obj(
                     {
                         "name": "Test org",

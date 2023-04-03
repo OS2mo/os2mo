@@ -51,7 +51,7 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
         The submit result.
     """
     response = await load_org_unit(uuid)
-    if not response.objects:
+    if not response.object_cache:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(uuid))
 
     request = {mapping.UUID: str(uuid)}
