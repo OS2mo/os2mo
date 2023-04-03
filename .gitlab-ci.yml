@@ -56,15 +56,20 @@ variables:
 # Changes patterns #
 ####################
 
-.patterns:bash: &patterns-bash
+.lint-pipeline-patterns-bash: &lint-pipeline-patterns-bash
   - "**/*.sh"
 
-.patterns:markdown: &patterns-markdown
-  - "**/*.md"
+.lint-pipeline-patterns-markdown: &lint-pipeline-patterns-markdown
+  - "docs/src/*.md"
+  - "docs/src/*.markdown"
 
-.patterns:python: &patterns-python
+.lint-pipeline-patterns-python: &lint-pipeline-patterns-python
   - "**/*.py"
 
+.lint-pipeline-patterns-yaml: &lint-pipeline-patterns-yaml
+  - "**/*.yml"
+  - "**/*.yaml"
+  -
 
 include:
   - local: ra-data-models/.gitlab-ci.yml
@@ -143,8 +148,9 @@ Do not interrupt:
       allow_failure: true
 
 
-# Lint
-#######
+##############
+# Lint rules #
+#############
 .lint-base:
   stage: lint
   needs: [ ]
@@ -152,28 +158,28 @@ Do not interrupt:
   rules:
     - <<: *if-merge-request
 
-.lint-bash-files:
-  stage: lint
-  needs: [ ]
+.lint-pipeline-bash:rules:
   rules:
     - <<: *if-merge-request
-      changes: *patterns-bash
+      changes: *lint-pipeline-patterns-bash
 
-.lint-mark-down-files:
-  stage: lint
-  needs: [ ]
+.lint-pipeline-markdown:rules:
   rules:
     - <<: *if-merge-request
-      changes: *patterns-markdown
+      changes: *lint-pipeline-patterns-markdown
 
-.lint-python-files:
-  stage: lint
-  needs: [ ]
+.lint-pipeline-python:rules:
   rules:
     - <<: *if-merge-request
-      changes: *patterns-python
+      changes: *lint-pipeline-patterns-python
 
+.lint-pipeline-yaml:rules:
+  rules:
+    - <<: *if-merge-request
+      changes: *lint-pipeline-patterns-yaml
 
+# Lint
+#######
 Lint Dockerfiles:
   extends: .lint-base
   image: hadolint/hadolint:latest-alpine
@@ -189,15 +195,17 @@ Lint Dockerfiles:
 
 
 Lint markdown files:
-  extends: .lint-mark-down-files
+  extends: .lint-pipeline-markdown:rules
   image: peterdavehello/markdownlint:latest # https://github.com/PeterDaveHello/docker-markdownlint
+  stage: lint
+  needs: [ ]
   script:
     - markdownlint .
 
 
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
-  extends: .lint-bash-files
+  extends: .lint-pipeline-bash:rules
   image: koalaman/shellcheck-alpine:latest
   before_script:
     - apk update
@@ -207,10 +215,20 @@ Lint shell scripts:
 
 
 Lint python files:
-  extends: .lint-python-files
+  extends: .lint-pipeline-python:rules
   image: pyfound/black:latest
+
   script:
-    - black .
+    - black --check .
+
+
+Lint yaml files:
+  extends: .lint-pipeline-yaml:rules
+  image: pipelinecomponents/yamllint:latest
+  stage: lint
+  needs: [ ]
+  script:
+    - yamllint --strict -f colored .
 
 
 # Build
