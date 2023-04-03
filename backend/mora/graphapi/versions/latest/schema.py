@@ -64,11 +64,24 @@ MOObject = TypeVar("MOObject")
 @strawberry.type
 class Response(Generic[MOObject]):
     uuid: UUID
-    object_cache: strawberry.Private[list[MOObject]]
 
-    @strawberry.field
-    def objects(self, root: Any) -> list[MOObject]:
-        return root.object_cache
+    # Object cache is a temporary workaround ensuring that current resolvers keep
+    # working as-is while also allowing for lazy resolution based entirely on the UUID.
+    object_cache: strawberry.Private[list[MOObject]] = UNSET
+
+    # Due to a limitation in Pythons typing support, it does not seem possible to fetch
+    # the concrete class of generics from the generic definition, thus it must be
+    # provided explicitly.
+    model: strawberry.Private[MOObject]
+
+    @strawberry.field(description="Validities for the current registration")
+    async def objects(self, root: Any, info: Info) -> list[MOObject]:
+        # If the object_cache is filled our request has already been resolved elsewhere
+        if root.object_cache != UNSET:
+            return root.object_cache
+        # If the object cache has not been filled we must resolve objects using the uuid
+        resolver = resolver_map[root.model]["loader"]
+        return (await info.context[resolver].load(root.uuid)).object_cache
 
 
 # Validities

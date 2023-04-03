@@ -98,7 +98,7 @@ async def get_mo(model: MOModel, **kwargs: Any) -> list[Response[MOModel]]:
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results)
     return [
-        Response(uuid=uuid, object_cache=objects)  # noqa: FURB111
+        Response(model=model, uuid=uuid, object_cache=objects)  # noqa: FURB111
         for uuid, objects in uuid_map.items()
     ]
 
@@ -118,7 +118,7 @@ async def load_mo(uuids: list[UUID], model: MOModel) -> list[Response[MOModel]]:
     parsed_results: list[MOModel] = parse_obj_as(list[model], results)  # type: ignore
     uuid_map = group_by_uuid(parsed_results, uuids)
     return [
-        Response(uuid=uuid, object_cache=objects)  # noqa: FURB111
+        Response(model=model, uuid=uuid, object_cache=objects)  # noqa: FURB111
         for uuid, objects in uuid_map.items()
     ]
 
