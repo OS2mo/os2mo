@@ -59,6 +59,10 @@ class ErrorCodes(Enum):
     )
     V_TERMINATE_UNIT_WITH_CHILDREN = 400, "Cannot terminate unit with active children."
     V_TERMINATE_UNIT_WITH_ROLES = 400, "Cannot terminate unit with active roles."
+    V_TERMINATE_UNIT_WITH_ADDRESSES = (
+        400,
+        "Cannot terminate unit with active addresses.",
+    )
     V_DATE_OUTSIDE_ORG_UNIT_RANGE = (
         400,
         "Date range exceeds validity range of associated org unit.",
