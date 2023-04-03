@@ -128,6 +128,10 @@ async def terminate_org_unit_validation(
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
         )
+    elif addresses:
+        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ADDRESSES(
+            addresses=", ".join(sorted(addresses)),
+        )
 
 
 async def terminate_org_unit(
