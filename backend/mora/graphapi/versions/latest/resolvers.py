@@ -190,7 +190,7 @@ class Resolver(StaticResolver):
     ) -> list[Response[MOModel]]:
         responses = await dataloader.load_many(list(set(uuids)))
         # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
-        return [response for response in responses if response.objects != []]
+        return [response for response in responses if response.object_cache != []]
 
 
 class FacetResolver(StaticResolver):
