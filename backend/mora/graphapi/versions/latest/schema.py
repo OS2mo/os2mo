@@ -30,6 +30,7 @@ from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
+from .resolver_map import resolver_map
 from .types import Cursor
 from mora import common
 from mora import config
@@ -63,7 +64,11 @@ MOObject = TypeVar("MOObject")
 @strawberry.type
 class Response(Generic[MOObject]):
     uuid: UUID
-    objects: list[MOObject]
+    object_cache: strawberry.Private[list[MOObject]]
+
+    @strawberry.field
+    def objects(self, root: Any) -> list[MOObject]:
+        return root.object_cache
 
 
 # Validities
