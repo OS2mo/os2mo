@@ -20,12 +20,7 @@
 # job will NOT be triggered in pipeline.
 .if-changes-made-to-ra-models: &if-changes-made-to-ra-models
   changes:
-    - ./ra-data-models/**/*
-    - ../backend/**/*
-    - ../docker/**/*
-    - ../Dockerfile
-    - ../pyproject.toml
-    - ../poetry.lock
+    - ra-data-models/**/*
 
 # Reusables
 ################################################################################
@@ -48,6 +43,9 @@ variables:
       - ra-data-models/.venv/
   rules:
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 .source-venv: &source-venv
   image: python:3
@@ -58,6 +56,9 @@ variables:
     - source .venv/bin/activate
   rules:
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 # Jobs
 ################################################################################
@@ -74,7 +75,7 @@ Install ramodels:
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
     - changes:
-        - ./ra-data-models/docs/*
+        - ra-data-models/docs/*
       when: never
 
 Test ramodels:
@@ -98,7 +99,7 @@ Test ramodels:
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
     - changes:
-        - ./ra-data-models/docs/*
+        - ra-data-models/docs/*
       when: never
 
 Check coverage ramodels:
@@ -117,7 +118,7 @@ Check coverage ramodels:
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
     - changes:
-        - ./ra-data-models/docs/*
+        - ra-data-models/docs/*
       when: never
 
 
@@ -132,7 +133,7 @@ Release to PyPI:
     - <<: *if-tag-semver
     - <<: *if-changes-made-to-ra-models
     - changes:
-        - ./ra-data-models/docs/*
+        - ra-data-models/docs/*
       when: never
 
 ramodel pages:
@@ -148,5 +149,5 @@ ramodel pages:
     - <<: *if-default-branch-refs
     - <<: *if-changes-made-to-ra-models
     - changes:
-        - ./ra-data-models/docs/*
+        - ra-data-models/docs/*
       when: never
