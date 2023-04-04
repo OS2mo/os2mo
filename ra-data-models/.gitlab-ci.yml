@@ -18,7 +18,7 @@
 # Example: if a commit has been pushed to /docs/mkdocs.yml, and the paths/files
 # listed below are not affected by these changes, the "Test ramodels" (among others)
 # job will NOT be triggered in pipeline.
-.if-changes-made-to-dir: &if-changes-made-to-dir
+.if-changes-made-to-ra-models: &if-changes-made-to-ra-models
   changes:
     - backend/**/*
     - docker/**/*
@@ -88,7 +88,7 @@ Test ramodels:
       - ".coverage.$CI_JOB_ID"
   rules:
     - <<: *if-merge-request
-    - <<: *if-changes-made-to-dir
+    - <<: *if-changes-made-to-ra-models
 
 Check coverage ramodels:
   stage: coverage
@@ -104,7 +104,7 @@ Check coverage ramodels:
     - coverage report -m --fail-under=80
   rules:
     - <<: *if-merge-request
-    - <<: *if-changes-made-to-dir
+    - <<: *if-changes-made-to-ra-models
 
 
 Release to PyPI:
