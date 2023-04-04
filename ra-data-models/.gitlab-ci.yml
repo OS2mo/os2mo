@@ -20,12 +20,12 @@
 # job will NOT be triggered in pipeline.
 .if-changes-made-to-ra-models: &if-changes-made-to-ra-models
   changes:
-    - backend/**/*
-    - docker/**/*
+    - ../backend/**/*
+    - ../docker/**/*
     - ra-data-models/**/*
-    - Dockerfile
-    - pyproject.toml
-    - poetry.lock
+    - ../Dockerfile
+    - ../pyproject.toml
+    - ../poetry.lock
 
 # Reusables
 ################################################################################
