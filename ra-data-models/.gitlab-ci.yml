@@ -41,11 +41,6 @@ variables:
     expire_in: 1 day
     paths:
       - ra-data-models/.venv/
-  rules:
-    - <<: *if-changes-made-to-ra-models
-    - changes:
-        - ra-data-models/docs/*
-      when: never
 
 .source-venv: &source-venv
   image: python:3
@@ -54,11 +49,6 @@ variables:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
     - source .venv/bin/activate
-  rules:
-    - <<: *if-changes-made-to-ra-models
-    - changes:
-        - ra-data-models/docs/*
-      when: never
 
 # Jobs
 ################################################################################
@@ -73,10 +63,6 @@ Install ramodels:
   rules:
     - <<: *if-default-branch-refs
     - <<: *if-merge-request
-    - <<: *if-changes-made-to-ra-models
-    - changes:
-        - ra-data-models/docs/*
-      when: never
 
 Test ramodels:
   <<: *source-venv
@@ -131,10 +117,6 @@ Release to PyPI:
     - poetry publish --build -u __token__ -p $PYPI_TOKEN
   rules:
     - <<: *if-tag-semver
-    - <<: *if-changes-made-to-ra-models
-    - changes:
-        - ra-data-models/docs/*
-      when: never
 
 ramodel pages:
   <<: *source-venv
@@ -147,7 +129,3 @@ ramodel pages:
       - public
   rules:
     - <<: *if-default-branch-refs
-    - <<: *if-changes-made-to-ra-models
-    - changes:
-        - ra-data-models/docs/*
-      when: never
