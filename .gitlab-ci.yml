@@ -83,7 +83,6 @@ include:
     file: gitlab-ci-templates/common/pre-commit.v1.yml
     rules:
       - <<: *if-merge-request
-      - <<: *if-changes-made-to-dir
 
 # Workflow
 ###########
