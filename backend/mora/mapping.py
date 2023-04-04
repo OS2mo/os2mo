@@ -210,7 +210,7 @@ class FieldTuple:
         self,
         path: tuple[str, str],
         type: FieldTypes,
-        filter_fn: typing.Callable[[dict], bool] = None,
+        filter_fn: typing.Callable[[dict], bool] | None = None,
     ):
         self.__path = path
         self.__type = type

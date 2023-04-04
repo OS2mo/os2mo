@@ -23,7 +23,6 @@ from itertools import starmap
 from typing import Any
 from typing import Literal
 from typing import NoReturn
-from typing import Optional
 from typing import TypeVar
 
 import httpx
@@ -53,7 +52,7 @@ logger = get_logger()
 settings = config.get_settings()
 
 
-async def create_lora_client(app: FastAPI | None = None) -> httpx.AsyncClient:
+async def create_lora_client(app: FastAPI) -> httpx.AsyncClient:
     """Return lora client.
 
     IThis transparently sends requests to the internal LoRa ASGI app.
@@ -124,7 +123,7 @@ class LoraObjectType(Enum):
     facet = "klassifikation/facet"
 
 
-def raise_on_status(status_code: int, msg, cause: Optional = None) -> NoReturn:
+def raise_on_status(status_code: int, msg, cause=None) -> NoReturn:
     """
     unified raising error codes
 
@@ -217,8 +216,8 @@ def param_exotics_to_strings(
 
 
 def validity_tuple(
-    validity: ValidityLiteral, now: date | datetime = None
-) -> tuple[datetime, datetime]:
+    validity: ValidityLiteral, now: date | datetime | None = None
+) -> tuple[date | datetime, date | datetime]:
     """Return (start, end) tuple of datetimes for Lora."""
     if now is None:
         now = util.parsedatetime(util.now())
@@ -383,7 +382,7 @@ class ParameterValuesExtractor:
                 yield p, value
 
     @classmethod
-    def get_key_for_path(cls, path: Iterable[str | int]) -> str:
+    def get_key_for_path(cls, path: Iterable[str | int]) -> str | int:
         """
         Given a path (a,b,c), extract the final relevant path component (c). Each path
         component can be either a string or integer, for a dict key or list index,
