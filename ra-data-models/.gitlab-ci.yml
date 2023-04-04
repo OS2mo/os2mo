@@ -54,6 +54,8 @@ variables:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
     - source .venv/bin/activate
+  rules:
+    - <<: *if-changes-made-to-ra-models
 
 # Jobs
 ################################################################################
@@ -68,6 +70,7 @@ Install ramodels:
   rules:
     - <<: *if-default-branch-refs
     - <<: *if-merge-request
+    - <<: *if-changes-made-to-ra-models
 
 Test ramodels:
   <<: *source-venv
