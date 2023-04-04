@@ -51,6 +51,22 @@ variables:
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
+
+##################
+# RULES: CHANGES #
+##################
+
+.if-changes-made-to-dir: &if-changes-made-to-backend-dir
+  rules:
+    - if:
+      changes:
+        - backend/**/*
+        - docker/**/*
+        - Dockerfile
+        - pyproject.toml
+        - poetry.lock
+
+
 include:
   - local: ra-data-models/.gitlab-ci.yml
   - project: labs/salt-automation
@@ -149,9 +165,6 @@ Lint Dockerfiles:
     - fd Dockerfile
     # Run hadolint on every Dockerfile
     - fd Dockerfile --exec hadolint
-  rules:
-    - changes:
-        - Dockerfile
 
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
@@ -162,9 +175,6 @@ Lint shell scripts:
     - apk add git
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
-  rules:
-    - changes:
-        - "**/*.sh"
 
 
 # Build
@@ -181,8 +191,7 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
     - when: on_success
 
 Build Keycloak-realm:
@@ -214,8 +223,8 @@ Build Keycloak-realm:
       - keycloak-realm.json
     expire_in: 1 day
   rules:
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
+
 
 Build Keycloak:
   extends:
@@ -227,8 +236,7 @@ Build Keycloak:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
   rules:
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
 
 
 # Tests
@@ -254,8 +262,8 @@ Unit-test:
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   rules:
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
+
   parallel: 2
   script:
     - pip install poetry==1.3.2
@@ -317,8 +325,7 @@ Integration-test:
     paths:
       - $COVERAGE_FILE
   rules:
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
 
 Coverage:
   stage: coverage
@@ -345,8 +352,7 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
-      changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
 
 # Review
 #########
@@ -377,8 +383,7 @@ Deploy Review:
   rules:
     - <<: *if-schedule
       when: never
-    - changes:
-        - backend/**/*
+    - <<: *if-changes-made-to-backend-dir
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
       when: manual
