@@ -517,7 +517,7 @@ class Scope(BaseScope):
                 **grouped_params,
                 list=True,
             )
-            uuids = [r["id"] for r in uuid_results]
+            uuids = {r["id"] for r in uuid_results}
 
         # Fully fetch objects
         results = await self.fetch(uuid=uuids)
