@@ -20,9 +20,9 @@
 # job will NOT be triggered in pipeline.
 .if-changes-made-to-ra-models: &if-changes-made-to-ra-models
   changes:
+    - ./ra-data-models/**/*
     - ../backend/**/*
     - ../docker/**/*
-    - ra-data-models/**/*
     - ../Dockerfile
     - ../pyproject.toml
     - ../poetry.lock
@@ -46,6 +46,8 @@ variables:
     expire_in: 1 day
     paths:
       - ra-data-models/.venv/
+  rules:
+    - <<: *if-changes-made-to-ra-models
 
 .source-venv: &source-venv
   image: python:3
@@ -119,6 +121,7 @@ Release to PyPI:
     - poetry publish --build -u __token__ -p $PYPI_TOKEN
   rules:
     - <<: *if-tag-semver
+    - <<: *if-changes-made-to-ra-models
 
 ramodel pages:
   <<: *source-venv
@@ -131,3 +134,4 @@ ramodel pages:
       - public
   rules:
     - <<: *if-default-branch-refs
+    - <<: *if-changes-made-to-ra-models
