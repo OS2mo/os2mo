@@ -132,7 +132,7 @@ Do not interrupt:
 #######
 .lint-base:
   stage: lint
-  needs: []
+  needs: [ ]
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
@@ -149,6 +149,9 @@ Lint Dockerfiles:
     - fd Dockerfile
     # Run hadolint on every Dockerfile
     - fd Dockerfile --exec hadolint
+  rules:
+    - changes:
+        - Dockerfile
 
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
@@ -159,6 +162,9 @@ Lint shell scripts:
     - apk add git
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
+  rules:
+    - changes:
+        - "**/*.sh"
 
 
 # Build
@@ -175,16 +181,18 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
+    - changes:
+        - backend/**/*
     - when: on_success
 
 Build Keycloak-realm:
   stage: build
-  needs: []
+  needs: [ ]
   extends: .build:test-image
   image:
     # TODO: Use new realm builder
     name: magentaaps/os2mo-keycloak-realm-builder:2.3.0
-    entrypoint: [""]
+    entrypoint: [ "" ]
   variables:
     GIT_STRATEGY: none # We do not need the source code
     KEYCLOAK_VERSION: 14.0.0
@@ -205,6 +213,9 @@ Build Keycloak-realm:
     paths:
       - keycloak-realm.json
     expire_in: 1 day
+  rules:
+    - changes:
+        - backend/**/*
 
 Build Keycloak:
   extends:
@@ -215,6 +226,9 @@ Build Keycloak:
   variables:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
+  rules:
+    - changes:
+        - backend/**/*
 
 
 # Tests
@@ -231,7 +245,7 @@ Build Keycloak:
 ################
 Unit-test:
   image: python:3.10
-  needs: []
+  needs: [ ]
   extends:
     - .test-base
     - .mo-variables
@@ -239,6 +253,9 @@ Unit-test:
     HYPOTHESIS_PROFILE: "ci"
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
+  rules:
+    - changes:
+        - backend/**/*
   parallel: 2
   script:
     - pip install poetry==1.3.2
@@ -299,6 +316,9 @@ Integration-test:
     when: always
     paths:
       - $COVERAGE_FILE
+  rules:
+    - changes:
+        - backend/**/*
 
 Coverage:
   stage: coverage
@@ -325,6 +345,8 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - <<: *if-merge-request
+    - changes:
+        - backend/**/*
 
 # Review
 #########
@@ -355,6 +377,8 @@ Deploy Review:
   rules:
     - <<: *if-schedule
       when: never
+    - changes:
+        - backend/**/*
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
       when: manual
@@ -362,7 +386,7 @@ Deploy Review:
 
 Stop Review:
   stage: review
-  needs: []
+  needs: [ ]
   image: curlimages/curl:7.81.0
   variables:
     GIT_STRATEGY: none  # We do not need the source code
@@ -398,7 +422,7 @@ Stop Review:
 .docs:rules:build-docs:
   rules:
     - <<: *if-merge-request
-    - !reference [".docs:rules:deploy-master-docs", rules]
+    - !reference [ ".docs:rules:deploy-master-docs", rules ]
 
 Export GQL Schema:
   stage: docs
@@ -418,7 +442,7 @@ Export Changelog:
   stage: docs
   extends:
     - .docs:rules:build-docs
-  needs: []
+  needs: [ ]
   image: python:3
   variables:
     OUT: $CI_PROJECT_DIR/docs/.dynamic_changelog.md
@@ -465,7 +489,7 @@ Build and deploy branch docs:
     - <<: *if-merge-request
 
 Build master docs:
-    extends:
+  extends:
     - .build-docs
     - .docs:rules:deploy-master-docs
 
