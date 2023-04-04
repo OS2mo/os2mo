@@ -11,6 +11,22 @@
   if: '$CI_MERGE_REQUEST_IID'
 
 
+##################
+# RULES: CHANGES #
+##################
+# Add or modify these to only trigger a job that has commits pushed to them.
+# Example: if a commit has been pushed to /docs/mkdocs.yml, and the paths/files
+# listed below are not affected by these changes, the "Test ramodels" (among others)
+# job will NOT be triggered in pipeline.
+.if-changes-made-to-dir: &if-changes-made-to-dir
+  changes:
+    - backend/**/*
+    - docker/**/*
+    - ra-data-models/**/*
+    - Dockerfile
+    - pyproject.toml
+    - poetry.lock
+
 # Reusables
 ################################################################################
 variables:
@@ -19,7 +35,7 @@ variables:
   POETRY_VIRTUALENVS_IN_PROJECT: "true"
 
 .install-deps: &install-deps
-  needs: []
+  needs: [ ]
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
@@ -33,7 +49,7 @@ variables:
 
 .source-venv: &source-venv
   image: python:3
-  needs: [Install ramodels]
+  needs: [ Install ramodels ]
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
@@ -72,11 +88,12 @@ Test ramodels:
       - ".coverage.$CI_JOB_ID"
   rules:
     - <<: *if-merge-request
+    - <<: *if-changes-made-to-dir
 
 Check coverage ramodels:
   stage: coverage
   image: python:3
-  needs: [Test ramodels]
+  needs: [ Test ramodels ]
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
@@ -87,6 +104,8 @@ Check coverage ramodels:
     - coverage report -m --fail-under=80
   rules:
     - <<: *if-merge-request
+    - <<: *if-changes-made-to-dir
+
 
 Release to PyPI:
   <<: *install-deps
