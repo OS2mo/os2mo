@@ -59,7 +59,7 @@ variables:
 # Example: if a commit has been pushed to /docs/src/changelog.md, and the paths/files
 # listed below are not affected by these changes, the "Unit-test" (among others) job will
 # NOT be triggered in pipeline.
-.if-changes-made-to-dir: &if-changes-made-to-dir
+.changes-made-to-dir: &changes-made-to-dir
   changes:
     - backend/**/*
     - docker/**/*
@@ -193,7 +193,7 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -228,7 +228,7 @@ Build Keycloak-realm:
       - keycloak-realm.json
     expire_in: 1 day
   rules:
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -244,7 +244,7 @@ Build Keycloak:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
   rules:
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -272,7 +272,7 @@ Unit-test:
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   rules:
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -338,7 +338,7 @@ Integration-test:
     paths:
       - $COVERAGE_FILE
   rules:
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -368,7 +368,7 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
@@ -402,7 +402,7 @@ Deploy Review:
   rules:
     - <<: *if-schedule
       when: never
-    - <<: *if-changes-made-to-dir
+    - <<: *changes-made-to-dir
     - changes:
         - ra-data-models/docs/*
       when: never
