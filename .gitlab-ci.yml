@@ -344,8 +344,8 @@ Coverage:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
-    - <<: *if-merge-request
-    - changes:
+    - if: *if-merge-request
+      changes:
         - backend/**/*
 
 # Review
