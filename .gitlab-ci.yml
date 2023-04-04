@@ -344,7 +344,7 @@ Coverage:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
-    - if: *if-merge-request
+    - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
       changes:
         - backend/**/*
 
