@@ -56,19 +56,15 @@ variables:
 # Changes patterns #
 ####################
 
-.lint-pipeline-patterns-bash: &lint-pipeline-patterns-bash
+.pipeline-patterns-bash: &pipeline-patterns-bash
   - "**/*.sh"
 
-.lint-pipeline-patterns-markdown: &lint-pipeline-patterns-markdown
-  - "**/*.md"
-  - "**/*.markdown"
+.pipeline-patterns-markdown: &pipeline-patterns-markdown
+                               "docs/**/*"
 
-.lint-pipeline-patterns-python: &lint-pipeline-patterns-python
+.pipeline-patterns-python: &pipeline-patterns-python
   - "**/*.py"
 
-.lint-pipeline-patterns-yaml: &lint-pipeline-patterns-yaml
-  - "**/*.yml"
-  - "**/*.yaml"
 
 include:
   - local: ra-data-models/.gitlab-ci.yml
@@ -157,31 +153,20 @@ Do not interrupt:
   rules:
     - <<: *if-merge-request
 
-.lint-pipeline-bash:
-  rules:
-    - <<: *if-merge-request
-      changes: *lint-pipeline-patterns-bash
-
 .lint-pipeline-markdown:
   stage: lint
   needs: [ ]
   rules:
     - <<: *if-merge-request
-      changes: *lint-pipeline-patterns-markdown
+      changes: *pipeline-patterns-markdown
 
 .lint-pipeline-python:
   stage: lint
   needs: [ ]
   rules:
     - <<: *if-merge-request
-      changes: *lint-pipeline-patterns-python
+      changes: *pipeline-patterns-python
 
-.lint-pipeline-yaml:
-  stage: lint
-  needs: [ ]
-  rules:
-    - <<: *if-merge-request
-      changes: *lint-pipeline-patterns-yaml
 
 # Lint
 #######
@@ -199,36 +184,18 @@ Lint Dockerfiles:
     - fd Dockerfile --exec hadolint
 
 
-Lint markdown docs:
-  extends: .lint-pipeline-markdown
-  image: peterdavehello/markdownlint:latest # https://github.com/PeterDaveHello/docker-markdownlint
-  script:
-    - markdownlint .
-
-
 Lint shell scripts:
   # TODO: Do this as part of pre-commit instead
-  extends: .lint-pipeline-bash
+  extends: .lint-base
   image: koalaman/shellcheck-alpine:latest
   before_script:
     - apk update
     - apk add git
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
+  rules:
+    - changes: *pipeline-patterns-bash
 
-
-Lint python files:
-  extends: .lint-pipeline-python
-  image: pyfound/black:latest
-  script:
-    - black --check .
-
-
-Lint yaml:
-  extends: .lint-pipeline-yaml
-  image: pipelinecomponents/yamllint:latest
-  script:
-    - yamllint --strict -f colored .
 
 
 # Build
@@ -245,7 +212,9 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
-    - when: on_success
+    - changes:
+        - backend/**/*
+      when: on_success
 
 Build Keycloak-realm:
   stage: build
