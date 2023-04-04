@@ -62,7 +62,6 @@ variables:
 .if-changes-made-to-dir: &if-changes-made-to-dir
   changes:
     - backend/**/*
-    - ra-data-models/**/*
     - docker/**/*
     - Dockerfile
     - pyproject.toml
@@ -71,8 +70,6 @@ variables:
 
 include:
   - local: ra-data-models/.gitlab-ci.yml
-    rules:
-      - if: *if-changes-made-to-dir
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
@@ -196,6 +193,9 @@ Build OS2mo:
     - <<: *if-schedule
       when: never
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
     - when: on_success
 
 Build Keycloak-realm:
@@ -228,6 +228,9 @@ Build Keycloak-realm:
     expire_in: 1 day
   rules:
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 
 Build Keycloak:
@@ -241,6 +244,9 @@ Build Keycloak:
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
   rules:
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 # Tests
 ########
@@ -266,6 +272,9 @@ Unit-test:
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   rules:
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
   parallel: 2
   script:
@@ -329,6 +338,9 @@ Integration-test:
       - $COVERAGE_FILE
   rules:
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 Coverage:
   stage: coverage
@@ -356,6 +368,9 @@ Coverage:
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
 
 # Review
 #########
@@ -387,6 +402,9 @@ Deploy Review:
     - <<: *if-schedule
       when: never
     - <<: *if-changes-made-to-dir
+    - changes:
+        - ra-data-models/docs/*
+      when: never
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
       when: manual

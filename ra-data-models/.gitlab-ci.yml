@@ -73,6 +73,9 @@ Install ramodels:
     - <<: *if-default-branch-refs
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ./ra-data-models/docs/*
+      when: never
 
 Test ramodels:
   <<: *source-venv
@@ -94,6 +97,9 @@ Test ramodels:
   rules:
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ./ra-data-models/docs/*
+      when: never
 
 Check coverage ramodels:
   stage: coverage
@@ -110,6 +116,9 @@ Check coverage ramodels:
   rules:
     - <<: *if-merge-request
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ./ra-data-models/docs/*
+      when: never
 
 
 Release to PyPI:
@@ -122,6 +131,9 @@ Release to PyPI:
   rules:
     - <<: *if-tag-semver
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ./ra-data-models/docs/*
+      when: never
 
 ramodel pages:
   <<: *source-venv
@@ -135,3 +147,6 @@ ramodel pages:
   rules:
     - <<: *if-default-branch-refs
     - <<: *if-changes-made-to-ra-models
+    - changes:
+        - ./ra-data-models/docs/*
+      when: never
