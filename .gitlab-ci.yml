@@ -59,7 +59,6 @@ variables:
 # Example: if a commit has been pushed to /docs/src/changelog.md, and the paths/files
 # listed below are not affected by these changes, the "Unit-test" (among others) job will
 # NOT be triggered in pipeline.
-# Testing behaviour.
 .if-changes-made-to-dir: &if-changes-made-to-dir
   changes:
     - backend/**/*
