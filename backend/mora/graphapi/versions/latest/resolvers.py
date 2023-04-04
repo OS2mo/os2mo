@@ -17,7 +17,6 @@ from strawberry.types import Info
 from ...middleware import set_graphql_dates
 from .resolver_map import resolver_map
 from .schema import OpenValidityModel
-from .schema import Response
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -135,27 +134,6 @@ class StaticResolver:
 
 
 class Resolver(StaticResolver):
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-    ):
-        return await self._resolve_response(
-            info, uuids, user_keys, limit, offset, from_date, to_date
-        )
-
-    async def _resolve_response(self, *args, **kwargs):  # type: ignore[no-untyped-def]
-        result = await self.resolve(*args, **kwargs)
-        return [
-            Response(uuid=uuid, model=self.model, object_cache=objects)
-            for uuid, objects in result.items()
-        ]
-
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
@@ -265,34 +243,6 @@ class AddressResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AddressRead)
 
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        address_types: list[UUID] | None = None,
-        address_type_user_keys: list[str] | None = None,
-        employees: list[UUID] | None = None,
-        engagements: list[UUID] | None = None,
-    ):
-        return await self._resolve_response(
-            info,
-            uuids,
-            user_keys,
-            limit,
-            offset,
-            from_date,
-            to_date,
-            address_types,
-            address_type_user_keys,
-            employees,
-            engagements,
-        )
-
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
@@ -341,34 +291,6 @@ class AddressResolver(Resolver):
 class AssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AssociationRead)
-
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
-        association_types: list[UUID] | None = None,
-        association_type_user_keys: list[str] | None = None,
-    ):
-        return await self._resolve_response(
-            info,
-            uuids,
-            user_keys,
-            limit,
-            offset,
-            from_date,
-            to_date,
-            employees,
-            org_units,
-            association_types,
-            association_type_user_keys,
-        )
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -420,21 +342,6 @@ class EmployeeResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EmployeeRead)
 
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        cpr_numbers: list[CPR] | None = None,
-    ):
-        return await self._resolve_response(
-            info, uuids, user_keys, limit, offset, from_date, to_date, cpr_numbers
-        )
-
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
@@ -467,30 +374,6 @@ class EmployeeResolver(Resolver):
 class EngagementResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EngagementRead)
-
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
-    ):
-        return await self._resolve_response(
-            info,
-            uuids,
-            user_keys,
-            limit,
-            offset,
-            from_date,
-            to_date,
-            employees,
-            org_units,
-        )
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -526,30 +409,6 @@ class ManagerResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ManagerRead)
 
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
-    ):
-        return await self._resolve_response(
-            info,
-            uuids,
-            user_keys,
-            limit,
-            offset,
-            from_date,
-            to_date,
-            employees,
-            org_units,
-        )
-
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
@@ -583,30 +442,6 @@ class ManagerResolver(Resolver):
 class OrganisationUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(OrganisationUnitRead)
-
-    async def resolve_response(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        parents: list[UUID] | None = UNSET,
-        hierarchies: list[UUID] | None = None,
-    ):
-        return await self._resolve_response(
-            info,
-            uuids,
-            user_keys,
-            limit,
-            offset,
-            from_date,
-            to_date,
-            parents,
-            hierarchies,
-        )
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,

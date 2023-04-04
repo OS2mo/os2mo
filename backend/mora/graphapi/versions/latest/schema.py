@@ -960,7 +960,7 @@ class OrganisationUnit:
         # same function call in the same function over and over.
         from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
 
-        responses = await OrganisationUnitResolver().resolve_response(
+        responses = await OrganisationUnitResolver().resolve(
             info=info,
             uuids=uuids,
             user_keys=user_keys,
@@ -969,7 +969,7 @@ class OrganisationUnit:
             parents=[root.uuid],
             hierarchies=hierarchies,
         )
-        return list(chain.from_iterable(r.object_cache for r in responses))
+        return list(chain.from_iterable(responses.values()))
 
     @strawberry.field(description="Children count of the organisation unit.")
     async def child_count(
