@@ -60,7 +60,7 @@ variables:
   - "**/*.sh"
 
 .pipeline-patterns-markdown: &pipeline-patterns-markdown
-                               "docs/**/*"
+  - "**/*.md"
 
 .pipeline-patterns-python: &pipeline-patterns-python
   - "**/*.py"
@@ -193,8 +193,6 @@ Lint shell scripts:
     - apk add git
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
-  rules:
-    - changes: *pipeline-patterns-bash
 
 
 
