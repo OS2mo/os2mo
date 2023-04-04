@@ -72,7 +72,8 @@ variables:
 include:
   - local: ra-data-models/.gitlab-ci.yml
     rules:
-      - <<: *if-changes-made-to-dir
+      - if:
+          *if-changes-made-to-dir
   - project: labs/salt-automation
     file:
       - gitlab-ci-templates/common/no-interrupt-meta.v1.yml
