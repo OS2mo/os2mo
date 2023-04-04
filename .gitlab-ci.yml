@@ -62,7 +62,6 @@ variables:
 .if-changes-made-to-dir: &if-changes-made-to-dir
   changes:
     - backend/**/*
-    - ra-data-models/**/*
     - docker/**/*
     - Dockerfile
     - pyproject.toml
