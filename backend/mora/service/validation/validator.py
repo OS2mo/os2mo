@@ -512,7 +512,7 @@ async def does_employee_with_cpr_already_exist(
         tilknyttedepersoner=f"urn:dk:cpr:person:{cpr}", tilhoerer=org_uuid
     )
 
-    return user_ids and allowed_user_id not in user_ids
+    return bool(user_ids) and allowed_user_id not in user_ids
 
 
 @forceable
