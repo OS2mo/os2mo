@@ -15,22 +15,34 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
-from .dataloaders import MOModel
+from .resolver_map import resolver_map
 from .schema import OpenValidityModel
-from .schema import Response
 from mora.util import CPR
+from ramodels.mo import ClassRead
+from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
+from ramodels.mo import OrganisationUnitRead
+from ramodels.mo.details import AddressRead
+from ramodels.mo.details import AssociationRead
+from ramodels.mo.details import EngagementAssociationRead
+from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITSystemRead
+from ramodels.mo.details import ITUserRead
+from ramodels.mo.details import KLERead
+from ramodels.mo.details import LeaveRead
+from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import RelatedUnitRead
+from ramodels.mo.details import RoleRead
 
 
 class StaticResolver:
-    def __init__(self, getter: str, loader: str) -> None:
-        """Create a field resolver by specifying getter and loader.
+    def __init__(self, model: type) -> None:
+        """Create a field resolver by specifying a model.
 
         Args:
-            getter: Name of the getter to use.
-            loader: Name of the loader to use.
+            model: The MOModel.
         """
-        self.getter = getter
-        self.loader = loader
+        self.model: type = model
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -74,7 +86,8 @@ class StaticResolver:
         if uuids is not None:
             if limit is not None or offset is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
-            return await self.get_by_uuid(info.context[self.loader], uuids)
+            resolver_name = resolver_map[self.model]["loader"]
+            return await self.get_by_uuid(info.context[resolver_name], uuids)
 
         # User keys
         if user_keys is not None:
@@ -97,7 +110,8 @@ class StaticResolver:
         if offset is not None:
             kwargs["foersteresultat"] = offset
 
-        return await info.context[self.getter](**kwargs)
+        resolver_name = resolver_map[self.model]["getter"]
+        return await info.context[resolver_name](**kwargs)
 
     @staticmethod
     # type: ignore[no-untyped-def]
@@ -167,22 +181,26 @@ class Resolver(StaticResolver):
         )
 
     @staticmethod
-    async def get_by_uuid(
-        dataloader: DataLoader, uuids: list[UUID]
-    ) -> list[Response[MOModel]]:
-        responses = await dataloader.load_many(list(set(uuids)))
+    # type: ignore[no-untyped-def]
+    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
+        deduplicated_uuids = list(set(uuids))
+        responses = await dataloader.load_many(deduplicated_uuids)
         # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
-        return [response for response in responses if response.objects != []]
+        return {
+            uuid: objects
+            for uuid, objects in zip(deduplicated_uuids, responses)
+            if objects != []
+        }
 
 
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
-        super().__init__("facet_getter", "facet_loader")
+        super().__init__(FacetRead)
 
 
 class ClassResolver(StaticResolver):
     def __init__(self) -> None:
-        super().__init__("class_getter", "class_loader")
+        super().__init__(ClassRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -223,7 +241,7 @@ class ClassResolver(StaticResolver):
 
 class AddressResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("address_getter", "address_loader")
+        super().__init__(AddressRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -257,6 +275,7 @@ class AddressResolver(Resolver):
             kwargs["tilknyttedebrugere"] = employees
         if engagements is not None:
             kwargs["tilknyttedefunktioner"] = engagements
+
         return await super()._resolve(
             info=info,
             uuids=uuids,
@@ -271,7 +290,7 @@ class AddressResolver(Resolver):
 
 class AssociationResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("association_getter", "association_loader")
+        super().__init__(AssociationRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -321,7 +340,7 @@ class AssociationResolver(Resolver):
 
 class EmployeeResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("employee_getter", "employee_loader")
+        super().__init__(EmployeeRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -354,7 +373,7 @@ class EmployeeResolver(Resolver):
 
 class EngagementResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("engagement_getter", "engagement_loader")
+        super().__init__(EngagementRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -388,7 +407,7 @@ class EngagementResolver(Resolver):
 
 class ManagerResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("manager_getter", "manager_loader")
+        super().__init__(ManagerRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -422,7 +441,7 @@ class ManagerResolver(Resolver):
 
 class OrganisationUnitResolver(Resolver):
     def __init__(self) -> None:
-        super().__init__("org_unit_getter", "org_unit_loader")
+        super().__init__(OrganisationUnitRead)
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -458,6 +477,41 @@ class OrganisationUnitResolver(Resolver):
             to_date=to_date,
             **kwargs,
         )
+
+
+class EngagementAssociationResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(EngagementAssociationRead)
+
+
+class ITSystemResolver(StaticResolver):
+    def __init__(self) -> None:
+        super().__init__(ITSystemRead)
+
+
+class ITUserResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(ITUserRead)
+
+
+class KLEResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(KLERead)
+
+
+class LeaveResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(LeaveRead)
+
+
+class RelatedUnitResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RelatedUnitRead)
+
+
+class RoleResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(RoleRead)
 
 
 def get_date_interval(

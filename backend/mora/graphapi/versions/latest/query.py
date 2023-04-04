@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from functools import wraps
 from typing import Any
 from typing import cast
 
@@ -18,12 +19,17 @@ from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
 from .resolvers import EmployeeResolver
+from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import ITSystemResolver
+from .resolvers import ITUserResolver
+from .resolvers import KLEResolver
+from .resolvers import LeaveResolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
-from .resolvers import Resolver
-from .resolvers import StaticResolver
+from .resolvers import RelatedUnitResolver
+from .resolvers import RoleResolver
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -51,6 +57,18 @@ from .types import Cursor
 from mora.config import get_public_settings
 
 
+def to_response(resolver):  # type: ignore
+    @wraps(resolver.resolve)
+    async def resolve_response(*args, **kwargs):  # type: ignore
+        result = await resolver.resolve(*args, **kwargs)
+        return [
+            Response(uuid=uuid, model=resolver.model, object_cache=objects)
+            for uuid, objects in result.items()
+        ]
+
+    return resolve_response
+
+
 @strawberry.type(description="Entrypoint for all read-operations")
 class Query:
     """Query is the top-level entrypoint for all read-operations.
@@ -63,7 +81,7 @@ class Query:
     # Addresses
     # ---------
     addresses: list[Response[Address]] = strawberry.field(
-        resolver=AddressResolver().resolve,
+        resolver=to_response(AddressResolver()),
         description="Get a list of all addresses, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
@@ -71,7 +89,7 @@ class Query:
     # Associations
     # ------------
     associations: list[Response[Association]] = strawberry.field(
-        resolver=AssociationResolver().resolve,
+        resolver=to_response(AssociationResolver()),
         description="Get a list of all Associations, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -90,7 +108,7 @@ class Query:
     # Employees
     # ---------
     employees: list[Response[Employee]] = strawberry.field(
-        resolver=EmployeeResolver().resolve,
+        resolver=to_response(EmployeeResolver()),
         description="Get a list of all employees, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
@@ -98,7 +116,7 @@ class Query:
     # Engagements
     # -----------
     engagements: list[Response[Engagement]] = strawberry.field(
-        resolver=EngagementResolver().resolve,
+        resolver=to_response(EngagementResolver()),
         description="Get a list of all engagements, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -109,9 +127,7 @@ class Query:
     # EngagementsAssociations
     # -----------
     engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
-        resolver=Resolver(
-            "engagement_association_getter", "engagement_association_loader"
-        ).resolve,
+        resolver=to_response(EngagementAssociationResolver()),
         description="Get a list of engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -130,7 +146,7 @@ class Query:
     # ITSystems
     # ---------
     itsystems: list[ITSystem] = strawberry.field(
-        resolver=StaticResolver("itsystem_getter", "itsystem_loader").resolve,
+        resolver=ITSystemResolver().resolve,
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
@@ -138,7 +154,7 @@ class Query:
     # ITUsers
     # -------
     itusers: list[Response[ITUser]] = strawberry.field(
-        resolver=Resolver("ituser_getter", "ituser_loader").resolve,
+        resolver=to_response(ITUserResolver()),
         description="Get a list of all ITUsers, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
@@ -146,7 +162,7 @@ class Query:
     # KLEs
     # ----
     kles: list[Response[KLE]] = strawberry.field(
-        resolver=Resolver("kle_getter", "kle_loader").resolve,
+        resolver=to_response(KLEResolver()),
         description="Get a list of all KLE's, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
@@ -154,7 +170,7 @@ class Query:
     # Leave
     # -----
     leaves: list[Response[Leave]] = strawberry.field(
-        resolver=Resolver("leave_getter", "leave_loader").resolve,
+        resolver=to_response(LeaveResolver()),
         description="Get a list of all leaves, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
@@ -162,7 +178,7 @@ class Query:
     # Managers
     # --------
     managers: list[Response[Manager]] = strawberry.field(
-        resolver=ManagerResolver().resolve,
+        resolver=to_response(ManagerResolver()),
         description="Get a list of all managers, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
@@ -182,7 +198,7 @@ class Query:
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
-        resolver=OrganisationUnitResolver().resolve,
+        resolver=to_response(OrganisationUnitResolver()),
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
@@ -190,7 +206,7 @@ class Query:
     # Related Units
     # -------------
     related_units: list[Response[RelatedUnit]] = strawberry.field(
-        resolver=Resolver("rel_unit_getter", "rel_unit_loader").resolve,
+        resolver=to_response(RelatedUnitResolver()),
         description="Get a list of related organisation units, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -201,7 +217,7 @@ class Query:
     # Roles
     # -----
     roles: list[Response[Role]] = strawberry.field(
-        resolver=Resolver("role_getter", "role_loader").resolve,
+        resolver=to_response(RoleResolver()),
         description="Get a list of all roles, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )

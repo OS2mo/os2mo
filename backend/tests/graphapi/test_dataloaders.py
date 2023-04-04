@@ -29,8 +29,6 @@ from mora.graphapi.versions.latest.schema import RelatedUnitRead
 from mora.graphapi.versions.latest.schema import RoleRead
 
 
-pytestmark = pytest.mark.asyncio
-
 models = [
     AddressRead,
     AssociationRead,

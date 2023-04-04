@@ -11,8 +11,6 @@ from . import util
 from mora import lora
 from mora.config import Settings
 
-pytestmark = pytest.mark.asyncio
-
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)

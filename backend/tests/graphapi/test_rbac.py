@@ -22,7 +22,6 @@ from strawberry.dataloader import DataLoader
 from mora.auth.keycloak.models import Token
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.schema import AddressRead
-from mora.graphapi.versions.latest.schema import Response
 from mora.graphapi.versions.latest.version import LatestGraphQLSchema
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
@@ -40,25 +39,22 @@ async def load_org(keys: list[int]) -> list[OrganisationRead]:
     return [OrganisationRead.parse_obj({"name": "Test org"})] * len(keys)
 
 
-async def load_all_org_units(**kwargs) -> list[Response[OrganisationUnitRead]]:
+async def load_all_org_units(**kwargs) -> dict[UUID, list[OrganisationUnitRead]]:
     uuid = uuid4()
-    return [
-        Response(
-            uuid=uuid,
-            objects=[
-                OrganisationUnitRead.parse_obj(
-                    {
-                        "name": "Test org",
-                        "validity": {"from": date.today().isoformat(), "to": None},
-                    }
-                )
-            ],
-        )
-    ]
+    return {
+        uuid: [
+            OrganisationUnitRead.parse_obj(
+                {
+                    "name": "Test org",
+                    "validity": {"from": date.today().isoformat(), "to": None},
+                }
+            )
+        ]
+    }
 
 
-async def load_all_addresses(**kwargs) -> list[Response[AddressRead]]:
-    return []
+async def load_all_addresses(**kwargs) -> dict[UUID, list[AddressRead]]:
+    return {}
 
 
 async def load_addresses(keys: list[UUID]) -> list[list[AddressRead]]:
