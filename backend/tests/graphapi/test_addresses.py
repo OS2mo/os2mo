@@ -35,10 +35,9 @@ from tests.graphapi.utils import fetch_employee_validity
 from tests.graphapi.utils import fetch_org_unit_validity
 from tests.util import dar_loader
 
-
 # HELPERS
 
-org_unit_l1 = UUID("2874e1dc-85e6-4269-823a-e1125484dfd3")
+org_unit_l1 = UUID("2874e1dc-85e6-4269-823a-e1125484dfd1")
 user_andersand = UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a")  # andersand
 user_fedtmule = UUID("6ee24785-ee9a-4502-81c2-7697009c9053")  # fedtmule
 user_erik = UUID("236e0a78-11a0-4ed9-8545-6286bb8611c7")  # erik_smidt_hansen
@@ -640,20 +639,20 @@ async def test_terminate(given_uuid, given_validity_dts):
         ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 4),
         (
             """
-            (address_types: [
-                "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            ])
-        """,
+                (address_types: [
+                    "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                    "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                ])
+            """,
             4,
         ),
         (
             """
-            (
-                address_type_user_keys: "BrugerPostadresse"
-                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            )
-        """,
+                (
+                    address_type_user_keys: "BrugerPostadresse"
+                    address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                )
+            """,
             4,
         ),
         # Employee filters
@@ -661,11 +660,11 @@ async def test_terminate(given_uuid, given_validity_dts):
         ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 2),
         (
             """
-            (employees: [
-                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "6ee24785-ee9a-4502-81c2-7697009c9053"
-            ])
-        """,
+                (employees: [
+                    "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "6ee24785-ee9a-4502-81c2-7697009c9053"
+                ])
+            """,
             3,
         ),
         # Engagement filters
@@ -674,20 +673,20 @@ async def test_terminate(given_uuid, given_validity_dts):
         # Mixed filters
         (
             """
-            (
-                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
-                address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
-            )
-        """,
+                (
+                    employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
+                    address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+                )
+            """,
             1,
         ),
         (
             """
-            (
-                employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
-                address_type_user_keys: "BrugerEmail"
-            )
-        """,
+                (
+                    employees: "6ee24785-ee9a-4502-81c2-7697009c9053",
+                    address_type_user_keys: "BrugerEmail"
+                )
+            """,
             1,
         ),
     ],
