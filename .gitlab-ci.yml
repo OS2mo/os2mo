@@ -66,6 +66,7 @@ variables:
     - Dockerfile
     - pyproject.toml
     - poetry.lock
+    - .gitlab-ci.yml
 
 
 include:
@@ -149,7 +150,7 @@ Do not interrupt:
 #######
 .lint-base:
   stage: lint
-  needs: [ ]
+  needs: []
   # TODO: Individual lint rules for each file type using 'changes' patterns
   rules:
     - <<: *if-merge-request
@@ -200,12 +201,12 @@ Build OS2mo:
 
 Build Keycloak-realm:
   stage: build
-  needs: [ ]
+  needs: []
   extends: .build:test-image
   image:
     # TODO: Use new realm builder
     name: magentaaps/os2mo-keycloak-realm-builder:2.3.0
-    entrypoint: [ "" ]
+    entrypoint: [""]
   variables:
     GIT_STRATEGY: none # We do not need the source code
     KEYCLOAK_VERSION: 14.0.0
@@ -262,7 +263,7 @@ Build Keycloak:
 ################
 Unit-test:
   image: python:3.10
-  needs: [ ]
+  needs: []
   extends:
     - .test-base
     - .mo-variables
@@ -412,7 +413,7 @@ Deploy Review:
 
 Stop Review:
   stage: review
-  needs: [ ]
+  needs: []
   image: curlimages/curl:7.81.0
   variables:
     GIT_STRATEGY: none  # We do not need the source code
@@ -448,7 +449,7 @@ Stop Review:
 .docs:rules:build-docs:
   rules:
     - <<: *if-merge-request
-    - !reference [ ".docs:rules:deploy-master-docs", rules ]
+    - !reference [".docs:rules:deploy-master-docs", rules]
 
 Export GQL Schema:
   stage: docs
@@ -468,7 +469,7 @@ Export Changelog:
   stage: docs
   extends:
     - .docs:rules:build-docs
-  needs: [ ]
+  needs: []
   image: python:3
   variables:
     OUT: $CI_PROJECT_DIR/docs/.dynamic_changelog.md

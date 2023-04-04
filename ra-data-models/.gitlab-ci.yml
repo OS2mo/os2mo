@@ -21,6 +21,7 @@
 .if-changes-made-to-ra-models: &if-changes-made-to-ra-models
   changes:
     - ra-data-models/**/*
+    - .gitlab-ci.yml
 
 # Reusables
 ################################################################################
@@ -30,7 +31,7 @@ variables:
   POETRY_VIRTUALENVS_IN_PROJECT: "true"
 
 .install-deps: &install-deps
-  needs: [ ]
+  needs: []
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
@@ -44,7 +45,7 @@ variables:
 
 .source-venv: &source-venv
   image: python:3
-  needs: [ Install ramodels ]
+  needs: [Install ramodels]
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
@@ -91,7 +92,7 @@ Test ramodels:
 Check coverage ramodels:
   stage: coverage
   image: python:3
-  needs: [ Test ramodels ]
+  needs: [Test ramodels]
   before_script:
     - cd ra-data-models
     - cp -r ../backend/ramodels ramodels
