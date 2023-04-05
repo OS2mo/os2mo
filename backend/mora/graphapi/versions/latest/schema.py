@@ -5,7 +5,11 @@ import asyncio
 import json
 import re
 from base64 import b64encode
-from datetime import datetime
+from collections.abc import Awaitable
+from collections.abc import Callable
+from functools import partial
+from inspect import Parameter
+from inspect import signature
 from itertools import chain
 from typing import Any
 from typing import cast
@@ -21,6 +25,7 @@ from more_itertools import only
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
+from strawberry.lazy_type import LazyType
 from strawberry.types import Info
 
 from .health import health_map
@@ -31,6 +36,10 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
+from .resolvers import AddressResolver
+from .resolvers import EngagementResolver
+from .resolvers import OrganisationUnitResolver
+from .resolvers import StaticResolver
 from .types import Cursor
 from mora import common
 from mora import config
@@ -43,8 +52,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo._shared import OpenValidity as OpenValidityModel
-from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementAssociationRead
@@ -59,6 +66,115 @@ from ramodels.mo.details import RoleRead
 
 
 MOObject = TypeVar("MOObject")
+RootModel = TypeVar("RootModel")
+R = TypeVar("R")
+
+
+def identity(x: R) -> R:
+    """Identity function.
+
+    Args:
+        x: Random argument.
+
+    Returns:
+        `x` completely unmodified.
+    """
+    return x
+
+
+def seed_resolver(
+    resolver: StaticResolver,
+    root_model: RootModel,
+    seeds: dict[str, Callable[[RootModel], Any]],
+    result_translation: Callable[[Any], R] | None = None,
+) -> Callable[..., Awaitable[R]]:
+    """Seed the provided top-level resolver to be used in a field-level context.
+
+    This function serves to create a new function which calls the `resolver.resolve`
+    method with seeded values from the field-context in which it is called.
+
+    Example:
+        A resolver exists to load organisation units, namely `OrganisationUnitResolver`.
+        This resolver accepts a `parents` parameter, which given a UUID of an existing
+        organisation unit loads all of its children.
+
+        From our top-level `Query` object context, the caller can set this parameter
+        explicitly, however on the OrganisationUnit field-level, we would like this
+        parameter to be given by the context, i.e. when asking for `children` on an
+        organisation unit, we expect the `parent` parameter on the resolver to be set
+        to the object we call `children` on.
+
+        This can be achieved by setting `seeds` to a dictionary that sets `parents` to
+        a callable that extracts the root object's `uuid` from the object itself:
+        ```
+        child_count: int = strawberry.field(
+            description="Children count of the organisation unit.",
+            resolver=seed_resolver(
+                OrganisationUnitResolver(),
+                OrganisationUnitRead,
+                {"parents": lambda root: [root.uuid]},
+                lambda result: len(result.keys()),
+            ),
+            ...
+        )
+        ```
+        In this example a `result_translation` lambda is also used to map from the list
+        of OrganisationUnits returned by the resolver to the number of children found.
+
+    Args:
+        resolver: The top-level resolver to seed arguments to.
+        root_model: The root-model applicable for the field-level context.
+        seeds:
+            A dictionary mapping from parameter name to callables resolving the argument
+            values from the root object.
+        result_translation:
+            A result translation callable translating the resolver return value
+            from one type to another. Uses the identity function if not provided.
+
+    Returns:
+        A seeded resolver function that accepts the same parameters as the
+        `resolver.resolve` function, except with the `seeds` keys removed as parameters,
+        and a `root` parameter with the `root_model` type added.
+    """
+    # If no result_translation function was provided, default to the identity function.
+    result_translation = result_translation or identity
+
+    async def seeded_resolver(*args: Any, root: Any, **kwargs: Any) -> R:
+        # Resolve arguments from the root object
+        for key, argument_callable in seeds.items():
+            kwargs[key] = argument_callable(root)
+        result = await resolver.resolve(*args, **kwargs)
+        assert result_translation is not None
+        return result_translation(result)
+
+    sig = signature(resolver.resolve)
+    parameters = sig.parameters.copy()
+    # Remove the `seeds` parameters from the parameter list, as these will be resolved
+    # from the root object on call-time instead.
+    for key in seeds.keys():
+        del parameters[key]
+    # Add the `root` parameter to the parameter list, as it is required for all the
+    # `seeds` resolvers to determine call-time parameters.
+    parameters["root"] = Parameter(
+        "root", Parameter.KEYWORD_ONLY, annotation=root_model
+    )
+    # Generate and apply our new signature to the seeded_resolver function
+    new_sig = sig.replace(parameters=list(parameters.values()))
+    seeded_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
+
+    return seeded_resolver
+
+
+# seed_resolver functions pre-seeded with result_translation functions assuming that
+# only a single UUID will be returned, converting the objects list to either a list or
+# an optional entity.
+seed_resolver_list = partial(
+    seed_resolver, result_translation=lambda result: list(chain.from_iterable(result.values()))
+)
+seed_resolver_optional = partial(
+    seed_resolver, result_translation=lambda result: only(chain.from_iterable(result.values()))
+)
+
 
 
 @strawberry.type
@@ -82,28 +198,6 @@ class Response(Generic[MOObject]):
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[root.model]["loader"]
         return (await info.context[resolver].load(root.uuid)).object_cache
-
-
-# Validities
-# ----------
-
-
-@strawberry.experimental.pydantic.type(
-    model=ValidityModel,
-    all_fields=True,
-    description="Validity of objects with required from date",
-)
-class Validity:
-    pass
-
-
-@strawberry.experimental.pydantic.type(
-    model=OpenValidityModel,
-    all_fields=True,
-    description="Validity of objects with optional from date",
-)
-class OpenValidity:
-    pass
 
 
 # Address
@@ -895,22 +989,17 @@ class Organisation:
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
-    @strawberry.field(
-        description="The immediate ancestor in the organisation tree",
+    parent: Optional[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_optional(
+            OrganisationUnitResolver(),
+            OrganisationUnitRead,
+            {"uuids": lambda root: [root.parent_uuid]},
+        ),
+        description="The immediate descendants in the organisation tree",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def parent(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["OrganisationUnit"]:
-        """Get the immediate ancestor in the organisation tree.
-
-        Returns:
-            Optional[OrganisationUnit]: The ancestor, if any.
-        """
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.parent_uuid is None:
-            return None
-        return only(await loader.load(root.parent_uuid))
 
     @strawberry.field(
         description="All ancestors in the organisation tree",
@@ -936,65 +1025,42 @@ class OrganisationUnit:
         loader: DataLoader = info.context["org_unit_loader"]
         return await rec(root.parent_uuid)
 
-    @strawberry.field(
+    children: list[
+        LazyType[
+            "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+        ]
+    ] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            OrganisationUnitRead,
+            {"parents": lambda root: [root.uuid]},
+        ),
         description="The immediate descendants in the organisation tree",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def children(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        hierarchies: list[UUID] | None = None,
-    ) -> list["OrganisationUnit"]:
-        """Get the immediate descendants of the organistion unit.
 
-        Returns:
-            list[OrganisationUnit]: list of descendants, if any.
-        """
-        # TODO: Please don't look at this code for inspiration. The GraphQL API should
-        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
-        # same function call in the same function over and over.
-        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
-
-        responses = await OrganisationUnitResolver().resolve(
-            info=info,
-            uuids=uuids,
-            user_keys=user_keys,
-            from_date=from_date,
-            to_date=to_date,
-            parents=[root.uuid],
-            hierarchies=hierarchies,
-        )
-        return list(chain.from_iterable(responses.values()))
-
-    @strawberry.field(description="Children count of the organisation unit.")
-    async def child_count(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        hierarchies: list[UUID] | None = None,
-    ) -> int:
-        # TODO: Please don't look at this code for inspiration. The GraphQL API should
-        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
-        # same function call in the same function over and over.
-        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
-
-        responses = await OrganisationUnitResolver().resolve(
-            info=info,
-            from_date=from_date,
-            to_date=to_date,
-            parents=[root.uuid],
-            hierarchies=hierarchies,
-        )
-        return len(responses)
+    child_count: int = strawberry.field(
+        resolver=seed_resolver(
+            OrganisationUnitResolver(),
+            OrganisationUnitRead,
+            {"parents": lambda root: [root.uuid]},
+            lambda result: len(result.keys()),
+        ),
+        description="Children count of the organisation unit.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
 
     # TODO: Add UUID to RAModel and remove model prefix here
+    #    org_unit_hierarchy_model: Optional["Class"] = strawberry.field(
+    #        resolver=seed_resolver(
+    #            ClassResolver(),
+    #            OrganisationUnitRead,
+    #            lambda result: only(result),
+    #            uuids=lambda root: [root.org_unit_hierarchy],
+    #        ),
+    #        description="Organisation unit hierarchy",
+    #        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    #    )
     @strawberry.field(
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1044,18 +1110,18 @@ class OrganisationUnit:
             return None
         return await loader.load(root.time_planning_uuid)
 
-    @strawberry.field(
+    engagements: list["Engagement"] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related engagements",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagements(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Engagement"]:
-        loader: DataLoader = info.context["org_unit_engagement_loader"]
-        return await loader.load(root.uuid)
 
     @strawberry.field(
         description="Managers of the organisation unit",
@@ -1079,20 +1145,15 @@ class OrganisationUnit:
                 parent = potential_parent
         return result
 
-    @strawberry.field(
+    addresses: list["Address"] = strawberry.field(
+        resolver=seed_resolver_list(
+            AddressResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related addresses",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
-    async def addresses(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        address_types: list[UUID] | None = None,
-    ) -> list["Address"]:
-        loader: DataLoader = info.context["org_unit_address_loader"]
-        result = await loader.load(root.uuid)
-        address_reads = await filter_address_types(result, address_types)
-        return list(map(Address.from_pydantic, address_reads))
 
     @strawberry.field(
         description="Related leaves",

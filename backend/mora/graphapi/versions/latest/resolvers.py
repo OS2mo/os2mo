@@ -16,7 +16,7 @@ from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
 from .resolver_map import resolver_map
-from .schema import OpenValidityModel
+from .validity import OpenValidityModel
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -256,6 +256,7 @@ class AddressResolver(Resolver):
         address_type_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
         engagements: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve addresses."""
         if address_type_user_keys is not None:
@@ -275,6 +276,8 @@ class AddressResolver(Resolver):
             kwargs["tilknyttedebrugere"] = employees
         if engagements is not None:
             kwargs["tilknyttedefunktioner"] = engagements
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
 
         return await super()._resolve(
             info=info,
