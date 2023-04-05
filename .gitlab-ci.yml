@@ -52,21 +52,21 @@ variables:
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
 
-##################
-# RULES: CHANGES #
-##################
-# Add or modify these to only trigger a job that has commits pushed to them.
+####################
+# Backend patterns #
+####################
+# Add or modify these paths and files to be added to jobs. The job will then only be
+# triggered, if any changes has been made or commits has been pushed to them.
 # Example: if a commit has been pushed to /docs/src/changelog.md, and the paths/files
 # listed below are not affected by these changes, the "Unit-test" (among others) job will
 # NOT be triggered in pipeline.
-.changes-made-to-dir: &changes-made-to-dir
-  changes:
-    - backend/**/*
-    - docker/**/*
-    - Dockerfile
-    - pyproject.toml
-    - poetry.lock
-    - .gitlab-ci.yml
+.backend-patterns: &backend-patterns
+  - backend/**/*
+  - docker/**/*
+  - Dockerfile
+  - pyproject.toml
+  - poetry.lock
+  - .gitlab-ci.yml
 
 
 include:
@@ -193,10 +193,7 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+      changes: *backend-patterns
     - when: on_success
 
 Build Keycloak-realm:
@@ -228,10 +225,8 @@ Build Keycloak-realm:
       - keycloak-realm.json
     expire_in: 1 day
   rules:
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+    - changes: *backend-patterns
+
 
 
 Build Keycloak:
@@ -244,10 +239,7 @@ Build Keycloak:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
   rules:
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+    - changes: *backend-patterns
 
 # Tests
 ########
@@ -272,10 +264,7 @@ Unit-test:
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
   rules:
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+    - changes: *backend-patterns
 
   parallel: 2
   script:
@@ -338,10 +327,7 @@ Integration-test:
     paths:
       - $COVERAGE_FILE
   rules:
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+    - changes: *backend-patterns
 
 Coverage:
   stage: coverage
@@ -368,10 +354,8 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+      changes: *backend-patterns
+
 
 # Review
 #########
@@ -402,10 +386,7 @@ Deploy Review:
   rules:
     - <<: *if-schedule
       when: never
-    - <<: *changes-made-to-dir
-    - changes:
-        - ra-data-models/docs/*
-      when: never
+      changes: *backend-patterns
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
       when: manual

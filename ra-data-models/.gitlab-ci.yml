@@ -11,17 +11,17 @@
   if: '$CI_MERGE_REQUEST_IID'
 
 
-##################
-# RULES: CHANGES #
-##################
-# Add or modify these to only trigger a job that has commits pushed to them.
+####################
+# Backend patterns #
+####################
+# Add or modify these paths and files to be added to jobs. The job will then only be
+# triggered, if any changes has been made or commits has been pushed to them.
 # Example: if a commit has been pushed to /docs/mkdocs.yml, and the paths/files
 # listed below are not affected by these changes, the "Test ramodels" (among others)
 # job will NOT be triggered in pipeline.
-.changes-made-to-ra-models: &changes-made-to-ra-models
-  changes:
-    - ra-data-models/**/*
-    - .gitlab-ci.yml
+.backend-patterns-ra-data-models: &backend-patterns-ra-data-models
+  - ra-data-models/**/*
+  - .gitlab-ci.yml
 
 # Reusables
 ################################################################################
@@ -84,7 +84,7 @@ Test ramodels:
       - ".coverage.$CI_JOB_ID"
   rules:
     - <<: *if-merge-request
-      <<: *changes-made-to-ra-models
+      changes: *backend-patterns-ra-data-models
 
 Check coverage ramodels:
   stage: coverage
@@ -100,7 +100,7 @@ Check coverage ramodels:
     - coverage report -m --fail-under=80
   rules:
     - <<: *if-merge-request
-      <<: *changes-made-to-ra-models
+      changes: *backend-patterns-ra-data-models
 
 
 Release to PyPI:
@@ -112,6 +112,7 @@ Release to PyPI:
     - poetry publish --build -u __token__ -p $PYPI_TOKEN
   rules:
     - <<: *if-tag-semver
+
 
 ramodel pages:
   <<: *source-venv
