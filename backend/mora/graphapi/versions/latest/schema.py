@@ -77,7 +77,6 @@ from ramodels.mo.details import RoleRead
 
 
 MOObject = TypeVar("MOObject")
-RootModel = TypeVar("RootModel")
 R = TypeVar("R")
 
 
@@ -95,8 +94,7 @@ def identity(x: R) -> R:
 
 def seed_resolver(
     resolver: StaticResolver,
-    root_model: RootModel,
-    seeds: dict[str, Callable[[RootModel], Any]],
+    seeds: dict[str, Callable[[Any], Any]],
     result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
     """Seed the provided top-level resolver to be used in a field-level context.
@@ -134,7 +132,6 @@ def seed_resolver(
 
     Args:
         resolver: The top-level resolver to seed arguments to.
-        root_model: The root-model applicable for the field-level context.
         seeds:
             A dictionary mapping from parameter name to callables resolving the argument
             values from the root object.
@@ -145,7 +142,7 @@ def seed_resolver(
     Returns:
         A seeded resolver function that accepts the same parameters as the
         `resolver.resolve` function, except with the `seeds` keys removed as parameters,
-        and a `root` parameter with the `root_model` type added.
+        and a `root` parameter with the 'any' type added.
     """
     # If no result_translation function was provided, default to the identity function.
     result_translation = result_translation or identity
@@ -168,7 +165,7 @@ def seed_resolver(
     # `seeds` resolvers to determine call-time parameters.
     parameter_list = list(parameters.values())
     parameter_list = [
-        Parameter("root", Parameter.POSITIONAL_OR_KEYWORD, annotation=root_model)
+        Parameter("root", Parameter.POSITIONAL_OR_KEYWORD, annotation=Any)
     ] + parameter_list
     # Generate and apply our new signature to the seeded_resolver function
     new_sig = sig.replace(parameters=parameter_list)
@@ -276,9 +273,7 @@ LazyRole = Annotated["Role", LazySchema]
 class Address:
     address_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            ClassResolver(),
-            AddressRead,
-            {"uuids": lambda root: [root.address_type_uuid]},
+            ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
         ),
         description="Address type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -286,9 +281,7 @@ class Address:
 
     visibility: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            AddressRead,
-            {"uuids": lambda root: uuid2list(root.visibility_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
         description="Address visibility",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -297,9 +290,7 @@ class Address:
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
-            EmployeeResolver(),
-            AddressRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
@@ -309,7 +300,6 @@ class Address:
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
-            AddressRead,
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Connected organisation unit. "
@@ -320,7 +310,6 @@ class Address:
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
-            AddressRead,
             {"uuids": lambda root: uuid2list(root.engagement_uuid)},
         ),
         description="Connected Engagement",
@@ -377,7 +366,6 @@ class Association:
     association_type: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
-            AssociationRead,
             {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
         description="Association type",
@@ -386,17 +374,13 @@ class Association:
 
     dynamic_class: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
         ),
     )
 
     primary: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.primary_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -405,9 +389,7 @@ class Association:
     # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
-            EmployeeResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -417,7 +399,6 @@ class Association:
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
-            AssociationRead,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description="Connected organisation unit",
@@ -427,9 +408,7 @@ class Association:
     # TODO: Remove list, make optional employee
     substitute: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
-            EmployeeResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.substitute_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
         ),
         description="Connected substitute employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -437,9 +416,7 @@ class Association:
 
     job_function: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.job_function_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
         ),
         description="Connected job function",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -448,9 +425,7 @@ class Association:
     # TODO: Can there be more than one ITUser per association?
     it_user: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
-            ITUserResolver(),
-            AssociationRead,
-            {"uuids": lambda root: uuid2list(root.it_user_uuid)},
+            ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
         ),
         description="Connected IT user",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -469,9 +444,7 @@ class Association:
 class Class:
     parent: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            ClassRead,
-            {"uuids": lambda root: uuid2list(root.parent_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description="Immediate parent class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -480,7 +453,6 @@ class Class:
     children: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
-            ClassRead,
             {"parents": lambda root: [root.uuid]},
         ),
         description="Immediate descendants of the class",
@@ -489,7 +461,7 @@ class Class:
 
     facet: LazyFacet = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            FacetResolver(), ClassRead, {"uuids": lambda root: [root.facet_uuid]}
+            FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
         ),
         description="Associated facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
@@ -533,7 +505,6 @@ class Employee:
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Engagements for the employee",
@@ -546,7 +517,6 @@ class Employee:
     manager_roles: list[LazyManager] = strawberry.field(
         resolver=seed_resolver_list(
             ManagerResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Manager roles for the employee",
@@ -556,7 +526,6 @@ class Employee:
     addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Addresses for the employee",
@@ -566,7 +535,6 @@ class Employee:
     leaves: list[LazyLeave] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Leaves for the employee",
@@ -576,7 +544,6 @@ class Employee:
     associations: list[LazyAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Associations for the employee",
@@ -589,7 +556,6 @@ class Employee:
     roles: list[LazyRole] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Roles for the employee",
@@ -599,7 +565,6 @@ class Employee:
     itusers: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="IT users for the employee",
@@ -609,7 +574,6 @@ class Employee:
     engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
-            EmployeeRead,
             {"employees": lambda root: [root.uuid]},
         ),
         description="Engagement associations",
@@ -633,7 +597,6 @@ class Engagement:
     engagement_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
-            EngagementRead,
             {"uuids": lambda root: [root.engagement_type_uuid]},
         ),
         description="Engagement type",
@@ -643,7 +606,6 @@ class Engagement:
     job_function: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
-            EngagementRead,
             {"uuids": lambda root: [root.job_function_uuid]},
         ),
         description="Job function",
@@ -652,9 +614,7 @@ class Engagement:
 
     primary: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            EngagementRead,
-            {"uuids": lambda root: uuid2list(root.primary_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -670,9 +630,7 @@ class Engagement:
 
     leave: LazyLeave | None = strawberry.field(
         resolver=seed_resolver_optional(
-            LeaveResolver(),
-            EngagementRead,
-            {"uuids": lambda root: uuid2list(root.leave_uuid)},
+            LeaveResolver(), {"uuids": lambda root: uuid2list(root.leave_uuid)}
         ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
@@ -681,9 +639,7 @@ class Engagement:
     # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
-            EmployeeResolver(),
-            EngagementRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -693,7 +649,6 @@ class Engagement:
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
-            EngagementRead,
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Related organisation unit",
@@ -703,7 +658,6 @@ class Engagement:
     engagement_associations: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
-            EngagementRead,
             {"engagements": lambda root: [root.uuid]},
         ),
         description="Engagement associations",
@@ -728,7 +682,6 @@ class EngagementAssociation:
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
-            EngagementAssociationRead,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description="Connected organisation unit",
@@ -739,7 +692,6 @@ class EngagementAssociation:
     engagement: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
-            EngagementAssociationRead,
             {"employees": lambda root: [root.engagement_uuid]},
         ),
         description="Related engagement",
@@ -752,7 +704,6 @@ class EngagementAssociation:
     engagement_association_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
-            EngagementAssociationRead,
             {"uuids": lambda root: [root.engagement_association_type_uuid]},
         ),
         description="Related engagement association type",
@@ -772,7 +723,7 @@ class EngagementAssociation:
 class Facet:
     classes: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
-            ClassResolver(), FacetRead, {"facets": lambda root: [root.uuid]}
+            ClassResolver(), {"facets": lambda root: [root.uuid]}
         ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -801,9 +752,7 @@ class ITUser:
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
-            EmployeeResolver(),
-            ITUserRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -812,7 +761,6 @@ class ITUser:
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
-            ITUserRead,
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Connected organisation unit",
@@ -822,7 +770,6 @@ class ITUser:
     engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
-            ITUserRead,
             {"uuids": lambda root: uuid2list(root.engagement_uuid)},
         ),
         description="Related engagement",
@@ -834,7 +781,7 @@ class ITUser:
 
     itsystem: LazyITSystem = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            ITSystemResolver(), ITUserRead, {"uuids": lambda root: [root.itsystem_uuid]}
+            ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
         ),
         description="Connected itsystem",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
@@ -853,7 +800,7 @@ class ITUser:
 class KLE:
     kle_number: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            ClassResolver(), KLERead, {"uuids": lambda root: [root.kle_number_uuid]}
+            ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
         ),
         description="KLE number",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -862,7 +809,6 @@ class KLE:
     kle_aspects: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
-            KLERead,
             {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
         description="KLE Aspects",
@@ -872,7 +818,6 @@ class KLE:
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
-            KLERead,
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Associated organisation unit",
@@ -892,7 +837,7 @@ class KLE:
 class Leave:
     leave_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            ClassResolver(), LeaveRead, {"uuids": lambda root: [root.leave_type_uuid]}
+            ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
         ),
         description="Leave type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -901,9 +846,7 @@ class Leave:
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
-            EmployeeResolver(),
-            LeaveRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -912,7 +855,6 @@ class Leave:
     engagement: LazyEngagement | None = strawberry.field(
         resolver=seed_resolver_optional(
             EngagementResolver(),
-            LeaveRead,
             {"employees": lambda root: [root.engagement_uuid]},
         ),
         description="Related engagement",
@@ -935,9 +877,7 @@ class Leave:
 class Manager:
     manager_type: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            ManagerRead,
-            {"uuids": lambda root: uuid2list(root.manager_type_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
         description="Manager type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -945,9 +885,7 @@ class Manager:
 
     manager_level: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            ManagerRead,
-            {"uuids": lambda root: uuid2list(root.manager_level_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
         description="Manager level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -956,7 +894,6 @@ class Manager:
     responsibilities: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
-            ManagerRead,
             {"parents": lambda root: root.responsibility_uuids or []},
         ),
         description="Manager responsibilities",
@@ -966,9 +903,7 @@ class Manager:
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
-            EmployeeResolver(),
-            ManagerRead,
-            {"uuids": lambda root: uuid2list(root.employee_uuid)},
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description="Manager identity details",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -978,7 +913,6 @@ class Manager:
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
-            ManagerRead,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description="Managed organisation unit",
@@ -1031,7 +965,6 @@ class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
         resolver=seed_resolver_optional(
             OrganisationUnitResolver(),
-            OrganisationUnitRead,
             {"uuids": lambda root: [root.parent_uuid]},
         ),
         description="The immediate descendants in the organisation tree",
@@ -1062,7 +995,6 @@ class OrganisationUnit:
     children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
-            OrganisationUnitRead,
             {"parents": lambda root: [root.uuid]},
         ),
         description="The immediate descendants in the organisation tree",
@@ -1072,7 +1004,6 @@ class OrganisationUnit:
     child_count: int = strawberry.field(
         resolver=seed_resolver(
             OrganisationUnitResolver(),
-            OrganisationUnitRead,
             {"parents": lambda root: [root.uuid]},
             lambda result: len(result.keys()),
         ),
@@ -1084,9 +1015,7 @@ class OrganisationUnit:
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     org_unit_hierarchy_model: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            OrganisationUnitRead,
-            {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
         ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1094,9 +1023,7 @@ class OrganisationUnit:
 
     unit_type: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            OrganisationUnitRead,
-            {"uuids": lambda root: uuid2list(root.unit_type_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1105,9 +1032,7 @@ class OrganisationUnit:
     # TODO: Remove org prefix from RAModel and remove it here too
     org_unit_level: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            OrganisationUnitRead,
-            {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
         ),
         description="Organisation unit level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1115,9 +1040,7 @@ class OrganisationUnit:
 
     time_planning: LazyClass | None = strawberry.field(
         resolver=seed_static_resolver_optional(
-            ClassResolver(),
-            OrganisationUnitRead,
-            {"uuids": lambda root: uuid2list(root.time_planning_uuid)},
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
         ),
         description="Time planning strategy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1126,7 +1049,6 @@ class OrganisationUnit:
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related engagements",
@@ -1161,7 +1083,6 @@ class OrganisationUnit:
     addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related addresses",
@@ -1171,7 +1092,6 @@ class OrganisationUnit:
     leaves: list[LazyLeave] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related leaves",
@@ -1181,7 +1101,6 @@ class OrganisationUnit:
     associations: list[LazyAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related associations",
@@ -1194,7 +1113,6 @@ class OrganisationUnit:
     roles: list[LazyRole] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related roles",
@@ -1204,7 +1122,6 @@ class OrganisationUnit:
     itusers: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related IT users",
@@ -1214,7 +1131,6 @@ class OrganisationUnit:
     kles: list[LazyKLE] = strawberry.field(
         resolver=seed_resolver_list(
             KLEResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="KLE responsibilites for the organisation unit",
@@ -1224,7 +1140,6 @@ class OrganisationUnit:
     related_units: list[LazyRelatedUnit] = strawberry.field(
         resolver=seed_resolver_list(
             RelatedUnitResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Related units for the organisational unit",
@@ -1237,7 +1152,6 @@ class OrganisationUnit:
     engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
-            OrganisationUnitRead,
             {"org_units": lambda root: [root.uuid]},
         ),
         description="Engagement associations for the organisational unit",
@@ -1261,7 +1175,6 @@ class RelatedUnit:
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
-            RelatedUnitRead,
             {"uuids": lambda root: root.org_unit_uuids or []},
         ),
         description="Related organisation units",
@@ -1279,7 +1192,7 @@ class RelatedUnit:
 class Role:
     role_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
-            ClassResolver(), RoleRead, {"uuids": lambda root: [root.role_type_uuid]}
+            ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
         ),
         description="Role type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1288,7 +1201,7 @@ class Role:
     # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
-            EmployeeResolver(), RoleRead, {"uuids": lambda root: [root.employee_uuid]}
+            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -1298,7 +1211,6 @@ class Role:
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
-            RoleRead,
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description="Connected organisation unit",
