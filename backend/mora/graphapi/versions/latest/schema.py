@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
-import asyncio
 import json
 import re
 from base64 import b64encode
@@ -24,7 +23,6 @@ from more_itertools import one
 from more_itertools import only
 from starlette_context import context
 from strawberry import UNSET
-from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from .health import health_map
@@ -94,7 +92,7 @@ def identity(x: R) -> R:
 
 def seed_resolver(
     resolver: StaticResolver,
-    seeds: dict[str, Callable[[Any], Any]],
+    seeds: dict[str, Callable[[Any], Any]] | None = None,
     result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
     """Seed the provided top-level resolver to be used in a field-level context.
@@ -144,11 +142,14 @@ def seed_resolver(
         `resolver.resolve` function, except with the `seeds` keys removed as parameters,
         and a `root` parameter with the 'any' type added.
     """
-    # If no result_translation function was provided, default to the identity function.
+    # If no seeds was provided, default to the empty dict
+    seeds = seeds or {}
+    # If no result_translation function was provided, default to the identity function
     result_translation = result_translation or identity
 
     async def seeded_resolver(*args: Any, root: Any, **kwargs: Any) -> R:
         # Resolve arguments from the root object
+        assert seeds is not None
         for key, argument_callable in seeds.items():
             kwargs[key] = argument_callable(root)
         result = await resolver.resolve(*args, **kwargs)
@@ -1065,20 +1066,18 @@ class OrganisationUnit:
     async def managers(
         self, root: OrganisationUnitRead, info: Info, inherit: bool = False
     ) -> list["Manager"]:
-        loader: DataLoader = info.context["org_unit_manager_loader"]
-        ou_loader: DataLoader = info.context["org_unit_loader"]
-        result = await loader.load(root.uuid)
-        if inherit:
-            parent = root
-            while not result:
-                parent_uuid = parent.parent_uuid
-                tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
-                result, response = await asyncio.gather(*tasks)
-                potential_parent = only(response, default=None)
-                if potential_parent is None:
-                    break
-                parent = potential_parent
-        return result
+        resolver = seed_resolver_list(ManagerResolver())
+        result = await resolver(root=root, info=info, org_units=[root.uuid])
+        if result:
+            return result  # type: ignore
+        if not inherit:
+            return []
+        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
+        if parent is None:
+            return []
+        return await OrganisationUnit.managers(
+            self=self, root=parent, info=info, inherit=True
+        )
 
     addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(

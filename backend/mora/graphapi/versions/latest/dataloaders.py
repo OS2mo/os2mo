@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
-from asyncio import gather
 from collections.abc import Callable
 from collections.abc import Iterable
 from functools import partial
@@ -16,7 +15,6 @@ from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
-from .readers import _extract_search_params
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
 from .schema import AddressRead
@@ -36,7 +34,6 @@ from .schema import OrganisationUnitRead
 from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
-from mora.handler.reading import get_handler_for_type
 from mora.service import org
 from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
@@ -283,35 +280,6 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def get_org_unit_details(
-    org_unit_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    """Non-bulk loader for organisation unit details."""
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedeenheder": str(org_unit_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_org_unit_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for org_unit details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_org_unit_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
 async def load_org(keys: list[int]) -> list[OrganisationRead]:
     """Dataloader function to load Organisation.
 
@@ -368,9 +336,6 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
             load_fn=partial(load_mo, model=EngagementAssociationRead)
         ),
         "engagement_association_getter": get_engagement_associations,
-        "org_unit_manager_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=ManagerRead)
-        ),
     }
 
 
