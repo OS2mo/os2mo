@@ -759,38 +759,46 @@ class Engagement:
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
-    @strawberry.field(
-        description="Related organisation unit",
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            EngagementAssociationRead,
+            {"uuids": lambda root: [root.org_unit_uuid]}
+        ),
+        description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete engagement
+    engagement: list[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            EngagementAssociationRead,
+            {"employees": lambda root: [root.engagement_uuid]}
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> list["Engagement"]:
-        loader: DataLoader = info.context["engagement_loader"]
-        return await loader.load(root.engagement_uuid)
 
-    @strawberry.field(
+    engagement_association_type: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            EngagementAssociationRead,
+            {"uuids": lambda root: [root.engagement_association_type_uuid]}
+        ),
         description="Related engagement association type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def engagement_association_type(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.engagement_association_type_uuid)
 
 
 # Facet

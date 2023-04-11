@@ -520,7 +520,7 @@ class EngagementAssociationResolver(Resolver):
         employees: list[UUID] | None = None,
         engagements: list[UUID] | None = None,
     ):
-        """Resolve leaves."""
+        """Resolve engagement-associations."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
