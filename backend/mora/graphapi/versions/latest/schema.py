@@ -215,10 +215,23 @@ class Response(Generic[MOObject]):
         return (await info.context[resolver].load(root.uuid)).object_cache
 
 
-LazyClass = Annotated["Class", strawberry.lazy(".schema")] 
-LazyEmployee = Annotated["Employee", strawberry.lazy(".schema")]
-LazyOrganisationUnit = Annotated["OrganisationUnit", strawberry.lazy(".schema")]
-LazyEngagement = Annotated["Engagement", strawberry.lazy(".schema")]
+LazySchema = strawberry.lazy(".schema")
+
+LazyAddress = Annotated["Address", LazySchema]
+LazyAssociation = Annotated["Association", LazySchema]
+LazyClass = Annotated["Class", LazySchema]
+LazyEmployee = Annotated["Employee", LazySchema]
+LazyEngagement = Annotated["Engagement", LazySchema]
+LazyEngagementAssociation = Annotated["EngagementAssociation", LazySchema]
+LazyFacet = Annotated["Facet", LazySchema]
+LazyITSystem = Annotated["ITSystem", LazySchema]
+LazyITUser = Annotated["ITUser", LazySchema]
+LazyKLE = Annotated["KLE", LazySchema]
+LazyLeave = Annotated["Leave", LazySchema]
+LazyManager = Annotated["Manager", LazySchema]
+LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
+LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
+LazyRole = Annotated["Role", LazySchema]
 
 # Address
 # -------
@@ -330,9 +343,7 @@ class Address:
     description="Connects organisation units and employees",
 )
 class Association:
-    association_type: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    association_type: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
@@ -342,9 +353,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    dynamic_class: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    dynamic_class: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
@@ -352,9 +361,7 @@ class Association:
         ),
     )
 
-    primary: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    primary: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
@@ -365,9 +372,7 @@ class Association:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
             AssociationRead,
@@ -378,9 +383,7 @@ class Association:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
             AssociationRead,
@@ -391,9 +394,7 @@ class Association:
     )
 
     # TODO: Remove list, make optional employee
-    substitute: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    substitute: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
             AssociationRead,
@@ -403,9 +404,7 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    job_function: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    job_function: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
@@ -416,9 +415,7 @@ class Association:
     )
 
     # TODO: Can there be more than one ITUser per association?
-    it_user: list[Annotated[
-        "ITUser", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    it_user: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
             AssociationRead,
@@ -439,9 +436,7 @@ class Association:
     description="The value component of the class/facet choice setup",
 )
 class Class:
-    parent: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    parent: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ClassRead,
@@ -451,9 +446,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    children: list[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    children: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
             ClassRead,
@@ -463,9 +456,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    facet: Annotated[
-        "Facet", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    facet: LazyFacet = strawberry.field(
         resolver=seed_static_resolver_concrete(
             FacetResolver(),
             ClassRead,
@@ -510,9 +501,7 @@ class Employee:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
-    engagements: list[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagements: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             EmployeeRead,
@@ -525,9 +514,7 @@ class Employee:
         ],
     )
 
-    manager_roles: list[Annotated[
-        "Manager", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    manager_roles: list[LazyManager] = strawberry.field(
         resolver=seed_resolver_list(
             ManagerResolver(),
             EmployeeRead,
@@ -537,9 +524,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
-    addresses: list[Annotated[
-        "Address", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
             EmployeeRead,
@@ -549,9 +534,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    leaves: list[Annotated[
-        "Leave", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    leaves: list[LazyLeave] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
             EmployeeRead,
@@ -561,9 +544,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    associations: list[Annotated[
-        "Association", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    associations: list[LazyAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
             EmployeeRead,
@@ -576,9 +557,7 @@ class Employee:
         ],
     )
 
-    roles: list[Annotated[
-        "Role", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    roles: list[LazyRole] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
             EmployeeRead,
@@ -588,9 +567,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
-    itusers: list[Annotated[
-        "ITUser", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    itusers: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
             EmployeeRead,
@@ -600,9 +577,7 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    engagement_associations: list[Annotated[
-        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             EmployeeRead,
@@ -626,9 +601,7 @@ class Employee:
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
-    engagement_type: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    engagement_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             EngagementRead,
@@ -638,9 +611,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    job_function: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    job_function: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             EngagementRead,
@@ -650,9 +621,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    primary: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    primary: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             EngagementRead,
@@ -670,9 +639,7 @@ class Engagement:
         #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
-    leave: Optional[Annotated[
-        "Leave", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    leave: Optional[LazyLeave] = strawberry.field(
         resolver=seed_resolver_optional(
             LeaveResolver(),
             EngagementRead,
@@ -683,9 +650,7 @@ class Engagement:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
             EngagementRead,
@@ -696,9 +661,7 @@ class Engagement:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             EngagementRead,
@@ -708,9 +671,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement_associations: list[Annotated[
-        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagement_associations: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             EngagementRead,
@@ -735,9 +696,7 @@ class Engagement:
 )
 class EngagementAssociation:
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             EngagementAssociationRead,
@@ -748,9 +707,7 @@ class EngagementAssociation:
     )
 
     # TODO: Remove list, make concrete engagement
-    engagement: list[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagement: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             EngagementAssociationRead,
@@ -763,9 +720,7 @@ class EngagementAssociation:
         ],
     )
 
-    engagement_association_type: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    engagement_association_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             EngagementAssociationRead,
@@ -786,9 +741,7 @@ class EngagementAssociation:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
-    classes: list[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    classes: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
             FacetRead,
@@ -819,9 +772,7 @@ class ITSystem:
 )
 class ITUser:
     # TODO: Remove list, make optional employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             ITUserRead,
@@ -831,9 +782,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             ITUserRead,
@@ -843,9 +792,7 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement: list[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
             ITUserRead,
@@ -858,9 +805,7 @@ class ITUser:
         ],
     )
 
-    itsystem: Annotated[
-        "ITSystem", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    itsystem: LazyITSystem = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ITSystemResolver(),
             ITUserRead,
@@ -881,9 +826,7 @@ class ITUser:
     description="Kommunernes Landsforenings Emnesystematik",
 )
 class KLE:
-    kle_number: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    kle_number: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             KLERead,
@@ -893,9 +836,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    kle_aspects: list[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    kle_aspects: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
             KLERead,
@@ -905,9 +846,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             KLERead,
@@ -928,9 +867,7 @@ class KLE:
     description="Leave (e.g. parental leave) for employees",
 )
 class Leave:
-    leave_type: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    leave_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             LeaveRead,
@@ -941,9 +878,7 @@ class Leave:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
             LeaveRead,
@@ -953,9 +888,7 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    engagement: Optional[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagement: Optional[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_optional(
             EngagementResolver(),
             LeaveRead,
@@ -979,9 +912,7 @@ class Leave:
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
-    manager_type: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    manager_type: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ManagerRead,
@@ -991,9 +922,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    manager_level: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    manager_level: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ManagerRead,
@@ -1003,9 +932,7 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    responsibilities: list[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    responsibilities: list[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
             ManagerRead,
@@ -1016,9 +943,7 @@ class Manager:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             ManagerRead,
@@ -1029,9 +954,7 @@ class Manager:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
             ManagerRead,
@@ -1084,9 +1007,7 @@ class Organisation:
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: Optional[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    parent: Optional[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_optional(
             OrganisationUnitResolver(),
             OrganisationUnitRead,
@@ -1115,11 +1036,7 @@ class OrganisationUnit:
             return [parent] + await rec(parent)
         return await rec(root)
 
-    children: list[
-        Annotated[
-            "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-        ]
-    ] = strawberry.field(
+    children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             OrganisationUnitRead,
@@ -1142,9 +1059,7 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
-    org_unit_hierarchy_model: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit_hierarchy_model: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
@@ -1154,9 +1069,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    unit_type: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    unit_type: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
@@ -1167,9 +1080,7 @@ class OrganisationUnit:
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
-    org_unit_level: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit_level: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
@@ -1179,9 +1090,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    time_planning: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    time_planning: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
@@ -1191,9 +1100,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    engagements: list[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagements: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             OrganisationUnitRead,
@@ -1228,9 +1135,7 @@ class OrganisationUnit:
                 parent = potential_parent
         return result
 
-    addresses: list[Annotated[
-        "Address", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
             OrganisationUnitRead,
@@ -1240,9 +1145,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    leaves: list[Annotated[
-        "Leave", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    leaves: list[LazyLeave] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
             OrganisationUnitRead,
@@ -1252,9 +1155,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    associations: list[Annotated[
-        "Association", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    associations: list[LazyAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
             OrganisationUnitRead,
@@ -1267,9 +1168,7 @@ class OrganisationUnit:
         ],
     )
 
-    roles: list[Annotated[
-        "Role", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    roles: list[LazyRole] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
             OrganisationUnitRead,
@@ -1279,9 +1178,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
-    itusers: list[Annotated[
-        "ITUser", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    itusers: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
             OrganisationUnitRead,
@@ -1291,9 +1188,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    kles: list[Annotated[
-        "KLE", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    kles: list[LazyKLE] = strawberry.field(
         resolver=seed_resolver_list(
             KLEResolver(),
             OrganisationUnitRead,
@@ -1303,9 +1198,7 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
-    related_units: list[Annotated[
-        "RelatedUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    related_units: list[LazyRelatedUnit] = strawberry.field(
         resolver=seed_resolver_list(
             RelatedUnitResolver(),
             OrganisationUnitRead,
@@ -1318,9 +1211,7 @@ class OrganisationUnit:
         ],
     )
 
-    engagement_associations: list[Annotated[
-        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             OrganisationUnitRead,
@@ -1344,9 +1235,7 @@ class OrganisationUnit:
     description="list of related organisation units",
 )
 class RelatedUnit:
-    org_units: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
             RelatedUnitRead,
@@ -1365,9 +1254,7 @@ class RelatedUnit:
     description="Role an employee has within an organisation unit",
 )
 class Role:
-    role_type: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    role_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             RoleRead,
@@ -1378,9 +1265,7 @@ class Role:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
             RoleRead,
@@ -1391,9 +1276,7 @@ class Role:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
             RoleRead,
