@@ -811,17 +811,17 @@ class EngagementAssociation:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
-    @strawberry.field(
+    classes: list[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            FacetRead,
+            {"facets": lambda root: [root.uuid]}
+        ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def classes(self, root: FacetRead, info: Info) -> list["Class"]:
-        """Get the associated classes.
-
-        Returns:
-            The associated classes.
-        """
-        return await info.context["class_getter"](facet=list(map(str, [root.uuid])))
 
 
 # IT
