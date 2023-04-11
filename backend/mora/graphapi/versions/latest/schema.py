@@ -473,12 +473,10 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
     async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
-        parent_node: ClassRead = root
-        # Traverse class tree
-        while parent_node.parent_uuid is not None:
-            parent_node = await Class.parent(root=parent_node, info=info)  # type: ignore[operator,misc]
-        # Return facet for utmost-parent
-        return await Class.facet(root=parent_node, info=info)  # type: ignore[operator]
+        if root.parent_uuid is None:
+            return await Class.facet(root=root, info=info)  # type: ignore[operator]
+        parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
+        return await Class.top_level_facet(self=self, root=parent_node, info=info)
 
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
