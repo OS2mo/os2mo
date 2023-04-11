@@ -906,33 +906,41 @@ class ITUser:
     description="Kommunernes Landsforenings Emnesystematik",
 )
 class KLE:
-    @strawberry.field(
+    kle_number: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            KLERead,
+            {"uuids": lambda root: [root.kle_number_uuid]}
+        ),
         description="KLE number",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def kle_number(self, root: KLERead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.kle_number_uuid)
 
-    @strawberry.field(
+    kle_aspects: list[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            KLERead,
+            {"uuids": lambda root: root.kle_aspect_uuids if root.kle_aspect_uuids else []}
+        ),
         description="KLE Aspects",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def kle_aspects(self, root: KLERead, info: Info) -> list["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load_many(root.kle_aspect_uuids)
 
-    @strawberry.field(
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            OrganisationUnitResolver(),
+            KLERead,
+            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []}
+        ),
         description="Associated organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: KLERead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
 
 # Leave
