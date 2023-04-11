@@ -332,58 +332,42 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
-
         "org_unit_loader": DataLoader(
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": get_org_units,
-
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": get_employees,
-
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
         "engagement_getter": get_engagements,
-
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": get_kles,
-
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
         "address_getter": get_addresses,
-
         "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
         "leave_getter": get_leaves,
-
         "association_loader": DataLoader(
             load_fn=partial(load_mo, model=AssociationRead)
         ),
         "association_getter": get_associations,
-
         "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
         "role_getter": get_roles,
-
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "ituser_getter": get_itusers,
-
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": get_managers,
-
         "class_loader": DataLoader(load_fn=load_classes),
         "class_getter": get_classes,
-
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": get_related_units,
-
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
-
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
-
         "engagement_association_loader": DataLoader(
             load_fn=partial(load_mo, model=EngagementAssociationRead)
         ),
         "engagement_association_getter": get_engagement_associations,
-
         "org_unit_manager_loader": DataLoader(
             load_fn=partial(load_org_unit_details, model=ManagerRead)
         ),
