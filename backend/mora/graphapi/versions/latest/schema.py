@@ -12,6 +12,7 @@ from inspect import Parameter
 from inspect import signature
 from itertools import chain
 from typing import Any
+from typing import Annotated
 from typing import cast
 from typing import Generic
 from typing import Optional
@@ -25,7 +26,6 @@ from more_itertools import only
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
-from strawberry.lazy_type import LazyType
 from strawberry.types import Info
 
 from .health import health_map
@@ -225,8 +225,8 @@ class Response(Generic[MOObject]):
     description="Address information for an employee or organisation unit",
 )
 class Address:
-    address_type: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    address_type: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -237,8 +237,8 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    visibility: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    visibility: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -250,8 +250,8 @@ class Address:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
@@ -263,8 +263,8 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
@@ -276,8 +276,8 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement: list[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement: list[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
@@ -355,8 +355,8 @@ async def filter_address_types(
     description="Connects organisation units and employees",
 )
 class Association:
-    association_type: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    association_type: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -367,8 +367,8 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    dynamic_class: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    dynamic_class: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -377,8 +377,8 @@ class Association:
         ),
     )
 
-    primary: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    primary: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -390,8 +390,8 @@ class Association:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
@@ -403,8 +403,8 @@ class Association:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
@@ -416,8 +416,8 @@ class Association:
     )
 
     # TODO: Remove list, make optional employee
-    substitute: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    substitute: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
@@ -428,8 +428,8 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    job_function: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    job_function: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -441,8 +441,8 @@ class Association:
     )
 
     # TODO: Can there be more than one ITUser per association?
-    it_user: list[LazyType[
-        "ITUser", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    it_user: list[Annotated[
+        "ITUser", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
@@ -464,8 +464,8 @@ class Association:
     description="The value component of the class/facet choice setup",
 )
 class Class:
-    parent: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    parent: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -476,8 +476,8 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    children: list[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    children: list[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
@@ -488,8 +488,8 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    facet: LazyType[
-        "Facet", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    facet: Annotated[
+        "Facet", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             FacetResolver(),
@@ -535,8 +535,8 @@ class Employee:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
-    engagements: list[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagements: list[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
@@ -550,8 +550,8 @@ class Employee:
         ],
     )
 
-    manager_roles: list[LazyType[
-        "Manager", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    manager_roles: list[Annotated[
+        "Manager", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             ManagerResolver(),
@@ -562,8 +562,8 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
-    addresses: list[LazyType[
-        "Address", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    addresses: list[Annotated[
+        "Address", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
@@ -574,8 +574,8 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    leaves: list[LazyType[
-        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    leaves: list[Annotated[
+        "Leave", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
@@ -586,8 +586,8 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    associations: list[LazyType[
-        "Association", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    associations: list[Annotated[
+        "Association", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
@@ -601,8 +601,8 @@ class Employee:
         ],
     )
 
-    roles: list[LazyType[
-        "Role", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    roles: list[Annotated[
+        "Role", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
@@ -613,8 +613,8 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
-    itusers: list[LazyType[
-        "ITUser", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    itusers: list[Annotated[
+        "ITUser", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
@@ -625,8 +625,8 @@ class Employee:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    engagement_associations: list[LazyType[
-        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement_associations: list[Annotated[
+        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
@@ -651,8 +651,8 @@ class Employee:
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
-    engagement_type: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement_type: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -663,8 +663,8 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    job_function: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    job_function: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -675,8 +675,8 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    primary: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    primary: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -695,8 +695,8 @@ class Engagement:
         #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
-    leave: Optional[LazyType[
-        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    leave: Optional[Annotated[
+        "Leave", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_optional(
             LeaveResolver(),
@@ -708,8 +708,8 @@ class Engagement:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
@@ -721,8 +721,8 @@ class Engagement:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
@@ -733,8 +733,8 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement_associations: list[LazyType[
-        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement_associations: list[Annotated[
+        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
@@ -760,8 +760,8 @@ class Engagement:
 )
 class EngagementAssociation:
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
@@ -773,8 +773,8 @@ class EngagementAssociation:
     )
 
     # TODO: Remove list, make concrete engagement
-    engagement: list[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement: list[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
@@ -788,8 +788,8 @@ class EngagementAssociation:
         ],
     )
 
-    engagement_association_type: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement_association_type: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -811,8 +811,8 @@ class EngagementAssociation:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
-    classes: list[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    classes: list[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
@@ -844,8 +844,8 @@ class ITSystem:
 )
 class ITUser:
     # TODO: Remove list, make optional employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
@@ -856,8 +856,8 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
@@ -868,8 +868,8 @@ class ITUser:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement: list[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement: list[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
@@ -883,8 +883,8 @@ class ITUser:
         ],
     )
 
-    itsystem: LazyType[
-        "ITSystem", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    itsystem: Annotated[
+        "ITSystem", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ITSystemResolver(),
@@ -906,8 +906,8 @@ class ITUser:
     description="Kommunernes Landsforenings Emnesystematik",
 )
 class KLE:
-    kle_number: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    kle_number: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -918,8 +918,8 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    kle_aspects: list[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    kle_aspects: list[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
@@ -930,8 +930,8 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
@@ -953,8 +953,8 @@ class KLE:
     description="Leave (e.g. parental leave) for employees",
 )
 class Leave:
-    leave_type: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    leave_type: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -966,8 +966,8 @@ class Leave:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
@@ -978,8 +978,8 @@ class Leave:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    engagement: Optional[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement: Optional[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_optional(
             EngagementResolver(),
@@ -1004,8 +1004,8 @@ class Leave:
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
-    manager_type: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    manager_type: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1016,8 +1016,8 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    manager_level: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    manager_level: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1028,8 +1028,8 @@ class Manager:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    responsibilities: list[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    responsibilities: list[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
@@ -1041,8 +1041,8 @@ class Manager:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
@@ -1054,8 +1054,8 @@ class Manager:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
@@ -1109,8 +1109,8 @@ class Organisation:
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: Optional[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    parent: Optional[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_optional(
             OrganisationUnitResolver(),
@@ -1141,8 +1141,8 @@ class OrganisationUnit:
         return await rec(root)
 
     children: list[
-        LazyType[
-            "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+        Annotated[
+            "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
         ]
     ] = strawberry.field(
         resolver=seed_resolver_list(
@@ -1167,8 +1167,8 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
-    org_unit_hierarchy_model: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit_hierarchy_model: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1179,8 +1179,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    unit_type: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    unit_type: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1192,8 +1192,8 @@ class OrganisationUnit:
     )
 
     # TODO: Remove org prefix from RAModel and remove it here too
-    org_unit_level: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit_level: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1204,8 +1204,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    time_planning: Optional[LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    time_planning: Optional[Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
@@ -1216,8 +1216,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    engagements: list[LazyType[
-        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagements: list[Annotated[
+        "Engagement", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
@@ -1253,8 +1253,8 @@ class OrganisationUnit:
                 parent = potential_parent
         return result
 
-    addresses: list[LazyType[
-        "Address", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    addresses: list[Annotated[
+        "Address", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
@@ -1265,8 +1265,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    leaves: list[LazyType[
-        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    leaves: list[Annotated[
+        "Leave", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             LeaveResolver(),
@@ -1277,8 +1277,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    associations: list[LazyType[
-        "Association", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    associations: list[Annotated[
+        "Association", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             AssociationResolver(),
@@ -1292,8 +1292,8 @@ class OrganisationUnit:
         ],
     )
 
-    roles: list[LazyType[
-        "Role", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    roles: list[Annotated[
+        "Role", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             RoleResolver(),
@@ -1304,8 +1304,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
-    itusers: list[LazyType[
-        "ITUser", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    itusers: list[Annotated[
+        "ITUser", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(),
@@ -1316,8 +1316,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
-    kles: list[LazyType[
-        "KLE", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    kles: list[Annotated[
+        "KLE", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             KLEResolver(),
@@ -1328,8 +1328,8 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
-    related_units: list[LazyType[
-        "RelatedUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    related_units: list[Annotated[
+        "RelatedUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             RelatedUnitResolver(),
@@ -1343,8 +1343,8 @@ class OrganisationUnit:
         ],
     )
 
-    engagement_associations: list[LazyType[
-        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    engagement_associations: list[Annotated[
+        "EngagementAssociation", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
@@ -1369,8 +1369,8 @@ class OrganisationUnit:
     description="list of related organisation units",
 )
 class RelatedUnit:
-    org_units: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_units: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
@@ -1390,8 +1390,8 @@ class RelatedUnit:
     description="Role an employee has within an organisation unit",
 )
 class Role:
-    role_type: LazyType[
-        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    role_type: Annotated[
+        "Class", strawberry.lazy(".schema")  # noqa: F821
     ] = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
@@ -1403,8 +1403,8 @@ class Role:
     )
 
     # TODO: Remove list, make concrete employee
-    employee: list[LazyType[
-        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    employee: list[Annotated[
+        "Employee", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(),
@@ -1416,8 +1416,8 @@ class Role:
     )
 
     # TODO: Remove list, make concrete org-unit
-    org_unit: list[LazyType[
-        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    org_unit: list[Annotated[
+        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
     ]] = strawberry.field(
         resolver=seed_resolver_concrete(
             OrganisationUnitResolver(),
