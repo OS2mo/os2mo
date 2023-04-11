@@ -651,78 +651,102 @@ class Employee:
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
-    @strawberry.field(
+    engagement_type: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.engagement_type_uuid]}
+        ),
         description="Engagement type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def engagement_type(self, root: EngagementRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.engagement_type_uuid)
 
-    @strawberry.field(
+    job_function: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.job_function_uuid]}
+        ),
         description="Job function",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def job_function(self, root: EngagementRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.job_function_uuid)
 
-    @strawberry.field(
-        description="The primary status",
+    primary: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.primary_uuid] if root.primary_uuid else []}
+        ),
+        description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def primary(self, root: EngagementRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.primary_uuid is None:
-            return None
-        return await loader.load(root.primary_uuid)
 
     @strawberry.field(description="Is it primary")
     async def is_primary(self, root: EngagementRead, info: Info) -> bool:
         if not root.primary_uuid:
             return False
+        # TODO: Eliminate is_class_uuid_primary lookup by using the above resolver
+        #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
-    @strawberry.field(
+    leave: Optional[LazyType[
+        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_optional(
+            LeaveResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.leave_uuid] if root.leave_uuid else []}
+        ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
-        loader: DataLoader = info.context["leave_loader"]
-        if root.leave_uuid is None:
-            return None
-        return await loader.load(root.leave_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []}
+        ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: EngagementRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            EngagementRead,
+            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []}
+        ),
         description="Related organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: EngagementRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyType[
+        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            EngagementRead,
+            {"engagements": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: EngagementRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["engagement_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Engagement Association

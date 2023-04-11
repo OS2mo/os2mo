@@ -518,11 +518,14 @@ class EngagementAssociationResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
+        engagements: list[UUID] | None = None,
     ):
         """Resolve leaves."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if engagements is not None:
+            kwargs["tilknyttedefunktioner"] = engagements
         return await super()._resolve(
             info=info,
             uuids=uuids,
