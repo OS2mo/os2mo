@@ -36,7 +36,7 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver, AssociationResolver, EmployeeResolver, EngagementAssociationResolver, FacetResolver, ITUserResolver, LeaveResolver, ManagerResolver, RoleResolver
+from .resolvers import AddressResolver, AssociationResolver, EmployeeResolver, EngagementAssociationResolver, FacetResolver, ITSystemResolver, ITUserResolver, LeaveResolver, ManagerResolver, RoleResolver
 from .resolvers import ClassResolver
 from .resolvers import EngagementResolver
 from .resolvers import OrganisationUnitResolver
@@ -494,7 +494,7 @@ class Class:
         resolver=seed_static_resolver_concrete(
             FacetResolver(),
             ClassRead,
-            {"uuids": lambda root: [root.facet_uuid] if root.facet_uuid else []}
+            {"uuids": lambda root: [root.facet_uuid]}
         ),
         description="Associated facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
@@ -843,50 +843,57 @@ class ITSystem:
     description="User information related to IT systems",
 )
 class ITUser:
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            EmployeeResolver(),
+            ITUserRead,
+            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []}
+        ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: ITUserRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            OrganisationUnitResolver(),
+            ITUserRead,
+            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []}
+        ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: ITUserRead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement: list[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            EngagementResolver(),
+            ITUserRead,
+            {"uuids": lambda root: [root.engagement_uuid] if root.engagement_uuid else []}
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: ITUserRead, info: Info
-    ) -> list["Engagement"] | None:
-        loader: DataLoader = info.context["engagement_loader"]
-        if root.engagement_uuid is None:
-            return None
-        return await loader.load(root.engagement_uuid)
 
-    @strawberry.field(
+    itsystem: LazyType[
+        "ITSystem", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ITSystemResolver(),
+            ITUserRead,
+            {"uuids": lambda root: [root.itsystem_uuid]}
+        ),
         description="Connected itsystem",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
-    async def itsystem(self, root: ITUserRead, info: Info) -> ITSystem:
-        loader: DataLoader = info.context["itsystem_loader"]
-        return await loader.load(root.itsystem_uuid)
 
 
 # KLE

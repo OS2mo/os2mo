@@ -558,7 +558,7 @@ class ITUserResolver(Resolver):
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
     ):
-        """Resolve leaves."""
+        """Resolve it-users."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
