@@ -1369,16 +1369,17 @@ class OrganisationUnit:
     description="list of related organisation units",
 )
 class RelatedUnit:
-    @strawberry.field(
+    org_units: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_concrete(
+            OrganisationUnitResolver(),
+            RelatedUnitRead,
+            {"uuids": lambda root: root.org_unit_uuids if root.org_unit_uuids else []}
+        ),
         description="Related organisation units",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_units(
-        self, root: RelatedUnitRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        results = await loader.load_many(root.org_unit_uuids)
-        return [one(result) for result in results]
 
 
 # Role
