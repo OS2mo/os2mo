@@ -953,35 +953,45 @@ class KLE:
     description="Leave (e.g. parental leave) for employees",
 )
 class Leave:
-    @strawberry.field(
+    leave_type: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            LeaveRead,
+            {"uuids": lambda root: [root.leave_type_uuid]}
+        ),
         description="Leave type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def leave_type(self, root: LeaveRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.leave_type_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(),
+            LeaveRead,
+            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []}
+        ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: LeaveRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    engagement: Optional[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_optional(
+            EngagementResolver(),
+            LeaveRead,
+            {"employees": lambda root: [root.engagement_uuid]}
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(self, root: LeaveRead, info: Info) -> Optional["Engagement"]:
-        loader: DataLoader = info.context["engagement_loader"]
-        if root.engagement_uuid is None:
-            return None
-        engagement = await loader.load(root.engagement_uuid)
-        return only(engagement)
 
 
 # Manager
