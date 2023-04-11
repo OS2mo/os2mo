@@ -200,11 +200,27 @@ seed_resolver_concrete = partial(
 )
 seed_static_resolver_list = seed_resolver
 seed_static_resolver_optional = partial(
-    seed_resolver, result_translation=only,
+    seed_resolver,
+    result_translation=only,
 )
 seed_static_resolver_concrete = partial(
-    seed_resolver, result_translation=one,
+    seed_resolver,
+    result_translation=one,
 )
+
+
+def uuid2list(uuid: UUID | None) -> list[UUID]:
+    """Convert an optional uuid to a list.
+
+    Args:
+        uuid: Optional uuid to wrap in a list.
+
+    Return:
+        Empty list if uuid was none, single element list containing the uuid otherwise.
+    """
+    if uuid is None:
+        return []
+    return [uuid]
 
 
 @strawberry.type
@@ -272,11 +288,7 @@ class Address:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AddressRead,
-            {
-                "uuids": lambda root: [root.visibility_uuid]
-                if root.visibility_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.visibility_uuid)},
         ),
         description="Address visibility",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -287,7 +299,7 @@ class Address:
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             AddressRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
@@ -298,7 +310,7 @@ class Address:
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             AddressRead,
-            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []},
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Connected organisation unit. "
         "Note that this is mutually exclusive with the employee field",
@@ -309,11 +321,7 @@ class Address:
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
             AddressRead,
-            {
-                "uuids": lambda root: [root.engagement_uuid]
-                if root.engagement_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
         ),
         description="Connected Engagement",
         permission_classes=[
@@ -370,11 +378,7 @@ class Association:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
-            {
-                "uuids": lambda root: [root.association_type_uuid]
-                if root.association_type_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
         description="Association type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -384,11 +388,7 @@ class Association:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
-            {
-                "uuids": lambda root: [root.dynamic_class_uuid]
-                if root.dynamic_class_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)},
         ),
     )
 
@@ -396,7 +396,7 @@ class Association:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
-            {"uuids": lambda root: [root.primary_uuid] if root.primary_uuid else []},
+            {"uuids": lambda root: uuid2list(root.primary_uuid)},
         ),
         description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -407,7 +407,7 @@ class Association:
         resolver=seed_resolver_list(
             EmployeeResolver(),
             AssociationRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -429,11 +429,7 @@ class Association:
         resolver=seed_resolver_list(
             EmployeeResolver(),
             AssociationRead,
-            {
-                "uuids": lambda root: [root.substitute_uuid]
-                if root.substitute_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.substitute_uuid)},
         ),
         description="Connected substitute employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -443,11 +439,7 @@ class Association:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AssociationRead,
-            {
-                "uuids": lambda root: [root.job_function_uuid]
-                if root.job_function_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.job_function_uuid)},
         ),
         description="Connected job function",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -458,7 +450,7 @@ class Association:
         resolver=seed_resolver_list(
             ITUserResolver(),
             AssociationRead,
-            {"uuids": lambda root: [root.it_user_uuid] if root.it_user_uuid else []},
+            {"uuids": lambda root: uuid2list(root.it_user_uuid)},
         ),
         description="Connected IT user",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -479,7 +471,7 @@ class Class:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ClassRead,
-            {"uuids": lambda root: [root.parent_uuid] if root.parent_uuid else []},
+            {"uuids": lambda root: uuid2list(root.parent_uuid)},
         ),
         description="Immediate parent class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -489,7 +481,7 @@ class Class:
         resolver=seed_static_resolver_list(
             ClassResolver(),
             ClassRead,
-            {"parents": lambda root: [root.uuid] if root.uuid else []},
+            {"parents": lambda root: [root.uuid]},
         ),
         description="Immediate descendants of the class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -542,7 +534,7 @@ class Employee:
         resolver=seed_resolver_list(
             EngagementResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Engagements for the employee",
         permission_classes=[
@@ -555,7 +547,7 @@ class Employee:
         resolver=seed_resolver_list(
             ManagerResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Manager roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
@@ -565,7 +557,7 @@ class Employee:
         resolver=seed_resolver_list(
             AddressResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Addresses for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
@@ -575,7 +567,7 @@ class Employee:
         resolver=seed_resolver_list(
             LeaveResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Leaves for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
@@ -585,7 +577,7 @@ class Employee:
         resolver=seed_resolver_list(
             AssociationResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Associations for the employee",
         permission_classes=[
@@ -598,7 +590,7 @@ class Employee:
         resolver=seed_resolver_list(
             RoleResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
@@ -608,7 +600,7 @@ class Employee:
         resolver=seed_resolver_list(
             ITUserResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="IT users for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -618,7 +610,7 @@ class Employee:
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             EmployeeRead,
-            {"employees": lambda root: [root.uuid] if root.uuid else []},
+            {"employees": lambda root: [root.uuid]},
         ),
         description="Engagement associations",
         permission_classes=[
@@ -662,7 +654,7 @@ class Engagement:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             EngagementRead,
-            {"uuids": lambda root: [root.primary_uuid] if root.primary_uuid else []},
+            {"uuids": lambda root: uuid2list(root.primary_uuid)},
         ),
         description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -680,7 +672,7 @@ class Engagement:
         resolver=seed_resolver_optional(
             LeaveResolver(),
             EngagementRead,
-            {"uuids": lambda root: [root.leave_uuid] if root.leave_uuid else []},
+            {"uuids": lambda root: uuid2list(root.leave_uuid)},
         ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
@@ -691,7 +683,7 @@ class Engagement:
         resolver=seed_resolver_list(
             EmployeeResolver(),
             EngagementRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -702,7 +694,7 @@ class Engagement:
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             EngagementRead,
-            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []},
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Related organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -712,7 +704,7 @@ class Engagement:
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             EngagementRead,
-            {"engagements": lambda root: [root.uuid] if root.uuid else []},
+            {"engagements": lambda root: [root.uuid]},
         ),
         description="Engagement associations",
         permission_classes=[
@@ -811,7 +803,7 @@ class ITUser:
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             ITUserRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -821,7 +813,7 @@ class ITUser:
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             ITUserRead,
-            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []},
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -831,11 +823,7 @@ class ITUser:
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
             ITUserRead,
-            {
-                "uuids": lambda root: [root.engagement_uuid]
-                if root.engagement_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
         ),
         description="Related engagement",
         permission_classes=[
@@ -875,11 +863,7 @@ class KLE:
         resolver=seed_static_resolver_list(
             ClassResolver(),
             KLERead,
-            {
-                "uuids": lambda root: root.kle_aspect_uuids
-                if root.kle_aspect_uuids
-                else []
-            },
+            {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
         description="KLE Aspects",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -889,7 +873,7 @@ class KLE:
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             KLERead,
-            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []},
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description="Associated organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -919,7 +903,7 @@ class Leave:
         resolver=seed_resolver_list(
             EmployeeResolver(),
             LeaveRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -953,11 +937,7 @@ class Manager:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ManagerRead,
-            {
-                "uuids": lambda root: [root.manager_type_uuid]
-                if root.manager_type_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.manager_type_uuid)},
         ),
         description="Manager type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -967,11 +947,7 @@ class Manager:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             ManagerRead,
-            {
-                "uuids": lambda root: [root.manager_level_uuid]
-                if root.manager_level_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.manager_level_uuid)},
         ),
         description="Manager level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -981,11 +957,7 @@ class Manager:
         resolver=seed_static_resolver_list(
             ClassResolver(),
             ManagerRead,
-            {
-                "parents": lambda root: root.responsibility_uuids
-                if root.responsibility_uuids
-                else []
-            },
+            {"parents": lambda root: root.responsibility_uuids or []},
         ),
         description="Manager responsibilities",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -996,7 +968,7 @@ class Manager:
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             ManagerRead,
-            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []},
+            {"uuids": lambda root: uuid2list(root.employee_uuid)},
         ),
         description="Manager identity details",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
@@ -1114,11 +1086,7 @@ class OrganisationUnit:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
-            {
-                "uuids": lambda root: [root.org_unit_hierarchy]
-                if root.org_unit_hierarchy
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)},
         ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1128,11 +1096,7 @@ class OrganisationUnit:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
-            {
-                "uuids": lambda root: [root.unit_type_uuid]
-                if root.unit_type_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.unit_type_uuid)},
         ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1143,11 +1107,7 @@ class OrganisationUnit:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
-            {
-                "uuids": lambda root: [root.org_unit_level_uuid]
-                if root.org_unit_level_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)},
         ),
         description="Organisation unit level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -1157,11 +1117,7 @@ class OrganisationUnit:
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             OrganisationUnitRead,
-            {
-                "uuids": lambda root: [root.time_planning_uuid]
-                if root.time_planning_uuid
-                else []
-            },
+            {"uuids": lambda root: uuid2list(root.time_planning_uuid)},
         ),
         description="Time planning strategy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
