@@ -448,10 +448,10 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
         response = test_client.get("/Import/all", headers=headers)
         assert response.status_code == 202
 
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
             ".*not a valid cpr number",
-            str(warnings[-1]["event"]),
+            str(messages[-1]["event"]),
         )
 
 
@@ -677,11 +677,9 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
     headers: dict,
     dataloader: AsyncMock,
-    converter: MagicMock,
 ):
-    converter.cpr_field = "employeeID"
-    valid_object = LdapObject(dn="foo", employeeID="0101011234")
-    invalid_object = LdapObject(dn="bar", employeeID="ja")
+    valid_object = LdapObject(dn="foo", EmployeeID="0101011234")
+    invalid_object = LdapObject(dn="bar", EmployeeID="ja")
     dataloader.load_ldap_objects.return_value = [valid_object, invalid_object]
     response = test_client.get("/LDAP_overview/invalid_cpr_numbers", headers=headers)
     assert response.status_code == 202

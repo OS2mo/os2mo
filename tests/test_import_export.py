@@ -19,7 +19,6 @@ from ramqp.mo.models import MORoutingKey
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import IgnoreChanges
-from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.import_export import IgnoreMe
@@ -728,7 +727,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
 ) -> None:
     dn_to_ignore = "CN=foo"
     ldap_object = LdapObject(dn=dn_to_ignore)
-    dataloader.load_ldap_cpr_object.return_value = ldap_object
+    dataloader.load_ldap_object.return_value = ldap_object
     sync_tool.dns_to_ignore.add(dn_to_ignore)
 
     with capture_logs() as cap_logs:
@@ -739,13 +738,6 @@ async def test_import_single_object_from_LDAP_ignore_dn(
             f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore}",
             messages[-1]["event"].detail,
         )
-
-
-async def test_import_single_object_from_LDAP_invalid_cpr(sync_tool: SyncTool) -> None:
-    with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("5001011234"))
-        messages = [w for w in cap_logs if w["log_level"] == "warning"]
-        assert re.match(".*not a valid cpr number", messages[-1]["event"])
 
 
 async def test_import_single_object_from_LDAP_but_import_equals_false(
@@ -762,24 +754,6 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
                 "__import_to_mo__ == False",
                 message["event"],
             )
-
-
-async def test_import_single_object_from_LDAP_multiple_employees(
-    context: Context, dataloader: AsyncMock, sync_tool: SyncTool
-) -> None:
-
-    dataloader.load_ldap_cpr_object.return_value = None
-    dataloader.load_ldap_cpr_object.side_effect = MultipleObjectsReturnedException("f")
-
-    with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("0101011234"))
-
-        warnings = [w for w in cap_logs if w["log_level"] == "warning"]
-
-        assert re.match(
-            ".*Could not upload .* object.*",
-            warnings[0]["event"],
-        )
 
 
 async def test_import_address_objects(

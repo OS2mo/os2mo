@@ -11,6 +11,17 @@
       "nickname_surname": "{{NONE}}",
       "uuid": "{{ employee_uuid or NONE }}"
     },
+    // Note: This key needs to be a valid MO IT-system user_key*
+    // Note2: An "Active Directory" IT system is needed in case LDAP objects do not
+    // Contain CPR-numbers. Its user_key attribute must link to ldap.distinguishedName
+    "Active Directory": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "__import_to_mo__": true,
+      "user_key": "{{ ldap.distinguishedName }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
@@ -40,15 +51,6 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('LocationUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
-    },
-    // Note: This key needs to be a valid MO IT-system user_key*
-    "Active Directory": {
-      "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": true,
-      "user_key": "{{ ldap.msSFU30Name or NONE }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
@@ -82,6 +84,13 @@
       "employeeID": "{{mo_employee.cpr_no or NONE}}",
       "department": "{{NONE}}"
     },
+    // Note: This key needs to be a valid MO IT-system user_key*
+    "Active Directory": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
+    },
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "user",
@@ -102,13 +111,6 @@
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-    },
-    // Note: This key needs to be a valid MO IT-system user_key*
-    "Active Directory": {
-      "objectClass": "user",
-      "__export_to_ldap__": true,
-      "msSFU30Name" : "{{mo_employee_it_user.user_key}}",
-      "employeeID": "{{mo_employee.cpr_no}}"
     },
     "Engagement" : {
       "objectClass": "user",

@@ -120,15 +120,14 @@ def listener(context, event):
     user_context = context["user_context"]
     event_loop = user_context["event_loop"]
     sync_tool = user_context["sync_tool"]
-    cpr_field = user_context["cpr_field"]
 
-    cpr = event.get("attributes", {}).get(cpr_field, None)
+    dn = event.get("attributes", {}).get("distinguishedName", None)
 
-    if cpr:
-        logger.info(f"Registered change for LDAP object with cpr_no={cpr}")
-        event_loop.create_task(sync_tool.import_single_user(cpr))
+    if dn:
+        logger.info(f"Registered change for LDAP object with dn={dn}")
+        event_loop.create_task(sync_tool.import_single_user(dn))
     else:
-        logger.info(f"Got event without cpr: {event}")
+        logger.info(f"Got event without dn: {event}")
 
 
 async def countdown(

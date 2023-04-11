@@ -376,6 +376,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     ldap_connection = user_context["ldap_connection"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
     sync_tool = user_context["sync_tool"]
+    cpr_field = user_context["cpr_field"]
 
     attribute_types = get_attribute_types(ldap_connection)
     accepted_attributes = tuple(sorted(attribute_types.keys()))
@@ -413,22 +414,21 @@ def create_app(**kwargs: Any) -> FastAPI:
         delay_in_hours: int = 0,
         delay_in_minutes: int = 0,
         delay_in_seconds: float = 0,
+        cpr_indexed_entries_only: bool = True,
     ) -> Any:
         delay = delay_in_hours * 60 * 60 + delay_in_minutes * 60 + delay_in_seconds
         if delay > 0:
             await countdown(delay, "/Import/all")
 
         all_ldap_objects = await dataloader.load_ldap_objects("Employee")
-        all_cpr_numbers = [o.dict()[converter.cpr_field] for o in all_ldap_objects]
-        all_cpr_numbers = sorted(list(set([a for a in all_cpr_numbers if a])))
 
         if test_on_first_20_entries:
             # Only upload the first 20 entries
             logger.info("Slicing the first 20 entries")
-            all_cpr_numbers = all_cpr_numbers[:20]
+            all_ldap_objects = all_ldap_objects[:20]
 
-        number_of_entries = len(all_cpr_numbers)
-        logger.info(f"Found {number_of_entries} cpr-indexed entries in AD")
+        number_of_entries = len(all_ldap_objects)
+        logger.info(f"Found {number_of_entries} entries in AD")
 
         with tqdm(total=number_of_entries, unit="ldap object") as progress_bar:
             progress_bar.set_description("LDAP import progress")
@@ -437,22 +437,24 @@ def create_app(**kwargs: Any) -> FastAPI:
             # - it was experienced that fastapi throws broken pipe errors
             # - MO was observed to not handle that well either.
             # - We don't need the additional speed. This is meant as a one-time import
-            for cpr in all_cpr_numbers:
-                try:
-                    validate_cpr(cpr)
-                except ValueError:
-                    logger.warning(f"{cpr} is not a valid cpr number")
-                    continue
-                else:
-                    await import_single_user_from_LDAP(cpr)
+            for ldap_object in all_ldap_objects:
+                logger.info(f"Importing {ldap_object.dn}")
+                if cpr_indexed_entries_only:
+                    cpr_no = getattr(ldap_object, cpr_field)
+                    try:
+                        validate_cpr(cpr_no)
+                    except (ValueError, TypeError):
+                        logger.info(f"{cpr_no} is not a valid cpr number")
+                        progress_bar.update()
+                        continue
+
+                await import_single_user_from_LDAP(ldap_object.dn)
                 progress_bar.update()
 
     # Load a single user from LDAP, and import him/her/hir into MO
-    @app.get("/Import/{cpr}", status_code=202, tags=["Import"])
-    async def import_single_user_from_LDAP(
-        cpr: str = Depends(valid_cpr), user=Depends(login_manager)
-    ) -> Any:
-        await sync_tool.import_single_user(cpr)
+    @app.get("/Import/{dn}", status_code=202, tags=["Import"])
+    async def import_single_user_from_LDAP(dn: str, user=Depends(login_manager)) -> Any:
+        await sync_tool.import_single_user(dn)
 
     class ExportQueryParams:
         def __init__(
@@ -583,7 +585,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
         formatted_result = {}
         for entry in result:
-            cpr = str(getattr(entry, converter.cpr_field))
+            cpr = str(getattr(entry, cpr_field))
 
             try:
                 validate_cpr(cpr)
