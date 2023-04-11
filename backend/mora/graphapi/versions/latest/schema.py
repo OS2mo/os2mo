@@ -1390,29 +1390,43 @@ class RelatedUnit:
     description="Role an employee has within an organisation unit",
 )
 class Role:
-    @strawberry.field(
+    role_type: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            RoleRead,
+            {"uuids": lambda root: [root.role_type_uuid]}
+        ),
         description="Role type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def role_type(self, root: RoleRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.role_type_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(),
+            RoleRead,
+            {"uuids": lambda root: [root.employee_uuid]}
+        ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: RoleRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_concrete(
+            OrganisationUnitResolver(),
+            RoleRead,
+            {"uuids": lambda root: [root.org_unit_uuid]}
+        ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(self, root: RoleRead, info: Info) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
 
 # Health & version
