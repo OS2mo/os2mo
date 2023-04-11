@@ -219,6 +219,8 @@ class ClassResolver(StaticResolver):
         offset: PositiveInt | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
+        parents: list[UUID] | None = None,
+        parent_user_keys: list[str] | None = None,
     ):
         """Resolve classes."""
         if facet_user_keys is not None:
@@ -231,9 +233,21 @@ class ClassResolver(StaticResolver):
                 facets = []
             facets.extend(facet_uuids)
 
+        if parent_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            parent_objects = await ClassResolver().resolve(
+                info, user_keys=parent_user_keys
+            )
+            parent_uuids = list(map(attrgetter("uuid"), parent_objects))
+            if parents is None:
+                parents = []
+            parents.extend(parent_uuids)
+
         kwargs = {}
         if facets is not None:
             kwargs["facet"] = facets
+        if parents is not None:
+            kwargs["overordnetklasse"] = parents
 
         return await super()._resolve(
             info=info,

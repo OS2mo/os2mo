@@ -36,7 +36,7 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver, EmployeeResolver, ITUserResolver
+from .resolvers import AddressResolver, EmployeeResolver, FacetResolver, ITUserResolver
 from .resolvers import ClassResolver
 from .resolvers import EngagementResolver
 from .resolvers import OrganisationUnitResolver
@@ -464,63 +464,53 @@ class Association:
     description="The value component of the class/facet choice setup",
 )
 class Class:
-    @strawberry.field(
+    parent: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            ClassRead,
+            {"uuids": lambda root: [root.parent_uuid] if root.parent_uuid else []}
+        ),
         description="Immediate parent class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def parent(self, root: ClassRead, info: Info) -> Optional["Class"]:
-        """Get the immediate parent class.
 
-        Returns:
-            Class: Parent class
-        """
-        loader: DataLoader = info.context["class_loader"]
-        if root.parent_uuid is None:
-            return None
-
-        return await loader.load(root.parent_uuid)
-
-    @strawberry.field(
+    children: list[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            ClassRead,
+            {"parents": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Immediate descendants of the class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def children(self, root: ClassRead, info: Info) -> list["Class"]:
-        """Get the immediate descendants of the class.
 
-        Returns:
-            list[Class]: list of descendants, if any.
-        """
-        loader: DataLoader = info.context["class_children_loader"]
-        if not isinstance(root.uuid, UUID):  # TODO: What? We never reach this
-            root.parent_uuid = UUID(root.uuid)  # but why?
-        return await loader.load(root.uuid)
-
-    @strawberry.field(
+    facet: LazyType[
+        "Facet", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            FacetResolver(),
+            ClassRead,
+            {"uuids": lambda root: [root.facet_uuid] if root.facet_uuid else []}
+        ),
         description="Associated facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
-    async def facet(self, root: ClassRead, info: Info) -> "Facet":
-        """Get the associated facet.
-
-        Returns:
-            The associated facet.
-        """
-        loader: DataLoader = info.context["facet_loader"]
-        return await loader.load(root.facet_uuid)
 
     @strawberry.field(
         description="Associated top-level facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
     async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
-        parent: ClassRead = root
-
+        parent_node: ClassRead = root
         # Traverse class tree
-        loader: DataLoader = info.context["class_loader"]
-        while parent.parent_uuid is not None:
-            parent = await loader.load(parent.parent_uuid)
-
-        return await info.context["facet_loader"].load(parent.facet_uuid)
+        while parent_node.parent_uuid is not None:
+            parent_node = await Class.parent(root=parent_node, info=info)  # type: ignore
+        # Return facet for utmost-parent
+        return await Class.facet(root=parent_node, info=info)
 
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
