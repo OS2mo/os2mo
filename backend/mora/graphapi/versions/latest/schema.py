@@ -1004,53 +1004,67 @@ class Leave:
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
-    @strawberry.field(
+    manager_type: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            ManagerRead,
+            {"uuids": lambda root: [root.manager_type_uuid] if root.manager_type_uuid else []}
+        ),
         description="Manager type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def manager_type(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.manager_type_uuid is None:
-            return None
-        return await loader.load(root.manager_type_uuid)
 
-    @strawberry.field(
+    manager_level: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            ManagerRead,
+            {"uuids": lambda root: [root.manager_level_uuid] if root.manager_level_uuid else []}
+        ),
         description="Manager level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def manager_level(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.manager_level_uuid is None:
-            return None
-        return await loader.load(root.manager_level_uuid)
 
-    @strawberry.field(
+    responsibilities: list[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            ManagerRead,
+            {"parents": lambda root: root.responsibility_uuids if root.responsibility_uuids else []}
+        ),
         description="Manager responsibilities",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def responsibilities(self, root: ManagerRead, info: Info) -> list["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.responsibility_uuids is None:
-            return []
-        return await loader.load_many(root.responsibility_uuids)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            EmployeeResolver(),
+            ManagerRead,
+            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []}
+        ),
         description="Manager identity details",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: ManagerRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_concrete(
+            OrganisationUnitResolver(),
+            ManagerRead,
+            {"uuids": lambda root: [root.org_unit_uuid]}
+        ),
         description="Managed organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(self, root: ManagerRead, info: Info) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
 
 # Organisation
