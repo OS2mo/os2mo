@@ -215,6 +215,11 @@ class Response(Generic[MOObject]):
         return (await info.context[resolver].load(root.uuid)).object_cache
 
 
+LazyClass = Annotated["Class", strawberry.lazy(".schema")] 
+LazyEmployee = Annotated["Employee", strawberry.lazy(".schema")]
+LazyOrganisationUnit = Annotated["OrganisationUnit", strawberry.lazy(".schema")]
+LazyEngagement = Annotated["Engagement", strawberry.lazy(".schema")]
+
 # Address
 # -------
 
@@ -225,9 +230,7 @@ class Response(Generic[MOObject]):
     description="Address information for an employee or organisation unit",
 )
 class Address:
-    address_type: Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ] = strawberry.field(
+    address_type: LazyClass = strawberry.field(
         resolver=seed_static_resolver_concrete(
             ClassResolver(),
             AddressRead,
@@ -237,9 +240,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    visibility: Optional[Annotated[
-        "Class", strawberry.lazy(".schema")  # noqa: F821
-    ]] = strawberry.field(
+    visibility: Optional[LazyClass] = strawberry.field(
         resolver=seed_static_resolver_optional(
             ClassResolver(),
             AddressRead,
@@ -250,9 +251,7 @@ class Address:
     )
 
     # TODO: Remove list, make optional employee
-    employee: list[Annotated[
-        "Employee", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    employee: list[LazyEmployee] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EmployeeResolver(),
             AddressRead,
@@ -263,9 +262,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    org_unit: list[Annotated[
-        "OrganisationUnit", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             OrganisationUnitResolver(),
             AddressRead,
@@ -276,9 +273,7 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement: list[Annotated[
-        "Engagement", strawberry.lazy(".schema")  # noqa: F821
-    ]] | None = strawberry.field(
+    engagement: list[LazyEngagement] | None = strawberry.field(
         resolver=seed_resolver_optional_list(
             EngagementResolver(),
             AddressRead,
@@ -323,26 +318,6 @@ class Address:
             return dar.open_street_map_href_from_dar_object(address_object)
 
         return None
-
-
-async def filter_address_types(
-    addresses: list[AddressRead], address_types: list[UUID] | None
-) -> list[AddressRead]:
-    """Filter a list of addresses based on their address type UUID.
-
-    Args:
-        addresses: The addresses to filter
-        address_types: The address type UUIDs to filter by.
-
-    Returns:
-        list[AddressRead]: Addresses optionally filtered by their address type.
-    """
-    if address_types is None:
-        return addresses
-    address_type_list: list[UUID] = address_types
-    return list(
-        filter(lambda addr: addr.address_type_uuid in address_type_list, addresses)
-    )
 
 
 # Association
