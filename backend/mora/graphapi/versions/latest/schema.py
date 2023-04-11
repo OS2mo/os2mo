@@ -36,7 +36,8 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver
+from .resolvers import AddressResolver, EmployeeResolver
+from .resolvers import ClassResolver
 from .resolvers import EngagementResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import StaticResolver
@@ -155,11 +156,12 @@ def seed_resolver(
         del parameters[key]
     # Add the `root` parameter to the parameter list, as it is required for all the
     # `seeds` resolvers to determine call-time parameters.
-    parameters["root"] = Parameter(
-        "root", Parameter.KEYWORD_ONLY, annotation=root_model
-    )
+    parameter_list = list(parameters.values())
+    parameter_list = [Parameter(
+        "root", Parameter.POSITIONAL_OR_KEYWORD, annotation=root_model
+    )] + parameter_list
     # Generate and apply our new signature to the seeded_resolver function
-    new_sig = sig.replace(parameters=list(parameters.values()))
+    new_sig = sig.replace(parameters=parameter_list)
     seeded_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
 
     return seeded_resolver
@@ -174,7 +176,20 @@ seed_resolver_list = partial(
 seed_resolver_optional = partial(
     seed_resolver, result_translation=lambda result: only(chain.from_iterable(result.values()))
 )
-
+# TODO: Eliminate optional list
+seed_resolver_optional_list = partial(
+    seed_resolver, result_translation=lambda result: list(chain.from_iterable(result.values())) or None
+)
+seed_resolver_concrete = partial(
+    seed_resolver, result_translation=lambda result: one(chain.from_iterable(result.values()))
+)
+seed_static_resolver_list = seed_resolver
+seed_static_resolver_optional = partial(
+    seed_resolver, result_translation=lambda result: only(result)
+)
+seed_static_resolver_concrete = partial(
+    seed_resolver, result_translation=lambda result: one(result)
+)
 
 
 @strawberry.type
@@ -210,66 +225,75 @@ class Response(Generic[MOObject]):
     description="Address information for an employee or organisation unit",
 )
 class Address:
-    @strawberry.field(
+    address_type: LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ] = strawberry.field(
+        resolver=seed_static_resolver_concrete(
+            ClassResolver(),
+            AddressRead,
+            {"uuids": lambda root: [root.address_type_uuid]}
+        ),
         description="Address type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def address_type(self, root: AddressRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.address_type_uuid)
 
-    @strawberry.field(
+    visibility: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            AddressRead,
+            {"uuids": lambda root: [root.visibility_uuid] if root.visibility_uuid else []}
+        ),
         description="Address visibility",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def visibility(self, root: AddressRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.visibility_uuid is None:
-            return None
-        return await loader.load(root.visibility_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyType[
+        "Employee", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            EmployeeResolver(),
+            AddressRead,
+            {"uuids": lambda root: [root.employee_uuid] if root.employee_uuid else []}
+        ),
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: AddressRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    org_unit: list[LazyType[
+        "OrganisationUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            OrganisationUnitResolver(),
+            AddressRead,
+            {"uuids": lambda root: [root.org_unit_uuid] if root.org_unit_uuid else []}
+        ),
         description="Connected organisation unit. "
         "Note that this is mutually exclusive with the employee field",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: AddressRead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement: list[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] | None = strawberry.field(
+        resolver=seed_resolver_optional_list(
+            EngagementResolver(),
+            AddressRead,
+            {"uuids": lambda root: [root.engagement_uuid] if root.engagement_uuid else []}
+        ),
         description="Connected Engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: AddressRead, info: Info
-    ) -> list["Engagement"] | None:
-        if root.engagement_uuid is None:
-            return None
-        loader: DataLoader = info.context["engagement_loader"]
-        return await loader.load(root.engagement_uuid)
 
     @strawberry.field(description="Name of address")
     async def name(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(self, root, info)
+        address_type = await Address.address_type(root=root, info=info)
 
         if address_type.scope == "MULTIFIELD_TEXT":
             return multifield_text.name(root.value, root.value2)
@@ -283,7 +307,7 @@ class Address:
 
     @strawberry.field(description="href of address")
     async def href(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(self, root, info)
+        address_type = await Address.address_type(root=root, info=info)
 
         if address_type.scope == "PHONE":
             return f"tel:{root.value}"

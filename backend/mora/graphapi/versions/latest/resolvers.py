@@ -36,6 +36,8 @@ from ramodels.mo.details import RoleRead
 
 
 class StaticResolver:
+    neutral_element = []
+
     def __init__(self, model: type) -> None:
         """Create a field resolver by specifying a model.
 
@@ -86,11 +88,15 @@ class StaticResolver:
         if uuids is not None:
             if limit is not None or offset is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
+            if not uuids:
+                return self.neutral_element
             resolver_name = resolver_map[self.model]["loader"]
             return await self.get_by_uuid(info.context[resolver_name], uuids)
 
         # User keys
         if user_keys is not None:
+            if not user_keys:
+                return self.neutral_element
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
             # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
@@ -134,6 +140,8 @@ class StaticResolver:
 
 
 class Resolver(StaticResolver):
+    neutral_element = {}
+
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
