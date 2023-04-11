@@ -36,7 +36,7 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver, EmployeeResolver, FacetResolver, ITUserResolver
+from .resolvers import AddressResolver, AssociationResolver, EmployeeResolver, EngagementAssociationResolver, FacetResolver, ITUserResolver, LeaveResolver, ManagerResolver, RoleResolver
 from .resolvers import ClassResolver
 from .resolvers import EngagementResolver
 from .resolvers import OrganisationUnitResolver
@@ -535,87 +535,110 @@ class Employee:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
-    @strawberry.field(
+    engagements: list[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Engagements for the employee",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagements(self, root: EmployeeRead, info: Info) -> list["Engagement"]:
-        loader: DataLoader = info.context["employee_engagement_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    manager_roles: list[LazyType[
+        "Manager", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            ManagerResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Manager roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
-    async def manager_roles(self, root: EmployeeRead, info: Info) -> list["Manager"]:
-        loader: DataLoader = info.context["employee_manager_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    addresses: list[LazyType[
+        "Address", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            AddressResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Addresses for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
-    async def addresses(
-        self,
-        root: EmployeeRead,
-        info: Info,
-        address_types: list[UUID] | None = None,
-    ) -> list["Address"]:
-        loader: DataLoader = info.context["employee_address_loader"]
-        result = await loader.load(root.uuid)
-        address_reads = await filter_address_types(result, address_types)
-        return list(map(Address.from_pydantic, address_reads))
 
-    @strawberry.field(
+    leaves: list[LazyType[
+        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            LeaveResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Leaves for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leaves(self, root: EmployeeRead, info: Info) -> list["Leave"]:
-        loader: DataLoader = info.context["employee_leave_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    associations: list[LazyType[
+        "Association", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            AssociationResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Associations for the employee",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
         ],
     )
-    async def associations(self, root: EmployeeRead, info: Info) -> list["Association"]:
-        loader: DataLoader = info.context["employee_association_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    roles: list[LazyType[
+        "Role", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            RoleResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
-    async def roles(self, root: EmployeeRead, info: Info) -> list["Role"]:
-        loader: DataLoader = info.context["employee_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    itusers: list[LazyType[
+        "ITUser", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            ITUserResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="IT users for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
-    async def itusers(self, root: EmployeeRead, info: Info) -> list["ITUser"]:
-        loader: DataLoader = info.context["employee_ituser_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyType[
+        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            EmployeeRead,
+            {"employees": lambda root: [root.uuid] if root.uuid else []}
+        ),
         description="Engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: EmployeeRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["employee_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Engagement

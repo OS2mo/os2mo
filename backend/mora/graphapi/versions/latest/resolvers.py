@@ -508,6 +508,32 @@ class EngagementAssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EngagementAssociationRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class ITSystemResolver(StaticResolver):
     def __init__(self) -> None:
@@ -517,6 +543,32 @@ class ITSystemResolver(StaticResolver):
 class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 class KLEResolver(Resolver):
@@ -528,6 +580,32 @@ class LeaveResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(LeaveRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class RelatedUnitResolver(Resolver):
     def __init__(self) -> None:
@@ -537,6 +615,32 @@ class RelatedUnitResolver(Resolver):
 class RoleResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RoleRead)
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+    ):
+        """Resolve roles."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 def get_date_interval(
