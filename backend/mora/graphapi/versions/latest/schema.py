@@ -36,7 +36,7 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
-from .resolvers import AddressResolver, AssociationResolver, EmployeeResolver, EngagementAssociationResolver, FacetResolver, ITSystemResolver, ITUserResolver, LeaveResolver, ManagerResolver, RoleResolver
+from .resolvers import AddressResolver, AssociationResolver, EmployeeResolver, EngagementAssociationResolver, FacetResolver, ITSystemResolver, ITUserResolver, KLEResolver, LeaveResolver, ManagerResolver, RelatedUnitResolver, RoleResolver
 from .resolvers import ClassResolver
 from .resolvers import EngagementResolver
 from .resolvers import OrganisationUnitResolver
@@ -1133,17 +1133,12 @@ class OrganisationUnit:
         Returns:
             A list of all the ancestors.
         """
-
-        async def rec(parent_uuid: UUID | None) -> list["OrganisationUnit"]:
-            if parent_uuid is None:
-                return []
-            parent = only(await loader.load(parent_uuid))
+        async def rec(root_node: OrganisationUnitRead) -> list["OrganisationUnit"]:
+            parent = await OrganisationUnit.parent(root=root_node, info=info)  # type: ignore
             if not parent:
                 return []
-            return [parent] + await rec(parent.parent_uuid)
-
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await rec(root.parent_uuid)
+            return [parent] + await rec(parent)
+        return await rec(root)
 
     children: list[
         LazyType[
@@ -1170,67 +1165,60 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    # TODO: Add UUID to RAModel and remove model prefix here
-    #    org_unit_hierarchy_model: Optional["Class"] = strawberry.field(
-    #        resolver=seed_resolver(
-    #            ClassResolver(),
-    #            OrganisationUnitRead,
-    #            lambda result: only(result),
-    #            uuids=lambda root: [root.org_unit_hierarchy],
-    #        ),
-    #        description="Organisation unit hierarchy",
-    #        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
-    #    )
-    @strawberry.field(
+    # TODO: Remove org prefix from RAModel and remove it here too
+    # TODO: Add _uuid suffix to RAModel and remove _model suffix here
+    org_unit_hierarchy_model: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            OrganisationUnitRead,
+            {"uuids": lambda root: [root.org_unit_hierarchy] if root.org_unit_hierarchy else []}
+        ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def org_unit_hierarchy_model(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_hierarchy is None:
-            return None
-        return await loader.load(root.org_unit_hierarchy)
 
-    @strawberry.field(
-        description="Organisation unit type",
+    unit_type: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            OrganisationUnitRead,
+            {"uuids": lambda root: [root.unit_type_uuid] if root.unit_type_uuid else []}
+        ),
+        description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def unit_type(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.unit_type_uuid is None:
-            return None
-        return await loader.load(root.unit_type_uuid)
 
     # TODO: Remove org prefix from RAModel and remove it here too
-    @strawberry.field(
+    org_unit_level: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            OrganisationUnitRead,
+            {"uuids": lambda root: [root.org_unit_level_uuid] if root.org_unit_level_uuid else []}
+        ),
         description="Organisation unit level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def org_unit_level(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_level_uuid is None:
-            return None
-        return await loader.load(root.org_unit_level_uuid)
 
-    @strawberry.field(
+    time_planning: Optional[LazyType[
+        "Class", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_static_resolver_optional(
+            ClassResolver(),
+            OrganisationUnitRead,
+            {"uuids": lambda root: [root.time_planning_uuid] if root.time_planning_uuid else []}
+        ),
         description="Time planning strategy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def time_planning(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.time_planning_uuid is None:
-            return None
-        return await loader.load(root.time_planning_uuid)
 
-    engagements: list["Engagement"] = strawberry.field(
+    engagements: list[LazyType[
+        "Engagement", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             OrganisationUnitRead,
@@ -1265,7 +1253,9 @@ class OrganisationUnit:
                 parent = potential_parent
         return result
 
-    addresses: list["Address"] = strawberry.field(
+    addresses: list[LazyType[
+        "Address", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
         resolver=seed_resolver_list(
             AddressResolver(),
             OrganisationUnitRead,
@@ -1275,76 +1265,98 @@ class OrganisationUnit:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
-    @strawberry.field(
+    leaves: list[LazyType[
+        "Leave", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            LeaveResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related leaves",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leaves(self, root: OrganisationUnitRead, info: Info) -> list["Leave"]:
-        loader: DataLoader = info.context["org_unit_leave_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    associations: list[LazyType[
+        "Association", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            AssociationResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
         ],
     )
-    async def associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Association"]:
-        loader: DataLoader = info.context["org_unit_association_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    roles: list[LazyType[
+        "Role", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            RoleResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related roles",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
-    async def roles(self, root: OrganisationUnitRead, info: Info) -> list["Role"]:
-        loader: DataLoader = info.context["org_unit_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    itusers: list[LazyType[
+        "ITUser", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            ITUserResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related IT users",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
-    async def itusers(self, root: OrganisationUnitRead, info: Info) -> list["ITUser"]:
-        loader: DataLoader = info.context["org_unit_ituser_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    kles: list[LazyType[
+        "KLE", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            KLEResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="KLE responsibilites for the organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
-    async def kles(self, root: OrganisationUnitRead, info: Info) -> list["KLE"]:
-        loader: DataLoader = info.context["org_unit_kle_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    related_units: list[LazyType[
+        "RelatedUnit", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            RelatedUnitResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related units for the organisational unit",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
         ],
     )
-    async def related_units(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["RelatedUnit"]:
-        loader: DataLoader = info.context["org_unit_related_unit_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyType[
+        "EngagementAssociation", "mora.graphapi.versions.latest.schema"  # noqa: F821
+    ]] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            OrganisationUnitRead,
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Engagement associations for the organisational unit",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["org_unit_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Related Unit

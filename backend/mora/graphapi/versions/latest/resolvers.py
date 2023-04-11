@@ -519,6 +519,7 @@ class EngagementAssociationResolver(Resolver):
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
         engagements: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve engagement-associations."""
         kwargs = {}
@@ -526,6 +527,8 @@ class EngagementAssociationResolver(Resolver):
             kwargs["tilknyttedebrugere"] = employees
         if engagements is not None:
             kwargs["tilknyttedefunktioner"] = engagements
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
         return await super()._resolve(
             info=info,
             uuids=uuids,
@@ -557,11 +560,14 @@ class ITUserResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve it-users."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
         return await super()._resolve(
             info=info,
             uuids=uuids,
@@ -578,6 +584,32 @@ class KLEResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(KLERead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve itusers."""
+        kwargs = {}
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class LeaveResolver(Resolver):
     def __init__(self) -> None:
@@ -593,11 +625,14 @@ class LeaveResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve leaves."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
         return await super()._resolve(
             info=info,
             uuids=uuids,
@@ -614,6 +649,32 @@ class RelatedUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RelatedUnitRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class RoleResolver(Resolver):
     def __init__(self) -> None:
@@ -629,11 +690,14 @@ class RoleResolver(Resolver):
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve roles."""
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
         return await super()._resolve(
             info=info,
             uuids=uuids,
