@@ -982,14 +982,11 @@ class OrganisationUnit:
         Returns:
             A list of all the ancestors.
         """
-
-        async def rec(root_node: OrganisationUnitRead) -> list["OrganisationUnit"]:
-            parent = await OrganisationUnit.parent(root=root_node, info=info)  # type: ignore
-            if not parent:
-                return []
-            return [parent] + await rec(parent)
-
-        return await rec(root)
+        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
+        if parent is None:
+            return []
+        ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
+        return [parent] + ancestors
 
     children: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
