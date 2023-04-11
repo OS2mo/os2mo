@@ -5,7 +5,6 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from operator import attrgetter
 from typing import Any
 from uuid import UUID
 
@@ -89,6 +88,7 @@ class StaticResolver:
         if uuids is not None:
             if limit is not None or offset is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
+            # Early return on empty UUID list
             if not uuids:
                 return self.neutral_element_constructor()
             resolver_name = resolver_map[self.model]["loader"]
@@ -96,6 +96,7 @@ class StaticResolver:
 
         # User keys
         if user_keys is not None:
+            # Early return on empty user-key list
             if not user_keys:
                 return self.neutral_element_constructor()
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
@@ -202,6 +203,24 @@ class Resolver(StaticResolver):
         }
 
 
+async def user_keys2uuids(
+    resolver: StaticResolver, info: Info, user_keys: list[str]
+) -> list[UUID]:
+    """Translate a list of user-keys into a list of UUIDs.
+
+    Args:
+        resolver: The resolver used to resolve user-keys to UUIDs.
+        info: The strawberry execution context.
+        user_keys: The user-keys to resolve.
+
+    Returns:
+        A list of UUIDs resolved from the user-keys.
+    """
+    objects = await resolver.resolve(info, user_keys=user_keys)
+    uuids = [obj.uuid for obj in objects]
+    return uuids
+
+
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
@@ -226,23 +245,15 @@ class ClassResolver(StaticResolver):
         """Resolve classes."""
         if facet_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            facet_objects = await FacetResolver().resolve(
-                info, user_keys=facet_user_keys
-            )
-            facet_uuids = list(map(attrgetter("uuid"), facet_objects))
-            if facets is None:
-                facets = []
-            facets.extend(facet_uuids)
+            facets = facets or []
+            facets.extend(await user_keys2uuids(FacetResolver(), info, facet_user_keys))
 
         if parent_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            parent_objects = await ClassResolver().resolve(
-                info, user_keys=parent_user_keys
+            parents = parents or []
+            parents.extend(
+                await user_keys2uuids(ClassResolver(), info, parent_user_keys)
             )
-            parent_uuids = list(map(attrgetter("uuid"), parent_objects))
-            if parents is None:
-                parents = []
-            parents.extend(parent_uuids)
 
         kwargs = {}
         if facets is not None:
@@ -284,13 +295,10 @@ class AddressResolver(Resolver):
         """Resolve addresses."""
         if address_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            address_type_objects = await ClassResolver().resolve(
-                info, user_keys=address_type_user_keys
+            address_types = address_types or []
+            address_types.extend(
+                await user_keys2uuids(ClassResolver(), info, address_type_user_keys)
             )
-            address_type_uuids = list(map(attrgetter("uuid"), address_type_objects))
-            if address_types is None:
-                address_types = []
-            address_types.extend(address_type_uuids)
 
         kwargs = {}
         if address_types is not None:
@@ -335,15 +343,10 @@ class AssociationResolver(Resolver):
         """Resolve associations."""
         if association_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            association_type_objects = await ClassResolver().resolve(
-                info, user_keys=association_type_user_keys
+            association_types = association_types or []
+            association_types.extend(
+                await user_keys2uuids(ClassResolver(), info, association_type_user_keys)
             )
-            association_type_uuids = list(
-                map(attrgetter("uuid"), association_type_objects)
-            )
-            if association_types is None:
-                association_types = []
-            association_types.extend(association_type_uuids)
 
         kwargs = {}
         if association_types is not None:
