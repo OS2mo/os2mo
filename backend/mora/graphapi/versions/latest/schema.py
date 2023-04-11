@@ -397,7 +397,7 @@ class Association:
 
     # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_concrete(
+        resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
@@ -911,7 +911,7 @@ class Manager:
 
     # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_concrete(
+        resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
@@ -1173,7 +1173,7 @@ class OrganisationUnit:
 )
 class RelatedUnit:
     org_units: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_concrete(
+        resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: root.org_unit_uuids or []},
         ),
@@ -1209,7 +1209,7 @@ class Role:
 
     # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
-        resolver=seed_resolver_concrete(
+        resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
