@@ -321,7 +321,7 @@ class Address:
 
     @strawberry.field(description="Name of address")
     async def name(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(root=root, info=info)
+        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
         if address_type.scope == "MULTIFIELD_TEXT":
             return multifield_text.name(root.value, root.value2)
@@ -335,7 +335,7 @@ class Address:
 
     @strawberry.field(description="href of address")
     async def href(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(root=root, info=info)
+        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
         if address_type.scope == "PHONE":
             return f"tel:{root.value}"
@@ -475,9 +475,9 @@ class Class:
         parent_node: ClassRead = root
         # Traverse class tree
         while parent_node.parent_uuid is not None:
-            parent_node = await Class.parent(root=parent_node, info=info)  # type: ignore
+            parent_node = await Class.parent(root=parent_node, info=info)  # type: ignore[operator,misc]
         # Return facet for utmost-parent
-        return await Class.facet(root=parent_node, info=info)
+        return await Class.facet(root=parent_node, info=info)  # type: ignore[operator]
 
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
