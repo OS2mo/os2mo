@@ -228,14 +228,6 @@ async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_class_children(parent_uuids: list[UUID]) -> list[list[ClassRead]]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(overordnetklasse=list(map(str, parent_uuids)))
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    buckets = bucket(mo_models, key=lambda model: model.parent_uuid)
-    return list(map(lambda key: list(buckets[key]), parent_uuids))
-
-
 def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
     uuid, lora_facet = lora_tuple
 
@@ -291,63 +283,6 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def get_employee_details(
-    employee_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    """Non-bulk loader for employee details."""
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedebrugere": str(employee_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_employee_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for employee details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_employee_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
-async def get_engagement_details(
-    engagement_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedefunktioner": str(engagement_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_engagement_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for employee details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_engagement_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
 async def get_org_unit_details(
     org_unit_uuid: UUID, role_type: str
 ) -> list[MOModel] | None:
@@ -397,100 +332,61 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
     """Get all available dataloaders as a dictionary."""
     return {
         "org_loader": DataLoader(load_fn=load_org),
+
         "org_unit_loader": DataLoader(
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": get_org_units,
-        "org_unit_manager_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=ManagerRead)
-        ),
-        "org_unit_address_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=AddressRead)
-        ),
-        "org_unit_engagement_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=EngagementRead)
-        ),
-        "org_unit_leave_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=LeaveRead)
-        ),
-        "org_unit_association_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=AssociationRead)
-        ),
-        "org_unit_role_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=RoleRead)
-        ),
-        "org_unit_ituser_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=ITUserRead)
-        ),
-        "org_unit_kle_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=KLERead)
-        ),
-        "org_unit_related_unit_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=RelatedUnitRead)
-        ),
-        "org_unit_engagement_association_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=EngagementAssociationRead)
-        ),
+
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": get_employees,
-        "employee_manager_role_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=ManagerRead)
-        ),
-        "employee_address_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=AddressRead)
-        ),
-        "employee_engagement_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=EngagementRead)
-        ),
-        "employee_leave_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=LeaveRead)
-        ),
-        "employee_association_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=AssociationRead)
-        ),
-        "employee_role_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=RoleRead)
-        ),
-        "employee_ituser_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=ITUserRead)
-        ),
-        "employee_engagement_association_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=EngagementAssociationRead)
-        ),
+
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
-        "engagement_engagement_association_loader": DataLoader(
-            load_fn=partial(load_engagement_details, model=EngagementAssociationRead)
-        ),
         "engagement_getter": get_engagements,
+
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": get_kles,
+
         "address_loader": DataLoader(load_fn=partial(load_mo, model=AddressRead)),
         "address_getter": get_addresses,
+
         "leave_loader": DataLoader(load_fn=partial(load_mo, model=LeaveRead)),
         "leave_getter": get_leaves,
+
         "association_loader": DataLoader(
             load_fn=partial(load_mo, model=AssociationRead)
         ),
         "association_getter": get_associations,
+
         "role_loader": DataLoader(load_fn=partial(load_mo, model=RoleRead)),
         "role_getter": get_roles,
+
         "ituser_loader": DataLoader(load_fn=partial(load_mo, model=ITUserRead)),
         "ituser_getter": get_itusers,
+
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": get_managers,
+
         "class_loader": DataLoader(load_fn=load_classes),
         "class_getter": get_classes,
+
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": get_related_units,
-        "class_children_loader": DataLoader(load_fn=load_class_children),
+
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
+
         "itsystem_loader": DataLoader(load_fn=load_itsystems),
         "itsystem_getter": get_itsystems,
+
         "engagement_association_loader": DataLoader(
             load_fn=partial(load_mo, model=EngagementAssociationRead)
         ),
         "engagement_association_getter": get_engagement_associations,
+
+        "org_unit_manager_loader": DataLoader(
+            load_fn=partial(load_org_unit_details, model=ManagerRead)
+        ),
     }
 
 
