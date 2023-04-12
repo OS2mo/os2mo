@@ -102,12 +102,8 @@ async def get_entity_uuids(request: Request) -> set[UUID]:
     """
     Extract the UUID(s) for the relevant entity (org unit or employee).
 
-    For an org unit the coroutine gets the UUIDs in the entire relevant branch of
-    the org unit ancestor tree. For example, if UnitA is a parent of UnitB
-    which is a parent of UnitC, then will return a list containing the UUIDs
-    of UnitA, UnitB and UnitC.
-
-    For an employee the coroutine just returns the UUID of the employee
+    The coroutine will return {<uuid1>} if we are editing details of an org
+    unit or an employee and {<uuid1>, <uuid2>} if we are moving an org unit.
 
     :param request: the incoming request to the endpoint
     :return: list of the entity UUID(s)
