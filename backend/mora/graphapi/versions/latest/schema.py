@@ -118,7 +118,6 @@ def seed_resolver(
             description="Children count of the organisation unit.",
             resolver=seed_resolver(
                 OrganisationUnitResolver(),
-                OrganisationUnitRead,
                 {"parents": lambda root: [root.uuid]},
                 lambda result: len(result.keys()),
             ),
@@ -377,6 +376,8 @@ class Association:
         resolver=seed_static_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
         ),
+        description="dynamic class",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     primary: LazyClass | None = strawberry.field(
@@ -691,7 +692,7 @@ class EngagementAssociation:
     engagement: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
-            {"employees": lambda root: [root.engagement_uuid]},
+            {"uuids": lambda root: [root.engagement_uuid]},
         ),
         description="Related engagement",
         permission_classes=[
@@ -854,7 +855,7 @@ class Leave:
     engagement: LazyEngagement | None = strawberry.field(
         resolver=seed_resolver_only(
             EngagementResolver(),
-            {"employees": lambda root: [root.engagement_uuid]},
+            {"uuids": lambda root: [root.engagement_uuid]},
         ),
         description="Related engagement",
         permission_classes=[
