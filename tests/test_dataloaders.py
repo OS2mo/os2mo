@@ -834,31 +834,71 @@ async def test_find_mo_employee_uuid(
     dataloader: DataLoader, gql_client: AsyncMock, gql_client_sync: MagicMock
 ):
     uuid = uuid4()
-    return_value = {
-        "employees": [
-            {"uuid": uuid},
-        ]
-    }
+    dataloader.user_context["cpr_field"] = "employeeID"
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+    ):
+        return_value: dict = {
+            "employees": [
+                {"uuid": uuid},
+            ],
+            "itusers": [],
+        }
 
-    gql_client.execute.return_value = return_value
-    gql_client_sync.execute.return_value = return_value
+        gql_client.execute.return_value = return_value
 
-    output = await asyncio.gather(
-        dataloader.find_mo_employee_uuid("0101011221"),
-    )
-    assert output[0] == uuid
+        output = await asyncio.gather(
+            dataloader.find_mo_employee_uuid("CN=foo"),
+        )
+        assert output[0] == uuid
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="CN=foo", employeeID="Ja"),
+    ):
+        return_value = {
+            "itusers": [
+                {"objects": [{"employee_uuid": uuid}]},
+            ]
+        }
+
+        gql_client.execute.return_value = return_value
+
+        output = await asyncio.gather(dataloader.find_mo_employee_uuid("CN=foo"))
+        assert output[0] == uuid
 
 
 async def test_find_mo_employee_uuid_not_found(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
-    gql_client.execute.return_value = {"employees": []}
 
-    output = await asyncio.gather(
-        dataloader.find_mo_employee_uuid("0101011221"),
-    )
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+    ):
+        gql_client.execute.return_value = {"employees": [], "itusers": []}
 
-    assert output[0] is None
+        output = await asyncio.gather(dataloader.find_mo_employee_uuid("CN=foo"))
+
+        assert output[0] is None
+
+
+async def test_find_mo_employee_uuid_multiple_matches(
+    dataloader: DataLoader, gql_client: AsyncMock
+):
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
+        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+    ):
+        gql_client.execute.return_value = {
+            "employees": [{"uuid": uuid4()}, {"uuid": uuid4()}],
+            "itusers": [],
+        }
+
+        with pytest.raises(MultipleObjectsReturnedException):
+            await asyncio.gather(dataloader.find_mo_employee_uuid("CN=foo"))
 
 
 async def test_load_mo_employee_not_found(

@@ -15,6 +15,7 @@ from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
+from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
@@ -518,23 +519,69 @@ class DataLoader:
 
         return output
 
-    def _return_mo_employee_uuid_result(self, result) -> Union[None, UUID]:
-        if len(result["employees"]) == 0:
-            return None
-        else:
+    def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
+        number_of_employees = len(result.get("employees", []))
+        number_of_itusers = len(result["itusers"])
+
+        if number_of_employees == 1:
+            logger.info("Trying to find mo employee UUID using cpr_no")
             uuid: UUID = result["employees"][0]["uuid"]
             return uuid
 
-    async def find_mo_employee_uuid(self, cpr_no: str) -> Union[None, UUID]:
+        elif number_of_itusers == 1:
+            logger.info("Trying to find mo employee UUID using IT system")
+            uuid = result["itusers"][0]["objects"][0]["employee_uuid"]
+            return uuid
+
+        elif number_of_itusers == 0 and number_of_employees == 0:
+            logger.info(f"No matching employee in {result}")
+            return None
+        else:
+            raise MultipleObjectsReturnedException(
+                f"Multiple matching employees in {result}"
+            )
+
+    async def find_mo_employee_uuid(self, dn: str) -> Union[None, UUID]:
+        cpr_field = self.user_context["cpr_field"]
+        ldap_object = self.load_ldap_object(dn, [cpr_field])
+
+        # Try to get the cpr number from LDAP and use that.
+        try:
+            cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
+        except ValueError:
+            cpr_no = None
+
+        if cpr_no:
+            cpr_query = (
+                """
+            employees(cpr_numbers: "%s") {
+              uuid
+            }
+            """
+                % cpr_no
+            )
+        else:
+            cpr_query = ""
+
+        ituser_query = (
+            """
+        itusers(user_keys: "%s") {
+          objects {
+            employee_uuid
+          }
+        }
+        """
+            % dn
+        )
+
         query = gql(
             """
             query FindEmployeeUUID {
-              employees(cpr_numbers: "%s") {
-                uuid
-              }
+              %s
+              %s
             }
             """
-            % cpr_no
+            % (cpr_query, ituser_query)
         )
 
         result = await self.query_mo(query, raise_if_empty=False)

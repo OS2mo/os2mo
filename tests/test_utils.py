@@ -130,12 +130,11 @@ async def test_listener():
     user_context = {
         "event_loop": event_loop,
         "sync_tool": sync_tool,
-        "cpr_field": "employeeID",
     }
 
     context = {"user_context": user_context}
 
-    event = {"attributes": {"employeeID": "010101-1234"}}
+    event = {"attributes": {"distinguishedName": "CN=foo"}}
     with capture_logs() as cap_logs:
         listener(context, event)
         listener(context, {})
@@ -146,10 +145,10 @@ async def test_listener():
             str(messages[0]["event"]),
         )
         event_loop.create_task.assert_called()
-        sync_tool.import_single_user.assert_called_with("010101-1234")
+        sync_tool.import_single_user.assert_called_with("CN=foo")
 
         assert re.match(
-            "Got event without cpr",
+            "Got event without dn",
             str(messages[1]["event"]),
         )
 

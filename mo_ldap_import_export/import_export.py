@@ -14,13 +14,11 @@ from uuid import uuid4
 
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
-from ramodels.mo._shared import validate_cpr
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 
 from .exceptions import IgnoreChanges
-from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .ldap import cleanup
@@ -474,16 +472,11 @@ class SyncTool:
 
         return converted_objects_uuid_checked
 
-    async def import_single_user(self, cpr: str):
+    async def import_single_user(self, dn: str):
         """
         Imports a single user from LDAP
         """
-        logger.info(f"Importing user with cpr={cpr}")
-        try:
-            validate_cpr(cpr)
-        except ValueError:
-            logger.warning(f"{cpr} is not a valid cpr number")
-            return
+        logger.info(f"Importing user with dn={dn}")
 
         detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
 
@@ -493,7 +486,7 @@ class SyncTool:
         # - We don't need the additional speed. This is meant as a one-time import
         # - We won't gain much; This is an asynchronous request. The code moves on while
         #   we are waiting for MO's response
-        employee_uuid = await self.dataloader.find_mo_employee_uuid(cpr)
+        employee_uuid = await self.dataloader.find_mo_employee_uuid(dn)
         if not employee_uuid:
             logger.info("Employee not found in MO - generating employee uuid")
             employee_uuid = uuid4()
@@ -507,11 +500,10 @@ class SyncTool:
                 logger.info(f"__import_to_mo__ == False for json_key = '{json_key}'")
                 continue
             logger.info(f"Loading {json_key} object")
-            try:
-                loaded_object = self.dataloader.load_ldap_cpr_object(cpr, json_key)
-            except MultipleObjectsReturnedException as e:
-                logger.warning(f"Could not upload {json_key} object: {e}")
-                break
+            loaded_object = self.dataloader.load_ldap_object(
+                dn,
+                self.converter.get_ldap_attributes(json_key),
+            )
 
             try:
                 self.dns_to_ignore.check(loaded_object.dn)

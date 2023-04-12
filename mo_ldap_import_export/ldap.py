@@ -443,12 +443,12 @@ def setup_listener(context: Context, callback: Callable):
     user_context = context["user_context"]
 
     # Note:
-    # We need the cpr-field attribute to trigger sync_tool.import_single_user()
+    # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
     search_parameters = {
         "search_base": user_context["settings"].ldap_search_base,
         "search_filter": "(cn=*)",
-        "attributes": [user_context["cpr_field"], "modifyTimestamp"],
+        "attributes": ["distinguishedName", "modifyTimestamp"],
     }
 
     # Polling search

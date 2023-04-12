@@ -5,12 +5,20 @@
       "__import_to_mo__": true,
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
-      "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
+      "cpr_no": "{{NONE}}",
       "seniority": "{{NONE}}",
       "nickname_givenname": "{{NONE}}",
       "nickname_surname": "{{NONE}}",
       "uuid": "{{ employee_uuid or NONE }}"
-    }
+    },
+    "Active Directory": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "__import_to_mo__": true,
+      "user_key": "{{ ldap.distinguishedName }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
   },
   "mo_to_ldap": {
     "Employee": {
@@ -21,7 +29,14 @@
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "employeeID": "{{mo_employee.cpr_no or NONE}}",
-    }
+    },
+    "Active Directory": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
+    },
+
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
