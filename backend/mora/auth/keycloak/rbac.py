@@ -48,6 +48,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         logger.debug("UUIDs", uuids=uuids)
 
         entity_type = await uuid_extractor.get_entity_type(request)
+        logger.debug("Entity type", entity_type=entity_type)
 
         # In some cases several ancestor owner sets are needed, e.g. if
         # we are moving a unit. In such cases we have to check for
@@ -67,6 +68,7 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         owners = await asyncio.gather(
             *(get_owners(uuid, entity_type) for uuid in uuids)
         )
+        logger.debug("Found the following owners", owners=owners)
 
         current_user_ownership_verified = [(token.uuid in owner) for owner in owners]
 

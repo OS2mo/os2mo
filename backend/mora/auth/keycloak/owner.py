@@ -35,7 +35,7 @@ async def get_ancestor_owners(uuid: UUID) -> set[UUID]:
     :return: set of owner UUIDs
     """
 
-    logger.debug("get_ancestor_owners called")
+    logger.debug("get_ancestor_owners called", uuid=uuid)
 
     ancestors_tree = await _get_ancestors(uuid)
     ancestor_uuids = uuid_extractor.get_ancestor_uuids(ancestors_tree)
@@ -45,6 +45,7 @@ async def get_ancestor_owners(uuid: UUID) -> set[UUID]:
     )
 
     ancestor_owners = set(flatten(ancestor_owner_sublists))
+    logger.debug("Ancestor owners", ancestor_owners=ancestor_owners)
 
     return ancestor_owners
 
@@ -121,4 +122,7 @@ async def _get_entity_owners(uuid: UUID, entity_type: EntityType) -> set[UUID]:
     # Filter out empty dicts and vacant owners
     r_filtered = filter(lambda item: item.get(OWNER) is not None, r)
 
-    return {UUID(item[OWNER][UUID_KEY]) for item in r_filtered}
+    entity_owners = {UUID(item[OWNER][UUID_KEY]) for item in r_filtered}
+    logger.debug("Entity owners", entity_owners=entity_owners)
+
+    return entity_owners
