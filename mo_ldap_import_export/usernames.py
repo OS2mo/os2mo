@@ -185,6 +185,10 @@ class UserNameGeneratorBase:
         if max_position > len(name) - 2:
             return None
 
+        # Do not use codes that require a last name if the person has no last name
+        if not name[-1] and -1 in code:
+            return None
+
         # First letter is always first letter of first position
         if code[0] is not None:
             relevant_name = code[0]

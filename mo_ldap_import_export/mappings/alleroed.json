@@ -481,7 +481,15 @@
             "F13",
             "F22",
             "F23",
-            "F33"
+            "F33",
+            "FFFFF",
+            "FFFFFX",
+            "FFFF",
+            "FFFFX",
+            "FFF",
+            "FFFX",
+            "FF",
+            "FFX",
      ],
      "forbidden_usernames":[]
    }
