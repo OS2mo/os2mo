@@ -145,9 +145,9 @@ def test_create_from_combi(username_generator: UserNameGenerator):
 
     # Test with a user without a last name
     name = ["Nick", ""]
-    combi = "FFFF"
+    combi = "FFFL"
     username = username_generator._create_from_combi(name, combi)
-    assert username == "Nick"
+    assert username is None
 
 
 def test_check_json_inputs(username_generator: UserNameGenerator):
