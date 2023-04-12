@@ -30,8 +30,8 @@ from fastapi import Depends
 from fastapi import Query
 from fastapi.encoders import jsonable_encoder
 from more_itertools import last
-from more_itertools import unzip
 from more_itertools import one
+from more_itertools import unzip
 
 from . import autocomplete
 from . import facet
@@ -50,9 +50,9 @@ from ..triggers import Trigger
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from mora.auth.keycloak import oidc
+from mora.graphapi.shim import execute_graphql
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.util import get_configuration
-from mora.graphapi.shim import execute_graphql
 from mora.service.util import handle_gql_error
 
 
@@ -632,11 +632,12 @@ async def get_one_orgunit(
 @router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(
     query: str,
-    at: date | None = Query(
+    at: date
+    | None = Query(
         None,
         description='The "at date" to use, e.g. `2020-01-31`. '
         "Results are only included if they are active at the specified date.",
-    )
+    ),
 ):
     settings = config.get_settings()
 
@@ -650,14 +651,10 @@ async def autocomplete_orgunits(
     search_phrase = util.query_to_search_phrase(query)
     search_results = await autocomplete.search_orgunits(search_phrase, at)
 
-    # Decorate search results with data through GraphQL
-    graphql_vars = {"uuids": [sr['uuid'] for sr in search_results]}
+    # Decorate search results with data through GraphQL & create final results
+    graphql_vars = {"uuids": [sr["uuid"] for sr in search_results]}
     if at is not None:
         graphql_vars["from_date"] = at
-
-    orgunit_decorate_attrs_query = """
-            
-    """
 
     orgunit_decorate_query = """
         query OrgUnitDecorate($uuids: [UUID!]) {
@@ -690,7 +687,7 @@ async def autocomplete_orgunits(
                         from
                         to
                     }
-                    
+
                     addresses {
                         uuid
                         name
@@ -699,7 +696,7 @@ async def autocomplete_orgunits(
                             name
                         }
                     }
-                
+
                     itusers {
                         uuid
                         user_key
@@ -710,8 +707,7 @@ async def autocomplete_orgunits(
         """
 
     response = await execute_graphql(
-        orgunit_decorate_query,
-        variable_values=jsonable_encoder(graphql_vars)
+        orgunit_decorate_query, variable_values=jsonable_encoder(graphql_vars)
     )
     handle_gql_error(response)
 
@@ -729,23 +725,28 @@ async def autocomplete_orgunits(
         attrs = []
         if "addresses" in graphql_equivilent:
             for addr in graphql_equivilent["addresses"]:
-                if UUID(addr["address_type"]['uuid']) not in settings.confdb_autocomplete_attrs_orgunit:
+                if (
+                    UUID(addr["address_type"]["uuid"])
+                    not in settings.confdb_autocomplete_attrs_orgunit
+                ):
                     continue
 
-                attrs.append({
-                    "uuid": UUID(addr['uuid']),
-                    "value": addr['name'],
-                    "title": addr["address_type"]['name'],
-                })
+                attrs.append(
+                    {
+                        "uuid": UUID(addr["uuid"]),
+                        "value": addr["name"],
+                        "title": addr["address_type"]["name"],
+                    }
+                )
 
         search_results[idx] = {
             "uuid": sr["uuid"],
             "name": graphql_equivilent["name"],
-            "path": [],
+            "path": sr["path"],
             "attrs": attrs,
         }
 
-    return search_results
+    return {"items": search_results}
 
 
 @router.get("/ou/ancestor-tree")
