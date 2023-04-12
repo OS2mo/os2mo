@@ -239,6 +239,9 @@ class Settings(BaseSettings):
     # If flag is set, it will be possible to pick OrgUnit hierarchy for the new units
     confdb_org_unit_hierarchy_in_create: bool = False
 
+    # If flag is set, autocomplete-v2 will use the fixed version
+    confdb_autocomplete_v2_orgunits_fixes: bool = False
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
