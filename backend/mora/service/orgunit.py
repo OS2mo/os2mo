@@ -626,9 +626,25 @@ async def get_one_orgunit(
 @router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(query: str):
     settings = config.get_settings()
-    return await autocomplete.get_results(
-        "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+
+    # Use LEGACY
+    # if not settings.confdb_autocomplete_v2_orgunits_fixes:
+    if not settings.confdb_autocomplete_v2_orgunits_fixes:
+        return await autocomplete.get_results(
+            "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+        )
+
+    # New implementation
+    search_phrase = util.query_to_search_phrase(query)
+    search_result = await autocomplete.search_orgunits(
+        settings.confdb_autocomplete_attrs_orgunit, search_phrase
     )
+
+    # Populate search results with data through GraphQL
+    for sr in search_result:
+        pass
+
+    return search_result
 
 
 @router.get("/ou/ancestor-tree")
