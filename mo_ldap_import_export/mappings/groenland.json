@@ -373,7 +373,15 @@
             "FFLLLL",
             "FFFLLL",
             "FFFFLL",
-            "FFFFFL"
+            "FFFFFL",
+            "FFFFF",
+            "FFFFFX",
+            "FFFF",
+            "FFFFX",
+            "FFF",
+            "FFFX",
+            "FF",
+            "FFX",
      ],
      "forbidden_usernames":["nazi",
                             "krig"]
