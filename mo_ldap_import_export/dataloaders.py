@@ -519,7 +519,7 @@ class DataLoader:
 
         return output
 
-    def _return_mo_employee_uuid_result(self, result) -> Union[None, UUID]:
+    def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
         number_of_employees = len(result.get("employees", []))
         number_of_itusers = len(result["itusers"])
 
