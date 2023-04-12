@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
-from asyncio import gather
 from collections.abc import Callable
 from collections.abc import Iterable
 from functools import partial
@@ -16,7 +15,6 @@ from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
 
-from .readers import _extract_search_params
 from .readers import get_role_type_by_uuid
 from .readers import search_role_type
 from .schema import AddressRead
@@ -36,7 +34,6 @@ from .schema import OrganisationUnitRead
 from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
-from mora.handler.reading import get_handler_for_type
 from mora.service import org
 from mora.util import parsedatetime
 from ramodels.lora.facet import FacetRead as LFacetRead
@@ -228,14 +225,6 @@ async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def load_class_children(parent_uuids: list[UUID]) -> list[list[ClassRead]]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(overordnetklasse=list(map(str, parent_uuids)))
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    buckets = bucket(mo_models, key=lambda model: model.parent_uuid)
-    return list(map(lambda key: list(buckets[key]), parent_uuids))
-
-
 def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
     uuid, lora_facet = lora_tuple
 
@@ -291,92 +280,6 @@ async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
     return list(map(uuid_map.get, uuids))
 
 
-async def get_employee_details(
-    employee_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    """Non-bulk loader for employee details."""
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedebrugere": str(employee_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_employee_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for employee details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_employee_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
-async def get_engagement_details(
-    engagement_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedefunktioner": str(engagement_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_engagement_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for employee details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_engagement_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
-async def get_org_unit_details(
-    org_unit_uuid: UUID, role_type: str
-) -> list[MOModel] | None:
-    """Non-bulk loader for organisation unit details."""
-    c = get_connector()
-    cls = get_handler_for_type(role_type)
-    result = await cls.get(
-        c=c,
-        search_fields=_extract_search_params(
-            query_args={
-                "at": None,
-                "validity": None,
-                "tilknyttedeenheder": str(org_unit_uuid),
-            }
-        ),
-        changed_since=None,
-    )
-    return parse_obj_as(list[MOModel], result)
-
-
-async def load_org_unit_details(
-    keys: list[UUID], model: MOModel
-) -> list[list[MOModel]]:
-    """Non-bulk loader for org_unit details with bulk interface."""
-    mo_type = model.__fields__["type_"].default
-    tasks = map(partial(get_org_unit_details, role_type=mo_type), keys)
-    return await gather(*tasks)
-
-
 async def load_org(keys: list[int]) -> list[OrganisationRead]:
     """Dataloader function to load Organisation.
 
@@ -401,66 +304,9 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
             load_fn=partial(load_mo, model=OrganisationUnitRead)
         ),
         "org_unit_getter": get_org_units,
-        "org_unit_manager_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=ManagerRead)
-        ),
-        "org_unit_address_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=AddressRead)
-        ),
-        "org_unit_engagement_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=EngagementRead)
-        ),
-        "org_unit_leave_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=LeaveRead)
-        ),
-        "org_unit_association_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=AssociationRead)
-        ),
-        "org_unit_role_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=RoleRead)
-        ),
-        "org_unit_ituser_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=ITUserRead)
-        ),
-        "org_unit_kle_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=KLERead)
-        ),
-        "org_unit_related_unit_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=RelatedUnitRead)
-        ),
-        "org_unit_engagement_association_loader": DataLoader(
-            load_fn=partial(load_org_unit_details, model=EngagementAssociationRead)
-        ),
         "employee_loader": DataLoader(load_fn=partial(load_mo, model=EmployeeRead)),
         "employee_getter": get_employees,
-        "employee_manager_role_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=ManagerRead)
-        ),
-        "employee_address_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=AddressRead)
-        ),
-        "employee_engagement_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=EngagementRead)
-        ),
-        "employee_leave_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=LeaveRead)
-        ),
-        "employee_association_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=AssociationRead)
-        ),
-        "employee_role_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=RoleRead)
-        ),
-        "employee_ituser_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=ITUserRead)
-        ),
-        "employee_engagement_association_loader": DataLoader(
-            load_fn=partial(load_employee_details, model=EngagementAssociationRead)
-        ),
         "engagement_loader": DataLoader(load_fn=partial(load_mo, model=EngagementRead)),
-        "engagement_engagement_association_loader": DataLoader(
-            load_fn=partial(load_engagement_details, model=EngagementAssociationRead)
-        ),
         "engagement_getter": get_engagements,
         "kle_loader": DataLoader(load_fn=partial(load_mo, model=KLERead)),
         "kle_getter": get_kles,
@@ -482,7 +328,6 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "class_getter": get_classes,
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": get_related_units,
-        "class_children_loader": DataLoader(load_fn=load_class_children),
         "facet_loader": DataLoader(load_fn=load_facets),
         "facet_getter": get_facets,
         "itsystem_loader": DataLoader(load_fn=load_itsystems),

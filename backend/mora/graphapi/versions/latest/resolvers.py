@@ -1,10 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
+from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-from operator import attrgetter
 from typing import Any
 from uuid import UUID
 
@@ -16,7 +16,7 @@ from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
 from .resolver_map import resolver_map
-from .schema import OpenValidityModel
+from .validity import OpenValidityModel
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -36,6 +36,8 @@ from ramodels.mo.details import RoleRead
 
 
 class StaticResolver:
+    neutral_element_constructor: Callable[[], Any] = list
+
     def __init__(self, model: type) -> None:
         """Create a field resolver by specifying a model.
 
@@ -86,11 +88,17 @@ class StaticResolver:
         if uuids is not None:
             if limit is not None or offset is not None:
                 raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
+            # Early return on empty UUID list
+            if not uuids:
+                return self.neutral_element_constructor()
             resolver_name = resolver_map[self.model]["loader"]
             return await self.get_by_uuid(info.context[resolver_name], uuids)
 
         # User keys
         if user_keys is not None:
+            # Early return on empty user-key list
+            if not user_keys:
+                return self.neutral_element_constructor()
             # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
             # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
             # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
@@ -134,6 +142,8 @@ class StaticResolver:
 
 
 class Resolver(StaticResolver):
+    neutral_element_constructor: Callable[[], Any] = dict
+
     async def resolve(  # type: ignore[no-untyped-def]
         self,
         info: Info,
@@ -193,6 +203,24 @@ class Resolver(StaticResolver):
         }
 
 
+async def user_keys2uuids(
+    resolver: StaticResolver, info: Info, user_keys: list[str]
+) -> list[UUID]:
+    """Translate a list of user-keys into a list of UUIDs.
+
+    Args:
+        resolver: The resolver used to resolve user-keys to UUIDs.
+        info: The strawberry execution context.
+        user_keys: The user-keys to resolve.
+
+    Returns:
+        A list of UUIDs resolved from the user-keys.
+    """
+    objects = await resolver.resolve(info, user_keys=user_keys)
+    uuids = [obj.uuid for obj in objects]
+    return uuids
+
+
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
@@ -211,21 +239,27 @@ class ClassResolver(StaticResolver):
         offset: PositiveInt | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
+        parents: list[UUID] | None = None,
+        parent_user_keys: list[str] | None = None,
     ):
         """Resolve classes."""
         if facet_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            facet_objects = await FacetResolver().resolve(
-                info, user_keys=facet_user_keys
+            facets = facets or []
+            facets.extend(await user_keys2uuids(FacetResolver(), info, facet_user_keys))
+
+        if parent_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            parents = parents or []
+            parents.extend(
+                await user_keys2uuids(ClassResolver(), info, parent_user_keys)
             )
-            facet_uuids = list(map(attrgetter("uuid"), facet_objects))
-            if facets is None:
-                facets = []
-            facets.extend(facet_uuids)
 
         kwargs = {}
         if facets is not None:
             kwargs["facet"] = facets
+        if parents is not None:
+            kwargs["overordnetklasse"] = parents
 
         return await super()._resolve(
             info=info,
@@ -256,17 +290,15 @@ class AddressResolver(Resolver):
         address_type_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
         engagements: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
     ):
         """Resolve addresses."""
         if address_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            address_type_objects = await ClassResolver().resolve(
-                info, user_keys=address_type_user_keys
+            address_types = address_types or []
+            address_types.extend(
+                await user_keys2uuids(ClassResolver(), info, address_type_user_keys)
             )
-            address_type_uuids = list(map(attrgetter("uuid"), address_type_objects))
-            if address_types is None:
-                address_types = []
-            address_types.extend(address_type_uuids)
 
         kwargs = {}
         if address_types is not None:
@@ -275,6 +307,8 @@ class AddressResolver(Resolver):
             kwargs["tilknyttedebrugere"] = employees
         if engagements is not None:
             kwargs["tilknyttedefunktioner"] = engagements
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
 
         return await super()._resolve(
             info=info,
@@ -309,15 +343,10 @@ class AssociationResolver(Resolver):
         """Resolve associations."""
         if association_type_user_keys is not None:
             # Convert user-keys to UUIDs for the UUID filtering
-            association_type_objects = await ClassResolver().resolve(
-                info, user_keys=association_type_user_keys
+            association_types = association_types or []
+            association_types.extend(
+                await user_keys2uuids(ClassResolver(), info, association_type_user_keys)
             )
-            association_type_uuids = list(
-                map(attrgetter("uuid"), association_type_objects)
-            )
-            if association_types is None:
-                association_types = []
-            association_types.extend(association_type_uuids)
 
         kwargs = {}
         if association_types is not None:
@@ -483,6 +512,38 @@ class EngagementAssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EngagementAssociationRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+        engagements: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve engagement-associations."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        if engagements is not None:
+            kwargs["tilknyttedefunktioner"] = engagements
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class ITSystemResolver(StaticResolver):
     def __init__(self) -> None:
@@ -493,25 +554,164 @@ class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve it-users."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class KLEResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(KLERead)
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve itusers."""
+        kwargs = {}
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 class LeaveResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(LeaveRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class RelatedUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RelatedUnitRead)
 
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve leaves."""
+        kwargs = {}
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
 
 class RoleResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RoleRead)
+
+    async def resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        employees: list[UUID] | None = None,
+        org_units: list[UUID] | None = None,
+    ):
+        """Resolve roles."""
+        kwargs = {}
+        if employees is not None:
+            kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            offset=offset,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
 
 
 def get_date_interval(

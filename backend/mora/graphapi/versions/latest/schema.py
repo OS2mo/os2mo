@@ -1,16 +1,19 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Strawberry types describing the MO graph."""
-import asyncio
 import json
 import re
 from base64 import b64encode
-from datetime import datetime
+from collections.abc import Awaitable
+from collections.abc import Callable
+from functools import partial
+from inspect import Parameter
+from inspect import signature
 from itertools import chain
+from typing import Annotated
 from typing import Any
 from typing import cast
 from typing import Generic
-from typing import Optional
 from typing import TypeVar
 from uuid import UUID
 
@@ -20,7 +23,6 @@ from more_itertools import one
 from more_itertools import only
 from starlette_context import context
 from strawberry import UNSET
-from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from .health import health_map
@@ -31,6 +33,22 @@ from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolver_map import resolver_map
+from .resolvers import AddressResolver
+from .resolvers import AssociationResolver
+from .resolvers import ClassResolver
+from .resolvers import EmployeeResolver
+from .resolvers import EngagementAssociationResolver
+from .resolvers import EngagementResolver
+from .resolvers import FacetResolver
+from .resolvers import ITSystemResolver
+from .resolvers import ITUserResolver
+from .resolvers import KLEResolver
+from .resolvers import LeaveResolver
+from .resolvers import ManagerResolver
+from .resolvers import OrganisationUnitResolver
+from .resolvers import RelatedUnitResolver
+from .resolvers import RoleResolver
+from .resolvers import StaticResolver
 from .types import Cursor
 from mora import common
 from mora import config
@@ -43,8 +61,6 @@ from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
-from ramodels.mo._shared import OpenValidity as OpenValidityModel
-from ramodels.mo._shared import Validity as ValidityModel
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementAssociationRead
@@ -59,6 +75,149 @@ from ramodels.mo.details import RoleRead
 
 
 MOObject = TypeVar("MOObject")
+R = TypeVar("R")
+
+
+def identity(x: R) -> R:
+    """Identity function.
+
+    Args:
+        x: Random argument.
+
+    Returns:
+        `x` completely unmodified.
+    """
+    return x
+
+
+def seed_resolver(
+    resolver: StaticResolver,
+    seeds: dict[str, Callable[[Any], Any]] | None = None,
+    result_translation: Callable[[Any], R] | None = None,
+) -> Callable[..., Awaitable[R]]:
+    """Seed the provided top-level resolver to be used in a field-level context.
+
+    This function serves to create a new function which calls the `resolver.resolve`
+    method with seeded values from the field-context in which it is called.
+
+    Example:
+        A resolver exists to load organisation units, namely `OrganisationUnitResolver`.
+        This resolver accepts a `parents` parameter, which given a UUID of an existing
+        organisation unit loads all of its children.
+
+        From our top-level `Query` object context, the caller can set this parameter
+        explicitly, however on the OrganisationUnit field-level, we would like this
+        parameter to be given by the context, i.e. when asking for `children` on an
+        organisation unit, we expect the `parent` parameter on the resolver to be set
+        to the object we call `children` on.
+
+        This can be achieved by setting `seeds` to a dictionary that sets `parents` to
+        a callable that extracts the root object's `uuid` from the object itself:
+        ```
+        child_count: int = strawberry.field(
+            description="Children count of the organisation unit.",
+            resolver=seed_resolver(
+                OrganisationUnitResolver(),
+                {"parents": lambda root: [root.uuid]},
+                lambda result: len(result.keys()),
+            ),
+            ...
+        )
+        ```
+        In this example a `result_translation` lambda is also used to map from the list
+        of OrganisationUnits returned by the resolver to the number of children found.
+
+    Args:
+        resolver: The top-level resolver to seed arguments to.
+        seeds:
+            A dictionary mapping from parameter name to callables resolving the argument
+            values from the root object.
+        result_translation:
+            A result translation callable translating the resolver return value
+            from one type to another. Uses the identity function if not provided.
+
+    Returns:
+        A seeded resolver function that accepts the same parameters as the
+        `resolver.resolve` function, except with the `seeds` keys removed as parameters,
+        and a `root` parameter with the 'any' type added.
+    """
+    # If no seeds was provided, default to the empty dict
+    seeds = seeds or {}
+    # If no result_translation function was provided, default to the identity function
+    result_translation = result_translation or identity
+
+    async def seeded_resolver(*args: Any, root: Any, **kwargs: Any) -> R:
+        # Resolve arguments from the root object
+        assert seeds is not None
+        for key, argument_callable in seeds.items():
+            kwargs[key] = argument_callable(root)
+        result = await resolver.resolve(*args, **kwargs)
+        assert result_translation is not None
+        return result_translation(result)
+
+    sig = signature(resolver.resolve)
+    parameters = sig.parameters.copy()
+    # Remove the `seeds` parameters from the parameter list, as these will be resolved
+    # from the root object on call-time instead.
+    for key in seeds.keys():
+        del parameters[key]
+    # Add the `root` parameter to the parameter list, as it is required for all the
+    # `seeds` resolvers to determine call-time parameters.
+    parameter_list = list(parameters.values())
+    parameter_list = [
+        Parameter("root", Parameter.POSITIONAL_OR_KEYWORD, annotation=Any)
+    ] + parameter_list
+    # Generate and apply our new signature to the seeded_resolver function
+    new_sig = sig.replace(parameters=parameter_list)
+    seeded_resolver.__signature__ = new_sig  # type: ignore[attr-defined]
+
+    return seeded_resolver
+
+
+# seed_resolver functions pre-seeded with result_translation functions assuming that
+# only a single UUID will be returned, converting the objects list to either a list or
+# an optional entity.
+seed_resolver_list = partial(
+    seed_resolver,
+    result_translation=lambda result: list(chain.from_iterable(result.values())),
+)
+seed_resolver_only = partial(
+    seed_resolver,
+    result_translation=lambda result: only(chain.from_iterable(result.values())),
+)
+# TODO: Eliminate optional list
+seed_resolver_only_list = partial(
+    seed_resolver,
+    result_translation=lambda result: list(chain.from_iterable(result.values()))
+    or None,
+)
+seed_resolver_one = partial(
+    seed_resolver,
+    result_translation=lambda result: one(chain.from_iterable(result.values())),
+)
+seed_static_resolver_list = seed_resolver
+seed_static_resolver_only = partial(
+    seed_resolver,
+    result_translation=only,
+)
+seed_static_resolver_one = partial(
+    seed_resolver,
+    result_translation=one,
+)
+
+
+def uuid2list(uuid: UUID | None) -> list[UUID]:
+    """Convert an optional uuid to a list.
+
+    Args:
+        uuid: Optional uuid to wrap in a list.
+
+    Return:
+        Empty list if uuid was none, single element list containing the uuid otherwise.
+    """
+    if uuid is None:
+        return []
+    return [uuid]
 
 
 @strawberry.type
@@ -84,27 +243,23 @@ class Response(Generic[MOObject]):
         return (await info.context[resolver].load(root.uuid)).object_cache
 
 
-# Validities
-# ----------
+LazySchema = strawberry.lazy(".schema")
 
-
-@strawberry.experimental.pydantic.type(
-    model=ValidityModel,
-    all_fields=True,
-    description="Validity of objects with required from date",
-)
-class Validity:
-    pass
-
-
-@strawberry.experimental.pydantic.type(
-    model=OpenValidityModel,
-    all_fields=True,
-    description="Validity of objects with optional from date",
-)
-class OpenValidity:
-    pass
-
+LazyAddress = Annotated["Address", LazySchema]
+LazyAssociation = Annotated["Association", LazySchema]
+LazyClass = Annotated["Class", LazySchema]
+LazyEmployee = Annotated["Employee", LazySchema]
+LazyEngagement = Annotated["Engagement", LazySchema]
+LazyEngagementAssociation = Annotated["EngagementAssociation", LazySchema]
+LazyFacet = Annotated["Facet", LazySchema]
+LazyITSystem = Annotated["ITSystem", LazySchema]
+LazyITUser = Annotated["ITUser", LazySchema]
+LazyKLE = Annotated["KLE", LazySchema]
+LazyLeave = Annotated["Leave", LazySchema]
+LazyManager = Annotated["Manager", LazySchema]
+LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
+LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
+LazyRole = Annotated["Role", LazySchema]
 
 # Address
 # -------
@@ -116,66 +271,57 @@ class OpenValidity:
     description="Address information for an employee or organisation unit",
 )
 class Address:
-    @strawberry.field(
+    address_type: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
+        ),
         description="Address type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def address_type(self, root: AddressRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.address_type_uuid)
 
-    @strawberry.field(
+    visibility: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
+        ),
         description="Address visibility",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def visibility(self, root: AddressRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.visibility_uuid is None:
-            return None
-        return await loader.load(root.visibility_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyEmployee] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: AddressRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        ),
         description="Connected organisation unit. "
         "Note that this is mutually exclusive with the employee field",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: AddressRead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement: list[LazyEngagement] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            EngagementResolver(),
+            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
+        ),
         description="Connected Engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: AddressRead, info: Info
-    ) -> list["Engagement"] | None:
-        if root.engagement_uuid is None:
-            return None
-        loader: DataLoader = info.context["engagement_loader"]
-        return await loader.load(root.engagement_uuid)
 
     @strawberry.field(description="Name of address")
     async def name(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(self, root, info)
+        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
         if address_type.scope == "MULTIFIELD_TEXT":
             return multifield_text.name(root.value, root.value2)
@@ -189,7 +335,7 @@ class Address:
 
     @strawberry.field(description="href of address")
     async def href(self, root: AddressRead, info: Info) -> str | None:
-        address_type = await Address.address_type(self, root, info)
+        address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
         if address_type.scope == "PHONE":
             return f"tel:{root.value}"
@@ -207,26 +353,6 @@ class Address:
         return None
 
 
-async def filter_address_types(
-    addresses: list[AddressRead], address_types: list[UUID] | None
-) -> list[AddressRead]:
-    """Filter a list of addresses based on their address type UUID.
-
-    Args:
-        addresses: The addresses to filter
-        address_types: The address type UUIDs to filter by.
-
-    Returns:
-        list[AddressRead]: Addresses optionally filtered by their address type.
-    """
-    if address_types is None:
-        return addresses
-    address_type_list: list[UUID] = address_types
-    return list(
-        filter(lambda addr: addr.address_type_uuid in address_type_list, addresses)
-    )
-
-
 # Association
 # -----------
 
@@ -237,91 +363,75 @@ async def filter_address_types(
     description="Connects organisation units and employees",
 )
 class Association:
-    @strawberry.field(
+    association_type: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(),
+            {"uuids": lambda root: uuid2list(root.association_type_uuid)},
+        ),
         description="Association type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def association_type(
-        self, root: AssociationRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.association_type_uuid:
-            return await loader.load(root.association_type_uuid)
-        return None
 
-    @strawberry.field(
+    dynamic_class: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
+        ),
         description="dynamic class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def dynamic_class(
-        self, root: AssociationRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.dynamic_class_uuid:
-            return await loader.load(root.dynamic_class_uuid)
-        return None
 
-    @strawberry.field(
+    primary: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        ),
         description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def primary(self, root: AssociationRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.primary_uuid is None:
-            return None
-        return await loader.load(root.primary_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete employee
+    employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: AssociationRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return []
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: [root.org_unit_uuid]},
+        ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: AssociationRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    substitute: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
+        ),
         description="Connected substitute employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def substitute(self, root: AssociationRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.substitute_uuid:
-            return await loader.load(root.substitute_uuid)
-        return []
 
-    @strawberry.field(
+    job_function: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
+        ),
         description="Connected job function",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def job_function(
-        self, root: AssociationRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.job_function_uuid:
-            return await loader.load(root.job_function_uuid)
-        return None
 
-    @strawberry.field(
+    # TODO: Can there be more than one ITUser per association?
+    it_user: list[LazyITUser] = strawberry.field(
+        resolver=seed_resolver_list(
+            ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
+        ),
         description="Connected IT user",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
-    async def it_user(self, root: AssociationRead, info: Info) -> list["ITUser"]:
-        loader: DataLoader = info.context["ituser_loader"]
-        if root.it_user_uuid:
-            return await loader.load(root.it_user_uuid)
-        return []
 
 
 # Class
@@ -334,63 +444,40 @@ class Association:
     description="The value component of the class/facet choice setup",
 )
 class Class:
-    @strawberry.field(
+    parent: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        ),
         description="Immediate parent class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def parent(self, root: ClassRead, info: Info) -> Optional["Class"]:
-        """Get the immediate parent class.
 
-        Returns:
-            Class: Parent class
-        """
-        loader: DataLoader = info.context["class_loader"]
-        if root.parent_uuid is None:
-            return None
-
-        return await loader.load(root.parent_uuid)
-
-    @strawberry.field(
+    children: list[LazyClass] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            {"parents": lambda root: [root.uuid]},
+        ),
         description="Immediate descendants of the class",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def children(self, root: ClassRead, info: Info) -> list["Class"]:
-        """Get the immediate descendants of the class.
 
-        Returns:
-            list[Class]: list of descendants, if any.
-        """
-        loader: DataLoader = info.context["class_children_loader"]
-        if not isinstance(root.uuid, UUID):  # TODO: What? We never reach this
-            root.parent_uuid = UUID(root.uuid)  # but why?
-        return await loader.load(root.uuid)
-
-    @strawberry.field(
+    facet: LazyFacet = strawberry.field(
+        resolver=seed_static_resolver_one(
+            FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
+        ),
         description="Associated facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
-    async def facet(self, root: ClassRead, info: Info) -> "Facet":
-        """Get the associated facet.
-
-        Returns:
-            The associated facet.
-        """
-        loader: DataLoader = info.context["facet_loader"]
-        return await loader.load(root.facet_uuid)
 
     @strawberry.field(
         description="Associated top-level facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
     async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
-        parent: ClassRead = root
-
-        # Traverse class tree
-        loader: DataLoader = info.context["class_loader"]
-        while parent.parent_uuid is not None:
-            parent = await loader.load(parent.parent_uuid)
-
-        return await info.context["facet_loader"].load(parent.facet_uuid)
+        if root.parent_uuid is None:
+            return await Class.facet(root=root, info=info)  # type: ignore[operator]
+        parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
+        return await Class.top_level_facet(self=self, root=parent_node, info=info)
 
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
@@ -415,87 +502,86 @@ class Employee:
     async def nickname(self, root: EmployeeRead) -> str:
         return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
-    @strawberry.field(
+    engagements: list[LazyEngagement] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Engagements for the employee",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagements(self, root: EmployeeRead, info: Info) -> list["Engagement"]:
-        loader: DataLoader = info.context["employee_engagement_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    manager_roles: list[LazyManager] = strawberry.field(
+        resolver=seed_resolver_list(
+            ManagerResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Manager roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
-    async def manager_roles(self, root: EmployeeRead, info: Info) -> list["Manager"]:
-        loader: DataLoader = info.context["employee_manager_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    addresses: list[LazyAddress] = strawberry.field(
+        resolver=seed_resolver_list(
+            AddressResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Addresses for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
-    async def addresses(
-        self,
-        root: EmployeeRead,
-        info: Info,
-        address_types: list[UUID] | None = None,
-    ) -> list["Address"]:
-        loader: DataLoader = info.context["employee_address_loader"]
-        result = await loader.load(root.uuid)
-        address_reads = await filter_address_types(result, address_types)
-        return list(map(Address.from_pydantic, address_reads))
 
-    @strawberry.field(
+    leaves: list[LazyLeave] = strawberry.field(
+        resolver=seed_resolver_list(
+            LeaveResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Leaves for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leaves(self, root: EmployeeRead, info: Info) -> list["Leave"]:
-        loader: DataLoader = info.context["employee_leave_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    associations: list[LazyAssociation] = strawberry.field(
+        resolver=seed_resolver_list(
+            AssociationResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Associations for the employee",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
         ],
     )
-    async def associations(self, root: EmployeeRead, info: Info) -> list["Association"]:
-        loader: DataLoader = info.context["employee_association_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    roles: list[LazyRole] = strawberry.field(
+        resolver=seed_resolver_list(
+            RoleResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Roles for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
-    async def roles(self, root: EmployeeRead, info: Info) -> list["Role"]:
-        loader: DataLoader = info.context["employee_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    itusers: list[LazyITUser] = strawberry.field(
+        resolver=seed_resolver_list(
+            ITUserResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="IT users for the employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
-    async def itusers(self, root: EmployeeRead, info: Info) -> list["ITUser"]:
-        loader: DataLoader = info.context["employee_ituser_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            {"employees": lambda root: [root.uuid]},
+        ),
         description="Engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: EmployeeRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["employee_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Engagement
@@ -508,78 +594,78 @@ class Employee:
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
-    @strawberry.field(
+    engagement_type: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(),
+            {"uuids": lambda root: [root.engagement_type_uuid]},
+        ),
         description="Engagement type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def engagement_type(self, root: EngagementRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.engagement_type_uuid)
 
-    @strawberry.field(
+    job_function: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(),
+            {"uuids": lambda root: [root.job_function_uuid]},
+        ),
         description="Job function",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def job_function(self, root: EngagementRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.job_function_uuid)
 
-    @strawberry.field(
-        description="The primary status",
+    primary: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        ),
+        description="Primary status",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def primary(self, root: EngagementRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.primary_uuid is None:
-            return None
-        return await loader.load(root.primary_uuid)
 
     @strawberry.field(description="Is it primary")
     async def is_primary(self, root: EngagementRead, info: Info) -> bool:
         if not root.primary_uuid:
             return False
+        # TODO: Eliminate is_class_uuid_primary lookup by using the above resolver
+        #       Then utilize is_class_primary as result_translation
         return await is_class_uuid_primary(str(root.primary_uuid))
 
-    @strawberry.field(
+    leave: LazyLeave | None = strawberry.field(
+        resolver=seed_resolver_only(
+            LeaveResolver(), {"uuids": lambda root: uuid2list(root.leave_uuid)}
+        ),
         description="Related leave",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leave(self, root: EngagementRead, info: Info) -> Optional["Leave"]:
-        loader: DataLoader = info.context["leave_loader"]
-        if root.leave_uuid is None:
-            return None
-        return await loader.load(root.leave_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete employee
+    employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: EngagementRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        ),
         description="Related organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: EngagementRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyEngagement] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            {"engagements": lambda root: [root.uuid]},
+        ),
         description="Engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: EngagementRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["engagement_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Engagement Association
@@ -592,38 +678,37 @@ class Engagement:
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
-    @strawberry.field(
-        description="Related organisation unit",
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: [root.org_unit_uuid]},
+        ),
+        description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete engagement
+    engagement: list[LazyEngagement] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            {"uuids": lambda root: [root.engagement_uuid]},
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> list["Engagement"]:
-        loader: DataLoader = info.context["engagement_loader"]
-        return await loader.load(root.engagement_uuid)
 
-    @strawberry.field(
+    engagement_association_type: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(),
+            {"uuids": lambda root: [root.engagement_association_type_uuid]},
+        ),
         description="Related engagement association type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def engagement_association_type(
-        self, root: EngagementAssociationRead, info: Info
-    ) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.engagement_association_type_uuid)
 
 
 # Facet
@@ -636,17 +721,13 @@ class EngagementAssociation:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
-    @strawberry.field(
+    classes: list[LazyClass] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(), {"facets": lambda root: [root.uuid]}
+        ),
         description="Associated classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def classes(self, root: FacetRead, info: Info) -> list["Class"]:
-        """Get the associated classes.
-
-        Returns:
-            The associated classes.
-        """
-        return await info.context["class_getter"](facet=list(map(str, [root.uuid])))
 
 
 # IT
@@ -668,50 +749,43 @@ class ITSystem:
     description="User information related to IT systems",
 )
 class ITUser:
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyEmployee] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: ITUserRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: ITUserRead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
-    @strawberry.field(
+    engagement: list[LazyEngagement] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            EngagementResolver(),
+            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(
-        self, root: ITUserRead, info: Info
-    ) -> list["Engagement"] | None:
-        loader: DataLoader = info.context["engagement_loader"]
-        if root.engagement_uuid is None:
-            return None
-        return await loader.load(root.engagement_uuid)
 
-    @strawberry.field(
+    itsystem: LazyITSystem = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
+        ),
         description="Connected itsystem",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
-    async def itsystem(self, root: ITUserRead, info: Info) -> ITSystem:
-        loader: DataLoader = info.context["itsystem_loader"]
-        return await loader.load(root.itsystem_uuid)
 
 
 # KLE
@@ -724,33 +798,31 @@ class ITUser:
     description="Kommunernes Landsforenings Emnesystematik",
 )
 class KLE:
-    @strawberry.field(
+    kle_number: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
+        ),
         description="KLE number",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def kle_number(self, root: KLERead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.kle_number_uuid)
 
-    @strawberry.field(
+    kle_aspects: list[LazyClass] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            {"uuids": lambda root: root.kle_aspect_uuids or []},
+        ),
         description="KLE Aspects",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def kle_aspects(self, root: KLERead, info: Info) -> list["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load_many(root.kle_aspect_uuids)
 
-    @strawberry.field(
+    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        ),
         description="Associated organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(
-        self, root: KLERead, info: Info
-    ) -> list["OrganisationUnit"] | None:
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.org_unit_uuid is None:
-            return None
-        return await loader.load(root.org_unit_uuid)
 
 
 # Leave
@@ -763,35 +835,34 @@ class KLE:
     description="Leave (e.g. parental leave) for employees",
 )
 class Leave:
-    @strawberry.field(
+    leave_type: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
+        ),
         description="Leave type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def leave_type(self, root: LeaveRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.leave_type_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Related employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: LeaveRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    engagement: LazyEngagement | None = strawberry.field(
+        resolver=seed_resolver_only(
+            EngagementResolver(),
+            {"uuids": lambda root: [root.engagement_uuid]},
+        ),
         description="Related engagement",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagement(self, root: LeaveRead, info: Info) -> Optional["Engagement"]:
-        loader: DataLoader = info.context["engagement_loader"]
-        if root.engagement_uuid is None:
-            return None
-        engagement = await loader.load(root.engagement_uuid)
-        return only(engagement)
 
 
 # Manager
@@ -804,53 +875,49 @@ class Leave:
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
-    @strawberry.field(
+    manager_type: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
+        ),
         description="Manager type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def manager_type(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.manager_type_uuid is None:
-            return None
-        return await loader.load(root.manager_type_uuid)
 
-    @strawberry.field(
+    manager_level: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
+        ),
         description="Manager level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def manager_level(self, root: ManagerRead, info: Info) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.manager_level_uuid is None:
-            return None
-        return await loader.load(root.manager_level_uuid)
 
-    @strawberry.field(
+    responsibilities: list[LazyClass] = strawberry.field(
+        resolver=seed_static_resolver_list(
+            ClassResolver(),
+            {"parents": lambda root: root.responsibility_uuids or []},
+        ),
         description="Manager responsibilities",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def responsibilities(self, root: ManagerRead, info: Info) -> list["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.responsibility_uuids is None:
-            return []
-        return await loader.load_many(root.responsibility_uuids)
 
-    @strawberry.field(
+    # TODO: Remove list, make optional employee
+    employee: list[LazyEmployee] | None = strawberry.field(
+        resolver=seed_resolver_only_list(
+            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        ),
         description="Manager identity details",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: ManagerRead, info: Info) -> list["Employee"] | None:
-        loader: DataLoader = info.context["employee_loader"]
-        if root.employee_uuid is None:
-            return None
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: [root.org_unit_uuid]},
+        ),
         description="Managed organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(self, root: ManagerRead, info: Info) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
 
 # Organisation
@@ -895,22 +962,14 @@ class Organisation:
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
-    @strawberry.field(
-        description="The immediate ancestor in the organisation tree",
+    parent: LazyOrganisationUnit | None = strawberry.field(
+        resolver=seed_resolver_only(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: [root.parent_uuid]},
+        ),
+        description="The immediate descendants in the organisation tree",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def parent(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["OrganisationUnit"]:
-        """Get the immediate ancestor in the organisation tree.
-
-        Returns:
-            Optional[OrganisationUnit]: The ancestor, if any.
-        """
-        loader: DataLoader = info.context["org_unit_loader"]
-        if root.parent_uuid is None:
-            return None
-        return only(await loader.load(root.parent_uuid))
 
     @strawberry.field(
         description="All ancestors in the organisation tree",
@@ -924,138 +983,77 @@ class OrganisationUnit:
         Returns:
             A list of all the ancestors.
         """
+        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
+        if parent is None:
+            return []
+        ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
+        return [parent] + ancestors
 
-        async def rec(parent_uuid: UUID | None) -> list["OrganisationUnit"]:
-            if parent_uuid is None:
-                return []
-            parent = only(await loader.load(parent_uuid))
-            if not parent:
-                return []
-            return [parent] + await rec(parent.parent_uuid)
-
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await rec(root.parent_uuid)
-
-    @strawberry.field(
+    children: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"parents": lambda root: [root.uuid]},
+        ),
         description="The immediate descendants in the organisation tree",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def children(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        hierarchies: list[UUID] | None = None,
-    ) -> list["OrganisationUnit"]:
-        """Get the immediate descendants of the organistion unit.
 
-        Returns:
-            list[OrganisationUnit]: list of descendants, if any.
-        """
-        # TODO: Please don't look at this code for inspiration. The GraphQL API should
-        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
-        # same function call in the same function over and over.
-        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
+    child_count: int = strawberry.field(
+        resolver=seed_resolver(
+            OrganisationUnitResolver(),
+            {"parents": lambda root: [root.uuid]},
+            lambda result: len(result.keys()),
+        ),
+        description="Children count of the organisation unit.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
+    )
 
-        responses = await OrganisationUnitResolver().resolve(
-            info=info,
-            uuids=uuids,
-            user_keys=user_keys,
-            from_date=from_date,
-            to_date=to_date,
-            parents=[root.uuid],
-            hierarchies=hierarchies,
-        )
-        return list(chain.from_iterable(responses.values()))
-
-    @strawberry.field(description="Children count of the organisation unit.")
-    async def child_count(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        hierarchies: list[UUID] | None = None,
-    ) -> int:
-        # TODO: Please don't look at this code for inspiration. The GraphQL API should
-        # utilise resolver chaining everywhere -- properly -- instead of wrapping the
-        # same function call in the same function over and over.
-        from mora.graphapi.versions.latest.resolvers import OrganisationUnitResolver
-
-        responses = await OrganisationUnitResolver().resolve(
-            info=info,
-            from_date=from_date,
-            to_date=to_date,
-            parents=[root.uuid],
-            hierarchies=hierarchies,
-        )
-        return len(responses)
-
-    # TODO: Add UUID to RAModel and remove model prefix here
-    @strawberry.field(
+    # TODO: Remove org prefix from RAModel and remove it here too
+    # TODO: Add _uuid suffix to RAModel and remove _model suffix here
+    org_unit_hierarchy_model: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
+        ),
         description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def org_unit_hierarchy_model(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_hierarchy is None:
-            return None
-        return await loader.load(root.org_unit_hierarchy)
 
-    @strawberry.field(
-        description="Organisation unit type",
+    unit_type: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
+        ),
+        description="Organisation unit hierarchy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def unit_type(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.unit_type_uuid is None:
-            return None
-        return await loader.load(root.unit_type_uuid)
 
     # TODO: Remove org prefix from RAModel and remove it here too
-    @strawberry.field(
+    org_unit_level: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
+        ),
         description="Organisation unit level",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def org_unit_level(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.org_unit_level_uuid is None:
-            return None
-        return await loader.load(root.org_unit_level_uuid)
 
-    @strawberry.field(
+    time_planning: LazyClass | None = strawberry.field(
+        resolver=seed_static_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
+        ),
         description="Time planning strategy",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def time_planning(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> Optional["Class"]:
-        loader: DataLoader = info.context["class_loader"]
-        if root.time_planning_uuid is None:
-            return None
-        return await loader.load(root.time_planning_uuid)
 
-    @strawberry.field(
+    engagements: list[LazyEngagement] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related engagements",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
-    async def engagements(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Engagement"]:
-        loader: DataLoader = info.context["org_unit_engagement_loader"]
-        return await loader.load(root.uuid)
 
     @strawberry.field(
         description="Managers of the organisation unit",
@@ -1064,106 +1062,99 @@ class OrganisationUnit:
     async def managers(
         self, root: OrganisationUnitRead, info: Info, inherit: bool = False
     ) -> list["Manager"]:
-        loader: DataLoader = info.context["org_unit_manager_loader"]
-        ou_loader: DataLoader = info.context["org_unit_loader"]
-        result = await loader.load(root.uuid)
-        if inherit:
-            parent = root
-            while not result:
-                parent_uuid = parent.parent_uuid
-                tasks = [loader.load(parent_uuid), ou_loader.load(parent_uuid)]
-                result, response = await asyncio.gather(*tasks)
-                potential_parent = only(response, default=None)
-                if potential_parent is None:
-                    break
-                parent = potential_parent
-        return result
+        resolver = seed_resolver_list(ManagerResolver())
+        result = await resolver(root=root, info=info, org_units=[root.uuid])
+        if result:
+            return result  # type: ignore
+        if not inherit:
+            return []
+        parent = await OrganisationUnit.parent(root=root, info=info)  # type: ignore
+        if parent is None:
+            return []
+        return await OrganisationUnit.managers(
+            self=self, root=parent, info=info, inherit=True
+        )
 
-    @strawberry.field(
+    addresses: list[LazyAddress] = strawberry.field(
+        resolver=seed_resolver_list(
+            AddressResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related addresses",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
-    async def addresses(
-        self,
-        root: OrganisationUnitRead,
-        info: Info,
-        address_types: list[UUID] | None = None,
-    ) -> list["Address"]:
-        loader: DataLoader = info.context["org_unit_address_loader"]
-        result = await loader.load(root.uuid)
-        address_reads = await filter_address_types(result, address_types)
-        return list(map(Address.from_pydantic, address_reads))
 
-    @strawberry.field(
+    leaves: list[LazyLeave] = strawberry.field(
+        resolver=seed_resolver_list(
+            LeaveResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related leaves",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
-    async def leaves(self, root: OrganisationUnitRead, info: Info) -> list["Leave"]:
-        loader: DataLoader = info.context["org_unit_leave_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    associations: list[LazyAssociation] = strawberry.field(
+        resolver=seed_resolver_list(
+            AssociationResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related associations",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
         ],
     )
-    async def associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["Association"]:
-        loader: DataLoader = info.context["org_unit_association_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    roles: list[LazyRole] = strawberry.field(
+        resolver=seed_resolver_list(
+            RoleResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related roles",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
-    async def roles(self, root: OrganisationUnitRead, info: Info) -> list["Role"]:
-        loader: DataLoader = info.context["org_unit_role_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    itusers: list[LazyITUser] = strawberry.field(
+        resolver=seed_resolver_list(
+            ITUserResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related IT users",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
-    async def itusers(self, root: OrganisationUnitRead, info: Info) -> list["ITUser"]:
-        loader: DataLoader = info.context["org_unit_ituser_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    kles: list[LazyKLE] = strawberry.field(
+        resolver=seed_resolver_list(
+            KLEResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="KLE responsibilites for the organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
-    async def kles(self, root: OrganisationUnitRead, info: Info) -> list["KLE"]:
-        loader: DataLoader = info.context["org_unit_kle_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    related_units: list[LazyRelatedUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            RelatedUnitResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Related units for the organisational unit",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
         ],
     )
-    async def related_units(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["RelatedUnit"]:
-        loader: DataLoader = info.context["org_unit_related_unit_loader"]
-        return await loader.load(root.uuid)
 
-    @strawberry.field(
+    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
+        resolver=seed_resolver_list(
+            EngagementAssociationResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
         description="Engagement associations for the organisational unit",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
         ],
     )
-    async def engagement_associations(
-        self, root: OrganisationUnitRead, info: Info
-    ) -> list["EngagementAssociation"]:
-        loader: DataLoader = info.context["org_unit_engagement_association_loader"]
-        return await loader.load(root.uuid)
 
 
 # Related Unit
@@ -1176,16 +1167,14 @@ class OrganisationUnit:
     description="list of related organisation units",
 )
 class RelatedUnit:
-    @strawberry.field(
+    org_units: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: root.org_unit_uuids or []},
+        ),
         description="Related organisation units",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_units(
-        self, root: RelatedUnitRead, info: Info
-    ) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        results = await loader.load_many(root.org_unit_uuids)
-        return [one(result) for result in results]
 
 
 # Role
@@ -1196,29 +1185,32 @@ class RelatedUnit:
     description="Role an employee has within an organisation unit",
 )
 class Role:
-    @strawberry.field(
+    role_type: LazyClass = strawberry.field(
+        resolver=seed_static_resolver_one(
+            ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
+        ),
         description="Role type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
-    async def role_type(self, root: RoleRead, info: Info) -> "Class":
-        loader: DataLoader = info.context["class_loader"]
-        return await loader.load(root.role_type_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete employee
+    employee: list[LazyEmployee] = strawberry.field(
+        resolver=seed_resolver_list(
+            EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
+        ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
-    async def employee(self, root: RoleRead, info: Info) -> list["Employee"]:
-        loader: DataLoader = info.context["employee_loader"]
-        return await loader.load(root.employee_uuid)
 
-    @strawberry.field(
+    # TODO: Remove list, make concrete org-unit
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
+        resolver=seed_resolver_list(
+            OrganisationUnitResolver(),
+            {"uuids": lambda root: [root.org_unit_uuid]},
+        ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
-    async def org_unit(self, root: RoleRead, info: Info) -> list["OrganisationUnit"]:
-        loader: DataLoader = info.context["org_unit_loader"]
-        return await loader.load(root.org_unit_uuid)
 
 
 # Health & version

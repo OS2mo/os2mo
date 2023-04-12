@@ -20,6 +20,9 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 
+# TODO: Encode this relation using Annotated types
+# FacetRead = Annotated[FacetRead, FacetResolver(...)]
+# Then later extract the resolver from the type using typing.get_args
 _resolver_tuples = [
     (FacetRead, "facet_getter", "facet_loader"),
     (ClassRead, "class_getter", "class_loader"),

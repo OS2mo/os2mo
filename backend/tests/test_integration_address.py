@@ -1152,7 +1152,7 @@ async def test_missing_class(service_client: TestClient) -> None:
             "create_organisationfunktion_email_andersand.json",
         )
 
-        with pytest.raises(ValueError, match="NoneType"):
+        with pytest.raises(ValueError, match="too few items in iterable"):
             service_client.get(
                 "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/address"
             )
