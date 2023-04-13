@@ -718,7 +718,7 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     uuids_to_ignore.ignore_dict = {str(uuid): [datetime.datetime.now()]}
     sync_tool.uuids_to_ignore = uuids_to_ignore
 
-    await asyncio.gather(sync_tool.import_single_user("0101011234"))
+    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
     assert len(sync_tool.uuids_to_ignore[uuid]) == 2
 
 
@@ -731,7 +731,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
     sync_tool.dns_to_ignore.add(dn_to_ignore)
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
@@ -746,7 +746,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter.__import_to_mo__.return_value = False
 
     with capture_logs() as cap_logs:
-        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         for message in messages[1:]:
@@ -784,7 +784,7 @@ async def test_import_address_objects(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
         return_value=converted_objects,
     ):
-        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
         dataloader.upload_mo_objects.assert_called_with(converted_objects)
 
     with patch(
@@ -792,7 +792,7 @@ async def test_import_address_objects(
         side_effect=NoObjectsReturnedException("foo"),
     ):
         with capture_logs() as cap_logs:
-            await asyncio.gather(sync_tool.import_single_user("0101011234"))
+            await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
             messages = [w for w in cap_logs if w["log_level"] == "info"]
             assert "Could not format converted objects. Moving on." in str(messages)
@@ -803,7 +803,7 @@ async def test_import_address_objects(
     )
     with capture_logs() as cap_logs:
         ignore_dict = copy.deepcopy(sync_tool.uuids_to_ignore.ignore_dict)
-        await asyncio.gather(sync_tool.import_single_user("0101011234"))
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
         messages = [w for w in cap_logs if w["log_level"] == "warning"]
         assert "invalid phone number" in str(messages)
@@ -845,7 +845,7 @@ async def test_import_it_user_objects(
 
     dataloader.load_mo_employee_it_users.return_value = it_users_in_mo
 
-    await asyncio.gather(sync_tool.import_single_user("0101011234"))
+    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
     non_existing_converted_objects = [
         converted_objects[1],
@@ -859,7 +859,7 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
     context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ) -> None:
     dataloader.find_mo_employee_uuid.return_value = None
-    await asyncio.gather(sync_tool.import_single_user("0101011234"))
+    await asyncio.gather(sync_tool.import_single_user("CN=foo"))
 
     # Even though find_mo_employee_uuid does not return an uuid; it is generated
     assert type(converter.from_ldap.call_args_list[0].kwargs["employee_uuid"]) is UUID

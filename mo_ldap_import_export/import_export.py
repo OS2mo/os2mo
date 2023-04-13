@@ -476,8 +476,13 @@ class SyncTool:
         """
         Imports a single user from LDAP
         """
-        logger.info(f"Importing user with dn={dn}")
+        try:
+            self.dns_to_ignore.check(dn)
+        except IgnoreChanges as e:
+            logger.info(e)
+            return
 
+        logger.info(f"Importing user with dn={dn}")
         detected_json_keys = self.converter.get_ldap_to_mo_json_keys()
 
         # Get the employee's uuid (if he exists)
@@ -504,13 +509,6 @@ class SyncTool:
                 dn,
                 self.converter.get_ldap_attributes(json_key),
             )
-
-            try:
-                self.dns_to_ignore.check(loaded_object.dn)
-            except IgnoreChanges as e:
-                logger.info(e)
-                return
-
             logger.info(f"Loaded {loaded_object}")
 
             converted_objects = self.converter.from_ldap(
