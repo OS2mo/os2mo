@@ -28,6 +28,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Request
 from fastapi.encoders import jsonable_encoder
 from more_itertools import last
 from more_itertools import one
@@ -631,6 +632,7 @@ async def get_one_orgunit(
 
 @router.get("/ou/autocomplete/")
 async def autocomplete_orgunits(
+    request: Request,
     query: str,
     at: date
     | None = Query(
@@ -642,19 +644,43 @@ async def autocomplete_orgunits(
     settings = config.get_settings()
 
     # Use LEGACY
-    # if not settings.confdb_autocomplete_v2_orgunits_fixes:
     if not settings.confdb_autocomplete_v2_orgunits_fixes:
         return await autocomplete.get_results(
             "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
         )
 
+    # Get search phrase & do the search
     search_phrase = util.query_to_search_phrase(query)
-    search_results = await autocomplete.search_orgunits(search_phrase, at)
+    search_results = await autocomplete.search_orgunits(
+        request.app.state.sessionmaker, search_phrase, at
+    )
 
     # Decorate search results with data through GraphQL & create final results
-    graphql_vars = {"uuids": [sr["uuid"] for sr in search_results]}
+    graphql_vars = {"uuids": [str(orgunit_row.uuid) for orgunit_row in search_results]}
     if at is not None:
         graphql_vars["from_date"] = at
+
+    # # ------------------------------------------------------------------------
+    # tmp_q = """
+    # {
+    #     org_units {
+    #         uuid
+    #         objects {
+    #             name
+    #             user_key
+    #             uuid
+    #             parent_uuid
+    #             validity {
+    #                 from
+    #                 to
+    #             }
+    #         }
+    #     }
+    # }
+    # """
+    # tmp_resp = await execute_graphql(tmp_q)
+    # handle_gql_error(tmp_resp)
+    # # ------------------------------------------------------------------------
 
     orgunit_decorate_query = """
         query OrgUnitDecorate($uuids: [UUID!]) {
@@ -711,10 +737,11 @@ async def autocomplete_orgunits(
     )
     handle_gql_error(response)
 
-    for idx, sr in enumerate(search_results):
+    decorated_result = []
+    for idx, orgunit_row in enumerate(search_results):
         graphql_equivilent = None
         for graphql_orgunit in response.data["org_units"]:
-            if graphql_orgunit["uuid"] == str(sr["uuid"]):
+            if graphql_orgunit["uuid"] == str(orgunit_row.uuid):
                 graphql_equivilent = one(graphql_orgunit["objects"])
                 break
 
@@ -739,14 +766,17 @@ async def autocomplete_orgunits(
                     }
                 )
 
-        search_results[idx] = {
-            "uuid": sr["uuid"],
-            "name": graphql_equivilent["name"],
-            "path": sr["path"],
-            "attrs": attrs,
-        }
+        decorated_result.append(
+            {
+                "uuid": orgunit_row.uuid,
+                "name": graphql_equivilent["name"],
+                "path": [],
+                # "path": orgunit_row.path,
+                "attrs": attrs,
+            }
+        )
 
-    return {"items": search_results}
+    return {"items": decorated_result}
 
 
 @router.get("/ou/ancestor-tree")

@@ -22,6 +22,10 @@ from sqlalchemy.sql import union
 
 from mora import common
 from mora import util
+from mora.db import OrganisationEnhedAttrEgenskaber
+from mora.db import OrganisationEnhedRegistrering
+from mora.db import OrganisationFunktionAttrEgenskaber
+from mora.db import OrganisationFunktionRelation
 from mora.lora import AutocompleteScope
 
 
@@ -79,18 +83,183 @@ async def get_results(
     return results
 
 
-async def search_orgunits(search_phrase: str, at: date | None = None):
+async def search_orgunits(sessionmaker, search_phrase: str, at: date | None = None):
+    sql_at_datetime = _get_at_date_sql(at)
+
+    async with sessionmaker() as session:
+        cte_uuid_hits = _get_cte_orgunit_uuid_hits(search_phrase, sql_at_datetime)
+        cte_name_hits = _get_cte_orgunit_name_hits(search_phrase, sql_at_datetime)
+        cte_addr_hits = _get_cte_orgunit_addr_hits(search_phrase, sql_at_datetime)
+        cte_itsystems_hits = _get_cte_orgunit_itsystem_hits(
+            search_phrase, sql_at_datetime
+        )
+
+        # UNION all the queries
+        selects = [
+            select(cte.c.uuid)
+            for cte in (
+                cte_uuid_hits,
+                cte_name_hits,
+                # hits_orgunit_addrs,
+                # hits_orgunit_itsystems,
+            )
+        ]
+        all_hits = union(*selects).cte()
+
+        # FINAL query
+        query_final = (
+            select(
+                OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
+            )
+            .where(
+                OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid
+            )
+            .group_by(OrganisationEnhedRegistrering.organisationenhed_id)
+        )
+
+        # Execute & parse results
+        r = await session.execute(query_final)
+        return _read_gql_response(r)
+
+
+def _read_gql_response(response):
+    result = []
+    while True:
+        chunk = response.fetchmany(1000)
+        if not chunk:
+            break
+
+        for row in chunk:
+            result.append(row)
+
+    return result
+
+
+async def _read_session_results(chunk_results):
+    while True:
+        chunk = chunk_results.fetchmany(1000)
+        if not chunk:
+            break
+
+        for row in chunk:
+            yield row
+
+
+def _get_at_date_sql(at: date | None = None):
+    sql_at_datetime = "now()"
+    if at is not None:
+        sql_at_datetime = (
+            f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
+            "'YYYY-MM-DD HH24:MI:SS')"
+        )
+
+    return sql_at_datetime
+
+
+def _get_cte_orgunit_uuid_hits(search_phrase: str, sql_at_datetime: str):
+    return (
+        select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
+        .join(
+            OrganisationEnhedAttrEgenskaber,
+            OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+            == OrganisationEnhedRegistrering.id,
+        )
+        .where(
+            func.char_length(search_phrase) > 7,
+            OrganisationEnhedRegistrering.organisationenhed_id != None,  # noqa: E711
+            cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
+                search_phrase
+            ),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {sql_at_datetime}"
+            ),
+        )
+        .cte()
+    )
+
+
+def _get_cte_orgunit_name_hits(search_phrase: str, sql_at_datetime: str):
+    return (
+        select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
+        .join(
+            OrganisationEnhedAttrEgenskaber,
+            OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+            == OrganisationEnhedRegistrering.id,
+        )
+        .where(
+            OrganisationEnhedRegistrering.organisationenhed_id != None,  # noqa: E711
+            (
+                OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
+                | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
+            ),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {sql_at_datetime}"
+            ),
+        )
+        .cte()
+    )
+
+
+def _get_cte_orgunit_addr_hits(search_phrase: str, sql_at_datetime: str):
+    pass
+
+
+def _get_cte_orgunit_itsystem_hits(search_phrase: str, sql_at_datetime: str):
+    pass
+
+
+# ----------------------------------------------------------------------------------------------------------------
+
+
+async def search_orgunits_old(sessionmaker, search_phrase: str, at: date | None = None):
     if not search_phrase:
         return {"items": []}
 
-    db_engine = get_engine()
-
+    # Handle timemachine-/at-date
     at_datetime_str_sql = "now()"
     if at is not None:
         at_datetime_str_sql = (
             f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
             "'YYYY-MM-DD HH24:MI:SS')"
         )
+
+    async with sessionmaker() as session:
+        r = await session.scalar(select(OrganisationEnhedRegistrering).limit(1000))
+
+        r2 = await session.execute(
+            select(OrganisationEnhedRegistrering.organisationenhed_id)
+            .join(
+                OrganisationEnhedAttrEgenskaber,
+                OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
+                == OrganisationEnhedRegistrering.id,
+            )
+            .where(
+                func.char_length(search_phrase) > 7,
+                OrganisationEnhedRegistrering.organisationenhed_id
+                != None,  # noqa: E711
+                cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
+                    search_phrase
+                ),
+                text(
+                    f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+                ),
+            )
+        )
+
+        while True:
+            chunk = r2.fetchmany(1000)
+            if not chunk:
+                break
+
+            for row in chunk:
+                # process the row
+                print(row)
+
+        tap = "test"
+
+    # ---------------------------------------------------------------------------------------------------------------
+
+    db_engine = get_engine()
 
     # Find orgunit UUID hits
     orgunit_tbl_regs = get_table("organisationenhed_registrering", db_engine)
@@ -143,7 +312,13 @@ async def search_orgunits(search_phrase: str, at: date | None = None):
         .group_by(orgunit_reg_col_uuid)
     )
 
-    return execute_query(q, db_engine)
+    result = await session.execute(q.limit(1000))
+    return result.mappings().fetchall()
+
+    # async with sessionmaker() as session:
+    #     result = await session.execute(q.limit(1000))
+    #     return result.mappings().fetchall()
+    # return execute_query(q, db_engine)
 
 
 # PRIVATE methods
@@ -331,6 +506,18 @@ def _org_unit_path(engine, all_hits, enhed_uuid, at_datetime_str_sql: str):
 def get_table(name, engine):
     """Return SQLAlchemy `Table` instance of SQL table"""
     return Table(name, MetaData(schema="actual_state"), autoload_with=engine)
+
+
+async def load_table(name, async_engine):
+    metadata = MetaData(schema="actual_state")
+    table = Table(name, metadata)
+
+    # async with async_engine.connect() as conn:
+    #     await conn.run_sync(table.reflect)
+    async with async_engine.connect() as conn:
+        await conn.run_sync(metadata.reflect, kw={"bind": conn, "only": [name]})
+
+    return table
 
 
 def get_engine():
