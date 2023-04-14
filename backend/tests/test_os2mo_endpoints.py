@@ -71,7 +71,6 @@ service_api = {
     "/service/validate/existing-associations/",
     "/service/validate/org-unit/",
     "/service/{rest_of_path:path}",
-    "/service/{type}/{id}/details/",
     "/service/e/{id}/details/association",
     "/service/e/{id}/details/employee",
     "/service/e/{id}/details/engagement",
@@ -96,6 +95,8 @@ service_api = {
     "/service/ou/{id}/details/owner",
     "/service/ou/{id}/details/related_unit",
     "/service/ou/{id}/details/role",
+    "/service/e/{id}/details/",
+    "/service/ou/{id}/details/",
 }
 
 graphql_endpoints = set(

@@ -1,10 +1,17 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from uuid import UUID
+
 from fastapi import Body
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
+from more_itertools import first
+from more_itertools import one
 
+from .errors import handle_gql_error
 from mora import mapping
 from mora.auth.keycloak import oidc
+from mora.graphapi.shim import execute_graphql
 from mora.service import handlers
 from mora.service.detail_writing import router as details_router
 from ramodels.mo.detail import DetailTermination
@@ -61,3 +68,201 @@ async def _termination_request_handler(detail_termination: DetailTermination) ->
     # Find the GraphQL mutation handler and return it for the request
     handler = grapql_terminate_handlers.get(detail_termination.type)
     return await handler(detail_termination)
+
+
+@details_router.get(
+    "/e/{id}/details/",
+    responses={
+        "400": {"description": "Invalid input"},
+        "404": {"description": "No such endpoint"},
+    },
+)
+async def list_employee_details(id: UUID) -> dict[str, bool]:
+    """List the available 'detail' types under this employee.
+
+    Return:
+        A dictionary akin to:
+
+        {
+            "address": false,
+            "association": false,
+            "engagement": true,
+            "it": false,
+            "leave": true,
+            "manager": false,
+            "role": false
+        }
+
+        Where if value is true, it informs you that at least one entry exists for the
+        corresponding key, either in the past, present or future.
+    """
+    # XXX: You may be tempted to optimize this by adding limits to the subqueries.
+    #
+    #      This temptation may have overtaken a lesser man, but not you!
+    #      You will never be tempted beyond what you can bear! You will endure it!
+    #
+    #      For you, you realize the consequences of bitemporal consolidation!
+    #      You foresee that objects may exist even if the first is unseeable!
+    #      You will stand against temptation and the evils of LoRa!
+    #      Resist the evils of LoRa! CONSTANT VIGILANCE! Conquer it!
+    #
+    #      You will succeed and conquer it using your vast intelligence!
+    #      Your spirit is strong, even when the flesh is weak!
+    #      Your perseverance is inspiring!
+    #
+    #      Blessed are the ones who perseveres under trial!
+    #      You have stood the test of LoRa and won against its evils!
+    query = """
+        query GetEmployeeDetails($uuid: UUID!) {
+          employees(uuids: [$uuid], from_date: null, to_date: null) {
+            objects {
+              objects {
+                address: addresses(from_date: null, to_date: null) {
+                  uuid
+                }
+                association: associations(from_date: null, to_date: null) {
+                  uuid
+                }
+                engagement: engagements(from_date: null, to_date: null) {
+                  uuid
+                }
+                engagement_association: engagement_associations(from_date: null, to_date: null) {
+                  uuid
+                }
+                it: itusers(from_date: null, to_date: null) {
+                  uuid
+                }
+                leave: leaves(from_date: null, to_date: null) {
+                  uuid
+                }
+                manager: manager_roles(from_date: null, to_date: null) {
+                  uuid
+                }
+                role: roles(from_date: null, to_date: null) {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+    """
+    variables = {"uuid": id}
+    # Execute GraphQL query to fetch required data
+    response = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(variables),
+    )
+    handle_gql_error(response)
+    validities = one(response.data["employees"]["objects"])["objects"]
+    return {
+        **{
+            key: any(employee[key] for employee in validities)
+            for key in first(validities).keys()
+        },
+        "kle": False,
+        "org_unit": False,
+        "owner": False,
+        "related_unit": False,
+    }
+
+
+@details_router.get(
+    "/ou/{id}/details/",
+    responses={
+        "400": {"description": "Invalid input"},
+        "404": {"description": "No such endpoint"},
+    },
+)
+async def list_org_unit_details(id: UUID) -> dict[str, bool]:
+    """List the available 'detail' types under this organisation unit.
+
+    Return:
+        A dictionary akin to:
+
+        {
+            "address": false,
+            "association": false,
+            "engagement": true,
+            "it": false,
+            "leave": true,
+            "manager": false,
+            "role": false
+        }
+
+        Where if value is true, it informs you that at least one entry exists for the
+        corresponding key, either in the past, present or future.
+    """
+    # XXX: You may be tempted to optimize this by adding limits to the subqueries.
+    #
+    #      This temptation may have overtaken a lesser man, but not you!
+    #      You will never be tempted beyond what you can bear! You will endure it!
+    #
+    #      For you, you realize the consequences of bitemporal consolidation!
+    #      You foresee that objects may exist even if the first is unseeable!
+    #      You will stand against temptation and the evils of LoRa!
+    #      Resist the evils of LoRa! CONSTANT VIGILANCE! Conquer it!
+    #
+    #      You will succeed and conquer it using your vast intelligence!
+    #      Your spirit is strong, even when the flesh is weak!
+    #      Your perseverance is inspiring!
+    #
+    #      Blessed are the ones who perseveres under trial!
+    #      You have stood the test of LoRa and won against its evils!
+    query = """
+        query GetOrganisationUnitDetails($uuid: UUID!) {
+          org_units(uuids: [$uuid], from_date: null, to_date: null) {
+            objects {
+              objects {
+                address: addresses(from_date: null, to_date: null) {
+                  uuid
+                }
+                association: associations(from_date: null, to_date: null) {
+                  uuid
+                }
+                engagement: engagements(from_date: null, to_date: null) {
+                  uuid
+                }
+                engagement_association: engagement_associations(from_date: null, to_date: null) {
+                  uuid
+                }
+                it: itusers(from_date: null, to_date: null) {
+                  uuid
+                }
+                kle: kles(from_date: null, to_date: null) {
+                  uuid
+                }
+                leave: leaves(from_date: null, to_date: null) {
+                  uuid
+                }
+                manager: managers {
+                  uuid
+                }
+                owner: owners {
+                  uuid
+                }
+                related_unit: related_units(from_date: null, to_date: null) {
+                  uuid
+                }
+                role: roles(from_date: null, to_date: null) {
+                  uuid
+                }
+              }
+            }
+          }
+        }
+    """
+    variables = {"uuid": id}
+    # Execute GraphQL query to fetch required data
+    response = await execute_graphql(
+        query,
+        variable_values=jsonable_encoder(variables),
+    )
+    handle_gql_error(response)
+    validities = one(response.data["org_units"]["objects"])["objects"]
+    return {
+        **{
+            key: any(org_unit[key] for org_unit in validities)
+            for key in first(validities).keys()
+        },
+        "org_unit": True,
+    }
