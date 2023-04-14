@@ -263,7 +263,7 @@ async def test_returns_integration_error_on_wrong_status(
     response_future.set_exception(HTTPTriggerException(error_msg))
     t_sender_mock.side_effect = response_future
 
-    load_org_mock.return_value.object_cache = [{}]
+    load_org_mock.return_value = [{}]
     response = service_client.get(
         "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
     )
@@ -309,7 +309,7 @@ async def test_returns_message_on_success(
     response_future.set_result(response_msg)
     t_sender_mock.return_value = response_future
 
-    load_org_mock.return_value.object_cache = [{}]
+    load_org_mock.return_value = [{}]
 
     response = service_client.get(
         "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
@@ -338,7 +338,7 @@ async def test_returns_message_on_success(
 
 def test_returns_404_on_unknown_unit(service_client: TestClient) -> None:
     with patch("mora.graphapi.versions.latest.org_unit.load_org_unit") as mock:
-        mock.return_value.object_cache = []
+        mock.return_value = []
 
         response = service_client.get(
             "/service/ou/44c86c7a-cfe0-447e-9706-33821b5721a4/refresh"
