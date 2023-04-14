@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 [tool.poetry]
 name = "OS2mo"
-version = "12.11.1"
+version = "0.0.0"  # versioning handled by conventional commits
 authors = ["Magenta ApS <info@magenta.dk>"]
 description = "OS2mo - Medarbejder og Organisation"
 license = "MPL-2.0"
@@ -75,9 +75,49 @@ pytest-randomly = "^3.12.0"
 pytest-timeouts = "^1.2.1"
 
 [tool.commitizen]
-name = "cz_conventional_commits"
+name = "cz_customize"
 tag_format = "$version"
 changelog_start_rev = "12.11.1"
+
+[tool.commitizen.customize]
+# Regex for parsing commits for the changelog
+commit_parser = "^(?P<change_type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
+
+# Fuller regex to use when commitizen allows us to modify the changelog commit text
+# https://github.com/commitizen-tools/commitizen/pull/645
+# commit_parser = "^(?P<change_type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?:\\s(\\[#(?P<ticket>.+)\\]\\s)(?P<message>.*)?(\\n\\n(?P<body>(\\n|.)*))?$"
+
+# Regex for commits to include in the changelog (excludes merge-commits, etc)
+changelog_pattern = "^(build|chore|ci|docs|feat|fix|perf|refactor|style|test).*: .*"
+
+# Section header order in the changelog
+# Unmatched sections are shown alphabetically
+change_type_order = [
+  "Features",
+  "Bug Fixes",
+  "Performance improvements",
+  "Documentation",
+  "Test improvements",
+  "Code Refactor",
+  "Build improvements",
+  "CI improvements",
+  "Style",
+  "Chores",
+]
+
+[tool.commitizen.customize.change_type_map]
+# Section names to use in the changelog
+# left-side is the semantic commit verbs, right-side is the changelog section header
+build = "Build improvements"
+chore = "Chores"
+ci = "CI improvements"
+docs = "Documentation"
+feat = "Features"
+fix = "Bug Fixes"
+perf = "Performance improvements"
+refactor = "Code Refactor"
+style = "Style"
+test = "Test improvements"
 
 [build-system]
 requires = ["poetry-core"]
