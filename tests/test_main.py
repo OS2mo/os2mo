@@ -623,8 +623,9 @@ async def test_reject_on_failure():
             await reject_on_failure(func)()
 
     # But not this one
-    with pytest.raises(TypeError):
-        await reject_on_failure(type_error_func)()
+    with patch("mo_ldap_import_export.main.delay_on_error", 0.5):
+        with pytest.raises(TypeError):
+            await reject_on_failure(type_error_func)()
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):
