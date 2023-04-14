@@ -70,6 +70,7 @@ from .utils import mo_datestring_to_utc
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 internal_amqp_router = MORouter()
+delay_on_error = 10
 
 """
 Employee.schema()
@@ -94,9 +95,13 @@ def reject_on_failure(func):
             TransportQueryError,  # In case an ldap entry cannot be uploaded: Abort
             NoObjectsReturnedException,  # In case an object is deleted halfway: Abort
             IgnoreChanges,  # In case changes should be ignored: Abort
+            RejectMessage,  # In case we explicitly reject the message: Abort
         ) as e:
             logger.info(e)
             raise RejectMessage()
+        except Exception:  # pylint: disable=broad-except
+            await asyncio.sleep(delay_on_error)
+            raise
 
     modified_func.__wrapped__ = func  # type: ignore
     return modified_func
