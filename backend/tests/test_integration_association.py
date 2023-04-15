@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import freezegun
 import pytest
+from fastapi.testclient import TestClient
 from parameterized import parameterized
 
 import tests.cases
@@ -1522,21 +1523,20 @@ class AddressTests(tests.cases.LoRATestCase):
             },
         )
 
-    @freezegun.freeze_time("2018-01-01", tz_offset=1)
-    def test_terminate_association_in_the_past(self):
-        # Check the POST request
-        associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
-        self.assertRequestFails(
-            "/service/details/terminate",
-            200,
-            json={
-                "type": "association",
-                "uuid": associationid,
-                "validity": {"to": "2017-11-30"},
-            },
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
+@freezegun.freeze_time("2018-01-01", tz_offset=1)
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_terminate_association_in_the_past(service_client: TestClient) -> None:
+    associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    response = service_client.post(
+        "/service/details/terminate",
+        json={
+            "type": "association",
+            "uuid": associationid,
+            "validity": {"to": "2017-11-30"},
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == associationid
