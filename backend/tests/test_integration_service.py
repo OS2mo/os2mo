@@ -595,107 +595,89 @@ class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
         )
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
-    maxDiff = None
-
-
-@sample_structures_minimal_cls_fixture
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class TestsMinimal(tests.cases.LoRATestCase):
-    maxDiff = None
-
-    @classmethod
-    def get_lora_environ(cls):
-        # force LoRA to run under a UTC timezone, ensuring that we
-        # handle this case correctly for reading
-        return {
-            "TZ": "UTC",
-        }
-
-    def test_facet_create_and_update(self):
-        payload = {
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_minimal")
+def test_facet_create_and_update(service_client: TestClient) -> None:
+    # Tests new creation - 200 message
+    response = service_client.post(
+        "/service/f/engagement_job_function/",
+        json={
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
             "user_key": "BVN",
             "name": "Jurist",
             "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
             "scope": "TEXT",
             "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
-        }
+        },
+    )
+    assert response.status_code == 200
+    actual_post = response.json()
+    assert actual_post == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-        expected_post = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
-        expected_get = {
-            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-            "user_key": "engagement_job_function",
-            "description": "",
-            "data": {
-                "total": 1,
-                "offset": 0,
-                "items": [
-                    {
-                        "example": None,
-                        "name": "Jurist",
-                        "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-            },
-        }
+    # Tests the GET data matches
+    response = service_client.get("/service/f/engagement_job_function/")
+    assert response.status_code == 200
+    actual_get = response.json()
+    assert actual_get == {
+        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+        "user_key": "engagement_job_function",
+        "description": "",
+        "data": {
+            "total": 1,
+            "offset": 0,
+            "items": [
+                {
+                    "example": None,
+                    "name": "Jurist",
+                    "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "scope": "TEXT",
+                    "user_key": "BVN",
+                    "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                }
+            ],
+        },
+    }
 
-        actual_post = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
-
-        actual_get = self.assertRequest("/service/f/engagement_job_function/")
-
-        # Tests new creation - 200 message
-        assert expected_post == actual_post
-
-        # Tests the GET data matches
-        assert expected_get == actual_get
-
+    # Tests PUT on the same class
+    response = service_client.post(
+        "/service/f/engagement_job_function/",
         # Updated payload, same uuid
-        payload = {
+        json={
             "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
             "facet_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
             "user_key": "BVN",
             "name": "Ergoterapeut",
             "scope": "TEXT",
             "org_uuid": "0b6c3ae7-dfe9-4136-89ee-53de96fb688b",
-        }
-        expected_put = "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
-        expected_get = {
-            "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
-            "user_key": "engagement_job_function",
-            "description": "",
-            "data": {
-                "total": 1,
-                "offset": 0,
-                "items": [
-                    {
-                        "example": None,
-                        "name": "Ergoterapeut",
-                        "owner": None,
-                        "scope": "TEXT",
-                        "user_key": "BVN",
-                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                    }
-                ],
-            },
-        }
-        actual_put = self.assertRequest(
-            "/service/f/engagement_job_function/", json=payload
-        )
-        actual_get = self.assertRequest("/service/f/engagement_job_function/")
+        },
+    )
+    assert response.status_code == 200
+    actual_put = response.json()
+    assert actual_put == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
-        # Tests PUT on the same class
-        assert expected_put == actual_put
-
-        # Tests the GET data matches
-        assert expected_get == actual_get
+    # Tests the GET data matches
+    response = service_client.get("/service/f/engagement_job_function/")
+    assert response.status_code == 200
+    actual_get = response.json()
+    assert actual_get == {
+        "uuid": "1a6045a2-7a8e-4916-ab27-b2402e64f2be",
+        "user_key": "engagement_job_function",
+        "description": "",
+        "data": {
+            "total": 1,
+            "offset": 0,
+            "items": [
+                {
+                    "example": None,
+                    "name": "Ergoterapeut",
+                    "owner": None,
+                    "scope": "TEXT",
+                    "user_key": "BVN",
+                    "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                }
+            ],
+        },
+    }
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
