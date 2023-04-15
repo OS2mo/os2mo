@@ -404,9 +404,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     {
                         "uuid": subid,
                         "virkning": {
-                            "from": "2017-12-01 " "00:00:00+01",
+                            "from": "2017-12-01 00:00:00+01",
                             "from_included": True,
-                            "to": "2017-12-02 " "00:00:00+01",
+                            "to": "2017-12-02 00:00:00+01",
                             "to_included": False,
                         },
                     }
@@ -1479,7 +1479,7 @@ class AddressTests(tests.cases.LoRATestCase):
         }
 
         orig = self.assertRequest(
-            "/service/e/{}/details/association" "?validity=present".format(userid),
+            f"/service/e/{userid}/details/association?validity=present",
         )
 
         expected = copy.deepcopy(orig)
@@ -1496,7 +1496,7 @@ class AddressTests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=past".format(userid),
+            f"/service/e/{userid}/details/association?validity=past",
             [],
             amqp_topics={
                 "employee.association.delete": 1,
@@ -1505,7 +1505,7 @@ class AddressTests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=present".format(userid),
+            f"/service/e/{userid}/details/association?validity=present",
             expected,
             amqp_topics={
                 "employee.association.delete": 1,
@@ -1514,7 +1514,7 @@ class AddressTests(tests.cases.LoRATestCase):
         )
 
         self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=future".format(userid),
+            f"/service/e/{userid}/details/association?validity=future",
             [],
             amqp_topics={
                 "employee.association.delete": 1,
