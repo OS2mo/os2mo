@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 
 import tests.cases
 from . import util
-from tests.util import sample_structures_minimal_cls_fixture
 
 
 org_unit_type_facet = {
@@ -541,58 +540,60 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
         )
 
 
-@sample_structures_minimal_cls_fixture
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("sample_structures_minimal")
+async def test_children_minimal(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTestsMinimal(tests.cases.AsyncLoRATestCase):
-    maxDiff = None
-
-    async def test_children(self):
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [],
-        )
-
-        await util.load_sample_structures()
-
-        await self.assertRequestResponse(
-            "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children",
-            [
-                {
-                    "name": "Humanistisk fakultet",
-                    "user_key": "hum",
-                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "validity": {
-                        "from": "2016-12-31",
-                        "to": None,
-                    },
-                    "child_count": 2,
-                },
-                {
-                    "name": "Samfundsvidenskabelige fakultet",
-                    "user_key": "samf",
-                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                    "validity": {
-                        "from": "2017-01-01",
-                        "to": None,
-                    },
-                    "child_count": 0,
-                },
-                {
-                    "name": "Skole og Børn",
-                    "user_key": "skole-børn",
-                    "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-                    "validity": {"from": "2017-01-01", "to": None},
-                    "child_count": 1,
-                },
-                {
-                    "name": "Social og sundhed",
-                    "user_key": "social-sundhed",
-                    "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
-                    "validity": {"from": "2017-01-01", "to": None},
-                    "child_count": 0,
-                },
-            ],
-        )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_children(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "name": "Social og sundhed",
+            "user_key": "social-sundhed",
+            "uuid": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+            "validity": {"from": "2017-01-01", "to": None},
+            "child_count": 0,
+        },
+        {
+            "name": "Humanistisk fakultet",
+            "user_key": "hum",
+            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            "validity": {
+                "from": "2016-12-31",
+                "to": None,
+            },
+            "child_count": 2,
+        },
+        {
+            "name": "Samfundsvidenskabelige fakultet",
+            "user_key": "samf",
+            "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "validity": {
+                "from": "2017-01-01",
+                "to": None,
+            },
+            "child_count": 0,
+        },
+        {
+            "name": "Skole og Børn",
+            "user_key": "skole-børn",
+            "uuid": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "validity": {"from": "2017-01-01", "to": None},
+            "child_count": 1,
+        },
+    ]
 
 
 @pytest.mark.integration_test
