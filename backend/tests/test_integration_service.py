@@ -6,7 +6,6 @@ import freezegun
 import pytest
 from fastapi.testclient import TestClient
 
-import tests.cases
 from . import util
 
 
@@ -15,197 +14,36 @@ org_unit_type_facet = {
     "user_key": "org_unit_type",
     "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
 }
-org_unit_address_type_facet = {
-    "description": "",
-    "user_key": "org_unit_address_type",
-    "uuid": "3c44e5d2-7fef-4448-9bf6-449bf414ec49",
-}
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("testing_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
-    maxDiff = None
+async def test_employee(service_client: TestClient) -> None:
+    # empty
+    response = service_client.get(
+        "/service/o/00000000-0000-0000-0000-000000000000/e/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-    async def test_employee(self):
-        with self.subTest("empty"):
-            await self.assertRequestResponse(
-                "/service/o/00000000-0000-0000-0000-000000000000/e/",
-                {"total": 0, "items": [], "offset": 0},
-            )
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-            await self.assertRequestResponse(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
-                {"total": 0, "items": [], "offset": 0},
-            )
+    # load data
+    await util.load_sample_structures(minimal=True)
 
-        await util.load_sample_structures(minimal=True)
+    # invalid
+    response = service_client.get(
+        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/?at=1920-01-01T00:00:00Z",
+    )
+    assert response.status_code == 404
 
-        with self.subTest("invalid"):
-            await self.assertRequestFails(
-                "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/?at=1920-01-01T00:00:00Z",
-                404,
-            )
-
-        result = {
-            "items": [
-                {
-                    "cpr_no": "0910810000",
-                    "givenname": "Erik Smidt",
-                    "name": "Erik Smidt Hansen",
-                    "nickname": "",
-                    "nickname_givenname": "",
-                    "nickname_surname": "",
-                    "seniority": None,
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "surname": "Hansen",
-                    "user_key": "eriksmidthansen",
-                    "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                },
-                {
-                    "cpr_no": "0906340000",
-                    "givenname": "Anders",
-                    "name": "Anders And",
-                    "nickname": "Donald Duck",
-                    "nickname_givenname": "Donald",
-                    "nickname_surname": "Duck",
-                    "seniority": None,
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "surname": "And",
-                    "user_key": "andersand",
-                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                },
-                {
-                    "cpr_no": "1205320000",
-                    "givenname": "Fedtmule",
-                    "name": "Fedtmule Hund",
-                    "nickname": "George Geef",
-                    "nickname_givenname": "George",
-                    "nickname_surname": "Geef",
-                    "seniority": None,
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "surname": "Hund",
-                    "user_key": "fedtmule",
-                    "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
-                },
-                {
-                    "cpr_no": "0906730000",
-                    "givenname": "Lis",
-                    "name": "Lis Jensen",
-                    "nickname": "",
-                    "nickname_givenname": "",
-                    "nickname_surname": "",
-                    "seniority": None,
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "surname": "Jensen",
-                    "user_key": "",
-                    "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
-                },
-                {
-                    "givenname": "Mickey",
-                    "name": "Mickey Mouse",
-                    "nickname": "",
-                    "nickname_givenname": "",
-                    "nickname_surname": "",
-                    "seniority": None,
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "surname": "Mouse",
-                    "user_key": "mickeymouse",
-                    "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
-                },
-            ],
-            "offset": 0,
-            "total": 5,
-        }
-
-        await self.assertRequestResponse(
-            "/service/o/00000000-0000-0000-0000-000000000000/e/", result
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/", result
-        )
-
-        await self.assertRequestResponse(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/",
-            {
-                "name": "Anders And",
-                "givenname": "Anders",
-                "surname": "And",
-                "nickname": "Donald Duck",
-                "nickname_givenname": "Donald",
-                "nickname_surname": "Duck",
-                "seniority": None,
-                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "user_key": "andersand",
-                "cpr_no": "0906340000",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-            },
-        )
-
-        await self.assertRequestResponse(
-            "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/",
-            {
-                "name": "Fedtmule Hund",
-                "givenname": "Fedtmule",
-                "surname": "Hund",
-                "nickname": "George Geef",
-                "nickname_givenname": "George",
-                "nickname_surname": "Geef",
-                "seniority": None,
-                "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
-                "user_key": "fedtmule",
-                "cpr_no": "1205320000",
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-            },
-        )
-
-        with freezegun.freeze_time("1900-01-01"):
-            await self.assertRequestResponse(
-                "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
-                {"total": 0, "items": [], "offset": 0},
-            )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1900-01-01",
-            {"total": 0, "items": [], "offset": 0},
-        )
-
-        await util.load_fixture(
-            "organisation/bruger",
-            "create_bruger_andersine.json",
-            "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
-        )
-
-        result_list = [
+    result = {
+        "items": [
             {
                 "cpr_no": "0910810000",
                 "givenname": "Erik Smidt",
@@ -290,6 +128,288 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
                 "user_key": "",
                 "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
             },
+        ],
+        "offset": 0,
+        "total": 5,
+    }
+
+    response = service_client.get("/service/o/00000000-0000-0000-0000-000000000000/e/")
+    assert response.status_code == 200
+    assert response.json() == result
+
+    response = service_client.get("/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/")
+    assert response.status_code == 200
+    assert response.json() == result
+
+    response = service_client.get(
+        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "Anders And",
+        "givenname": "Anders",
+        "surname": "And",
+        "nickname": "Donald Duck",
+        "nickname_givenname": "Donald",
+        "nickname_surname": "Duck",
+        "seniority": None,
+        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        "user_key": "andersand",
+        "cpr_no": "0906340000",
+        "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        },
+    }
+
+    response = service_client.get(
+        "/service/e/6ee24785-ee9a-4502-81c2-7697009c9053/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "name": "Fedtmule Hund",
+        "givenname": "Fedtmule",
+        "surname": "Hund",
+        "nickname": "George Geef",
+        "nickname_givenname": "George",
+        "nickname_surname": "Geef",
+        "seniority": None,
+        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+        "user_key": "fedtmule",
+        "cpr_no": "1205320000",
+        "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        },
+    }
+
+    with freezegun.freeze_time("1900-01-01"):
+        response = service_client.get(
+            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
+        )
+        assert response.status_code == 200
+        assert response.json() == {"total": 0, "items": [], "offset": 0}
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1900-01-01",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"total": 0, "items": [], "offset": 0}
+
+    await util.load_fixture(
+        "organisation/bruger",
+        "create_bruger_andersine.json",
+        "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
+    )
+
+    result_list = [
+        {
+            "cpr_no": "0910810000",
+            "givenname": "Erik Smidt",
+            "name": "Erik Smidt Hansen",
+            "nickname": "",
+            "nickname_givenname": "",
+            "nickname_surname": "",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "Hansen",
+            "user_key": "eriksmidthansen",
+            "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+        },
+        {
+            "givenname": "Mickey",
+            "name": "Mickey Mouse",
+            "nickname": "",
+            "nickname_givenname": "",
+            "nickname_surname": "",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "Mouse",
+            "user_key": "mickeymouse",
+            "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+        },
+        {
+            "cpr_no": "0906340000",
+            "givenname": "Anders",
+            "name": "Anders And",
+            "nickname": "Donald Duck",
+            "nickname_givenname": "Donald",
+            "nickname_surname": "Duck",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "And",
+            "user_key": "andersand",
+            "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+        },
+        {
+            "cpr_no": "1205320000",
+            "givenname": "Fedtmule",
+            "name": "Fedtmule Hund",
+            "nickname": "George Geef",
+            "nickname_givenname": "George",
+            "nickname_surname": "Geef",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "Hund",
+            "user_key": "fedtmule",
+            "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+        },
+        {
+            "cpr_no": "0906730000",
+            "givenname": "Lis",
+            "name": "Lis Jensen",
+            "nickname": "",
+            "nickname_givenname": "",
+            "nickname_surname": "",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "Jensen",
+            "user_key": "",
+            "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
+        },
+        {
+            "cpr_no": "0901370000",
+            "givenname": "Andersine",
+            "name": "Andersine And",
+            "nickname": "Daisy Duck",
+            "nickname_givenname": "Daisy",
+            "nickname_surname": "Duck",
+            "seniority": None,
+            "org": {
+                "name": "Aarhus Universitet",
+                "user_key": "AU",
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+            },
+            "surname": "And",
+            "user_key": "andersineand",
+            "uuid": "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
+        },
+    ]
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": result_list, "offset": 0, "total": 6}
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": result_list[:1], "offset": 0, "total": 6}
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1&start=1",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": result_list[1:][:1], "offset": 1, "total": 6}
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "givenname": "Mickey",
+                "name": "Mickey Mouse",
+                "nickname": "",
+                "nickname_givenname": "",
+                "nickname_surname": "",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "Mouse",
+                "user_key": "mickeymouse",
+                "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+            },
+            {
+                "cpr_no": "0906340000",
+                "givenname": "Anders",
+                "name": "Anders And",
+                "nickname": "Donald Duck",
+                "nickname_givenname": "Donald",
+                "nickname_surname": "Duck",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "And",
+                "user_key": "andersand",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            {
+                "cpr_no": "1205320000",
+                "givenname": "Fedtmule",
+                "name": "Fedtmule Hund",
+                "nickname": "George Geef",
+                "nickname_givenname": "George",
+                "nickname_surname": "Geef",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "Hund",
+                "user_key": "fedtmule",
+                "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
+            },
+        ],
+        "offset": 0,
+        "total": 3,
+    }
+
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "cpr_no": "0906340000",
+                "givenname": "Anders",
+                "name": "Anders And",
+                "nickname": "Donald Duck",
+                "nickname_givenname": "Donald",
+                "nickname_surname": "Duck",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "And",
+                "user_key": "andersand",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
             {
                 "cpr_no": "0901370000",
                 "givenname": "Andersine",
@@ -307,237 +427,115 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
                 "user_key": "andersineand",
                 "uuid": "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
             },
-        ]
+        ],
+        "offset": 0,
+        "total": 2,
+    }
 
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
-            {"items": result_list, "offset": 0, "total": 6},
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1",
-            {"items": result_list[:1], "offset": 0, "total": 6},
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1&start=1",
-            {"items": result_list[1:][:1], "offset": 1, "total": 6},
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01",
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01&query=Anders",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
             {
-                "items": [
-                    {
-                        "cpr_no": "0906340000",
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersand",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    {
-                        "cpr_no": "1205320000",
-                        "givenname": "Fedtmule",
-                        "name": "Fedtmule Hund",
-                        "nickname": "George Geef",
-                        "nickname_givenname": "George",
-                        "nickname_surname": "Geef",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "Hund",
-                        "user_key": "fedtmule",
-                        "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
-                    },
-                    {
-                        "givenname": "Mickey",
-                        "name": "Mickey Mouse",
-                        "nickname": "",
-                        "nickname_givenname": "",
-                        "nickname_surname": "",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "Mouse",
-                        "user_key": "mickeymouse",
-                        "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
-                    },
-                ],
-                "offset": 0,
-                "total": 3,
-            },
-        )
+                "cpr_no": "0906340000",
+                "givenname": "Anders",
+                "name": "Anders And",
+                "nickname": "Donald Duck",
+                "nickname_givenname": "Donald",
+                "nickname_surname": "Duck",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "And",
+                "user_key": "andersand",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            }
+        ],
+        "offset": 0,
+        "total": 1,
+    }
 
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders",
+    # allow searching by cpr number
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0906340000",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
             {
-                "items": [
-                    {
-                        "cpr_no": "0906340000",
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersand",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    {
-                        "cpr_no": "0901370000",
-                        "givenname": "Andersine",
-                        "name": "Andersine And",
-                        "nickname": "Daisy Duck",
-                        "nickname_givenname": "Daisy",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersineand",
-                        "uuid": "df55a3ad-b996-4ae0-b6ea-a3241c4cbb24",
-                    },
-                ],
-                "offset": 0,
-                "total": 2,
-            },
-        )
+                "cpr_no": "0906340000",
+                "givenname": "Anders",
+                "name": "Anders And",
+                "nickname": "Donald Duck",
+                "nickname_givenname": "Donald",
+                "nickname_surname": "Duck",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "And",
+                "user_key": "andersand",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            }
+        ],
+        "offset": 0,
+        "total": 1,
+    }
 
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?at=1937-01-01&query=Anders",
-            {
-                "items": [
-                    {
-                        "cpr_no": "0906340000",
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersand",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    }
-                ],
-                "offset": 0,
-                "total": 1,
-            },
-        )
+    # disallow partial matches for CPR numbers
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=090634",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": [], "offset": 0, "total": 0}
 
-        # allow searching by cpr number
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0906340000",
-            {
-                "items": [
-                    {
-                        "cpr_no": "0906340000",
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersand",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    }
-                ],
-                "offset": 0,
-                "total": 1,
-            },
-        )
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=1",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": [], "offset": 0, "total": 0}
 
-        # disallow partial matches for CPR numbers
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=090634",
-            {
-                "items": [],
-                "offset": 0,
-                "total": 0,
-            },
-        )
+    # bogus
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0000000000",
+    )
+    assert response.status_code == 200
+    assert response.json() == {"items": [], "offset": 0, "total": 0}
 
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=1",
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders&associated=true",
+    )
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
             {
-                "items": [],
-                "offset": 0,
-                "total": 0,
-            },
-        )
-
-        # bogus
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=0000000000",
-            {
-                "items": [],
-                "offset": 0,
-                "total": 0,
-            },
-        )
-
-        await self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?query=Anders&associated=true",
-            {
-                "items": [
-                    {
-                        "cpr_no": "0906340000",
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "surname": "And",
-                        "user_key": "andersand",
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    }
-                ],
-                "offset": 0,
-                "total": 1,
-            },
-        )
+                "cpr_no": "0906340000",
+                "givenname": "Anders",
+                "name": "Anders And",
+                "nickname": "Donald Duck",
+                "nickname_givenname": "Donald",
+                "nickname_surname": "Duck",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "And",
+                "user_key": "andersand",
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            }
+        ],
+        "offset": 0,
+        "total": 1,
+    }
 
 
 @pytest.mark.integration_test
