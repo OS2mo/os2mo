@@ -655,7 +655,7 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    engagement_associations: list[LazyEngagement] = strawberry.field(
+    engagement_associations: list[LazyEngagementAssociation] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementAssociationResolver(),
             {"engagements": lambda root: [root.uuid]},
