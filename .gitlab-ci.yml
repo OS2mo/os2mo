@@ -193,7 +193,6 @@ Build OS2mo:
   rules:
     - <<: *if-schedule
       when: never
-      changes: *backend-patterns
     - when: on_success
 
 Build Keycloak-realm:
@@ -353,7 +352,7 @@ Coverage:
         coverage_format: cobertura
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
-    - if: '$CI_COMMIT_BRANCH == $CI_MERGE_REQUEST_IID'
+    - <<: *if-merge-request
       changes: *backend-patterns
 
 
@@ -386,7 +385,6 @@ Deploy Review:
   rules:
     - <<: *if-schedule
       when: never
-      changes: *backend-patterns
     - <<: *if-merge-request-labels-run-review-app
     - <<: *if-merge-request
       when: manual
