@@ -7,6 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from . import util
+from mora import mapping
 from mora.config import Settings
 from mora.service.shimmed import cpr as cpr_shim
 
@@ -130,3 +131,57 @@ def test_get_citizen_uses_version_kwarg():
             call_args = mock_get_citizen.call_args
             api_version = call_args.kwargs["api_version"]
             assert api_version == settings.sp_settings.sp_api_version
+
+
+@pytest.mark.parametrize(
+    "cpr_number,expected_result",
+    [
+        ("invalid", None),
+        ("121212333", None),
+        ("1212123333", None),
+        ("121212-3333", None),
+        ("7212123333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
+        ("721212-3333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
+    ],
+)
+def test_handle_erstatningspersonnummer(
+    cpr_number: str, expected_result: dict | None
+) -> None:
+    """Test that we return a valid lookup response in case of fictitious CPRs
+    ("erstatningspersonnummer".)
+    """
+    actual_result = cpr_shim._handle_erstatningspersonnummer(cpr_number)
+    assert actual_result == expected_result
+
+
+async def test_cpr_lookup_handles_erstatningspersonnummer(
+    service_client: TestClient,
+    monkeypatch,
+    tmp_path,
+) -> None:
+    """Test that `search_cpr` handles "erstatningspersonnummer" CPR lookups correctly.
+
+    Looking up an "erstatningspersonnummer" requires the `cpr_validate_birthdate`
+    setting to be False, and Serviceplatformen access to be configured.
+    Otherwise, `search_cpr` will exit early, returning an empty dict.
+
+    To avoid breaking the contract with client code, we only check for
+    "erstatningspersonnummer" CPRs when Serviceplatformen access is available *and* the
+    `cpr_validate_birthdate` setting is False.
+    """
+
+    cpr = "7212123333"
+
+    # Set up mock Serviceplatform access
+    monkeypatch.setenv("ENABLE_SP", "true")
+    monkeypatch.setenv("ENVIRONMENT", "production")
+    tmp_file = tmp_path / "testfile"
+    tmp_file.write_text("This is a certificate")
+    _sp_config(monkeypatch, SP_CERTIFICATE_PATH=str(tmp_file))
+
+    # Skip CPR birthdate validation
+    with util.override_config(Settings(cpr_validate_birthdate=False)):
+        # Invoke CPR lookup
+        response = service_client.get(f"/service/e/cpr_lookup/?q={cpr}")
+        assert response.status_code == 200
+        assert response.json() == {mapping.NAME: "", mapping.CPR_NO: cpr}
