@@ -11,7 +11,7 @@
       "nickname_surname": "{{NONE}}",
       "uuid": "{{ employee_uuid or NONE }}"
     },
-    "Active Directory": {
+    "AD": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": true,
       "user_key": "{{ ldap.distinguishedName }}",
@@ -30,7 +30,7 @@
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "employeeID": "{{mo_employee.cpr_no or NONE}}",
     },
-    "Active Directory": {
+    "AD": {
       "objectClass": "user",
       "__export_to_ldap__": true,
       "distinguishedName" : "{{mo_employee_it_user.user_key}}",
