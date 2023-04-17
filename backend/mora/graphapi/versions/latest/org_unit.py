@@ -14,7 +14,6 @@ from .models import OrganisationUnitTerminate
 from .models import OrganisationUnitUpdate
 from .models import OrgUnitTrigger
 from .models import Validity
-from .schema import Response
 from .types import UUIDReturn
 from mora import exceptions
 from mora import lora
@@ -27,7 +26,7 @@ from mora.triggers import Trigger
 logger = logging.getLogger(__name__)
 
 
-async def load_org_unit(uuid: UUID) -> Response:
+async def load_org_unit(uuid: UUID) -> list:
     """Call the org_unit_loader on the given UUID.
 
     Args:
@@ -50,8 +49,8 @@ async def trigger_org_unit_refresh(uuid: UUID) -> dict[str, str]:
     Returns:
         The submit result.
     """
-    response = await load_org_unit(uuid)
-    if not response.object_cache:
+    response: list = await load_org_unit(uuid)
+    if not response:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(uuid))
 
     request = {mapping.UUID: str(uuid)}
