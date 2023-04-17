@@ -15,7 +15,7 @@
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": true,
       "user_key": "{{ ldap.distinguishedName }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('AD')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
