@@ -28,7 +28,6 @@ from mora.graphapi.versions.latest.it_user import terminate
 from mora.graphapi.versions.latest.models import ITUserCreate
 from mora.graphapi.versions.latest.models import ITUserTerminate
 from mora.graphapi.versions.latest.models import ITUserUpdate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
@@ -123,7 +122,7 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
         )
     )
 
-    create_ituser.return_value = UUIDReturn(uuid=test_data.uuid)
+    create_ituser.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
 
@@ -373,7 +372,7 @@ async def test_update_ituser(update_ituser: AsyncMock, test_data: ITUserUpdate) 
         }
     """
     updated_uuid = uuid4()
-    update_ituser.return_value = UUIDReturn(uuid=updated_uuid)
+    update_ituser.return_value = updated_uuid
 
     payload = jsonable_encoder(test_data)
 
@@ -531,8 +530,7 @@ async def test_terminate_response(given_uuid, given_validity_dts):
     caught_exception = None
     with mock.patch.object(lora.Scope, "update", new=mock_update):
         try:
-            tr = await terminate(input=test_data)
-            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+            terminate_result_uuid = await terminate(input=test_data)
         except Exception as e:
             caught_exception = e
     # Assert

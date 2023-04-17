@@ -21,7 +21,6 @@ from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.graphql_utils import get_uuids
 from mora.graphapi.versions.latest.graphql_utils import PrintableStr
 from mora.graphapi.versions.latest.models import ClassCreate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import ClassRead
 from tests.conftest import GQLResponse
 
@@ -232,7 +231,7 @@ async def test_unit_create_class(
         created_uuid = test_data["uuid"]
     else:
         created_uuid = uuid4()
-    create_class.return_value = UUIDReturn(uuid=created_uuid)
+    create_class.return_value = created_uuid
 
     payload = jsonable_encoder(test_data)
 

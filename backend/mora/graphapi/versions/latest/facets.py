@@ -5,12 +5,11 @@ from uuid import UUID
 from fastapi.encoders import jsonable_encoder
 
 from .models import FacetCreate
-from .types import UUIDReturn
 from mora.common import get_connector
 from ramodels.lora.facet import Facet as LoraFacet
 
 
-async def create_facet(input: FacetCreate) -> UUIDReturn:
+async def create_facet(input: FacetCreate) -> UUID:
     input_dict = input.dict(by_alias=True)
 
     lora_facet = LoraFacet.from_simplified_fields(
@@ -26,4 +25,4 @@ async def create_facet(input: FacetCreate) -> UUIDReturn:
     c = get_connector(virkningfra="-infinity", virkningtil="infinity")
     uuid = await c.facet.create(jsonified, input_dict["uuid"])
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)

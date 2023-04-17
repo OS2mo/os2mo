@@ -6,14 +6,13 @@ from uuid import UUID
 from .models import EngagementCreate
 from .models import EngagementTerminate
 from .models import EngagementUpdate
-from .types import UUIDReturn
 from mora import lora
 from mora import mapping
 from mora.service.engagement import EngagementRequestHandler
 from mora.triggers import Trigger
 
 
-async def terminate_engagement(input: EngagementTerminate) -> UUIDReturn:
+async def terminate_engagement(input: EngagementTerminate) -> UUID:
     trigger = input.get_engagement_trigger()
     trigger_dict = trigger.to_trigger_dict()
 
@@ -36,10 +35,10 @@ async def terminate_engagement(input: EngagementTerminate) -> UUIDReturn:
 
     _ = await Trigger.run(trigger_dict)
 
-    return UUIDReturn(uuid=UUID(lora_result))
+    return UUID(lora_result)
 
 
-async def create_engagement(input: EngagementCreate) -> UUIDReturn:
+async def create_engagement(input: EngagementCreate) -> UUID:
     input_dict = input.to_handler_dict()
 
     handler = await EngagementRequestHandler.construct(
@@ -47,10 +46,10 @@ async def create_engagement(input: EngagementCreate) -> UUIDReturn:
     )
     uuid = await handler.submit()
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)
 
 
-async def update_engagement(input: EngagementUpdate) -> UUIDReturn:
+async def update_engagement(input: EngagementUpdate) -> UUID:
     input_dict = input.to_handler_dict()
 
     req = {
@@ -62,4 +61,4 @@ async def update_engagement(input: EngagementUpdate) -> UUIDReturn:
     request = await EngagementRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)

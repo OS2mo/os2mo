@@ -129,6 +129,7 @@ markers = [
 ]
 filterwarnings = ["ignore::pytest.PytestCacheWarning"]
 asyncio_mode = "auto"
+cache_dir = ".pytest_cache"
 
 [tool.mypy]
 ignore_errors = true

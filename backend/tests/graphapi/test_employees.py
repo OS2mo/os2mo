@@ -23,7 +23,6 @@ from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.models import EmployeeCreate
 from mora.graphapi.versions.latest.models import EmployeeUpdate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from mora.util import NEGATIVE_INFINITY
 from ramodels.mo import EmployeeRead
 from tests.conftest import GQLResponse
@@ -268,7 +267,7 @@ async def test_create_employee(
             }
         }
     """
-    create_employee.return_value = UUIDReturn(uuid=test_data.uuid)
+    create_employee.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -450,7 +449,7 @@ async def test_update_mutator(
     with patch(
         "mora.graphapi.versions.latest.mutators.employee_update"
     ) as mock_employee_update:
-        mock_employee_update.return_value = UUIDReturn(uuid=given_uuid)
+        mock_employee_update.return_value = given_uuid
 
         mutation_func = "employee_update"
         query = _get_employee_update_mutation_query(mutation_func)
