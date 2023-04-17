@@ -40,12 +40,13 @@ pydantic = {extras = ["email"], version = "^1.10.7"}
 os2mo-dar-client = "^0.1.0"
 ra-utils = "^0.4.0"
 ramqp = "^6.6.2"
-uvicorn = "^0.21.1"
+uvicorn = {extras = ["standard"], version = "^0.21.1"}
 strawberry-graphql = "^0.137.1"
 jsonschema = "^4.16.0"
 psycopg2-binary = "~2.8"
 sentry-sdk = {extras = ["fastapi"], version = "^1.17.0"}
 psycopg = "^3.1.8"
+websockets = "^11.0.1"
 
 [tool.poetry.dev-dependencies]
 requests-mock = "^1.10.0"

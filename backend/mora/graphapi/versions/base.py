@@ -25,6 +25,7 @@ class BaseGraphQLSchema:
 
     query: type
     mutation: type | None = None
+    subscription: type | None = None
 
     types: Iterable = ()
 
@@ -53,6 +54,7 @@ class BaseGraphQLSchema:
         return Schema(
             query=cls.query,
             mutation=cls.mutation,
+            subscription=cls.subscription,
             types=cls.types,
             extensions=cls.extensions,
             config=cls.config,

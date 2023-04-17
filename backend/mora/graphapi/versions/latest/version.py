@@ -14,6 +14,7 @@ from .dataloaders import get_loaders
 from .files import get_filestorage
 from .mutators import Mutation
 from .query import Query
+from .subscriptions import Subscription
 from .types import CPRType
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
@@ -25,6 +26,7 @@ class LatestGraphQLSchema(BaseGraphQLSchema):
 
     query = Query
     mutation = Mutation
+    subscription = Subscription
 
     scalar_overrides = {
         CPR: CPRType,
@@ -50,11 +52,13 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
 
     @classmethod
     async def get_context(
-        cls, get_token: Callable[[], Awaitable[Token]] = Depends(token_getter)
+        cls, # get_token: Callable[[], Awaitable[Token]] = Depends(token_getter)
     ) -> dict[str, Any]:
+        from mora.auth.keycloak.oidc import noauth
         return {
             **await super().get_context(),
             **await get_loaders(),
-            "get_token": get_token,
+            # "get_token": get_token,
+            "get_token": noauth,
             "filestorage": get_filestorage(),
         }

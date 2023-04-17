@@ -58,6 +58,15 @@ def setup_graphql(
     # For now however; it is left uncommented and unimplemented.
     # app.add_websocket_route("/subscriptions", graphql_app)
 
+    from fastapi import WebSocket
+
+    @router.websocket("/ws")
+    async def websocket_endpoint(websocket: WebSocket):
+        await websocket.accept()
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Message text was: {data}")
+
     # Bind main router to the FastAPI app. Ideally, we'd let the caller define the
     # prefix, but this causes issues when routing the "empty" `/graphql` path.
     app.include_router(router, prefix="/graphql")
