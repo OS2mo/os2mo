@@ -126,7 +126,7 @@ class SyncTool:
         try:
             dn = await self.dataloader.find_or_make_mo_employee_dn(payload.uuid)
         except DNNotFound:
-            logger.info("DN not found.")
+            logger.info(f"DN not found for employee with uuid = {payload.uuid}")
             return
 
         # Get MO employee
@@ -317,7 +317,12 @@ class SyncTool:
                         affected_employee.uuid
                     )
                 except DNNotFound:
-                    logger.info("DN not found.")
+                    logger.info(
+                        (
+                            "DN not found for employee "
+                            f"with uuid = {affected_employee.uuid}"
+                        )
+                    )
                     continue
 
                 mo_object_dict = {
