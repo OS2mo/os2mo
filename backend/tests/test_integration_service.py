@@ -118,9 +118,25 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
                     "user_key": "",
                     "uuid": "7626ad64-327d-481f-8b32-36c78eb12f8c",
                 },
+                {
+                    "givenname": "Mickey",
+                    "name": "Mickey Mouse",
+                    "nickname": "",
+                    "nickname_givenname": "",
+                    "nickname_surname": "",
+                    "seniority": None,
+                    "org": {
+                        "name": "Aarhus Universitet",
+                        "user_key": "AU",
+                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    },
+                    "surname": "Mouse",
+                    "user_key": "mickeymouse",
+                    "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+                },
             ],
             "offset": 0,
-            "total": 4,
+            "total": 5,
         }
 
         await self.assertRequestResponse(
@@ -209,6 +225,22 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
                 "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
             },
             {
+                "givenname": "Mickey",
+                "name": "Mickey Mouse",
+                "nickname": "",
+                "nickname_givenname": "",
+                "nickname_surname": "",
+                "seniority": None,
+                "org": {
+                    "name": "Aarhus Universitet",
+                    "user_key": "AU",
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                },
+                "surname": "Mouse",
+                "user_key": "mickeymouse",
+                "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+            },
+            {
                 "cpr_no": "0906340000",
                 "givenname": "Anders",
                 "name": "Anders And",
@@ -280,17 +312,17 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
 
         await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/",
-            {"items": result_list, "offset": 0, "total": 5},
+            {"items": result_list, "offset": 0, "total": 6},
         )
 
         await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1",
-            {"items": result_list[:1], "offset": 0, "total": 5},
+            {"items": result_list[:1], "offset": 0, "total": 6},
         )
 
         await self.assertRequestResponse(
             "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/e/?limit=1&start=1",
-            {"items": result_list[1:][:1], "offset": 1, "total": 5},
+            {"items": result_list[1:][:1], "offset": 1, "total": 6},
         )
 
         await self.assertRequestResponse(
@@ -331,9 +363,25 @@ class AsyncTestsDelayedMinimal(tests.cases.AsyncLoRATestCase):
                         "user_key": "fedtmule",
                         "uuid": "6ee24785-ee9a-4502-81c2-7697009c9053",
                     },
+                    {
+                        "givenname": "Mickey",
+                        "name": "Mickey Mouse",
+                        "nickname": "",
+                        "nickname_givenname": "",
+                        "nickname_surname": "",
+                        "seniority": None,
+                        "org": {
+                            "name": "Aarhus Universitet",
+                            "user_key": "AU",
+                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                        },
+                        "surname": "Mouse",
+                        "user_key": "mickeymouse",
+                        "uuid": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
+                    },
                 ],
                 "offset": 0,
-                "total": 2,
+                "total": 3,
             },
         )
 

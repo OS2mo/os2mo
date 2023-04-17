@@ -499,6 +499,75 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             expected_tilknyttedepersoner == actual["relationer"]["tilknyttedepersoner"]
         )
 
+    async def test_edit_employee_without_cpr(self):
+        # Add a cpr_no to an employee who doesn't have one
+
+        userid = "4a53c06b-c1b5-417c-8c2e-bed526d34dbb"
+
+        req = [
+            {
+                "type": "employee",
+                "original": None,
+                "data": {
+                    "validity": {
+                        "from": "2017-02-02",
+                    },
+                    "user_key": "lol123",
+                    "cpr_no": "0101010101",
+                },
+                "uuid": userid,
+            }
+        ]
+
+        await self.assertRequestResponse(
+            "/service/details/edit",
+            [userid],
+            json=req,
+            amqp_topics={"employee.employee.update": 1},
+        )
+
+        # there must be a registration of the new name
+        expected_brugeregenskaber = [
+            {
+                "brugervendtnoegle": "lol123",
+                "virkning": {
+                    "from": "2017-02-02 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            },
+            {
+                "brugervendtnoegle": "mickeymouse",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01",
+                    "from_included": True,
+                    "to": "2017-02-02 00:00:00+01",
+                    "to_included": False,
+                },
+            },
+        ]
+
+        expected_tilknyttedepersoner = [
+            {
+                "urn": "urn:dk:cpr:person:0101010101",
+                "virkning": {
+                    "from": "2017-02-02 00:00:00+01",
+                    "from_included": True,
+                    "to": "infinity",
+                    "to_included": False,
+                },
+            }
+        ]
+
+        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+        actual = await c.bruger.get(userid)
+
+        assert expected_brugeregenskaber == actual["attributter"]["brugeregenskaber"]
+        assert (
+            expected_tilknyttedepersoner == actual["relationer"]["tilknyttedepersoner"]
+        )
+
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)

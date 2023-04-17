@@ -161,6 +161,7 @@ async def load_sample_structures(minimal=False):
     users = {
         "andersand": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
         "fedtmule": "6ee24785-ee9a-4502-81c2-7697009c9053",
+        "mickeymouse": "4a53c06b-c1b5-417c-8c2e-bed526d34dbb",
         "lis_jensen": "7626ad64-327d-481f-8b32-36c78eb12f8c",
         "erik_smidt_hansen": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
     }
