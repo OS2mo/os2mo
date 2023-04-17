@@ -7,7 +7,6 @@ from ....mapping import RequestType
 from .models import AddressCreate
 from .models import AddressTerminate
 from .models import AddressUpdate
-from .types import UUIDReturn
 from mora import exceptions
 from mora import lora
 from mora import mapping
@@ -15,17 +14,16 @@ from mora.service.address import AddressRequestHandler
 from mora.triggers import Trigger
 
 
-async def create(address_create: AddressCreate) -> UUIDReturn:
+async def create(address_create: AddressCreate) -> UUID:
     request_handler_dict = await address_create.to_handler_dict()
     request_handler = await AddressRequestHandler.construct(
         request_handler_dict, RequestType.CREATE
     )
     new_uuid = await request_handler.submit()
+    return new_uuid
 
-    return UUIDReturn(uuid=new_uuid)
 
-
-async def terminate_addr(address_terminate: AddressTerminate) -> UUIDReturn:
+async def terminate_addr(address_terminate: AddressTerminate) -> UUID:
     original_addr = await _get_original_addr(
         address_terminate.uuid, address_terminate.from_date
     )
@@ -57,7 +55,7 @@ async def terminate_addr(address_terminate: AddressTerminate) -> UUIDReturn:
 
     _ = await Trigger.run(trigger_dict)
 
-    return UUIDReturn(uuid=UUID(lora_result))
+    return UUID(lora_result)
 
 
 async def _get_original_addr(
@@ -70,7 +68,7 @@ async def _get_original_addr(
     return original
 
 
-async def update_address(input: AddressUpdate) -> UUIDReturn:
+async def update_address(input: AddressUpdate) -> UUID:
     """Helper function for updating associations."""
     input_dict = input.to_handler_dict()
 
@@ -83,4 +81,4 @@ async def update_address(input: AddressUpdate) -> UUIDReturn:
     request = await AddressRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)

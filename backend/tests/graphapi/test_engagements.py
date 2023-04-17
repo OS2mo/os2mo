@@ -27,7 +27,6 @@ from mora.graphapi.versions.latest.engagements import terminate_engagement
 from mora.graphapi.versions.latest.models import EngagementCreate
 from mora.graphapi.versions.latest.models import EngagementTerminate
 from mora.graphapi.versions.latest.models import EngagementUpdate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import EngagementRead
 from tests.conftest import GQLResponse
@@ -175,8 +174,7 @@ async def test_terminate_response(given_uuid, given_validity_dts):
     caught_exception = None
     with mock.patch.object(lora.Scope, "update", new=mock_update):
         try:
-            tr = await terminate_engagement(input=test_data)
-            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+            terminate_result_uuid = await terminate_engagement(input=test_data)
         except Exception as e:
             caught_exception = e
 
@@ -269,7 +267,7 @@ async def test_create_engagement(
             }
         }
     """
-    create_engagement.return_value = UUIDReturn(uuid=test_data.uuid)
+    create_engagement.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -389,7 +387,7 @@ async def test_update_engagement_unit_test(
     """
 
     engagement_uuid_to_update = uuid4()
-    update_engagement.return_value = UUIDReturn(uuid=engagement_uuid_to_update)
+    update_engagement.return_value = engagement_uuid_to_update
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(

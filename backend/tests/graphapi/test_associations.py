@@ -27,7 +27,6 @@ from mora.graphapi.versions.latest.association import terminate_association
 from mora.graphapi.versions.latest.models import AssociationCreate
 from mora.graphapi.versions.latest.models import AssociationTerminate
 from mora.graphapi.versions.latest.models import AssociationUpdate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import AssociationRead
 from tests.conftest import GQLResponse
@@ -224,7 +223,7 @@ async def test_create_association(
         }
     """
     created_uuid = uuid4()
-    create_association.return_value = UUIDReturn(uuid=created_uuid)
+    create_association.return_value = created_uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -464,7 +463,7 @@ async def test_update_association_unit_test(
     """
 
     association_uuid_to_update = uuid4()
-    update_association.return_value = UUIDReturn(uuid=association_uuid_to_update)
+    update_association.return_value = association_uuid_to_update
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(
@@ -509,8 +508,7 @@ async def test_association_terminate(given_uuid, given_validity_dts):
 
     with mock.patch.object(lora.Scope, "update", new=mock_update):
         try:
-            tr = await terminate_association(input=test_data)
-            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+            terminate_result_uuid = await terminate_association(input=test_data)
         except Exception as e:
             caught_exception = e
 

@@ -26,7 +26,6 @@ from mora.graphapi.versions.latest.manager import terminate_manager
 from mora.graphapi.versions.latest.models import ManagerCreate
 from mora.graphapi.versions.latest.models import ManagerTerminate
 from mora.graphapi.versions.latest.models import ManagerUpdate
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ManagerRead
 from tests.conftest import GQLResponse
@@ -172,7 +171,7 @@ async def test_create_manager_mutation_unit_test(
         }
     """
 
-    create_manager.return_value = UUIDReturn(uuid=test_data.uuid)
+    create_manager.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
@@ -447,7 +446,7 @@ async def test_update_manager_mutation_unit_test(
         }
     """
 
-    update_manager.return_value = UUIDReturn(uuid=test_data.uuid)
+    update_manager.return_value = test_data.uuid
 
     payload = jsonable_encoder(test_data)
     response = await execute_graphql(query=mutation, variable_values={"input": payload})
@@ -488,8 +487,7 @@ async def test_manager_terminate(given_uuid, given_validity_dts):
 
     with mock.patch.object(lora.Scope, "update", new=mock_update):
         try:
-            tr = await terminate_manager(input=test_data)
-            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+            terminate_result_uuid = await terminate_manager(input=test_data)
         except Exception as e:
             caught_exception = e
 

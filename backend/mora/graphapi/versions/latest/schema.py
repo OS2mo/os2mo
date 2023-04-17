@@ -273,7 +273,7 @@ class Response(Generic[MOObject]):
     # Due to a limitation in Pythons typing support, it does not seem possible to fetch
     # the concrete class of generics from the generic definition, thus it must be
     # provided explicitly.
-    model: strawberry.Private[MOObject]
+    model: strawberry.Private[type[MOObject]]
 
     @strawberry.field(
         description="Current state at query validity time",
@@ -313,7 +313,7 @@ class Response(Generic[MOObject]):
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
         resolver = resolver_map[root.model]["loader"]
-        return (await info.context[resolver].load(root.uuid)).object_cache
+        return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader
     @strawberry.field(

@@ -27,7 +27,6 @@ from mora.graphapi.versions.latest.models import AddressCreate
 from mora.graphapi.versions.latest.models import AddressTerminate
 from mora.graphapi.versions.latest.models import AddressUpdate
 from mora.graphapi.versions.latest.models import RAValidity
-from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo.details import AddressRead
 from tests import util
 from tests.conftest import GQLResponse
@@ -269,7 +268,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 @patch("mora.graphapi.versions.latest.mutators.create_address", new_callable=AsyncMock)
 async def test_create_mutator(create_address: AsyncMock, data):
     # Mocking
-    create_address.return_value = UUIDReturn(uuid=uuid4())
+    create_address.return_value = uuid4()
 
     # Prepare test_data
     test_data_samples = [
@@ -343,7 +342,7 @@ async def test_create_mutator(create_address: AsyncMock, data):
     )
     assert response.errors is None
     assert response.data == {
-        "address_create": {"uuid": str(create_address.return_value.uuid)}
+        "address_create": {"uuid": str(create_address.return_value)}
     }
 
     create_address.assert_called_with(test_data)
@@ -614,8 +613,7 @@ async def test_terminate(given_uuid, given_validity_dts):
     terminate_result_uuid = None
     caught_exception = None
     try:
-        tr = await terminate_addr(address_terminate=at)
-        terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+        terminate_result_uuid = await terminate_addr(address_terminate=at)
     except Exception as e:
         caught_exception = e
 
@@ -841,7 +839,7 @@ async def test_update_address_unit_test(
     """
 
     address_uuid_to_update = uuid4()
-    update_address.return_value = UUIDReturn(uuid=address_uuid_to_update)
+    update_address.return_value = address_uuid_to_update
 
     payload = jsonable_encoder(test_data)
 
