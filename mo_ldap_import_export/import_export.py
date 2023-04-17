@@ -115,6 +115,8 @@ class SyncTool:
     ) -> None:
 
         logger.info("[MO] Registered change in the employee model")
+        logger.info("[MO] uuid = {payload.uuid}")
+        logger.info("[MO] object_uuid = {payload.object_uuid}")
 
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
@@ -268,6 +270,9 @@ class SyncTool:
         delete: bool,
         current_objects_only: bool,
     ) -> None:
+        logger.info("[MO] Registered change in the org_unit model")
+        logger.info("[MO] uuid = {payload.uuid}")
+        logger.info("[MO] object_uuid = {payload.object_uuid}")
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
