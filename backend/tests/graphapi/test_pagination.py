@@ -29,11 +29,11 @@ from tests.conftest import GQLResponse
         ("classes", 10, 0, 10),
         ("classes", 38, 1, 37),
         # Employees
-        ("employees", None, None, 4),
+        ("employees", None, None, 5),
         ("employees", 0, 0, 0),
         ("employees", 4, 0, 4),
         ("employees", 2, 0, 2),
-        ("employees", 4, 1, 3),
+        ("employees", 4, 2, 3),
         # Engagement Associations
         ("engagement_associations", None, None, 1),
         ("engagement_associations", 0, 0, 0),
@@ -124,7 +124,7 @@ async def test_pagination(
         # Classes
         ("classes", 40, 38),
         # Employees
-        ("employees", 10, 4),
+        ("employees", 10, 5),
         # Engagement Associations
         ("engagement_associations", 10, 1),
         # Engagements
