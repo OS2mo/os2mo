@@ -30,7 +30,7 @@ class TestOrganisationEndpoints:
             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
             "user_key": "AU",
             "unit_count": 9,
-            "person_count": 4,
+            "person_count": 5,
             "engagement_count": 3,
             "association_count": 1,
             "leave_count": 1,

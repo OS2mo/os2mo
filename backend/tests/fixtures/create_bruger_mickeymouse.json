@@ -1,0 +1,55 @@
+{
+    "attributter": {
+        "brugeregenskaber": [
+            {
+                "brugernavn": "",
+                "brugervendtnoegle": "mickeymouse",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ],
+        "brugerudvidelser": [
+            {
+                "fornavn": "Mickey",
+                "efternavn": "Mouse",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    },
+    "relationer": {
+        "tilhoerer": [
+            {
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+
+    },
+    "tilstande": {
+        "brugergyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "from_included": true,
+                    "to": "infinity",
+                    "to_included": false
+                }
+            }
+        ]
+    }
+}
