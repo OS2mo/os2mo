@@ -470,7 +470,7 @@ async def test_single_object_search(ldap_connection: MagicMock):
 def dataloader() -> AsyncMock:
     dataloader = AsyncMock()
     dataloader.cleanup_attributes_in_ldap = MagicMock()
-    dataloader.load_ldap_cpr_object = MagicMock()
+    dataloader.load_ldap_object = MagicMock()
     return dataloader
 
 
@@ -540,6 +540,7 @@ async def test_cleanup(
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
+        dn="CN=foo",
     )
 
     await asyncio.gather(cleanup(**args))  # type:ignore
@@ -581,6 +582,7 @@ async def test_cleanup_no_sync_required(
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
+        dn="CN=foo",
     )
 
     with capture_logs() as cap_logs:
@@ -620,6 +622,7 @@ async def test_cleanup_refresh_mo_object(
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
+        dn="CN=foo",
     )
 
     object_uuid = str(mo_objects_in_mo[0].uuid)
@@ -664,6 +667,7 @@ async def test_cleanup_no_export_False(
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
+        dn="CN=foo",
     )
 
     with capture_logs() as cap_logs:

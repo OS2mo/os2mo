@@ -25,15 +25,17 @@ from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 
 from .exceptions import AttributeNotFound
-from .exceptions import CprNoNotFound
+from .exceptions import DNNotFound
 from .exceptions import InvalidChangeDict
 from .exceptions import InvalidQueryResponse
 from .exceptions import MultipleObjectsReturnedException
 from .exceptions import NoObjectsReturnedException
+from .exceptions import UUIDNotFoundException
 from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
+from .ldap import is_dn
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
@@ -199,6 +201,11 @@ class DataLoader:
             - 'Employee'
             - a MO address type name
         """
+        try:
+            validate_cpr(cpr_no)
+        except (ValueError, TypeError):
+            raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid")
+
         cpr_field = self.user_context["cpr_field"]
         settings = self.user_context["settings"]
 
@@ -363,26 +370,9 @@ class DataLoader:
             return None
         success = 0
         failed = 0
-        cpr_field = self.user_context["cpr_field"]
 
         object_class = converter.find_ldap_object_class(json_key)
         parameters_to_modify = list(object_to_modify.dict().keys())
-
-        # Check if the cpr field is present
-        if cpr_field not in parameters_to_modify:
-            raise CprNoNotFound(f"cpr field '{cpr_field}' not found in ldap object")
-
-        try:
-            # Note: it is possible that an employee object exists, but that the CPR no.
-            # attribute is not set. In that case this function will just set the cpr no.
-            # attribute in LDAP.
-            existing_object = self.load_ldap_cpr_object(
-                getattr(object_to_modify, cpr_field), json_key
-            )
-            object_to_modify.dn = existing_object.dn
-            logger.info(f"Found existing object: {existing_object.dn}")
-        except NoObjectsReturnedException:
-            logger.info("Could not find existing object: An entry will be created")
 
         logger.info(f"Uploading {object_to_modify}")
         parameters_to_modify = [p for p in parameters_to_modify if p != "dn"]
@@ -586,6 +576,120 @@ class DataLoader:
 
         result = await self.query_mo(query, raise_if_empty=False)
         return self._return_mo_employee_uuid_result(result)
+
+    def get_ldap_it_system_uuid(self):
+        """
+        Return the ID system uuid belonging to the LDAP-it-system
+        Return None if the LDAP-it-system is not found.
+        """
+        converter = self.user_context["converter"]
+        user_key = self.user_context["settings"].ldap_it_system_user_key
+        try:
+            return converter.get_it_system_uuid(user_key)
+        except UUIDNotFoundException:
+            logger.info(f"UUID Not found. Does the '{user_key}' it-system exist?")
+            return None
+
+    def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
+        """
+        Extracts unique dns from a list of it-users
+
+        Notes
+        ---------
+        dn is case-insensitive.
+        """
+        dns: list[str] = []
+        for it_user in it_users:
+            user_key = it_user.user_key
+            if is_dn(user_key) and user_key.lower() not in [d.lower() for d in dns]:
+                dns.append(user_key)
+
+        return dns
+
+    async def find_or_make_mo_employee_dn(self, uuid: UUID) -> str:
+        """
+        Tries to find the LDAP DN belonging to a MO employee UUID. If such a DN does not
+        exist, generates a new one and returns that.
+
+        Parameters
+        -------------
+        uuid: UUID
+            UUID of the employee to generate a DN for
+
+        Notes
+        --------
+        If a DN could not be found or generated, raises a DNNotFound exception
+        """
+        logger.info(f"Attempting to find dn for employee with uuid = {uuid}")
+        username_generator = self.user_context["username_generator"]
+        it_system_uuid = self.get_ldap_it_system_uuid()
+
+        # The LDAP-it-system only exists, if it was configured as such in OS2mo-init.
+        # It is not strictly needed; If we purely rely on cpr-lookup we can live
+        # without it
+        ldap_it_system_exists = True if it_system_uuid else False
+
+        if ldap_it_system_exists:
+            it_users = await self.load_mo_employee_it_users(uuid, it_system_uuid)
+            dns = self.extract_unique_dns(it_users)
+
+        # If we have an it-user (with a valid dn), use that dn
+        if ldap_it_system_exists and len(dns) == 1:
+            dn = dns[0]
+            logger.info(f"Found DN = {dn} using it-user lookup")
+            return dn
+
+        # If the employee has a cpr-no, try using that to find a matching dn
+        employee = await self.load_mo_employee(uuid)
+        cpr_no = employee.cpr_no
+        if cpr_no:
+            logger.info("Attempting to find dn using cpr-lookup")
+            try:
+                dn = self.load_ldap_cpr_object(cpr_no, "Employee").dn
+                logger.info(f"Found dn = {dn}")
+                return dn
+            except NoObjectsReturnedException:
+                if not ldap_it_system_exists:
+                    # If the LDAP-it-system is not configured, we can just generate the
+                    # DN and return it. If there is one, we pretty much do the same,
+                    # but also need to store the DN in an it-user object.
+                    # This is done below.
+                    logger.info("LDAP it-system not found - Generating DN")
+                    dn = username_generator.generate_dn(employee)
+                    return dn
+
+        # If there are multiple LDAP-it-users: Make some noise until this is fixed in MO
+        if ldap_it_system_exists and len(dns) > 1:
+            raise MultipleObjectsReturnedException(
+                (
+                    f"Could not find DN for employee with uuid = {uuid}; "
+                    f"Found multiple DNs for this employee: {dns}"
+                )
+            )
+        # If there are no LDAP-it-users with valid dns, we generate a dn and create one.
+        elif ldap_it_system_exists and len(dns) == 0:
+            logger.info("No it-user found. Generating DN and creating it-user")
+            dn = username_generator.generate_dn(employee)
+
+            # Make a new it-user
+            it_user = ITUser.from_simplified_fields(
+                dn,
+                it_system_uuid,
+                datetime.datetime.today().strftime("%Y-%m-%d"),
+                person_uuid=uuid,
+            )
+            await self.upload_mo_objects([it_user])
+            return dn
+        # If the LDAP-it-system is not configured and the user also does not have a cpr-
+        # Number we can end up here.
+        else:
+            raise DNNotFound(
+                (
+                    "Could not find or generate DN; "
+                    "The LDAP it-system does not exist and a cpr-match could "
+                    "also not be obtained"
+                )
+            )
 
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(

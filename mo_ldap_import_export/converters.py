@@ -24,7 +24,6 @@ from ramodels.mo.organisation_unit import OrganisationUnit
 from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
-from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
 from .ldap_classes import LdapObject
@@ -937,7 +936,7 @@ class LdapConverter:
                 mapping[key] = self._populate_mapping_with_templates(value, environment)
         return mapping
 
-    def to_ldap(self, mo_object_dict: dict, json_key: str, dn=None) -> LdapObject:
+    def to_ldap(self, mo_object_dict: dict, json_key: str, dn: str) -> LdapObject:
         """
         mo_object_dict : dict
             dict with mo objects to convert. for example:
@@ -970,15 +969,6 @@ class LdapConverter:
             rendered_item = template.render(mo_object_dict)
             if rendered_item:
                 ldap_object[ldap_field_name] = rendered_item
-
-        if not dn:
-            mo_employee_object = mo_object_dict["mo_employee"]
-            cpr_no = mo_employee_object.cpr_no
-
-            try:
-                dn = self.dataloader.load_ldap_cpr_object(cpr_no, json_key).dn
-            except NoObjectsReturnedException:
-                dn = self.username_generator.generate_dn(mo_employee_object)
 
         ldap_object["dn"] = dn
 

@@ -25,7 +25,6 @@ from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
-from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.exceptions import UUIDNotFoundException
 
@@ -277,49 +276,15 @@ def test_ldap_to_mo_dict_error(context: Context) -> None:
 
 def test_mo_to_ldap(converter: LdapConverter) -> None:
     obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
-    ldap_object: Any = converter.to_ldap(obj_dict, "Employee", dn="foo")
+    ldap_object: Any = converter.to_ldap(obj_dict, "Employee", "CN=foo")
     assert ldap_object.givenName == "Tester"
     assert ldap_object.sn == "Testersen"
     assert ldap_object.name == "Tester Testersen"
-    assert ldap_object.dn == "foo"
+    assert ldap_object.dn == "CN=foo"
 
     with pytest.raises(NotSupportedException):
         obj_dict = {"mo_employee_address": "foo"}
-        converter.to_ldap(obj_dict, "Employee")
-
-
-def test_mo_to_ldap_dn_is_None_obj_exists(converter: LdapConverter) -> None:
-    obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
-
-    dataloader = MagicMock()
-    dataloader.load_ldap_cpr_object.return_value = LdapObject(dn="foo123")
-    converter.dataloader = dataloader
-
-    ldap_object: Any = converter.to_ldap(obj_dict, "Employee", dn=None)
-    assert ldap_object.givenName == "Tester"
-    assert ldap_object.sn == "Testersen"
-    assert ldap_object.name == "Tester Testersen"
-    assert ldap_object.dn == "foo123"
-
-
-def test_mo_to_ldap_dn_is_None_obj_does_not_exist(converter: LdapConverter) -> None:
-    obj_dict: dict = {"mo_employee": Employee(givenname="Tester", surname="Testersen")}
-
-    dataloader = MagicMock()
-    dataloader.load_ldap_cpr_object.return_value = LdapObject(dn="foo123")
-    dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
-
-    converter.dataloader = dataloader
-
-    username_generator = MagicMock()
-    username_generator.generate_dn.return_value = "foo456"
-    converter.username_generator = username_generator
-
-    ldap_object: Any = converter.to_ldap(obj_dict, "Employee", dn=None)
-    assert ldap_object.givenName == "Tester"
-    assert ldap_object.sn == "Testersen"
-    assert ldap_object.name == "Tester Testersen"
-    assert ldap_object.dn == "foo456"
+        converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
 def test_mapping_loader() -> None:
@@ -391,7 +356,7 @@ def test_mapping_loader_failure(context: Context) -> None:
             obj_dict = {
                 "mo_employee": Employee(givenname="Tester", surname="Testersen")
             }
-            converter.to_ldap(obj_dict, "Employee")
+            converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
 def test_splitfirst() -> None:
