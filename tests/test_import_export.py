@@ -18,6 +18,7 @@ from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
@@ -107,7 +108,7 @@ async def test_listen_to_change_in_org_unit_address(
     # (even though load_mo_employees_in_org_unit returned three employee objects)
     assert modify_ldap_object.await_count == 2
 
-    load_mo_employees_in_org_unit.return_value = [Employee()]
+    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_org_units(
@@ -119,7 +120,7 @@ async def test_listen_to_change_in_org_unit_address(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "Employee does not have a cpr no",
+            "DN not found.",
             messages[-1]["event"],
         )
 
@@ -289,7 +290,7 @@ async def test_listen_to_changes_in_employees(
 
         assert re.match(
             f"Removing .* belonging to {old_uuid} from ignore_dict",
-            entries[1]["event"],
+            entries[3]["event"],
         )
         assert len(uuids_to_ignore) == 2  # Note that the old_uuid is removed by clean()
         assert len(uuids_to_ignore[old_uuid]) == 0
@@ -297,29 +298,16 @@ async def test_listen_to_changes_in_employees(
         assert len(uuids_to_ignore[payload.object_uuid]) == 1
 
 
-async def test_listen_to_changes_in_employees_no_cpr(
+async def test_listen_to_changes_in_employees_no_dn(
     dataloader: AsyncMock,
     load_settings_overrides: dict[str, str],
     test_mo_address: Address,
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
-
-    settings_mock = MagicMock()
-    settings_mock.ldap_search_base = "bar"
-
     payload = MagicMock()
-    payload.uuid = uuid4()
-    payload.object_uuid = uuid4()
-
-    settings = MagicMock()
-    settings.ldap_search_base = "DC=bar"
-
-    employee_without_cpr = Employee()
-    dataloader.load_mo_employee.return_value = employee_without_cpr
-
-    # Simulate a created employee
     mo_routing_key = MORoutingKey.build("employee.employee.create")
+    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
 
     with capture_logs() as cap_logs:
         await asyncio.gather(
@@ -333,7 +321,7 @@ async def test_listen_to_changes_in_employees_no_cpr(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            "Employee does not have a cpr no",
+            "DN not found.",
             messages[-1]["event"],
         )
 
@@ -735,7 +723,7 @@ async def test_import_single_object_from_LDAP_ignore_dn(
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
-            f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore}",
+            f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore.lower()}",
             messages[-1]["event"].detail,
         )
 

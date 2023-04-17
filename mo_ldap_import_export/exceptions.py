@@ -81,3 +81,8 @@ class InvalidChangeDict(HTTPException):
 class InvalidCPR(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=422, detail=message)
+
+
+class DNNotFound(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)

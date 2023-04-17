@@ -21,6 +21,7 @@ from gql.transport.exceptions import TransportQueryError
 from graphql import print_ast
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ramodels.mo.details.address import Address
+from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import ServiceType
@@ -31,10 +32,12 @@ from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import AttributeNotFound
 from mo_ldap_import_export.exceptions import CprNoNotFound
+from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import InvalidChangeDict
 from mo_ldap_import_export.exceptions import InvalidQueryResponse
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
+from mo_ldap_import_export.exceptions import UUIDNotFoundException
 from mo_ldap_import_export.import_export import IgnoreMe
 
 
@@ -112,6 +115,11 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture
+def username_generator() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
 def sync_tool() -> MagicMock:
     sync_tool = MagicMock()
     sync_tool.dns_to_ignore = IgnoreMe()
@@ -128,6 +136,7 @@ def context(
     converter: MagicMock,
     gql_client_sync: MagicMock,
     sync_tool: MagicMock,
+    username_generator: MagicMock,
 ) -> Context:
 
     return {
@@ -140,6 +149,7 @@ def context(
             "converter": converter,
             "gql_client_sync": gql_client_sync,
             "sync_tool": sync_tool,
+            "username_generator": username_generator,
         },
     }
 
@@ -203,6 +213,9 @@ async def test_load_ldap_cpr_object(
 
     output = dataloader.load_ldap_cpr_object("0101012002", "Employee")
     assert output == expected_result
+
+    with pytest.raises(NoObjectsReturnedException):
+        dataloader.load_ldap_cpr_object("None", "Employee")
 
 
 async def test_load_ldap_objects(
@@ -1637,7 +1650,7 @@ async def test_modify_ldap(
     assert len(sync_tool.dns_to_ignore[dn]) == 1
 
     # Validate that any old entries get cleaned, and a new one gets added
-    sync_tool.dns_to_ignore.ignore_dict[dn] = [
+    sync_tool.dns_to_ignore.ignore_dict[dn.lower()] = [
         datetime.datetime(1900, 1, 1),
         datetime.datetime(1901, 1, 1),
     ]
@@ -1702,3 +1715,95 @@ async def test_modify_ldap(
     changes = {"parameter_to_modify": [("MODIFY_DELETE", "foo")]}
     response = dataloader.modify_ldap(dn, changes)
     assert response == {"description": "success"}
+
+
+async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicMock):
+    uuid = uuid4()
+    converter.get_it_system_uuid.return_value = uuid
+    assert dataloader.get_ldap_it_system_uuid() == uuid
+
+    converter.get_it_system_uuid.side_effect = UUIDNotFoundException("UUID Not found")
+    assert dataloader.get_ldap_it_system_uuid() is None
+
+
+async def test_find_or_make_mo_employee_dn(
+    dataloader: DataLoader, username_generator: MagicMock
+):
+    ad_it_user = ITUser.from_simplified_fields(
+        "CN=foo,DC=bar",
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+    another_ad_it_user = ITUser.from_simplified_fields(
+        "CN=foo2,DC=bar",
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+
+    invalid_ad_it_user = ITUser.from_simplified_fields(
+        "invalid_dn",
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+
+    it_system_uuid = uuid4()
+    dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
+    dataloader.load_mo_employee_it_users = AsyncMock()  # type: ignore
+    dataloader.load_mo_employee = AsyncMock()  # type: ignore
+    dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
+    dataloader.upload_mo_objects = AsyncMock()  # type: ignore
+
+    # Case where there is an IT-system that contains the DN
+    dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
+    dataloader.get_ldap_it_system_uuid.return_value = it_system_uuid
+    dataloader.load_mo_employee_it_users.return_value = [ad_it_user]
+    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    assert dn == "CN=foo,DC=bar"
+
+    # Same as above, but the it-system contains an invalid value
+    dataloader.load_mo_employee_it_users.return_value = [invalid_ad_it_user]
+    username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
+    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    uploaded_dn = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    assert dn == "CN=generated_dn_1,DC=DN"
+    assert uploaded_dn == "CN=generated_dn_1,DC=DN"
+    dataloader.upload_mo_objects.reset_mock()
+
+    # Same as above, but there are multiple IT-users
+    dataloader.load_mo_employee_it_users.return_value = [ad_it_user, another_ad_it_user]
+    with pytest.raises(MultipleObjectsReturnedException):
+        await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))
+
+    # Case where there is no IT-system that contains the DN, but the cpr lookup succeeds
+    dataloader.load_mo_employee.return_value = Employee(cpr_no="0101911234")
+    dataloader.load_mo_employee_it_users.return_value = []
+    dataloader.load_ldap_cpr_object.return_value = LdapObject(
+        dn="CN=dn_already_in_ldap,DC=foo"
+    )
+    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    assert dn == "CN=dn_already_in_ldap,DC=foo"
+
+    # Same as above, but the cpr-lookup does not succeed
+    dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
+    username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
+    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    uploaded_dn = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    assert dn == "CN=generated_dn_2,DC=DN"
+    assert uploaded_dn == "CN=generated_dn_2,DC=DN"
+    dataloader.upload_mo_objects.reset_mock()
+
+    # Same as above, but an it-system does not exist
+    dataloader.get_ldap_it_system_uuid.return_value = None
+    username_generator.generate_dn.return_value = "CN=generated_dn_3,DC=DN"
+    dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
+    assert dn == "CN=generated_dn_3,DC=DN"
+    dataloader.upload_mo_objects.assert_not_awaited()
+    dataloader.upload_mo_objects.reset_mock()
+
+    # Same as above, but the user also has no cpr number
+    dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
+    with pytest.raises(DNNotFound):
+        await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))

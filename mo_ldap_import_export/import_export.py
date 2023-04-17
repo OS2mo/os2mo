@@ -18,6 +18,7 @@ from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 
+from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
@@ -30,7 +31,7 @@ class IgnoreMe:
         self.ignore_dict: dict[str, list[datetime.datetime]] = {}
 
     def __getitem__(self, key: Union[str, UUID]) -> list[datetime.datetime]:
-        key = str(key)
+        key = self.format_entry(key)
         if key in self.ignore_dict:
             return self.ignore_dict[key]
         else:
@@ -38,6 +39,11 @@ class IgnoreMe:
 
     def __len__(self):
         return len(self.ignore_dict)
+
+    def format_entry(self, entry: Union[str, UUID]) -> str:
+        if type(entry) is not str:
+            entry = str(entry)
+        return entry.lower()
 
     def clean(self):
         # Remove all timestamps which have been in the ignore dict for more than 60 sec.
@@ -61,16 +67,15 @@ class IgnoreMe:
 
     def add(self, str_to_add: Union[str, UUID]):
         # Add a string to the ignore dict
-        if type(str_to_add) is not str:
-            str_to_add = str(str_to_add)
+        str_to_add = self.format_entry(str_to_add)
+
         if str_to_add in self.ignore_dict:
             self.ignore_dict[str_to_add].append(datetime.datetime.now())
         else:
             self.ignore_dict[str_to_add] = [datetime.datetime.now()]
 
     def remove(self, str_to_remove: Union[str, UUID]):
-        if type(str_to_remove) is not str:
-            str_to_remove = str(str_to_remove)
+        str_to_remove = self.format_entry(str_to_remove)
 
         if str_to_remove in self.ignore_dict:
             # Remove latest entry from the ignore dict
@@ -79,8 +84,7 @@ class IgnoreMe:
 
     def check(self, str_to_check: Union[str, UUID]):
         # Raise ignoreChanges if the string to check is in self.ignore_dict
-        if type(str_to_check) is not str:
-            str_to_check = str(str_to_check)
+        str_to_check = self.format_entry(str_to_check)
         self.clean()
 
         if str_to_check in self.ignore_dict and self.ignore_dict[str_to_check]:
@@ -111,11 +115,19 @@ class SyncTool:
     ) -> None:
 
         logger.info("[MO] Registered change in the employee model")
+        logger.info(f"[MO] uuid = {payload.uuid}")
+        logger.info(f"[MO] object_uuid = {payload.object_uuid}")
 
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
         # those changes potentially map to multiple employees
         self.uuids_to_ignore.check(payload.object_uuid)
+
+        try:
+            dn = await self.dataloader.find_or_make_mo_employee_dn(payload.uuid)
+        except DNNotFound:
+            logger.info(f"DN not found for employee with uuid = {payload.uuid}")
+            return
 
         # Get MO employee
         changed_employee = await self.dataloader.load_mo_employee(
@@ -123,9 +135,6 @@ class SyncTool:
             current_objects_only=current_objects_only,
         )
         logger.info(f"Found Employee in MO: {changed_employee}")
-        if not changed_employee.cpr_no:
-            logger.info("Employee does not have a cpr no")
-            return
 
         mo_object_dict: dict[str, Any] = {"mo_employee": changed_employee}
 
@@ -133,7 +142,7 @@ class SyncTool:
             logger.info("[MO] Change registered in the employee object type")
 
             # Convert to LDAP
-            ldap_employee = self.converter.to_ldap(mo_object_dict, "Employee")
+            ldap_employee = self.converter.to_ldap(mo_object_dict, "Employee", dn)
 
             # Upload to LDAP - overwrite because all employee fields are unique.
             # One person cannot have multiple names.
@@ -160,7 +169,7 @@ class SyncTool:
 
             # Convert & Upload to LDAP
             await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key),
+                self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -177,6 +186,7 @@ class SyncTool:
                 self.user_context,
                 changed_employee,
                 routing_key.object_type,
+                dn,
             )
 
         elif routing_key.object_type == ObjectType.IT:
@@ -195,7 +205,7 @@ class SyncTool:
 
             # Convert & Upload to LDAP
             await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key),
+                self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -213,6 +223,7 @@ class SyncTool:
                 self.user_context,
                 changed_employee,
                 routing_key.object_type,
+                dn,
             )
 
         elif routing_key.object_type == ObjectType.ENGAGEMENT:
@@ -232,7 +243,7 @@ class SyncTool:
             # Because it looks like you cannot set 'primary' when creating an engagement
             # in the OS2mo GUI.
             await self.dataloader.modify_ldap_object(
-                self.converter.to_ldap(mo_object_dict, json_key),
+                self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
@@ -249,6 +260,7 @@ class SyncTool:
                 self.user_context,
                 changed_employee,
                 routing_key.object_type,
+                dn,
             )
 
     async def listen_to_changes_in_org_units(
@@ -258,6 +270,9 @@ class SyncTool:
         delete: bool,
         current_objects_only: bool,
     ) -> None:
+        logger.info("[MO] Registered change in the org_unit model")
+        logger.info(f"[MO] uuid = {payload.uuid}")
+        logger.info(f"[MO] object_uuid = {payload.object_uuid}")
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
@@ -296,8 +311,18 @@ class SyncTool:
             logger.info(f"[MO] Found {len(affected_employees)} affected employees")
 
             for affected_employee in affected_employees:
-                if not affected_employee.cpr_no:
-                    logger.info("Employee does not have a cpr no")
+
+                try:
+                    dn = await self.dataloader.find_or_make_mo_employee_dn(
+                        affected_employee.uuid
+                    )
+                except DNNotFound:
+                    logger.info(
+                        (
+                            "DN not found for employee "
+                            f"with uuid = {affected_employee.uuid}"
+                        )
+                    )
                     continue
 
                 mo_object_dict = {
@@ -307,7 +332,7 @@ class SyncTool:
 
                 # Convert & Upload to LDAP
                 await self.dataloader.modify_ldap_object(
-                    self.converter.to_ldap(mo_object_dict, json_key),
+                    self.converter.to_ldap(mo_object_dict, json_key, dn),
                     json_key,
                     delete=delete,
                 )
@@ -324,6 +349,7 @@ class SyncTool:
                     self.user_context,
                     affected_employee,
                     routing_key.object_type,
+                    dn,
                 )
 
     async def format_converted_objects(self, converted_objects, json_key):

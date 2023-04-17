@@ -24,6 +24,8 @@ from ldap3 import RESTARTABLE
 from ldap3 import Server
 from ldap3 import ServerPool
 from ldap3 import Tls
+from ldap3.core.exceptions import LDAPInvalidDnError
+from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
@@ -244,7 +246,7 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     if len(search_entries) > 1:
         logger.info(response)
         raise MultipleObjectsReturnedException(
-            f"Found multiple entries for {searchParameters}"
+            f"Found multiple entries for {searchParameters}: {search_entries}"
         )
     elif len(search_entries) == 0:
         logger.info(response)
@@ -260,16 +262,12 @@ def is_dn(value):
     if type(value) is not str:
         return False
 
-    parts = value.split(",")
-    for required in ("CN=", "OU=", "DC="):
-        found = False
-        for part in parts:
-            if part.strip().startswith(required):
-                found = True
-                break
-        if not found:
-            return False
-    return True
+    try:
+        safe_dn(value)
+    except LDAPInvalidDnError:
+        return False
+    else:
+        return True
 
 
 def get_ldap_object(dn, context, nest=True):
@@ -353,6 +351,7 @@ async def cleanup(
     user_context: dict,
     employee: Employee,
     object_type: ObjectType,
+    dn: str,
 ):
     """
     Cleans entries from LDAP
@@ -379,7 +378,10 @@ async def cleanup(
 
     # Get all matching objects for this user in LDAP (note that LDAP can contain
     # multiple entries in one object.)
-    loaded_ldap_object = dataloader.load_ldap_cpr_object(employee.cpr_no, json_key)
+    loaded_ldap_object = dataloader.load_ldap_object(
+        dn,
+        converter.get_ldap_attributes(json_key),
+    )
 
     # Convert to MO so the two are easy to compare
     logger.info("[cleanup] Converting LDAP objects to MO")
@@ -407,7 +409,7 @@ async def cleanup(
                         mo_dict_key: mo_object,
                     },
                     json_key,
-                    dn=loaded_ldap_object.dn,
+                    dn,
                 )
             )
 
