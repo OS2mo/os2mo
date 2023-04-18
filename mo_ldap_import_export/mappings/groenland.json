@@ -15,6 +15,16 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
+    "Engagement": {
+      "objectClass": "ramodels.mo.details.engagement.Engagement",
+      "__import_to_mo__": true,
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.department)) }}",
+      "job_function": "{{ dict(uuid=get_job_function_uuid('TestEngFunction')) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('TestEngage')) }}",
+      "user_key": "{{ uuid4() }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+    },
   },
   "mo_to_ldap": {
     "Employee": {
@@ -30,7 +40,11 @@
       "__export_to_ldap__": true,
       "distinguishedName" : "{{mo_employee_it_user.user_key}}",
     },
-
+    "Engagement" : {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "department": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
+    },
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
