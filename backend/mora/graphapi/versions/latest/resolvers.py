@@ -218,7 +218,15 @@ async def user_keys2uuids(
     """
     objects = await resolver.resolve(info, user_keys=user_keys)
     uuids = [obj.uuid for obj in objects]
-    return uuids
+    if uuids:
+        return uuids
+
+    # If the user key(s) were not in found in LoRa, we would return an empty list here.
+    # Unfortunately, filtering a key on an empty list in LoRa is equivalent to _not
+    # filtering on that key at all_. This is obviously very confusing to anyone who has
+    # ever used SQL, but we are too scared to change the behaviour. Instead, to
+    # circumvent this issue, we send a UUID which we know (hope) is never present.
+    return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
 class FacetResolver(StaticResolver):
