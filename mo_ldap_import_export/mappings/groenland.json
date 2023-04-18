@@ -24,6 +24,7 @@
       "user_key": "{{ uuid4() }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
     },
   },
   "mo_to_ldap": {
