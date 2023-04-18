@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from functools import partial
+from functools import wraps
 from typing import Any
 from typing import Callable
 from typing import Literal
@@ -67,7 +68,6 @@ from .utils import countdown
 from .utils import listener
 from .utils import mo_datestring_to_utc
 
-
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 internal_amqp_router = MORouter()
@@ -87,6 +87,7 @@ def reject_on_failure(func):
     Decorator to turn message into dead letter in case of exceptions.
     """
 
+    @wraps(func)
     async def modified_func(*args, **kwargs):
         try:
             await func(*args, **kwargs)
