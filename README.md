@@ -37,10 +37,8 @@ To interact with the app, you can go to [the swagger documentation][swagger].
 
 #### Importing from LDAP to OS2mo
 Objects can be imported from LDAP to OS2mo in two ways:
-* A single user can be imported using [GET:/Import/cpr][get_import_single]
+* A single user can be imported using [GET:/Import/dn][get_import_single]
 * All users can be imported using [GET:/Import/all][get_import_all]
-
-Note that only employees with a cpr-number are recognized as employees.
 
 #### Exporting from OS2mo to LDAP
 Objects can be exported from OS2mo to LDAP by using [POST:/Export][post_export_all].
@@ -49,8 +47,10 @@ Note that only objects which are properly defined in the conversion file are exp
 #### Synchronization between OS2mo and LDAP
 OS2mo and LDAP are kept ajour by two seperate processes:
 * An LDAP listener runs in the background and listens to any changes in LDAP. The
-  listener will respond within 5 seconds by calling [GET:/Import/cpr][get_import_single]
-  on a changed employee, when any of its attributes are modified in LDAP.
+  listener will respond within 5 seconds by calling `sync_tool.import_single_user(dn)`
+  on a changed ldap object, when any of its attributes are modified in LDAP.
+  Note that this can also cause non-employee objects to be imported, if those are in
+  the LDAP search base.
 * An AMQP listener runs in the background and listens to AMQP messages sent out by
   OS2mo. As soon as the listener receives an AMQP message, the matching OS2mo object is
   exported to LDAP.
@@ -105,15 +105,16 @@ Each entry in the conversion file _must_ specify:
     * OS2mo: Any OS2mo class from ramodels should be acceptable.
     * LDAP: Available LDAP classes and their attributes can be retrieved by calling
     [GET:LDAP_overview][get_overview].
-* An attribute that corresponds to the cpr number for the OS2mo or LDAP class.
 * Attributes for all required fields in the OS2mo or LDAP class to be written
-* For LDAP classes: A link to mo_employee.cpr_no must be present. Otherwise we do not
-  know who the address belongs to.
 * For OS2mo classes: A link to the employee or organization unit's uuid must be present.
 
 Note that all attributes MUST be accepted by the destination class in OS2mo or LDAP.
 Exceptions for this are the LDAP `extensionAttribute` attributes. These attributes
 can be present on LDAP classes, without being explicitly specified in the schema.
+
+Also note that the application needs to be able to link OS2mo and LDAP objects to each
+other.
+See the chapter on [Linking LDAP and OS2mo objects](#link-ldap-and-os2mo-objects)
 
 Values in the json structure may be normal strings, or a string containing one or more
 jinja2 templates, to be used for extracting values. For example:
@@ -180,11 +181,10 @@ An example of an address conversion dict is as follows:
   [...]
 ```
 
-Note the presence of the `mo_employee.cpr_no` field. This field must be present, for the
-application to know who this address belongs to. Furthermore, the `Email` key must be a
+Note that the `Email` key must be a
 valid OS2mo address type name. OS2mo address types can be retrieved by calling
-[GET:MO/Address_types][get_address_types]. Finally it is recommended that LDAP's `mail`
-attribute is a multi-value field.
+[GET:MO/Address_types][get_address_types]. In this example, it is recommended that 
+LDAP's `mail` attribute is a multi-value field.
 
 Converting the other way around can be done as follows:
 
@@ -197,7 +197,7 @@ Converting the other way around can be done as follows:
       "value": "{{ldap.mail or None}}",
       "type": "address",
       "validity": "{{ dict(from_date = ldap.mail_validity_from or now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('Lokation')) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
   }
@@ -264,8 +264,9 @@ contrast to an employee object, which needs a `person` attribute. For details re
 `get_org_unit_path_string` and `get_or_create_org_unit_uuid`, see the chapter on
 [engagement conversion](#engagement-conversion).
 
-Mapping org unit addresses to LDAP objects other than `employee` objects (i.e. objects
-with a cpr number field) is currently not supported.
+Mapping org unit addresses to LDAP objects other than `employee` objects (i.e. the
+object which contains the address also contains employee information like name, cpr-no,
+etc.) is currently not supported.
 
 #### IT user conversion
 It user conversion follows the same logic as address conversion. An example of an IT
@@ -376,6 +377,112 @@ uuid that refers to OS2mo's `primary` class. `primary` is not just a True/False 
 but can contain entries like for example `primary`, `not-primary`, `explicitly-primary`.
 To inspect all possible values, which the `primary` class can take, use
 [GET:MO/Primary_types][get_primary_types].
+
+#### Link LDAP and OS2mo objects
+
+For us to be able to synchronize objects between OS2mo and LDAP, we need to know which
+LDAP user corresponds to which OS2mo user, and the other way around. This can be done
+in two ways and is attempted in the following order:
+
+* Using a properly configured IT-user
+* Using cpr-number lookup
+
+Both methods are described in this chapter.
+
+##### Using a properly configured IT-user
+
+If an OS2mo employee has an IT-user which contains the LDAP `distinguishedName` attribute
+value, this is used to determine which LDAP object an OS2mo object corresponds to.
+This method will succeed if:
+
+* An IT-system is configured in the mapping file to contain LDAP's `distinguishedName`
+  attribute as its `user_key`.
+* The OS2mo user has exactly one IT-user of this type.
+
+This can be configured in the file mapping as follows:
+
+```
+  [...]
+  "mo_to_ldap": {
+    "Active Directory": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+    },
+  }
+  [...]
+```
+
+And the other way around:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "Active Directory": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "__import_to_mo__": true,
+      "user_key": "{{ ldap.distinguishedName }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    }
+  }
+  [...]
+```
+
+If an OS2mo employee does not have an IT-user (and also no cpr-number), a username is
+generated for the employee, and uploaded as an it-system.
+
+If an OS2mo employee has multiple IT-users with valid `distinguishedName` values,
+an exception is raised.
+
+##### Using cpr-number lookup
+
+A cpr-number is unique to a person, and can therefore be used to look up the LDAP object
+corresponding to an OS2mo employee. If the cpr-number is configured in the mapping file,
+this is automatically attempted if the IT-user lookup fails or is not configured
+(properly).
+
+This required an employee to be configured as follows in the mapping file:
+
+```
+  [...]
+  "mo_to_ldap": {
+    "Employee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "employeeID": "{{mo_employee.cpr_no}}",
+      [...]
+    },
+  }
+  [...]
+```
+
+And the other way around:
+
+```
+  [...]
+  "ldap_to_mo": {
+    "Employee": {
+      "objectClass": "ramodels.mo.employee.Employee",
+      "__import_to_mo__": true,
+      "cpr_no": "{{ldap.employeeID|strip_non_digits}}",
+      "uuid": "{{ employee_uuid or NONE }}"
+      [...]
+    },
+  }
+  [...]
+```
+
+Note that the OS2mo `employee.cpr_no` attribute is mapped both in the `ldap_to_mo` and
+the `mo_to_ldap` mapping. This will cause the application to understand that it can
+attempt a cpr-number lookup to find a matching object in LDAP/MO when required.
+
+If LDAP contains multiple users with the same cpr-number, an exception is raised.
+
+If LDAP does not contain any objects with the cpr-number of the OS2mo employee,
+a username is generated and the LDAP object is created.
+
 
 #### Filters and globals
 
@@ -534,9 +641,6 @@ The application is configured with three CRON jobs, which run on a periodic sche
 * Daily at 23:00: Info dictionaries are reloaded by calling
   [POST:/reload_info_dicts][post_reload_info_dicts]. This is necessary, in case new
   object types are added to OS2mo. For example by using `OS2mo init`.
-* Daily at 00:00: All information in LDAP is imported to OS2mo by calling
-  [GET:/Import/all][get_import_all]. This will overwrite information in OS2mo, if the
-  LDAP database contains new information.
 * Daily at 03:00: Objects which enter or leave validity are exported to the LDAP
   database by calling [POST:/synchronize_todays_events][post_synchronize_todays_events].
 
@@ -548,7 +652,7 @@ The application is configured with three CRON jobs, which run on a periodic sche
 [get_primary_types]:http://localhost:8000/docs#/MO/load_primary_types_from_MO_MO_Primary_types_get
 [post_reload_info_dicts]:http://localhost:8000/docs#/Maintenance/reload_info_dicts_reload_info_dicts_post
 [get_import_all]:http://localhost:8000/docs#/Import/import_all_objects_from_LDAP_Import_all_get
-[get_import_single]:http://localhost:8000/docs#/Import/import_single_user_from_LDAP_Import__cpr__get
+[get_import_single]:http://localhost:8000/docs#/Import/import_single_user_from_LDAP_Import__dn__get
 [post_synchronize_todays_events]:http://localhost:8000/docs#/Maintenance/synchronize_todays_events_Synchronize_todays_events_post
 [jinja2_filters]:https://jinja.palletsprojects.com/en/3.1.x/templates/#builtin-filters
 [post_export_all]:http://localhost:8000/docs#/Export/export_mo_objects_Export_post
