@@ -134,6 +134,9 @@ class TestCommon(tests.cases.LoRATestCase):
             },
         }
 
+        self.create_org_unit_payload_no_details = deepcopy(self.create_org_unit_payload)
+        self.create_org_unit_payload_no_details["details"] = []
+
         self.create_owner_payload = [
             {
                 "type": "owner",
@@ -190,6 +193,14 @@ class TestCommon(tests.cases.LoRATestCase):
         self.org_unit_uuid_2 = self.assertRequest(
             self.url_create,
             json=self.create_org_unit_payload,
+            status_code=HTTP_201_CREATED,
+        )
+
+        # Create empty org unit without any details
+        self.create_org_unit_payload_no_details["parent"]["uuid"] = self.org_unit_uuid_1
+        self.org_unit_no_details_uuid = self.assertRequest(
+            self.url_create,
+            json=self.create_org_unit_payload_no_details,
             status_code=HTTP_201_CREATED,
         )
 
@@ -308,7 +319,7 @@ class TestTerminateOrgUnit(TestCommon):
     def setUp(self):
         super().setUp()
 
-        self.url_terminate = f"/service/ou/{self.org_unit_uuid_2}/terminate"
+        self.url_terminate = f"/service/ou/{self.org_unit_no_details_uuid}/terminate"
 
         # Payload for terminating the newly created org unit
         self.terminate_payload = {
