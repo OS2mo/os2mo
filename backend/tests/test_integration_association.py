@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import freezegun
 import pytest
+from fastapi.testclient import TestClient
 from parameterized import parameterized
 
 import tests.cases
@@ -404,9 +405,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     {
                         "uuid": subid,
                         "virkning": {
-                            "from": "2017-12-01 " "00:00:00+01",
+                            "from": "2017-12-01 00:00:00+01",
                             "from_included": True,
-                            "to": "2017-12-02 " "00:00:00+01",
+                            "to": "2017-12-02 00:00:00+01",
                             "to_included": False,
                         },
                     }
@@ -1462,81 +1463,67 @@ class Tests(tests.cases.LoRATestCase):
         )
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AddressTests(tests.cases.LoRATestCase):
-    maxDiff = None
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_terminate_association_directly(service_client: TestClient) -> None:
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
-    def test_terminate_association_directly(self):
-        # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+    payload = {
+        "type": "association",
+        "uuid": associationid,
+        "validity": {"to": "2017-11-30"},
+    }
 
-        payload = {
+    response = service_client.get(
+        f"/service/e/{userid}/details/association", params={"validity": "present"}
+    )
+    assert response.status_code == 200
+    orig = response.json()
+
+    expected = copy.deepcopy(orig)
+    expected[0]["validity"]["to"] = "2017-11-30"
+
+    response = service_client.post(
+        "/service/details/terminate",
+        json=payload,
+    )
+    assert response.status_code == 200
+    assert response.json() == associationid
+
+    response = service_client.get(
+        f"/service/e/{userid}/details/association", params={"validity": "past"}
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+    response = service_client.get(
+        f"/service/e/{userid}/details/association", params={"validity": "present"}
+    )
+    assert response.status_code == 200
+    assert response.json() == expected
+
+    response = service_client.get(
+        f"/service/e/{userid}/details/association", params={"validity": "future"}
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+@freezegun.freeze_time("2018-01-01", tz_offset=1)
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_terminate_association_in_the_past(service_client: TestClient) -> None:
+    associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    response = service_client.post(
+        "/service/details/terminate",
+        json={
             "type": "association",
             "uuid": associationid,
             "validity": {"to": "2017-11-30"},
-        }
-
-        orig = self.assertRequest(
-            "/service/e/{}/details/association" "?validity=present".format(userid),
-        )
-
-        expected = copy.deepcopy(orig)
-        expected[0]["validity"]["to"] = "2017-11-30"
-
-        self.assertRequestResponse(
-            "/service/details/terminate",
-            associationid,
-            json=payload,
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=past".format(userid),
-            [],
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=present".format(userid),
-            expected,
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
-
-        self.assertRequestResponse(
-            "/service/e/{}/details/association" "?validity=future".format(userid),
-            [],
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
-
-    @freezegun.freeze_time("2018-01-01", tz_offset=1)
-    def test_terminate_association_in_the_past(self):
-        # Check the POST request
-        associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-
-        self.assertRequestFails(
-            "/service/details/terminate",
-            200,
-            json={
-                "type": "association",
-                "uuid": associationid,
-                "validity": {"to": "2017-11-30"},
-            },
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == associationid
