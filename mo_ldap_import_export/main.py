@@ -676,7 +676,7 @@ def create_app(**kwargs: Any) -> FastAPI:
     async def load_object_from_ldap(
         dn: str, user=Depends(login_manager), nest: bool = False
     ) -> Any:
-        return dataloader.load_ldap_object(dn, ["*"], nest=nest)
+        return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get MO address types
     @app.get("/MO/Address_types", status_code=202, tags=["MO"])
