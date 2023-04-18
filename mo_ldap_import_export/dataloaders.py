@@ -207,6 +207,9 @@ class DataLoader:
             raise NoObjectsReturnedException(f"cpr_no '{cpr_no}' is invalid")
 
         cpr_field = self.user_context["cpr_field"]
+        if not cpr_field:
+            raise NoObjectsReturnedException("cpr_field is not configured")
+
         settings = self.user_context["settings"]
 
         search_base = settings.ldap_search_base
@@ -533,15 +536,16 @@ class DataLoader:
 
     async def find_mo_employee_uuid(self, dn: str) -> Union[None, UUID]:
         cpr_field = self.user_context["cpr_field"]
-        ldap_object = self.load_ldap_object(dn, [cpr_field])
+        if cpr_field:
+            ldap_object = self.load_ldap_object(dn, [cpr_field])
 
-        # Try to get the cpr number from LDAP and use that.
-        try:
-            cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
-        except ValueError:
-            cpr_no = None
+            # Try to get the cpr number from LDAP and use that.
+            try:
+                cpr_no = validate_cpr(str(getattr(ldap_object, cpr_field)))
+            except ValueError:
+                cpr_no = None
 
-        if cpr_no:
+        if cpr_field and cpr_no:
             cpr_query = (
                 """
             employees(cpr_numbers: "%s") {
@@ -583,7 +587,7 @@ class DataLoader:
         Return None if the LDAP-it-system is not found.
         """
         converter = self.user_context["converter"]
-        user_key = self.user_context["settings"].ldap_it_system_user_key
+        user_key = self.user_context["ldap_it_system_user_key"]
         try:
             return converter.get_it_system_uuid(user_key)
         except UUIDNotFoundException:

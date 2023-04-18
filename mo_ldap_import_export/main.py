@@ -51,6 +51,7 @@ from .converters import LdapConverter
 from .converters import read_mapping_json
 from .dataloaders import DataLoader
 from .dependencies import valid_cpr
+from .exceptions import CPRFieldNotFound
 from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
@@ -306,6 +307,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Initializing converters")
     converter = LdapConverter(fastramqpi.get_context())
     fastramqpi.add_context(cpr_field=converter.cpr_field)
+    fastramqpi.add_context(ldap_it_system_user_key=converter.ldap_it_system)
     fastramqpi.add_context(converter=converter)
 
     logger.info("Initializing internal AMQP system")
@@ -421,6 +423,10 @@ def create_app(**kwargs: Any) -> FastAPI:
         delay_in_seconds: float = 0,
         cpr_indexed_entries_only: bool = True,
     ) -> Any:
+
+        if cpr_indexed_entries_only and not cpr_field:
+            raise CPRFieldNotFound("cpr_field is not configured")
+
         delay = delay_in_hours * 60 * 60 + delay_in_minutes * 60 + delay_in_seconds
         if delay > 0:
             await countdown(delay, "/Import/all")
@@ -586,6 +592,9 @@ def create_app(**kwargs: Any) -> FastAPI:
     # Get all objects from LDAP with invalid cpr numbers
     @app.get("/LDAP_overview/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP(user=Depends(login_manager)) -> Any:
+        if not cpr_field:
+            raise CPRFieldNotFound("cpr_field is not configured")
+
         result = await dataloader.load_ldap_objects("Employee")
 
         formatted_result = {}

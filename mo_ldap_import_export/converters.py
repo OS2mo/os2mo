@@ -21,7 +21,6 @@ from jinja2 import Undefined
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ramodels.mo.organisation_unit import OrganisationUnit
 
-from .exceptions import CprNoNotFound
 from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
@@ -69,9 +68,30 @@ def find_cpr_field(mapping):
             break
 
     if cpr_field is None:
-        raise CprNoNotFound("CPR field not found")
+        logger.warning("CPR field not found")
 
     return cpr_field
+
+
+def find_ldap_it_system(mapping, mo_it_system_user_keys):
+    """
+    Loop over all of MO's IT-systems and determine if one of them contains the AD-DN
+    as a user_key
+    """
+    ldap_it_system = None
+    for mo_it_system_user_key in mo_it_system_user_keys:
+        if mo_it_system_user_key in mapping["ldap_to_mo"]:
+            template = mapping["ldap_to_mo"][mo_it_system_user_key]["user_key"]
+            dn = template.render({"ldap": {"distinguishedName": "CN=foo"}})
+            if dn == "CN=foo":
+                ldap_it_system = mo_it_system_user_key
+                logger.info(f"Found LDAP IT-system: '{ldap_it_system}'")
+                break
+
+    if ldap_it_system is None:
+        logger.warning("LDAP IT-system not found")
+
+    return ldap_it_system
 
 
 class LdapConverter:
@@ -118,6 +138,7 @@ class LdapConverter:
 
         self.check_mapping()
         self.cpr_field = find_cpr_field(self.mapping)
+        self.ldap_it_system = find_ldap_it_system(self.mapping, self.mo_it_systems)
 
     def load_info_dicts(self):
         # Note: If new address types or IT systems are added to MO, these dicts need
@@ -300,7 +321,6 @@ class LdapConverter:
     def check_ldap_attributes(self):
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
 
-        cpr_field = find_cpr_field(self.mapping)
         for json_key in mo_to_ldap_json_keys:
             logger.info(f"[json check] checking mo_to_ldap['{json_key}']")
 
@@ -314,13 +334,6 @@ class LdapConverter:
             detected_single_value_attributes = [
                 a for a in detected_attributes if self.dataloader.single_value[a]
             ]
-
-            # Check that the CPR field is present. Otherwise we do not know who an
-            # Address/Employee/... belongs to.
-            if cpr_field not in detected_attributes:
-                raise IncorrectMapping(
-                    f"'{cpr_field}' attribute not present in mo_to_ldap['{json_key}']"
-                )
 
             # Check single value fields which map to MO address/it-user/... objects.
             # We like fields which map to these MO objects to be multi-value fields,
@@ -602,6 +615,18 @@ class LdapConverter:
                         f"{conversion}['{json_key}']['{ie_key}'] is not a boolean"
                     )
 
+    def check_cpr_field_or_it_system(self):
+        """
+        Check that we have either a cpr-field OR an it-system which maps to an LDAP DN
+        """
+
+        cpr_field = find_cpr_field(self.mapping)
+        ldap_it_system = find_ldap_it_system(self.mapping, self.mo_it_systems)
+        if not cpr_field and not ldap_it_system:
+            raise IncorrectMapping(
+                "Neither a cpr-field or an ldap it-system could be found"
+            )
+
     def check_mapping(self):
         logger.info("[json check] Checking json file")
 
@@ -642,6 +667,9 @@ class LdapConverter:
 
         # Check for import and export flags
         self.check_import_and_export_flags()
+
+        # Check to see if there is an existing link between LDAP and MO
+        self.check_cpr_field_or_it_system()
 
         logger.info("[json check] Attributes OK")
 

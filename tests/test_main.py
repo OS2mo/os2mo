@@ -161,6 +161,20 @@ def test_client(app: FastAPI) -> Iterator[TestClient]:
 
 
 @pytest.fixture
+def test_client_no_cpr(app: FastAPI, converter: MagicMock) -> Iterator[TestClient]:
+    """Fixture to construct a FastAPI test-client. where cpr_field = None
+
+    Note:
+        The app does not do lifecycle management.
+
+    Yields:
+        TestClient for the FastAPI application.
+    """
+    converter.cpr_field = None
+    yield TestClient(create_app())
+
+
+@pytest.fixture
 def ldap_connection() -> Iterator[MagicMock]:
     """Fixture to construct a mock ldap_connection.
 
@@ -437,6 +451,15 @@ async def test_import_all_objects_from_LDAP(
     assert response.status_code == 202
 
 
+async def test_import_all_objects_from_LDAP_no_cpr_field(
+    converter: MagicMock,
+    test_client_no_cpr: TestClient,
+    headers: dict,
+) -> None:
+    response = test_client_no_cpr.get("/Import/all", headers=headers)
+    assert response.status_code == 404
+
+
 async def test_import_all_objects_from_LDAP_invalid_cpr(
     test_client: TestClient, headers: dict, dataloader: AsyncMock
 ) -> None:
@@ -687,3 +710,14 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     result = response.json()
     assert "bar" in result
     assert result["bar"] == "ja"
+
+
+def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
+    test_client_no_cpr: TestClient,
+    headers: dict,
+    dataloader: AsyncMock,
+):
+    response = test_client_no_cpr.get(
+        "/LDAP_overview/invalid_cpr_numbers", headers=headers
+    )
+    assert response.status_code == 404

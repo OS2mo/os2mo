@@ -18,7 +18,7 @@ class NoObjectsReturnedException(HTTPException):
         logger.exception(message)
 
 
-class CprNoNotFound(HTTPException):
+class CPRFieldNotFound(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)
         logger.exception(message)

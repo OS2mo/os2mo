@@ -138,11 +138,3 @@ class Settings(BaseSettings):
     poll_time: float = Field(
         5, description="Seconds between calls to LDAP to search for updates"
     )
-
-    ldap_it_system_user_key: str = Field(
-        "Active Directory",
-        description=(
-            "user_key of the active directory IT-system in MO. "
-            "If the user_key does not exist, a cpr-lookup is attempted instead"
-        ),
-    )
