@@ -31,7 +31,6 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.dataloaders import DataLoader
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import AttributeNotFound
-from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import InvalidChangeDict
 from mo_ldap_import_export.exceptions import InvalidQueryResponse
@@ -150,6 +149,7 @@ def context(
             "gql_client_sync": gql_client_sync,
             "sync_tool": sync_tool,
             "username_generator": username_generator,
+            "ldap_it_system_user_key": "Active Directory",
         },
     }
 
@@ -216,6 +216,10 @@ async def test_load_ldap_cpr_object(
 
     with pytest.raises(NoObjectsReturnedException):
         dataloader.load_ldap_cpr_object("None", "Employee")
+
+    with pytest.raises(NoObjectsReturnedException):
+        dataloader.user_context["cpr_field"] = None
+        dataloader.load_ldap_cpr_object("0101012002", "Employee")
 
 
 async def test_load_ldap_objects(
@@ -298,32 +302,6 @@ async def test_modify_ldap_employee(
         [good_response] * len(allowed_parameters_to_upload)
         + [bad_response] * len(disallowed_parameters_to_upload)
     ]
-
-
-async def test_create_invalid_ldap_employee(
-    ldap_connection: MagicMock,
-    dataloader: DataLoader,
-    ldap_attributes: dict,
-    cpr_field: str,
-) -> None:
-
-    ldap_attributes_without_cpr_field = {
-        key: value for key, value in ldap_attributes.items() if key != cpr_field
-    }
-
-    employee = LdapObject(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev",
-        **ldap_attributes_without_cpr_field,
-    )
-
-    # Get result from dataloader
-    try:
-        await asyncio.gather(
-            dataloader.modify_ldap_object(employee, "user"),
-        )
-    except CprNoNotFound as e:
-        assert e.status_code == 404
-        assert type(e) == CprNoNotFound
 
 
 async def test_append_data_to_ldap_object(

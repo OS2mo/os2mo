@@ -19,10 +19,10 @@ from ramodels.mo.details.engagement import Engagement
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import find_cpr_field
+from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.dataloaders import LdapObject
-from mo_ldap_import_export.exceptions import CprNoNotFound
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
 from mo_ldap_import_export.exceptions import NotSupportedException
@@ -440,14 +440,14 @@ def test_find_cpr_field(context: Context) -> None:
     converter = LdapConverter(context)
     assert converter.cpr_field == "employeeID"
 
-    with pytest.raises(CprNoNotFound):
-        with patch(
-            "mo_ldap_import_export.converters.LdapConverter.check_mapping",
-            return_value=None,
-        ):
-            context["user_context"]["mapping"] = bad_mapping
-            converter = LdapConverter(context)
-            find_cpr_field(converter.mapping)
+    with patch(
+        "mo_ldap_import_export.converters.LdapConverter.check_mapping",
+        return_value=None,
+    ):
+        context["user_context"]["mapping"] = bad_mapping
+        converter = LdapConverter(context)
+        cpr_field = find_cpr_field(converter.mapping)
+        assert cpr_field is None
 
     with pytest.raises(IncorrectMapping):
         with patch(
@@ -671,41 +671,6 @@ async def test_check_mo_attributes(converter: LdapConverter):
             ),
         ):
             converter.check_mo_attributes()
-
-
-async def test_check_ldap_attributes_cpr_field(converter: LdapConverter):
-
-    dataloader = MagicMock()
-    dataloader.load_ldap_overview.return_value = {
-        "user": {"attributes": ["attr1", "attr2"]}
-    }
-    converter.dataloader = dataloader
-
-    patch(
-        "mo_ldap_import_export.converters.LdapConverter.dataloader.load_ldap_overview",
-        return_value={"user": {"attributes": ["attr1", "attr2"]}},
-    ),
-    with patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_mo_to_ldap_json_keys",
-        return_value=["foo"],
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.get_ldap_attributes",
-        return_value=["attr1", "foo"],
-    ), patch(
-        "mo_ldap_import_export.converters.find_cpr_field",
-        return_value="cpr_field",
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.check_attributes",
-        return_value=None,
-    ), patch(
-        "mo_ldap_import_export.converters.LdapConverter.find_ldap_object_class",
-        return_value="user",
-    ):
-        with pytest.raises(
-            IncorrectMapping,
-            match="'cpr_field' attribute not present",
-        ):
-            converter.check_ldap_attributes()
 
 
 async def test_check_ldap_attributes_single_value_fields(converter: LdapConverter):
@@ -1296,3 +1261,37 @@ def test_check_import_and_export_flags(converter: LdapConverter):
 
     with pytest.raises(IncorrectMapping, match="Missing '__export_to_ldap__' key"):
         converter.check_import_and_export_flags()
+
+
+def test_find_ldap_it_system():
+    environment = Environment()
+    template_str = "{{ ldap.distinguishedName }}"
+    template = environment.from_string(template_str)
+
+    mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
+    mo_it_systems = ["AD"]
+    assert find_ldap_it_system(mapping, mo_it_systems) == "AD"
+
+    mapping = {"ldap_to_mo": {"Wrong AD user_key": {"user_key": template}}}
+    mo_it_systems = ["AD"]
+    assert find_ldap_it_system(mapping, mo_it_systems) is None
+
+    mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}
+    mo_it_systems = []
+    assert find_ldap_it_system(mapping, mo_it_systems) is None
+
+
+def test_check_cpr_field_or_it_system(converter: LdapConverter):
+
+    with patch(
+        "mo_ldap_import_export.converters.find_cpr_field",
+        return_value=None,
+    ), patch(
+        "mo_ldap_import_export.converters.find_ldap_it_system",
+        return_value=None,
+    ):
+        with pytest.raises(
+            IncorrectMapping,
+            match="Neither a cpr-field or an ldap it-system could be found",
+        ):
+            converter.check_cpr_field_or_it_system()
