@@ -94,6 +94,7 @@ def context() -> Context:
     settings_mock.default_org_unit_type = "Afdeling"
     settings_mock.default_org_unit_level = "N1"
     settings_mock.org_unit_path_string_separator = "\\"
+    settings_mock.imported_org_unit_tag = "IMPORTED FROM LDAP: "
 
     dataloader = MagicMock()
     mo_address_types = {

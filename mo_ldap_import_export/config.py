@@ -138,3 +138,8 @@ class Settings(BaseSettings):
     poll_time: float = Field(
         5, description="Seconds between calls to LDAP to search for updates"
     )
+
+    imported_org_unit_tag: str = Field(
+        "IMPORTED FROM LDAP: ",
+        description="Tag which is added to all imported org-units",
+    )
