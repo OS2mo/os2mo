@@ -8,6 +8,7 @@ from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Text
+from sqlalchemy import Enum
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
@@ -55,26 +56,25 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationFunktionRelationKode = Literal[
-    "adresser",
-    "opgaver",
-    "organisatoriskfunktionstype",
-    "primær",
-    "tilknyttedebrugere",
-    "tilknyttedeenheder",
-    "tilknyttedefunktioner",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeitsystemer",
-    "tilknyttedeklasser",
-    "tilknyttedeorganisationer",
-    "tilknyttedepersoner",
-]
+class OrganisationFunktionRelationKode(Enum):
+    adresser = "adresser"
+    opgaver = "opgaver"
+    organisatoriskfunktionstype = "organisatoriskfunktionstype"
+    primaer = "primær"
+    tilknyttedebrugere = "tilknyttedebrugere"
+    tilknyttedeenheder = "tilknyttedeenheder"
+    tilknyttedefunktioner = "tilknyttedefunktioner"
+    tilknyttedeinteressefaellesskaber = "tilknyttedeinteressefaellesskaber"
+    tilknyttedeitsystemer = "tilknyttedeitsystemer"
+    tilknyttedeklasser = "tilknyttedeklasser"
+    tilknyttedeorganisationer = "tilknyttedeorganisationer"
+    tilknyttedepersoner = "tilknyttedepersoner"
 
 
 class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
-    rel_type: Mapped[OrganisationFunktionRelationKode]
+    rel_type = Column("rel_type", OrganisationFunktionRelationKode, nullable=False)
 
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
