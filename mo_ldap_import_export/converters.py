@@ -101,7 +101,7 @@ class LdapConverter:
         self.settings = self.user_context["settings"]
         self.raw_mapping = self.user_context["mapping"]
         self.dataloader = self.user_context["dataloader"]
-        self.org_unit_path_string_separator = (
+        self.org_unit_path_string_separator: str = (
             self.settings.org_unit_path_string_separator
         )
         self.load_info_dicts()
@@ -845,12 +845,12 @@ class LdapConverter:
 
     def get_org_unit_path_string(self, uuid: str):
         org_unit_info = self.org_unit_info[str(uuid)]
-        object_name = org_unit_info["name"]
+        object_name = org_unit_info["name"].strip()
         parent = org_unit_info["parent"]
 
         path_string = object_name
         while parent:
-            parent_object_name = parent["name"]
+            parent_object_name = parent["name"].strip()
             path_string = (
                 parent_object_name + self.org_unit_path_string_separator + path_string
             )
@@ -858,9 +858,27 @@ class LdapConverter:
 
         return path_string.replace(self.imported_org_unit_tag, "")
 
+    def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
+        """
+        Cleans leading and trailing whitespace from org units in an org unit path string
+
+        Example
+        ----------
+        >>> org_unit_path_string = "foo / bar"
+        >>> clean_org_unit_path_string(org_unit_path_string)
+        >>> "foo/bar"
+        """
+        sep = self.org_unit_path_string_separator
+        return sep.join([s.strip() for s in org_unit_path_string.split(sep)])
+
     def get_or_create_org_unit_uuid(self, org_unit_path_string: str):
+
         if not org_unit_path_string:
             raise UUIDNotFoundException("Organization unit string is empty")
+
+        # Clean leading and trailing whitespace from org unit path string
+        org_unit_path_string = self.clean_org_unit_path_string(org_unit_path_string)
+
         try:
             return self.get_org_unit_uuid_from_path(org_unit_path_string)
         except UUIDNotFoundException:
