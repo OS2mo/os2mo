@@ -111,7 +111,7 @@ class LdapConverter:
         # Set this to an empty string if we do not need to know which org units
         # were imported by this program. For now this is useful to know because
         # we do not import details such as the org-unit level and the type.
-        self.imported_org_unit_tag = "IMPORTED FROM LDAP: "
+        self.imported_org_unit_tag = self.settings.imported_org_unit_tag
 
         self.default_org_unit_type_uuid = self.get_org_unit_type_uuid(
             self.settings.default_org_unit_type
