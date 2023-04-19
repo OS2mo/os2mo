@@ -66,6 +66,7 @@ from mora.db import OrganisationFunktionRegistrering
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
+from mora.util import DEFAULT_TIMEZONE
 from mora.util import parsedatetime
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -275,7 +276,35 @@ class Response(Generic[MOObject]):
     model: strawberry.Private[MOObject]
 
     @strawberry.field(
-        description="Validities for the current registration",
+        description="Current state at query validity time",
+        permission_classes=[IsAuthenticatedPermission],
+    )
+    async def current(self, root: "Response", info: Info) -> MOObject | None:
+        def active_now(obj: Any) -> bool:
+            """Predicate on whether the object is active right now.
+
+            Args:
+                obj: The object to test.
+
+            Returns:
+                True if the object is active right now, False otherwise.
+            """
+            now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
+            datetime_min = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
+            datetime_max = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
+            return (
+                (obj.validity.from_date or datetime_min)
+                < now
+                < (obj.validity.to_date or datetime_max)
+            )
+
+        # TODO: This should really do its own instantaneous query to find whatever is
+        #       active right now, regardless of the values in objects.
+        objects = await Response.objects(self, root, info)
+        return only(filter(active_now, objects))
+
+    @strawberry.field(
+        description="Validities at query registration time",
         permission_classes=[IsAuthenticatedPermission],
     )
     async def objects(self, root: "Response", info: Info) -> list[MOObject]:
