@@ -860,7 +860,7 @@ class LdapConverter:
 
     def clean_org_unit_path_string(self, org_unit_path_string: str) -> str:
         """
-        Cleans leading and trailing whitespace from org units in an org unit string
+        Cleans leading and trailing whitespace from org units in an org unit path string
 
         Example
         ----------
