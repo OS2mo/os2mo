@@ -631,13 +631,13 @@ async def test_terminate(given_uuid, given_validity_dts):
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 8),
+        ("", 9),
         # Address Type filters
-        ('(address_type_user_keys: "BrugerPostadresse")', 2),
-        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 2),
+        ('(address_type_user_keys: "BrugerPostadresse")', 3),
+        ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 3),
         ('(address_type_user_keys: "BrugerEmail")', 2),
         ('(address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0")', 2),
-        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 4),
+        ('(address_type_user_keys: ["BrugerPostadresse", "BrugerEmail"])', 5),
         (
             """
             (address_types: [
@@ -645,7 +645,7 @@ async def test_terminate(given_uuid, given_validity_dts):
                 "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
             ])
         """,
-            4,
+            5,
         ),
         (
             """
@@ -654,7 +654,7 @@ async def test_terminate(given_uuid, given_validity_dts):
                 address_types: "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
             )
         """,
-            4,
+            5,
         ),
         # Employee filters
         ('(employees: "53181ed2-f1de-4c4a-a8fd-ab358c2c454a")', 1),

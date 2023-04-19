@@ -13,11 +13,11 @@ from tests.conftest import GQLResponse
     "resolver,limit,offset,expected_length",
     [
         # Addresses
-        ("addresses", None, None, 8),
+        ("addresses", None, None, 9),
         ("addresses", 0, 0, 0),
         ("addresses", 8, 0, 8),
         ("addresses", 4, 0, 4),
-        ("addresses", 8, 1, 7),
+        ("addresses", 8, 1, 8),
         # Associations
         ("associations", None, None, 1),
         ("associations", 0, 0, 0),
@@ -72,7 +72,7 @@ from tests.conftest import GQLResponse
         ("managers", 0, 0, 0),
         ("managers", 1, 0, 1),
         # Org Units
-        ("org_units", None, None, 9),
+        ("org_units", None, None, 10),
         ("org_units", 0, 0, 0),
         # While OFFSET and LIMITing is done in LoRa/SQL, further filtering is sometimes
         # applied in MO. Confusingly, this means that receiving a list shorter than the
@@ -80,7 +80,7 @@ from tests.conftest import GQLResponse
         ("org_units", 9, 0, 7),
         ("org_units", 11, 0, 9),
         ("org_units", 10, 1, 9),
-        ("org_units", 10, 9, 2),
+        ("org_units", 10, 9, 3),
         # Related Units
         ("related_units", None, None, 1),
         ("related_units", 0, 0, 0),
@@ -118,7 +118,7 @@ async def test_pagination(
     "resolver,limit,offset",
     [
         # Addresses
-        ("addresses", 10, 8),
+        ("addresses", 10, 9),
         # Associations
         ("associations", 10, 1),
         # Classes

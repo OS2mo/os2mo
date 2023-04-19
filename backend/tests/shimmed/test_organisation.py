@@ -29,14 +29,14 @@ class TestOrganisationEndpoints:
             "name": "Aarhus Universitet",
             "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
             "user_key": "AU",
-            "unit_count": 9,
+            "unit_count": 10,
             "person_count": 5,
             "engagement_count": 3,
             "association_count": 1,
             "leave_count": 1,
             "role_count": 1,
             "manager_count": 1,
-            "child_count": 2,
+            "child_count": 3,
         }
 
     def test_get_children(self, service_client: TestClient):
@@ -64,6 +64,13 @@ class TestOrganisationEndpoints:
                     "from": "2017-01-01",
                     "to": None,
                 },
+            },
+            {
+                "child_count": 0,
+                "name": "Fake Corp With Addrs",
+                "user_key": "fake-orgunit-addrs",
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "validity": {"from": "2016-01-01", "to": None},
             },
         ]
 
@@ -97,6 +104,15 @@ class TestOrganisationEndpoints:
                     "from": "2017-01-01",
                     "to": None,
                 },
+            },
+            {
+                "association_count": 0,
+                "child_count": 0,
+                "engagement_count": 0,
+                "name": "Fake Corp With Addrs",
+                "user_key": "fake-orgunit-addrs",
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "validity": {"from": "2016-01-01", "to": None},
             },
         ]
 
