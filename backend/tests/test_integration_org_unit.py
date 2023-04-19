@@ -10,6 +10,7 @@ from parameterized import parameterized
 import tests.cases
 from . import util
 from mora import lora
+from mora.exceptions import ErrorCodes
 from mora.service import orgunit as service_orgunit
 from tests.util import set_get_configuration
 
@@ -1518,6 +1519,21 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         for expected_parent, validity_start in changes:
             await edit_parent(expected_parent, {"from": validity_start})
             await assert_parent_is(expected_parent, validity_start)
+
+    async def test_terminate_not_allowed_with_addrs(self):
+        response = await self.assertRequest(
+            "/service/ou/f494ad89-039d-478e-91f2-a63566554666/terminate",
+            400,
+            json={"validity": {"to": "2018-09-30"}},
+        )
+
+        assert (
+            response.get("error_key") == ErrorCodes.V_TERMINATE_UNIT_WITH_ADDRESSES.name
+        )
+        assert (
+            response.get("description")
+            == ErrorCodes.V_TERMINATE_UNIT_WITH_ADDRESSES.description
+        )
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
