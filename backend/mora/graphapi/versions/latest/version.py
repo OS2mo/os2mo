@@ -17,7 +17,10 @@ from .query import Query
 from .types import CPRType
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
+from mora.db import get_sessionmaker
 from mora.util import CPR
+from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db import _get_dbname
 
 
 class LatestGraphQLSchema(BaseGraphQLSchema):
@@ -52,9 +55,17 @@ class LatestGraphQLVersion(BaseGraphQLVersion):
     async def get_context(
         cls, get_token: Callable[[], Awaitable[Token]] = Depends(token_getter)
     ) -> dict[str, Any]:
+        lora_settings = lora_get_settings()
+        sessionmaker = get_sessionmaker(
+            user=lora_settings.db_user,
+            password=lora_settings.db_password,
+            host=lora_settings.db_host,
+            name=_get_dbname(),
+        )
         return {
             **await super().get_context(),
             **await get_loaders(),
             "get_token": get_token,
             "filestorage": get_filestorage(),
+            "sessionmaker": sessionmaker,
         }

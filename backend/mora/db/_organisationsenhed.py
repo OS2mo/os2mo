@@ -7,6 +7,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
+from sqlalchemy.orm import synonym
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -23,6 +24,7 @@ class OrganisationEnhed(_OIOEntityMixin, Base):
 class OrganisationEnhedRegistrering(_RegistreringMixin, Base):
     __tablename__ = "organisationenhed_registrering"
     organisationenhed_id = Column(ForeignKey("organisationenhed.id"), index=True)
+    uuid = synonym("organisationenhed_id")
 
 
 class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
