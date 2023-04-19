@@ -1076,12 +1076,29 @@ def test_get_or_create_org_unit_uuid(converter: LdapConverter):
     assert converter.get_or_create_org_unit_uuid("Magenta Aps") == uuid
 
     # Create a new organization and return its UUID
-    converter.get_or_create_org_unit_uuid("Magenta Aarhus")
+    uuid_magenta_aarhus = converter.get_or_create_org_unit_uuid(
+        "Magenta Aps\\Magenta Aarhus"
+    )
     org_units = [info["name"] for info in converter.org_unit_info.values()]
     assert "Magenta Aarhus" in org_units
 
     with pytest.raises(UUIDNotFoundException):
         converter.get_or_create_org_unit_uuid("")
+
+    assert (
+        converter.get_or_create_org_unit_uuid("Magenta Aps\\Magenta Aarhus")
+        == uuid_magenta_aarhus
+    )
+
+    assert (
+        converter.get_or_create_org_unit_uuid("Magenta Aps \\ Magenta Aarhus")
+        == uuid_magenta_aarhus
+    )
+
+
+def test_clean_org_unit_path_string(converter: LdapConverter):
+    assert converter.clean_org_unit_path_string("foo\\bar") == "foo\\bar"
+    assert converter.clean_org_unit_path_string("foo \\ bar") == "foo\\bar"
 
 
 def test_check_info_dict_for_duplicates(converter: LdapConverter):
