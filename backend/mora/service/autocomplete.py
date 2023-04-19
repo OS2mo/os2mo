@@ -10,10 +10,12 @@ from uuid import UUID
 
 from sqlalchemy import cast
 from sqlalchemy import MetaData
+from sqlalchemy import String
 from sqlalchemy import Table
 from sqlalchemy import Text
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine import create_engine
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
@@ -24,8 +26,8 @@ from mora import common
 from mora import util
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
-from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
+from mora.db import OrganisationFunktionRelationKode
 from mora.lora import AutocompleteScope
 
 
@@ -90,6 +92,7 @@ async def search_orgunits(sessionmaker, search_phrase: str, at: date | None = No
         cte_uuid_hits = _get_cte_orgunit_uuid_hits(search_phrase, sql_at_datetime)
         cte_name_hits = _get_cte_orgunit_name_hits(search_phrase, sql_at_datetime)
         cte_addr_hits = _get_cte_orgunit_addr_hits(search_phrase, sql_at_datetime)
+
         cte_itsystems_hits = _get_cte_orgunit_itsystem_hits(
             search_phrase, sql_at_datetime
         )
@@ -100,7 +103,7 @@ async def search_orgunits(sessionmaker, search_phrase: str, at: date | None = No
             for cte in (
                 cte_uuid_hits,
                 cte_name_hits,
-                # hits_orgunit_addrs,
+                cte_addr_hits,
                 # hits_orgunit_itsystems,
             )
         ]
@@ -201,7 +204,34 @@ def _get_cte_orgunit_name_hits(search_phrase: str, sql_at_datetime: str):
 
 
 def _get_cte_orgunit_addr_hits(search_phrase: str, sql_at_datetime: str):
-    pass
+    # primary lookup table
+    orgfunc_tbl_rels_a = aliased(OrganisationFunktionRelation)
+    orgunit_uuid_col = orgfunc_tbl_rels_a.rel_maal_uuid.label("uuid")
+
+    # Secondary lookup table (cause addrs values are located in another row for same registration)
+    orgfunc_tbl_rels_b = aliased(OrganisationFunktionRelation)
+
+    return (
+        select(orgunit_uuid_col)
+        .outerjoin(
+            orgfunc_tbl_rels_b,
+            orgfunc_tbl_rels_b.organisationfunktion_registrering_id
+            == orgfunc_tbl_rels_a.organisationfunktion_registrering_id,
+        )
+        .where(
+            orgfunc_tbl_rels_a.rel_maal_uuid != None,  # noqa: E711
+            cast(orgfunc_tbl_rels_a.rel_type, String)
+            == OrganisationFunktionRelationKode.tilknyttedeenheder,
+            text(
+                f"(organisationfunktion_relation_1.virkning).timeperiod @> {sql_at_datetime}"
+            ),
+            orgfunc_tbl_rels_b.rel_maal_urn != None,  # noqa: E711
+            cast(orgfunc_tbl_rels_b.rel_type, String)
+            == OrganisationFunktionRelationKode.adresser,
+            orgfunc_tbl_rels_b.rel_maal_urn.ilike(search_phrase),
+        )
+        .cte()
+    )
 
 
 def _get_cte_orgunit_itsystem_hits(search_phrase: str, sql_at_datetime: str):

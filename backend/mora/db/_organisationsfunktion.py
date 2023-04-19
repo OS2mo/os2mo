@@ -5,10 +5,10 @@ from typing import Literal
 from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Text
-from sqlalchemy import Enum
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
