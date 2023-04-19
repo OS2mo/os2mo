@@ -721,3 +721,10 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
         "/LDAP_overview/invalid_cpr_numbers", headers=headers
     )
     assert response.status_code == 404
+
+
+def test_wraps():
+    """
+    Test that the decorated listen_to_changes function keeps its name
+    """
+    assert listen_to_changes.__name__ == "listen_to_changes"
