@@ -191,6 +191,7 @@ async def load_sample_structures(minimal=False):
                 "social_og_sundhed_løn": "5942ce50-2be8-476f-914b-6769a888a7c8",
                 "hist": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
                 "frem": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+                "only_addrs": "f494ad89-039d-478e-91f2-a63566554666",
             }
         )
 
@@ -266,6 +267,7 @@ async def load_sample_structures(minimal=False):
                 "tlf_hum": "55848eca-4e9e-4f30-954b-78d55eec0473",
                 "ean_hum": "a0fe7d43-1e0d-4232-a220-87098024b34d",
                 "engagement_association": "a0fe7d43-1e0d-4232-a220-87009134b45e",
+                "adresse_orgunit_only_addrs": "55848eca-4e9e-4f30-954b-78d55eec0444",
             }
         )
 

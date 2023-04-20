@@ -685,14 +685,14 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
 @pytest.mark.parametrize(
     "params,expected",
     [
-        ({}, lambda result_list: {"items": result_list, "offset": 0, "total": 11}),
+        ({}, lambda result_list: {"items": result_list, "offset": 0, "total": 12}),
         # list with a limit
         (
             {"limit": "2"},
             lambda result_list: {
                 "items": result_list[:2],
                 "offset": 0,
-                "total": 11,
+                "total": 12,
             },
         ),
         # list with a limit and a start
@@ -701,7 +701,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
             lambda result_list: {
                 "items": result_list[1:][:3],
                 "offset": 1,
-                "total": 11,
+                "total": 12,
             },
         ),
         # paging
@@ -710,7 +710,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
             lambda result_list: {
                 "items": result_list[:3],
                 "offset": 0,
-                "total": 11,
+                "total": 12,
             },
         ),
         (
@@ -718,7 +718,7 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
             lambda result_list: {
                 "items": result_list[3:][:3],
                 "offset": 3,
-                "total": 11,
+                "total": 12,
             },
         ),
         # searching
@@ -893,6 +893,12 @@ def test_orgunit_search(
                 "from": "2017-01-01",
                 "to": None,
             },
+        },
+        {
+            "name": "Fake Corp With Addrs",
+            "user_key": "fake-orgunit-addrs",
+            "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+            "validity": {"from": "2016-01-01", "to": None},
         },
         {
             "user_key": "it_sup",

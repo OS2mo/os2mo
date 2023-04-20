@@ -226,9 +226,9 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 9),
+        ("", 10),
         # Filter roots
-        ("(parents: null)", 2),
+        ("(parents: null)", 3),
         # Filter under node
         ('(parents: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 4),
         ('(parents: "b1f69701-86d8-496e-a3f1-ccef18ac1958")', 1),
@@ -263,8 +263,8 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
     "filter_snippet,expected",
     [
         # Filter none
-        ("", 9),
-        ("(hierarchies: null)", 9),
+        ("", 10),
+        ("(hierarchies: null)", 10),
         # Filter 'linjeorg'
         ('(hierarchies: "f805eb80-fdfe-8f24-9367-68ea955b9b9b")', 2),
         # Filter 'hidden'

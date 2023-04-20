@@ -1519,6 +1519,20 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             await edit_parent(expected_parent, {"from": validity_start})
             await assert_parent_is(expected_parent, validity_start)
 
+    async def test_terminate_not_allowed_with_addrs(self):
+        await self.assertRequestResponse(
+            "/service/ou/f494ad89-039d-478e-91f2-a63566554666/terminate",
+            json={"validity": {"to": "2018-09-30"}},
+            status_code=400,
+            expected={
+                "status": 400,
+                "error": True,
+                "error_key": "V_TERMINATE_UNIT_WITH_ADDRESSES",
+                "description": "Cannot terminate unit with active addresses.",
+                "addresses": "55848eca-4e9e-4f30-954b-78d55eec0444",
+            },
+        )
+
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
