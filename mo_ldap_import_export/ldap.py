@@ -25,6 +25,7 @@ from ldap3 import Server
 from ldap3 import ServerPool
 from ldap3 import Tls
 from ldap3.core.exceptions import LDAPInvalidDnError
+from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import only
@@ -264,6 +265,7 @@ def is_dn(value):
 
     try:
         safe_dn(value)
+        parse_dn(value)
     except LDAPInvalidDnError:
         return False
     else:

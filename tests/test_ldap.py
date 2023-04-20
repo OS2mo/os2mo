@@ -225,10 +225,9 @@ async def test_ldap_healthcheck(ldap_connection: MagicMock) -> None:
 
 
 async def test_is_dn():
-    dn = "CN=Harry Styles,OU=Band,DC=Stage"
-    assert is_dn(dn) is True
-    not_a_dn = "foo"
-    assert is_dn(not_a_dn) is False
+    assert is_dn("CN=Harry Styles,OU=Band,DC=Stage") is True
+    assert is_dn("foo") is False
+    assert is_dn("cn@foo.dk") is False  # This passes the 'safe_dn' test
 
 
 async def test_make_generic_ldap_object(cpr_field: str, context: Context):
