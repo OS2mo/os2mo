@@ -2,15 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 """Loaders for translating LoRa data to MO data to be returned from the GraphAPI."""
 from collections.abc import Callable
-from collections.abc import Iterable
 from functools import partial
-from itertools import starmap
 from typing import Any
 from typing import TypeVar
 from uuid import UUID
 
 from more_itertools import bucket
-from more_itertools import one
 from more_itertools import unique_everseen
 from pydantic import parse_obj_as
 from strawberry.dataloader import DataLoader
@@ -33,11 +30,7 @@ from .schema import OrganisationRead
 from .schema import OrganisationUnitRead
 from .schema import RelatedUnitRead
 from .schema import RoleRead
-from mora.common import get_connector
 from mora.service import org
-from mora.util import parsedatetime
-from ramodels.lora.facet import FacetRead as LFacetRead
-from ramodels.lora.klasse import KlasseRead
 
 MOModel = TypeVar(
     "MOModel",
@@ -53,6 +46,9 @@ MOModel = TypeVar(
     OrganisationUnitRead,
     RoleRead,
     RelatedUnitRead,
+    FacetRead,
+    ClassRead,
+    ITSystemRead,
 )
 
 RoleType = TypeVar("RoleType")
@@ -126,158 +122,9 @@ get_roles = partial(get_mo, model=RoleRead)
 get_itusers = partial(get_mo, model=ITUserRead)
 get_managers = partial(get_mo, model=ManagerRead)
 get_related_units = partial(get_mo, model=RelatedUnitRead)
-
-
-def lora_itsystem_to_mo_itsystem(
-    lora_result: Iterable[tuple[str, dict]],
-) -> Iterable[ITSystemRead]:
-    def convert(systemid: str, system: dict) -> dict[str, Any]:
-        attrs = system["attributter"]["itsystemegenskaber"][0]
-
-        return {
-            "uuid": systemid,
-            "name": attrs.get("itsystemnavn"),
-            "system_type": attrs.get("itsystemtype"),
-            "user_key": attrs["brugervendtnoegle"],
-        }
-
-    objects = list(starmap(convert, lora_result))
-    return parse_obj_as(list[ITSystemRead], objects)
-
-
-async def get_itsystems(**kwargs: Any) -> list[ITSystemRead]:
-    c = get_connector()
-    lora_result = await c.itsystem.get_all(**kwargs)
-    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    return list(mo_models)
-
-
-async def load_itsystems(uuids: list[UUID]) -> list[ITSystemRead | None]:
-    c = get_connector()
-    lora_result = await c.itsystem.get_all_by_uuid(uuids)
-    mo_models = lora_itsystem_to_mo_itsystem(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}
-    return list(map(uuid_map.get, uuids))
-
-
-def lora_class_to_mo_class(lora_tuple: tuple[UUID, KlasseRead]) -> ClassRead:
-    uuid, lora_class = lora_tuple
-
-    class_attributes = one(lora_class.attributes.properties)
-    class_state = one(lora_class.states.published_state)
-    class_relations = lora_class.relations
-
-    mo_class = {
-        "uuid": uuid,
-        "name": class_attributes.title,
-        "user_key": class_attributes.user_key,
-        "scope": class_attributes.scope,
-        "example": class_attributes.example,
-        "published": class_state.published,
-        "facet_uuid": one(class_relations.facet).uuid,
-        "org_uuid": one(class_relations.responsible).uuid,
-        "parent_uuid": one(class_relations.parent).uuid
-        if class_relations.parent
-        else None,
-        "owner": one(class_relations.owner).uuid if class_relations.owner else None,
-    }
-    return ClassRead(**mo_class)
-
-
-def lora_classes_to_mo_classes(
-    lora_result: Iterable[tuple[str, dict]],
-) -> Iterable[ClassRead]:
-    mapped_result = starmap(
-        lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(KlasseRead, entry)),
-        lora_result,
-    )
-    return map(lora_class_to_mo_class, mapped_result)
-
-
-async def get_classes(**kwargs: Any) -> list[ClassRead]:
-    c = get_connector()
-    lora_result = await c.klasse.get_all(**kwargs)
-    lora_result = format_lora_results_only_newest_relevant_lists(
-        lora_result,
-        relevant_lists={
-            "attributter": ("klasseegenskaber",),
-            "tilstande": ("klassepubliceret",),
-            "relationer": ("ejer", "ansvarlig", "facet"),
-        },
-    )
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    return list(mo_models)
-
-
-async def load_classes(uuids: list[UUID]) -> list[ClassRead | None]:
-    """Load MO models from LoRa by UUID.
-
-    Args:
-        uuids (List[UUID]): UUIDs to load.
-
-    Returns:
-        list[ClassRead | None]: List of parsed MO classes.
-    """
-    c = get_connector()
-    lora_result = await c.klasse.get_all_by_uuid(uuids)
-    mo_models = lora_classes_to_mo_classes(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}
-    return list(map(uuid_map.get, uuids))
-
-
-def lora_facet_to_mo_facet(lora_tuple: tuple[UUID, LFacetRead]) -> FacetRead:
-    uuid, lora_facet = lora_tuple
-
-    facet_attributes = one(lora_facet.attributes.properties)
-    facet_state = one(lora_facet.states.published_state)
-    facet_relations = lora_facet.relations
-
-    mo_facet = {
-        "uuid": uuid,
-        "user_key": facet_attributes.user_key,
-        "published": facet_state.published,
-        "org_uuid": one(facet_relations.responsible).uuid,
-        "parent_uuid": (
-            one(facet_relations.parent).uuid
-            if facet_relations.parent is not None
-            else None
-        ),
-        "description": facet_attributes.description or "",
-    }
-    return FacetRead(**mo_facet)
-
-
-def lora_facets_to_mo_facets(
-    lora_result: Iterable[tuple[str, dict]],
-) -> Iterable[FacetRead]:
-    lora_facets = starmap(
-        lambda uuid_str, entry: (UUID(uuid_str), parse_obj_as(LFacetRead, entry)),
-        lora_result,
-    )
-    return map(lora_facet_to_mo_facet, lora_facets)
-
-
-async def get_facets(**kwargs: Any) -> list[FacetRead]:
-    c = get_connector()
-    lora_result = await c.facet.get_all(**kwargs)
-    mo_models = lora_facets_to_mo_facets(lora_result)
-    return list(mo_models)
-
-
-async def load_facets(uuids: list[UUID]) -> list[FacetRead | None]:
-    """Load MO models from LoRa by UUID.
-
-    Args:
-        uuids (List[UUID]): UUIDs to load.
-
-    Returns:
-        list[FacetRead | None]: List of parsed MO facets.
-    """
-    c = get_connector()
-    lora_result = await c.facet.get_all_by_uuid(uuids)
-    mo_models = lora_facets_to_mo_facets(lora_result)
-    uuid_map = {model.uuid: model for model in mo_models}
-    return list(map(uuid_map.get, uuids))
+get_itsystems = partial(get_mo, model=ITSystemRead)
+get_classes = partial(get_mo, model=ClassRead)
+get_facets = partial(get_mo, model=FacetRead)
 
 
 async def load_org(keys: list[int]) -> list[OrganisationRead]:
@@ -324,78 +171,16 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "ituser_getter": get_itusers,
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": get_managers,
-        "class_loader": DataLoader(load_fn=load_classes),
+        "class_loader": DataLoader(load_fn=partial(load_mo, model=ClassRead)),
         "class_getter": get_classes,
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),
         "rel_unit_getter": get_related_units,
-        "facet_loader": DataLoader(load_fn=load_facets),
+        "facet_loader": DataLoader(load_fn=partial(load_mo, model=FacetRead)),
         "facet_getter": get_facets,
-        "itsystem_loader": DataLoader(load_fn=load_itsystems),
+        "itsystem_loader": DataLoader(load_fn=partial(load_mo, ITSystemRead)),
         "itsystem_getter": get_itsystems,
         "engagement_association_loader": DataLoader(
             load_fn=partial(load_mo, model=EngagementAssociationRead)
         ),
         "engagement_association_getter": get_engagement_associations,
     }
-
-
-def convert_lora_object_section(lora_value: list[dict]) -> list[dict]:
-    """Transforms a lora_object list, to only contain the newest element.
-
-    Ex. transform_lora_object_section(lora_object["attributter"]["klasseegenskaber"])
-    """
-    return [
-        max(
-            lora_value,
-            key=lambda x: parsedatetime(x["virkning"]["from"]),
-        )
-    ]
-
-
-def gen_paths(relevant_lists: dict[str, tuple[str, ...]]) -> Iterable[tuple[str, str]]:
-    """Converts a dict representing lora-object attribute-paths to a flat list.
-
-    Ex: `{"attributter": ("klasseegenskaber", "something",)}` becomes
-    `[("attributter", "klasseegenskaber"), ("attributter", "something")...]`
-    """
-    for key, rel_lists in relevant_lists.items():
-        for list_name in rel_lists:
-            yield key, list_name
-
-
-def transform_lora_object(
-    relevant_paths: set[tuple[str, str]], lora_obj: dict[str, Any]
-) -> None:
-    """Filters LoRa object lists, based on relevant_paths, to a maximum of 1.
-
-    Ex. {"attributter": {"klasseegenskaber": [ ELEMENT_1, ELEMENT_2 ]}} will be filtered to
-    have only one element, using relevant_paths={"attributter": ("klasseegenskaber",)}
-
-    The element choosen is the newest one, identified through the following date attr:
-    ELEMENT["virkning"]["from"]
-    """
-    object_paths = set(gen_paths(lora_obj))
-    process_paths = relevant_paths.intersection(object_paths)
-    for key, list_name in process_paths:
-        lora_obj[key][list_name] = convert_lora_object_section(lora_obj[key][list_name])
-
-
-def format_lora_results_only_newest_relevant_lists(
-    lora_results: Iterable[tuple[str, dict[str, Any]]],
-    relevant_lists: dict[str, tuple[str, ...]],
-) -> Iterable[tuple[str, dict]]:
-    """Formats the LoRa results to only contain 1 element in list paths specified in relevant_lists.
-
-    This method can take the result from `mora.lora.Scope.get_all()` and make sure the lora_objects
-    only contain 1 element inside the lists referenced in relevant_lists.
-
-    INFO: This was created due to the assumption that a "class/klasse" only have
-    1 attribute and 1 state - but our importers break this assumption.
-    """
-    if not lora_results:
-        return []
-
-    relevant_paths = set(gen_paths(relevant_lists))
-    for uuid, lora_obj in lora_results:
-        transform_lora_object(relevant_paths, lora_obj)
-        yield uuid, lora_obj

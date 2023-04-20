@@ -35,8 +35,8 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 
-class StaticResolver:
-    neutral_element_constructor: Callable[[], Any] = list
+class Resolver:
+    neutral_element_constructor: Callable[[], Any] = dict
 
     def __init__(self, model: type) -> None:
         """Create a field resolver by specifying a model.
@@ -45,104 +45,6 @@ class StaticResolver:
             model: The MOModel.
         """
         self.model: type = model
-
-    async def resolve(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-    ):
-        """Resolve queries with no validity, i.e. class/facet/itsystem.
-
-        Uses getters/loaders from the context.
-        """
-        return await self._resolve(
-            info=info,
-            uuids=uuids,
-            user_keys=user_keys,
-            limit=limit,
-            offset=offset,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
-        )
-
-    async def _resolve(  # type: ignore[no-untyped-def]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        **kwargs: Any,
-    ):
-        """The internal resolve interface, allowing for kwargs."""
-        # Dates
-        dates = get_date_interval(from_date, to_date)
-        set_graphql_dates(dates)
-
-        # UUIDs
-        if uuids is not None:
-            if limit is not None or offset is not None:
-                raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
-            # Early return on empty UUID list
-            if not uuids:
-                return self.neutral_element_constructor()
-            resolver_name = resolver_map[self.model]["loader"]
-            return await self.get_by_uuid(info.context[resolver_name], uuids)
-
-        # User keys
-        if user_keys is not None:
-            # Early return on empty user-key list
-            if not user_keys:
-                return self.neutral_element_constructor()
-            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
-            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
-            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
-            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
-            # such keys are hard-coded in a LOT of different places throughout LoRa.
-            # For this reason, it is easier to pass the sentinel in the VALUE at this
-            # point in time.
-            # Additionally, the values are regex-escaped since the joined string will be
-            # interpreted as one big regular expression in LoRa's SQL.
-            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
-            escaped_user_keys = (re.escape(k) for k in user_keys)
-            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
-
-        # Pagination
-        if limit is not None:
-            kwargs["maximalantalresultater"] = limit
-        if offset is not None:
-            kwargs["foersteresultat"] = offset
-
-        resolver_name = resolver_map[self.model]["getter"]
-        return await info.context[resolver_name](**kwargs)
-
-    @staticmethod
-    # type: ignore[no-untyped-def]
-    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
-        """Get data from a list of UUIDs. Only unique UUIDs are loaded.
-
-        Args:
-            dataloader: Strawberry dataloader to use.
-            uuids: List of UUIDs to load.
-
-        Returns:
-            List of objects found.
-            Type: Union[list[ClassRead], list[FacetRead], list[ITSystemRead]]
-        """
-        responses = await dataloader.load_many(list(set(uuids)))
-        if not responses:
-            return responses
-        # These loaders can return None, which we need to filter here.
-        return [response for response in responses if response is not None]
-
-
-class Resolver(StaticResolver):
-    neutral_element_constructor: Callable[[], Any] = dict
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -202,9 +104,62 @@ class Resolver(StaticResolver):
             if objects != []
         }
 
+    async def _resolve(  # type: ignore[no-untyped-def]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+        **kwargs: Any,
+    ):
+        """The internal resolve interface, allowing for kwargs."""
+        # Dates
+        dates = get_date_interval(from_date, to_date)
+        set_graphql_dates(dates)
+
+        # UUIDs
+        if uuids is not None:
+            if limit is not None or offset is not None:
+                raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
+            # Early return on empty UUID list
+            if not uuids:
+                return self.neutral_element_constructor()
+            resolver_name = resolver_map[self.model]["loader"]
+            return await self.get_by_uuid(info.context[resolver_name], uuids)
+
+        # User keys
+        if user_keys is not None:
+            # Early return on empty user-key list
+            if not user_keys:
+                return self.neutral_element_constructor()
+            # We need to explicitly use a 'SIMILAR TO' search in LoRa, as the default is
+            # to 'AND' filters of the same name, i.e. 'http://lora?bvn=x&bvn=y' means
+            # "bvn is x AND Y", which is never true. Ideally, we'd use a different query
+            # parameter key for these queries - such as '&bvn~=foo' - but unfortunately
+            # such keys are hard-coded in a LOT of different places throughout LoRa.
+            # For this reason, it is easier to pass the sentinel in the VALUE at this
+            # point in time.
+            # Additionally, the values are regex-escaped since the joined string will be
+            # interpreted as one big regular expression in LoRa's SQL.
+            use_is_similar_sentinel = "|LORA-PLEASE-USE-IS-SIMILAR|"
+            escaped_user_keys = (re.escape(k) for k in user_keys)
+            kwargs["bvn"] = use_is_similar_sentinel + "|".join(escaped_user_keys)
+
+        # Pagination
+        if limit is not None:
+            kwargs["maximalantalresultater"] = limit
+        if offset is not None:
+            kwargs["foersteresultat"] = offset
+
+        resolver_name = resolver_map[self.model]["getter"]
+        return await info.context[resolver_name](**kwargs)
+
 
 async def user_keys2uuids(
-    resolver: StaticResolver, info: Info, user_keys: list[str]
+    resolver: Resolver, info: Info, user_keys: list[str]
 ) -> list[UUID]:
     """Translate a list of user-keys into a list of UUIDs.
 
@@ -229,12 +184,12 @@ async def user_keys2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
-class FacetResolver(StaticResolver):
+class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
 
 
-class ClassResolver(StaticResolver):
+class ClassResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ClassRead)
 
@@ -245,6 +200,8 @@ class ClassResolver(StaticResolver):
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
         parents: list[UUID] | None = None,
@@ -275,8 +232,8 @@ class ClassResolver(StaticResolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
+            from_date=from_date,
+            to_date=to_date,
             **kwargs,
         )
 
@@ -553,7 +510,7 @@ class EngagementAssociationResolver(Resolver):
         )
 
 
-class ITSystemResolver(StaticResolver):
+class ITSystemResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITSystemRead)
 

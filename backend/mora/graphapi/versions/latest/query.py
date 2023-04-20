@@ -99,7 +99,7 @@ class Query:
 
     # Classes
     # -------
-    classes: list[Class] = strawberry.field(
+    classes: list[Response[Class]] = strawberry.field(
         resolver=ClassResolver().resolve,
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -137,7 +137,7 @@ class Query:
 
     # Facets
     # ------
-    facets: list[Facet] = strawberry.field(
+    facets: list[Response[Facet]] = strawberry.field(
         resolver=FacetResolver().resolve,
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
@@ -145,7 +145,7 @@ class Query:
 
     # ITSystems
     # ---------
-    itsystems: list[ITSystem] = strawberry.field(
+    itsystems: list[Response[ITSystem]] = strawberry.field(
         resolver=ITSystemResolver().resolve,
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
