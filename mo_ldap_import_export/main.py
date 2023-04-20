@@ -416,7 +416,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         converter.load_info_dicts()
 
     # Load all users from LDAP, and import them into MO
-    @app.get("/Import/all", status_code=202, tags=["Import"])
+    @app.get("/Import", status_code=202, tags=["Import"])
     async def import_all_objects_from_LDAP(
         test_on_first_20_entries: bool = False,
         user=Depends(login_manager),
@@ -431,7 +431,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
         delay = delay_in_hours * 60 * 60 + delay_in_minutes * 60 + delay_in_seconds
         if delay > 0:
-            await countdown(delay, "/Import/all")
+            await countdown(delay, "/Import")
 
         all_ldap_objects = await dataloader.load_ldap_objects("Employee")
 

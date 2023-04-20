@@ -440,14 +440,14 @@ async def test_import_all_objects_from_LDAP_first_20(
         "delay_in_minutes": 0,
         "delay_in_seconds": 0.1,
     }
-    response = test_client.get("/Import/all", headers=headers, params=params)
+    response = test_client.get("/Import", headers=headers, params=params)
     assert response.status_code == 202
 
 
 async def test_import_all_objects_from_LDAP(
     test_client: TestClient, headers: dict
 ) -> None:
-    response = test_client.get("/Import/all", headers=headers)
+    response = test_client.get("/Import", headers=headers)
     assert response.status_code == 202
 
 
@@ -456,7 +456,7 @@ async def test_import_all_objects_from_LDAP_no_cpr_field(
     test_client_no_cpr: TestClient,
     headers: dict,
 ) -> None:
-    response = test_client_no_cpr.get("/Import/all", headers=headers)
+    response = test_client_no_cpr.get("/Import", headers=headers)
     assert response.status_code == 404
 
 
@@ -468,7 +468,7 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
     ]
 
     with capture_logs() as cap_logs:
-        response = test_client.get("/Import/all", headers=headers)
+        response = test_client.get("/Import", headers=headers)
         assert response.status_code == 202
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
