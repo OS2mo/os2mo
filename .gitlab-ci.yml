@@ -455,7 +455,7 @@ Export Changelog:
     GIT_STRATEGY: clone
     GIT_DEPTH: 0
   before_script:
-    - pip3 install Commitizen
+    - pip3 install git+https://github.com/noirbizarre/commitizen.git@feature/template-override
   script:
     - cz changelog --dry-run >> $OUT
   artifacts:
