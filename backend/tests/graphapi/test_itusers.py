@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from datetime import datetime
+from datetime import time
+from unittest import mock
 from unittest.mock import AsyncMock
 from unittest.mock import patch
 from uuid import UUID
@@ -18,22 +20,18 @@ from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from .utils import fetch_employee_validity
 from .utils import fetch_org_unit_validity
+from mora import lora
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.it_user import terminate
 from mora.graphapi.versions.latest.models import ITUserCreate
+from mora.graphapi.versions.latest.models import ITUserTerminate
 from mora.graphapi.versions.latest.models import ITUserUpdate
 from mora.graphapi.versions.latest.types import UUIDReturn
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import ITUserRead
 from tests.conftest import GQLResponse
-
-# imports for commented out test
-
-# from unittest import mock
-# from mora import lora
-# from mora.graphapi.versions.latest.it_user import terminate
-# from mora.graphapi.versions.latest.models import ITUserTerminate
 
 
 @given(test_data=graph_data_strat(ITUserRead))
@@ -144,63 +142,30 @@ async def test_create_ituser(create_ituser: AsyncMock, data: DataObject) -> None
 @given(data=st.data())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_create_ituser_integration_test(
+async def test_create_ituser_employee_integration_test(
     validate_unique_constraint: AsyncMock,
     data: DataObject,
     graphapi_post,
     itsystem_uuids,
     employee_uuids,
-    org_uuids,
 ) -> None:
     validate_unique_constraint.return_value = None
 
-    # Create bool to choose between creating ITuser for employee or org_unit
-    # TODO: Why isn't this two different tests?
-    should_test_employee = data.draw(st.booleans())
-    engagement_uuid = None
+    employee_uuid = data.draw(st.sampled_from(employee_uuids))
+    employee_from, employee_to = fetch_employee_validity(graphapi_post, employee_uuid)
 
-    if should_test_employee:
-        employee_uuid = data.draw(st.sampled_from(employee_uuids))
-        employee_from, employee_to = fetch_employee_validity(
-            graphapi_post, employee_uuid
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=employee_from, max_value=employee_to or datetime.max)
+    )
+
+    if employee_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=employee_to
         )
-
-        test_data_validity_start = data.draw(
-            st.datetimes(min_value=employee_from, max_value=employee_to or datetime.max)
-        )
-
-        if employee_to:
-            test_data_validity_end_strat = st.datetimes(
-                min_value=test_data_validity_start, max_value=employee_to
-            )
-        else:
-            test_data_validity_end_strat = st.none() | st.datetimes(
-                min_value=test_data_validity_start,
-            )
-        engagement_uuid = data.draw(st.uuids() | st.none())
-
-        org_unit_uuid = None
-
     else:
-        org_unit_uuid = data.draw(st.sampled_from(org_uuids))
-        org_unit_from, org_unit_to = fetch_org_unit_validity(
-            graphapi_post, org_unit_uuid
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
         )
-
-        test_data_validity_start = data.draw(
-            st.datetimes(min_value=org_unit_from, max_value=org_unit_to or datetime.max)
-        )
-
-        if org_unit_to:
-            test_data_validity_end_strat = st.datetimes(
-                min_value=test_data_validity_start, max_value=org_unit_to
-            )
-        else:
-            test_data_validity_end_strat = st.none() | st.datetimes(
-                min_value=test_data_validity_start,
-            )
-
-        employee_uuid = None
 
     test_data = data.draw(
         st.builds(
@@ -212,8 +177,8 @@ async def test_create_ituser_integration_test(
             ),
             itsystem=st.sampled_from(itsystem_uuids),
             person=st.just(employee_uuid),
-            org_unit=st.just(org_unit_uuid),
-            engagement=st.just(engagement_uuid),
+            org_unit=st.none(),
+            engagement=st.uuids() | st.none(),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -243,6 +208,7 @@ async def test_create_ituser_integration_test(
                     itsystem_uuid
                     employee_uuid
                     org_unit_uuid
+                    engagement_uuid
                     validity {
                         from
                         to
@@ -254,7 +220,7 @@ async def test_create_ituser_integration_test(
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
 
-    # IMPORTANT: This is needed and shouldn't (I think), not cause problems.
+    # IMPORTANT: This is needed and shouldn't (I think), cause problems.
     # Since we can't avoid the "duplicate error", we set it to None at the top
     # `validate_unique_constraint.return_value = None`, this results in the mutator
     # query failing WITHOUT returning that exact error. Therefore we need to check that
@@ -265,14 +231,122 @@ async def test_create_ituser_integration_test(
         assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
+        assert UUID(obj["employee_uuid"]) == test_data.person
+        assert obj["org_unit_uuid"] is None
+        if test_data.engagement:
+            assert UUID(obj["engagement_uuid"]) == test_data.engagement
+        assert (
+            datetime.fromisoformat(obj["validity"]["from"]).date()
+            == test_data.validity.from_date.date()
+        )
+        if obj["validity"]["to"] is not None:
+            assert (
+                datetime.fromisoformat(obj["validity"]["to"]).date()
+                == test_data.validity.to_date.date()
+            )
+        else:
+            assert test_data.validity.to_date is None
 
-        # Support both employee_it_user and org_unit_it_user creation
-        if test_data.person is not None:
-            assert UUID(obj["employee_uuid"]) == test_data.person
-            assert obj["org_unit_uuid"] is None
-        if test_data.person is None:
-            assert obj["employee_uuid"] is None
-            assert UUID(obj["org_unit_uuid"]) == test_data.org_unit
+
+@patch(
+    "mora.service.validation.models.GroupValidation.validate_unique_constraint",
+    new_callable=AsyncMock,
+)
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_ituser_org_unit_integration_test(
+    validate_unique_constraint: AsyncMock,
+    data: DataObject,
+    graphapi_post,
+    itsystem_uuids,
+    org_uuids,
+) -> None:
+    validate_unique_constraint.return_value = None
+
+    org_unit_uuid = data.draw(st.sampled_from(org_uuids))
+    org_unit_from, org_unit_to = fetch_org_unit_validity(graphapi_post, org_unit_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_unit_from, max_value=org_unit_to or datetime.max)
+    )
+
+    if org_unit_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_unit_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    test_data = data.draw(
+        st.builds(
+            ITUserCreate,
+            type=st.just("it"),
+            uuid=st.none() | st.uuids(),
+            user_key=st.text(
+                alphabet=st.characters(whitelist_categories=("L",)), min_size=1
+            ),
+            itsystem=st.sampled_from(itsystem_uuids),
+            person=st.none(),
+            org_unit=st.just(org_unit_uuid),
+            engagement=st.none(),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
+        )
+    )
+
+    mutate_query = """
+        mutation CreateITUser($input: ITUserCreateInput!){
+            ituser_create(input: $input){
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutate_query, {"input": jsonable_encoder(test_data)}
+    )
+    assert response.errors is None
+    uuid = UUID(response.data["ituser_create"]["uuid"])
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            itusers(uuids: [$uuid]) {
+                objects {
+                    type
+                    user_key
+                    itsystem_uuid
+                    employee_uuid
+                    org_unit_uuid
+                    engagement_uuid
+                    validity {
+                        from
+                        to
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+
+    # IMPORTANT: This is needed and shouldn't (I think), cause problems.
+    # Since we can't avoid the "duplicate error", we set it to None at the top
+    # `validate_unique_constraint.return_value = None`, this results in the mutator
+    # query failing WITHOUT returning that exact error. Therefore we need to check that
+    # response.data["itusers"] is not empty.
+    # The test should fail, if any other error is thrown
+    if len(response.data["itusers"]):
+        obj = one(one(response.data["itusers"])["objects"])
+        assert obj["type"] == test_data.type_
+        assert obj["user_key"] == test_data.user_key
+        assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
+        assert UUID(obj["org_unit_uuid"]) == test_data.org_unit
+        assert obj["employee_uuid"] is None
+        assert obj["engagement_uuid"] is None
         assert (
             datetime.fromisoformat(obj["validity"]["from"]).date()
             == test_data.validity.from_date.date()
@@ -425,48 +499,44 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
     assert post_update_ituser == expected_updated_ituser
 
 
-# TODO: Fix failing terminate test #51672
-# This test is not consistent, fix it.
+@given(
+    st.uuids(),
+    st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
+        lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
+    ),
+)
+async def test_terminate_response(given_uuid, given_validity_dts):
+    # Init
+    from_date, to_date = given_validity_dts
 
-# @given(
-#     st.uuids(),
-#     st.tuples(st.datetimes() | st.none(), st.datetimes()).filter(
-#         lambda dts: dts[0] <= dts[1] if dts[0] and dts[1] else True
-#     ),
-# )
-# async def test_terminate_response(given_uuid, given_validity_dts):
-#     # Init
-#     from_date, to_date = given_validity_dts
+    # The terminate logic have a check that verifies we don't use times other than:
+    # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
+    # expect an exception.
+    expect_exception = False
+    if to_date.time() != time.min:
+        expect_exception = True
 
-#     # The terminate logic have a check that verifies we don't use times other than:
-#     # 00:00:00, to the endpoint.. so if we get one of these from hypothesis, we will
-#     # expect an exception.
-#     expect_exception = False
-#     if to_date is None or to_date.time() != datetime.time.min:
-#         expect_exception = True
+    # Configure the addr-terminate we want to perform
+    test_data = ITUserTerminate(
+        uuid=given_uuid,
+        from_date=from_date,
+        to_date=to_date,
+    )
 
-#     # Configure the addr-terminate we want to perform
-#     test_data = ITUserTerminate(
-#         uuid=given_uuid,
-#         from_date=from_date,
-#         to_date=to_date,
-#     )
+    # Patching / Mocking
+    async def mock_update(*args):
+        return args[-1]
 
-#     # Patching / Mocking
-#     async def mock_update(*args):
-#         return args[-1]
-
-#     terminate_result_uuid = None
-#     caught_exception = None
-#     with mock.patch.object(lora.Scope, "update", new=mock_update):
-#         try:
-#             tr = await terminate(input=test_data)
-#             terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
-#         except Exception as e:
-#             caught_exception = e
-
-#     # Assert
-#     if not expect_exception:
-#         assert terminate_result_uuid == test_data.uuid
-#     else:
-#         assert caught_exception is not None
+    terminate_result_uuid = None
+    caught_exception = None
+    with mock.patch.object(lora.Scope, "update", new=mock_update):
+        try:
+            tr = await terminate(input=test_data)
+            terminate_result_uuid = tr.uuid if tr else terminate_result_uuid
+        except Exception as e:
+            caught_exception = e
+    # Assert
+    if not expect_exception:
+        assert terminate_result_uuid == test_data.uuid
+    else:
+        assert caught_exception is not None
