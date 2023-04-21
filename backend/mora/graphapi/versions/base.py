@@ -8,7 +8,7 @@ from fastapi import APIRouter
 from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
-from strawberry.extensions import Extension
+from strawberry.extensions import SchemaExtension
 from strawberry.schema.config import StrawberryConfig
 
 from mora.graphapi.middleware import StarletteContextExtension
@@ -28,7 +28,7 @@ class BaseGraphQLSchema:
 
     types: Iterable = ()
 
-    extensions: Sequence[type[Extension] | Extension] = [
+    extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
     ]
 
