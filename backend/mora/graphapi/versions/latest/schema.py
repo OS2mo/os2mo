@@ -17,6 +17,7 @@ from typing import Any
 from typing import cast
 from typing import Generic
 from typing import TypeVar
+from typing import Self
 from uuid import UUID
 
 import strawberry
@@ -566,7 +567,7 @@ class Association:
     description="The value component of the class/facet choice setup",
 )
 class Class:
-    parent: LazyClass | None = strawberry.field(
+    parent: Self | None = strawberry.field(
         resolver=seed_static_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
@@ -574,7 +575,7 @@ class Class:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    children: list[LazyClass] = strawberry.field(
+    children: list[Self] = strawberry.field(
         resolver=seed_static_resolver_list(
             ClassResolver(),
             {"parents": lambda root: [root.uuid]},
@@ -1084,7 +1085,7 @@ class Organisation:
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
-    parent: LazyOrganisationUnit | None = strawberry.field(
+    parent: Self | None = strawberry.field(
         resolver=seed_resolver_only(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.parent_uuid]},
@@ -1099,7 +1100,7 @@ class OrganisationUnit:
     )
     async def ancestors(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list["OrganisationUnit"]:
+    ) -> list[Self]:
         """Get all ancestors in the organisation tree.
 
         Returns:
@@ -1111,7 +1112,7 @@ class OrganisationUnit:
         ancestors = await OrganisationUnit.ancestors(self=self, root=parent, info=info)  # type: ignore
         return [parent] + ancestors
 
-    children: list[LazyOrganisationUnit] = strawberry.field(
+    children: list[Self] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"parents": lambda root: [root.uuid]},
