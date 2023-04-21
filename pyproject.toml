@@ -73,19 +73,19 @@ pytest-randomly = "^3.12.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest-timeouts = "^1.2.1"
+commitizen = {git = "https://github.com/noirbizarre/commitizen.git", rev = "feature/template-override"}
 
 [tool.commitizen]
 name = "cz_customize"
 tag_format = "$version"
 changelog_start_rev = "12.11.1"
+template = "docs/changelog.md.j2"
 
 [tool.commitizen.customize]
 # Regex for parsing commits for the changelog
-commit_parser = "^(?P<change_type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?:\\s(?P<message>.*)?"
-
-# Fuller regex to use when commitizen allows us to modify the changelog commit text
+# TODO: Use upstream commitizen after merge of:
 # https://github.com/commitizen-tools/commitizen/pull/645
-# commit_parser = "^(?P<change_type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?:\\s(\\[#(?P<ticket>.+)\\]\\s)(?P<message>.*)?(\\n\\n(?P<body>(\\n|.)*))?$"
+commit_parser = "^(?P<change_type>build|chore|ci|docs|feat|fix|perf|refactor|style|test)(?:\\((?P<scope>[^()\r\n]*)\\)|\\()?(?P<breaking>!)?:\\s(\\[#(?P<ticket>.+)\\]\\s)?(?P<message>.*)?(\\n\\n(?P<body>(\\n|.)*))?$"
 
 # Regex for commits to include in the changelog (excludes merge-commits, etc)
 changelog_pattern = "^(build|chore|ci|docs|feat|fix|perf|refactor|style|test).*: .*"
