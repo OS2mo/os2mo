@@ -595,7 +595,7 @@ class Class:
         description="Associated top-level facet",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
-    async def top_level_facet(self, root: ClassRead, info: Info) -> "Facet":
+    async def top_level_facet(self, root: ClassRead, info: Info) -> LazyFacet:
         if root.parent_uuid is None:
             return await Class.facet(root=root, info=info)  # type: ignore[operator]
         parent_node = await Class.parent(root=root, info=info)  # type: ignore[operator,misc]
@@ -1099,7 +1099,7 @@ class OrganisationUnit:
     )
     async def ancestors(
         self, root: OrganisationUnitRead, info: Info
-    ) -> list["OrganisationUnit"]:
+    ) -> list[LazyOrganisationUnit]:
         """Get all ancestors in the organisation tree.
 
         Returns:
