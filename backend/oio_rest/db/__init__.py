@@ -6,6 +6,8 @@ import datetime
 import enum
 import os
 import pathlib
+from contextlib import suppress
+from typing import Any
 
 import dateutil
 import psycopg2
@@ -655,7 +657,59 @@ def list_objects(
         # nothing found
         raise NotFoundException(f"{class_name} with UUID {uuid} not found.")
     ret = filter_json_output(output)
+    with suppress(IndexError):
+        repair_relation_nul_til_mange(ret[0])
+
     return ret
+
+
+def repair_relation_nul_til_mange(objects: list[dict[str, Any]]) -> None:
+    """Fix 'nul_til_mange' relations.
+
+    Args:
+        objects: Objects returned from the database of the format:
+            [
+              {
+                "id": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                "registreringer": [
+                  {
+                    ...
+                    "attributter": {...},
+                    "tilstande": {...},
+                    "relationer": {
+                      "overordnet": [
+                        {
+                          "virkning": {...},
+                          "uuid": "3b866d97-0b1f-48e0-8078-686d96f430b3"
+                        }
+                      ],
+                      ...
+                    }
+                  }
+                ]
+              }
+            ]
+
+
+    According to the schema validation in backend/oio_rest/validate.py
+    :_generate_relationer(), a 'nul_til_mange' relation should have exactly one of
+      - uuid (UUID)
+      - urn (URN)
+      - uuid (empty string) *and* urn (empty string)
+
+    Unfortunately, these empty strings are actually saved to the database as NULLs, and
+    filter_empty() removes these values from the response (although the implementation
+    also filters falsy values anyway). This function ensures that the object properly
+    conforms to the validation schema by changing the given argument by reference.
+    """
+    for obj in objects:
+        for registrering in obj["registreringer"]:
+            with suppress(KeyError):
+                for values in registrering["relationer"].values():
+                    for value in values:
+                        if {"uuid", "urn"}.isdisjoint(value.keys()):
+                            value["uuid"] = ""
+                            value["urn"] = ""
 
 
 def filter_json_output(output):
