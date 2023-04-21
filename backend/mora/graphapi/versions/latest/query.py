@@ -30,6 +30,7 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import RoleResolver
+from .resolver_map import resolver_map
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -61,8 +62,9 @@ def to_response(resolver):  # type: ignore
     @wraps(resolver.resolve)
     async def resolve_response(*args, **kwargs):  # type: ignore
         result = await resolver.resolve(*args, **kwargs)
+        model = resolver_map[type(resolver)]
         return [
-            Response(uuid=uuid, model=resolver.model, object_cache=objects)
+            Response(uuid=uuid, model=model, object_cache=objects)
             for uuid, objects in result.items()
         ]
 

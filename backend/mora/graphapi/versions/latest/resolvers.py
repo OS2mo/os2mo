@@ -15,36 +15,14 @@ from strawberry.dataloader import DataLoader
 from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
-from .resolver_map import resolver_map
 from .validity import OpenValidityModel
 from mora.util import CPR
-from ramodels.mo import ClassRead
-from ramodels.mo import EmployeeRead
-from ramodels.mo import FacetRead
-from ramodels.mo import OrganisationUnitRead
-from ramodels.mo.details import AddressRead
-from ramodels.mo.details import AssociationRead
-from ramodels.mo.details import EngagementAssociationRead
-from ramodels.mo.details import EngagementRead
-from ramodels.mo.details import ITSystemRead
-from ramodels.mo.details import ITUserRead
-from ramodels.mo.details import KLERead
-from ramodels.mo.details import LeaveRead
-from ramodels.mo.details import ManagerRead
-from ramodels.mo.details import RelatedUnitRead
-from ramodels.mo.details import RoleRead
 
 
 class StaticResolver:
     neutral_element_constructor: Callable[[], Any] = list
-
-    def __init__(self, model: type) -> None:
-        """Create a field resolver by specifying a model.
-
-        Args:
-            model: The MOModel.
-        """
-        self.model: type = model
+    getter: str
+    loader: str
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -91,7 +69,7 @@ class StaticResolver:
             # Early return on empty UUID list
             if not uuids:
                 return self.neutral_element_constructor()
-            resolver_name = resolver_map[self.model]["loader"]
+            resolver_name = self.loader
             return await self.get_by_uuid(info.context[resolver_name], uuids)
 
         # User keys
@@ -118,7 +96,7 @@ class StaticResolver:
         if offset is not None:
             kwargs["foersteresultat"] = offset
 
-        resolver_name = resolver_map[self.model]["getter"]
+        resolver_name = self.getter
         return await info.context[resolver_name](**kwargs)
 
     @staticmethod
@@ -230,13 +208,13 @@ async def user_keys2uuids(
 
 
 class FacetResolver(StaticResolver):
-    def __init__(self) -> None:
-        super().__init__(FacetRead)
+    getter = "facet_getter"
+    loader = "facet_loader"
 
 
 class ClassResolver(StaticResolver):
-    def __init__(self) -> None:
-        super().__init__(ClassRead)
+    getter = "class_getter"
+    loader = "class_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -282,8 +260,8 @@ class ClassResolver(StaticResolver):
 
 
 class AddressResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(AddressRead)
+    getter = "address_getter"
+    loader = "address_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -331,8 +309,8 @@ class AddressResolver(Resolver):
 
 
 class AssociationResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(AssociationRead)
+    getter = "association_getter"
+    loader = "association_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -376,8 +354,8 @@ class AssociationResolver(Resolver):
 
 
 class EmployeeResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EmployeeRead)
+    getter = "employee_getter"
+    loader = "employee_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -409,8 +387,8 @@ class EmployeeResolver(Resolver):
 
 
 class EngagementResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EngagementRead)
+    getter = "engagement_getter"
+    loader = "engagement_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -443,8 +421,8 @@ class EngagementResolver(Resolver):
 
 
 class ManagerResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(ManagerRead)
+    getter = "manager_getter"
+    loader = "manager_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -477,8 +455,8 @@ class ManagerResolver(Resolver):
 
 
 class OrganisationUnitResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(OrganisationUnitRead)
+    getter = "org_unit_getter"
+    loader = "org_unit_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -517,8 +495,8 @@ class OrganisationUnitResolver(Resolver):
 
 
 class EngagementAssociationResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(EngagementAssociationRead)
+    getter = "engagement_association_getter"
+    loader = "engagement_association_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -554,13 +532,13 @@ class EngagementAssociationResolver(Resolver):
 
 
 class ITSystemResolver(StaticResolver):
-    def __init__(self) -> None:
-        super().__init__(ITSystemRead)
+    getter = "itsystem_getter"
+    loader = "itsystem_loader"
 
 
 class ITUserResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(ITUserRead)
+    getter = "ituser_getter"
+    loader = "ituser_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -593,8 +571,8 @@ class ITUserResolver(Resolver):
 
 
 class KLEResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(KLERead)
+    getter = "kle_getter"
+    loader = "kle_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -624,8 +602,8 @@ class KLEResolver(Resolver):
 
 
 class LeaveResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(LeaveRead)
+    getter = "leave_getter"
+    loader = "leave_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -658,8 +636,8 @@ class LeaveResolver(Resolver):
 
 
 class RelatedUnitResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(RelatedUnitRead)
+    getter = "rel_unit_getter"
+    loader = "rel_unit_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,
@@ -689,8 +667,8 @@ class RelatedUnitResolver(Resolver):
 
 
 class RoleResolver(Resolver):
-    def __init__(self) -> None:
-        super().__init__(RoleRead)
+    getter = "role_getter"
+    loader = "role_loader"
 
     async def resolve(  # type: ignore[no-untyped-def]
         self,

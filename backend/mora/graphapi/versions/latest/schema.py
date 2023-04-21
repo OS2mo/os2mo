@@ -35,7 +35,6 @@ from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
-from .resolver_map import resolver_map
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
@@ -312,8 +311,8 @@ class Response(Generic[MOObject]):
         if root.object_cache != UNSET:
             return root.object_cache
         # If the object cache has not been filled we must resolve objects using the uuid
-        resolver = resolver_map[root.model]["loader"]
-        return await info.context[resolver].load(root.uuid)
+        resolver = info.context[root.model]
+        return await resolver.resolve(info=info, uuids=[root.uuid])
 
     # TODO: Implement using a dataloader
     @strawberry.field(
