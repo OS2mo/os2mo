@@ -144,6 +144,7 @@ async def test_graphql_rbac(
 @settings(
     suppress_health_check=[
         HealthCheck.function_scoped_fixture,
+        HealthCheck.filter_too_much,
     ],
 )
 @given(

@@ -5,14 +5,13 @@ from uuid import UUID
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
-from .types import UUIDReturn
 from mora import lora
 from mora import mapping
 from mora.service.manager import ManagerRequestHandler
 from mora.triggers import Trigger
 
 
-async def create_manager(input: ManagerCreate) -> UUIDReturn:
+async def create_manager(input: ManagerCreate) -> UUID:
     """Creating a manager."""
     input_dict = input.to_handler_dict()
 
@@ -21,10 +20,10 @@ async def create_manager(input: ManagerCreate) -> UUIDReturn:
     )
     uuid = await handler.submit()
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)
 
 
-async def update_manager(input: ManagerUpdate) -> UUIDReturn:
+async def update_manager(input: ManagerUpdate) -> UUID:
     """Updating a manager."""
     input_dict = input.to_handler_dict()
 
@@ -37,10 +36,10 @@ async def update_manager(input: ManagerUpdate) -> UUIDReturn:
     request = await ManagerRequestHandler.construct(req, mapping.RequestType.EDIT)
     uuid = await request.submit()
 
-    return UUIDReturn(uuid=UUID(uuid))
+    return UUID(uuid)
 
 
-async def terminate_manager(input: ManagerTerminate) -> UUIDReturn:
+async def terminate_manager(input: ManagerTerminate) -> UUID:
     trigger = input.get_manager_trigger()
     trigger_dict = trigger.to_trigger_dict()
 
@@ -63,4 +62,4 @@ async def terminate_manager(input: ManagerTerminate) -> UUIDReturn:
 
     _ = await Trigger.run(trigger_dict)
 
-    return UUIDReturn(uuid=UUID(lora_result))
+    return UUID(lora_result)
