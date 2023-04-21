@@ -1440,6 +1440,62 @@ class TestDBObjectFunctions(unittest.TestCase):
                 "registrering_til",
             )
 
+    @patch("oio_rest.db.get_connection")
+    def test_list_objects_repairs_relations(self, mock_get_conn):
+        # Arrange
+        cursor = get_mocked_cursor(mock_get_conn)
+        cursor.fetchone.return_value = (
+            [
+                {
+                    "id": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                    "registreringer": [
+                        {
+                            "relationer": {
+                                "overordnet": [
+                                    {
+                                        # uuid and urn missing
+                                        "foo": "bar",
+                                    }
+                                ],
+                            }
+                        }
+                    ],
+                }
+            ],
+        )
+
+        # Act
+        actual_result = db.list_objects(
+            "classname",
+            ["uuid"],
+            "virkning_fra",
+            "virkning_til",
+            "registrering_fra",
+            "registrering_til",
+        )
+
+        # Assert
+        assert actual_result == (
+            [
+                {
+                    "id": "f06ee470-9f17-566f-acbe-e938112d46d9",
+                    "registreringer": [
+                        {
+                            "relationer": {
+                                "overordnet": [
+                                    {
+                                        "foo": "bar",
+                                        "uuid": "",
+                                        "urn": "",
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                }
+            ],
+        )
+
 
 class TestDBGeneralSQL(unittest.TestCase):
     @patch("oio_rest.db.sql_attribute_array")
