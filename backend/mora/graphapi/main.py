@@ -8,14 +8,12 @@ from starlette import status
 from starlette.responses import RedirectResponse
 from starlette.responses import Response
 
-from .versions.v1.version import GraphQLVersion1
 from .versions.v2.version import GraphQLVersion2
 from .versions.v3.version import GraphQLVersion3
 from mora.graphapi.versions.base import BaseGraphQLVersion
 
 graphql_versions: list[type[BaseGraphQLVersion]] = [
     # Latest is never exposed directly, forcing clients to pin to a specific version
-    GraphQLVersion1,
     GraphQLVersion2,
     GraphQLVersion3,
 ]
