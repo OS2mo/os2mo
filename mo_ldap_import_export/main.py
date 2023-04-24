@@ -592,7 +592,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return encode_result(result[-entries_to_return:])
 
     # Get all objects from LDAP with invalid cpr numbers
-    @app.get("/LDAP_overview/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_invalid_cpr_numbers_from_LDAP(user=Depends(login_manager)) -> Any:
         if not cpr_field:
             raise CPRFieldNotFound("cpr_field is not configured")
@@ -646,7 +646,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return result
 
     # Get LDAP overview
-    @app.get("/LDAP_overview", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/Overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
         user=Depends(login_manager),
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
@@ -655,7 +655,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return ldap_overview[ldap_class]
 
     # Get populated LDAP overview
-    @app.get("/LDAP_overview/populated", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/Overview/Populated", status_code=202, tags=["LDAP"])
     async def load_populated_overview_from_LDAP(
         user=Depends(login_manager),
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
@@ -666,7 +666,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return encode_result(ldap_overview.get(ldap_class))
 
     # Get LDAP attribute details
-    @app.get("/LDAP_overview/attribute/{attribute}", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/attribute/{attribute}", status_code=202, tags=["LDAP"])
     async def load_attribute_details_from_LDAP(
         attribute: Literal[accepted_attributes],  # type: ignore
         user=Depends(login_manager),
@@ -674,7 +674,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return attribute_types[attribute]
 
     # Get LDAP object
-    @app.get("/LDAP_overview/object/{dn}", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/object/{dn}", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap(
         dn: str, user=Depends(login_manager), nest: bool = False
     ) -> Any:
