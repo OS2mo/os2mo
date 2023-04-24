@@ -211,10 +211,11 @@ class LdapConverter:
                 attribute not in accepted_attributes
                 and not attribute.startswith("extensionAttribute")
                 and not attribute.startswith("__")
+                and not attribute == "sAMAccountName"
             ):
                 raise IncorrectMapping(
                     (
-                        f"attribute '{attribute}' not allowed."
+                        f"Attribute '{attribute}' not allowed."
                         f" Allowed attributes are {accepted_attributes}"
                     )
                 )
@@ -471,22 +472,7 @@ class LdapConverter:
 
                     for ldap_ref in ldap_refs:
                         ldap_attribute = re.split(invalid_chars_regex, ldap_ref)[0]
-
-                        if (
-                            ldap_attribute not in accepted_attributes
-                            and not ldap_attribute.startswith("extensionAttribute")
-                        ):
-                            accepted_attributes_string = "\n".join(accepted_attributes)
-                            raise IncorrectMapping(
-                                (
-                                    f"Non existing attribute detected in "
-                                    f"ldap_to_mo['{json_key}']['{key}']: "
-                                    f"'ldap.{ldap_ref}...'. "
-                                    f"'{ldap_attribute}' attribute not found in LDAP. "
-                                    f"Accepted attributes for '{object_class}' are:\n"
-                                    f"{accepted_attributes_string}"
-                                )
-                            )
+                        self.check_attributes([ldap_attribute], accepted_attributes)
 
     def check_uuid_refs_in_mo_objects(self):
         raw_mapping = self.raw_mapping["ldap_to_mo"]

@@ -556,7 +556,7 @@ def test_check_attributes(converter: LdapConverter):
     with pytest.raises(IncorrectMapping):
         converter.check_attributes(detected_attributes, accepted_attributes)
 
-    detected_attributes = ["bar", "extensionAttribute14"]
+    detected_attributes = ["bar", "extensionAttribute14", "sAMAccountName"]
     accepted_attributes = ["bar"]
     converter.check_attributes(detected_attributes, accepted_attributes)
 
@@ -1003,7 +1003,7 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
     ):
         with pytest.raises(
             IncorrectMapping,
-            match="Non existing attribute detected",
+            match="Attribute 'nonExistingAttribute' not allowed",
         ):
             converter.check_ldap_to_mo_references()
 
