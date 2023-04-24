@@ -764,7 +764,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
             # Note: OS2mo does not send out AMQP messages (yet) when objects become
             # valid. That is why we have to do it ourselves.
-            if params.publish_amqp_messages:
+            if params.publish_amqp_messages and settings.listen_to_changes_in_mo:
                 await internal_amqpsystem.publish_message(
                     str(routing_key), jsonable_encoder(payload)
                 )
