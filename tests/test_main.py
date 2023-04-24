@@ -326,7 +326,7 @@ def test_ldap_get_organizationalUser_endpoint(
 def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP_overview", headers=headers)
+    response = test_client.get("/Inspect/overview", headers=headers)
     assert response.status_code == 202
 
 
@@ -335,7 +335,7 @@ def test_ldap_get_populated_overview_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP_overview/populated", headers=headers)
+    response = test_client.get("/Inspect/overview/populated", headers=headers)
     assert response.status_code == 202
 
 
@@ -344,14 +344,14 @@ def test_ldap_get_attribute_details_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP_overview/attribute/foo", headers=headers)
+    response = test_client.get("/Inspect/attribute/foo", headers=headers)
     assert response.status_code == 202
 
 
 def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP_overview/object/CN=foo,DC=bar", headers=headers)
+    response = test_client.get("/Inspect/object/CN=foo,DC=bar", headers=headers)
     assert response.status_code == 202
 
 
@@ -705,7 +705,7 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     valid_object = LdapObject(dn="foo", EmployeeID="0101011234")
     invalid_object = LdapObject(dn="bar", EmployeeID="ja")
     dataloader.load_ldap_objects.return_value = [valid_object, invalid_object]
-    response = test_client.get("/LDAP_overview/invalid_cpr_numbers", headers=headers)
+    response = test_client.get("/Inspect/invalid_cpr_numbers", headers=headers)
     assert response.status_code == 202
     result = response.json()
     assert "bar" in result
@@ -717,9 +717,7 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     headers: dict,
     dataloader: AsyncMock,
 ):
-    response = test_client_no_cpr.get(
-        "/LDAP_overview/invalid_cpr_numbers", headers=headers
-    )
+    response = test_client_no_cpr.get("/Inspect/invalid_cpr_numbers", headers=headers)
     assert response.status_code == 404
 
 
