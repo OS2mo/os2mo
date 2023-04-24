@@ -34,6 +34,33 @@
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}",
     },
+    "EmailEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ldap.mail or NONE}}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
+    "PhoneEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ ldap.telephoneNumber or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
+    "AdressePostEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.l or 'ukendt by') }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('AdressePostEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
   },
   "mo_to_ldap": {
     "Employee": {
@@ -59,6 +86,22 @@
       "__export_to_ldap__": true,
       "department": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "primaryGroupID": "{{ mo_employee_engagement.user_key }}",
+    },
+    "EmailEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "mail": "{{mo_employee_address.value}}",
+    },
+    "PhoneEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "telephoneNumber": "{{mo_employee_address.value}}",
+    },
+    "AdressePostEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "streetAddress": "{{mo_employee_address.value|splitlast(',')|first|trim}}",
+      "l": "{{mo_employee_address.value|splitlast(',')|last|trim}}",
     },
   },
   "username_generator": {
