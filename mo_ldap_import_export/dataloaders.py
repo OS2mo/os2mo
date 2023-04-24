@@ -193,6 +193,19 @@ class DataLoader:
         )
         return make_ldap_object(search_result, self.context, nest=nest)
 
+    def load_ldap_attribute_values(self, attribute):
+        """
+        Returns all values belonging to an LDAP attribute
+        """
+        searchParameters = {
+            "search_base": self.user_context["settings"].ldap_search_base,
+            "search_filter": "(objectclass=*)",
+            "attributes": [attribute],
+        }
+
+        responses = paged_search(self.context, searchParameters)
+        return sorted(set([str(r["attributes"][attribute]) for r in responses]))
+
     def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
         """
         Loads an ldap object which can be found using a cpr number lookup

@@ -154,6 +154,7 @@ def dataloader(
     dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
     dataloader.load_all_mo_objects.return_value = test_mo_objects
     dataloader.load_mo_object.return_value = test_mo_objects[0]
+    dataloader.load_ldap_attribute_values = sync_dataloader
 
     return dataloader
 

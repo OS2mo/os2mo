@@ -1847,3 +1847,20 @@ def test_get_ldap_objectGUID(dataloader: DataLoader):
     )
 
     assert dataloader.get_ldap_objectGUID("") == uuid
+
+
+def test_load_ldap_attribute_values(dataloader: DataLoader):
+    responses = [
+        {"attributes": {"foo": 1}},
+        {"attributes": {"foo": "2"}},
+        {"attributes": {"foo": []}},
+    ]
+    with patch(
+        "mo_ldap_import_export.dataloaders.paged_search",
+        return_value=responses,
+    ):
+        values = dataloader.load_ldap_attribute_values("foo")
+        assert "1" in values
+        assert "2" in values
+        assert "[]" in values
+        assert len(values) == 3
