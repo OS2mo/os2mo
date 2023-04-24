@@ -351,7 +351,8 @@ def test_ldap_get_attribute_details_endpoint(
 def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/object/CN=foo,DC=bar", headers=headers)
+    uuid = uuid4()
+    response = test_client.get(f"/Inspect/object/{uuid}", headers=headers)
     assert response.status_code == 202
 
 
@@ -448,6 +449,14 @@ async def test_import_all_objects_from_LDAP(
     test_client: TestClient, headers: dict
 ) -> None:
     response = test_client.get("/Import", headers=headers)
+    assert response.status_code == 202
+
+
+async def test_import_one_object_from_LDAP(
+    test_client: TestClient, headers: dict
+) -> None:
+    uuid = uuid4()
+    response = test_client.get(f"/Import/{uuid}", headers=headers)
     assert response.status_code == 202
 
 

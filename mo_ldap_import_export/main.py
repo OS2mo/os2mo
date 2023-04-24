@@ -465,8 +465,12 @@ def create_app(**kwargs: Any) -> FastAPI:
                 progress_bar.update()
 
     # Load a single user from LDAP, and import him/her/hir into MO
-    @app.get("/Import/{dn}", status_code=202, tags=["Import"])
-    async def import_single_user_from_LDAP(dn: str, user=Depends(login_manager)) -> Any:
+    @app.get("/Import/{objectGUID}", status_code=202, tags=["Import"])
+    async def import_single_user_from_LDAP(
+        objectGUID: UUID,
+        user=Depends(login_manager),
+    ) -> Any:
+        dn = dataloader.get_ldap_dn(objectGUID)
         await sync_tool.import_single_user(dn)
 
     class ExportQueryParams:
@@ -674,10 +678,11 @@ def create_app(**kwargs: Any) -> FastAPI:
         return attribute_types[attribute]
 
     # Get LDAP object
-    @app.get("/Inspect/object/{dn}", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/object/{objectGUID}", status_code=202, tags=["LDAP"])
     async def load_object_from_ldap(
-        dn: str, user=Depends(login_manager), nest: bool = False
+        objectGUID: UUID, user=Depends(login_manager), nest: bool = False
     ) -> Any:
+        dn = dataloader.get_ldap_dn(objectGUID)
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get MO address types

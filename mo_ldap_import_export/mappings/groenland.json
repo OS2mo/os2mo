@@ -7,11 +7,11 @@
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
       "uuid": "{{ employee_uuid or NONE }}"
     },
-    "AD": {
+    "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": true,
-      "user_key": "{{ ldap.distinguishedName }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('AD')) }}",
+      "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
@@ -44,10 +44,10 @@
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
     },
-    "AD": {
+    "ADGUID": {
       "objectClass": "user",
       "__export_to_ldap__": true,
-      "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+      "objectGUID" : "{{mo_employee_it_user.user_key}}",
     },
     "ADSAMA": {
       "objectClass": "user",
