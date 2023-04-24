@@ -335,7 +335,7 @@ def test_ldap_get_populated_overview_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/Overview/Populated", headers=headers)
+    response = test_client.get("/Inspect/Overview/populated", headers=headers)
     assert response.status_code == 202
 
 
