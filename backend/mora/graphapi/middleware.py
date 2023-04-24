@@ -1,6 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 """Starlette plugins to create context variables that can be used in the service app."""
+from collections.abc import AsyncIterator
+from collections.abc import Awaitable
+from collections.abc import Iterator
+from inspect import isasyncgen
 from time import monotonic
 from typing import Any
 
@@ -8,8 +12,7 @@ from starlette.requests import HTTPConnection
 from starlette.requests import Request
 from starlette_context import context
 from starlette_context.plugins import Plugin
-from strawberry.extensions import Extension
-from strawberry.utils.await_maybe import AwaitableOrValue
+from strawberry.extensions import SchemaExtension
 
 from ramodels.mo import OpenValidity
 
@@ -35,8 +38,8 @@ class GraphQLContextPlugin(Plugin):
         return 0
 
 
-class StarletteContextExtension(Extension):
-    def on_request_start(self) -> None:
+class StarletteContextExtension(SchemaExtension):
+    def on_operation(self) -> Iterator[None]:
         # clear query arguments bypassing the stack
         context["query_args"] = {}
         # Store reference counter, instead of simple boolean, to ensure we do not set
@@ -44,13 +47,29 @@ class StarletteContextExtension(Extension):
         context["is_graphql"] = context.get("is_graphql", 0) + 1
         context["starttime"] = context.get("starttime", monotonic())
 
-    def on_request_end(self) -> None:
+        yield
+
         context["is_graphql"] = context.get("is_graphql", 0) - 1
         context["stoptime"] = monotonic()
 
-    def get_results(self) -> AwaitableOrValue[dict[str, Any]]:
+    # XXX: Required due to trashy test-code in graphapi/test_middleware.py
+    # TODO: Cleanup the test and remove this trash
+    async def on_execute(self) -> AsyncIterator[None]:
+        iter = super().on_execute()
+        if isasyncgen(iter):
+            async for x in iter:
+                yield x
+        else:
+            # mypy is majorly confused by this horrible code
+            for x in iter:  # type: ignore[union-attr]
+                yield x
+
+    async def get_results(self) -> dict[str, Any]:
         # TODO: calling super() because of get_context_from_ext()
         results = super().get_results()
+        if isinstance(results, Awaitable):
+            results = await results
+
         if context.get("lora_page_out_of_range"):
             results["__page_out_of_range"] = True
 

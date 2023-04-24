@@ -33,15 +33,16 @@ def get_context_from_ext(monkeypatch):
                 ),
             }
         )
+        yield
 
     monkeypatch.setattr(
-        strawberry.extensions.Extension,
-        "on_executing_start",
+        strawberry.extensions.SchemaExtension,
+        "on_execute",
         seed_extension_context,
     )
 
     monkeypatch.setattr(
-        strawberry.extensions.Extension,
+        strawberry.extensions.SchemaExtension,
         "get_results",
         lambda *args: {
             **extension_context,
