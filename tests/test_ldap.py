@@ -43,6 +43,7 @@ from mo_ldap_import_export.ldap import construct_server
 from mo_ldap_import_export.ldap import get_client_strategy
 from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
+from mo_ldap_import_export.ldap import is_guid
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
@@ -783,3 +784,10 @@ def test_poller_invalidQuery(
             ".*modifyTimeStamp' not found.*",
             log_messages[-1]["event"],
         )
+
+
+def test_is_guid():
+    assert is_guid(str(uuid4())) is True
+    assert is_guid("not_an_uuid") is False
+    assert is_guid(None) is False
+    assert is_guid(uuid4()) is True

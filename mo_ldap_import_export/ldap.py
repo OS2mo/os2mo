@@ -14,6 +14,7 @@ from typing import cast
 from typing import ContextManager
 from typing import Dict
 from typing import Union
+from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
@@ -552,3 +553,19 @@ def set_search_params_modify_timestamp(
         **search_parameters,
         "search_filter": "(&" + changed_str + search_filter + ")",
     }
+
+
+def is_guid(objectGUID: Any):
+    """
+    Check if a string is a valid UUID
+    """
+    if type(objectGUID) is UUID:
+        return True
+    elif type(objectGUID) is not str:
+        return False
+    else:
+        try:
+            UUID(objectGUID)
+            return True
+        except Exception:
+            return False

@@ -588,6 +588,10 @@ def test_filter_mo_datestring(converter: LdapConverter):
     assert converter.filter_mo_datestring(None) is None
 
 
+def test_filter_remove_curly_brackets(converter: LdapConverter):
+    assert converter.filter_remove_curly_brackets("{foo}") == "foo"
+
+
 def test_get_number_of_entries(converter: LdapConverter):
 
     single_entry_object = LdapObject(dn="foo", value="bar")
@@ -1283,7 +1287,7 @@ def test_check_import_and_export_flags(converter: LdapConverter):
 
 def test_find_ldap_it_system():
     environment = Environment()
-    template_str = "{{ ldap.distinguishedName }}"
+    template_str = "{{ ldap.objectGUID }}"
     template = environment.from_string(template_str)
 
     mapping = {"ldap_to_mo": {"AD": {"user_key": template}}}

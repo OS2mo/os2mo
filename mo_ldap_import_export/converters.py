@@ -82,8 +82,8 @@ def find_ldap_it_system(mapping, mo_it_system_user_keys):
     for mo_it_system_user_key in mo_it_system_user_keys:
         if mo_it_system_user_key in mapping["ldap_to_mo"]:
             template = mapping["ldap_to_mo"][mo_it_system_user_key]["user_key"]
-            dn = template.render({"ldap": {"distinguishedName": "CN=foo"}})
-            if dn == "CN=foo":
+            objectGUID = template.render({"ldap": {"objectGUID": "foo"}})
+            if objectGUID == "foo":
                 ldap_it_system = mo_it_system_user_key
                 logger.info(f"Found LDAP IT-system: '{ldap_it_system}'")
                 break
@@ -131,6 +131,9 @@ class LdapConverter:
         environment.filters["mo_datestring"] = LdapConverter.filter_mo_datestring
         environment.filters["parse_datetime"] = LdapConverter.filter_parse_datetime
         environment.filters["strip_non_digits"] = LdapConverter.filter_strip_non_digits
+        environment.filters[
+            "remove_curly_brackets"
+        ] = LdapConverter.filter_remove_curly_brackets
         self.mapping = self._populate_mapping_with_templates(
             mapping,
             environment,
@@ -955,6 +958,10 @@ class LdapConverter:
                 s = text.split(separator)
                 return [separator.join(s[:-1]), s[-1]]
         return ["", ""]
+
+    @staticmethod
+    def filter_remove_curly_brackets(text: str) -> str:
+        return text.replace("{", "").replace("}", "")
 
     def _populate_mapping_with_templates(
         self, mapping: Dict[str, Any], environment: Environment

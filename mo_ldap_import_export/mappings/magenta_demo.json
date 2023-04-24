@@ -17,7 +17,7 @@
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": true,
-      "user_key": "{{ ldap.distinguishedName }}",
+      "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -88,7 +88,7 @@
     "Active Directory": {
       "objectClass": "user",
       "__export_to_ldap__": true,
-      "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+      "objectGUID" : "{{mo_employee_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type user_key*

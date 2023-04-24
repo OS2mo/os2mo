@@ -35,7 +35,7 @@ from .ldap import get_attribute_types
 from .ldap import get_ldap_attributes
 from .ldap import get_ldap_schema
 from .ldap import get_ldap_superiors
-from .ldap import is_dn
+from .ldap import is_guid
 from .ldap import make_ldap_object
 from .ldap import paged_search
 from .ldap import single_object_search
@@ -347,6 +347,16 @@ class DataLoader:
 
         return output
 
+    def add_ldap_object(self, dn: str, json_key: str):
+        """
+        Adds a new object to LDAP
+
+        The json key is used to find the object class - as defined in the json file
+        """
+        object_class = self.user_context["converter"].find_ldap_object_class(json_key)
+        self.ldap_connection.add(dn, object_class)
+        logger.info(f"Response: {self.ldap_connection.result}")
+
     async def modify_ldap_object(
         self,
         object_to_modify: LdapObject,
@@ -374,7 +384,6 @@ class DataLoader:
         success = 0
         failed = 0
 
-        object_class = converter.find_ldap_object_class(json_key)
         parameters_to_modify = list(object_to_modify.dict().keys())
 
         logger.info(f"Uploading {object_to_modify}")
@@ -414,9 +423,7 @@ class DataLoader:
             # If the user does not exist, create him/her/hir
             if response and response["description"] == "noSuchObject":
                 logger.info(f"Received 'noSuchObject' response. Creating {dn}")
-                self.ldap_connection.add(dn, object_class)
-                response = self.ldap_connection.result
-                logger.info(f"Response: {response}")
+                self.add_ldap_object(dn, json_key)
                 response = self.modify_ldap(dn, changes)
 
             if response and response["description"] == "success":
@@ -557,15 +564,14 @@ class DataLoader:
         else:
             cpr_query = ""
 
-        ituser_query = (
-            """
+        ituser_query = """
         itusers(user_keys: "%s") {
           objects {
             employee_uuid
           }
         }
-        """
-            % dn
+        """ % self.get_ldap_objectGUID(
+            dn
         )
 
         query = gql(
@@ -594,21 +600,46 @@ class DataLoader:
             logger.info(f"UUID Not found. Does the '{user_key}' it-system exist?")
             return None
 
-    def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
+    def get_ldap_dn(self, objectGUID: UUID) -> str:
         """
-        Extracts unique dns from a list of it-users
+        Given an objectGUID, find the DistinguishedName
+        """
+        logger.info(f"Looking for LDAP object with objectGUID = {objectGUID}")
+        searchParameters = {
+            "search_base": self.user_context["settings"].ldap_search_base,
+            "search_filter": f"(objectGUID={objectGUID})",
+            "attributes": [],
+        }
 
-        Notes
-        ---------
-        dn is case-insensitive.
+        search_result = single_object_search(searchParameters, self.ldap_connection)
+        dn: str = search_result["dn"]
+        return dn
+
+    def get_ldap_objectGUID(self, dn: str) -> UUID:
         """
-        dns: list[str] = []
+        Given a DN, find the objectGUID
+        """
+        logger.info(f"Looking for LDAP object with dn = '{dn}'")
+        ldap_object = self.load_ldap_object(dn, ["objectGUID"])
+        return UUID(ldap_object.objectGUID)
+
+    def extract_unique_objectGUIDs(self, it_users: list[ITUser]) -> set[UUID]:
+        """
+        Extracts unique objectGUIDs from a list of it-users
+        """
+        objectGUIDs: list[UUID] = []
         for it_user in it_users:
             user_key = it_user.user_key
-            if is_dn(user_key) and user_key.lower() not in [d.lower() for d in dns]:
-                dns.append(user_key)
+            if is_guid(user_key):
+                objectGUIDs.append(UUID(user_key))
+            else:
+                logger.info(f"{user_key} is not an objectGUID")
 
-        return dns
+        return set(objectGUIDs)
+
+    def extract_unique_dns(self, it_users: list[ITUser]) -> list[str]:
+        objectGUIDs = self.extract_unique_objectGUIDs(it_users)
+        return [self.get_ldap_dn(objectGUID) for objectGUID in objectGUIDs]
 
     async def find_or_make_mo_employee_dn(self, uuid: UUID) -> str:
         """
@@ -640,7 +671,7 @@ class DataLoader:
         # If we have an it-user (with a valid dn), use that dn
         if ldap_it_system_exists and len(dns) == 1:
             dn = dns[0]
-            logger.info(f"Found DN = {dn} using it-user lookup")
+            logger.info(f"Found DN = '{dn}' using it-user lookup")
             return dn
 
         # If the employee has a cpr-no, try using that to find a matching dn
@@ -650,7 +681,7 @@ class DataLoader:
             logger.info("Attempting to find dn using cpr-lookup")
             try:
                 dn = self.load_ldap_cpr_object(cpr_no, "Employee").dn
-                logger.info(f"Found dn = {dn}")
+                logger.info(f"Found DN = '{dn}'")
                 return dn
             except NoObjectsReturnedException:
                 if not ldap_it_system_exists:
@@ -675,9 +706,16 @@ class DataLoader:
             logger.info("No it-user found. Generating DN and creating it-user")
             dn = username_generator.generate_dn(employee)
 
+            # Create the user in LDAP
+            logger.info(f"Adding user with DN = '{dn}' to LDAP")
+            self.add_ldap_object(dn, "Employee")
+
+            # Get it's objectGUID
+            objectGUID = self.get_ldap_objectGUID(dn)
+
             # Make a new it-user
             it_user = ITUser.from_simplified_fields(
-                dn,
+                str(objectGUID),
                 it_system_uuid,
                 datetime.datetime.today().strftime("%Y-%m-%d"),
                 person_uuid=uuid,

@@ -12,6 +12,7 @@ from typing import Collection
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
+from uuid import UUID
 from uuid import uuid4
 
 import pytest
@@ -825,10 +826,13 @@ async def test_find_mo_employee_uuid(
     dataloader: DataLoader, gql_client: AsyncMock, gql_client_sync: MagicMock
 ):
     uuid = uuid4()
+    objectGUID = uuid4()
     dataloader.user_context["cpr_field"] = "employeeID"
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+        return_value=LdapObject(
+            dn="CN=foo", employeeID="0101011221", objectGUID=str(objectGUID)
+        ),
     ):
         return_value: dict = {
             "employees": [
@@ -846,7 +850,9 @@ async def test_find_mo_employee_uuid(
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="CN=foo", employeeID="Ja"),
+        return_value=LdapObject(
+            dn="CN=foo", employeeID="Ja", objectGUID=str(objectGUID)
+        ),
     ):
         return_value = {
             "itusers": [
@@ -866,7 +872,9 @@ async def test_find_mo_employee_uuid_not_found(
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+        return_value=LdapObject(
+            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+        ),
     ):
         gql_client.execute.return_value = {"employees": [], "itusers": []}
 
@@ -881,7 +889,9 @@ async def test_find_mo_employee_uuid_multiple_matches(
 
     with patch(
         "mo_ldap_import_export.dataloaders.DataLoader.load_ldap_object",
-        return_value=LdapObject(dn="CN=foo", employeeID="0101011221"),
+        return_value=LdapObject(
+            dn="CN=foo", employeeID="0101011221", objectGUID=str(uuid4())
+        ),
     ):
         gql_client.execute.return_value = {
             "employees": [{"uuid": uuid4()}, {"uuid": uuid4()}],
@@ -1707,25 +1717,9 @@ async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicM
 async def test_find_or_make_mo_employee_dn(
     dataloader: DataLoader, username_generator: MagicMock
 ):
-    ad_it_user = ITUser.from_simplified_fields(
-        "CN=foo,DC=bar",
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
-    )
-    another_ad_it_user = ITUser.from_simplified_fields(
-        "CN=foo2,DC=bar",
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
-    )
 
-    invalid_ad_it_user = ITUser.from_simplified_fields(
-        "invalid_dn",
-        uuid4(),
-        datetime.datetime.today().strftime("%Y-%m-%d"),
-        person_uuid=uuid4(),
-    )
+    uuid_1 = uuid4()
+    uuid_2 = uuid4()
 
     it_system_uuid = uuid4()
     dataloader.get_ldap_it_system_uuid = MagicMock()  # type: ignore
@@ -1733,31 +1727,35 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_mo_employee = AsyncMock()  # type: ignore
     dataloader.load_ldap_cpr_object = MagicMock()  # type: ignore
     dataloader.upload_mo_objects = AsyncMock()  # type: ignore
+    dataloader.extract_unique_dns = MagicMock()  # type: ignore
+    dataloader.get_ldap_objectGUID = MagicMock()  # type: ignore
 
     # Case where there is an IT-system that contains the DN
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
+    dataloader.load_mo_employee_it_users.return_value = []
     dataloader.get_ldap_it_system_uuid.return_value = it_system_uuid
-    dataloader.load_mo_employee_it_users.return_value = [ad_it_user]
+    dataloader.extract_unique_dns.return_value = ["CN=foo,DC=bar"]
     dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
     assert dn == "CN=foo,DC=bar"
 
     # Same as above, but the it-system contains an invalid value
-    dataloader.load_mo_employee_it_users.return_value = [invalid_ad_it_user]
+    dataloader.extract_unique_dns.return_value = []
     username_generator.generate_dn.return_value = "CN=generated_dn_1,DC=DN"
+    dataloader.get_ldap_objectGUID.return_value = uuid_1
     dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
-    uploaded_dn = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
     assert dn == "CN=generated_dn_1,DC=DN"
-    assert uploaded_dn == "CN=generated_dn_1,DC=DN"
+    assert uploaded_uuid == str(uuid_1)
     dataloader.upload_mo_objects.reset_mock()
 
     # Same as above, but there are multiple IT-users
-    dataloader.load_mo_employee_it_users.return_value = [ad_it_user, another_ad_it_user]
+    dataloader.extract_unique_dns.return_value = ["CN=foo,DC=bar", "CN=foo2,DC=bar"]
     with pytest.raises(MultipleObjectsReturnedException):
         await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))
 
     # Case where there is no IT-system that contains the DN, but the cpr lookup succeeds
     dataloader.load_mo_employee.return_value = Employee(cpr_no="0101911234")
-    dataloader.load_mo_employee_it_users.return_value = []
+    dataloader.extract_unique_dns.return_value = []
     dataloader.load_ldap_cpr_object.return_value = LdapObject(
         dn="CN=dn_already_in_ldap,DC=foo"
     )
@@ -1767,10 +1765,11 @@ async def test_find_or_make_mo_employee_dn(
     # Same as above, but the cpr-lookup does not succeed
     dataloader.load_ldap_cpr_object.side_effect = NoObjectsReturnedException("foo")
     username_generator.generate_dn.return_value = "CN=generated_dn_2,DC=DN"
+    dataloader.get_ldap_objectGUID.return_value = uuid_2
     dn = (await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4())))[0]
-    uploaded_dn = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
+    uploaded_uuid = dataloader.upload_mo_objects.await_args_list[0].args[0][0].user_key
     assert dn == "CN=generated_dn_2,DC=DN"
-    assert uploaded_dn == "CN=generated_dn_2,DC=DN"
+    assert uploaded_uuid == str(uuid_2)
     dataloader.upload_mo_objects.reset_mock()
 
     # Same as above, but an it-system does not exist
@@ -1785,3 +1784,66 @@ async def test_find_or_make_mo_employee_dn(
     dataloader.load_mo_employee.return_value = Employee(cpr_no=None)
     with pytest.raises(DNNotFound):
         await asyncio.gather(dataloader.find_or_make_mo_employee_dn(uuid4()))
+
+
+def test_extract_unique_objectGUIDs(dataloader: DataLoader):
+
+    ad_it_user_1 = ITUser.from_simplified_fields(
+        str(uuid4()),
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+    ad_it_user_2 = ITUser.from_simplified_fields(
+        str(uuid4()),
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+    ad_it_user_3 = ITUser.from_simplified_fields(
+        "not_an_uuid",
+        uuid4(),
+        datetime.datetime.today().strftime("%Y-%m-%d"),
+        person_uuid=uuid4(),
+    )
+
+    objectGUIDs = dataloader.extract_unique_objectGUIDs(
+        [ad_it_user_1, ad_it_user_2, ad_it_user_3]
+    )
+
+    assert UUID(ad_it_user_1.user_key) in objectGUIDs
+    assert UUID(ad_it_user_2.user_key) in objectGUIDs
+    assert len(objectGUIDs) == 2
+
+
+def test_extract_unique_dns(dataloader: DataLoader):
+
+    dataloader.extract_unique_objectGUIDs = MagicMock()  # type: ignore
+    dataloader.extract_unique_objectGUIDs.return_value = [uuid4(), uuid4()]
+
+    dataloader.get_ldap_dn = MagicMock()  # type: ignore
+    dataloader.get_ldap_dn.return_value = "CN=foo"
+
+    dns = dataloader.extract_unique_dns([])
+
+    assert len(dns) == 2
+    assert dns[0] == "CN=foo"
+    assert dns[1] == "CN=foo"
+
+
+def test_get_ldap_dn(dataloader: DataLoader):
+    with patch(
+        "mo_ldap_import_export.dataloaders.single_object_search",
+        return_value={"dn": "CN=foo"},
+    ):
+        assert dataloader.get_ldap_dn(uuid4()) == "CN=foo"
+
+
+def test_get_ldap_objectGUID(dataloader: DataLoader):
+    uuid = uuid4()
+    dataloader.load_ldap_object = MagicMock()  # type: ignore
+    dataloader.load_ldap_object.return_value = LdapObject(
+        dn="foo", objectGUID=str(uuid)
+    )
+
+    assert dataloader.get_ldap_objectGUID("") == uuid
