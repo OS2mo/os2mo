@@ -649,10 +649,8 @@ async def autocomplete_orgunits(
             "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
         )
 
-    # Get search phrase & do the search
-    search_phrase = util.query_to_search_phrase(query)
     search_results = await autocomplete.search_orgunits(
-        request.app.state.sessionmaker, search_phrase, at
+        request.app.state.sessionmaker, query, at
     )
 
     # Decorate search results with data through GraphQL & create final results
@@ -660,31 +658,9 @@ async def autocomplete_orgunits(
     if at is not None:
         graphql_vars["from_date"] = at
 
-    # # ------------------------------------------------------------------------
-    # tmp_q = """
-    # {
-    #     org_units {
-    #         uuid
-    #         objects {
-    #             name
-    #             user_key
-    #             uuid
-    #             parent_uuid
-    #             validity {
-    #                 from
-    #                 to
-    #             }
-    #         }
-    #     }
-    # }
-    # """
-    # tmp_resp = await execute_graphql(tmp_q)
-    # handle_gql_error(tmp_resp)
-    # # ------------------------------------------------------------------------
-
     orgunit_decorate_query = """
-        query OrgUnitDecorate($uuids: [UUID!]) {
-            org_units(uuids: $uuids) {
+        query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
+            org_units(uuids: $uuids, from_date: $from_date) {
                 uuid
                 objects {
                     name
@@ -701,8 +677,8 @@ async def autocomplete_orgunits(
         """
     if settings.confdb_autocomplete_attrs_orgunit:
         orgunit_decorate_query = """
-        query OrgUnitDecorate($uuids: [UUID!]) {
-            org_units(uuids: $uuids) {
+        query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
+            org_units(uuids: $uuids, from_date: $from_date) {
                 uuid
                 objects {
                     name
@@ -726,6 +702,11 @@ async def autocomplete_orgunits(
                     itusers {
                         uuid
                         user_key
+                        itsystem {
+                          uuid
+                          user_key
+                          name
+                        }
                     }
                 }
             }
@@ -763,6 +744,22 @@ async def autocomplete_orgunits(
                         "uuid": UUID(addr["uuid"]),
                         "value": addr["name"],
                         "title": addr["address_type"]["name"],
+                    }
+                )
+
+        if "itusers" in graphql_equivilent:
+            for ituser in graphql_equivilent["itusers"]:
+                if (
+                    UUID(ituser["itsystem"]["uuid"])
+                    not in settings.confdb_autocomplete_attrs_orgunit
+                ):
+                    continue
+
+                attrs.append(
+                    {
+                        "uuid": UUID(ituser["uuid"]),
+                        "value": ituser["user_key"],
+                        "title": ituser["itsystem"]["name"],
                     }
                 )
 
