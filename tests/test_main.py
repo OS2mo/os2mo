@@ -326,7 +326,7 @@ def test_ldap_get_organizationalUser_endpoint(
 def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/Overview", headers=headers)
+    response = test_client.get("/Inspect/overview", headers=headers)
     assert response.status_code == 202
 
 
@@ -335,7 +335,7 @@ def test_ldap_get_populated_overview_endpoint(
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/Overview/populated", headers=headers)
+    response = test_client.get("/Inspect/overview/populated", headers=headers)
     assert response.status_code == 202
 
 

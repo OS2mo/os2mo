@@ -646,7 +646,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return result
 
     # Get LDAP overview
-    @app.get("/Inspect/Overview", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/overview", status_code=202, tags=["LDAP"])
     async def load_overview_from_LDAP(
         user=Depends(login_manager),
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
@@ -655,7 +655,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         return ldap_overview[ldap_class]
 
     # Get populated LDAP overview
-    @app.get("/Inspect/Overview/populated", status_code=202, tags=["LDAP"])
+    @app.get("/Inspect/overview/populated", status_code=202, tags=["LDAP"])
     async def load_populated_overview_from_LDAP(
         user=Depends(login_manager),
         ldap_class: Literal[ldap_classes] = default_ldap_class,  # type: ignore
