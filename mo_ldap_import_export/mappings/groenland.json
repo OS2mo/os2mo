@@ -15,6 +15,14 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
+    "ADSAMA": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "__import_to_mo__": true,
+      "user_key": "{{ ldap.sAMAccountName }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
       "__import_to_mo__": true,
@@ -40,6 +48,11 @@
       "objectClass": "user",
       "__export_to_ldap__": true,
       "distinguishedName" : "{{mo_employee_it_user.user_key}}",
+    },
+    "ADSAMA": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "sAMAccountName" : "{{mo_employee_it_user.user_key}}",
     },
     "Engagement" : {
       "objectClass": "user",
