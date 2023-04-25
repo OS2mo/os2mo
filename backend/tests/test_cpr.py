@@ -170,7 +170,7 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     `cpr_validate_birthdate` setting is False.
     """
 
-    cpr = "7212123333"
+    cpr = "7202023333"
 
     # Set up mock Serviceplatform access
     monkeypatch.setenv("ENABLE_SP", "true")

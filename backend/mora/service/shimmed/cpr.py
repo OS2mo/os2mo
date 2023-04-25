@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import re
+from itertools import chain
 from operator import itemgetter
 from typing import Any
 
@@ -78,7 +79,13 @@ def _handle_erstatningspersonnummer(cpr: str) -> dict:
         if 61 <= day <= 91:
             logger.debug(event="detected 'erstatningspersonnummer'")
             cleaned_cpr: str = "".join(
-                map(str, itemgetter("day", "month", "year", "code")(parsed))
+                chain(
+                    (
+                        "%02d" % val
+                        for val in itemgetter("day", "month", "year")(parsed)
+                    ),
+                    [str(parsed["code"])],
+                )
             )
             # Return the CPR number entered by the user, along with a blank name.
             return {mapping.NAME: "", mapping.CPR_NO: cleaned_cpr}
