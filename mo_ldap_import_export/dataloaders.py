@@ -206,7 +206,12 @@ class DataLoader:
         responses = paged_search(self.context, searchParameters)
         return sorted(set([str(r["attributes"][attribute]) for r in responses]))
 
-    def load_ldap_cpr_object(self, cpr_no: str, json_key: str) -> LdapObject:
+    def load_ldap_cpr_object(
+        self,
+        cpr_no: str,
+        json_key: str,
+        additional_attributes: list[str] = [],
+    ) -> LdapObject:
         """
         Loads an ldap object which can be found using a cpr number lookup
 
@@ -229,7 +234,7 @@ class DataLoader:
         converter = self.user_context["converter"]
 
         object_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key)
+        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
 
         object_class_filter = f"objectclass={object_class}"
         cpr_filter = f"{cpr_field}={cpr_no}"
@@ -237,7 +242,7 @@ class DataLoader:
         searchParameters = {
             "search_base": search_base,
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
-            "attributes": attributes,
+            "attributes": list(set(attributes)),
         }
         search_result = single_object_search(searchParameters, self.ldap_connection)
 
@@ -336,7 +341,11 @@ class DataLoader:
                 changes = {attribute: [("MODIFY_DELETE", value_to_delete)]}
                 self.modify_ldap(dn, changes)
 
-    async def load_ldap_objects(self, json_key: str) -> list[LdapObject]:
+    async def load_ldap_objects(
+        self,
+        json_key: str,
+        additional_attributes: list[str] = [],
+    ) -> list[LdapObject]:
         """
         Returns list with desired ldap objects
 
@@ -346,11 +355,11 @@ class DataLoader:
         """
         converter = self.user_context["converter"]
         user_class = converter.find_ldap_object_class(json_key)
-        attributes = converter.get_ldap_attributes(json_key)
+        attributes = converter.get_ldap_attributes(json_key) + additional_attributes
 
         searchParameters = {
             "search_filter": f"(objectclass={user_class})",
-            "attributes": attributes,
+            "attributes": list(set(attributes)),
         }
 
         responses = paged_search(self.context, searchParameters)

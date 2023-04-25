@@ -564,7 +564,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         cpr: str = Depends(valid_cpr),
         user=Depends(login_manager),
     ) -> Any:
-        result = dataloader.load_ldap_cpr_object(cpr, json_key)
+        result = dataloader.load_ldap_cpr_object(cpr, json_key, ["objectGUID"])
         return encode_result(result)
 
     # Get a specific cpr-indexed object from LDAP - Converted to MO
@@ -592,7 +592,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
         entries_to_return: int = Query(ge=1),
     ) -> Any:
-        result = await dataloader.load_ldap_objects(json_key)
+        result = await dataloader.load_ldap_objects(json_key, ["objectGUID"])
         return encode_result(result[-entries_to_return:])
 
     # Get all objects from LDAP with invalid cpr numbers
