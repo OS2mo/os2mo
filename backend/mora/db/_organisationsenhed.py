@@ -5,9 +5,11 @@ from typing import Literal
 from sqlalchemy import Column
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
+from sqlalchemy import Enum
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import synonym
+
 
 from ._common import _AttrEgenskaberMixin
 from ._common import _OIOEntityMixin
@@ -37,20 +39,19 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationEnhedRelationKode = Literal[
-    "enhedstype",
-    "niveau",
-    "opgaver",
-    "opmærkning",
-    "overordnet",
-    "tilhoerer",
-]
+class OrganisationEnhedRelationKode(Enum):
+    enhedstype = "enhedstype"
+    niveau = "niveau"
+    opgaver = "opgaver"
+    opmaerkning = "opmærkning"
+    overordnet = "overordnet"
+    tilhoerer = "tilhoerer"
 
 
 class OrganisationEnhedRelation(_RelationMixin, Base):
     __tablename__ = "organisationenhed_relation"
 
-    rel_type: Mapped[OrganisationEnhedRelationKode]
+    rel_type = Column("rel_type", OrganisationEnhedRelationKode, nullable=False)
 
     organisationenhed_registrering_id = Column(
         ForeignKey("organisationenhed_registrering.id"), index=True

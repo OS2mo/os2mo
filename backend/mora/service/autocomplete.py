@@ -24,11 +24,14 @@ from sqlalchemy.sql import union
 
 from mora import common
 from mora import util
+from mora.db import Organisation
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
+from mora.db import OrganisationEnhedRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
+from mora.db import OrganisationEnhedRelationKode
 from mora.lora import AutocompleteScope
 
 
@@ -111,7 +114,11 @@ async def search_orgunits(sessionmaker, query: str, at: date | None = None):
         query_final = (
             select(
                 OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
-                # _org_unit_path(all_hits, OrganisationEnhedRegistrering.organisationenhed_id, sql_at_datetime).label("path"),
+                _org_unit_path_new(
+                    all_hits,
+                    OrganisationEnhedRegistrering.organisationenhed_id,
+                    sql_at_datetime
+                ).label("path"),
             )
             .where(
                 OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid
@@ -245,6 +252,62 @@ def _get_cte_orgunit_itsystem_hits(query: str, sql_at_datetime: str):
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
         .cte()
+    )
+
+
+def _org_unit_path_new(all_hits, enhed_uuid, at_datetime_str_sql: str):
+    nodes_cte = select(
+        # "Base" org unit UUID (same for all rows in result)
+        all_hits.c.uuid.label("base_id"),
+        # Current org unit UUID (different for each row in result)
+        all_hits.c.uuid.label("id"),
+        # Empty array of strings (will be populated the in accumulative CTE
+        # below.)
+        literal_column("array[]::text[]").label("p"),
+    ).cte(recursive=True)
+
+    nodes_recursive = nodes_cte.alias()
+    nodes_cte = nodes_cte.union(
+        select(
+            # Keep the UUID of the base org unit (same for all rows in CTE)
+            nodes_recursive.columns.base_id,
+            # Record the UUID of the current parent org unit
+            OrganisationEnhedRelation.rel_maal_uuid,
+            # Prepend the name of the current org unit onto path 'p'
+            func.array_prepend(OrganisationEnhedAttrEgenskaber.enhedsnavn, nodes_recursive.columns.p),
+        )
+        .join(
+            OrganisationEnhedRegistrering,
+            OrganisationEnhedRegistrering.id == OrganisationEnhedRelation.organisationenhed_registrering_id,
+        )
+        .join(
+            OrganisationEnhedAttrEgenskaber,
+            OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id == OrganisationEnhedRegistrering.id,
+        )
+        .join(
+            nodes_recursive,
+            nodes_recursive.columns.id == OrganisationEnhedRegistrering.organisationenhed_id,
+        )
+        .where(
+            # OrganisationEnhedRelation.rel_type == "overordnet",
+            cast(OrganisationEnhedRelation.rel_type, String) == OrganisationEnhedRelationKode.overordnet,
+            text(
+                f"(organisationenhed_relation.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+            text(
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+            ),
+        )
+    )
+
+    return (
+        # Take first *complete* path (only 1 is expected)
+        select(func.json_agg(nodes_cte.columns.p, type_=postgresql.JSONB)[0]).where(
+            # A complete path must start at the current org unit UUID
+            nodes_cte.columns.base_id == enhed_uuid,
+            # A complete path must contain the root org unit UUID
+            nodes_cte.columns.id.in_(select(Organisation.id)),
+        )
     )
 
 
