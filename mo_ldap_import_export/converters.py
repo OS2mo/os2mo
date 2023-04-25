@@ -25,6 +25,7 @@ from .exceptions import IncorrectMapping
 from .exceptions import InvalidNameException
 from .exceptions import NotSupportedException
 from .exceptions import UUIDNotFoundException
+from .ldap import is_guid
 from .ldap_classes import LdapObject
 from .logging import logger
 from .utils import delete_keys_from_dict
@@ -690,6 +691,15 @@ class LdapConverter:
             if info_dict_name != "org_unit_info":
                 self.check_info_dict_for_duplicates(info_dict)
 
+            for info in info_dict.values():
+                if "uuid" not in info:
+                    raise IncorrectMapping("'uuid' key not found in info-dict")
+                uuid = info["uuid"]
+                if type(uuid) != str:
+                    raise IncorrectMapping(f"{uuid} is not a string")
+                if not is_guid(uuid):
+                    raise IncorrectMapping(f"{uuid} is not an uuid")
+
         self.check_org_unit_info_dict()
 
     @staticmethod
@@ -707,14 +717,14 @@ class LdapConverter:
     def name_normalizer(name):
         return name.lower().replace("-", " ")
 
-    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str):
+    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
         name_key = "user_key"
         if not user_key:
             raise UUIDNotFoundException("object type name is empty")
 
         normalized_name = self.name_normalizer(user_key)
 
-        candidates = {
+        candidates: dict[str, str] = {
             info[name_key]: info["uuid"]
             for info in info_dict.values()
             if self.name_normalizer(info[name_key]) == normalized_name
@@ -726,29 +736,29 @@ class LdapConverter:
         else:
             raise UUIDNotFoundException(f"'{user_key}' not found in '{info_dict}'")
 
-    def get_address_type_uuid(self, address_type: str):
+    def get_address_type_uuid(self, address_type: str) -> str:
         return self.get_object_uuid_from_user_key(self.address_type_info, address_type)
 
-    def get_it_system_uuid(self, it_system: str):
+    def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
-    def get_job_function_uuid(self, job_function: str):
+    def get_job_function_uuid(self, job_function: str) -> str:
         return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
 
-    def get_primary_type_uuid(self, primary: str):
+    def get_primary_type_uuid(self, primary: str) -> str:
         return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
 
-    def get_engagement_type_uuid(self, engagement_type: str):
+    def get_engagement_type_uuid(self, engagement_type: str) -> str:
         return self.get_object_uuid_from_user_key(
             self.engagement_type_info, engagement_type
         )
 
-    def get_org_unit_type_uuid(self, org_unit_type: str):
+    def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
         return self.get_object_uuid_from_user_key(
             self.org_unit_type_info, org_unit_type
         )
 
-    def get_org_unit_level_uuid(self, org_unit_level: str):
+    def get_org_unit_level_uuid(self, org_unit_level: str) -> str:
         return self.get_object_uuid_from_user_key(
             self.org_unit_level_info, org_unit_level
         )
@@ -806,8 +816,8 @@ class LdapConverter:
                 org_unit = OrganisationUnit.from_simplified_fields(
                     user_key=str(uuid4()),
                     name=self.imported_org_unit_tag + name,
-                    org_unit_type_uuid=self.default_org_unit_type_uuid,
-                    org_unit_level_uuid=self.default_org_unit_level_uuid,
+                    org_unit_type_uuid=UUID(self.default_org_unit_type_uuid),
+                    org_unit_level_uuid=UUID(self.default_org_unit_level_uuid),
                     from_date=from_date,
                     parent_uuid=parent_uuid,
                     uuid=uuid,
