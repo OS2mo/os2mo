@@ -1550,7 +1550,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.171.3"
+version = "0.173.1"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1559,7 +1559,7 @@ python-versions = ">=3.7,<4.0"
 [package.dependencies]
 graphql-core = ">=3.2.0,<3.3.0"
 python-dateutil = ">=2.7.0,<3.0.0"
-typing_extensions = ">=3.7.4,<5.0.0"
+typing_extensions = ">=4.0.0,<5.0.0"
 
 [package.extras]
 aiohttp = ["aiohttp (>=3.7.4.post0,<4.0.0)"]
@@ -1574,6 +1574,7 @@ fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.5,<0.0.7)"]
 flask = ["flask (>=1.1)"]
 opentelemetry = ["opentelemetry-api (<2)", "opentelemetry-sdk (<2)"]
 pydantic = ["pydantic (<2)"]
+pyinstrument = ["pyinstrument (>=4.0.0)"]
 sanic = ["sanic (>=20.12.2)"]
 starlite = ["starlite (>=1.48.0)"]
 
@@ -1757,7 +1758,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "524e8dca279e86465bbc5ec4dbad7a28c14c818d15c71d7102c80e318641c70c"
+content-hash = "9331898c78a2d034625c9fe248aea49350137bd49abc3449acb51f7155dd99c4"
 
 [metadata.files]
 aio-pika = [
@@ -2902,8 +2903,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.171.3-py3-none-any.whl", hash = "sha256:c45169384343328e3143f376b3349dc5ec34f55ce3bb11cf18e5d8e1a43cbd41"},
-    {file = "strawberry_graphql-0.171.3.tar.gz", hash = "sha256:87bf921726018c75789fe2b71dadcc40a3a12f851a56b51afaac4d982be18aab"},
+    {file = "strawberry_graphql-0.173.1-py3-none-any.whl", hash = "sha256:b8d6c542b2e33c8f9e0ed23c2be7c633faadb377645ef4c5c5a1774a099171c3"},
+    {file = "strawberry_graphql-0.173.1.tar.gz", hash = "sha256:003a4385fd1aefe19300f435ab3673d821bddebce3bcb4fc98102f5e51b63763"},
 ]
 structlog = [
     {file = "structlog-22.3.0-py3-none-any.whl", hash = "sha256:b403f344f902b220648fa9f286a23c0cc5439a5844d271fec40562dbadbc70ad"},
