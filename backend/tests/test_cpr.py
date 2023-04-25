@@ -141,7 +141,7 @@ def test_get_citizen_uses_version_kwarg():
         ("1212123333", None),
         ("121212-3333", None),
         ("7212123333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
-        ("721212-3333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
+        ("721212-3333", {mapping.NAME: "", mapping.CPR_NO: "721212-3333"}),
     ],
 )
 def test_handle_erstatningspersonnummer(
