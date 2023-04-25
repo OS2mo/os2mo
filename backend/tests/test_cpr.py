@@ -141,7 +141,7 @@ def test_get_citizen_uses_version_kwarg():
         ("1212123333", None),
         ("121212-3333", None),
         ("7212123333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
-        ("721212-3333", {mapping.NAME: "", mapping.CPR_NO: "7212123333"}),
+        ("721212-3333", {mapping.NAME: "", mapping.CPR_NO: "721212-3333"}),
     ],
 )
 def test_handle_erstatningspersonnummer(
@@ -170,7 +170,7 @@ async def test_cpr_lookup_handles_erstatningspersonnummer(
     `cpr_validate_birthdate` setting is False.
     """
 
-    cpr = "7212123333"
+    cpr = "7202023333"
 
     # Set up mock Serviceplatform access
     monkeypatch.setenv("ENABLE_SP", "true")
