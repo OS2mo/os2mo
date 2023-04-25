@@ -97,9 +97,11 @@ def context() -> Context:
     settings_mock.imported_org_unit_tag = "IMPORTED FROM LDAP: "
 
     dataloader = MagicMock()
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     mo_address_types = {
-        "uuid1": {"uuid": "uuid1", "scope": "MAIL", "user_key": "Email"},
-        "uuid2": {"uuid": "uuid2", "scope": "TEXT", "user_key": "Post"},
+        uuid1: {"uuid": uuid1, "scope": "MAIL", "user_key": "Email"},
+        uuid2: {"uuid": uuid2, "scope": "TEXT", "user_key": "Post"},
     }
     ad_uuid = str(uuid4())
     mo_it_systems = {
@@ -137,8 +139,8 @@ def context() -> Context:
     overview = {"user": {"attributes": attribute_dict}}
 
     dataloader.load_ldap_overview.return_value = overview
-    org_unit_type_uuid = uuid4()
-    org_unit_level_uuid = uuid4()
+    org_unit_type_uuid = str(uuid4())
+    org_unit_level_uuid = str(uuid4())
     dataloader.load_mo_org_unit_types.return_value = {
         org_unit_type_uuid: {"uuid": org_unit_type_uuid, "user_key": "Afdeling"}
     }
@@ -868,9 +870,11 @@ async def test_check_ldap_attributes_fields_to_check(converter: LdapConverter):
 
 async def test_check_dar_scope(converter: LdapConverter):
 
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     address_type_info = {
-        "uuid1": {"scope": "TEXT", "user_key": "foo", "uuid": "uuid1"},
-        "uuid2": {"scope": "DAR", "user_key": "bar", "uuid": "uuid2"},
+        uuid1: {"scope": "TEXT", "user_key": "foo", "uuid": uuid2},
+        uuid2: {"scope": "DAR", "user_key": "bar", "uuid": uuid2},
     }
     converter.address_type_info = address_type_info
 
@@ -890,102 +894,121 @@ async def test_check_dar_scope(converter: LdapConverter):
 
 async def test_get_address_type_uuid(converter: LdapConverter):
 
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
+
     address_type_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "foo"},
-        "uuid2": {"uuid": "uuid2", "user_key": "bar"},
+        uuid1: {"uuid": uuid1, "user_key": "foo"},
+        uuid2: {"uuid": uuid2, "user_key": "bar"},
     }
     converter.address_type_info = address_type_info
 
-    assert converter.get_address_type_uuid("foo") == "uuid1"
-    assert converter.get_address_type_uuid("bar") == "uuid2"
+    assert converter.get_address_type_uuid("foo") == uuid1
+    assert converter.get_address_type_uuid("bar") == uuid2
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     it_system_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "AD"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Office365"},
+        uuid1: {"uuid": uuid1, "user_key": "AD"},
+        uuid2: {"uuid": uuid2, "user_key": "Office365"},
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system_uuid("AD") == "uuid1"
-    assert converter.get_it_system_uuid("Office365") == "uuid2"
+    assert converter.get_it_system_uuid("AD") == uuid1
+    assert converter.get_it_system_uuid("Office365") == uuid2
 
 
 async def test_get_job_function_uuid(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     job_function_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "Major"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Secretary"},
+        uuid1: {"uuid": uuid1, "user_key": "Major"},
+        uuid2: {"uuid": uuid2, "user_key": "Secretary"},
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_uuid("Major") == "uuid1"
-    assert converter.get_job_function_uuid("Secretary") == "uuid2"
+    assert converter.get_job_function_uuid("Major") == uuid1
+    assert converter.get_job_function_uuid("Secretary") == uuid2
 
 
 async def test_get_engagement_type_uuid(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     engagement_type_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "Ansat"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Vikar"},
+        uuid1: {"uuid": uuid1, "user_key": "Ansat"},
+        uuid2: {"uuid": uuid2, "user_key": "Vikar"},
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_uuid("Ansat") == "uuid1"
-    assert converter.get_engagement_type_uuid("Vikar") == "uuid2"
+    assert converter.get_engagement_type_uuid("Ansat") == uuid1
+    assert converter.get_engagement_type_uuid("Vikar") == uuid2
 
 
 async def test_get_primary_type_uuid(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     primary_type_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "primary"},
-        "uuid2": {"uuid": "uuid2", "user_key": "non-primary"},
+        uuid1: {"uuid": uuid1, "user_key": "primary"},
+        uuid2: {"uuid": uuid2, "user_key": "non-primary"},
     }
     converter.primary_type_info = primary_type_info
 
-    assert converter.get_primary_type_uuid("primary") == "uuid1"
-    assert converter.get_primary_type_uuid("non-primary") == "uuid2"
+    assert converter.get_primary_type_uuid("primary") == uuid1
+    assert converter.get_primary_type_uuid("non-primary") == uuid2
 
 
 def test_get_it_system_user_key(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     it_system_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "AD"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Office365"},
+        uuid1: {"uuid": uuid1, "user_key": "AD"},
+        uuid2: {"uuid": uuid2, "user_key": "Office365"},
     }
     converter.it_system_info = it_system_info
 
-    assert converter.get_it_system_user_key("uuid1") == "AD"
-    assert converter.get_it_system_user_key("uuid2") == "Office365"
+    assert converter.get_it_system_user_key(uuid1) == "AD"
+    assert converter.get_it_system_user_key(uuid2) == "Office365"
 
 
 def test_get_address_type_user_key(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     address_type_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "EmailUnit"},
-        "uuid2": {"uuid": "uuid2", "user_key": "EmailEmployee"},
+        uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
+        uuid2: {"uuid": uuid2, "user_key": "EmailEmployee"},
     }
     converter.address_type_info = address_type_info
 
-    assert converter.get_address_type_user_key("uuid1") == "EmailUnit"
-    assert converter.get_address_type_user_key("uuid2") == "EmailEmployee"
+    assert converter.get_address_type_user_key(uuid1) == "EmailUnit"
+    assert converter.get_address_type_user_key(uuid2) == "EmailEmployee"
 
 
 def test_get_engagement_type_user_key(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     engagement_type_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "Ansat"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Vikar"},
+        uuid1: {"uuid": uuid1, "user_key": "Ansat"},
+        uuid2: {"uuid": uuid2, "user_key": "Vikar"},
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_user_key("uuid1") == "Ansat"
-    assert converter.get_engagement_type_user_key("uuid2") == "Vikar"
+    assert converter.get_engagement_type_user_key(uuid1) == "Ansat"
+    assert converter.get_engagement_type_user_key(uuid2) == "Vikar"
 
 
 def test_get_job_function_user_key(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
     job_function_info = {
-        "uuid1": {"uuid": "uuid1", "user_key": "Major"},
-        "uuid2": {"uuid": "uuid2", "user_key": "Secretary"},
+        uuid1: {"uuid": uuid1, "user_key": "Major"},
+        uuid2: {"uuid": uuid2, "user_key": "Secretary"},
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_user_key("uuid1") == "Major"
-    assert converter.get_job_function_user_key("uuid2") == "Secretary"
+    assert converter.get_job_function_user_key(uuid1) == "Major"
+    assert converter.get_job_function_user_key(uuid2) == "Secretary"
 
 
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
@@ -1010,7 +1033,7 @@ async def test_check_ldap_to_mo_references(converter: LdapConverter):
 
 def test_get_object_uuid_from_user_key(converter: LdapConverter):
 
-    uuid = uuid4()
+    uuid = str(uuid4())
     name = "Skt. Joseph Skole"
     info_dict = {uuid: {"uuid": uuid, "user_key": name}}
     assert converter.get_object_uuid_from_user_key(info_dict, name) == uuid
@@ -1022,7 +1045,7 @@ def test_get_object_uuid_from_user_key(converter: LdapConverter):
     with pytest.raises(UUIDNotFoundException):
         converter.get_object_uuid_from_user_key(info_dict, "")
 
-    uuid2 = uuid4()
+    uuid2 = str(uuid4())
     # Check that a perfect match will be preferred over a normalized match
     info_dict = {
         uuid2: {"uuid": uuid2, "user_key": name.lower()},
@@ -1317,3 +1340,28 @@ def test_check_cpr_field_or_it_system(converter: LdapConverter):
             match="Neither a cpr-field or an ldap it-system could be found",
         ):
             converter.check_cpr_field_or_it_system()
+
+
+def test_check_info_dicts(converter: LdapConverter):
+
+    uuid = str(uuid4())
+    converter.all_info_dicts = {
+        "my_info_dict": {uuid: {"uuid": uuid, "user_key": "foo"}}
+    }
+    converter.check_info_dicts()
+
+    with pytest.raises(IncorrectMapping, match="not an uuid"):
+        converter.all_info_dicts = {
+            "my_info_dict": {uuid: {"uuid": "not_an_uuid", "user_key": "foo"}}
+        }
+        converter.check_info_dicts()
+
+    with pytest.raises(IncorrectMapping, match="not a string"):
+        converter.all_info_dicts = {
+            "my_info_dict": {uuid: {"uuid": uuid4(), "user_key": "foo"}}
+        }
+        converter.check_info_dicts()
+
+    with pytest.raises(IncorrectMapping, match="'uuid' key not found"):
+        converter.all_info_dicts = {"my_info_dict": {uuid: {"user_key": "foo"}}}
+        converter.check_info_dicts()
