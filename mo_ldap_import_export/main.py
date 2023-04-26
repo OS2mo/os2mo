@@ -461,7 +461,8 @@ def create_app(**kwargs: Any) -> FastAPI:
                         progress_bar.update()
                         continue
 
-                await import_single_user_from_LDAP(ldap_object.dn)
+                await sync_tool.import_single_user(ldap_object.dn)
+
                 progress_bar.update()
 
     # Load a single user from LDAP, and import him/her/hir into MO
