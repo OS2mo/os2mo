@@ -1864,3 +1864,62 @@ def test_load_ldap_attribute_values(dataloader: DataLoader):
         assert "2" in values
         assert "[]" in values
         assert len(values) == 3
+
+
+def test_create_mo_class(dataloader: DataLoader):
+
+    uuid = uuid4()
+
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"class_create": {"uuid": str(uuid)}}
+
+    assert dataloader.create_mo_class("", "", uuid4(), uuid4()) == uuid
+
+
+def test_create_mo_job_function(dataloader: DataLoader):
+
+    uuid1 = uuid4()
+    uuid2 = uuid4()
+
+    dataloader.load_mo_facet_uuid = MagicMock()  # type: ignore
+    dataloader.load_mo_facet_uuid.return_value = uuid1
+
+    dataloader.create_mo_class = MagicMock()  # type: ignore
+    dataloader.create_mo_class.return_value = uuid2
+
+    assert dataloader.create_mo_job_function("foo") == uuid2
+    assert dataloader.create_mo_engagement_type("bar") == uuid2
+
+    args = dataloader.create_mo_class.call_args_list[0].args
+
+    assert args[0] == "foo"
+    assert args[1] == "foo"
+    assert type(args[2]) == UUID
+    assert args[3] == uuid1
+
+    args = dataloader.create_mo_class.call_args_list[1].args
+
+    assert args[0] == "bar"
+    assert args[1] == "bar"
+    assert type(args[2]) == UUID
+    assert args[3] == uuid1
+
+
+def test_load_mo_facet_uuid(dataloader: DataLoader):
+
+    uuid = uuid4()
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"facets": [{"uuid": str(uuid)}]}
+
+    assert dataloader.load_mo_facet_uuid("") == uuid
+
+
+def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
+
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {
+        "facets": [{"uuid": str(uuid4())}, {"uuid": str(uuid4())}]
+    }
+
+    with pytest.raises(MultipleObjectsReturnedException):
+        dataloader.load_mo_facet_uuid("")

@@ -932,6 +932,21 @@ async def test_get_job_function_uuid(converter: LdapConverter):
     assert converter.get_job_function_uuid("Major") == uuid1
     assert converter.get_job_function_uuid("Secretary") == uuid2
 
+    uuid = uuid4()
+
+    dataloader = MagicMock()
+    dataloader.create_mo_job_function = MagicMock()
+    dataloader.create_mo_job_function.return_value = uuid
+    converter.dataloader = dataloader
+
+    assert converter.get_job_function_uuid("non-existing_job") == str(uuid)
+
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_job_function_uuid("")
+
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_job_function_uuid([])  # type: ignore
+
 
 async def test_get_engagement_type_uuid(converter: LdapConverter):
     uuid1 = str(uuid4())
@@ -944,6 +959,23 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
 
     assert converter.get_engagement_type_uuid("Ansat") == uuid1
     assert converter.get_engagement_type_uuid("Vikar") == uuid2
+
+    uuid = uuid4()
+
+    dataloader = MagicMock()
+    dataloader.create_mo_engagement_type = MagicMock()
+    dataloader.create_mo_engagement_type.return_value = uuid
+    converter.dataloader = dataloader
+
+    assert converter.get_engagement_type_uuid("non-existing_engagement_type") == str(
+        uuid
+    )
+
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_engagement_type_uuid("")
+
+    with pytest.raises(UUIDNotFoundException):
+        converter.get_engagement_type_uuid([])  # type: ignore
 
 
 async def test_get_primary_type_uuid(converter: LdapConverter):
