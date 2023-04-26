@@ -929,8 +929,8 @@ async def test_get_job_function_uuid(converter: LdapConverter):
     }
     converter.job_function_info = job_function_info
 
-    assert converter.get_job_function_uuid("Major") == uuid1
-    assert converter.get_job_function_uuid("Secretary") == uuid2
+    assert converter.get_or_create_job_function_uuid("Major") == uuid1
+    assert converter.get_or_create_job_function_uuid("Secretary") == uuid2
 
     uuid = uuid4()
 
@@ -939,13 +939,13 @@ async def test_get_job_function_uuid(converter: LdapConverter):
     dataloader.create_mo_job_function.return_value = uuid
     converter.dataloader = dataloader
 
-    assert converter.get_job_function_uuid("non-existing_job") == str(uuid)
+    assert converter.get_or_create_job_function_uuid("non-existing_job") == str(uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_job_function_uuid("")
+        converter.get_or_create_job_function_uuid("")
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_job_function_uuid([])  # type: ignore
+        converter.get_or_create_job_function_uuid([])  # type: ignore
 
 
 async def test_get_engagement_type_uuid(converter: LdapConverter):
@@ -957,8 +957,8 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
     }
     converter.engagement_type_info = engagement_type_info
 
-    assert converter.get_engagement_type_uuid("Ansat") == uuid1
-    assert converter.get_engagement_type_uuid("Vikar") == uuid2
+    assert converter.get_or_create_engagement_type_uuid("Ansat") == uuid1
+    assert converter.get_or_create_engagement_type_uuid("Vikar") == uuid2
 
     uuid = uuid4()
 
@@ -967,15 +967,15 @@ async def test_get_engagement_type_uuid(converter: LdapConverter):
     dataloader.create_mo_engagement_type.return_value = uuid
     converter.dataloader = dataloader
 
-    assert converter.get_engagement_type_uuid("non-existing_engagement_type") == str(
-        uuid
-    )
+    assert converter.get_or_create_engagement_type_uuid(
+        "non-existing_engagement_type"
+    ) == str(uuid)
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_engagement_type_uuid("")
+        converter.get_or_create_engagement_type_uuid("")
 
     with pytest.raises(UUIDNotFoundException):
-        converter.get_engagement_type_uuid([])  # type: ignore
+        converter.get_or_create_engagement_type_uuid([])  # type: ignore
 
 
 async def test_get_primary_type_uuid(converter: LdapConverter):

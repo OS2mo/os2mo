@@ -539,7 +539,9 @@ class LdapConverter:
 
         # List of all 'get_uuid' functions. For example "get_address_type_uuid("
         get_uuid_function_strings = [
-            f + "(" for f in dir(self) if f.startswith("get_") and f.endswith("_uuid")
+            f + "("
+            for f in dir(self)
+            if f.startswith("get_") and f.endswith("_uuid") and "create" not in f
         ]
 
         # List all user keys from the different info-dicts
@@ -743,12 +745,13 @@ class LdapConverter:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
     def get_job_function_uuid(self, job_function: str) -> str:
+        return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
+
+    def get_or_create_job_function_uuid(self, job_function: str) -> str:
         if not job_function:
             raise UUIDNotFoundException("job_function is empty")
         try:
-            return self.get_object_uuid_from_user_key(
-                self.job_function_info, job_function
-            )
+            return self.get_job_function_uuid(job_function)
         except UUIDNotFoundException:
             uuid = self.dataloader.create_mo_job_function(job_function)
             self.job_function_info = self.dataloader.load_mo_job_functions()
@@ -759,12 +762,15 @@ class LdapConverter:
         return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
 
     def get_engagement_type_uuid(self, engagement_type: str) -> str:
+        return self.get_object_uuid_from_user_key(
+            self.engagement_type_info, engagement_type
+        )
+
+    def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
         if not engagement_type:
             raise UUIDNotFoundException("engagement_type is empty")
         try:
-            return self.get_object_uuid_from_user_key(
-                self.engagement_type_info, engagement_type
-            )
+            return self.get_engagement_type_uuid(engagement_type)
         except UUIDNotFoundException:
             uuid = self.dataloader.create_mo_engagement_type(engagement_type)
             self.engagement_type_info = self.dataloader.load_mo_engagement_types()
