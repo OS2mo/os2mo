@@ -999,6 +999,10 @@ class LdapConverter:
             "get_org_unit_path_string": self.get_org_unit_path_string,
             "get_engagement_type_user_key": self.get_engagement_type_user_key,
             "get_job_function_user_key": self.get_job_function_user_key,
+            "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
+            "get_or_create_engagement_type_uuid": (
+                self.get_or_create_engagement_type_uuid
+            ),
         }
         for key, value in mapping.items():
             if type(value) == str:
