@@ -27,8 +27,8 @@
       "objectClass": "ramodels.mo.details.engagement.Engagement",
       "__import_to_mo__": true,
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.department)) }}",
-      "job_function": "{{ dict(uuid=get_job_function_uuid('TestEngFunction')) }}",
-      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('TestEngage')) }}",
+      "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
+      "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('Ansat')) }}",
       "user_key": "{{ ldap.primaryGroupID or '123' }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -86,6 +86,7 @@
       "__export_to_ldap__": true,
       "department": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "primaryGroupID": "{{ mo_employee_engagement.user_key }}",
+      "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}"
     },
     "EmailEmployee": {
       "objectClass": "user",
