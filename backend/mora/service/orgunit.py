@@ -14,7 +14,6 @@ import copy
 import enum
 import locale
 import logging
-import uuid
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
@@ -30,9 +29,7 @@ from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
 from fastapi import Request
-from fastapi.encoders import jsonable_encoder
 from more_itertools import last
-from more_itertools import one
 from more_itertools import unzip
 
 from . import autocomplete
@@ -52,10 +49,8 @@ from ..triggers import Trigger
 from .tree_helper import prepare_ancestor_tree
 from .validation import validator
 from mora.auth.keycloak import oidc
-from mora.graphapi.shim import execute_graphql
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.service.util import get_configuration
-from mora.service.util import handle_gql_error
 
 
 router = APIRouter()
@@ -645,7 +640,7 @@ async def autocomplete_orgunits(
     settings = config.get_settings()
 
     # Use LEGACY
-    if not settings.confdb_autocomplete_v2_orgunits_fixes:
+    if settings.confdb_autocomplete_v2_use_legacy:
         return await autocomplete.get_results(
             "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
         )
@@ -654,88 +649,10 @@ async def autocomplete_orgunits(
         request.app.state.sessionmaker, query, at
     )
 
-    # Decorate search results with data through GraphQL & create final results
-    graphql_vars = {"uuids": [str(orgunit.uuid) for orgunit in search_results]}
-    if at is not None:
-        graphql_vars["from_date"] = at
-
-    orgunit_decorate_query = """
-        query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-            org_units(uuids: $uuids, from_date: $from_date) {
-                uuid
-                objects {
-                    name
-                    user_key
-                    uuid
-                    parent_uuid
-                    validity {
-                        from
-                        to
-                    }
-                }
-            }
-        }
-        """
-    if settings.confdb_autocomplete_attrs_orgunit:
-        orgunit_decorate_query = """
-        query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-            org_units(uuids: $uuids, from_date: $from_date) {
-                uuid
-                objects {
-                    name
-                    user_key
-                    uuid
-                    parent_uuid
-                    validity {
-                        from
-                        to
-                    }
-
-                    addresses {
-                        uuid
-                        name
-                        address_type {
-                            uuid
-                            name
-                        }
-                    }
-
-                    itusers {
-                        uuid
-                        user_key
-                        itsystem {
-                          uuid
-                          user_key
-                          name
-                        }
-                    }
-                }
-            }
-        }
-        """
-
-    response = await execute_graphql(
-        orgunit_decorate_query, variable_values=jsonable_encoder(graphql_vars)
-    )
-    handle_gql_error(response)
-
-    decorated_result = []
-    for idx, orgunit in enumerate(search_results):
-        graphql_equivilent = get_autocomplete_graphql_equivalent(response, orgunit.uuid)
-        if not graphql_equivilent:
-            continue
-
-        attrs = get_autocomplete_attrs(settings, graphql_equivilent)
-        decorated_result.append(
-            {
-                "uuid": orgunit.uuid,
-                "name": graphql_equivilent["name"],
-                "path": orgunit.path,
-                "attrs": attrs,
-            }
-        )
-
-    return {"items": decorated_result}
+    # Decorate search results with data through GraphQL
+    return {
+        "items": await autocomplete.decorate_search_result(settings, search_results, at)
+    }
 
 
 @router.get("/ou/ancestor-tree")
@@ -1261,47 +1178,3 @@ def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: da
             mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
         )
     ).copy()
-
-
-def get_autocomplete_graphql_equivalent(graphql_response, org_unit_uuid: uuid.UUID) -> dict | None:
-    for graphql_orgunit in graphql_response.data["org_units"]:
-        if graphql_orgunit["uuid"] == str(org_unit_uuid):
-            return one(graphql_orgunit["objects"])
-
-    return None
-
-def get_autocomplete_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
-    attrs: [dict] = []
-    if "addresses" in org_unit_graphql:
-        for addr in org_unit_graphql["addresses"]:
-            if (
-                    UUID(addr["address_type"]["uuid"])
-                    not in settings.confdb_autocomplete_attrs_orgunit
-            ):
-                continue
-
-            attrs.append(
-                {
-                    "uuid": UUID(addr["uuid"]),
-                    "value": addr["name"],
-                    "title": addr["address_type"]["name"],
-                }
-            )
-
-    if "itusers" in org_unit_graphql:
-        for ituser in org_unit_graphql["itusers"]:
-            if (
-                    UUID(ituser["itsystem"]["uuid"])
-                    not in settings.confdb_autocomplete_attrs_orgunit
-            ):
-                continue
-
-            attrs.append(
-                {
-                    "uuid": UUID(ituser["uuid"]),
-                    "value": ituser["user_key"],
-                    "title": ituser["itsystem"]["name"],
-                }
-            )
-
-    return attrs

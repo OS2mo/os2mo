@@ -1,40 +1,51 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import pytest
-import freezegun
-
+import uuid
 from datetime import datetime
+from unittest.mock import MagicMock
+from unittest.mock import patch
+
+import freezegun
+import pytest
 from fastapi.testclient import TestClient
 
 
+@patch("mora.config.get_settings")
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_autocomplete_v2_get_by_uuid(service_client: TestClient):
+async def test_autocomplete_v2_search_by_addr_afdelingskode(
+    mock_get_settings, service_client: TestClient
+):
+    # Mock settings
+    mock_get_settings.return_value = MagicMock(
+        confdb_autocomplete_v2_use_legacy=False,
+        confdb_autocomplete_attrs_orgunit=[
+            uuid.UUID("e8ea1a09-d3d4-4203-bfe9-d9a213371337"),
+        ],
+    )
+
     # Parameters
-    url = "/service/ou/autocomplete/"
     at = datetime.now().date()
-    query = "f494ad89-039d-478e-91f2-a63566554666"
+    query = "Fake afdelingskode"
+    response = service_client.get(
+        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    )
 
-    # query = "Skole"
-    # query = "d3018bd8"
-    # query = "d3018bd8-fc29-5ee2-b2ce-8e38e488ada9"
-    # query = "dad7d0ad-c7a9-4a94-969d-464337e31fec"
-
-    response = service_client.get(f"{url}?query={query}&at={at.isoformat()}")
     assert response.status_code == 200
     assert response.json() == {
         "items": [
             {
-                "uuid": "d3018bd8-fc29-5ee2-b2ce-8e38e488ada9",
-                "path": [
-                    "Lønorganisation",
-                    "Skole og Børn",
-                    "Skoler og børnehaver",
-                    "Egtved skole",
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "name": "Fake Corp With Addrs",
+                "path": ["Fake Corp With Addrs"],
+                "attrs": [
+                    {
+                        "title": "Afdelingskode",
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
+                        "value": "Fake afdelingskode",
+                    }
                 ],
             }
         ]
     }
-
-    tap = "test"

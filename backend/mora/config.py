@@ -240,7 +240,7 @@ class Settings(BaseSettings):
     confdb_org_unit_hierarchy_in_create: bool = False
 
     # If flag is set, autocomplete-v2 will use the fixed version
-    confdb_autocomplete_v2_orgunits_fixes: bool = False
+    confdb_autocomplete_v2_use_legacy: bool = True
 
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
