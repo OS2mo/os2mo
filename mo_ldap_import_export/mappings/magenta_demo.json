@@ -58,7 +58,7 @@
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
-      "user_key": "{{ ldap.personalTitle or uuid4() }}",
+      "user_key": "{{ ldap.personalTitle or '-'}}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"

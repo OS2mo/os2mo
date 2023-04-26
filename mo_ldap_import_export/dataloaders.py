@@ -7,6 +7,7 @@ from typing import Any
 from typing import cast
 from typing import Union
 from uuid import UUID
+from uuid import uuid4
 
 from gql import gql
 from gql.client import AsyncClientSession
@@ -831,6 +832,25 @@ class DataLoader:
 
         return output
 
+    def load_mo_facet_uuid(self, user_key: str) -> UUID:
+        query = gql(
+            """
+            query FacetUUIDQuery {
+              facets(user_keys: "%s") {
+                uuid
+              }
+            }
+            """
+            % user_key
+        )
+        result = self.query_mo_sync(query)
+        facets = result["facets"]
+        if len(facets) > 1:
+            raise MultipleObjectsReturnedException(
+                f"Found multiple facets with user_key = '{user_key}': {result}"
+            )
+        return UUID(result["facets"][0]["uuid"])
+
     def load_mo_address_types(self) -> dict:
         employee_address_types = self.load_mo_facet("employee_address_type")
         org_unit_address_types = self.load_mo_facet("org_unit_address_type")
@@ -1355,3 +1375,67 @@ class DataLoader:
 
         model_client = self.user_context["model_client"]
         return cast(list[Any | None], await model_client.upload(objects))
+
+    def create_mo_class(
+        self,
+        name: str,
+        user_key: str,
+        org_uuid: UUID,
+        facet_uuid: UUID,
+    ) -> UUID:
+        """
+        Creates a class in MO
+
+        Returns
+        ----------
+        uuid: UUID
+            The uuid of the created class
+        """
+        logger.info(f"Creating MO class with user_key = '{user_key}'")
+        query = gql(
+            """
+            mutation CreateClass {
+              class_create(
+                input: {name: "%s",
+                        user_key: "%s",
+                        org_uuid: "%s",
+                        facet_uuid: "%s"}
+              ) {
+                uuid
+              }
+            }
+            """
+            % (name, user_key, org_uuid, facet_uuid)
+        )
+        result = self.query_mo_sync(query)
+        return UUID(result["class_create"]["uuid"])
+
+    def create_mo_job_function(self, name) -> UUID:
+        """
+        Creates a job function class in MO
+
+        Returns
+        ----------
+        uuid: UUID
+            The uuid of the created class
+        """
+        logger.info(f"Creating MO job function with name = '{name}'")
+        facet_uuid = self.load_mo_facet_uuid("engagement_job_function")
+        user_key = name
+        org_uuid = uuid4()  # This seems to be irrelevant, but mandatory in the query...
+        return self.create_mo_class(name, user_key, org_uuid, facet_uuid)
+
+    def create_mo_engagement_type(self, name) -> UUID:
+        """
+        Creates an engagement type class in MO
+
+        Returns
+        ----------
+        uuid: UUID
+            The uuid of the created class
+        """
+        logger.info(f"Creating MO engagement type with name = '{name}'")
+        facet_uuid = self.load_mo_facet_uuid("engagement_type")
+        user_key = name
+        org_uuid = uuid4()  # This seems to be irrelevant, but mandatory in the query...
+        return self.create_mo_class(name, user_key, org_uuid, facet_uuid)

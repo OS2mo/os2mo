@@ -743,15 +743,33 @@ class LdapConverter:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
     def get_job_function_uuid(self, job_function: str) -> str:
-        return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
+        if not job_function:
+            raise UUIDNotFoundException("job_function is empty")
+        try:
+            return self.get_object_uuid_from_user_key(
+                self.job_function_info, job_function
+            )
+        except UUIDNotFoundException:
+            uuid = self.dataloader.create_mo_job_function(job_function)
+            self.job_function_info = self.dataloader.load_mo_job_functions()
+            self.check_info_dicts()
+            return str(uuid)
 
     def get_primary_type_uuid(self, primary: str) -> str:
         return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
 
     def get_engagement_type_uuid(self, engagement_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
-            self.engagement_type_info, engagement_type
-        )
+        if not engagement_type:
+            raise UUIDNotFoundException("engagement_type is empty")
+        try:
+            return self.get_object_uuid_from_user_key(
+                self.engagement_type_info, engagement_type
+            )
+        except UUIDNotFoundException:
+            uuid = self.dataloader.create_mo_engagement_type(engagement_type)
+            self.engagement_type_info = self.dataloader.load_mo_engagement_types()
+            self.check_info_dicts()
+            return str(uuid)
 
     def get_org_unit_type_uuid(self, org_unit_type: str) -> str:
         return self.get_object_uuid_from_user_key(
