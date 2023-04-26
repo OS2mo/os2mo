@@ -10,10 +10,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-@patch("mora.config.get_settings")
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+@patch("mora.config.get_settings")
 async def test_autocomplete_v2_search_by_addr_afdelingskode(
     mock_get_settings, service_client: TestClient
 ):

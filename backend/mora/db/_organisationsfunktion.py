@@ -74,7 +74,7 @@ class OrganisationFunktionRelationKode(Enum):
 class OrganisationFunktionRelation(_RelationMixin, Base):
     __tablename__ = "organisationfunktion_relation"
 
-    rel_type = Column("rel_type", OrganisationFunktionRelationKode, nullable=False)
+    rel_type: Mapped[OrganisationFunktionRelationKode]
 
     organisationfunktion_registrering_id = Column(
         ForeignKey("organisationfunktion_registrering.id"), index=True
