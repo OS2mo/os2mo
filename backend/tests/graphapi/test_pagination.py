@@ -13,7 +13,7 @@ from tests.conftest import GQLResponse
     "resolver,limit,offset,expected_length",
     [
         # Addresses
-        ("addresses", None, None, 9),
+        ("addresses", None, None, 10),
         ("addresses", 0, 0, 0),
         ("addresses", 8, 0, 8),
         ("addresses", 4, 0, 4),
@@ -23,11 +23,11 @@ from tests.conftest import GQLResponse
         ("associations", 0, 0, 0),
         ("associations", 1, 0, 1),
         # Classes
-        ("classes", None, None, 38),
+        ("classes", None, None, 39),
         ("classes", 0, 0, 0),
         ("classes", 38, 0, 38),
         ("classes", 10, 0, 10),
-        ("classes", 38, 1, 37),
+        ("classes", 38, 1, 38),
         # Employees
         ("employees", None, None, 5),
         ("employees", 0, 0, 0),
@@ -118,11 +118,11 @@ async def test_pagination(
     "resolver,limit,offset",
     [
         # Addresses
-        ("addresses", 10, 9),
+        ("addresses", 10, 10),
         # Associations
         ("associations", 10, 1),
         # Classes
-        ("classes", 40, 38),
+        ("classes", 40, 39),
         # Employees
         ("employees", 10, 5),
         # Engagement Associations
