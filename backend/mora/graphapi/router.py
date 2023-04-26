@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from typing import Any
 
+from fastapi import Request
 from starlette.responses import HTMLResponse
 from strawberry.fastapi import GraphQLRouter
 from strawberry.utils.graphiql import get_graphiql_html
@@ -75,7 +76,7 @@ class CustomGraphQLRouter(GraphQLRouter):
         super().__init__(*args, **kwargs)
         self.is_latest = is_latest
 
-    def get_graphiql_response(self) -> HTMLResponse:
+    def render_graphiql(self, request: Request) -> HTMLResponse:
         html = get_graphiql_html()
 
         # Show deprecation notice at the top of the page if accessing an old version
