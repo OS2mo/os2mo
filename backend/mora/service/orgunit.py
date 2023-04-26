@@ -14,6 +14,7 @@ import copy
 import enum
 import locale
 import logging
+import uuid
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
@@ -654,7 +655,7 @@ async def autocomplete_orgunits(
     )
 
     # Decorate search results with data through GraphQL & create final results
-    graphql_vars = {"uuids": [str(orgunit_row.uuid) for orgunit_row in search_results]}
+    graphql_vars = {"uuids": [str(orgunit.uuid) for orgunit in search_results]}
     if at is not None:
         graphql_vars["from_date"] = at
 
@@ -719,56 +720,17 @@ async def autocomplete_orgunits(
     handle_gql_error(response)
 
     decorated_result = []
-    for idx, orgunit_row in enumerate(search_results):
-        graphql_equivilent = None
-        for graphql_orgunit in response.data["org_units"]:
-            if graphql_orgunit["uuid"] == str(orgunit_row.uuid):
-                graphql_equivilent = one(graphql_orgunit["objects"])
-                break
-
+    for idx, orgunit in enumerate(search_results):
+        graphql_equivilent = get_autocomplete_graphql_equivalent(response, orgunit.uuid)
         if not graphql_equivilent:
             continue
 
-        # Find attrs
-        attrs = []
-        if "addresses" in graphql_equivilent:
-            for addr in graphql_equivilent["addresses"]:
-                if (
-                    UUID(addr["address_type"]["uuid"])
-                    not in settings.confdb_autocomplete_attrs_orgunit
-                ):
-                    continue
-
-                attrs.append(
-                    {
-                        "uuid": UUID(addr["uuid"]),
-                        "value": addr["name"],
-                        "title": addr["address_type"]["name"],
-                    }
-                )
-
-        if "itusers" in graphql_equivilent:
-            for ituser in graphql_equivilent["itusers"]:
-                if (
-                    UUID(ituser["itsystem"]["uuid"])
-                    not in settings.confdb_autocomplete_attrs_orgunit
-                ):
-                    continue
-
-                attrs.append(
-                    {
-                        "uuid": UUID(ituser["uuid"]),
-                        "value": ituser["user_key"],
-                        "title": ituser["itsystem"]["name"],
-                    }
-                )
-
+        attrs = get_autocomplete_attrs(settings, graphql_equivilent)
         decorated_result.append(
             {
-                "uuid": orgunit_row.uuid,
+                "uuid": orgunit.uuid,
                 "name": graphql_equivilent["name"],
-                "path": [],
-                # "path": orgunit_row.path,
+                "path": orgunit.path,
                 "attrs": attrs,
             }
         )
@@ -1299,3 +1261,47 @@ def get_lora_dict_current_attr(lora_dict: dict, from_date: datetime, to_date: da
             mapping.ORG_UNIT_EGENSKABER_FIELD(lora_dict),
         )
     ).copy()
+
+
+def get_autocomplete_graphql_equivalent(graphql_response, org_unit_uuid: uuid.UUID) -> dict | None:
+    for graphql_orgunit in graphql_response.data["org_units"]:
+        if graphql_orgunit["uuid"] == str(org_unit_uuid):
+            return one(graphql_orgunit["objects"])
+
+    return None
+
+def get_autocomplete_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
+    attrs: [dict] = []
+    if "addresses" in org_unit_graphql:
+        for addr in org_unit_graphql["addresses"]:
+            if (
+                    UUID(addr["address_type"]["uuid"])
+                    not in settings.confdb_autocomplete_attrs_orgunit
+            ):
+                continue
+
+            attrs.append(
+                {
+                    "uuid": UUID(addr["uuid"]),
+                    "value": addr["name"],
+                    "title": addr["address_type"]["name"],
+                }
+            )
+
+    if "itusers" in org_unit_graphql:
+        for ituser in org_unit_graphql["itusers"]:
+            if (
+                    UUID(ituser["itsystem"]["uuid"])
+                    not in settings.confdb_autocomplete_attrs_orgunit
+            ):
+                continue
+
+            attrs.append(
+                {
+                    "uuid": UUID(ituser["uuid"]),
+                    "value": ituser["user_key"],
+                    "title": ituser["itsystem"]["name"],
+                }
+            )
+
+    return attrs
