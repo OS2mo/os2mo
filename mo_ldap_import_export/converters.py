@@ -150,6 +150,7 @@ class LdapConverter:
         logger.info("[info dict loader] Loading info dicts")
         self.address_type_info = self.dataloader.load_mo_address_types()
         self.it_system_info = self.dataloader.load_mo_it_systems()
+        self.visibility_info = self.dataloader.load_mo_visibility()
 
         self.org_unit_info = self.dataloader.load_mo_org_units()
         self.org_unit_type_info = self.dataloader.load_mo_org_unit_types()
@@ -744,6 +745,9 @@ class LdapConverter:
     def get_it_system_uuid(self, it_system: str) -> str:
         return self.get_object_uuid_from_user_key(self.it_system_info, it_system)
 
+    def get_visibility_uuid(self, visibility: str) -> str:
+        return self.get_object_uuid_from_user_key(self.visibility_info, visibility)
+
     def get_job_function_uuid(self, job_function: str) -> str:
         return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
 
@@ -993,6 +997,7 @@ class LdapConverter:
             "get_it_system_uuid": self.get_it_system_uuid,
             "get_or_create_org_unit_uuid": self.get_or_create_org_unit_uuid,
             "get_job_function_uuid": self.get_job_function_uuid,
+            "get_visibility_uuid": self.get_visibility_uuid,
             "get_primary_type_uuid": self.get_primary_type_uuid,
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
             "uuid4": uuid4,

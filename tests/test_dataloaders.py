@@ -627,6 +627,23 @@ async def test_load_mo_job_functions(
     assert output[uuid]["name"] == name
 
 
+async def test_load_mo_visibility(
+    dataloader: DataLoader, gql_client_sync: MagicMock
+) -> None:
+
+    uuid = uuid4()
+    name = "Hemmelig"
+
+    gql_client_sync.execute.return_value = {
+        "facets": [
+            {"classes": [{"uuid": uuid, "name": name}]},
+        ]
+    }
+
+    output = dataloader.load_mo_visibility()
+    assert output[uuid]["name"] == name
+
+
 async def test_load_mo_engagement_types(
     dataloader: DataLoader, gql_client_sync: MagicMock
 ) -> None:
