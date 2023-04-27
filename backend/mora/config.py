@@ -240,6 +240,9 @@ class Settings(BaseSettings):
     # If flag is set, it will be possible to pick OrgUnit hierarchy for the new units
     confdb_org_unit_hierarchy_in_create: bool = False
 
+    # If set to "False", autocomplete_v2 will use new sqlalchemy models + GraphQL
+    confdb_autocomplete_v2_use_legacy: bool = True
+
     def is_production(self) -> bool:
         """Return whether we are running in a production environment."""
         return self.environment is Environment.PRODUCTION
