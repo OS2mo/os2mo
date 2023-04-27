@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Literal
-
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Text
 from sqlalchemy.orm import Mapped
@@ -37,14 +36,13 @@ class OrganisationEnhedAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationEnhedRelationKode = Literal[
-    "enhedstype",
-    "niveau",
-    "opgaver",
-    "opmærkning",
-    "overordnet",
-    "tilhoerer",
-]
+class OrganisationEnhedRelationKode(Enum):
+    enhedstype = "enhedstype"
+    niveau = "niveau"
+    opgaver = "opgaver"
+    opmaerkning = "opmærkning"
+    overordnet = "overordnet"
+    tilhoerer = "tilhoerer"
 
 
 class OrganisationEnhedRelation(_RelationMixin, Base):
