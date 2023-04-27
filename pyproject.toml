@@ -61,7 +61,7 @@ pytest-split = "^0.8.1"
 pre-commit = "^3.2.2"
 respx = "0.17.1"
 "tap.py" = "^3.1"
-asgi-lifespan = "^1.0.1"
+asgi-lifespan = "^2.1.0"
 commitizen = "^2.37.1"
 
 [tool.poetry.group.ci]
