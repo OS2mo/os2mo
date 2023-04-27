@@ -2,10 +2,15 @@
 # SPDX-License-Identifier: MPL-2.0
 from asyncio import gather
 from contextlib import suppress
+from datetime import date
 from itertools import starmap
 from uuid import UUID
 
+from sqlalchemy.engine.row import Row
+from sqlalchemy.ext.asyncio.session import async_sessionmaker
+
 from mora import common
+from mora import config
 from mora import util
 from mora.lora import AutocompleteScope
 
@@ -62,3 +67,15 @@ async def get_results(
         result["attrs"] = list(starmap(convert_attrs, attrs))
 
     return results
+
+
+async def search_orgunits(
+    sessionmaker: async_sessionmaker, query: str, at: date | None = None
+) -> [Row]:
+    return []
+
+
+async def decorate_search_result(
+    settings: config.Settings, search_results: [Row], at: date | None
+) -> [dict]:
+    return []
