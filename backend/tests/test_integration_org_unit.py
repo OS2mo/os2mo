@@ -1529,7 +1529,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 "error": True,
                 "error_key": "V_TERMINATE_UNIT_WITH_ADDRESSES",
                 "description": "Cannot terminate unit with active addresses.",
-                "addresses": "55848eca-4e9e-4f30-954b-78d55eec0444",
+                "addresses": "55848eca-4e9e-4f30-954b-78d55eec0441, 55848eca-4e9e-4f30-954b-78d55eec0444",
             },
         )
 

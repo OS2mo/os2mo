@@ -220,6 +220,7 @@ async def load_sample_structures(minimal=False):
                 "org_unit_email": "73360db1-bad3-4167-ac73-8d827c0c8751",
                 "org_unit_telefon": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                 "org_unit_contactopenhours": "e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b",
+                "org_unit_afdelingskode": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
                 # org_unit_hierarchy
                 "linjeorg": "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
                 "hide": "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
@@ -268,6 +269,7 @@ async def load_sample_structures(minimal=False):
                 "ean_hum": "a0fe7d43-1e0d-4232-a220-87098024b34d",
                 "engagement_association": "a0fe7d43-1e0d-4232-a220-87009134b45e",
                 "adresse_orgunit_only_addrs": "55848eca-4e9e-4f30-954b-78d55eec0444",
+                "adresse_orgunit_only_addrs_afdelingskode": "55848eca-4e9e-4f30-954b-78d55eec0441",
             }
         )
 

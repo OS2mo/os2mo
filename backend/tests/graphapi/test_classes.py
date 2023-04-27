@@ -248,12 +248,12 @@ async def test_unit_create_class(
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 38),
+        ("", 39),
         ('(facet_user_keys: "employee_address_type")', 3),
         ('(facets: "baddc4eb-406e-4c6b-8229-17e4a21d3550")', 3),
-        ('(facet_user_keys: "org_unit_address_type")', 5),
-        ('(facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49")', 5),
-        ('(facet_user_keys: ["employee_address_type", "org_unit_address_type"])', 8),
+        ('(facet_user_keys: "org_unit_address_type")', 6),
+        ('(facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49")', 6),
+        ('(facet_user_keys: ["employee_address_type", "org_unit_address_type"])', 9),
         (
             """
             (facets: [
@@ -261,7 +261,7 @@ async def test_unit_create_class(
                 "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
             ])
         """,
-            8,
+            9,
         ),
         (
             """
@@ -270,7 +270,7 @@ async def test_unit_create_class(
                 facets: "3c44e5d2-7fef-4448-9bf6-449bf414ec49"
             )
         """,
-            8,
+            9,
         ),
     ],
 )
