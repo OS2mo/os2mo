@@ -1500,7 +1500,7 @@ sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
 name = "sqlalchemy-utils"
-version = "0.41.0"
+version = "0.41.1"
 description = "Various utility functions for SQLAlchemy."
 category = "main"
 optional = false
@@ -1758,7 +1758,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "ce748d8f67e56eb1b35ce511a0da0c13816c6642040dec152dc2285d35d15d8f"
+content-hash = "6bc8bc06d43758c9e532b463a77587e4ee05faeaf6388be8664088174288f269"
 
 [metadata.files]
 aio-pika = [
@@ -2881,8 +2881,8 @@ sqlalchemy = [
     {file = "SQLAlchemy-2.0.10.tar.gz", hash = "sha256:a4cdac392547dec07d69c5e8b05374b0357359ebc58ab2bbcb9fa0370ecb715f"},
 ]
 sqlalchemy-utils = [
-    {file = "SQLAlchemy-Utils-0.41.0.tar.gz", hash = "sha256:894cce255eea0bcc4fdcff628af30219d24a325526011586dd7f1e3d9dfebba0"},
-    {file = "SQLAlchemy_Utils-0.41.0-py3-none-any.whl", hash = "sha256:986b4140f7740ff37244f6ed9182e8c997caa334150773de5932009b2490fb50"},
+    {file = "SQLAlchemy-Utils-0.41.1.tar.gz", hash = "sha256:a2181bff01eeb84479e38571d2c0718eb52042f9afd8c194d0d02877e84b7d74"},
+    {file = "SQLAlchemy_Utils-0.41.1-py3-none-any.whl", hash = "sha256:6c96b0768ea3f15c0dc56b363d386138c562752b84f647fb8d31a2223aaab801"},
 ]
 starlette = [
     {file = "starlette-0.20.4-py3-none-any.whl", hash = "sha256:c0414d5a56297d37f3db96a84034d61ce29889b9eaccf65eb98a0b39441fcaa3"},
