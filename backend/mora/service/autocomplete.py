@@ -35,8 +35,8 @@ from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
-from mora.lora import AutocompleteScope
 from mora.graphapi.shim import execute_graphql
+from mora.lora import AutocompleteScope
 from mora.service.util import handle_gql_error
 
 
