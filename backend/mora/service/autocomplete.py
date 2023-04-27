@@ -128,7 +128,7 @@ async def search_orgunits(
         )
 
         # Execute & parse results
-        return _read_gql_response(await session.execute(query_final))
+        return _read_sqlalchemy_result(await session.execute(query_final))
 
 
 async def decorate_search_result(
@@ -204,7 +204,7 @@ async def decorate_search_result(
         if not graphql_equivilent:
             continue
 
-        attrs = _get_attrs(settings, graphql_equivilent)
+        attrs = _gql_get_orgunit_attrs(settings, graphql_equivilent)
         decorated_result.append(
             {
                 "uuid": orgunit.uuid,
@@ -225,7 +225,7 @@ def _get_graphql_equivalent(graphql_response, org_unit_uuid: UUID) -> dict | Non
     return None
 
 
-def _get_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
+def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
     attrs: [dict] = []
     if "addresses" in org_unit_graphql:
         for addr in org_unit_graphql["addresses"]:
@@ -262,17 +262,17 @@ def _get_attrs(settings: config.Settings, org_unit_graphql: dict) -> [dict]:
     return attrs
 
 
-def _read_gql_response(response: Result) -> [Row]:
-    result = []
+def _read_sqlalchemy_result(result: Result) -> [Row]:
+    rows = []
     while True:
-        chunk = response.fetchmany(1000)
+        chunk = result.fetchmany(1000)
         if not chunk:
             break
 
         for row in chunk:
-            result.append(row)
+            rows.append(row)
 
-    return result
+    return rows
 
 
 def _get_at_date_sql(at: date | None = None):
