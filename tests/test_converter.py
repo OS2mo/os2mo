@@ -920,6 +920,19 @@ async def test_get_it_system_uuid(converter: LdapConverter):
     assert converter.get_it_system_uuid("Office365") == uuid2
 
 
+async def test_get_visibility_uuid(converter: LdapConverter):
+    uuid1 = str(uuid4())
+    uuid2 = str(uuid4())
+    visibility_info = {
+        uuid1: {"uuid": uuid1, "user_key": "Hemmelig"},
+        uuid2: {"uuid": uuid2, "user_key": "Offentlig"},
+    }
+    converter.visibility_info = visibility_info
+
+    assert converter.get_visibility_uuid("Hemmelig") == uuid1
+    assert converter.get_visibility_uuid("Offentlig") == uuid2
+
+
 async def test_get_job_function_uuid(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())

@@ -75,6 +75,25 @@
       "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
+    "PrivatePhoneEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ ldap.homePhone or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('PrivatePhoneEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
+      "visibility": "{{ dict(uuid=get_visibility_uuid('Hemmelig')) }}",
+    },
+    "LocationEmployee": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "__import_to_mo__": true,
+      "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
+      "type": "address",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
 
   },
   "mo_to_ldap": {
@@ -144,7 +163,19 @@
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
-
+    "PrivatePhoneEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "homePhone": "{{mo_employee_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute6": "{{mo_employee.uuid}}"
+    },
+    "LocationEmployee": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "physicalDeliveryOfficeName": "{{mo_employee_address.value}}",
+      "employeeID": "{{mo_employee.cpr_no}}"
+    },
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",

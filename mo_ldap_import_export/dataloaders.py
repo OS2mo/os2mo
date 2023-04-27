@@ -856,6 +856,9 @@ class DataLoader:
         org_unit_address_types = self.load_mo_facet("org_unit_address_type")
         return employee_address_types | org_unit_address_types
 
+    def load_mo_visibility(self) -> dict:
+        return self.load_mo_facet("visibility")
+
     def load_mo_job_functions(self) -> dict:
         return self.load_mo_facet("engagement_job_function")
 
