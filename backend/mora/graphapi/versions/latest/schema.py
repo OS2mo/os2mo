@@ -9,6 +9,7 @@ from collections.abc import Callable
 from datetime import date
 from datetime import datetime
 from functools import partial
+from functools import wraps
 from inspect import Parameter
 from inspect import signature
 from itertools import chain
@@ -100,6 +101,57 @@ def identity(x: R) -> R:
         `x` completely unmodified.
     """
     return x
+
+
+def raise_force_none_return_if_uuid_none(
+    root: Any, get_uuid: Callable[[Any], UUID | None]
+) -> list[UUID]:
+    """Raise ForceNoneReturnError if uuid is None, a list with the uuid otherwise.
+
+    Args:
+        root: The root object from which the UUID will be extracted.
+        get_uuid: Extractor function used to extract a UUID from root.
+
+    Raises:
+        ForceNonReturnError: If the extracted uuid is None.
+
+    Returns:
+        A list containing the UUID if the extracted uuid is not None.
+    """
+    uuid = get_uuid(root)
+    if uuid is None:
+        raise ForceNoneReturnError
+    return uuid2list(uuid)
+
+
+class ForceNoneReturnError(Exception):
+    """Error to be raised to forcefully return None from decorated function.
+
+    Note: The function that should forcefully return None must be decorated with
+          `force_none_return_wrapper`.
+    """
+
+    pass
+
+
+def force_none_return_wrapper(func: Callable) -> Callable:
+    """Decorate a function to react to ForceNonReturnError.
+
+    Args:
+        func: The function to be decorated.
+
+    Returns:
+        A decorated function that returns None whenever ForceNonReturnError is raised.
+    """
+
+    @wraps(func)
+    async def wrapper(*args: Any, **kwargs: Any) -> R | None:
+        try:
+            return await func(*args, **kwargs)
+        except ForceNoneReturnError:
+            return None
+
+    return wrapper
 
 
 def seed_resolver(
@@ -196,12 +248,6 @@ seed_resolver_list = partial(
 seed_resolver_only = partial(
     seed_resolver,
     result_translation=lambda result: only(chain.from_iterable(result.values())),
-)
-# TODO: Eliminate optional list
-seed_resolver_only_list = partial(
-    seed_resolver,
-    result_translation=lambda result: list(chain.from_iterable(result.values()))
-    or None,
 )
 seed_resolver_one = partial(
     seed_resolver,
@@ -411,8 +457,16 @@ class Address:
 
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
         ),
         description="Connected employee. "
         "Note that this is mutually exclusive with the org_unit field",
@@ -420,9 +474,16 @@ class Address:
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                OrganisationUnitResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.org_unit_uuid,
+                    )
+                },
+            ),
         ),
         description="Connected organisation unit. "
         "Note that this is mutually exclusive with the employee field",
@@ -430,9 +491,16 @@ class Address:
     )
 
     engagement: list[LazyEngagement] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            EngagementResolver(),
-            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EngagementResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.engagement_uuid,
+                    )
+                },
+            )
         ),
         description="Connected Engagement",
         permission_classes=[
@@ -873,26 +941,48 @@ class ITSystem:
 class ITUser:
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
         ),
         description="Connected employee",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                OrganisationUnitResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.org_unit_uuid,
+                    )
+                },
+            ),
         ),
         description="Connected organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     engagement: list[LazyEngagement] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            EngagementResolver(),
-            {"uuids": lambda root: uuid2list(root.engagement_uuid)},
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EngagementResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.engagement_uuid,
+                    )
+                },
+            ),
         ),
         description="Related engagement",
         permission_classes=[
@@ -938,9 +1028,16 @@ class KLE:
     )
 
     org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            OrganisationUnitResolver(),
-            {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                OrganisationUnitResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.org_unit_uuid,
+                    )
+                },
+            ),
         ),
         description="Associated organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
@@ -1024,8 +1121,16 @@ class Manager:
 
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
-        resolver=seed_resolver_only_list(
-            EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
+        resolver=force_none_return_wrapper(
+            seed_resolver_list(
+                EmployeeResolver(),
+                {
+                    "uuids": partial(
+                        raise_force_none_return_if_uuid_none,
+                        get_uuid=lambda root: root.employee_uuid,
+                    )
+                },
+            ),
         ),
         description="Manager identity details",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
