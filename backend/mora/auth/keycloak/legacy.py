@@ -1,7 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from contextlib import suppress
 from datetime import datetime
 from functools import lru_cache
+from uuid import UUID
 
 from sqlalchemy import Column
 from sqlalchemy import create_engine
@@ -74,6 +76,12 @@ def _get_engine():
 
 def validate_session(session_id: str) -> bool:
     """Validate the existence of a session from legacy session table"""
+    settings = config.get_settings()
+    if settings.os2mo_legacy_sessions is not None:
+        with suppress(ValueError):
+            return UUID(session_id) in settings.os2mo_legacy_sessions
+        return False
+
     store_id = f"session:{session_id}"
     engine = _get_engine()
     with Session(engine) as session:

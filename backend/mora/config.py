@@ -122,6 +122,7 @@ class Settings(BaseSettings):
 
     # Legacy auth
     os2mo_legacy_session_support: bool = False
+    os2mo_legacy_sessions: list[UUID] | None
     session_db_user = "sessions"
     session_db_password: str | None
     session_db_host = "mox-db"
