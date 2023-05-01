@@ -131,7 +131,7 @@ async def search_orgunits(
         return _read_sqlalchemy_result(await session.execute(query_final))
 
 
-async def decorate_search_result(
+async def decorate_orgunit_search_result(
     settings: config.Settings, search_results: [Row], at: date | None
 ):
     graphql_vars = {"uuids": [str(orgunit.uuid) for orgunit in search_results]}
