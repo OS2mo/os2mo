@@ -640,17 +640,19 @@ async def autocomplete_orgunits(
 
     # Use LEGACY
     if settings.confdb_autocomplete_v2_use_legacy:
+        logger.debug("using autocomplete_orgunits_v2 legacy")
         return await autocomplete.get_results(
             "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
         )
 
+    logger.debug("using autocomplete_orgunits_v2 new")
     search_results = await autocomplete.search_orgunits(
         request.app.state.sessionmaker, query, at
     )
 
     # Decorate search results with data through GraphQL
     return {
-        "items": await autocomplete.decorate_search_result(settings, search_results, at)
+        "items": await autocomplete.decorate_orgunit_search_result(settings, search_results, at)
     }
 
 
