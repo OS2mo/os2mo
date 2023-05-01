@@ -415,26 +415,6 @@ class AssociationTerminate(ValidityTerminate):
         )
 
 
-# Classes
-# -------
-class ClassCreate(UUIDBase):
-    """A MO Class create object."""
-
-    type_: str = Field(
-        "class", alias="type", description="The object type"
-    )  # type is always "class"
-    name: str = Field(description="Mo-class name.")
-    user_key: str = Field(description="Extra info or uuid")
-    org_uuid: UUID = Field(description="UUID of the related organisation.")
-    facet_uuid: UUID = Field(description="UUID of the related facet.")
-
-    scope: str | None = Field(description="Scope of the class.")
-    published: str | None = Field(description="Published state of the class object.")
-    parent_uuid: UUID | None = Field(description="UUID of the parent class.")
-    example: str | None = Field(description="Example usage.")
-    owner: UUID | None = Field(description="Owner of class")
-
-
 # Employees
 # ---------
 class EmployeeCreate(UUIDBase):

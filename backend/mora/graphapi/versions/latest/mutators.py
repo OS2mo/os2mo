@@ -13,6 +13,7 @@ from .address import update_address
 from .association import create_association
 from .association import terminate_association
 from .association import update_association
+from .classes import ClassCreateInput
 from .classes import create_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
@@ -27,7 +28,6 @@ from .inputs import AddressUpdateInput
 from .inputs import AssociationCreateInput
 from .inputs import AssociationTerminateInput
 from .inputs import AssociationUpdateInput
-from .inputs import ClassCreateInput
 from .inputs import EmployeeCreateInput
 from .inputs import EmployeeTerminateInput
 from .inputs import EmployeeUpdateInput
@@ -175,8 +175,11 @@ class Mutation:
         description="Creates a class.",
         permission_classes=[IsAuthenticatedPermission, admin_permission_class],
     )
-    async def class_create(self, input: ClassCreateInput) -> UUIDReturn:
-        return UUIDReturn(uuid=await create_class(input.to_pydantic()))
+    async def class_create(self, info: Info, input: ClassCreateInput) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await create_class(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # TODO: class_update
     # TODO: class_terminate
