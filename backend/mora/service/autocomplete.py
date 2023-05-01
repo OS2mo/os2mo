@@ -3,8 +3,6 @@
 from asyncio import gather
 from contextlib import suppress
 from datetime import date
-from datetime import datetime
-from datetime import time
 from itertools import starmap
 from uuid import UUID
 
@@ -97,17 +95,16 @@ async def get_results(
 async def search_orgunits(
     sessionmaker: async_sessionmaker, query: str, at: date | None = None
 ) -> [Row]:
-    # return []
-    sql_at_datetime = _get_at_date_sql(at)
+    at_sql, at_sql_bind_params = _get_at_date_sql(at)
 
     async with sessionmaker() as session:
         selects = [
             select(cte.c.uuid)
             for cte in (
-                _get_cte_orgunit_uuid_hits(query, sql_at_datetime),
-                _get_cte_orgunit_name_hits(query, sql_at_datetime),
-                _get_cte_orgunit_addr_hits(query, sql_at_datetime),
-                _get_cte_orgunit_itsystem_hits(query, sql_at_datetime),
+                _get_cte_orgunit_uuid_hits(query, at_sql),
+                _get_cte_orgunit_name_hits(query, at_sql),
+                _get_cte_orgunit_addr_hits(query, at_sql),
+                _get_cte_orgunit_itsystem_hits(query, at_sql),
             )
         ]
         all_hits = union(*selects).cte()
@@ -118,7 +115,7 @@ async def search_orgunits(
                 _org_unit_path(
                     all_hits,
                     OrganisationEnhedRegistrering.organisationenhed_id,
-                    sql_at_datetime,
+                    at_sql,
                 ).label("path"),
             )
             .where(
@@ -128,7 +125,9 @@ async def search_orgunits(
         )
 
         # Execute & parse results
-        return _read_sqlalchemy_result(await session.execute(query_final))
+        return _read_sqlalchemy_result(
+            await session.execute(query_final, {**at_sql_bind_params})
+        )
 
 
 async def decorate_orgunit_search_result(
@@ -276,17 +275,15 @@ def _read_sqlalchemy_result(result: Result) -> [Row]:
 
 
 def _get_at_date_sql(at: date | None = None):
-    sql_at_datetime = "now()"
     if at is not None:
-        sql_at_datetime = (
-            f"to_timestamp('{datetime.combine(at, time.min).isoformat()}', "
-            "'YYYY-MM-DD HH24:MI:SS')"
-        )
+        return "to_timestamp(:at_datetime, 'YYYY-MM-DD HH24:MI:SS')", {
+            "at_datetime": at.isoformat()
+        }
 
-    return sql_at_datetime
+    return "now()", {}
 
 
-def _get_cte_orgunit_uuid_hits(query: str, sql_at_datetime: str):
+def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
@@ -302,14 +299,15 @@ def _get_cte_orgunit_uuid_hits(query: str, sql_at_datetime: str):
                 search_phrase
             ),
             text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {sql_at_datetime}"
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
+                # f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> to_timestamp(:sql_at_datetime, 'YYYY-MM-DD HH24:MI:SS')"
             ),
         )
         .cte()
     )
 
 
-def _get_cte_orgunit_name_hits(query: str, sql_at_datetime: str):
+def _get_cte_orgunit_name_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"))
@@ -325,14 +323,14 @@ def _get_cte_orgunit_name_hits(query: str, sql_at_datetime: str):
                 | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
             ),
             text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {sql_at_datetime}"
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
             ),
         )
         .cte()
     )
 
 
-def _get_cte_orgunit_addr_hits(query: str, sql_at_datetime: str):
+def _get_cte_orgunit_addr_hits(query: str, at_sql: str):
     orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
     orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
 
@@ -352,9 +350,7 @@ def _get_cte_orgunit_addr_hits(query: str, sql_at_datetime: str):
             orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
             cast(orgfunc_tbl_rels_1.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(
-                f"(organisationfunktion_relation_1.virkning).timeperiod @> {sql_at_datetime}"
-            ),
+            text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_sql}"),
             cast(orgfunc_tbl_rels_2.rel_type, String)
             == OrganisationFunktionRelationKode.adresser,
             orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
@@ -363,7 +359,7 @@ def _get_cte_orgunit_addr_hits(query: str, sql_at_datetime: str):
     )
 
 
-def _get_cte_orgunit_itsystem_hits(query: str, sql_at_datetime: str):
+def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
@@ -376,9 +372,7 @@ def _get_cte_orgunit_itsystem_hits(query: str, sql_at_datetime: str):
             OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
             cast(OrganisationFunktionRelation.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(
-                f"(organisationfunktion_relation.virkning).timeperiod @> {sql_at_datetime}"
-            ),
+            text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_sql}"),
             OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
@@ -386,7 +380,7 @@ def _get_cte_orgunit_itsystem_hits(query: str, sql_at_datetime: str):
     )
 
 
-def _org_unit_path(all_hits, enhed_uuid, at_datetime_str_sql: str):
+def _org_unit_path(all_hits, enhed_uuid, at_sql: str):
     nodes_cte = select(
         # "Base" org unit UUID (same for all rows in result)
         all_hits.c.uuid.label("base_id"),
@@ -428,11 +422,9 @@ def _org_unit_path(all_hits, enhed_uuid, at_datetime_str_sql: str):
             # OrganisationEnhedRelation.rel_type == "overordnet",
             cast(OrganisationEnhedRelation.rel_type, String)
             == OrganisationEnhedRelationKode.overordnet,
+            text(f"(organisationenhed_relation.virkning).timeperiod @> {at_sql}"),
             text(
-                f"(organisationenhed_relation.virkning).timeperiod @> {at_datetime_str_sql}"
-            ),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_datetime_str_sql}"
+                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
             ),
         )
     )
