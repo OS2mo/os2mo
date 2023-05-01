@@ -17,6 +17,7 @@ import logging
 from asyncio import create_task
 from asyncio import gather
 from collections.abc import Awaitable
+from datetime import date
 from datetime import datetime
 from itertools import chain
 from typing import Any
@@ -27,6 +28,7 @@ from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Request
 from more_itertools import last
 from more_itertools import unzip
 
@@ -624,11 +626,36 @@ async def get_one_orgunit(
 
 
 @router.get("/ou/autocomplete/")
-async def autocomplete_orgunits(query: str):
+async def autocomplete_orgunits(
+    request: Request,
+    query: str,
+    at: date
+    | None = Query(
+        None,
+        description='The "at date" to use, e.g. `2020-01-31`. '
+        "Results are only included if they are active at the specified date.",
+    ),
+):
     settings = config.get_settings()
-    return await autocomplete.get_results(
-        "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+
+    # Use LEGACY
+    if settings.confdb_autocomplete_v2_use_legacy:
+        logger.debug("using autocomplete_orgunits_v2 legacy")
+        return await autocomplete.get_results(
+            "organisationsenhed", settings.confdb_autocomplete_attrs_orgunit, query
+        )
+
+    logger.debug("using autocomplete_orgunits_v2 new")
+    search_results = await autocomplete.search_orgunits(
+        request.app.state.sessionmaker, query, at
     )
+
+    # Decorate search results with data through GraphQL
+    return {
+        "items": await autocomplete.decorate_orgunit_search_result(
+            settings, search_results, at
+        )
+    }
 
 
 @router.get("/ou/ancestor-tree")

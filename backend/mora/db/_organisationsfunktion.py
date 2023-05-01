@@ -5,6 +5,7 @@ from typing import Literal
 from sqlalchemy import BigInteger
 from sqlalchemy import Boolean
 from sqlalchemy import Column
+from sqlalchemy import Enum
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Text
@@ -55,20 +56,19 @@ class OrganisationFunktionAttrEgenskaber(_AttrEgenskaberMixin, Base):
     )
 
 
-OrganisationFunktionRelationKode = Literal[
-    "adresser",
-    "opgaver",
-    "organisatoriskfunktionstype",
-    "primær",
-    "tilknyttedebrugere",
-    "tilknyttedeenheder",
-    "tilknyttedefunktioner",
-    "tilknyttedeinteressefaellesskaber",
-    "tilknyttedeitsystemer",
-    "tilknyttedeklasser",
-    "tilknyttedeorganisationer",
-    "tilknyttedepersoner",
-]
+class OrganisationFunktionRelationKode(Enum):
+    adresser = "adresser"
+    opgaver = "opgaver"
+    organisatoriskfunktionstype = "organisatoriskfunktionstype"
+    primaer = "primær"
+    tilknyttedebrugere = "tilknyttedebrugere"
+    tilknyttedeenheder = "tilknyttedeenheder"
+    tilknyttedefunktioner = "tilknyttedefunktioner"
+    tilknyttedeinteressefaellesskaber = "tilknyttedeinteressefaellesskaber"
+    tilknyttedeitsystemer = "tilknyttedeitsystemer"
+    tilknyttedeklasser = "tilknyttedeklasser"
+    tilknyttedeorganisationer = "tilknyttedeorganisationer"
+    tilknyttedepersoner = "tilknyttedepersoner"
 
 
 class OrganisationFunktionRelation(_RelationMixin, Base):

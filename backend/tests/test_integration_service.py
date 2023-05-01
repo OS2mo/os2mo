@@ -1508,7 +1508,7 @@ not_found_error = {
             {
                 "data": {
                     "offset": 0,
-                    "total": 5,
+                    "total": 6,
                     "items": [
                         {
                             "example": "20304060",
@@ -1545,6 +1545,15 @@ not_found_error = {
                             "scope": "EAN",
                             "user_key": "EAN",
                             "uuid": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+                        },
+                        {
+                            "example": "EnAndenAfdeling",
+                            "name": "Afdelingskode",
+                            "owner": None,
+                            "published": "Publiceret",
+                            "scope": "TEXT",
+                            "user_key": "Afdelingskode",
+                            "uuid": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
                         },
                         {
                             "example": "Åbningstider:\n"

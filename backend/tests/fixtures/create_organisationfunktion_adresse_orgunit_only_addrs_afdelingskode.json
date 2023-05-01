@@ -1,0 +1,75 @@
+{
+    "attributter": {
+        "organisationfunktionegenskaber": [
+            {
+                "brugervendtnoegle": "Fake afdelingskode",
+                "funktionsnavn": "Adresse",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "note": "Automatisk indl\u00e6sning",
+    "relationer": {
+        "tilknyttedeenheder": [
+            {
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "organisatoriskfunktionstype": [
+            {
+                "uuid": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "adresser": [
+            {
+                "objekttype": "TEXT",
+                "urn": "urn:text:Fake%20afdelingskode",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "opgaver": [
+            {
+                "objekttype": "synlighed",
+                "uuid": "7a7cc475-c58b-524c-5191-abee9450f104",
+                "virkning": {
+                    "from": "1932-05-12T00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ],
+        "tilknyttedeorganisationer": [
+            {
+                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    },
+    "tilstande": {
+        "organisationfunktiongyldighed": [
+            {
+                "gyldighed": "Aktiv",
+                "virkning": {
+                    "from": "1932-05-12 00:00:00+01:00",
+                    "to": "infinity"
+                }
+            }
+        ]
+    }
+}

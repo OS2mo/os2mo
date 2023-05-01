@@ -629,7 +629,7 @@ async def test_terminate(given_uuid, given_validity_dts):
 @pytest.mark.parametrize(
     "filter_snippet,expected",
     [
-        ("", 9),
+        ("", 10),
         # Address Type filters
         ('(address_type_user_keys: "BrugerPostadresse")', 3),
         ('(address_types: "4e337d8e-1fd2-4449-8110-e0c8a22958ed")', 3),
