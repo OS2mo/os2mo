@@ -652,7 +652,9 @@ async def autocomplete_orgunits(
 
     # Decorate search results with data through GraphQL
     return {
-        "items": await autocomplete.decorate_orgunit_search_result(settings, search_results, at)
+        "items": await autocomplete.decorate_orgunit_search_result(
+            settings, search_results, at
+        )
     }
 
 
