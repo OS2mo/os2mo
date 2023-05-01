@@ -7,9 +7,11 @@ from unittest.mock import patch
 
 import freezegun
 import pytest
+from fastapi.encoders import jsonable_encoder
 from fastapi.testclient import TestClient
 
 from mora.service.orgunit import config as orgunit_config
+from tests.conftest import GQLResponse
 
 # NOTE: Read "backend/tests/graphapi/test_registration.py:11",
 # for reasoning behind "@pytest.mark.xfail"
@@ -189,6 +191,62 @@ async def test_v2_search_by_addr_afdelingskode(
                         "title": "Afdelingskode",
                         "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
                         "value": "Fake afdelingskode",
+                    }
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_v2_search_by_addr_afdelingskode_addr_rename(
+    graphapi_post, admin_client, mock_get_settings_custom_attrs
+):
+    newAddrName = "Fake afdelingskode changed"
+    at = datetime.now().date()
+
+    # Modify the addr
+    mutate_query = """
+    mutation updateAddr($input: AddressUpdateInput!){
+        address_update(input: $input) {
+            uuid
+        }
+    }
+    """
+
+    payload = jsonable_encoder(
+        {
+            "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
+            "value": newAddrName,
+            "validity": {"from": at.isoformat()},
+            "address_type": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
+        }
+    )
+    gqlResp: GQLResponse = graphapi_post(mutate_query, {"input": payload})
+    assert gqlResp.errors is None
+    assert gqlResp.status_code == 200
+
+    # Fetch & assert the orgunit have been renamed accordingly
+    query = "Fake afdelingskode"
+    response = admin_client.get(
+        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "name": "Fake Corp With Addrs",
+                "path": ["Fake Corp With Addrs"],
+                "attrs": [
+                    {
+                        "title": "Afdelingskode",
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
+                        "value": newAddrName,
                     }
                 ],
             }
