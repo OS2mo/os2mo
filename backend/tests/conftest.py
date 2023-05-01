@@ -187,6 +187,13 @@ def admin_test_app(**overrides: Any) -> FastAPI:
     app.dependency_overrides[auth] = admin_auth
     app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     app.dependency_overrides[token_getter] = admin_token_getter
+    lora_settings = lora_get_settings()
+    app.state.sessionmaker = get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name="mox_test",
+    )
     return app
 
 
