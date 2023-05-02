@@ -263,6 +263,44 @@ class SyncTool:
                 dn,
             )
 
+    async def process_employee_address(
+        self,
+        affected_employee,
+        org_unit_uuid,
+        changed_address,
+        json_key,
+        delete,
+        object_type,
+    ):
+        dn = await self.dataloader.find_or_make_mo_employee_dn(affected_employee.uuid)
+
+        mo_object_dict = {
+            "mo_employee": affected_employee,
+            "mo_org_unit_address": changed_address,
+        }
+
+        # Convert & Upload to LDAP
+        await self.dataloader.modify_ldap_object(
+            self.converter.to_ldap(mo_object_dict, json_key, dn),
+            json_key,
+            delete=delete,
+        )
+
+        addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
+            org_unit_uuid, changed_address.address_type.uuid
+        )
+
+        await cleanup(
+            json_key,
+            "value",
+            "mo_org_unit_address",
+            addresses_in_mo,
+            self.user_context,
+            affected_employee,
+            object_type,
+            dn,
+        )
+
     async def listen_to_changes_in_org_units(
         self,
         payload: PayloadType,
@@ -313,8 +351,13 @@ class SyncTool:
             for affected_employee in affected_employees:
 
                 try:
-                    dn = await self.dataloader.find_or_make_mo_employee_dn(
-                        affected_employee.uuid
+                    await self.process_employee_address(
+                        affected_employee,
+                        payload.uuid,
+                        changed_address,
+                        json_key,
+                        delete,
+                        routing_key.object_type,
                     )
                 except DNNotFound:
                     logger.info(
@@ -324,33 +367,6 @@ class SyncTool:
                         )
                     )
                     continue
-
-                mo_object_dict = {
-                    "mo_employee": affected_employee,
-                    "mo_org_unit_address": changed_address,
-                }
-
-                # Convert & Upload to LDAP
-                await self.dataloader.modify_ldap_object(
-                    self.converter.to_ldap(mo_object_dict, json_key, dn),
-                    json_key,
-                    delete=delete,
-                )
-
-                addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
-                    payload.uuid, changed_address.address_type.uuid
-                )
-
-                await cleanup(
-                    json_key,
-                    "value",
-                    "mo_org_unit_address",
-                    addresses_in_mo,
-                    self.user_context,
-                    affected_employee,
-                    routing_key.object_type,
-                    dn,
-                )
 
     async def format_converted_objects(self, converted_objects, json_key):
         """
