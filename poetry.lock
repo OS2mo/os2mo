@@ -102,14 +102,14 @@ trio = ["trio (>=0.16,<0.22)"]
 
 [[package]]
 name = "argcomplete"
-version = "2.0.0"
+version = "3.0.8"
 description = "Bash tab completion for argparse"
 category = "dev"
 optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-test = ["coverage", "flake8", "pexpect", "wheel"]
+test = ["coverage", "mypy", "pexpect", "ruff", "wheel"]
 
 [[package]]
 name = "asgi-lifespan"
@@ -222,7 +222,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7
 
 [[package]]
 name = "commitizen"
-version = "2.42.1"
+version = "3.1.1"
 description = "Python commitizen client tool"
 category = "dev"
 optional = false
@@ -230,10 +230,10 @@ python-versions = "^3.7"
 develop = false
 
 [package.dependencies]
-argcomplete = ">=1.12.1,<2.1"
-charset-normalizer = ">=2.1.0,<3.1"
+argcomplete = ">=1.12.1,<3.1"
+charset-normalizer = ">=2.1.0,<4"
 colorama = "^0.4.1"
-decli = "^0.5.2"
+decli = "^0.6.0"
 importlib_metadata = ">=4.13,<5"
 jinja2 = ">=2.10.3"
 packaging = ">=19"
@@ -241,13 +241,12 @@ pyyaml = ">=3.08"
 questionary = "^1.4.0"
 termcolor = ">= 1.1, < 3"
 tomlkit = ">=0.5.3,<1.0.0"
-typing-extensions = "^4.0.1"
 
 [package.source]
 type = "git"
 url = "https://github.com/noirbizarre/commitizen.git"
 reference = "feature/template-override"
-resolved_reference = "6b1140cee07ea96bc45bfbbec21ed830de9cc616"
+resolved_reference = "16ad131edadd36393ea1fc1431792385c8b4d97b"
 
 [[package]]
 name = "coverage"
@@ -286,11 +285,11 @@ tox = ["tox"]
 
 [[package]]
 name = "decli"
-version = "0.5.2"
+version = "0.6.0"
 description = "Minimal, easy-to-use, declarative cli tool"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [[package]]
 name = "deprecated"
@@ -1037,11 +1036,11 @@ prometheus-client = ">=0.8.0,<1.0.0"
 
 [[package]]
 name = "prompt-toolkit"
-version = "3.0.36"
+version = "3.0.38"
 description = "Library for building powerful interactive command lines in Python"
 category = "dev"
 optional = false
-python-versions = ">=3.6.2"
+python-versions = ">=3.7.0"
 
 [package.dependencies]
 wcwidth = "*"
@@ -1605,7 +1604,7 @@ yaml = ["PyYAML (>=5.1)", "more-itertools"]
 
 [[package]]
 name = "termcolor"
-version = "2.2.0"
+version = "2.3.0"
 description = "ANSI color formatting for output in terminal"
 category = "dev"
 optional = false
@@ -1640,11 +1639,11 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "tomlkit"
-version = "0.11.6"
+version = "0.11.8"
 description = "Style preserving TOML library"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [[package]]
 name = "typing-extensions"
@@ -1758,7 +1757,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "2403d8f07fe577adb4d23d20306ae159abe2a3d91a46416feb93f86a9de3dd99"
+content-hash = "d27a500583a0476749a851c8fae8cd319ac18f77dd7f0e076ff744bd6766036f"
 
 [metadata.files]
 aio-pika = [
@@ -1875,8 +1874,8 @@ anyio = [
     {file = "anyio-3.6.2.tar.gz", hash = "sha256:25ea0d673ae30af41a0c442f81cf3b38c7e79fdc7b60335a4c14e05eb0947421"},
 ]
 argcomplete = [
-    {file = "argcomplete-2.0.0-py2.py3-none-any.whl", hash = "sha256:cffa11ea77999bb0dd27bb25ff6dc142a6796142f68d45b1a26b11f58724561e"},
-    {file = "argcomplete-2.0.0.tar.gz", hash = "sha256:6372ad78c89d662035101418ae253668445b391755cfe94ea52f1b9d22425b20"},
+    {file = "argcomplete-3.0.8-py3-none-any.whl", hash = "sha256:e36fd646839933cbec7941c662ecb65338248667358dd3d968405a4506a60d9b"},
+    {file = "argcomplete-3.0.8.tar.gz", hash = "sha256:b9ca96448e14fa459d7450a4ab5a22bbf9cee4ba7adddf03e65c398b5daeea28"},
 ]
 asgi-lifespan = [
     {file = "asgi-lifespan-2.1.0.tar.gz", hash = "sha256:5e2effaf0bfe39829cf2d64e7ecc47c7d86d676a6599f7afba378c31f5e3a308"},
@@ -2064,8 +2063,8 @@ cryptography = [
     {file = "cryptography-39.0.1.tar.gz", hash = "sha256:d1f6198ee6d9148405e49887803907fe8962a23e6c6f83ea7d98f1c0de375695"},
 ]
 decli = [
-    {file = "decli-0.5.2-py3-none-any.whl", hash = "sha256:d3207bc02d0169bf6ed74ccca09ce62edca0eb25b0ebf8bf4ae3fb8333e15ca0"},
-    {file = "decli-0.5.2.tar.gz", hash = "sha256:f2cde55034a75c819c630c7655a844c612f2598c42c21299160465df6ad463ad"},
+    {file = "decli-0.6.0-py3-none-any.whl", hash = "sha256:d5ed1d509f5a6cf765a4d7350f7ffb0be0c1770840cbd38b05fb0aab642645e8"},
+    {file = "decli-0.6.0.tar.gz", hash = "sha256:2915a55525ef2b1a0ce88b8ccba62ac22df5b6ff3ed2094448e0f951f08e7ba5"},
 ]
 deprecated = [
     {file = "Deprecated-1.2.13-py2.py3-none-any.whl", hash = "sha256:64756e3e14c8c5eea9795d93c524551432a0be75629f8f29e67ab8caf076c76d"},
@@ -2578,8 +2577,8 @@ prometheus-fastapi-instrumentator = [
     {file = "prometheus_fastapi_instrumentator-6.0.0.tar.gz", hash = "sha256:f1ddd0b8ead75e71d055bdf4cb7e995ec6a6ca63543245e7bbc5ca9b14c45191"},
 ]
 prompt-toolkit = [
-    {file = "prompt_toolkit-3.0.36-py3-none-any.whl", hash = "sha256:aa64ad242a462c5ff0363a7b9cfe696c20d55d9fc60c11fd8e632d064804d305"},
-    {file = "prompt_toolkit-3.0.36.tar.gz", hash = "sha256:3e163f254bef5a03b146397d7c1963bd3e2812f0964bb9a24e6ec761fd28db63"},
+    {file = "prompt_toolkit-3.0.38-py3-none-any.whl", hash = "sha256:45ea77a2f7c60418850331366c81cf6b5b9cf4c7fd34616f733c5427e6abbb1f"},
+    {file = "prompt_toolkit-3.0.38.tar.gz", hash = "sha256:23ac5d50538a9a38c8bde05fecb47d0b403ecd0662857a86f886f798563d5b9b"},
 ]
 protobuf = [
     {file = "protobuf-3.20.3-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:f4bd856d702e5b0d96a00ec6b307b0f51c1982c2bf9c0052cf9019e9a544ba99"},
@@ -2915,8 +2914,8 @@ tap-py = [
     {file = "tap.py-3.1.tar.gz", hash = "sha256:3c0cd45212ad5a25b35445964e2517efa000a118a1bfc3437dae828892eaf1e1"},
 ]
 termcolor = [
-    {file = "termcolor-2.2.0-py3-none-any.whl", hash = "sha256:91ddd848e7251200eac969846cbae2dacd7d71c2871e92733289e7e3666f48e7"},
-    {file = "termcolor-2.2.0.tar.gz", hash = "sha256:dfc8ac3f350788f23b2947b3e6cfa5a53b630b612e6cd8965a015a776020b99a"},
+    {file = "termcolor-2.3.0-py3-none-any.whl", hash = "sha256:3afb05607b89aed0ffe25202399ee0867ad4d3cb4180d98aaf8eefa6a5f7d475"},
+    {file = "termcolor-2.3.0.tar.gz", hash = "sha256:b5b08f68937f138fe92f6c089b99f1e2da0ae56c52b78bf7075fd95420fd9a5a"},
 ]
 thrift = [
     {file = "thrift-0.16.0.tar.gz", hash = "sha256:2b5b6488fcded21f9d312aa23c9ff6a0195d0f6ae26ddbd5ad9e3e25dfc14408"},
@@ -2926,8 +2925,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 tomlkit = [
-    {file = "tomlkit-0.11.6-py3-none-any.whl", hash = "sha256:07de26b0d8cfc18f871aec595fda24d95b08fef89d147caa861939f37230bf4b"},
-    {file = "tomlkit-0.11.6.tar.gz", hash = "sha256:71b952e5721688937fb02cf9d354dbcf0785066149d2855e44531ebdd2b65d73"},
+    {file = "tomlkit-0.11.8-py3-none-any.whl", hash = "sha256:8c726c4c202bdb148667835f68d68780b9a003a9ec34167b6c673b38eff2a171"},
+    {file = "tomlkit-0.11.8.tar.gz", hash = "sha256:9330fc7faa1db67b541b28e62018c17d20be733177d290a13b24c62d1614e0c3"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
