@@ -95,6 +95,10 @@ class Settings(BaseSettings):
         ..., description="Search base to utilize for all LDAP requests"
     )
 
+    ldap_ou_for_new_users: str = Field(
+        "", description="OU to create new users in. For example 'OU=Test'"
+    )
+
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
         description="Base URL for OS2mo.",
