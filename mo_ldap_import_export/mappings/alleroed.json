@@ -51,7 +51,7 @@
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ ldap.mail or NONE }}",
+      "value": "{{ ldap.mailAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
@@ -59,7 +59,7 @@
     },
     "MobilePhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": true,
+      "__import_to_mo__": false,
       "value": "{{ ldap.mobile or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
@@ -68,7 +68,7 @@
     },
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": true,
+      "__import_to_mo__": false,
       "value": "{{ ldap.telephoneNumber or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
@@ -77,7 +77,7 @@
     },
     "PrivatePhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": true,
+      "__import_to_mo__": false,
       "value": "{{ ldap.homePhone or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
@@ -87,7 +87,7 @@
     },
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": true,
+      "__import_to_mo__": false,
       "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
