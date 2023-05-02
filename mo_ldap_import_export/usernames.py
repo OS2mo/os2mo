@@ -107,15 +107,17 @@ class UserNameGeneratorBase:
     def _make_dn(self, username_string: str) -> str:
 
         cn = self._make_cn(username_string)
-        lst = [
-            c
-            for c in [
-                cn,
-                self.settings.ldap_ou_for_new_users,
-                self.settings.ldap_search_base,
-            ]
-            if c
-        ]
+
+        lst: list[str] = list(
+            filter(
+                None,
+                [
+                    cn,
+                    self.settings.ldap_ou_for_new_users,
+                    self.settings.ldap_search_base,
+                ],
+            )
+        )
 
         dn = ",".join(lst)  # Distinguished Name
         return dn
