@@ -26,6 +26,7 @@ def context() -> Context:
 
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "DC=bar"
+    settings_mock.ldap_ou_for_new_users = ""
 
     context: Context = {
         "user_context": {
