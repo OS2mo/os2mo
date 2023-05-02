@@ -51,7 +51,7 @@
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ ldap.mailAddress or NONE }}",
+      "value": "{{ ldap.mail or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
