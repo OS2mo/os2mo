@@ -27,7 +27,7 @@
       "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.postalCode or 'ukendt postnummer') }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('PostAdresseTextUnit')) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PostAdresseTextUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     },
     "PublicEmailUnit": {
@@ -36,7 +36,7 @@
       "value": "{{ldap.extensionAttribute5}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('PublicEmailUnit')) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PublicEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     },
     "SecureEmailUnit": {
@@ -45,7 +45,7 @@
       "value": "{{ldap.extensionAttribute4}}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('SecureEmailUnit')) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('SecureEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     },
     "EmailEmployee": {
@@ -54,7 +54,7 @@
       "value": "{{ ldap.mailAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('EmailEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "MobilePhoneEmployee": {
@@ -63,7 +63,7 @@
       "value": "{{ ldap.mobile or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('MobilePhoneEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('MobilePhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "PhoneEmployee": {
@@ -72,7 +72,7 @@
       "value": "{{ ldap.telephoneNumber or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('PhoneEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     "PrivatePhoneEmployee": {
@@ -81,7 +81,7 @@
       "value": "{{ ldap.homePhone or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('PrivatePhoneEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PrivatePhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "visibility": "{{ dict(uuid=get_visibility_uuid('Hemmelig')) }}",
     },
@@ -91,7 +91,7 @@
       "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_address_type_uuid('LocationEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
 

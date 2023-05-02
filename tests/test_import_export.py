@@ -148,9 +148,10 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     load_mo_address.return_value = address
     dataloader.load_mo_address = load_mo_address
 
-    converter.address_type_info = {
+    converter.org_unit_address_type_info = {
         str(address.address_type.uuid): {"user_key": "LocationUnit"}
     }
+    converter.get_org_unit_address_type_user_key.return_value = "LocationUnit"
 
     with pytest.raises(NotSupportedException):
         await sync_tool.listen_to_changes_in_org_units(
@@ -179,7 +180,7 @@ async def test_listen_to_changes_in_employees(
     converter.get_it_system_user_key.return_value = "AD"
 
     address_type_user_key = "EmailEmployee"
-    converter.get_address_type_user_key.return_value = address_type_user_key
+    converter.get_employee_address_type_user_key.return_value = address_type_user_key
 
     it_system_type_name = "AD"
 

@@ -589,8 +589,8 @@ async def test_load_mo_address_types(
         ]
     }
 
-    output = dataloader.load_mo_address_types()
-    assert output[uuid]["name"] == name
+    assert dataloader.load_mo_employee_address_types()[uuid]["name"] == name
+    assert dataloader.load_mo_org_unit_address_types()[uuid]["name"] == name
 
 
 async def test_load_mo_primary_types(
@@ -937,8 +937,8 @@ async def test_load_mo_address_types_not_found(
 ):
     gql_client_sync.execute.return_value = {"facets": []}
 
-    output = dataloader.load_mo_address_types()
-    assert output == {}
+    assert dataloader.load_mo_employee_address_types() == {}
+    assert dataloader.load_mo_org_unit_address_types() == {}
 
 
 def test_load_mo_it_systems(dataloader: DataLoader, gql_client_sync: MagicMock):
