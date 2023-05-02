@@ -346,6 +346,7 @@ class DataLoader:
         self,
         json_key: str,
         additional_attributes: list[str] = [],
+        search_base: Union[str, None] = None,
     ) -> list[LdapObject]:
         """
         Returns list with desired ldap objects
@@ -363,7 +364,11 @@ class DataLoader:
             "attributes": list(set(attributes)),
         }
 
-        responses = paged_search(self.context, searchParameters)
+        responses = paged_search(
+            self.context,
+            searchParameters,
+            search_base=search_base,
+        )
 
         output: list[LdapObject]
         output = [make_ldap_object(r, self.context, nest=False) for r in responses]
