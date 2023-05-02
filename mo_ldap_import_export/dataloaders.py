@@ -851,10 +851,11 @@ class DataLoader:
             )
         return UUID(result["facets"][0]["uuid"])
 
-    def load_mo_address_types(self) -> dict:
-        employee_address_types = self.load_mo_facet("employee_address_type")
-        org_unit_address_types = self.load_mo_facet("org_unit_address_type")
-        return employee_address_types | org_unit_address_types
+    def load_mo_employee_address_types(self) -> dict:
+        return self.load_mo_facet("employee_address_type")
+
+    def load_mo_org_unit_address_types(self) -> dict:
+        return self.load_mo_facet("org_unit_address_type")
 
     def load_mo_visibility(self) -> dict:
         return self.load_mo_facet("visibility")

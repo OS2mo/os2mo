@@ -422,7 +422,9 @@ def test_load_address_from_MO_endpoint(test_client: TestClient, headers: dict):
 
 
 def test_load_address_types_from_MO_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.get("/MO/Address_types", headers=headers)
+    response = test_client.get("/MO/Address_types_employee", headers=headers)
+    assert response.status_code == 202
+    response = test_client.get("/MO/Address_types_org_unit", headers=headers)
     assert response.status_code == 202
 
 

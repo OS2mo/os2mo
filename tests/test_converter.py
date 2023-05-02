@@ -99,22 +99,29 @@ def context() -> Context:
     dataloader = MagicMock()
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
-    mo_address_types = {
+    mo_employee_address_types = {
         uuid1: {"uuid": uuid1, "scope": "MAIL", "user_key": "Email"},
+    }
+
+    mo_org_unit_address_types = {
         uuid2: {"uuid": uuid2, "scope": "TEXT", "user_key": "Post"},
     }
+
     ad_uuid = str(uuid4())
     mo_it_systems = {
         ad_uuid: {"uuid": ad_uuid, "user_key": "Active Directory"},
     }
 
-    load_mo_address_types = MagicMock()
+    load_mo_employee_address_types = MagicMock()
+    load_mo_org_unit_address_types = MagicMock()
     load_mo_it_systems = MagicMock()
 
-    load_mo_address_types.return_value = mo_address_types
+    load_mo_employee_address_types.return_value = mo_employee_address_types
+    load_mo_org_unit_address_types.return_value = mo_org_unit_address_types
     load_mo_it_systems.return_value = mo_it_systems
 
-    dataloader.load_mo_address_types = load_mo_address_types
+    dataloader.load_mo_employee_address_types = load_mo_employee_address_types
+    dataloader.load_mo_org_unit_address_types = load_mo_org_unit_address_types
     dataloader.load_mo_it_systems = load_mo_it_systems
 
     dataloader.upload_mo_objects = AsyncMock()
@@ -565,7 +572,12 @@ def test_check_attributes(converter: LdapConverter):
 
 def test_get_accepted_json_keys(converter: LdapConverter):
     output = converter.get_accepted_json_keys()
-    assert output == ["Employee", "Engagement", "Email", "Post", "Active Directory"]
+    assert len(output) == 5
+    assert "Employee" in output
+    assert "Engagement" in output
+    assert "Email" in output
+    assert "Post" in output
+    assert "Active Directory" in output
 
 
 def test_nonejoin(converter: LdapConverter):
@@ -872,11 +884,14 @@ async def test_check_dar_scope(converter: LdapConverter):
 
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
-    address_type_info = {
-        uuid1: {"scope": "TEXT", "user_key": "foo", "uuid": uuid2},
+    employee_address_type_info = {
+        uuid1: {"scope": "TEXT", "user_key": "foo", "uuid": uuid1},
+    }
+    org_unit_address_type_info = {
         uuid2: {"scope": "DAR", "user_key": "bar", "uuid": uuid2},
     }
-    converter.address_type_info = address_type_info
+    converter.employee_address_type_info = employee_address_type_info
+    converter.org_unit_address_type_info = org_unit_address_type_info
 
     with patch(
         "mo_ldap_import_export.converters.LdapConverter.get_ldap_to_mo_json_keys",
@@ -897,14 +912,22 @@ async def test_get_address_type_uuid(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
 
-    address_type_info = {
+    employee_address_type_info = {
         uuid1: {"uuid": uuid1, "user_key": "foo"},
         uuid2: {"uuid": uuid2, "user_key": "bar"},
     }
-    converter.address_type_info = address_type_info
+    converter.employee_address_type_info = employee_address_type_info
 
-    assert converter.get_address_type_uuid("foo") == uuid1
-    assert converter.get_address_type_uuid("bar") == uuid2
+    org_unit_address_type_info = {
+        uuid1: {"uuid": uuid1, "user_key": "foo-org"},
+        uuid2: {"uuid": uuid2, "user_key": "bar-org"},
+    }
+    converter.org_unit_address_type_info = org_unit_address_type_info
+
+    assert converter.get_employee_address_type_uuid("foo") == uuid1
+    assert converter.get_employee_address_type_uuid("bar") == uuid2
+    assert converter.get_org_unit_address_type_uuid("foo-org") == uuid1
+    assert converter.get_org_unit_address_type_uuid("bar-org") == uuid2
 
 
 async def test_get_it_system_uuid(converter: LdapConverter):
@@ -1020,14 +1043,20 @@ def test_get_it_system_user_key(converter: LdapConverter):
 def test_get_address_type_user_key(converter: LdapConverter):
     uuid1 = str(uuid4())
     uuid2 = str(uuid4())
-    address_type_info = {
-        uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
+
+    employee_address_type_info = {
         uuid2: {"uuid": uuid2, "user_key": "EmailEmployee"},
     }
-    converter.address_type_info = address_type_info
 
-    assert converter.get_address_type_user_key(uuid1) == "EmailUnit"
-    assert converter.get_address_type_user_key(uuid2) == "EmailEmployee"
+    org_unit_address_type_info = {
+        uuid1: {"uuid": uuid1, "user_key": "EmailUnit"},
+    }
+
+    converter.org_unit_address_type_info = org_unit_address_type_info
+    converter.employee_address_type_info = employee_address_type_info
+
+    assert converter.get_employee_address_type_user_key(uuid2) == "EmailEmployee"
+    assert converter.get_org_unit_address_type_user_key(uuid1) == "EmailUnit"
 
 
 def test_get_engagement_type_user_key(converter: LdapConverter):
@@ -1279,7 +1308,9 @@ def test_check_get_uuid_functions(converter: LdapConverter):
     converter.raw_mapping = converter.mapping = {
         "ldap_to_mo": {
             "Email": {
-                "address_type": "{{ dict(uuid=get_address_type_uuid('Email')) }}",
+                "address_type": (
+                    "{{ dict(uuid=get_employee_address_type_uuid('Email')) }}"
+                ),
             }
         }
     }
@@ -1289,7 +1320,9 @@ def test_check_get_uuid_functions(converter: LdapConverter):
         converter.raw_mapping = converter.mapping = {
             "ldap_to_mo": {
                 "Email": {
-                    "address_type": "{{ dict(uuid=get_address_type_uuid('typo')) }}",
+                    "address_type": (
+                        "{{ dict(uuid=get_employee_address_type_uuid('typo')) }}"
+                    ),
                 }
             }
         }
