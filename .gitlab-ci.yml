@@ -51,6 +51,19 @@ variables:
 .if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
   if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
+
+####################
+# Backend patterns #
+####################
+.backend-patterns: &backend-patterns
+  - backend/**/*
+  - docker/**/*
+  - Dockerfile
+  - pyproject.toml
+  - poetry.lock
+  - .gitlab-ci.yml
+
+
 include:
   - local: ra-data-models/.gitlab-ci.yml
   - project: labs/salt-automation
@@ -160,7 +173,6 @@ Lint shell scripts:
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
-
 # Build
 ########
 .build:test-image:
@@ -226,6 +238,7 @@ Build Keycloak:
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
+      changes: *backend-patterns
 
 # Backend Tests
 ################
@@ -239,6 +252,7 @@ Unit-test:
     HYPOTHESIS_PROFILE: "ci"
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
+
   parallel: 2
   script:
     - pip install poetry==1.3.2
@@ -325,6 +339,8 @@ Coverage:
         path: $CI_PROJECT_DIR/coverage.xml
   rules:
     - <<: *if-merge-request
+      changes: *backend-patterns
+
 
 # Review
 #########
@@ -465,7 +481,7 @@ Build and deploy branch docs:
     - <<: *if-merge-request
 
 Build master docs:
-    extends:
+  extends:
     - .build-docs
     - .docs:rules:deploy-master-docs
 
