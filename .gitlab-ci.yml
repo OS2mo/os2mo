@@ -465,7 +465,7 @@ Build and deploy branch docs:
     - <<: *if-merge-request
 
 Build master docs:
-  extends:
+    extends:
     - .build-docs
     - .docs:rules:deploy-master-docs
 
