@@ -424,6 +424,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         delay_in_minutes: int = 0,
         delay_in_seconds: float = 0,
         cpr_indexed_entries_only: bool = True,
+        search_base: Union[str, None] = None,
     ) -> Any:
 
         if cpr_indexed_entries_only and not cpr_field:
@@ -433,7 +434,10 @@ def create_app(**kwargs: Any) -> FastAPI:
         if delay > 0:
             await countdown(delay, "/Import")
 
-        all_ldap_objects = await dataloader.load_ldap_objects("Employee")
+        all_ldap_objects = await dataloader.load_ldap_objects(
+            "Employee",
+            search_base=search_base,
+        )
 
         if test_on_first_20_entries:
             # Only upload the first 20 entries

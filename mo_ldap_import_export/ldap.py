@@ -166,7 +166,11 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def paged_search(context: Context, searchParameters: dict) -> list:
+def paged_search(
+    context: Context,
+    searchParameters: dict,
+    search_base: Union[str, None] = None,
+) -> list:
     """
     searchParameters : dict
         Dict with the following keys:
@@ -175,7 +179,8 @@ def paged_search(context: Context, searchParameters: dict) -> list:
     """
     responses = []
     user_context = context["user_context"]
-    search_base = user_context["settings"].ldap_search_base
+    if not search_base:
+        search_base = user_context["settings"].ldap_search_base
     ldap_connection = user_context["ldap_connection"]
 
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
@@ -183,7 +188,6 @@ def paged_search(context: Context, searchParameters: dict) -> list:
     searchParameters["search_base"] = search_base
 
     search_filter = searchParameters["search_filter"]
-    search_base = searchParameters["search_base"]
 
     logger.info(f"searching for {search_filter} on {search_base}")
 
