@@ -173,7 +173,6 @@ Lint shell scripts:
   script:
     - git ls-files --exclude='*.sh' --ignored -c | xargs shellcheck
 
-
 # Build
 ########
 .build:test-image:
@@ -218,10 +217,6 @@ Build Keycloak-realm:
     paths:
       - keycloak-realm.json
     expire_in: 1 day
-  rules:
-    - changes: *backend-patterns
-
-
 
 Build Keycloak:
   extends:
@@ -232,8 +227,7 @@ Build Keycloak:
   variables:
     CI_IMAGE: ${KEYCLOAK_IMAGE_SHA}
     DOCKERFILE: ${CI_PROJECT_DIR}/docker/ci.keycloak.Dockerfile
-  rules:
-    - changes: *backend-patterns
+
 
 # Tests
 ########
