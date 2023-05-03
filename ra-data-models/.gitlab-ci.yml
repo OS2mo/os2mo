@@ -14,11 +14,6 @@
 ####################
 # Backend patterns #
 ####################
-# Add or modify these paths and files to be added to jobs. The job will then only be
-# triggered, if any changes has been made or commits has been pushed to them.
-# Example: if a commit has been pushed to /docs/mkdocs.yml, and the paths/files
-# listed below are not affected by these changes, the "Test ramodels" (among others)
-# job will NOT be triggered in pipeline.
 .backend-patterns-ra-data-models: &backend-patterns-ra-data-models
   - ra-data-models/**/*
   - .gitlab-ci.yml

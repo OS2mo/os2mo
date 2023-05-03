@@ -55,11 +55,6 @@ variables:
 ####################
 # Backend patterns #
 ####################
-# Add or modify these paths and files to be added to jobs. The job will then only be
-# triggered, if any changes has been made or commits has been pushed to them.
-# Example: if a commit has been pushed to /docs/src/changelog.md, and the paths/files
-# listed below are not affected by these changes, the "Unit-test" (among others) job will
-# NOT be triggered in pipeline.
 .backend-patterns: &backend-patterns
   - backend/**/*
   - docker/**/*
@@ -249,6 +244,7 @@ Build Keycloak:
     COVERAGE_FILE: $CI_PROJECT_DIR/.coverage.$CI_JOB_ID
   rules:
     - <<: *if-merge-request
+      changes: *backend-patterns
 
 # Backend Tests
 ################
@@ -262,8 +258,6 @@ Unit-test:
     HYPOTHESIS_PROFILE: "ci"
 
     PIP_CACHE_DIR: ${CI_PROJECT_DIR}/.cache/pip
-  rules:
-    - changes: *backend-patterns
 
   parallel: 2
   script:
@@ -325,8 +319,6 @@ Integration-test:
     when: always
     paths:
       - $COVERAGE_FILE
-  rules:
-    - changes: *backend-patterns
 
 Coverage:
   stage: coverage
