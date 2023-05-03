@@ -187,7 +187,7 @@ Build Keycloak-realm:
     entrypoint: [""]
   variables:
     GIT_STRATEGY: none # We do not need the source code
-    KEYCLOAK_VERSION: 21.1
+    KEYCLOAK_VERSION: 21.1.1
     KEYCLOAK_SSL_REQUIRED: external # for MO
     KEYCLOAK_SSL_REQUIRED_MO: external # for realm builder
     KEYCLOAK_LORA_REALM_ENABLED: "true"

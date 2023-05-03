@@ -4,7 +4,7 @@
 # This Dockerfile is only used for running the test suite,
 # i.e. the unsecure passwords are not important
 
-FROM quay.io/keycloak/keycloak:14.0.0
+FROM quay.io/keycloak/keycloak:21.1.1
 
 ENV KEYCLOAK_USER=admin
 ENV KEYCLOAK_PASSWORD=admin
