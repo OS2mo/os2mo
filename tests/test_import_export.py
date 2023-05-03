@@ -2,6 +2,8 @@ import asyncio
 import copy
 import datetime
 import re
+import time
+from functools import partial
 from unittest.mock import AsyncMock
 from unittest.mock import MagicMock
 from unittest.mock import patch
@@ -51,6 +53,7 @@ async def test_listen_to_changes_in_org_units(
     dataloader.load_mo_org_units.return_value = org_unit_info
 
     payload = MagicMock()
+    payload.uuid = uuid4()
 
     mo_routing_key = MORoutingKey.build("org_unit.org_unit.edit")
 
@@ -95,14 +98,30 @@ async def test_listen_to_change_in_org_unit_address(
     converter.find_ldap_object_class.return_value = "user"
 
     payload = MagicMock()
+    payload.uuid = uuid4()
+
+    # Simulate another employee which is being processed at the exact same time.
+    async def employee_in_progress():
+        sync_tool.uuids_in_progress.append(employee1.uuid)
+        await asyncio.sleep(1)
+        sync_tool.uuids_in_progress.remove(employee1.uuid)
 
     with patch("mo_ldap_import_export.import_export.cleanup", AsyncMock()):
-        await sync_tool.listen_to_changes_in_org_units(
-            payload,
-            routing_key=mo_routing_key,
-            delete=False,
-            current_objects_only=True,
-        )
+        with capture_logs() as cap_logs:
+            await asyncio.gather(
+                employee_in_progress(),
+                sync_tool.listen_to_changes_in_org_units(
+                    payload,
+                    routing_key=mo_routing_key,
+                    delete=False,
+                    current_objects_only=True,
+                ),
+            )
+            messages = [w for w in cap_logs if w["log_level"] == "info"]
+
+            # Validate that listen_to_changes_in_org_units had to wait for
+            # employee_in_progress to finish
+            assert "in progress" in str(messages)
 
     # Assert that an address was uploaded to two ldap objects
     # (even though load_mo_employees_in_org_unit returned three employee objects)
@@ -136,6 +155,8 @@ async def test_listen_to_change_in_org_unit_address_not_supported(
     """
     mo_routing_key = MORoutingKey.build("org_unit.address.edit")
     payload = MagicMock()
+    payload.uuid = uuid4()
+
     address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
 
     def find_ldap_object_class(json_key):
@@ -918,3 +939,64 @@ async def test_remove_from_ignoreMe():
 
     strings_to_ignore.remove(uuid)
     assert len(strings_to_ignore[uuid]) == 0
+
+
+async def test_wait_for_change_to_finish(sync_tool: SyncTool):
+
+    wait_for_change_to_finish = partial(
+        sync_tool.wait_for_change_to_finish, sleep_time=0.1
+    )
+
+    @wait_for_change_to_finish
+    async def decorated_func(self, payload):
+        await asyncio.sleep(0.2)
+        return
+
+    async def regular_func(self, payload):
+        await asyncio.sleep(0.2)
+        return
+
+    payload = MagicMock()
+    payload.uuid = uuid4()
+
+    different_payload = MagicMock()
+    different_payload.uuid = uuid4()
+
+    # Normally this would execute in 0.2 seconds + overhead
+    t1 = time.time()
+    await asyncio.gather(
+        regular_func(sync_tool, payload),
+        regular_func(sync_tool, payload),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.2
+    assert elapsed_time < 0.3
+
+    # But the decorator will make the second call wait for the first one to complete
+    t1 = time.time()
+    await asyncio.gather(
+        decorated_func(sync_tool, payload),
+        decorated_func(sync_tool, payload),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.4
+    assert elapsed_time < 0.5
+
+    # But only if payload.uuid is the same in both calls
+    t1 = time.time()
+    await asyncio.gather(
+        decorated_func(sync_tool, payload),
+        decorated_func(sync_tool, different_payload),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.2
+    assert elapsed_time < 0.3
