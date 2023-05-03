@@ -11,6 +11,13 @@
   if: '$CI_MERGE_REQUEST_IID'
 
 
+####################
+# Backend patterns #
+####################
+.backend-patterns-ra-data-models: &backend-patterns-ra-data-models
+  - ra-data-models/**/*
+  - .gitlab-ci.yml
+
 # Reusables
 ################################################################################
 variables:
@@ -72,6 +79,7 @@ Test ramodels:
       - ".coverage.$CI_JOB_ID"
   rules:
     - <<: *if-merge-request
+      changes: *backend-patterns-ra-data-models
 
 Check coverage ramodels:
   stage: coverage
@@ -87,6 +95,8 @@ Check coverage ramodels:
     - coverage report -m --fail-under=80
   rules:
     - <<: *if-merge-request
+      changes: *backend-patterns-ra-data-models
+
 
 Release to PyPI:
   <<: *install-deps
@@ -97,6 +107,7 @@ Release to PyPI:
     - poetry publish --build -u __token__ -p $PYPI_TOKEN
   rules:
     - <<: *if-tag-semver
+
 
 ramodel pages:
   <<: *source-venv
