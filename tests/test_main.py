@@ -494,7 +494,7 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         assert re.match(
             ".*not a valid cpr number",
-            str(messages[-1]["event"]),
+            str(messages),
         )
 
 

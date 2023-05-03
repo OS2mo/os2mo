@@ -6,8 +6,11 @@ Created on Fri Mar  3 09:46:15 2023
 
 @author: nick
 """
+import asyncio
 import datetime
+from functools import wraps
 from typing import Any
+from typing import Callable
 from typing import Union
 from uuid import UUID
 from uuid import uuid4
@@ -105,7 +108,32 @@ class SyncTool:
         self.user_context = self.context["user_context"]
         self.dataloader = self.user_context["dataloader"]
         self.converter = self.user_context["converter"]
+        self.uuids_in_progress: list[UUID] = []
 
+    @staticmethod
+    def wait_for_change_to_finish(func: Callable, sleep_time: float = 2):
+        """
+        Runs the function normally but calls asyncio.sleep in case it is already
+        running with the same uuid as input parameter
+        """
+
+        @wraps(func)
+        async def modified_func(self, *args, **kwargs):
+            uuid = args[0].uuid if args else kwargs["payload"].uuid
+
+            while uuid in self.uuids_in_progress:
+                logger.info(f"{uuid} in progress. Trying again in {sleep_time} seconds")
+                await asyncio.sleep(sleep_time)
+
+            self.uuids_in_progress.append(uuid)
+            try:
+                await func(self, *args, **kwargs)
+            finally:
+                self.uuids_in_progress.remove(uuid)
+
+        return modified_func
+
+    @wait_for_change_to_finish
     async def listen_to_changes_in_employees(
         self,
         payload: PayloadType,
@@ -265,6 +293,7 @@ class SyncTool:
                 dn,
             )
 
+    @wait_for_change_to_finish
     async def process_employee_address(
         self,
         affected_employee,
@@ -303,6 +332,7 @@ class SyncTool:
             dn,
         )
 
+    @wait_for_change_to_finish
     async def listen_to_changes_in_org_units(
         self,
         payload: PayloadType,
