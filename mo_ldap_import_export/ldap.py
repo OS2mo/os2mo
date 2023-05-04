@@ -352,9 +352,8 @@ def get_attribute_types(ldap_connection):
 
 async def cleanup(
     json_key: str,
-    value_key: str,
     mo_dict_key: str,
-    mo_objects_in_mo: list[Any],
+    mo_objects: list[Any],
     user_context: dict,
     employee: Employee,
     object_type: ObjectType,
@@ -370,7 +369,7 @@ async def cleanup(
     mo_dict_key : str
         name of the key in the conversion dict. i.e. 'mo_employee'
         or 'mo_employee_address'
-    mo_objects_in_mo: list
+    mo_objects: list
         List of objects already in MO
     user_context : dict
         user context dictionary with the configured dataloader and converter
@@ -378,74 +377,85 @@ async def cleanup(
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
     internal_amqpsystem = user_context["internal_amqpsystem"]
+    uuids_to_publish = []
 
     if not converter.__export_to_ldap__(json_key):
         logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
         return
 
-    # Get all matching objects for this user in LDAP (note that LDAP can contain
-    # multiple entries in one object.)
-    loaded_ldap_object = dataloader.load_ldap_object(
-        dn,
-        converter.get_ldap_attributes(json_key),
-    )
+    # Get matching LDAP object for this user (note that LDAP can contain
+    # multiple entries in one object)
+    attributes = converter.get_ldap_attributes(json_key)
+    ldap_object = dataloader.load_ldap_object(dn, attributes)
 
-    # Convert to MO so the two are easy to compare
-    logger.info("[cleanup] Converting LDAP objects to MO")
-    mo_objects_in_ldap = converter.from_ldap(
-        loaded_ldap_object, json_key, employee_uuid=employee.uuid
-    )
+    logger.info(f"Found the following data in LDAP: {ldap_object}")
 
-    mo_objects_in_mo = [m for m in mo_objects_in_mo if mo_object_is_valid(m)]
+    mo_objects = [m for m in mo_objects if mo_object_is_valid(m)]
 
-    # Format as lists
-    values_in_ldap = sorted([getattr(a, value_key) for a in mo_objects_in_ldap])
-    values_in_mo = sorted([getattr(a, value_key) for a in mo_objects_in_mo])
+    # Convert to LDAP-style to make mo-data comparable to LDAP data.
+    converted_mo_objects = [
+        converter.to_ldap(
+            {
+                "mo_employee": employee,
+                mo_dict_key: mo_object,
+            },
+            json_key,
+            dn,
+        )
+        for mo_object in mo_objects
+    ]
+    logger.info(f"Found the following data in MO: {converted_mo_objects}")
 
-    logger.info(f"Found following '{json_key}' values in LDAP: {values_in_ldap}")
-    logger.info(f"Found following '{json_key}' values in MO: {values_in_mo}")
-
-    # Clean from LDAP as needed
+    # Loop over each attribute and determine if it needs to be cleaned
     ldap_objects_to_clean = []
-    for mo_object in mo_objects_in_ldap:
-        if getattr(mo_object, value_key) not in values_in_mo:
-            ldap_objects_to_clean.append(
-                converter.to_ldap(
-                    {
-                        "mo_employee": employee,
-                        mo_dict_key: mo_object,
-                    },
-                    json_key,
-                    dn,
-                )
-            )
+    for attribute in attributes:
+        values_in_ldap = getattr(ldap_object, attribute)
+        values_in_mo: list[Any] = list(
+            filter(None, [getattr(o, attribute, None) for o in converted_mo_objects])
+        )
 
+        if type(values_in_ldap) is not list:
+            values_in_ldap = [values_in_ldap] if values_in_ldap else []
+
+        # If a value is in LDAP but NOT in MO, it needs to be cleaned
+        for value_in_ldap in values_in_ldap:
+            if value_in_ldap not in values_in_mo:
+                logger.info(f"{attribute} = '{value_in_ldap}' needs cleaning")
+                ldap_objects_to_clean.append(
+                    LdapObject(**{"dn": dn, attribute: value_in_ldap})
+                )
+
+        # If MO contains values and LDAP doesn't, send AMQP messages to export to LDAP
+        # This can happen, if we delete an address in MO, and another address already
+        # exists in MO. In that case the other address should be written to LDAP,
+        # after the first one is deleted from LDAP
+        if not values_in_ldap and values_in_mo:
+            logger.info(f"attribute = '{attribute}' needs to be written to LDAP")
+            uuids_to_publish = [o.uuid for o in mo_objects]
+
+    # Clean from LDAP
     if len(ldap_objects_to_clean) == 0:
         logger.info("No synchronization required")
     else:
         dataloader.cleanup_attributes_in_ldap(ldap_objects_to_clean)
 
-    # If MO contains more values than LDAP, send AMQP messages to export to LDAP
-    # This can happen, if we delete an address in MO, but another address already
-    # exists in MO. In that case the other address should be written to LDAP
-    if len(values_in_ldap) == 0 and len(values_in_mo) > 0:
-        for mo_object_in_mo in mo_objects_in_mo:
-            uuid = mo_object_in_mo.uuid
-            mo_object = await dataloader.load_mo_object(str(uuid), object_type)
-            routing_key = MORoutingKey.build(
-                service_type=mo_object["service_type"],
-                object_type=mo_object["object_type"],
-                request_type=RequestType.REFRESH,
-            )
-            payload = mo_object["payload"]
+    # Publish to internal AMQP system
+    for uuid in uuids_to_publish:
+        mo_object_dict = await dataloader.load_mo_object(str(uuid), object_type)
+        routing_key = MORoutingKey.build(
+            service_type=mo_object_dict["service_type"],
+            object_type=mo_object_dict["object_type"],
+            request_type=RequestType.REFRESH,
+        )
+        payload = mo_object_dict["payload"]
 
-            logger.info(f"Publishing {routing_key}")
-            logger.info(f"with payload.uuid = {payload.uuid}")
-            logger.info(f"and payload.object_uuid = {payload.object_uuid}")
+        logger.info(f"Publishing {routing_key}")
+        logger.info(f"with payload.uuid = {payload.uuid}")
+        logger.info(f"and payload.object_uuid = {payload.object_uuid}")
 
-            await internal_amqpsystem.publish_message(
-                str(routing_key), jsonable_encoder(payload)
-            )
+        await internal_amqpsystem.publish_message(
+            str(routing_key), jsonable_encoder(payload)
+        )
 
 
 def setup_listener(context: Context, callback: Callable):

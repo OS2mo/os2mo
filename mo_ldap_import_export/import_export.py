@@ -210,7 +210,6 @@ class SyncTool:
 
             await cleanup(
                 json_key,
-                "value",
                 "mo_employee_address",
                 addresses_in_mo,
                 self.user_context,
@@ -247,7 +246,6 @@ class SyncTool:
 
             await cleanup(
                 json_key,
-                "user_key",
                 "mo_employee_it_user",
                 it_users_in_mo,
                 self.user_context,
@@ -284,7 +282,6 @@ class SyncTool:
 
             await cleanup(
                 json_key,
-                "user_key",
                 "mo_employee_engagement",
                 engagements_in_mo,
                 self.user_context,
@@ -323,7 +320,6 @@ class SyncTool:
 
         await cleanup(
             json_key,
-            "value",
             "mo_org_unit_address",
             addresses_in_mo,
             self.user_context,
