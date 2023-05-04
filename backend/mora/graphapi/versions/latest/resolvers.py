@@ -264,6 +264,8 @@ class AddressResolver(Resolver):
         to_date: datetime | None = UNSET,
         address_types: list[UUID] | None = None,
         address_type_user_keys: list[str] | None = None,
+        visibilities: list[UUID] | None = None,
+        visibility_user_keys: list[str] | None = None,
         employees: list[UUID] | None = None,
         engagements: list[UUID] | None = None,
         org_units: list[UUID] | None = None,
@@ -275,6 +277,12 @@ class AddressResolver(Resolver):
             address_types.extend(
                 await user_keys2uuids(ClassResolver(), info, address_type_user_keys)
             )
+        if visibility_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            visibilities = visibilities or []
+            visibilities.extend(
+                await user_keys2uuids(ClassResolver(), info, visibility_user_keys)
+            )
 
         kwargs = {}
         if address_types is not None:
@@ -285,6 +293,8 @@ class AddressResolver(Resolver):
             kwargs["tilknyttedefunktioner"] = engagements
         if org_units is not None:
             kwargs["tilknyttedeenheder"] = org_units
+        if visibilities is not None:
+            kwargs["opgaver"] = visibilities
 
         return await super()._resolve(
             info=info,
