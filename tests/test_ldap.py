@@ -488,22 +488,6 @@ def converter() -> MagicMock:
     converter.to_ldap.side_effect = to_ldap
     converter.get_ldap_attributes.return_value = ["address"]
 
-    def from_ldap(ldap_object, json_key, employee_uuid):
-        address_values = ldap_object.address
-        if type(address_values) is not list:
-            address_values = [address_values] if address_values else []
-
-        return [
-            Address.from_simplified_fields(
-                address_value,
-                uuid4(),
-                "2021-01-01",
-            )
-            for address_value in address_values
-        ]
-
-    converter.from_ldap.side_effect = from_ldap
-
     return converter
 
 
@@ -534,7 +518,7 @@ async def test_cleanup(
 ):
 
     # There is one address in MO
-    mo_objects_in_mo = [
+    mo_objects = [
         Address.from_simplified_fields(
             "addr1",
             uuid4(),
@@ -550,9 +534,8 @@ async def test_cleanup(
     # We would expect one of the addresses in LDAP to be cleaned
     args = dict(
         json_key="Address",
-        value_key="value",
         mo_dict_key="mo_employee_address",
-        mo_objects_in_mo=mo_objects_in_mo,
+        mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
@@ -572,7 +555,7 @@ async def test_cleanup_no_sync_required(
 ):
 
     # There is one address in MO
-    mo_objects_in_mo = [
+    mo_objects = [
         Address.from_simplified_fields(
             "addr1",
             uuid4(),
@@ -586,9 +569,8 @@ async def test_cleanup_no_sync_required(
     # We would expect that no synchronization is required
     args = dict(
         json_key="Address",
-        value_key="value",
         mo_dict_key="mo_employee_address",
-        mo_objects_in_mo=mo_objects_in_mo,
+        mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
@@ -612,7 +594,7 @@ async def test_cleanup_refresh_mo_object(
 ):
 
     # There is one address in MO
-    mo_objects_in_mo = [
+    mo_objects = [
         Address.from_simplified_fields(
             "addr1",
             uuid4(),
@@ -622,16 +604,15 @@ async def test_cleanup_refresh_mo_object(
 
     args = dict(
         json_key="Address",
-        value_key="value",
         mo_dict_key="mo_employee_address",
-        mo_objects_in_mo=mo_objects_in_mo,
+        mo_objects=mo_objects,
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
         dn="CN=foo",
     )
 
-    object_uuid = str(mo_objects_in_mo[0].uuid)
+    object_uuid = str(mo_objects[0].uuid)
     employee_uuid = str(uuid4())
     dataloader.load_mo_object.return_value = {
         "uuid": object_uuid,
@@ -676,9 +657,8 @@ async def test_cleanup_no_export_False(
 
     args = dict(
         json_key="Address",
-        value_key="value",
         mo_dict_key="mo_employee_address",
-        mo_objects_in_mo=[],
+        mo_objects=[],
         user_context=user_context,
         employee=Employee(cpr_no="0101011234"),
         object_type=ObjectType.ADDRESS,
