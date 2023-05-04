@@ -74,7 +74,7 @@
     "ADGUID": {
       "objectClass": "user",
       "__export_to_ldap__": true,
-      "objectGUID" : "{{mo_employee_it_user.user_key}}",
+      "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
     },
     "ADSAMA": {
       "objectClass": "user",
