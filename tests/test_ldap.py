@@ -479,6 +479,31 @@ def converter() -> MagicMock:
     converter = MagicMock()
     converter.__export_to_ldap__ = MagicMock()
     converter.__export_to_ldap__.return_value = True
+
+    def to_ldap(conversion_dict, json_key, dn):
+        return LdapObject(
+            dn="CN=foo", address=conversion_dict["mo_employee_address"].value
+        )
+
+    converter.to_ldap.side_effect = to_ldap
+    converter.get_ldap_attributes.return_value = ["address"]
+
+    def from_ldap(ldap_object, json_key, employee_uuid):
+        address_values = ldap_object.address
+        if type(address_values) is not list:
+            address_values = [address_values] if address_values else []
+
+        return [
+            Address.from_simplified_fields(
+                address_value,
+                uuid4(),
+                "2021-01-01",
+            )
+            for address_value in address_values
+        ]
+
+    converter.from_ldap.side_effect = from_ldap
+
     return converter
 
 
@@ -518,18 +543,9 @@ async def test_cleanup(
     ]
 
     # but two in LDAP
-    converter.from_ldap.return_value = [
-        Address.from_simplified_fields(
-            "addr1",
-            uuid4(),
-            "2021-01-01",
-        ),
-        Address.from_simplified_fields(
-            "addr2",
-            uuid4(),
-            "2021-01-01",
-        ),
-    ]
+    dataloader.load_ldap_object.return_value = LdapObject(
+        dn="CN=foo", address=["addr1", "addr2"]
+    )
 
     # We would expect one of the addresses in LDAP to be cleaned
     args = dict(
@@ -565,13 +581,7 @@ async def test_cleanup_no_sync_required(
     ]
 
     # And it is also in LDAP
-    converter.from_ldap.return_value = [
-        Address.from_simplified_fields(
-            "addr1",
-            uuid4(),
-            "2021-01-01",
-        )
-    ]
+    dataloader.load_ldap_object.return_value = LdapObject(dn="CN=foo", address="addr1")
 
     # We would expect that no synchronization is required
     args = dict(
@@ -610,10 +620,6 @@ async def test_cleanup_refresh_mo_object(
         )
     ]
 
-    # And None in LDAP
-    converter.from_ldap.return_value = []
-
-    # We would expect that an AMQP message is sent over the internal AMQP system
     args = dict(
         json_key="Address",
         value_key="value",
@@ -642,13 +648,22 @@ async def test_cleanup_refresh_mo_object(
         },
     }
 
-    await asyncio.gather(cleanup(**args))  # type:ignore
+    # And None in LDAP
+    for none_val in [[], None, ""]:  # type: ignore
+        dataloader.load_ldap_object.return_value = LdapObject(
+            dn="CN=foo", address=none_val
+        )
 
-    messages = internal_amqpsystem.publish_message.await_args_list
-    assert len(messages) == 1
-    assert messages[0].args[0] == "employee.address.refresh"
-    assert messages[0].args[1]["uuid"] == employee_uuid
-    assert messages[0].args[1]["object_uuid"] == object_uuid
+        # We would expect that an AMQP message is sent over the internal AMQP system
+        await asyncio.gather(cleanup(**args))  # type:ignore
+
+        messages = internal_amqpsystem.publish_message.await_args_list
+        assert len(messages) == 1
+        assert messages[0].args[0] == "employee.address.refresh"
+        assert messages[0].args[1]["uuid"] == employee_uuid
+        assert messages[0].args[1]["object_uuid"] == object_uuid
+
+        internal_amqpsystem.publish_message.reset_mock()
 
 
 async def test_cleanup_no_export_False(
