@@ -21,7 +21,7 @@
 # Reusables
 ################################################################################
 variables:
-  POETRY_VERSION: "1.1.11"
+  POETRY_VERSION: "1.2.2"
   POETRY_VIRTUALENVS_CREATE: "true"
   POETRY_VIRTUALENVS_IN_PROJECT: "true"
 
