@@ -15,6 +15,7 @@ from .association import terminate_association
 from .association import update_association
 from .classes import ClassCreateInput
 from .classes import create_class
+from .classes import delete_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
@@ -183,7 +184,15 @@ class Mutation:
 
     # TODO: class_update
     # TODO: class_terminate
-    # TODO: class_delete
+
+    @strawberry.mutation(
+        description="Deletes a class.",
+        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+    )
+    async def class_delete(self, uuid: UUID) -> UUIDReturn:
+        note = ""
+        uuid = await delete_class(uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # Employees
     # ---------
