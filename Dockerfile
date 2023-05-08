@@ -53,7 +53,6 @@ COPY LICENSE .
 COPY README.rst .
 COPY docker ./docker
 COPY backend ./backend
-COPY backend/mora/main.py .
 
 # Run the server as the mora user on port 5000
 USER mora:mora

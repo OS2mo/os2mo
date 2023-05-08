@@ -11,8 +11,8 @@ set -ex
 
 if [ "$ENVIRONMENT" = "development" ]; then
     echo "Running MO in development mode (live reload)"
-    exec uvicorn --reload --host 0.0.0.0 --port 80 main:app
+    exec uvicorn --reload --host 0.0.0.0 --port 80 --factory mora.app:create_app
 else
     echo "Running MO in production mode"
-    exec gunicorn --config /app/docker/gunicorn-settings.py main:app
+    exec gunicorn --config /app/docker/gunicorn-settings.py 'mora.app:create_app()'
 fi
