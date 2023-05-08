@@ -12,8 +12,8 @@ from ..base import BaseGraphQLSchema
 from ..base import BaseGraphQLVersion
 from .dataloaders import get_loaders
 from .files import get_filestorage
-from .mutators import Mutation
-from .query import Query
+from .mutators import Mutation as LatestMutation
+from .query import Query as LatestQuery
 from .types import CPRType
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import token_getter
@@ -26,8 +26,8 @@ from oio_rest.db import _get_dbname
 class LatestGraphQLSchema(BaseGraphQLSchema):
     """Latest GraphQL Schema."""
 
-    query = Query
-    mutation = Mutation
+    query = LatestQuery
+    mutation = LatestMutation
 
     scalar_overrides = {
         CPR: CPRType,
