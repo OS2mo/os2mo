@@ -23,6 +23,7 @@ from .engagements import create_engagement
 from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
+from .facets import delete_facet
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
@@ -284,7 +285,15 @@ class Mutation:
 
     # TODO: facet_update
     # TODO: facet_terminate
-    # TODO: facet_delete
+
+    @strawberry.mutation(
+        description="Deletes a facet.",
+        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+    )
+    async def facet_delete(self, uuid: UUID) -> UUIDReturn:
+        note = ""
+        uuid = await delete_facet(uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # ITSystems
     # ---------
