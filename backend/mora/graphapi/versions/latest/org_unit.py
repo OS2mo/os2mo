@@ -78,7 +78,7 @@ async def terminate_org_unit_validation(
         date,
     )
 
-    # Find children, roles and addresses, and verify constraints
+    # Find children and roles and verify constraints
 
     # Find & verify there is no children
     c = lora.Connector(effective_date=util.to_iso_date(date))
@@ -96,15 +96,7 @@ async def terminate_org_unit_validation(
         )
     )
 
-    addresses = set(
-        await c.organisationfunktion.load_uuids(
-            tilknyttedeenheder=uuid_str,
-            funktionsnavn=mapping.ADDRESS_KEY,
-            gyldighed="Aktiv",
-        )
-    )
-
-    active_roles = roles - addresses
+    active_roles = roles
     role_counts = set()
     if active_roles:
         role_counts = {
@@ -126,10 +118,6 @@ async def terminate_org_unit_validation(
     elif role_counts:
         exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ROLES(
             roles=", ".join(sorted(role_counts)),
-        )
-    elif addresses:
-        exceptions.ErrorCodes.V_TERMINATE_UNIT_WITH_ADDRESSES(
-            addresses=", ".join(sorted(addresses)),
         )
 
 
