@@ -71,7 +71,7 @@ async def dar() -> bool:
     Returns:
         bool: True if reachable. False if not.
     """
-    adarclient = AsyncDARClient(timeout=2)
+    adarclient = AsyncDARClient(timeout=5)
     async with adarclient:
         return await adarclient.healthcheck()
     return False
