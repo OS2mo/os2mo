@@ -80,7 +80,9 @@ def gql_client() -> Iterator[AsyncMock]:
 
 @pytest.fixture
 def gql_client_sync() -> Iterator[MagicMock]:
-    yield MagicMock()
+    gql_client_sync = MagicMock()
+    gql_client_sync.execute.return_value = {"org": {"uuid": str(uuid4())}}
+    yield gql_client_sync
 
 
 @pytest.fixture
@@ -1890,7 +1892,7 @@ def test_create_mo_class(dataloader: DataLoader):
     dataloader.query_mo_sync = MagicMock()  # type: ignore
     dataloader.query_mo_sync.return_value = {"class_create": {"uuid": str(uuid)}}
 
-    assert dataloader.create_mo_class("", "", uuid4(), uuid4()) == uuid
+    assert dataloader.create_mo_class("", "", uuid4()) == uuid
 
 
 def test_create_mo_job_function(dataloader: DataLoader):
@@ -1911,15 +1913,13 @@ def test_create_mo_job_function(dataloader: DataLoader):
 
     assert args[0] == "foo"
     assert args[1] == "foo"
-    assert type(args[2]) == UUID
-    assert args[3] == uuid1
+    assert args[2] == uuid1
 
     args = dataloader.create_mo_class.call_args_list[1].args
 
     assert args[0] == "bar"
     assert args[1] == "bar"
-    assert type(args[2]) == UUID
-    assert args[3] == uuid1
+    assert args[2] == uuid1
 
 
 def test_load_mo_facet_uuid(dataloader: DataLoader):
@@ -1940,3 +1940,10 @@ def test_load_mo_facet_uuid_multiple_facets(dataloader: DataLoader):
 
     with pytest.raises(MultipleObjectsReturnedException):
         dataloader.load_mo_facet_uuid("")
+
+
+def test_get_root_org(dataloader: DataLoader):
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"org": {"uuid": str(uuid4())}}
+
+    assert type(dataloader.get_root_org()) == UUID

@@ -211,7 +211,10 @@ def test_create_fastramqpi(
 
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
-    ), patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
+    ), patch("mo_ldap_import_export.main.LdapConverter", return_value=converter), patch(
+        "mo_ldap_import_export.dataloaders.DataLoader.get_root_org",
+        return_value=uuid4(),
+    ):
         fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)
 

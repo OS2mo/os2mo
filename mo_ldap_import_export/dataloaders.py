@@ -7,7 +7,6 @@ from typing import Any
 from typing import cast
 from typing import Union
 from uuid import UUID
-from uuid import uuid4
 
 from gql import gql
 from gql.client import AsyncClientSession
@@ -69,6 +68,8 @@ class DataLoader:
         self.object_type_dict_inv = {
             str(v): k for k, v in self.object_type_dict.items()
         }
+
+        self.root_org_uuid = self.get_root_org()
 
     def _check_if_empty(self, result: dict):
         for key, value in result.items():
@@ -1389,7 +1390,6 @@ class DataLoader:
         self,
         name: str,
         user_key: str,
-        org_uuid: UUID,
         facet_uuid: UUID,
     ) -> UUID:
         """
@@ -1414,7 +1414,7 @@ class DataLoader:
               }
             }
             """
-            % (name, user_key, org_uuid, facet_uuid)
+            % (name, user_key, self.root_org_uuid, facet_uuid)
         )
         result = self.query_mo_sync(query)
         return UUID(result["class_create"]["uuid"])
@@ -1431,8 +1431,7 @@ class DataLoader:
         logger.info(f"Creating MO job function with name = '{name}'")
         facet_uuid = self.load_mo_facet_uuid("engagement_job_function")
         user_key = name
-        org_uuid = uuid4()  # This seems to be irrelevant, but mandatory in the query...
-        return self.create_mo_class(name, user_key, org_uuid, facet_uuid)
+        return self.create_mo_class(name, user_key, facet_uuid)
 
     def create_mo_engagement_type(self, name) -> UUID:
         """
@@ -1446,5 +1445,21 @@ class DataLoader:
         logger.info(f"Creating MO engagement type with name = '{name}'")
         facet_uuid = self.load_mo_facet_uuid("engagement_type")
         user_key = name
-        org_uuid = uuid4()  # This seems to be irrelevant, but mandatory in the query...
-        return self.create_mo_class(name, user_key, org_uuid, facet_uuid)
+        return self.create_mo_class(name, user_key, facet_uuid)
+
+    def get_root_org(self) -> UUID:
+        """
+        Get UUID of the existing root MO organisation.
+        """
+        query = gql(
+            """
+            query RootOrgQuery {
+                org {
+                    uuid
+                }
+            }
+            """
+        )
+
+        result = self.query_mo_sync(query)
+        return UUID(result["org"]["uuid"])
