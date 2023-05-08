@@ -231,3 +231,47 @@ async def test_unit_create_class(create_facet: AsyncMock, test_data: FacetCreate
 
     assert response.errors is None
     assert response.data == {"facet_create": {"uuid": str(created_uuid)}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_integration_delete_facet() -> None:
+    read_query = """
+        query ($uuid: [UUID!]!) {
+          facets(uuids: $uuid) {
+            uuid
+            user_key
+          }
+        }
+    """
+    facet_uuid = "1a6045a2-7a8e-4916-ab27-b2402e64f2be"
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {
+        "facets": [{"user_key": "engagement_job_function", "uuid": facet_uuid}]
+    }
+
+    delete_query = """
+        mutation ($uuid: UUID!) {
+          facet_delete(uuid: $uuid) {
+            uuid
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=delete_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"facet_delete": {"uuid": facet_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"facets": []}

@@ -301,7 +301,7 @@ async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> No
 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_integration_delete_class(graphapi_post) -> None:
+async def test_integration_delete_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
