@@ -1,4 +1,44 @@
 {
+  "init": {
+    "facets" : {
+      "employee_address_type": {
+        "EmailEmployee": {
+          "title": "Email",
+          "scope": "EMAIL"
+        },
+        "MobilePhoneEmployee": {
+          "title": "Telefon (mobil)",
+          "scope": "PHONE"
+        },
+        "PhoneEmployee": {
+          "title": "Telefon",
+          "scope": "PHONE"
+        },
+        "PrivatePhoneEmployee": {
+          "title": "Telefon (privat)",
+          "scope": "PHONE"
+        },
+        "LocationEmployee": {
+          "title": "Lokation",
+          "scope": "TEXT"
+        },
+      },
+      "org_unit_address_type": {
+        "PostAdresseTextUnit": {
+          "title": "Postadresse (fri tekst)",
+          "scope": "TEXT"
+        },
+        "SecureEmailUnit": {
+          "title": "Secure Email",
+          "scope": "EMAIL"
+        },
+        "PublicEmailUnit": {
+          "title": "Public Email",
+          "scope": "EMAIL"
+        },
+      },
+    },
+  },
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
