@@ -116,3 +116,17 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -
         db.create_or_import_object, "klasse", note, registration
     )
     return uuid
+
+
+async def delete_class(class_uuid: UUID, note: str) -> UUID:
+    # Gather a blank registration
+    registration: dict = {
+        "states": {},
+        "attributes": {},
+        "relations": {},
+    }
+    # Let LoRa's SQL templates do their magic
+    await asyncio.to_thread(
+        db.delete_object, "klasse", registration, note, str(class_uuid)
+    )
+    return class_uuid

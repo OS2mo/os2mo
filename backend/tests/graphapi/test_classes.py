@@ -151,7 +151,7 @@ def prepare_query_data(test_data, query_response):
 @given(test_data=write_strat())
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_integration_create_class(test_data, graphapi_post):
+async def test_integration_create_class(test_data, graphapi_post) -> None:
     """Integrationtest for create class mutator."""
 
     test_data["facet_uuid"] = await get_uuids(mapping.FACETS, graphapi_post)
@@ -233,7 +233,7 @@ async def test_unit_create_class(
 
     payload = jsonable_encoder(test_data)
 
-    async def get_token():
+    async def get_token() -> Token:
         return Token(
             azp="mo",
             uuid="00000000-0000-0000-0000-000000000000",
@@ -297,3 +297,45 @@ async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> No
     response: GQLResponse = graphapi_post(class_query)
     assert response.errors is None
     assert len(response.data["classes"]) == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_integration_delete_class(graphapi_post) -> None:
+    read_query = """
+        query ($uuid: [UUID!]!) {
+          classes(uuids: $uuid) {
+            uuid
+            name
+          }
+        }
+    """
+    class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"classes": [{"name": "Postadresse", "uuid": class_uuid}]}
+
+    delete_query = """
+        mutation ($uuid: UUID!) {
+          class_delete(uuid: $uuid) {
+            uuid
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=delete_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"class_delete": {"uuid": class_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"classes": []}
