@@ -1,4 +1,17 @@
 {
+  "init": {
+    "it_systems": {
+      "ADGUID": "Active Directory GUID"
+    },
+    "facets" : {
+      "employee_address_type": {
+        "AddressEmployeeText": {
+          "title": "Address (free-text)",
+          "scope": "TEXT"
+        }
+      }
+    }
+  },
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
@@ -14,11 +27,11 @@
     // Note: This key needs to be a valid MO IT-system user_key*
     // Note2: An "Active Directory" IT system is needed in case LDAP objects do not
     // Contain CPR-numbers. Its user_key attribute must link to ldap.distinguishedName
-    "Active Directory": {
+    "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": true,
       "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
@@ -33,13 +46,13 @@
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     // Note: This key needs to be a valid MO address type user_key*
-    "LocationEmployee": {
+    "AddressEmployeeText": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
       "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.l or 'ukendt by') }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
+      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('AddressEmployeeText')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
     // Note: This key needs to be a valid MO address type user_key*
@@ -85,7 +98,7 @@
       "department": "{{NONE}}"
     },
     // Note: This key needs to be a valid MO IT-system user_key*
-    "Active Directory": {
+    "ADGUID": {
       "objectClass": "user",
       "__export_to_ldap__": true,
       "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
@@ -99,7 +112,7 @@
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type user_key*
-    "LocationEmployee": {
+    "AddressEmployeeText": {
       "objectClass": "user",
       "__export_to_ldap__": true,
       "employeeID": "{{mo_employee.cpr_no}}",

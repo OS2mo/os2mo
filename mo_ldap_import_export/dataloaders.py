@@ -1391,6 +1391,7 @@ class DataLoader:
         name: str,
         user_key: str,
         facet_uuid: UUID,
+        scope="",
     ) -> UUID:
         """
         Creates a class in MO
@@ -1408,13 +1409,14 @@ class DataLoader:
                 input: {name: "%s",
                         user_key: "%s",
                         org_uuid: "%s",
-                        facet_uuid: "%s"}
+                        facet_uuid: "%s",
+                        scope: "%s"}
               ) {
                 uuid
               }
             }
             """
-            % (name, user_key, self.root_org_uuid, facet_uuid)
+            % (name, user_key, self.root_org_uuid, facet_uuid, scope)
         )
         result = self.query_mo_sync(query)
         return UUID(result["class_create"]["uuid"])
@@ -1463,3 +1465,29 @@ class DataLoader:
 
         result = self.query_mo_sync(query)
         return UUID(result["org"]["uuid"])
+
+    def create_mo_it_system(self, name: str, user_key: str) -> UUID:
+        """
+        Creates an it-system in MO
+
+        Returns
+        ----------
+        uuid: UUID
+            The uuid of the created it-system
+        """
+        logger.info(f"Creating MO it-system with user_key = '{user_key}'")
+        query = gql(
+            """
+            mutation CreateITSystem {
+              itsystem_create(
+                input: {name: "%s",
+                        user_key: "%s"}
+              ) {
+                uuid
+              }
+            }
+            """
+            % (name, user_key)
+        )
+        result = self.query_mo_sync(query)
+        return UUID(result["itsystem_create"]["uuid"])
