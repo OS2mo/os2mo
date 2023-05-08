@@ -9,6 +9,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
+from more_itertools import one
 from os2mo_fastapi_utils.auth.models import RealmAccess
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
@@ -339,3 +340,125 @@ async def test_integration_delete_class() -> None:
     )
     assert response.errors is None
     assert response.data == {"classes": []}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_update_class() -> None:
+    """Unit test for create class mutator."""
+    read_query = """
+        query ($uuid: [UUID!]!) {
+          classes(uuids: $uuid) {
+            uuid
+            name
+            user_key
+            facet_uuid
+          }
+        }
+    """
+    class_uuid = "4e337d8e-1fd2-4449-8110-e0c8a22958ed"
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "classes"
+    klass = one(response.data["classes"])
+    assert klass == {
+        "uuid": class_uuid,
+        "name": "Postadresse",
+        "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+        "user_key": "BrugerPostadresse",
+    }
+
+    update_query = """
+        mutation UpdateClass($input: ClassUpdateInput!, $uuid: UUID!) {
+            class_update(input: $input, uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=update_query,
+        variable_values={
+            "uuid": class_uuid,
+            "input": {
+                "name": "Postal Address",
+                "user_key": klass["user_key"],
+                "facet_uuid": klass["facet_uuid"],
+            },
+        },
+    )
+    assert response.errors is None
+    assert response.data == {"class_update": {"uuid": class_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "classes"
+    klass = one(response.data["classes"])
+    assert klass == {
+        "uuid": class_uuid,
+        "name": "Postal Address",
+        "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+        "user_key": "BrugerPostadresse",
+    }
+
+    delete_query = """
+        mutation ($uuid: UUID!) {
+          class_delete(uuid: $uuid) {
+            uuid
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=delete_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"class_delete": {"uuid": class_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"classes": []}
+
+    update_query = """
+        mutation UpdateClass($input: ClassUpdateInput!, $uuid: UUID!) {
+            class_update(input: $input, uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=update_query,
+        variable_values={
+            "uuid": class_uuid,
+            "input": {
+                "name": "Postal Address",
+                "user_key": klass["user_key"],
+                "facet_uuid": klass["facet_uuid"],
+            },
+        },
+    )
+    assert response.errors is None
+    assert response.data == {"class_update": {"uuid": class_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": class_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "classes"
+    klass = one(response.data["classes"])
+    assert klass == {
+        "uuid": class_uuid,
+        "name": "Postal Address",
+        "facet_uuid": "baddc4eb-406e-4c6b-8229-17e4a21d3550",
+        "user_key": "BrugerPostadresse",
+    }

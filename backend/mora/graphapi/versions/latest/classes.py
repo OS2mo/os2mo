@@ -118,6 +118,50 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -
     return uuid
 
 
+@strawberry.experimental.pydantic.input(
+    model=ClassCreate,
+    all_fields=True,
+)
+class ClassUpdateInput:
+    """input model for updating a class."""
+
+
+async def update_class(
+    input: ClassCreate, class_uuid: UUID, organisation_uuid: UUID, note: str
+) -> UUID:
+    exists = await asyncio.to_thread(db.object_exists, "klasse", str(class_uuid))
+    if not exists:
+        raise ValueError("Cannot update a non-existent object")
+
+    # Construct a LoRa registration object from our input arguments
+    registration = input.to_registration(organisation_uuid=organisation_uuid)
+
+    # Let LoRa's SQL templates do their magic
+    life_cycle_code = await asyncio.to_thread(
+        db.get_life_cycle_code, "klasse", str(class_uuid)
+    )
+    if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
+        # Reactivate and update
+        uuid = await asyncio.to_thread(
+            db.update_object,
+            "klasse",
+            note,
+            registration,
+            uuid=str(class_uuid),
+            life_cycle_code=db.Livscyklus.IMPORTERET.value,
+        )
+    else:
+        # Update
+        uuid = await asyncio.to_thread(
+            db.create_or_import_object,
+            "klasse",
+            note,
+            registration,
+            str(class_uuid),
+        )
+    return uuid
+
+
 async def delete_class(class_uuid: UUID, note: str) -> UUID:
     # Gather a blank registration
     registration: dict = {

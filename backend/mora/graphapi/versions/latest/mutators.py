@@ -14,8 +14,10 @@ from .association import create_association
 from .association import terminate_association
 from .association import update_association
 from .classes import ClassCreateInput
+from .classes import ClassUpdateInput
 from .classes import create_class
 from .classes import delete_class
+from .classes import update_class
 from .employee import create as employee_create
 from .employee import terminate as terminate_employee
 from .employee import update as employee_update
@@ -183,7 +185,18 @@ class Mutation:
         uuid = await create_class(input.to_pydantic(), org.uuid, note)
         return UUIDReturn(uuid=uuid)
 
-    # TODO: class_update
+    @strawberry.mutation(
+        description="Updates a class.",
+        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+    )
+    async def class_update(
+        self, info: Info, uuid: UUID, input: ClassUpdateInput
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await update_class(input.to_pydantic(), uuid, org.uuid, note)
+        return UUIDReturn(uuid=uuid)
+
     # TODO: class_terminate
 
     @strawberry.mutation(
