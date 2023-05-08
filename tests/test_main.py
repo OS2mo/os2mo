@@ -133,6 +133,8 @@ def fastramqpi(
         "mo_ldap_import_export.main.get_attribute_types", return_value={"foo": {}}
     ), patch(
         "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
+    ), patch(
+        "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
     ):
         yield create_fastramqpi()
 
@@ -214,6 +216,8 @@ def test_create_fastramqpi(
     ), patch("mo_ldap_import_export.main.LdapConverter", return_value=converter), patch(
         "mo_ldap_import_export.dataloaders.DataLoader.get_root_org",
         return_value=uuid4(),
+    ), patch(
+        "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
     ):
         fastramqpi = create_fastramqpi()
     assert isinstance(fastramqpi, FastRAMQPI)

@@ -1947,3 +1947,10 @@ def test_get_root_org(dataloader: DataLoader):
     dataloader.query_mo_sync.return_value = {"org": {"uuid": str(uuid4())}}
 
     assert type(dataloader.get_root_org()) == UUID
+
+
+def test_create_mo_it_system(dataloader: DataLoader):
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"itsystem_create": {"uuid": str(uuid4())}}
+
+    assert type(dataloader.create_mo_it_system("foo", "bar")) == UUID

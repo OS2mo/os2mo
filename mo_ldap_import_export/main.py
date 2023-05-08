@@ -64,6 +64,7 @@ from .ldap import ldap_healthcheck
 from .ldap import setup_listener
 from .ldap_classes import LdapObject
 from .logging import logger
+from .os2mo_init import InitEngine
 from .utils import countdown
 from .utils import listener
 from .utils import mo_datestring_to_utc
@@ -305,6 +306,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     if not hasattr(username_generator, "generate_dn"):
         raise AttributeError("Username generator needs to have a generate_dn function")
+
+    logger.info("Initializing os2mo-init engine")
+    init_engine = InitEngine(fastramqpi.get_context())
+    init_engine.create_facets()
+    init_engine.create_it_systems()
+    fastramqpi.add_context(init_engine=init_engine)
 
     logger.info("Initializing converters")
     converter = LdapConverter(fastramqpi.get_context())
