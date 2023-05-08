@@ -1131,15 +1131,7 @@ async def terminate_org_unit_validation(unitid, request):
         )
     )
 
-    addresses = set(
-        await c.organisationfunktion.load_uuids(
-            tilknyttedeenheder=unitid,
-            funktionsnavn=mapping.ADDRESS_KEY,
-            gyldighed="Aktiv",
-        )
-    )
-
-    active_roles = roles - addresses
+    active_roles = roles
     role_counts = set()
     if active_roles:
         role_counts = {

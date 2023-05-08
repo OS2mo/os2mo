@@ -46,7 +46,7 @@ def expected_error_response(error_key, **overrides):
         },
         "V_TERMINATE_UNIT_WITH_ROLES": {
             "description": "Cannot terminate unit with active roles.",
-            "roles": "Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+            "roles": "Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
             "engagement_association",
         },
         "V_DATE_OUTSIDE_ORG_UNIT_RANGE": {
@@ -1525,11 +1525,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             json={"validity": {"to": "2018-09-30"}},
             status_code=400,
             expected={
-                "status": 400,
                 "error": True,
-                "error_key": "V_TERMINATE_UNIT_WITH_ADDRESSES",
-                "description": "Cannot terminate unit with active addresses.",
-                "addresses": "55848eca-4e9e-4f30-954b-78d55eec0441, 55848eca-4e9e-4f30-954b-78d55eec0444",
+                "status": 400,
+                "error_key": "V_TERMINATE_UNIT_WITH_ROLES",
+                "description": "Cannot terminate unit with active roles.",
+                "roles": "Adresse",
             },
         )
 
@@ -3111,7 +3111,7 @@ class Tests(tests.cases.LoRATestCase):
                 # expected error response
                 expected_error_response(
                     "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
                     "engagement_association",
                     child_count=2,
                 ),
@@ -3133,7 +3133,7 @@ class Tests(tests.cases.LoRATestCase):
                 # expected error response
                 expected_error_response(
                     "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
                     "engagement_association",
                     child_count=2,
                 ),
@@ -3146,7 +3146,7 @@ class Tests(tests.cases.LoRATestCase):
                 # expected error response
                 expected_error_response(
                     "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
                     "engagement_association",
                     child_count=1,
                 ),
