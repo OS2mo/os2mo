@@ -1,9 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from asyncio import gather
-from contextlib import suppress
 from datetime import date
-from itertools import starmap
 from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
@@ -20,7 +17,7 @@ from sqlalchemy.sql import select
 from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
-from mora import common
+from .shared import get_at_date_sql
 from mora import config
 from mora import util
 from mora.db import OrganisationEnhedAttrEgenskaber
@@ -29,68 +26,13 @@ from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
-from mora.lora import AutocompleteScope
 from mora.service.util import handle_gql_error
-
-
-async def get_results(
-    entity: str, class_uuids: list[UUID], query: str
-) -> dict[str, list]:
-    """Run an autocomplete search query.
-
-    Args:
-        entity:
-            The entity type to autocomplete.
-            One of 'bruger' and 'organisationsenhed'.
-        class_uuids:
-            List of class UUIDs whose title and value will be displayed for match.
-        query:
-            The search query string.
-
-    Returns:
-        A dictionary with key 'items' and a value that are the matches.
-    """
-    if not query:
-        return {"items": []}
-
-    connector = common.get_connector()
-    # Build map of {uuid: class data} so that we can look up each class title later.
-    class_uuids = class_uuids or []
-    loaded_classes = await gather(*map(connector.klasse.get, class_uuids))
-    class_map = dict(zip(class_uuids, loaded_classes))
-
-    # Fetch autocomplete results from LoRa
-    scope = AutocompleteScope(connector, entity)
-    results = await scope.fetch(
-        phrase=util.query_to_search_phrase(query),
-        class_uuids=class_uuids,
-    )
-
-    def convert_attrs(class_uuid, value):
-        title = None
-        with suppress((KeyError, TypeError)):
-            class_data = class_map[UUID(class_uuid)]
-            title = class_data["attributter"]["klasseegenskaber"][0]["titel"]
-        return {
-            "uuid": class_uuid,
-            "value": value,
-            "title": title,
-        }
-
-    # Add class title to each attr of each result
-    for result in results["items"]:
-        attrs = result.get("attrs")
-        if attrs is None:
-            continue
-        result["attrs"] = list(starmap(convert_attrs, attrs))
-
-    return results
 
 
 async def search_orgunits(
     sessionmaker: async_sessionmaker, query: str, at: date | None = None
 ) -> [Row]:
-    at_sql, at_sql_bind_params = _get_at_date_sql(at)
+    at_sql, at_sql_bind_params = get_at_date_sql(at)
 
     async with sessionmaker() as session:
         selects = [
@@ -277,15 +219,6 @@ def _read_sqlalchemy_result(result: Result) -> [Row]:
             rows.append(row)
 
     return rows
-
-
-def _get_at_date_sql(at: date | None = None):
-    if at is not None:
-        return "to_timestamp(:at_datetime, 'YYYY-MM-DD HH24:MI:SS')", {
-            "at_datetime": at.isoformat()
-        }
-
-    return "now()", {}
 
 
 def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):

@@ -13,6 +13,7 @@ http:get:`/service/(any:type)/(uuid:id)/details/`
 import asyncio
 import copy
 import enum
+import logging
 from collections.abc import Awaitable
 from functools import partial
 from operator import contains
@@ -43,6 +44,8 @@ from mora.request_scoped.bulking import request_wide_bulk
 from ramodels.base import tz_isodate
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @enum.unique
@@ -401,9 +404,15 @@ async def get_one_employee(
 )
 async def autocomplete_employees(query: str):
     settings = config.get_settings()
-    return await autocomplete.get_results(
-        "bruger", settings.confdb_autocomplete_attrs_employee, query
-    )
+    if settings.confdb_autocomplete_v2_use_legacy:
+        logger.debug("using autocomplete_employee_v2 legacy")
+        return await autocomplete.get_results(
+            "bruger", settings.confdb_autocomplete_attrs_employee, query
+        )
+
+    # return await autocomplete.get_results(
+    #     "bruger", settings.confdb_autocomplete_attrs_employee, query
+    # )
 
 
 @router.get(
