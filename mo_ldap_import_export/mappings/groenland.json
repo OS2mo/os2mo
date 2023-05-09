@@ -38,7 +38,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
       "value": "{{ldap.mail or NONE}}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -47,7 +46,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
       "value": "{{ ldap.telephoneNumber or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -55,8 +53,7 @@
     "AdressePostEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
-      "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.l or 'ukendt by') }}",
-      "type": "address",
+      "value": "{{ nonejoin(ldap.streetAddress, ldap.l) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('AdressePostEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"

@@ -64,8 +64,7 @@
     "PostAdresseTextUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
-      "value": "{{ nonejoin(ldap.streetAddress or 'ukendt adresse', ldap.postalCode or 'ukendt postnummer') }}",
-      "type": "address",
+      "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode, ldap.l) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PostAdresseTextUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
@@ -74,7 +73,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ldap.extensionAttribute5}}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PublicEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
@@ -83,7 +81,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ldap.extensionAttribute4}}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('SecureEmailUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
@@ -92,7 +89,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": true,
       "value": "{{ ldap.mail or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -101,7 +97,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ ldap.mobile or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('MobilePhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -110,7 +105,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ ldap.telephoneNumber or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -119,7 +113,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ ldap.homePhone or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PrivatePhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
@@ -129,7 +122,6 @@
       "objectClass": "ramodels.mo.details.address.Address",
       "__import_to_mo__": false,
       "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
-      "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
@@ -160,8 +152,9 @@
     "PostAdresseTextUnit": {
       "objectClass": "user",
       "__export_to_ldap__": true,
-      "streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|trim}}",
-      "postalCode": "{{mo_org_unit_address.value|splitlast(',')|last|trim}}",
+      "streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|first|trim}}",
+      "postalCode": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|last|trim}}",
+      "l": "{{mo_org_unit_address.value|splitlast(',')|last|trim}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
       "extensionAttribute2": "{{mo_org_unit_address.org_unit.uuid}}"

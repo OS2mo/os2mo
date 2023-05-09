@@ -180,3 +180,13 @@ def converter() -> MagicMock:
     converter.__import_to_mo__.return_value = True
 
     return converter
+
+
+@pytest.fixture
+def settings() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def username_generator() -> MagicMock:
+    return MagicMock()
