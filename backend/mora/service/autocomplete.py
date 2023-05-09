@@ -259,14 +259,10 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
 
 
 def _gql_get_orgunit_path(org_unit_graphql: dict):
-    path: [str] = []
-    if "ancestors" not in org_unit_graphql:
-        return path
+    if not org_unit_graphql.get("ancestors", []):
+        return []
 
-    for ancestor in org_unit_graphql["ancestors"]:
-        path.append(ancestor["name"])
-    path.reverse()
-
+    path = [x["name"] for x in reversed(org_unit_graphql["ancestors"])]
     return path + [org_unit_graphql["name"]]
 
 
