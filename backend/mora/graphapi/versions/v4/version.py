@@ -1,20 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from functools import wraps
-from typing import Any
-from typing import cast
 
 import strawberry
-from pydantic import parse_obj_as
-from strawberry.types import Info
 
-from ..latest.health import health_map
-from ..latest.models import ConfigurationRead
-from ..latest.models import FileRead
-from ..latest.models import FileStore
-from ..latest.models import HealthRead
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
+from ..latest.query import ConfigurationResolver
+from ..latest.query import FileResolver
+from ..latest.query import HealthResolver
+from ..latest.query import to_paged
 from ..latest.resolvers import AddressResolver
 from ..latest.resolvers import AssociationResolver
 from ..latest.resolvers import ClassResolver
@@ -47,13 +42,10 @@ from ..latest.schema import Leave
 from ..latest.schema import Manager
 from ..latest.schema import OrganisationUnit
 from ..latest.schema import Paged
-from ..latest.schema import PageInfo
 from ..latest.schema import RelatedUnit
 from ..latest.schema import Response
 from ..latest.schema import Role
-from ..latest.types import Cursor
 from ..v5.version import GraphQLVersion as NextGraphQLVersion
-from mora.config import get_public_settings
 
 
 def to_response(resolver):  # type: ignore
@@ -211,79 +203,30 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
 
     # Health
     # ------
-    @strawberry.field(
+    healths: Paged[Health] = strawberry.field(
+        resolver=to_paged(HealthResolver()),
         description="Get a list of all health checks, optionally by identifier(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("health")],
     )
-    async def healths(
-        self,
-        limit: int | None = None,
-        # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
-        # and returned again as a Base64 encoded string.
-        # This way we can use it for indexing and calculations
-        cursor: Cursor | None = None,
-        identifiers: list[str] | None = None,
-    ) -> Paged[Health]:
-        healthchecks = set(health_map.keys())
-        if identifiers is not None:
-            healthchecks = healthchecks.intersection(set(identifiers))
-
-        def construct(identifier: Any) -> dict[str, Any]:
-            return {"identifier": identifier}
-
-        healths = list(map(construct, healthchecks))
-
-        healths = healths[cursor:][:limit]
-
-        end_cursor: int = (cursor or 0) + len(healths)
-
-        parsed_healths = parse_obj_as(list[HealthRead], healths)
-        health_objects = list(map(Health.from_pydantic, parsed_healths))
-        return Paged(objects=health_objects, page_info=PageInfo(next_cursor=end_cursor))
 
     # Files
     # -----
-    @strawberry.field(
+    files: list[File] = strawberry.field(
+        resolver=FileResolver().resolve,
         description="Get a list of all files, optionally by filename(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
     )
-    async def files(
-        self, info: Info, file_store: FileStore, file_names: list[str] | None = None
-    ) -> list[File]:
-        filestorage = info.context["filestorage"]
-        found_files = filestorage.list_files(file_store)
-        if file_names is not None:
-            found_files = found_files.intersection(set(file_names))
-
-        def construct(file_name: str) -> dict[str, Any]:
-            return {"file_store": file_store, "file_name": file_name}
-
-        files = list(map(construct, found_files))
-        parsed_files = parse_obj_as(list[FileRead], files)
-        return list(map(File.from_pydantic, parsed_files))
 
     # Configuration
     # -------------
-    @strawberry.field(
+    configuration: list[Configuration] = strawberry.field(
+        resolver=ConfigurationResolver().resolve,
         description="Get a list of configuration variables.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("configuration"),
         ],
     )
-    async def configuration(
-        self, identifiers: list[str] | None = None
-    ) -> list[Configuration]:
-        settings_keys = get_public_settings()
-        if identifiers is not None:
-            settings_keys = settings_keys.intersection(set(identifiers))
-
-        def construct(identifier: Any) -> dict[str, Any]:
-            return {"key": identifier}
-
-        settings = list(map(construct, settings_keys))
-        parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
-        return cast(list[Configuration], parsed_settings)
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
@@ -293,6 +236,7 @@ class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
     pagination on all top-level fields.
     Version 4 ensures that the old functionality is still available.
     """
+
     query = Query
 
 

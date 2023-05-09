@@ -16,6 +16,7 @@ from strawberry.types import Info
 
 from ...middleware import set_graphql_dates
 from .resolver_map import resolver_map
+from .types import Cursor
 from .validity import OpenValidityModel
 from mora.util import CPR
 from ramodels.mo import ClassRead
@@ -35,7 +36,18 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 
-class StaticResolver:
+class PagedResolver:
+    async def resolve(
+        self,
+        *args: Any,
+        limit: PositiveInt | None = None,
+        cursor: Cursor | None = None,
+        **kwargs: Any,
+    ) -> Any:
+        raise NotImplementedError
+
+
+class StaticResolver(PagedResolver):
     neutral_element_constructor: Callable[[], Any] = list
 
     def __init__(self, model: type) -> None:
@@ -46,13 +58,14 @@ class StaticResolver:
         """
         self.model: type = model
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
     ):
         """Resolve queries with no validity, i.e. class/facet/itsystem.
 
@@ -64,17 +77,22 @@ class StaticResolver:
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=None,  # from -inf
             to_date=None,  # to inf
         )
 
-    async def _resolve(  # type: ignore[no-untyped-def]
+    async def _resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
+        # and returned again as a Base64 encoded string.
+        # This way we can use it for indexing and calculations
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         **kwargs: Any,
@@ -117,12 +135,14 @@ class StaticResolver:
             kwargs["maximalantalresultater"] = limit
         if offset is not None:
             kwargs["foersteresultat"] = offset
+        if cursor is not None:
+            kwargs["foersteresultat"] = cursor
 
         resolver_name = resolver_map[self.model]["getter"]
         return await info.context[resolver_name](**kwargs)
 
     @staticmethod
-    # type: ignore[no-untyped-def]
+    # type: ignore[no-untyped-def,override]
     async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
         """Get data from a list of UUIDs. Only unique UUIDs are loaded.
 
@@ -144,13 +164,14 @@ class StaticResolver:
 class Resolver(StaticResolver):
     neutral_element_constructor: Callable[[], Any] = dict
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
     ):
@@ -186,12 +207,13 @@ class Resolver(StaticResolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
         )
 
     @staticmethod
-    # type: ignore[no-untyped-def]
+    # type: ignore[no-untyped-def,override]
     async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
         deduplicated_uuids = list(set(uuids))
         responses = await dataloader.load_many(deduplicated_uuids)
@@ -238,13 +260,14 @@ class ClassResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__(ClassRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
         parents: list[UUID] | None = None,
@@ -275,6 +298,7 @@ class ClassResolver(StaticResolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=None,  # from -inf
             to_date=None,  # to inf
             **kwargs,
@@ -285,13 +309,14 @@ class AddressResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AddressRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         address_types: list[UUID] | None = None,
@@ -324,6 +349,7 @@ class AddressResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -334,13 +360,14 @@ class AssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(AssociationRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -369,6 +396,7 @@ class AssociationResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -379,13 +407,14 @@ class EmployeeResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EmployeeRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         cpr_numbers: list[CPR] | None = None,
@@ -402,6 +431,7 @@ class EmployeeResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -412,13 +442,14 @@ class EngagementResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EngagementRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -436,6 +467,7 @@ class EngagementResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -446,13 +478,14 @@ class ManagerResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ManagerRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -470,6 +503,7 @@ class ManagerResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -480,13 +514,14 @@ class OrganisationUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(OrganisationUnitRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
@@ -510,6 +545,7 @@ class OrganisationUnitResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -520,13 +556,14 @@ class EngagementAssociationResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(EngagementAssociationRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -547,6 +584,7 @@ class EngagementAssociationResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -562,13 +600,14 @@ class ITUserResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITUserRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -586,6 +625,7 @@ class ITUserResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -596,13 +636,14 @@ class KLEResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(KLERead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         org_units: list[UUID] | None = None,
@@ -617,6 +658,7 @@ class KLEResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -627,13 +669,14 @@ class LeaveResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(LeaveRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -651,6 +694,7 @@ class LeaveResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -661,13 +705,14 @@ class RelatedUnitResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RelatedUnitRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         org_units: list[UUID] | None = None,
@@ -682,6 +727,7 @@ class RelatedUnitResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
@@ -692,13 +738,14 @@ class RoleResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(RoleRead)
 
-    async def resolve(  # type: ignore[no-untyped-def]
+    async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         offset: PositiveInt | None = None,
+        cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -716,6 +763,7 @@ class RoleResolver(Resolver):
             user_keys=user_keys,
             limit=limit,
             offset=offset,
+            cursor=cursor,
             from_date=from_date,
             to_date=to_date,
             **kwargs,
