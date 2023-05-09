@@ -11,13 +11,11 @@ from more_itertools import one
 from sqlalchemy import cast
 from sqlalchemy import String
 from sqlalchemy import Text
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.engine.result import Result
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
-from sqlalchemy.sql import literal_column
 from sqlalchemy.sql import select
 from sqlalchemy.sql import text
 from sqlalchemy.sql import union
@@ -25,11 +23,8 @@ from sqlalchemy.sql import union
 from mora import common
 from mora import config
 from mora import util
-from mora.db import Organisation
 from mora.db import OrganisationEnhedAttrEgenskaber
 from mora.db import OrganisationEnhedRegistrering
-from mora.db import OrganisationEnhedRelation
-from mora.db import OrganisationEnhedRelationKode
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
@@ -112,11 +107,6 @@ async def search_orgunits(
         query_final = (
             select(
                 OrganisationEnhedRegistrering.organisationenhed_id.label("uuid"),
-                _org_unit_path(
-                    all_hits,
-                    OrganisationEnhedRegistrering.organisationenhed_id,
-                    at_sql,
-                ).label("path"),
             )
             .where(
                 OrganisationEnhedRegistrering.organisationenhed_id == all_hits.c.uuid
@@ -150,6 +140,10 @@ async def decorate_orgunit_search_result(
                             from
                             to
                         }
+
+                        ancestors {
+                            name
+                        }
                     }
                 }
             }
@@ -167,6 +161,10 @@ async def decorate_orgunit_search_result(
                         validity {
                             from
                             to
+                        }
+
+                        ancestors {
+                            name
                         }
 
                         addresses {
@@ -199,17 +197,16 @@ async def decorate_orgunit_search_result(
 
     decorated_result = []
     for idx, orgunit in enumerate(search_results):
-        graphql_equivilent = _get_graphql_equivalent(response, orgunit.uuid)
-        if not graphql_equivilent:
+        graphql_equivalent = _get_graphql_equivalent(response, orgunit.uuid)
+        if not graphql_equivalent:
             continue
 
-        attrs = _gql_get_orgunit_attrs(settings, graphql_equivilent)
         decorated_result.append(
             {
                 "uuid": orgunit.uuid,
-                "name": graphql_equivilent["name"],
-                "path": orgunit.path,
-                "attrs": attrs,
+                "name": graphql_equivalent["name"],
+                "path": _gql_get_orgunit_path(graphql_equivalent),
+                "attrs": _gql_get_orgunit_attrs(settings, graphql_equivalent),
             }
         )
 
@@ -259,6 +256,18 @@ def _gql_get_orgunit_attrs(settings: config.Settings, org_unit_graphql: dict) ->
             )
 
     return attrs
+
+
+def _gql_get_orgunit_path(org_unit_graphql: dict):
+    path: [str] = []
+    if "ancestors" not in org_unit_graphql:
+        return path
+
+    for ancestor in org_unit_graphql["ancestors"]:
+        path.append(ancestor["name"])
+    path.reverse()
+
+    return path + [org_unit_graphql["name"]]
 
 
 def _read_sqlalchemy_result(result: Result) -> [Row]:
@@ -377,64 +386,4 @@ def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
         .cte()
-    )
-
-
-def _org_unit_path(all_hits, enhed_uuid, at_sql: str):
-    nodes_cte = select(
-        # "Base" org unit UUID (same for all rows in result)
-        all_hits.c.uuid.label("base_id"),
-        # Current org unit UUID (different for each row in result)
-        all_hits.c.uuid.label("id"),
-        # Empty array of strings (will be populated the in accumulative CTE
-        # below.)
-        literal_column("array[]::text[]").label("p"),
-    ).cte(recursive=True)
-
-    nodes_recursive = nodes_cte.alias()
-    nodes_cte = nodes_cte.union(
-        select(
-            # Keep the UUID of the base org unit (same for all rows in CTE)
-            nodes_recursive.columns.base_id,
-            # Record the UUID of the current parent org unit
-            OrganisationEnhedRelation.rel_maal_uuid,
-            # Prepend the name of the current org unit onto path 'p'
-            func.array_prepend(
-                OrganisationEnhedAttrEgenskaber.enhedsnavn, nodes_recursive.columns.p
-            ),
-        )
-        .join(
-            OrganisationEnhedRegistrering,
-            OrganisationEnhedRegistrering.id
-            == OrganisationEnhedRelation.organisationenhed_registrering_id,
-        )
-        .join(
-            OrganisationEnhedAttrEgenskaber,
-            OrganisationEnhedAttrEgenskaber.organisationenhed_registrering_id
-            == OrganisationEnhedRegistrering.id,
-        )
-        .join(
-            nodes_recursive,
-            nodes_recursive.columns.id
-            == OrganisationEnhedRegistrering.organisationenhed_id,
-        )
-        .where(
-            # OrganisationEnhedRelation.rel_type == "overordnet",
-            cast(OrganisationEnhedRelation.rel_type, String)
-            == OrganisationEnhedRelationKode.overordnet,
-            text(f"(organisationenhed_relation.virkning).timeperiod @> {at_sql}"),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
-            ),
-        )
-    )
-
-    return (
-        # Take first *complete* path (only 1 is expected)
-        select(func.json_agg(nodes_cte.columns.p, type_=postgresql.JSONB)[0]).where(
-            # A complete path must start at the current org unit UUID
-            nodes_cte.columns.base_id == enhed_uuid,
-            # A complete path must contain the root org unit UUID
-            nodes_cte.columns.id.in_(select(Organisation.id)),
-        )
     )
