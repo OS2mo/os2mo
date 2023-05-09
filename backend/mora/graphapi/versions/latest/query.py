@@ -183,18 +183,6 @@ class Query:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
-    # Root Organisation
-    # -----------------
-    @strawberry.field(
-        description=(
-            "Get the root-organisation. "
-            "This endpoint fails if not exactly one exists in LoRa."
-        ),
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
-    )
-    async def org(self, info: Info) -> Organisation:
-        return await info.context["org_loader"].load(0)
-
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
@@ -221,15 +209,6 @@ class Query:
         description="Get a list of all roles, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
-
-    # Version
-    # -------
-    @strawberry.field(
-        description="Get component versions",
-        permission_classes=[IsAuthenticatedPermission, gen_read_permission("version")],
-    )
-    async def version(self) -> Version:
-        return Version()
 
     # Health
     # ------
@@ -306,3 +285,24 @@ class Query:
         settings = list(map(construct, settings_keys))
         parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
         return cast(list[Configuration], parsed_settings)
+
+    # Root Organisation
+    # -----------------
+    @strawberry.field(
+        description=(
+            "Get the root-organisation. "
+            "This endpoint fails if not exactly one exists in LoRa."
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
+    )
+    async def org(self, info: Info) -> Organisation:
+        return await info.context["org_loader"].load(0)
+
+    # Version
+    # -------
+    @strawberry.field(
+        description="Get component versions",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("version")],
+    )
+    async def version(self) -> Version:
+        return Version()
