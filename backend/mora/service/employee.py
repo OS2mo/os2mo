@@ -15,6 +15,7 @@ import copy
 import enum
 import logging
 from collections.abc import Awaitable
+from datetime import date
 from functools import partial
 from operator import contains
 from operator import itemgetter
@@ -25,6 +26,8 @@ from uuid import uuid4
 from fastapi import APIRouter
 from fastapi import Body
 from fastapi import Depends
+from fastapi import Query
+from fastapi import Request
 
 from . import autocomplete
 from . import handlers
@@ -42,6 +45,7 @@ from .validation.validator import does_employee_with_cpr_already_exist
 from mora.auth.keycloak import oidc
 from mora.request_scoped.bulking import request_wide_bulk
 from ramodels.base import tz_isodate
+
 
 router = APIRouter()
 
@@ -402,7 +406,17 @@ async def get_one_employee(
         "400": {"description": "Invalid input"},
     },
 )
-async def autocomplete_employees(query: str):
+# async def autocomplete_employees(query: str):
+async def autocomplete_employees(
+    request: Request,
+    query: str,
+    at: date
+    | None = Query(
+        None,
+        description='The "at date" to use, e.g. `2020-01-31`. '
+        "Results are only included if they are active at the specified date.",
+    ),
+):
     settings = config.get_settings()
     if settings.confdb_autocomplete_v2_use_legacy:
         logger.debug("using autocomplete_employee_v2 legacy")
@@ -410,9 +424,15 @@ async def autocomplete_employees(query: str):
             "bruger", settings.confdb_autocomplete_attrs_employee, query
         )
 
-    # return await autocomplete.get_results(
-    #     "bruger", settings.confdb_autocomplete_attrs_employee, query
-    # )
+    logger.debug("using autocomplete_employee_v2 new")
+    search_results = await autocomplete.search_employees(
+        request.app.state.sessionmaker, query, at
+    )
+
+    # Decorate search results with data through GraphQL
+    return {
+        "items": await autocomplete.decorate_employee_search_result(search_results, at)
+    }
 
 
 @router.get(
