@@ -1,7 +1,9 @@
+import copy
 import re
 from typing import Union
 
 from fastramqpi.context import Context
+from ldap3.utils.dn import safe_dn
 from ramodels.mo.employee import Employee
 
 from .exceptions import IncorrectMapping
@@ -31,6 +33,8 @@ class UserNameGeneratorBase:
             u.lower() for u in self.json_inputs["forbidden_usernames"]
         ]
         self.combinations = self.json_inputs["combinations_to_try"]
+
+        self.dataloader = self.user_context["dataloader"]
 
     def _check_key(self, key):
         if key not in self.mapping["username_generator"]:
@@ -85,20 +89,19 @@ class UserNameGeneratorBase:
         self._check_forbidden_usernames()
         self._check_combinations_to_try()
 
-    @property
-    def existing_usernames(self):
+    def get_existing_values(self, attribute):
         user_class = self.user_context["mapping"]["mo_to_ldap"]["Employee"][
             "objectClass"
         ]
         searchParameters = {
             "search_filter": f"(objectclass={user_class})",
-            "attributes": ["cn"],
+            "attributes": [attribute],
         }
-        existing_usernames = [
-            entry["attributes"]["cn"].lower()
+        existing_values = [
+            entry["attributes"][attribute].lower()
             for entry in paged_search(self.context, searchParameters)
         ]
-        return existing_usernames
+        return existing_values
 
     def _make_cn(self, username_string: str):
 
@@ -119,7 +122,7 @@ class UserNameGeneratorBase:
             )
         )
 
-        dn = ",".join(lst)  # Distinguished Name
+        dn: str = safe_dn(",".join(lst))  # Distinguished Name
         return dn
 
     def _name_fixer(self, name: list[str]) -> list[str]:
@@ -230,7 +233,7 @@ class UserNameGeneratorBase:
 
     def _create_username(self, name: list) -> str:
         """
-        Create a new username in accodance with the rules specified in this file.
+        Create a new username in accodance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
         added to list of used names, so consequtive calles with the same name
         will keep returning new names until the algorithm runs out of options
@@ -241,8 +244,8 @@ class UserNameGeneratorBase:
 
         Inspired by ad_integration/usernames.py
         """
-        name = self._name_fixer(name)
-        existing_usernames = self.existing_usernames
+        name = self._name_fixer(copy.deepcopy(name))
+        existing_usernames = self.get_existing_values("sAMAccountName")
 
         # The permutation is a number inside the username, it is normally only used in
         # case a username is already occupied. It can be specified using 'X' in the
@@ -266,19 +269,56 @@ class UserNameGeneratorBase:
         # If we get to here, we completely failed to make a username
         raise RuntimeError("Failed to create user name.")
 
+    def _create_common_name(self, name: list) -> str:
+        """
+        Create an LDAP-style common name (CN) based on first and last name
+
+        If a name exists, "_2" is added. If that one also exists, "_3" is added,
+        and so on
+
+        Examples
+        -------------
+        >>> _create_common_name(["Keanu","Reeves"])
+        >>> "Keanu Reeves"
+        """
+        if name[-1]:
+            common_name = f"{name[0]} {name[-1]}"
+        else:
+            common_name = name[0]
+
+        permutation_counter = 2
+        existing_common_names = self.get_existing_values("cn")
+        while common_name.lower() in existing_common_names:
+            common_name = (
+                common_name.replace(f"_{permutation_counter-1}", "")
+                + f"_{permutation_counter}"
+            )
+            permutation_counter += 1
+
+            if permutation_counter > 1000:
+                raise RuntimeError("Failed to create common name")
+
+        return common_name
+
 
 class UserNameGenerator(UserNameGeneratorBase):
     def generate_dn(self, employee: Employee) -> str:
         """
         Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
-        object
+        object.
+
+        Also adds an object to LDAP with this DN
         """
         givenname = employee.givenname
         surname = employee.surname
-
         name = givenname.split(" ")[:4] + [surname]
-        username = self._create_username(name)
 
+        username = self._create_username(name)
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
-        return self._make_dn(username)
+        common_name = self._create_common_name(name)
+        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+
+        dn = self._make_dn(common_name)
+        self.dataloader.add_ldap_object(dn, username)
+        return dn

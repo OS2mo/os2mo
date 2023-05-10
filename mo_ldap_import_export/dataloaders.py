@@ -376,14 +376,18 @@ class DataLoader:
 
         return output
 
-    def add_ldap_object(self, dn: str, json_key: str):
+    def add_ldap_object(self, dn: str, sAMAccountName: str):
         """
         Adds a new object to LDAP
 
         The json key is used to find the object class - as defined in the json file
         """
-        object_class = self.user_context["converter"].find_ldap_object_class(json_key)
-        self.ldap_connection.add(dn, object_class)
+        logger.info(f"Adding user with DN = '{dn}' to LDAP")
+        self.ldap_connection.add(
+            dn,
+            self.user_context["converter"].find_ldap_object_class("Employee"),
+            attributes={"sAMAccountName": sAMAccountName},
+        )
         logger.info(f"Response: {self.ldap_connection.result}")
 
     async def modify_ldap_object(
@@ -448,12 +452,6 @@ class DataLoader:
                 logger.warning(e)
                 failed += 1
                 continue
-
-            # If the user does not exist, create him/her/hir
-            if response and response["description"] == "noSuchObject":
-                logger.info(f"Received 'noSuchObject' response. Creating {dn}")
-                self.add_ldap_object(dn, json_key)
-                response = self.modify_ldap(dn, changes)
 
             if response and response["description"] == "success":
                 success += 1
@@ -734,10 +732,6 @@ class DataLoader:
         elif ldap_it_system_exists and len(dns) == 0:
             logger.info("No it-user found. Generating DN and creating it-user")
             dn = username_generator.generate_dn(employee)
-
-            # Create the user in LDAP
-            logger.info(f"Adding user with DN = '{dn}' to LDAP")
-            self.add_ldap_object(dn, "Employee")
 
             # Get it's objectGUID
             objectGUID = self.get_ldap_objectGUID(dn)
