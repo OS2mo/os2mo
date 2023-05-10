@@ -238,7 +238,6 @@ def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
             ),
             text(
                 f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
-                # f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> to_timestamp(:sql_at_datetime, 'YYYY-MM-DD HH24:MI:SS')"
             ),
         )
         .cte()
