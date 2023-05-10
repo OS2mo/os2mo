@@ -14,9 +14,16 @@ from pydantic.types import DirectoryPath
 from pydantic.types import FilePath
 from pydantic.types import PositiveInt
 from pydantic.types import UUID
+from ramqp.config import AMQPConnectionSettings
 from structlog import get_logger
 
 logger = get_logger()
+
+
+class AMQPSettings(AMQPConnectionSettings):
+    queue_prefix: str = "os2mo"
+    # TODO: Ensure we don't crash MO when running somewhat concurrently
+    prefetch_count: int = 1
 
 
 class NavLink(BaseSettings):
@@ -142,8 +149,7 @@ class Settings(BaseSettings):
 
     # AMQP settings
     amqp_enable: bool = False
-    # AMQP connection settings are extracted from environment variables by the RAMQP
-    # library directly.
+    amqp_url: str | None = None
     amqp_enable_new_subsystem: bool = False
 
     enable_sp: bool = False

@@ -6,10 +6,6 @@ from itertools import product
 from uuid import UUID
 
 from ramqp.mo import MOAMQPSystem
-from ramqp.mo.models import ObjectType
-from ramqp.mo.models import PayloadType
-from ramqp.mo.models import RequestType
-from ramqp.mo.models import ServiceType
 from structlog import get_logger
 
 from mora import config
@@ -19,9 +15,11 @@ from mora import triggers
 from mora import util
 
 logger = get_logger()
+amqp_url = config.get_settings().amqp_url
 
+amqp_settings = config.AMQPSettings(url=amqp_url) if amqp_url else {}
 
-amqp_system = MOAMQPSystem()
+amqp_system = MOAMQPSystem(settings=amqp_settings)
 
 
 async def start_amqp():
@@ -43,37 +41,33 @@ def to_datetime(trigger_dict: dict) -> datetime:
 
 
 async def amqp_sender(trigger_dict: dict) -> None:
-    object_type = ObjectType(trigger_dict[triggers.Trigger.ROLE_TYPE].lower())
-    request_type = RequestType(trigger_dict[triggers.Trigger.REQUEST_TYPE].lower())
+    def dispatch(service_type: str, service_uuid: UUID) -> None:
+        object_type = trigger_dict[triggers.Trigger.ROLE_TYPE].lower()
+        request_type = trigger_dict[triggers.Trigger.REQUEST_TYPE].lower()
+        routing_key = f"{service_type}.{object_type}.{request_type}"
 
-    def dispatch(service_type: ServiceType, service_uuid: UUID) -> None:
-        payload = PayloadType(
-            uuid=service_uuid,
-            object_uuid=UUID(trigger_dict["uuid"]),
-            time=to_datetime(trigger_dict),
-        )
+        payload = {
+            "uuid": service_uuid,
+            "object_uuid": UUID(trigger_dict["uuid"]),
+            "time": to_datetime(trigger_dict),
+        }
+
         logger.debug(
             "Registering AMQP publish message task",
-            service_type=service_type,
-            object_type=object_type,
-            request_type=request_type,
+            routing_key=routing_key,
             payload=payload,
         )
-        asyncio.create_task(
-            amqp_system.publish_message(
-                service_type, object_type, request_type, payload
-            )
-        )
+        asyncio.create_task(amqp_system.publish_message(routing_key, payload))
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
         dispatch(
-            ServiceType(mapping.EMPLOYEE),
+            mapping.EMPLOYEE,
             UUID(trigger_dict[triggers.Trigger.EMPLOYEE_UUID]),
         )
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
         dispatch(
-            ServiceType(mapping.ORG_UNIT),
+            mapping.ORG_UNIT,
             UUID(trigger_dict[triggers.Trigger.ORG_UNIT_UUID]),
         )
 
