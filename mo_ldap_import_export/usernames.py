@@ -233,7 +233,7 @@ class UserNameGeneratorBase:
 
     def _create_username(self, name: list) -> str:
         """
-        Create a new username in accodance with the rules specified in the json file.
+        Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
         added to list of used names, so consequtive calles with the same name
         will keep returning new names until the algorithm runs out of options
