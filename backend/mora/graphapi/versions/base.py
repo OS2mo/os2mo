@@ -24,7 +24,7 @@ class BaseGraphQLSchema:
     """
 
     query: type
-    mutation: type | None = None
+    mutation: type
 
     types: Iterable = ()
 

@@ -6,11 +6,9 @@ import strawberry
 from pydantic import Field
 
 from ..latest.mutators import admin_permission_class
-from ..latest.mutators import Mutation as LatestMutation
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.types import UUIDReturn
-from ..v4.version import GraphQLSchema4
-from ..v4.version import GraphQLVersion4
+from ..v4.version import GraphQLVersion as NextGraphQLVersion
 from mora import mapping
 from mora.service.facet import ClassRequestHandler
 from ramodels.mo._shared import UUIDBase
@@ -51,7 +49,7 @@ async def create_class(input: ClassCreate) -> UUID:
 
 
 @strawberry.type
-class Mutation(LatestMutation):
+class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined]
     # Classes
     # -------
     @strawberry.mutation(
@@ -62,18 +60,18 @@ class Mutation(LatestMutation):
         return UUIDReturn(uuid=await create_class(input.to_pydantic()))
 
 
-class GraphQLSchema3(GraphQLSchema4):
-    """Latest GraphQL Schema, exposed as a version.
+class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
+    """Version 3 of the GraphQL Schema.
 
-    When adding breaking changes, modify this schema to maintain compatibility for the
-    version.
+    Version 4 introduced a breaking change to the `class_create` mutator.
+    Version 3 ensures that the old functionality is still available.
     """
 
     mutation = Mutation
 
 
-class GraphQLVersion3(GraphQLVersion4):
-    """Latest GraphQL version."""
+class GraphQLVersion(NextGraphQLVersion):
+    """GraphQL Version 3."""
 
     version = 3
-    schema = GraphQLSchema3
+    schema = GraphQLSchema
