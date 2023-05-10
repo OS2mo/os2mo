@@ -87,6 +87,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
                 engagement_type {
                   uuid
                   name
+                  published
                 }
               }
 
@@ -97,6 +98,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
                 address_type {
                   uuid
                   name
+                  published
                 }
               }
 
@@ -106,6 +108,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
                 association_type {
                   uuid
                   name
+                  published
                 }
               }
 
@@ -252,7 +255,9 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for engagement in gql_employee.get("engagements", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
-        if _is_unpublished(value) or _is_uuid(value):
+        if util.is_detail_unpublished(
+            value, engagement["engagement_type"]["published"]
+        ) or util.is_uuid(value):
             continue
 
         attrs.append(
@@ -266,7 +271,9 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for address in gql_employee.get("addresses", []):
         uuid = address["uuid"]
         value = address["value"]
-        if _is_unpublished(value) or _is_uuid(value):
+        if util.is_detail_unpublished(
+            value, address["address_type"]["published"]
+        ) or util.is_uuid(value):
             continue
 
         attrs.append(
@@ -280,7 +287,9 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for assoc in gql_employee.get("associations", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
-        if _is_unpublished(value) or _is_uuid(value):
+        if util.is_detail_unpublished(
+            value, assoc["association_type"]["published"]
+        ) or util.is_uuid(value):
             continue
 
         attrs.append(
@@ -294,7 +303,7 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for ituser in gql_employee.get("itusers", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
-        if _is_unpublished(value) or _is_uuid(value):
+        if util.is_detail_unpublished(value) or util.is_uuid(value):
             continue
 
         attrs.append(
@@ -306,15 +315,3 @@ def _gql_get_employee_attrs(gql_employee: dict):
         )
 
     return attrs
-
-
-def _is_unpublished(v: str):
-    return v == "-"
-
-
-def _is_uuid(v: str):
-    try:
-        UUID(v)
-        return True
-    except ValueError:
-        return False
