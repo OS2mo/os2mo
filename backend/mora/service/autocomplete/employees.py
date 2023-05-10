@@ -10,6 +10,7 @@ from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
+from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
 from .shared import get_at_date_sql
@@ -32,10 +33,10 @@ async def search_employees(
         selects = [
             select(cte.c.uuid)
             for cte in (
-                _get_cte_uuid_hits(query, at_sql),
-                # _get_cte_orgunit_name_hits(query, at_sql),
-                # _get_cte_orgunit_addr_hits(query, at_sql),
-                # _get_cte_orgunit_itsystem_hits(query, at_sql),
+                # _get_cte_uuid_hits(query, at_sql),
+                _get_cte_name_hits(query, at_sql),
+                # _get_cte_addr_hits(query, at_sql),
+                # _get_cte_itsystem_hits(query, at_sql),
             )
         ]
         all_hits = union(*selects).cte()
@@ -146,6 +147,9 @@ def _get_cte_uuid_hits(query: str, at_sql: str):
     return (
         select(BrugerRegistrering.bruger_id.label("uuid"))
         .join(
+            # OBS: We join on this table to get validity of the UUID
+            # QUESTION: Should we change this join on "BrugerAttrEgenskaber" where the BVN resides,
+            # which should work as an alias for the UUID ?
             BrugerAttrUdvidelser,
             BrugerAttrUdvidelser.bruger_registrering_id == BrugerRegistrering.id,
         )
@@ -153,6 +157,35 @@ def _get_cte_uuid_hits(query: str, at_sql: str):
             func.char_length(search_phrase) > UUID_SEARCH_MIN_PHRASE_LENGTH,
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             cast(BrugerRegistrering.bruger_id, Text).ilike(search_phrase),
+            text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
+        )
+        .cte()
+    )
+
+
+def _get_cte_name_hits(query: str, at_sql: str):
+    search_phrase = util.query_to_search_phrase(query)
+
+    name_concated = func.concat(
+        BrugerAttrUdvidelser.fornavn,
+        " ",
+        BrugerAttrUdvidelser.efternavn,
+        " ",
+        BrugerAttrUdvidelser.kaldenavn_fornavn,
+        " ",
+        BrugerAttrUdvidelser.kaldenavn_efternavn,
+    )
+
+    return (
+        select(BrugerRegistrering.bruger_id.label("uuid"))
+        .join(
+            BrugerAttrUdvidelser,
+            BrugerAttrUdvidelser.bruger_registrering_id == BrugerRegistrering.id,
+        )
+        .where(
+            BrugerRegistrering.bruger_id != None,  # noqa: E711
+            name_concated.ilike(search_phrase),
+            text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
         )
         .cte()
     )
