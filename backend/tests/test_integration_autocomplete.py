@@ -95,7 +95,7 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
+def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient):
     mock_get_settings.return_value = MagicMock(
         confdb_autocomplete_v2_use_legacy=False,
     )
@@ -112,7 +112,7 @@ def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [],
             }
         ]
@@ -140,7 +140,7 @@ def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
+def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Fake Corp"
     response = service_client.get(
@@ -153,7 +153,7 @@ def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [],
             }
         ]
@@ -187,7 +187,7 @@ def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_name_with_custom_fields(
+def test_v2_search_orgunit_by_name_with_custom_fields(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
     at = datetime.now().date()
@@ -202,7 +202,7 @@ def test_v2_search_by_name_with_custom_fields(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
@@ -219,7 +219,7 @@ def test_v2_search_by_name_with_custom_fields(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_v2_search_by_addr_afdelingskode(
+def test_v2_search_orgunit_by_addr_afdelingskode(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
     at = datetime.now().date()
@@ -234,7 +234,7 @@ async def test_v2_search_by_addr_afdelingskode(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
@@ -251,7 +251,7 @@ async def test_v2_search_by_addr_afdelingskode(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_v2_search_by_addr_afdelingskode_addr_rename(
+def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
     graphapi_post, admin_client, mock_get_settings_custom_attrs
 ):
     newAddrName = "Fake afdelingskode changed"
@@ -290,7 +290,7 @@ async def test_v2_search_by_addr_afdelingskode_addr_rename(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
