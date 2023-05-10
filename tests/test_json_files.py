@@ -242,13 +242,8 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
 
                 template = raw_mapping["ldap_to_mo"][json_key][attribute]
 
-                if "ldap." not in template:
-                    hard_coded = True
-                else:
-                    hard_coded = False
-
                 # If we hard-code a value, we do not expect a match.
-                if hard_coded:
+                if "ldap." not in template:
                     continue
 
                 original_values: list[Any] = list(
