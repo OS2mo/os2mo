@@ -5,9 +5,11 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import cast
+from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.engine.row import Row
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
+from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
 from sqlalchemy.sql import text
@@ -20,6 +22,9 @@ from .shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora import util
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
+from mora.db import OrganisationFunktionAttrEgenskaber
+from mora.db import OrganisationFunktionRelation
+from mora.db import OrganisationFunktionRelationKode
 from mora.graphapi.shim import execute_graphql
 from mora.service.util import handle_gql_error
 
@@ -33,10 +38,10 @@ async def search_employees(
         selects = [
             select(cte.c.uuid)
             for cte in (
-                # _get_cte_uuid_hits(query, at_sql),
+                _get_cte_uuid_hits(query, at_sql),
                 _get_cte_name_hits(query, at_sql),
-                # _get_cte_addr_hits(query, at_sql),
-                # _get_cte_itsystem_hits(query, at_sql),
+                _get_cte_addr_hits(query, at_sql),
+                _get_cte_itsystem_hits(query, at_sql),
             )
         ]
         all_hits = union(*selects).cte()
@@ -186,6 +191,56 @@ def _get_cte_name_hits(query: str, at_sql: str):
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             name_concated.ilike(search_phrase),
             text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
+        )
+        .cte()
+    )
+
+
+def _get_cte_addr_hits(query: str, at_sql: str):
+    orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
+    orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
+
+    query = util.urnquote(
+        query.lower()
+    )  # since we are search through "rel_maal_urn"-cols
+    search_phrase = util.query_to_search_phrase(query)
+
+    return (
+        select(orgfunc_tbl_rels_1.rel_maal_uuid.label("uuid"))
+        .outerjoin(
+            orgfunc_tbl_rels_2,
+            orgfunc_tbl_rels_2.organisationfunktion_registrering_id
+            == orgfunc_tbl_rels_1.organisationfunktion_registrering_id,
+        )
+        .where(
+            orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
+            cast(orgfunc_tbl_rels_1.rel_type, String)
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_sql}"),
+            cast(orgfunc_tbl_rels_2.rel_type, String)
+            == OrganisationFunktionRelationKode.adresser,
+            orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
+        )
+        .cte()
+    )
+
+
+def _get_cte_itsystem_hits(query: str, at_sql: str):
+    search_phrase = util.query_to_search_phrase(query)
+    return (
+        select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
+        .outerjoin(
+            OrganisationFunktionAttrEgenskaber,
+            OrganisationFunktionAttrEgenskaber.organisationfunktion_registrering_id
+            == OrganisationFunktionRelation.organisationfunktion_registrering_id,
+        )
+        .where(
+            OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
+            cast(OrganisationFunktionRelation.rel_type, String)
+            == OrganisationFunktionRelationKode.tilknyttedebrugere,
+            text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_sql}"),
+            OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
+            OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
         .cte()
     )
