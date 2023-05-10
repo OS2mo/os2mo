@@ -15,6 +15,7 @@ worker_class = "uvicorn.workers.UvicornWorker"
 worker_tmp_dir = "/dev/shm"
 
 timeout = 600
+keepalive = 100
 
 accesslog = "-"
 errorlog = "-"
