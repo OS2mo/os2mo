@@ -412,54 +412,6 @@ async def test_modify_ldap_object_but_export_equals_false(
         )
 
 
-async def test_create_ldap_employee(
-    ldap_connection: MagicMock,
-    dataloader: DataLoader,
-    ldap_attributes: dict,
-    cpr_field: str,
-) -> None:
-
-    employee = LdapObject(
-        dn="CN=Nick Janssen,OU=Users,OU=Magenta,DC=ad,DC=addev", **ldap_attributes
-    )
-
-    non_existing_object_response = {
-        "result": 0,
-        "description": "noSuchObject",
-        "dn": "",
-        "message": "",
-        "referrals": None,
-        "type": "modifyResponse",
-    }
-
-    good_response = {
-        "result": 0,
-        "description": "success",
-        "dn": "",
-        "message": "",
-        "referrals": None,
-        "type": "modifyResponse",
-    }
-
-    parameters_to_upload = [k for k in employee.dict().keys() if k not in ["dn"]]
-
-    results = iter(
-        [non_existing_object_response] + [good_response] * len(parameters_to_upload)
-    )
-
-    def set_new_result(*args, **kwargs) -> None:
-        ldap_connection.result = next(results)
-
-    ldap_connection.modify.side_effect = set_new_result
-
-    # Get result from dataloader
-    output = await asyncio.gather(
-        dataloader.modify_ldap_object(employee, "user"),
-    )
-
-    assert output == [[good_response] * len(parameters_to_upload)]
-
-
 async def test_load_mo_employee(dataloader: DataLoader, gql_client: AsyncMock) -> None:
 
     cpr_no = "1407711900"
@@ -1954,3 +1906,8 @@ def test_create_mo_it_system(dataloader: DataLoader):
     dataloader.query_mo_sync.return_value = {"itsystem_create": {"uuid": str(uuid4())}}
 
     assert type(dataloader.create_mo_it_system("foo", "bar")) == UUID
+
+
+def test_add_ldap_object(dataloader: DataLoader):
+    dataloader.add_ldap_object("CN=foo", "ini")
+    dataloader.ldap_connection.add.assert_called_once()

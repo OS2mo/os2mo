@@ -2,7 +2,6 @@
 from collections.abc import Iterator
 from unittest.mock import MagicMock
 from unittest.mock import patch
-from unittest.mock import PropertyMock
 
 import pytest
 from fastramqpi.context import Context
@@ -13,7 +12,12 @@ from mo_ldap_import_export.usernames import UserNameGenerator
 
 
 @pytest.fixture
-def context() -> Context:
+def dataloader() -> MagicMock:
+    return MagicMock()
+
+
+@pytest.fixture
+def context(dataloader: MagicMock) -> Context:
 
     mapping = {
         "mo_to_ldap": {"Employee": {"objectClass": "user"}},
@@ -32,6 +36,7 @@ def context() -> Context:
         "user_context": {
             "mapping": mapping,
             "settings": settings_mock,
+            "dataloader": dataloader,
         }
     }
 
@@ -44,9 +49,17 @@ def existing_usernames() -> list:
 
 
 @pytest.fixture
-def existing_usernames_ldap(existing_usernames) -> list:
+def existing_common_names() -> list:
+    return ["Nick Janssen", "Nick Janssen_2"]
 
-    existing_usernames_ldap = [{"attributes": {"cn": e}} for e in existing_usernames]
+
+@pytest.fixture
+def existing_usernames_ldap(existing_usernames, existing_common_names) -> list:
+
+    existing_usernames_ldap = [
+        {"attributes": {"cn": cn, "sAMAccountName": sam}}
+        for cn, sam in zip(existing_common_names, existing_usernames)
+    ]
     return existing_usernames_ldap
 
 
@@ -65,9 +78,13 @@ def username_generator(
 def test_get_existing_usernames(
     username_generator: UserNameGenerator,
     existing_usernames: list,
+    existing_common_names: list,
 ):
-    result = username_generator.existing_usernames
+    result = username_generator.get_existing_values("sAMAccountName")
     assert result == existing_usernames
+
+    result = username_generator.get_existing_values("cn")
+    assert result == [cn.lower() for cn in existing_common_names]
 
 
 def test_create_username(username_generator: UserNameGenerator):
@@ -107,8 +124,7 @@ def test_create_username(username_generator: UserNameGenerator):
 
     # Simulate case where 'njans' is taken
     with patch(
-        "mo_ldap_import_export.usernames.UserNameGenerator.existing_usernames",
-        new_callable=PropertyMock,
+        "mo_ldap_import_export.usernames.UserNameGenerator.get_existing_values",
         return_value=["njans"],
     ):
         username = username_generator._create_username(["Nick", "Janssen"])
@@ -124,10 +140,39 @@ def test_create_username(username_generator: UserNameGenerator):
     assert username == "hterp"
 
 
+def test_create_common_name(username_generator: UserNameGenerator):
+
+    # Regular case
+    common_name = username_generator._create_common_name(["Nick", "Johnson"])
+    assert common_name == "Nick Johnson"
+
+    # When 'Nick Janssen' already exists and so does 'Nick Janssen_2'
+    common_name = username_generator._create_common_name(["Nick", "Janssen"])
+    assert common_name == "Nick Janssen_3"
+
+    # Middle names are not used
+    common_name = username_generator._create_common_name(
+        ["Nick", "Gerardus", "Cornelis", "Johnson"]
+    )
+    assert common_name == "Nick Johnson"
+
+    # Users without a last name are supported
+    common_name = username_generator._create_common_name(["Nick", ""])
+    assert common_name == "Nick"
+
+    # Nick_1 until Nick_2000 exists - we cannot generate a username
+    with patch(
+        "mo_ldap_import_export.usernames.UserNameGenerator.get_existing_values",
+        return_value=["nick"] + [f"nick_{d}" for d in range(2000)],
+    ):
+        with pytest.raises(RuntimeError):
+            username_generator._create_common_name(["Nick", ""])
+
+
 def test_generate_dn(username_generator: UserNameGenerator):
-    employee = Employee(givenname="Nick Gerardus Cornelis", surname="Janssen")
+    employee = Employee(givenname="Patrick", surname="Bateman")
     dn = username_generator.generate_dn(employee)
-    assert dn == "CN=ngcja,DC=bar"
+    assert dn == "CN=Patrick Bateman,DC=bar"
 
 
 def test_create_from_combi(username_generator: UserNameGenerator):
