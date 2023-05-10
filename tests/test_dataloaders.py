@@ -1911,3 +1911,37 @@ def test_create_mo_it_system(dataloader: DataLoader):
 def test_add_ldap_object(dataloader: DataLoader):
     dataloader.add_ldap_object("CN=foo", "ini")
     dataloader.ldap_connection.add.assert_called_once()
+
+
+def test_return_mo_employee_uuid_result(dataloader: DataLoader):
+    uuid = uuid4()
+
+    result: dict = {"employees": [], "itusers": []}
+    assert dataloader._return_mo_employee_uuid_result(result) is None
+
+    result = {"employees": [{"uuid": uuid}], "itusers": []}
+    assert dataloader._return_mo_employee_uuid_result(result) == uuid
+
+    result = {"itusers": [{"objects": [{"employee_uuid": uuid}]}]}
+    assert dataloader._return_mo_employee_uuid_result(result) == uuid
+
+    result = {
+        "itusers": [
+            {"objects": [{"employee_uuid": uuid}]},
+            {"objects": [{"employee_uuid": uuid}]},
+        ]
+    }
+    assert dataloader._return_mo_employee_uuid_result(result) == uuid
+
+    result = {
+        "itusers": [
+            {"objects": [{"employee_uuid": uuid}]},
+            {"objects": [{"employee_uuid": uuid4()}]},
+        ]
+    }
+    with pytest.raises(MultipleObjectsReturnedException):
+        dataloader._return_mo_employee_uuid_result(result)
+
+    result = {"employees": [{"uuid": uuid}, {"uuid": uuid4()}], "itusers": []}
+    with pytest.raises(MultipleObjectsReturnedException):
+        dataloader._return_mo_employee_uuid_result(result)

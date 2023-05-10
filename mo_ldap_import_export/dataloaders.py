@@ -15,6 +15,7 @@ from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
+from more_itertools import only
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -549,24 +550,28 @@ class DataLoader:
     def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
         number_of_employees = len(result.get("employees", []))
         number_of_itusers = len(result["itusers"])
+        error_message = f"Multiple matching employees in {result}"
+        exception = MultipleObjectsReturnedException(error_message)
 
         if number_of_employees == 1:
             logger.info("Trying to find mo employee UUID using cpr_no")
             uuid: UUID = result["employees"][0]["uuid"]
             return uuid
 
-        elif number_of_itusers == 1:
+        elif number_of_itusers >= 1:
             logger.info("Trying to find mo employee UUID using IT system")
-            uuid = result["itusers"][0]["objects"][0]["employee_uuid"]
-            return uuid
+            uuids = [
+                result["itusers"][i]["objects"][0]["employee_uuid"]
+                for i in range(number_of_itusers)
+            ]
+
+            return only(set(uuids), too_long=exception)
 
         elif number_of_itusers == 0 and number_of_employees == 0:
             logger.info(f"No matching employee in {result}")
             return None
         else:
-            raise MultipleObjectsReturnedException(
-                f"Multiple matching employees in {result}"
-            )
+            raise exception
 
     async def find_mo_employee_uuid(self, dn: str) -> Union[None, UUID]:
         cpr_field = self.user_context["cpr_field"]
