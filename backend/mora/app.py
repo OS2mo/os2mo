@@ -173,9 +173,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.is_under_test():
-            setup_metrics(app)
-
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
@@ -197,7 +194,8 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         openapi_tags=list(tags_metadata),
     )
     app.router.lifespan_context = lifespan
-
+    if not settings.is_under_test():
+        setup_metrics(app)
     # CORS headers describe which origins are permitted to contact the server, and
     # specify which authentication credentials (e.g. cookies or headers) should be
     # sent. CORS is NOT a server-side security mechanism, but relies on the browser
