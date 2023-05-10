@@ -1,8 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from functools import wraps
+from inspect import Parameter
+from inspect import signature
+from typing import Any
 
 import strawberry
+from pydantic import PositiveInt
 
 from ..latest.permissions import gen_read_permission
 from ..latest.permissions import IsAuthenticatedPermission
@@ -45,6 +50,7 @@ from ..latest.schema import Paged
 from ..latest.schema import RelatedUnit
 from ..latest.schema import Response
 from ..latest.schema import Role
+from ..latest.types import Cursor
 from ..v5.version import GraphQLVersion as NextGraphQLVersion
 
 
@@ -60,6 +66,29 @@ def to_response(resolver):  # type: ignore
     return resolve_response
 
 
+def offset2cursor(func: Callable) -> Callable:
+    sig = signature(func)
+    parameters = sig.parameters.copy()
+    del parameters["cursor"]
+    parameter_list = list(parameters.values())
+    parameter_list.append(
+        Parameter(
+            "offset",
+            Parameter.POSITIONAL_OR_KEYWORD,
+            annotation=PositiveInt | None,
+            default=None,
+        )
+    )
+    new_sig = sig.replace(parameters=parameter_list)
+
+    async def cursor_func(*args: Any, offset: PositiveInt | None, **kwargs: Any) -> Any:
+        cursor = Cursor(offset) if offset is not None else None
+        return await func(*args, cursor=cursor, **kwargs)
+
+    cursor_func.__signature__ = new_sig  # type: ignore[attr-defined]
+    return cursor_func
+
+
 @strawberry.type(description="Entrypoint for all read-operations")
 class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     """Query is the top-level entrypoint for all read-operations.
@@ -72,7 +101,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Addresses
     # ---------
     addresses: list[Response[Address]] = strawberry.field(
-        resolver=to_response(AddressResolver()),
+        resolver=offset2cursor(to_response(AddressResolver())),
         description="Get a list of all addresses, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
@@ -80,7 +109,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Associations
     # ------------
     associations: list[Response[Association]] = strawberry.field(
-        resolver=to_response(AssociationResolver()),
+        resolver=offset2cursor(to_response(AssociationResolver())),
         description="Get a list of all Associations, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -91,7 +120,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Classes
     # -------
     classes: list[Class] = strawberry.field(
-        resolver=ClassResolver().resolve,
+        resolver=offset2cursor(ClassResolver().resolve),
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -99,7 +128,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Employees
     # ---------
     employees: list[Response[Employee]] = strawberry.field(
-        resolver=to_response(EmployeeResolver()),
+        resolver=offset2cursor(to_response(EmployeeResolver())),
         description="Get a list of all employees, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
@@ -107,7 +136,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Engagements
     # -----------
     engagements: list[Response[Engagement]] = strawberry.field(
-        resolver=to_response(EngagementResolver()),
+        resolver=offset2cursor(to_response(EngagementResolver())),
         description="Get a list of all engagements, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -118,7 +147,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # EngagementsAssociations
     # -----------
     engagement_associations: list[Response[EngagementAssociation]] = strawberry.field(
-        resolver=to_response(EngagementAssociationResolver()),
+        resolver=offset2cursor(to_response(EngagementAssociationResolver())),
         description="Get a list of engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -129,7 +158,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Facets
     # ------
     facets: list[Facet] = strawberry.field(
-        resolver=FacetResolver().resolve,
+        resolver=offset2cursor(FacetResolver().resolve),
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
@@ -137,7 +166,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITSystems
     # ---------
     itsystems: list[ITSystem] = strawberry.field(
-        resolver=ITSystemResolver().resolve,
+        resolver=offset2cursor(ITSystemResolver().resolve),
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
@@ -145,7 +174,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITUsers
     # -------
     itusers: list[Response[ITUser]] = strawberry.field(
-        resolver=to_response(ITUserResolver()),
+        resolver=offset2cursor(to_response(ITUserResolver())),
         description="Get a list of all ITUsers, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
@@ -153,7 +182,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # KLEs
     # ----
     kles: list[Response[KLE]] = strawberry.field(
-        resolver=to_response(KLEResolver()),
+        resolver=offset2cursor(to_response(KLEResolver())),
         description="Get a list of all KLE's, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
@@ -161,7 +190,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Leave
     # -----
     leaves: list[Response[Leave]] = strawberry.field(
-        resolver=to_response(LeaveResolver()),
+        resolver=offset2cursor(to_response(LeaveResolver())),
         description="Get a list of all leaves, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
@@ -169,7 +198,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Managers
     # --------
     managers: list[Response[Manager]] = strawberry.field(
-        resolver=to_response(ManagerResolver()),
+        resolver=offset2cursor(to_response(ManagerResolver())),
         description="Get a list of all managers, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
@@ -177,7 +206,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Organisational Units
     # --------------------
     org_units: list[Response[OrganisationUnit]] = strawberry.field(
-        resolver=to_response(OrganisationUnitResolver()),
+        resolver=offset2cursor(to_response(OrganisationUnitResolver())),
         description="Get a list of all organisation units, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
@@ -185,7 +214,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Related Units
     # -------------
     related_units: list[Response[RelatedUnit]] = strawberry.field(
-        resolver=to_response(RelatedUnitResolver()),
+        resolver=offset2cursor(to_response(RelatedUnitResolver())),
         description="Get a list of related organisation units, optionally by uuid(s)",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -196,7 +225,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Roles
     # -----
     roles: list[Response[Role]] = strawberry.field(
-        resolver=to_response(RoleResolver()),
+        resolver=offset2cursor(to_response(RoleResolver())),
         description="Get a list of all roles, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )

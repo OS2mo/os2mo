@@ -64,7 +64,6 @@ class StaticResolver(PagedResolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
     ):
         """Resolve queries with no validity, i.e. class/facet/itsystem.
@@ -76,7 +75,6 @@ class StaticResolver(PagedResolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=None,  # from -inf
             to_date=None,  # to inf
@@ -88,7 +86,6 @@ class StaticResolver(PagedResolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
         # and returned again as a Base64 encoded string.
         # This way we can use it for indexing and calculations
@@ -104,8 +101,8 @@ class StaticResolver(PagedResolver):
 
         # UUIDs
         if uuids is not None:
-            if limit is not None or offset is not None:
-                raise ValueError("Cannot filter 'uuid' with 'limit' or 'offset'")
+            if limit is not None or cursor is not None:
+                raise ValueError("Cannot filter 'uuid' with 'limit' or 'cursor'")
             # Early return on empty UUID list
             if not uuids:
                 return self.neutral_element_constructor()
@@ -133,8 +130,6 @@ class StaticResolver(PagedResolver):
         # Pagination
         if limit is not None:
             kwargs["maximalantalresultater"] = limit
-        if offset is not None:
-            kwargs["foersteresultat"] = offset
         if cursor is not None:
             kwargs["foersteresultat"] = cursor
 
@@ -170,7 +165,6 @@ class Resolver(StaticResolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -182,8 +176,6 @@ class Resolver(StaticResolver):
             user_keys: Only retrieve these user_keys. Defaults to None.
             limit: The maximum number of elements to return. Fewer elements may be
                 returned if the query itself yields fewer elements.
-            offset: Skips this many elements before beginning to return elements. An
-                offset of 0 is the same as omitting offset, as is null.
             from_date: Lower bound of the object validity (bitemporal lookup).
                 Defaults to UNSET, in which case from_date is today.
             to_date: Upper bound of the object validity (bitemporal lookup).
@@ -206,7 +198,6 @@ class Resolver(StaticResolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -266,7 +257,6 @@ class ClassResolver(StaticResolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
@@ -297,7 +287,6 @@ class ClassResolver(StaticResolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=None,  # from -inf
             to_date=None,  # to inf
@@ -315,7 +304,6 @@ class AddressResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -348,7 +336,6 @@ class AddressResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -366,7 +353,6 @@ class AssociationResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -395,7 +381,6 @@ class AssociationResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -413,7 +398,6 @@ class EmployeeResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -430,7 +414,6 @@ class EmployeeResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -448,7 +431,6 @@ class EngagementResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -466,7 +448,6 @@ class EngagementResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -484,7 +465,6 @@ class ManagerResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -502,7 +482,6 @@ class ManagerResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -520,7 +499,6 @@ class OrganisationUnitResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -544,7 +522,6 @@ class OrganisationUnitResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -562,7 +539,6 @@ class EngagementAssociationResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -583,7 +559,6 @@ class EngagementAssociationResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -606,7 +581,6 @@ class ITUserResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -624,7 +598,6 @@ class ITUserResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -642,7 +615,6 @@ class KLEResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -657,7 +629,6 @@ class KLEResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -675,7 +646,6 @@ class LeaveResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -693,7 +663,6 @@ class LeaveResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -711,7 +680,6 @@ class RelatedUnitResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -726,7 +694,6 @@ class RelatedUnitResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
@@ -744,7 +711,6 @@ class RoleResolver(Resolver):
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
-        offset: PositiveInt | None = None,
         cursor: Cursor | None = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
@@ -762,7 +728,6 @@ class RoleResolver(Resolver):
             uuids=uuids,
             user_keys=user_keys,
             limit=limit,
-            offset=offset,
             cursor=cursor,
             from_date=from_date,
             to_date=to_date,
