@@ -11,7 +11,8 @@ from mora.graphapi.router import DEPRECATION_NOTICE
     "url,deprecated",
     [
         ("/graphql", False),
-        ("/graphql/v4", False),
+        ("/graphql/v5", False),
+        ("/graphql/v4", True),
         ("/graphql/v3", True),
         ("/graphql/v2", True),
     ],
