@@ -224,6 +224,7 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
         print(f"Testing '{json_file}' mapping")
         print("-" * 40)
         json_keys = converter.get_json_keys("ldap_to_mo")
+        raw_mapping = converter.raw_mapping
         for json_key in json_keys:
             print(f"Testing '{json_key}' json_key")
 
@@ -238,6 +239,12 @@ def test_back_and_forth_mapping(converters: dict[str, LdapConverter], uuid: UUID
                 if attribute in attributes_to_skip:
                     continue
                 print(f"Testing '{attribute}' attribute")
+
+                template = raw_mapping["ldap_to_mo"][json_key][attribute]
+
+                # If we hard-code a value, we do not expect a match.
+                if "ldap." not in template:
+                    continue
 
                 original_values: list[Any] = list(
                     filter(
