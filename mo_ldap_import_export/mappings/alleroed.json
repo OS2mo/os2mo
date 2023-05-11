@@ -215,14 +215,14 @@
     },
     "MobilePhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": false,
+      "__export_to_ldap__": true,
       "mobile": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "PhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": false,
+      "__export_to_ldap__": true,
       "telephoneNumber": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
