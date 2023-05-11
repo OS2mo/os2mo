@@ -3,7 +3,7 @@
     "it_systems": {
       "ADGUID": "Active Directory GUID",
       "ADSAMA": "Active Directory sAMAccountName",
-      "SDNummer": "SD Medarbejdernummer"
+      "SDNumber": "SD Medarbejdernummer"
     },
     "facets" : {
       "employee_address_type": {
@@ -159,11 +159,11 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
-    "SDNummer": {
+    "SDNumber": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "__import_to_mo__": false,
       "user_key": "{{ ldap.employeeID }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('SDNummer')) }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('SDNumber')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
@@ -266,7 +266,7 @@
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
-    "SDNummer": {
+    "SDNumber": {
       "objectClass": "user",
       "__export_to_ldap__": true,
       "employeeID" : "{{ mo_employee_it_user.user_key }}",
