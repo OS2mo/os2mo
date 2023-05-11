@@ -35,10 +35,12 @@ def setup_data(graphapi_post: Any) -> None:
             query ReadHistory($uuid: UUID!) {
               org_units(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                  name
-                  validity {
-                    from
-                    to
+                  objects {
+                    name
+                    validity {
+                      from
+                      to
+                    }
                   }
                 }
               }
@@ -48,30 +50,35 @@ def setup_data(graphapi_post: Any) -> None:
     )
     assert response.errors is None
     assert response.data == {
-        "org_units": [
-            {
-                "objects": [
-                    {
-                        "name": "Unix",
-                        "validity": {
-                            "from": "1970-01-01T00:00:00+01:00",
-                            "to": "1999-12-31T00:00:00+01:00",
+        "org_units": {
+            "objects": [
+                {
+                    "objects": [
+                        {
+                            "name": "Unix",
+                            "validity": {
+                                "from": "1970-01-01T00:00:00+01:00",
+                                "to": "1999-12-31T00:00:00+01:00",
+                            },
                         },
-                    },
-                    {
-                        "name": "Millennium",
-                        "validity": {
-                            "from": "2000-01-01T00:00:00+01:00",
-                            "to": "2019-12-31T00:00:00+01:00",
+                        {
+                            "name": "Millennium",
+                            "validity": {
+                                "from": "2000-01-01T00:00:00+01:00",
+                                "to": "2019-12-31T00:00:00+01:00",
+                            },
                         },
-                    },
-                    {
-                        "name": "MMXX",
-                        "validity": {"from": "2020-01-01T00:00:00+01:00", "to": None},
-                    },
-                ]
-            }
-        ]
+                        {
+                            "name": "MMXX",
+                            "validity": {
+                                "from": "2020-01-01T00:00:00+01:00",
+                                "to": None,
+                            },
+                        },
+                    ]
+                }
+            ]
+        }
     }
 
 
@@ -148,9 +155,11 @@ def test_read_current(
                     $uuid: UUID!, $from_date: DateTime, $to_date: DateTime
                 ) {
                   org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
-                    uuid
-                    current {
-                        name
+                    objects {
+                      uuid
+                      current {
+                          name
+                      }
                     }
                   }
                 }
@@ -158,4 +167,4 @@ def test_read_current(
             {"uuid": uuid, "from_date": from_date, "to_date": to_date},
         )
         assert response.errors is None
-        assert response.data == {"org_units": expected}
+        assert response.data == {"org_units": {"objects": expected}}
