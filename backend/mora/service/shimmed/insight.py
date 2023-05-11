@@ -30,10 +30,10 @@ from mora.service.insight import router as insight_router
 )
 async def get_insight_filenames() -> list[str]:
     """Lists all available files."""
-    query = "query FilesQuery { files(file_store: INSIGHT) { file_name } }"
+    query = "query FilesQuery { files(file_store: INSIGHT) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
-    files = gql_response.data["files"]
+    files = gql_response.data["files"]["objects"]
     return list(map(itemgetter("file_name"), files))
 
 
@@ -67,7 +67,9 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
         query = """
         query FileQuery {
           files(file_store: INSIGHTS) {
-            text_contents
+            objects {
+              text_contents
+            }
           }
         }
         """
@@ -76,7 +78,9 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
         query = """
         query FileQuery($file_names: [String!]) {
           files(file_store: INSIGHTS, file_names: $file_names) {
-            text_contents
+            objects {
+              text_contents
+            }
           }
         }
         """
@@ -84,7 +88,7 @@ async def get_insight_data(q: list[str] | None = Query(["all"])) -> list[Insight
 
     response = await execute_graphql(query, variable_values=variables)
     handle_gql_error(response)
-    contents = response.data["files"]
+    contents = response.data["files"]["objects"]
     jsons = map(json.loads, map(itemgetter("text_contents"), contents))
     return list(jsons)
 
@@ -113,14 +117,16 @@ async def download_csv() -> StreamingResponse:
     query = """
     query FileQuery {
       files(file_store: INSIGHTS) {
-        file_name
-        text_contents
+        objects {
+          file_name
+          text_contents
+        }
       }
     }
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
-    contents = response.data["files"]
+    contents = response.data["files"]["objects"]
     iter_of_files = map(Path, map(itemgetter("file_name"), contents))
     iter_of_json = map(json.loads, map(itemgetter("text_contents"), contents))
     iter_of_csv = (
