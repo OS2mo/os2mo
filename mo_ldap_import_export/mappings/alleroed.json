@@ -3,7 +3,6 @@
     "it_systems": {
       "ADGUID": "Active Directory GUID",
       "ADSAMA": "Active Directory sAMAccountName",
-      "SDNumber": "SD Medarbejdernummer"
     },
     "facets" : {
       "employee_address_type": {
@@ -65,7 +64,7 @@
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('månedsløn')) }}",
-      "user_key": "{{ '123' }}",
+      "user_key": "{{ ldap.employeeID }}",
       "validity": "{{ dict(from_date=now()|mo_datestring, to_date=ldap.extensionAttribute7|parse_datetime|mo_datestring or NONE) }}",// TODO: check to_date
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('Ansat')) }}"
@@ -159,14 +158,6 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
-    "SDNumber": {
-      "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": false,
-      "user_key": "{{ ldap.employeeID }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('SDNumber')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
   },
   "mo_to_ldap": {
     "Employee": {
@@ -186,7 +177,8 @@
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
       "extensionAttribute7": "{{mo_employee_engagement.validity.to_date or NONE}}",
       "extensionAttribute2": "{{mo_employee_engagement.org_unit.uuid}}",
-      "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}"
+      "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}",
+      "employeeID": "{{mo_employee_engagement.user_key}}",
     },
     "PostAdresseTextUnit": {
       "objectClass": "user",
@@ -264,12 +256,6 @@
       "objectClass": "user",
       "__export_to_ldap__": true,
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
-      "employeeNumber": "{{mo_employee.cpr_no}}"
-    },
-    "SDNumber": {
-      "objectClass": "user",
-      "__export_to_ldap__": true,
-      "employeeID" : "{{ mo_employee_it_user.user_key }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
 
