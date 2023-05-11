@@ -144,7 +144,7 @@
     },
     "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": false,
+      "__import_to_mo__": true,
       "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -248,7 +248,7 @@
     },
     "ADGUID": {
       "objectClass": "user",
-      "__export_to_ldap__": true,
+      "__export_to_ldap__": false,
       "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
