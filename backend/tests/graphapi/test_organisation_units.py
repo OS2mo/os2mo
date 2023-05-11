@@ -36,20 +36,21 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 org_units {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        name
-                        type
-                        validity {from to}
-                        parent_uuid
-                        unit_type_uuid
-                        org_unit_hierarchy
-                        org_unit_level_uuid
-                        time_planning_uuid
+                        objects {
+                            uuid
+                            user_key
+                            name
+                            type
+                            validity {from to}
+                            parent_uuid
+                            unit_type_uuid
+                            org_unit_hierarchy
+                            org_unit_level_uuid
+                            time_planning_uuid
+                        }
                     }
-
                 }
             }
         """
@@ -57,7 +58,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["org_units"]) == test_data
+    assert flatten_data(response.data["org_units"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(OrganisationUnitRead))
@@ -71,7 +72,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     org_units(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -81,7 +84,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [ou.get("uuid") for ou in response.data["org_units"]]
+    result_uuids = [ou.get("uuid") for ou in response.data["org_units"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -178,17 +181,19 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
         query VerifyQuery($uuid: UUID!) {
             org_units(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    uuid
-                    user_key
-                    name
-                    parent_uuid
-                    unit_type_uuid
-                    time_planning_uuid
-                    org_unit_level_uuid
-                    org_unit_hierarchy_uuid: org_unit_hierarchy
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        name
+                        parent_uuid
+                        unit_type_uuid
+                        time_planning_uuid
+                        org_unit_level_uuid
+                        org_unit_hierarchy_uuid: org_unit_hierarchy
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -196,7 +201,7 @@ def test_create_org_unit_integration_test(data, graphapi_post, org_uuids) -> Non
     """
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["org_units"])["objects"])
+    obj = one(one(response.data["org_units"]["objects"])["objects"])
     assert obj["name"] == test_data.name
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert UUID(obj["parent_uuid"]) == test_data.parent
@@ -247,13 +252,15 @@ async def test_org_unit_parent_filter(graphapi_post, filter_snippet, expected) -
     org_unit_query = f"""
         query OrgUnit {{
             org_units{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(org_unit_query)
     assert response.errors is None
-    assert len(response.data["org_units"]) == expected
+    assert len(response.data["org_units"]["objects"]) == expected
 
 
 @pytest.mark.integration_test
@@ -289,13 +296,15 @@ async def test_org_unit_hierarchy_filter(
     org_unit_query = f"""
         query OrgUnit {{
             org_units{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(org_unit_query)
     assert response.errors is None
-    assert len(response.data["org_units"]) == expected
+    assert len(response.data["org_units"]["objects"]) == expected
 
 
 @pytest.mark.integration_test
@@ -360,16 +369,18 @@ async def test_update_org_unit_mutation_integration_test(
         query MyQuery($uuid: UUID!) {
             org_units(uuids: [$uuid]) {
                 objects {
-                    user_key
-                    name
-                    parent: parent_uuid
-                    org_unit_type: unit_type_uuid
-                    time_planning: time_planning_uuid
-                    org_unit_level: org_unit_level_uuid
-                    org_unit_hierarchy: org_unit_hierarchy
-                    validity {
-                        from
-                        to
+                    objects {
+                        user_key
+                        name
+                        parent: parent_uuid
+                        org_unit_type: unit_type_uuid
+                        time_planning: time_planning_uuid
+                        org_unit_level: org_unit_level_uuid
+                        org_unit_hierarchy: org_unit_hierarchy
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -379,7 +390,7 @@ async def test_update_org_unit_mutation_integration_test(
     response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
     assert response.errors is None
 
-    pre_update_org_unit = one(one(response.data["org_units"])["objects"])
+    pre_update_org_unit = one(one(response.data["org_units"]["objects"])["objects"])
 
     mutate_query = """
         mutation UpdateOrgUnit($input: OrganisationUnitUpdateInput!) {
@@ -397,17 +408,19 @@ async def test_update_org_unit_mutation_integration_test(
         query VerifyQuery($uuid: [UUID!]!) {
             org_units(uuids: $uuid){
                 objects {
-                    uuid
-                    user_key
-                    name
-                    parent: parent_uuid
-                    org_unit_type: unit_type_uuid
-                    time_planning: time_planning_uuid
-                    org_unit_level: org_unit_level_uuid
-                    org_unit_hierarchy: org_unit_hierarchy
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        name
+                        parent: parent_uuid
+                        org_unit_type: unit_type_uuid
+                        time_planning: time_planning_uuid
+                        org_unit_level: org_unit_level_uuid
+                        org_unit_hierarchy: org_unit_hierarchy
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -417,7 +430,9 @@ async def test_update_org_unit_mutation_integration_test(
     verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
 
-    post_update_org_unit = one(one(verify_response.data["org_units"])["objects"])
+    post_update_org_unit = one(
+        one(verify_response.data["org_units"]["objects"])["objects"]
+    )
 
     expected_updated_org_unit = {
         k: v or pre_update_org_unit[k] for k, v in test_data.items()
@@ -526,16 +541,18 @@ async def test_get_org_unit_ancestors(graphapi_post, expected):
         query MyAncestorQuery($uuid: UUID!) {
           org_units(uuids: [$uuid]) {
             objects {
-              user_key
-              uuid
-              ancestors {
-                uuid
+              objects {
                 user_key
-                name
-                type
-                validity {
-                  from
-                  to
+                uuid
+                ancestors {
+                  uuid
+                  user_key
+                  name
+                  type
+                  validity {
+                    from
+                    to
+                  }
                 }
               }
             }
@@ -547,7 +564,7 @@ async def test_get_org_unit_ancestors(graphapi_post, expected):
         query=graphql_query, variables={"uuid": str(uuid)}
     )
 
-    obj = one(one(response.data["org_units"])["objects"])
+    obj = one(one(response.data["org_units"]["objects"])["objects"])
 
     assert response.errors is None
     assert response.status_code == 200
