@@ -465,13 +465,17 @@ def fetch_org_uuids(
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
-                uuid
+                objects {
+                    uuid
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(parent_uuids_query)
     assert response.errors is None
-    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["org_units"])))
+    uuids = list(
+        map(UUID, map(itemgetter("uuid"), response.data["org_units"]["objects"]))
+    )
     return uuids
 
 
@@ -482,13 +486,17 @@ def fetch_employee_uuids(
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
-                uuid
+                objects {
+                    uuid
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(parent_uuids_query)
     assert response.errors is None
-    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["employees"])))
+    uuids = list(
+        map(UUID, map(itemgetter("uuid"), response.data["employees"]["objects"]))
+    )
     return uuids
 
 
@@ -499,13 +507,17 @@ def fetch_itsystem_uuids(
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
             itsystems {
-                uuid
+                objects {
+                    uuid
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(itsystem_uuids_query)
     assert response.errors is None
-    uuids = list(map(UUID, map(itemgetter("uuid"), response.data["itsystems"])))
+    uuids = list(
+        map(UUID, map(itemgetter("uuid"), response.data["itsystems"]["objects"]))
+    )
     return uuids
 
 
