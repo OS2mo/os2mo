@@ -50,6 +50,7 @@ from . import usernames
 from .config import Settings
 from .converters import LdapConverter
 from .converters import read_mapping_json
+from .customer_specific_checks import ExportChecks
 from .dataloaders import DataLoader
 from .dependencies import valid_cpr
 from .exceptions import CPRFieldNotFound
@@ -327,6 +328,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_lifespan_manager(internal_amqpsystem)
     internal_amqpsystem.router.registry.update(internal_amqp_router.registry)
     internal_amqpsystem.context = fastramqpi._context
+
+    logger.info("Starting export checks module")
+    export_checks = ExportChecks(fastramqpi.get_context())
+    fastramqpi.add_context(export_checks=export_checks)
 
     logger.info("Initializing Sync tool")
     sync_tool = SyncTool(fastramqpi.get_context())

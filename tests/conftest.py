@@ -190,3 +190,8 @@ def settings() -> MagicMock:
 @pytest.fixture
 def username_generator() -> MagicMock:
     return MagicMock()
+
+
+@pytest.fixture
+def export_checks() -> AsyncMock:
+    return AsyncMock()
