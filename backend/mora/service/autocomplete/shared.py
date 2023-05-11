@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
 from uuid import UUID
-
 from more_itertools import one
 from sqlalchemy.engine.result import Result
 from sqlalchemy.engine.row import Row
+
+from mora import util
+from mora.service.address_handler.email import EmailAddressHandler
 
 UUID_SEARCH_MIN_PHRASE_LENGTH = 7
 
@@ -32,7 +34,6 @@ def read_sqlalchemy_result(result: Result) -> [Row]:
     return rows
 
 
-# def get_graphql_equivalent(graphql_response, org_unit_uuid: UUID) -> dict | None:
 def get_graphql_equivalent_by_uuid(
     graphql_data_elemtns: list[dict], org_unit_uuid: UUID
 ) -> dict | None:
@@ -41,3 +42,14 @@ def get_graphql_equivalent_by_uuid(
             return one(element["objects"])
 
     return None
+
+
+def string_to_urn(urn_string: str) -> str:
+    if util.is_uuid(urn_string):
+        return urn_string
+
+    email_handler = EmailAddressHandler(value=urn_string, visibility=None)
+    if email_handler.validate_value():
+        return email_handler.urn
+
+    return util.urnquote(urn_string)

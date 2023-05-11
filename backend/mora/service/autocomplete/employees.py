@@ -18,6 +18,7 @@ from sqlalchemy.sql import union
 from .shared import get_at_date_sql
 from .shared import get_graphql_equivalent_by_uuid
 from .shared import read_sqlalchemy_result
+from .shared import string_to_urn
 from .shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora import util
 from mora.db import BrugerAttrUdvidelser
@@ -203,9 +204,7 @@ def _get_cte_addr_hits(query: str, at_sql: str):
     orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
     orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
 
-    query = util.urnquote(
-        query.lower()
-    )  # since we are search through "rel_maal_urn"-cols
+    query = string_to_urn(query)
     search_phrase = util.query_to_search_phrase(query)
 
     return (
