@@ -4,6 +4,7 @@ from collections.abc import Callable
 
 import pytest
 
+from mora.graphapi.versions.latest.types import Cursor
 from tests.conftest import GQLResponse
 
 
@@ -100,16 +101,22 @@ async def test_pagination(
 ) -> None:
     """Test pagination."""
     query = f"""
-        query PaginationTestQuery($limit: int, $offset: int) {{
-          {resolver}(limit: $limit, offset: $offset) {{
-            uuid
+        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
+          {resolver}(limit: $limit, cursor: $cursor) {{
+            objects {{
+                uuid
+            }}
+            page_info {{
+                next_cursor
+            }}
           }}
         }}
     """
-    variables = dict(limit=limit, offset=offset)
+    cursor = Cursor._scalar_definition.serialize(offset) if offset is not None else None
+    variables = dict(limit=limit, cursor=cursor)
     response: GQLResponse = graphapi_post(query, variables)
     assert response.errors is None
-    assert len(response.data[resolver]) == expected_length
+    assert len(response.data[resolver]["objects"]) == expected_length
 
 
 @pytest.mark.integration_test
@@ -156,16 +163,23 @@ async def test_pagination_out_of_range(
 ) -> None:
     """Test that out of range pagination returns None."""
     query = f"""
-        query PaginationTestQuery($limit: int, $offset: int) {{
-          {resolver}(limit: $limit, offset: $offset) {{
-            uuid
+        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
+          {resolver}(limit: $limit, cursor: $cursor) {{
+            objects {{
+                uuid
+            }}
+            page_info {{
+                next_cursor
+            }}
           }}
         }}
     """
-    variables = dict(limit=limit, offset=offset)
+    cursor = Cursor._scalar_definition.serialize(offset)
+    variables = dict(limit=limit, cursor=cursor)
     response: GQLResponse = graphapi_post(query, variables)
     assert response.errors is None
-    assert response.data[resolver] == []
+    assert response.data[resolver]["objects"] == []
+    assert response.data[resolver]["page_info"]["next_cursor"] is None
     assert response.extensions == {
         "__page_out_of_range": True,
     }
