@@ -37,14 +37,16 @@ async def get_configuration() -> dict[str, Any]:
     query = """
     query ConfiguationQuery {
       configuration {
-        key
-        jsonified_value
+        objects {
+          key
+          jsonified_value
+        }
       }
     }
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
-    configurations = response.data["configuration"]
+    configurations = response.data["configuration"]["objects"]
     if not configurations:
         exceptions.ErrorCodes.E_UNKNOWN()
     keys = map(
