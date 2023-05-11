@@ -129,6 +129,11 @@ async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
     return cast(bool, ldap_connection.bound)
 
 
+async def poller_healthcheck(context: Union[dict, Context]) -> bool:
+    poller = context["user_context"]["poller"]
+    return cast(bool, poller.is_alive())
+
+
 def get_ldap_schema(ldap_connection: Connection):
     return ldap_connection.server.schema
 
@@ -471,7 +476,7 @@ def setup_listener(context: Context, callback: Callable):
     }
 
     # Polling search
-    setup_poller(
+    return setup_poller(
         context,
         callback,
         search_parameters,
