@@ -988,7 +988,7 @@ async def test_load_mo_it_user(dataloader: DataLoader, gql_client: AsyncMock):
     )
     assert output[0].user_key == "foo"
     assert output[0].itsystem.uuid == uuid2
-    assert output[0].person.uuid == uuid1
+    assert output[0].person.uuid == uuid1  # type: ignore
     assert output[0].validity.from_date.strftime("%Y-%m-%d") == "2021-01-01"
     assert len(output) == 1
 
