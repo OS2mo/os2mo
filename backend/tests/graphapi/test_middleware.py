@@ -72,7 +72,7 @@ def test_is_graphql(graphapi_test, latest_graphql_url):
 def test_graphql_dates_default(graphapi_test, latest_graphql_url):
     """Test default GraphQL date arguments."""
     response = graphapi_test.post(
-        latest_graphql_url, json={"query": "{ employees { uuid } }"}
+        latest_graphql_url, json={"query": "{ employees { objects { uuid } } }"}
     )
     data, errors = response.json().get("data"), response.json().get("errors")
     graphql_dates = response.json()["extensions"]["graphql_dates"]
@@ -91,7 +91,9 @@ def test_graphql_dates_explicit(graphapi_test, dates, latest_graphql_url):
     query = """
             query TestQuery($from_date: DateTime, $to_date: DateTime) {
                 employees(from_date: $from_date, to_date: $to_date) {
-                    uuid
+                    objects {
+                        uuid
+                    }
                 }
             }
             """
@@ -122,7 +124,9 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
     query = """
             query TestQuery($from_date: DateTime, $to_date: DateTime) {
                 employees(from_date: $from_date, to_date: $to_date) {
-                    uuid
+                    objects {
+                        uuid
+                    }
                 }
             }
             """
@@ -168,7 +172,8 @@ def test_graphql_dates_failure(graphapi_test_no_exc, dates, latest_graphql_url):
 def test_graphql_dates_to_lora(graphapi_test, latest_graphql_url):
     """Test that GraphQL arguments propagate to the LoRa connector."""
     response = graphapi_test.post(
-        latest_graphql_url, json={"query": "{ employees (to_date: null) { uuid } }"}
+        latest_graphql_url,
+        json={"query": "{ employees (to_date: null) { objects { uuid } } }"},
     )
     lora_args = response.json()["extensions"]["lora_args"]
     now = datetime.now(tz=tzutc())
