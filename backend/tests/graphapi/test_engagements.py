@@ -41,29 +41,31 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 engagements {
-                    uuid
                     objects {
                         uuid
-                        org_unit_uuid
-                        employee_uuid
-                        engagement_type_uuid
-                        job_function_uuid
-                        leave_uuid
-                        primary_uuid
-                        type
-                        user_key
-                        fraction
-                        validity {from to}
-                        extension_1
-                        extension_2
-                        extension_3
-                        extension_4
-                        extension_5
-                        extension_6
-                        extension_7
-                        extension_8
-                        extension_9
-                        extension_10
+                        objects {
+                            uuid
+                            org_unit_uuid
+                            employee_uuid
+                            engagement_type_uuid
+                            job_function_uuid
+                            leave_uuid
+                            primary_uuid
+                            type
+                            user_key
+                            fraction
+                            validity {from to}
+                            extension_1
+                            extension_2
+                            extension_3
+                            extension_4
+                            extension_5
+                            extension_6
+                            extension_7
+                            extension_8
+                            extension_9
+                            extension_10
+                        }
                     }
                 }
             }
@@ -72,7 +74,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["engagements"]) == test_data
+    assert flatten_data(response.data["engagements"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(EngagementRead))
@@ -86,7 +88,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     engagements(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -96,7 +100,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [assoc.get("uuid") for assoc in response.data["engagements"]]
+    result_uuids = [
+        assoc.get("uuid") for assoc in response.data["engagements"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -108,10 +114,12 @@ def test_query_is_primary(test_data, graphapi_post, patch_loader):
     query = """
             query {
                 engagements {
-                    uuid
                     objects {
                         uuid
-                        is_primary
+                        objects {
+                            uuid
+                            is_primary
+                        }
                     }
                 }
             }
@@ -128,7 +136,7 @@ def test_query_is_primary(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
 
-    for e in response.data["engagements"]:
+    for e in response.data["engagements"]["objects"]:
         if test_data[0]["primary_uuid"]:
             # primary_uuid is optional.
             # If it exists the patched is_primary returns True
@@ -242,13 +250,15 @@ async def test_engagement_filters(graphapi_post, filter_snippet, expected) -> No
     engagement_query = f"""
         query Managers {{
             engagements{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(engagement_query)
     assert response.errors is None
-    assert len(response.data["engagements"]) == expected
+    assert len(response.data["engagements"]["objects"]) == expected
 
 
 @given(test_data=...)
@@ -337,13 +347,15 @@ async def test_create_engagement_integration_test(
         query VerifyQuery($uuid: UUID!) {
             engagements(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    user_key
-                    org_unit: org_unit_uuid
-                    employee: employee_uuid
-                    engagement_type: engagement_type_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        user_key
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        engagement_type: engagement_type_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -351,7 +363,7 @@ async def test_create_engagement_integration_test(
     """
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["engagements"])["objects"])
+    obj = one(one(response.data["engagements"]["objects"])["objects"])
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
@@ -454,13 +466,15 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
         query MyQuery($uuid: UUID!) {
             engagements(uuids: [$uuid]) {
                 objects {
-                    user_key
-                    job_function: job_function_uuid
-                    org_unit: org_unit_uuid
-                    employee: employee_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        user_key
+                        job_function: job_function_uuid
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -469,7 +483,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
     response: GQLResponse = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
 
-    pre_update_engagement = one(one(response.data["engagements"])["objects"])
+    pre_update_engagement = one(one(response.data["engagements"]["objects"])["objects"])
 
     mutate_query = """
         mutation UpdateEngagement($input: EngagementUpdateInput!) {
@@ -488,14 +502,16 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
         query VerifyQuery($uuid: [UUID!]!) {
             engagements(uuids: $uuid){
                 objects {
-                    uuid
-                    user_key
-                    job_function: job_function_uuid
-                    org_unit: org_unit_uuid
-                    employee: employee_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        job_function: job_function_uuid
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -508,7 +524,9 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
 
     assert verify_response.errors is None
 
-    post_update_engagement = one(one(verify_response.data["engagements"])["objects"])
+    post_update_engagement = one(
+        one(verify_response.data["engagements"]["objects"])["objects"]
+    )
 
     # If value is None, we use data from our original query
     # to ensure that the field has not been updated
