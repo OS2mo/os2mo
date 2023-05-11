@@ -20,15 +20,17 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 leaves {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        employee_uuid
-                        engagement_uuid
-                        leave_type_uuid
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            engagement_uuid
+                            leave_type_uuid
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -37,7 +39,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["leaves"]) == test_data
+    assert flatten_data(response.data["leaves"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(LeaveRead))
@@ -51,7 +53,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     leaves(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -61,6 +65,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [leave.get("uuid") for leave in response.data["leaves"]]
+    result_uuids = [leave.get("uuid") for leave in response.data["leaves"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
