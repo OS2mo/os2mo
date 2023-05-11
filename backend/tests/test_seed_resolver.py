@@ -14,6 +14,7 @@ from strawberry.types.info import Info
 
 from mora.graphapi.versions.latest.resolvers import StaticResolver
 from mora.graphapi.versions.latest.schema import seed_resolver
+from mora.graphapi.versions.latest.types import Cursor
 
 
 class DummyModel:
@@ -57,11 +58,11 @@ def dict_remove_keys(
     [
         {},
         {"limit": lambda _: 1},
-        {"offset": lambda _: 2},
+        {"cursor": lambda _: 2},
         {
             "user_keys": lambda _: ["test"],
             "limit": lambda _: 1,
-            "offset": lambda _: 2,
+            "cursor": lambda _: 2,
         },
     ],
 )
@@ -81,7 +82,7 @@ async def test_signature_changes(seeds: dict[str, Any]) -> None:
             "user_keys", annotation=list[str] | None, default=None
         ),
         "limit": pos_parameter("limit", annotation=PositiveInt | None, default=None),
-        "offset": pos_parameter("offset", annotation=PositiveInt | None, default=None),
+        "cursor": pos_parameter("cursor", annotation=Cursor | None, default=None),
     }
 
     # Check the signature
@@ -134,7 +135,7 @@ async def test_signature_invalid_key(seeds: dict[str, Callable], expected: str) 
     [
         ({}, {}),
         ({"limit": lambda _: 1}, {"limit": 1}),
-        ({"offset": lambda _: 2}, {"offset": 2}),
+        ({"cursor": lambda _: 2}, {"cursor": 2}),
         ({"user_keys": lambda _: ["test"]}, {"user_keys": ["test"]}),
         (
             {"user_keys": lambda root: list(root.values())},
@@ -144,11 +145,11 @@ async def test_signature_invalid_key(seeds: dict[str, Callable], expected: str) 
             {
                 "user_keys": lambda _: ["test"],
                 "limit": lambda _: 1,
-                "offset": lambda _: 2,
+                "cursor": lambda _: 2,
             },
             {
                 "limit": 1,
-                "offset": 2,
+                "cursor": 2,
                 "user_keys": ["test"],
             },
         ),
@@ -176,7 +177,7 @@ async def test_call_values(
         "uuids": None,
         "user_keys": None,
         "limit": None,
-        "offset": None,
+        "cursor": None,
         "from_date": None,
         "to_date": None,
     }
