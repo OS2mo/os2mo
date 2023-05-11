@@ -389,13 +389,8 @@ class SyncTool:
                         delete,
                         routing_key.object_type,
                     )
-                except DNNotFound:
-                    logger.info(
-                        (
-                            "DN not found for employee "
-                            f"with uuid = {affected_employee.uuid}"
-                        )
-                    )
+                except DNNotFound as e:
+                    logger.info(e)
                     continue
 
     async def format_converted_objects(self, converted_objects, json_key):

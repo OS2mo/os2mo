@@ -127,7 +127,7 @@ async def test_listen_to_change_in_org_unit_address(
     # (even though load_mo_employees_in_org_unit returned three employee objects)
     assert modify_ldap_object.await_count == 2
 
-    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("Not found")
+    dataloader.find_or_make_mo_employee_dn.side_effect = DNNotFound("DN not found")
 
     with capture_logs() as cap_logs:
         await sync_tool.listen_to_changes_in_org_units(
@@ -138,9 +138,10 @@ async def test_listen_to_change_in_org_unit_address(
         )
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
+
         assert re.match(
-            "DN not found.",
-            messages[-1]["event"],
+            "DN not found",
+            messages[-1]["event"].detail,
         )
 
 
