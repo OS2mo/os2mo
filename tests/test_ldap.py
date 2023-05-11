@@ -47,6 +47,7 @@ from mo_ldap_import_export.ldap import is_guid
 from mo_ldap_import_export.ldap import ldap_healthcheck
 from mo_ldap_import_export.ldap import make_ldap_object
 from mo_ldap_import_export.ldap import paged_search
+from mo_ldap_import_export.ldap import poller_healthcheck
 from mo_ldap_import_export.ldap import set_search_params_modify_timestamp
 from mo_ldap_import_export.ldap import setup_poller
 from mo_ldap_import_export.ldap import single_object_search
@@ -786,3 +787,12 @@ def test_is_guid():
     assert is_guid("not_an_uuid") is False
     assert is_guid(None) is False
     assert is_guid(uuid4()) is True
+
+
+async def test_poller_healthcheck():
+    poller = MagicMock()
+    poller.is_alive.return_value = True
+    assert (await poller_healthcheck({"user_context": {"poller": poller}})) is True
+
+    poller.is_alive.return_value = True
+    assert (await poller_healthcheck({"user_context": {"poller": poller}})) is True
