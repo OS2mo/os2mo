@@ -47,18 +47,20 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 employees {
-                    uuid
                     objects {
-                        givenname
-                        surname
-                        nickname_givenname
-                        nickname_surname
-                        cpr_no
-                        seniority
-                        user_key
-                        type
                         uuid
-                        validity {from to}
+                        objects {
+                            givenname
+                            surname
+                            nickname_givenname
+                            nickname_surname
+                            cpr_no
+                            seniority
+                            user_key
+                            type
+                            uuid
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -67,7 +69,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["employees"]) == test_data
+    assert flatten_data(response.data["employees"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(EmployeeRead))
@@ -81,7 +83,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     employees(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -91,7 +95,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [empl.get("uuid") for empl in response.data["employees"]]
+    result_uuids = [empl.get("uuid") for empl in response.data["employees"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -346,17 +350,19 @@ async def test_create_employee_integration_test(
         query VerifyQuery($uuid: UUID!) {
             employees(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    user_key
-                    givenname
-                    surname
-                    cpr_no
+                    objects {
+                        user_key
+                        givenname
+                        surname
+                        cpr_no
+                    }
                 }
             }
         }
     """
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["employees"])["objects"])
+    obj = one(one(response.data["employees"]["objects"])["objects"])
     assert obj["givenname"] == test_data.givenname
     assert obj["surname"] == test_data.surname
     assert obj["user_key"] == test_data.user_key or str(uuid)
@@ -686,9 +692,9 @@ async def test_update_integration(given_data, graphapi_post):
         _get_employee_verify_query(), {mapping.UUID: str(test_data_uuid_updated)}
     )
     assert verify_response.errors is None
-    assert len(verify_response.data["employees"]) > 0
+    assert len(verify_response.data["employees"]["objects"]) > 0
 
-    verify_data_employee = one(verify_response.data["employees"])
+    verify_data_employee = one(verify_response.data["employees"]["objects"])
     verify_data_employee_objs = verify_data_employee.get("objects", [])
     assert len(verify_data_employee_objs) > 1
 
@@ -825,24 +831,25 @@ def _get_lora_mutator_arg(mutator_key: str, lora_employee: dict):
 
 def _get_employee_verify_query():
     return """
-        query VerifyQuery($uuid: UUID!){
-          employees(uuids: [$uuid], from_date: null, to_date: null)
-              {
-                uuid,
-                objects {
-                  uuid
-                  user_key
-                  givenname
-                  surname
-                  nickname_givenname
-                  nickname_surname
-                  seniority
-                  cpr_no
-                  validity {
-                      from
-                      to
-                  }
+        query VerifyQuery($uuid: UUID!) {
+          employees(uuids: [$uuid], from_date: null, to_date: null) {
+            objects {
+              uuid,
+              objects {
+                uuid
+                user_key
+                givenname
+                surname
+                nickname_givenname
+                nickname_surname
+                seniority
+                cpr_no
+                validity {
+                  from
+                  to
                 }
               }
+            }
+          }
         }
     """
