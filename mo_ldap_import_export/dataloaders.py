@@ -755,7 +755,7 @@ class DataLoader:
         else:
             raise DNNotFound(
                 (
-                    "Could not find or generate DN; "
+                    f"Could not find or generate DN for empoyee with uuid = '{uuid}' "
                     "The LDAP it-system does not exist and a cpr-match could "
                     "also not be obtained"
                 )
