@@ -18,10 +18,12 @@ def fetch_org_unit_validity(
         query FetchValidity($uuid: UUID!) {
             org_units(uuids: [$uuid]) {
                 objects {
-                    uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -29,7 +31,7 @@ def fetch_org_unit_validity(
     """
     response: GQLResponse = graphapi_post(validity_query, {"uuid": str(org_uuid)})
     assert response.errors is None
-    validity = one(one(response.data["org_units"])["objects"])["validity"]
+    validity = one(one(response.data["org_units"]["objects"])["objects"])["validity"]
     from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
     to_time = (
         datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
@@ -46,10 +48,12 @@ def fetch_employee_validity(
         query FetchValidity($uuid: UUID!) {
             employees(uuids: [$uuid]) {
                 objects {
-                    uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -57,7 +61,7 @@ def fetch_employee_validity(
     """
     response: GQLResponse = graphapi_post(validity_query, {"uuid": str(employee_uuid)})
     assert response.errors is None
-    validity = one(one(response.data["employees"])["objects"])["validity"]
+    validity = one(one(response.data["employees"]["objects"])["objects"])["validity"]
     from_time = datetime.fromisoformat(validity["from"]).replace(tzinfo=None)
     to_time = (
         datetime.fromisoformat(validity["to"]).replace(tzinfo=None)
@@ -71,14 +75,16 @@ def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     class_query = """
         query FetchClassUUIDs($user_key: String!) {
             facets(user_keys: [$user_key]) {
-                classes {
-                    uuid
+                objects {
+                    classes {
+                        uuid
+                    }
                 }
             }
         }
     """
     response: GQLResponse = graphapi_post(class_query, {"user_key": facet_name})
     assert response.errors is None
-    facet = one(response.data["facets"])
+    facet = one(response.data["facets"]["objects"])
     class_uuids = list(map(UUID, map(itemgetter("uuid"), facet["classes"])))
     return class_uuids

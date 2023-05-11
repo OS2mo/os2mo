@@ -31,7 +31,7 @@ async def test_list_addresses_ou_validity_tuple_at_attr_and_validity_literal(
     org_id, validity_literal, at_attr = get_list_addresses_ou_test_data
     mock_validity_tuple.return_value = (at_attr, at_attr)
     mock_execute_graphql.return_value = ExecutionResult(
-        errors=None, data={"org_units": []}
+        errors=None, data={"org_units": {"objects": []}}
     )
 
     result = await list_addresses_ou(
@@ -48,7 +48,7 @@ async def test_list_addresses_ou_execute_graphql_specific_date(
 ):
     org_id, validity_literal, at_attr = get_list_addresses_ou_test_data
     mock_execute_graphql.return_value = ExecutionResult(
-        errors=None, data={"org_units": []}
+        errors=None, data={"org_units": {"objects": []}}
     )
 
     result = await list_addresses_ou(
