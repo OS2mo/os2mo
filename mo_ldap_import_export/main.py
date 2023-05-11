@@ -62,6 +62,7 @@ from .import_export import SyncTool
 from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
+from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_classes import LdapObject
 from .logging import logger
@@ -342,10 +343,12 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(poll_time=settings.poll_time)
 
     if settings.listen_to_changes_in_ldap:
-        setup_listener(
+        poller = setup_listener(
             fastramqpi.get_context(),
             partial(listener, fastramqpi.get_context()),
         )
+        fastramqpi.add_context(poller=poller)
+        fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
 
     return fastramqpi
 
