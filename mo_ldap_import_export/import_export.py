@@ -109,6 +109,8 @@ class SyncTool:
         self.dataloader = self.user_context["dataloader"]
         self.converter = self.user_context["converter"]
         self.uuids_in_progress: list[UUID] = []
+        self.export_checks = self.user_context["export_checks"]
+        self.settings = self.user_context["settings"]
 
     @staticmethod
     def wait_for_change_to_finish(func: Callable, sleep_time: float = 2):
@@ -133,6 +135,17 @@ class SyncTool:
 
         return modified_func
 
+    async def perform_export_checks(self, employee_uuid):
+        """
+        Perform a number of customer-specific checks. Raising IgnoreChanges() if a
+        check fails
+        """
+
+        if self.settings.check_alleroed_sd_number:
+            # Check that an SD-employee number does not start with 9
+            # If it does, rejectMessage is raised.
+            await self.export_checks.check_alleroed_sd_number(employee_uuid)
+
     @wait_for_change_to_finish
     async def listen_to_changes_in_employees(
         self,
@@ -150,6 +163,7 @@ class SyncTool:
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
         # those changes potentially map to multiple employees
         self.uuids_to_ignore.check(payload.object_uuid)
+        await self.perform_export_checks(payload.uuid)
 
         try:
             dn = await self.dataloader.find_or_make_mo_employee_dn(payload.uuid)
@@ -300,6 +314,7 @@ class SyncTool:
         delete,
         object_type,
     ):
+        await self.perform_export_checks(affected_employee.uuid)
         dn = await self.dataloader.find_or_make_mo_employee_dn(affected_employee.uuid)
 
         mo_object_dict = {
@@ -390,6 +405,9 @@ class SyncTool:
                         routing_key.object_type,
                     )
                 except DNNotFound as e:
+                    logger.info(e)
+                    continue
+                except IgnoreChanges as e:
                     logger.info(e)
                     continue
 

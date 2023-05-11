@@ -30,9 +30,21 @@ from mo_ldap_import_export.ldap_classes import LdapObject
 
 
 @pytest.fixture
-def context(dataloader: AsyncMock, converter: MagicMock) -> Context:
+def context(
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    export_checks: AsyncMock,
+    settings: MagicMock,
+) -> Context:
     context = Context(
-        {"user_context": {"dataloader": dataloader, "converter": converter}}
+        {
+            "user_context": {
+                "dataloader": dataloader,
+                "converter": converter,
+                "export_checks": export_checks,
+                "settings": settings,
+            }
+        }
     )
     return context
 
@@ -141,6 +153,23 @@ async def test_listen_to_change_in_org_unit_address(
 
         assert re.match(
             "DN not found",
+            messages[-1]["event"].detail,
+        )
+
+    dataloader.find_or_make_mo_employee_dn.side_effect = IgnoreChanges("Ignore this")
+
+    with capture_logs() as cap_logs:
+        await sync_tool.listen_to_changes_in_org_units(
+            payload,
+            routing_key=mo_routing_key,
+            delete=False,
+            current_objects_only=True,
+        )
+
+        messages = [w for w in cap_logs if w["log_level"] == "info"]
+
+        assert re.match(
+            "Ignore this",
             messages[-1]["event"].detail,
         )
 

@@ -147,3 +147,11 @@ class Settings(BaseSettings):
         "IMPORTED FROM LDAP: ",
         description="Tag which is added to all imported org-units",
     )
+
+    check_alleroed_sd_number: bool = Field(
+        False,
+        description=(
+            "Check that an SD-employee number does not start with 9, "
+            "before writing to LDAP"
+        ),
+    )
