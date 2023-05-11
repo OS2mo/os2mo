@@ -929,7 +929,7 @@ class DataLoader:
 
         return output
 
-    async def load_mo_it_user(self, uuid: UUID, current_objects_only=True):
+    async def load_mo_it_user(self, uuid: UUID, current_objects_only=True) -> ITUser:
         query = gql(
             """
             query MyQuery {
@@ -1161,7 +1161,11 @@ class DataLoader:
             output.append(address)
         return output
 
-    async def load_mo_employee_it_users(self, employee_uuid, it_system_uuid):
+    async def load_mo_employee_it_users(
+        self,
+        employee_uuid,
+        it_system_uuid,
+    ) -> list[ITUser]:
         """
         Load all current it users of a specific type linked to an employee
         """
