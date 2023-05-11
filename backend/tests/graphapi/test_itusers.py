@@ -42,19 +42,20 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 itusers {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        employee_uuid
-                        org_unit_uuid
-                        engagement_uuid
-                        itsystem_uuid
-                        primary_uuid
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            org_unit_uuid
+                            engagement_uuid
+                            itsystem_uuid
+                            primary_uuid
+                            type
+                            validity {from to}
+                        }
                     }
-
                 }
             }
         """
@@ -62,7 +63,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["itusers"]) == test_data
+    assert flatten_data(response.data["itusers"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ITUserRead))
@@ -76,7 +77,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     itusers(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -86,7 +89,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [ituser.get("uuid") for ituser in response.data["itusers"]]
+    result_uuids = [
+        ituser.get("uuid") for ituser in response.data["itusers"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -202,15 +207,17 @@ async def test_create_ituser_employee_integration_test(
         query VerifyQuery($uuid: UUID!) {
             itusers(uuids: [$uuid]) {
                 objects {
-                    type
-                    user_key
-                    itsystem_uuid
-                    employee_uuid
-                    org_unit_uuid
-                    engagement_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        type
+                        user_key
+                        itsystem_uuid
+                        employee_uuid
+                        org_unit_uuid
+                        engagement_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -225,8 +232,8 @@ async def test_create_ituser_employee_integration_test(
     # query failing WITHOUT returning that exact error. Therefore we need to check that
     # response.data["itusers"] is not empty.
     # The test should fail, if any other error is thrown
-    if len(response.data["itusers"]):
-        obj = one(one(response.data["itusers"])["objects"])
+    if len(response.data["itusers"]["objects"]):
+        obj = one(one(response.data["itusers"]["objects"])["objects"])
         assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
@@ -315,15 +322,17 @@ async def test_create_ituser_org_unit_integration_test(
         query VerifyQuery($uuid: UUID!) {
             itusers(uuids: [$uuid]) {
                 objects {
-                    type
-                    user_key
-                    itsystem_uuid
-                    employee_uuid
-                    org_unit_uuid
-                    engagement_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        type
+                        user_key
+                        itsystem_uuid
+                        employee_uuid
+                        org_unit_uuid
+                        engagement_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -338,8 +347,8 @@ async def test_create_ituser_org_unit_integration_test(
     # query failing WITHOUT returning that exact error. Therefore we need to check that
     # response.data["itusers"] is not empty.
     # The test should fail, if any other error is thrown
-    if len(response.data["itusers"]):
-        obj = one(one(response.data["itusers"])["objects"])
+    if len(response.data["itusers"]["objects"]):
+        obj = one(one(response.data["itusers"]["objects"])["objects"])
         assert obj["type"] == test_data.type_
         assert obj["user_key"] == test_data.user_key
         assert UUID(obj["itsystem_uuid"]) == test_data.itsystem
@@ -434,13 +443,15 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
         query MyQuery {
             itusers {
                 objects {
-                    uuid
-                    user_key
-                    primary: primary_uuid
-                    itsystem: itsystem_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        primary: primary_uuid
+                        itsystem: itsystem_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -449,7 +460,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
     response: GQLResponse = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
 
-    pre_update_ituser = one(one(response.data["itusers"])["objects"])
+    pre_update_ituser = one(one(response.data["itusers"]["objects"])["objects"])
 
     mutate_query = """
         mutation UpdateITUser($input: ITUserUpdateInput!) {
@@ -468,13 +479,15 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
         query VerifyQuery($uuid: [UUID!]!) {
             itusers(uuids: $uuid){
                 objects {
-                    uuid
-                    user_key
-                    primary: primary_uuid
-                    itsystem: itsystem_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        primary: primary_uuid
+                        itsystem: itsystem_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -487,7 +500,7 @@ async def test_update_ituser_integration_test(graphapi_post, test_data) -> None:
 
     assert verify_response.errors is None
 
-    post_update_ituser = one(one(verify_response.data["itusers"])["objects"])
+    post_update_ituser = one(one(verify_response.data["itusers"]["objects"])["objects"])
 
     # If value is None, we use data from our original query
     # to ensure that the field has not been updated
