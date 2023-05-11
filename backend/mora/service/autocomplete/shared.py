@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from datetime import date
 from uuid import UUID
+
 from more_itertools import one
 from sqlalchemy.engine.result import Result
 from sqlalchemy.engine.row import Row

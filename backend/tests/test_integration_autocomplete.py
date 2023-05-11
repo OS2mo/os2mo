@@ -91,6 +91,148 @@ def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClien
     }
 
 
+# @pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClient):
+    at = datetime.now().date()
+    query = "Anders And"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+    query = "erik"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "name": "Erik Smidt Hansen",
+                "attrs": [
+                    {
+                        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+# @pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClient):
+    at = datetime.now().date()
+    query = "bruger@example.com"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+    query = "erik"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "name": "Erik Smidt Hansen",
+                "attrs": [
+                    {
+                        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                ],
+            }
+        ]
+    }
+
+
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
