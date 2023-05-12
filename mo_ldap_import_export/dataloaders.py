@@ -397,7 +397,7 @@ class DataLoader:
         json_key: str,
         overwrite: bool = False,
         delete: bool = False,
-    ):
+    ) -> list[dict]:
         """
         Parameters
         -------------
@@ -414,7 +414,7 @@ class DataLoader:
         converter = self.user_context["converter"]
         if not converter.__export_to_ldap__(json_key):
             logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
-            return None
+            return []
         success = 0
         failed = 0
 
