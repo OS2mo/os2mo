@@ -35,11 +35,17 @@ class CprNo(ConstrainedStr):
 
 async def get_uuids(obj: str, graphapi_post: Callable) -> UUID:
     """Queries for uuids for a given object type. Eg. Employees."""
-    query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])
+    if obj == "org":
+        query = "".join(["query FetchUUIDs {", obj, "{uuid}}"])
+    else:
+        query = "".join(["query FetchUUIDs {", obj, "{objects {uuid}}}"])
 
     response = graphapi_post(query=query)
     assert response.errors is None
-    uuids = response.data.get(obj, {}) if response.data else {}
+    if obj == "org":
+        uuids = response.data.get(obj, {}) if response.data else {}
+    else:
+        uuids = response.data.get(obj, {})["objects"] if response.data else {}
     if isinstance(uuids, dict):
         return UUID(uuids.get("uuid", {}))
     return UUID(sys_random.choice(uuids).get("uuid"))
