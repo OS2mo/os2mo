@@ -4,7 +4,6 @@ import strawberry
 from pydantic import parse_obj_as
 from strawberry.types import Info
 
-from ..latest.health import health_map
 from ..latest.models import HealthRead
 from ..latest.permissions import gen_read_permission
 from ..latest.schema import Health
@@ -25,9 +24,6 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
 
         Returns a list of Health(s), instead of PagedHealth(s).
         """
-        healthchecks = set(health_map.keys())
-        if identifiers is not None:
-            healthchecks = healthchecks.intersection(set(identifiers))
         response = await execute_graphql(
             """
             query HealthQuery ($identifiers: [String!]){
