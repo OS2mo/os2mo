@@ -1058,7 +1058,6 @@ async def test_wait_for_export_to_finish(sync_tool: SyncTool):
 def test_cleanup_needed(sync_tool: SyncTool):
     assert sync_tool.cleanup_needed([{"description": "success"}]) is True
     assert sync_tool.cleanup_needed([{"description": "PermissionDenied"}]) is False
-    assert sync_tool.cleanup_needed([None]) is False
 
 
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):

@@ -170,7 +170,7 @@ class SyncTool:
             # If it does, rejectMessage is raised.
             await self.export_checks.check_alleroed_sd_number(employee_uuid)
 
-    def cleanup_needed(self, ldap_modify_responses):
+    def cleanup_needed(self, ldap_modify_responses: list[dict]):
         """
         If nothing was modified in LDAP, we also do not need to clean up.
         """
