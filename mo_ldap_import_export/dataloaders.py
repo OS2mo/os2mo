@@ -459,7 +459,8 @@ class DataLoader:
             elif response:
                 failed += 1
 
-            results.append(response)
+            if response:
+                results.append(response)
 
         logger.info(f"Succeeded MODIFY_* operations: {success}")
         logger.info(f"Failed MODIFY_* operations: {failed}")
