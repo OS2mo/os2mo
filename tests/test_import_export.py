@@ -759,6 +759,7 @@ async def test_import_single_object_from_LDAP_ignore_twice(
     uuids_to_ignore.ignore_dict = {str(uuid): [datetime.datetime.now()]}
     sync_tool.uuids_to_ignore = uuids_to_ignore
 
+    assert len(sync_tool.uuids_to_ignore[uuid]) == 1
     await asyncio.gather(sync_tool.import_single_user("CN=foo"))
     assert len(sync_tool.uuids_to_ignore[uuid]) == 2
 
@@ -779,6 +780,27 @@ async def test_import_single_object_from_LDAP_ignore_dn(
             f"\\[check_ignore_dict\\] Ignoring {dn_to_ignore.lower()}",
             messages[-1]["event"].detail,
         )
+
+
+async def test_import_single_object_from_LDAP_force(
+    converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+) -> None:
+    dn_to_ignore = "CN=foo"
+    ldap_object = LdapObject(dn=dn_to_ignore)
+    dataloader.load_ldap_object.return_value = ldap_object
+    sync_tool.dns_to_ignore.add(dn_to_ignore)
+    sync_tool.dns_to_ignore.add(dn_to_ignore)  # Ignore this DN twice
+
+    uuid = uuid4()
+    mo_object_mock = MagicMock
+    mo_object_mock.uuid = uuid
+    converter.from_ldap.return_value = [mo_object_mock]
+
+    assert len(sync_tool.uuids_to_ignore[uuid]) == 0
+    await asyncio.gather(sync_tool.import_single_user("CN=foo", force=False))
+    assert len(sync_tool.uuids_to_ignore[uuid]) == 0
+    await asyncio.gather(sync_tool.import_single_user("CN=foo", force=True))
+    assert len(sync_tool.uuids_to_ignore[uuid]) == 1
 
 
 async def test_import_single_object_from_LDAP_but_import_equals_false(
@@ -972,13 +994,13 @@ async def test_remove_from_ignoreMe():
     assert len(strings_to_ignore[uuid]) == 0
 
 
-async def test_wait_for_change_to_finish(sync_tool: SyncTool):
+async def test_wait_for_export_to_finish(sync_tool: SyncTool):
 
-    wait_for_change_to_finish = partial(
-        sync_tool.wait_for_change_to_finish, sleep_time=0.1
+    wait_for_export_to_finish = partial(
+        sync_tool.wait_for_export_to_finish, sleep_time=0.1
     )
 
-    @wait_for_change_to_finish
+    @wait_for_export_to_finish
     async def decorated_func(self, payload):
         await asyncio.sleep(0.2)
         return
@@ -1037,3 +1059,61 @@ def test_cleanup_needed(sync_tool: SyncTool):
     assert sync_tool.cleanup_needed([{"description": "success"}]) is True
     assert sync_tool.cleanup_needed([{"description": "PermissionDenied"}]) is False
     assert sync_tool.cleanup_needed([None]) is False
+
+
+async def test_wait_for_import_to_finish(sync_tool: SyncTool):
+
+    wait_for_import_to_finish = partial(
+        sync_tool.wait_for_import_to_finish, sleep_time=0.1
+    )
+
+    @wait_for_import_to_finish
+    async def decorated_func(self, dn):
+        await asyncio.sleep(0.2)
+        return
+
+    async def regular_func(self, dn):
+        await asyncio.sleep(0.2)
+        return
+
+    dn = "CN=foo"
+    different_dn = "CN=bar"
+
+    # Normally this would execute in 0.2 seconds + overhead
+    t1 = time.time()
+    await asyncio.gather(
+        regular_func(sync_tool, dn),
+        regular_func(sync_tool, dn),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.2
+    assert elapsed_time < 0.3
+
+    # But the decorator will make the second call wait for the first one to complete
+    t1 = time.time()
+    await asyncio.gather(
+        decorated_func(sync_tool, dn),
+        decorated_func(sync_tool, dn),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.4
+    assert elapsed_time < 0.5
+
+    # But only if payload.uuid is the same in both calls
+    t1 = time.time()
+    await asyncio.gather(
+        decorated_func(sync_tool, dn),
+        decorated_func(sync_tool, different_dn),
+    )
+    t2 = time.time()
+
+    elapsed_time = t2 - t1
+
+    assert elapsed_time >= 0.2
+    assert elapsed_time < 0.3
