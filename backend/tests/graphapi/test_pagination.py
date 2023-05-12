@@ -183,3 +183,63 @@ async def test_pagination_out_of_range(
     assert response.extensions == {
         "__page_out_of_range": True,
     }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize("limit", [1, 5, 10, 100])
+@pytest.mark.parametrize(
+    "resolver,expected",
+    [
+        ("addresses", 10),
+        ("associations", 1),
+        ("classes", 39),
+        ("employees", 5),
+        ("engagement_associations", 1),
+        ("engagements", 3),
+        ("facets", 19),
+        ("itsystems", 3),
+        ("itusers", 1),
+        ("kles", 1),
+        ("leaves", 1),
+        ("managers", 1),
+        ("org_units", 10),
+        ("related_units", 1),
+        ("roles", 1),
+    ],
+)
+async def test_cursor_based_pagination(
+    graphapi_post: Callable,
+    limit: int,
+    resolver: str,
+    expected: int,
+) -> None:
+    """Test that out of range pagination returns None."""
+    query = f"""
+        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
+          {resolver}(limit: $limit, cursor: $cursor) {{
+            objects {{
+                uuid
+            }}
+            page_info {{
+                next_cursor
+            }}
+          }}
+        }}
+    """
+    elements = []
+
+    cursor = None
+    while True:
+        variables = dict(limit=limit, cursor=cursor)
+        response: GQLResponse = graphapi_post(query, variables)
+        assert response.errors is None
+        elements.extend(response.data[resolver]["objects"])
+        cursor = response.data[resolver]["page_info"]["next_cursor"]
+        if cursor is None:
+            break
+
+    assert len(elements) == expected
+    assert response.extensions == {
+        "__page_out_of_range": True,
+    }
