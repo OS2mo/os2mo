@@ -94,6 +94,7 @@ async def test_listen_to_change_in_org_unit_address(
     load_mo_employees_in_org_unit = AsyncMock()
     load_mo_org_unit_addresses = AsyncMock()
     modify_ldap_object = AsyncMock()
+    modify_ldap_object.return_value = [{"description": "success"}]
 
     load_mo_address.return_value = address
 
@@ -1030,3 +1031,9 @@ async def test_wait_for_change_to_finish(sync_tool: SyncTool):
 
     assert elapsed_time >= 0.2
     assert elapsed_time < 0.3
+
+
+def test_cleanup_needed(sync_tool: SyncTool):
+    assert sync_tool.cleanup_needed([{"description": "success"}]) is True
+    assert sync_tool.cleanup_needed([{"description": "PermissionDenied"}]) is False
+    assert sync_tool.cleanup_needed([None]) is False
