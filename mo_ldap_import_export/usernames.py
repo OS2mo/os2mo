@@ -3,12 +3,12 @@ import re
 from typing import Union
 
 from fastramqpi.context import Context
-from ldap3.utils.dn import safe_dn
 from ramodels.mo.employee import Employee
 
 from .exceptions import IncorrectMapping
 from .ldap import paged_search
 from .logging import logger
+from .utils import combine_dn_strings
 
 
 class UserNameGeneratorBase:
@@ -110,19 +110,14 @@ class UserNameGeneratorBase:
     def _make_dn(self, username_string: str) -> str:
 
         cn = self._make_cn(username_string)
-
-        lst: list[str] = list(
-            filter(
-                None,
-                [
-                    cn,
-                    self.settings.ldap_ou_for_new_users,
-                    self.settings.ldap_search_base,
-                ],
-            )
+        dn = combine_dn_strings(
+            [
+                cn,
+                self.settings.ldap_ou_for_new_users,
+                self.settings.ldap_search_base,
+            ]
         )
 
-        dn: str = safe_dn(",".join(lst))  # Distinguished Name
         return dn
 
     def _name_fixer(self, name: list[str]) -> list[str]:

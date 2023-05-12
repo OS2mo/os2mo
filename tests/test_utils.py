@@ -14,6 +14,7 @@ from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import InvalidQuery
 from mo_ldap_import_export.utils import add_filter_to_query
+from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
@@ -168,3 +169,9 @@ async def test_countdown():
     await countdown(0, "foo")
     t2 = time.time()
     assert (t2 - t1) < 0.1
+
+
+def test_combine_dn_strings():
+    assert combine_dn_strings(["CN=Nick", "", "DC=bar"]) == "CN=Nick,DC=bar"
+    assert combine_dn_strings(["CN=Nick", "OU=f", "DC=bar"]) == "CN=Nick,OU=f,DC=bar"
+    assert combine_dn_strings(["CN=Nick", "DC=bar"]) == "CN=Nick,DC=bar"

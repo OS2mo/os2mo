@@ -9,6 +9,7 @@ from typing import Union
 from gql import gql
 from graphql import DocumentNode
 from graphql import print_ast
+from ldap3.utils.dn import safe_dn
 
 from .exceptions import InvalidQuery
 from .logging import logger
@@ -153,3 +154,22 @@ async def countdown(
         )
         await asyncio.sleep(min(update_interval, seconds_remaining))
         seconds_remaining -= update_interval
+
+
+def combine_dn_strings(dn_strings: list[str]) -> str:
+    """
+    Combine LDAP DN strings, skipping if a string is empty
+
+    Examples
+    ---------------
+    >>> combine_dn_strings(["CN=Nick","","DC=bar"])
+    >>> "CN=Nick,DC=bar"
+    """
+    lst: list[str] = list(
+        filter(
+            None,
+            dn_strings,
+        )
+    )
+    dn: str = safe_dn(",".join(lst))
+    return dn
