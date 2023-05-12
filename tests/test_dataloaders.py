@@ -122,8 +122,8 @@ def username_generator() -> MagicMock:
 
 
 @pytest.fixture
-def sync_tool() -> MagicMock:
-    sync_tool = MagicMock()
+def sync_tool() -> AsyncMock:
+    sync_tool = AsyncMock()
     sync_tool.dns_to_ignore = IgnoreMe()
     return sync_tool
 
@@ -137,7 +137,7 @@ def context(
     cpr_field: str,
     converter: MagicMock,
     gql_client_sync: MagicMock,
-    sync_tool: MagicMock,
+    sync_tool: AsyncMock,
     username_generator: MagicMock,
 ) -> Context:
 
@@ -1589,7 +1589,7 @@ async def test_load_mo_object(dataloader: DataLoader):
 
 async def test_modify_ldap(
     dataloader: DataLoader,
-    sync_tool: MagicMock,
+    sync_tool: AsyncMock,
     ldap_connection: MagicMock,
 ):
 

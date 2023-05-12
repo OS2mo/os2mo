@@ -109,11 +109,12 @@ class SyncTool:
         self.dataloader = self.user_context["dataloader"]
         self.converter = self.user_context["converter"]
         self.uuids_in_progress: list[UUID] = []
+        self.dns_in_progress: list[str] = []
         self.export_checks = self.user_context["export_checks"]
         self.settings = self.user_context["settings"]
 
     @staticmethod
-    def wait_for_change_to_finish(func: Callable, sleep_time: float = 2):
+    def wait_for_export_to_finish(func: Callable, sleep_time: float = 2):
         """
         Runs the function normally but calls asyncio.sleep in case it is already
         running with the same uuid as input parameter
@@ -132,6 +133,29 @@ class SyncTool:
                 await func(self, *args, **kwargs)
             finally:
                 self.uuids_in_progress.remove(uuid)
+
+        return modified_func
+
+    @staticmethod
+    def wait_for_import_to_finish(func: Callable, sleep_time: float = 2):
+        """
+        Runs the function normally but calls asyncio.sleep in case it is already
+        running with the same dn as input parameter
+        """
+
+        @wraps(func)
+        async def modified_func(self, *args, **kwargs):
+            dn = args[0] if args else kwargs["dn"]
+
+            while dn in self.dns_in_progress:
+                logger.info(f"{dn} in progress. Trying again in {sleep_time} seconds")
+                await asyncio.sleep(sleep_time)
+
+            self.dns_in_progress.append(dn)
+            try:
+                await func(self, *args, **kwargs)
+            finally:
+                self.dns_in_progress.remove(dn)
 
         return modified_func
 
@@ -157,7 +181,7 @@ class SyncTool:
         logger.info("No cleanup needed")
         return False
 
-    @wait_for_change_to_finish
+    @wait_for_export_to_finish
     async def listen_to_changes_in_employees(
         self,
         payload: PayloadType,
@@ -319,7 +343,7 @@ class SyncTool:
                     dn,
                 )
 
-    @wait_for_change_to_finish
+    @wait_for_export_to_finish
     async def process_employee_address(
         self,
         affected_employee,
@@ -360,7 +384,7 @@ class SyncTool:
                 dn,
             )
 
-    @wait_for_change_to_finish
+    @wait_for_export_to_finish
     async def listen_to_changes_in_org_units(
         self,
         payload: PayloadType,
@@ -574,12 +598,20 @@ class SyncTool:
 
         return converted_objects_uuid_checked
 
-    async def import_single_user(self, dn: str):
+    @wait_for_import_to_finish
+    async def import_single_user(self, dn: str, force=False):
         """
         Imports a single user from LDAP
+
+        Parameters
+        ----------------
+        force : bool
+            Can be set to 'True' to force import a user. Meaning that we do not check
+            if the dn is in self.dns_to_ignore.
         """
         try:
-            self.dns_to_ignore.check(dn)
+            if not force:
+                self.dns_to_ignore.check(dn)
         except IgnoreChanges as e:
             logger.info(e)
             return

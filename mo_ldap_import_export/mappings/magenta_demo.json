@@ -1,7 +1,8 @@
 {
   "init": {
     "it_systems": {
-      "ADGUID": "Active Directory GUID"
+      "ADGUID": "Active Directory GUID",
+      "ADSAMA": "Active Directory sAMAccountName",
     },
     "facets" : {
       "employee_address_type": {
@@ -78,6 +79,14 @@
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
+    "ADSAMA": {
+      "objectClass": "ramodels.mo.details.it_system.ITUser",
+      "__import_to_mo__": true,
+      "user_key": "{{ ldap.sAMAccountName }}",
+      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+    },
   },
   "mo_to_ldap": {
     "Employee": {
@@ -140,6 +149,13 @@
       "telephoneNumber": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
     },
+    "ADSAMA": {
+      "objectClass": "user",
+      "__export_to_ldap__": true,
+      "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
+      "employeeNumber": "{{mo_employee.cpr_no}}"
+    },
+
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
