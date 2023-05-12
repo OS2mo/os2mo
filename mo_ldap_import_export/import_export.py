@@ -146,6 +146,17 @@ class SyncTool:
             # If it does, rejectMessage is raised.
             await self.export_checks.check_alleroed_sd_number(employee_uuid)
 
+    def cleanup_needed(self, ldap_modify_responses):
+        """
+        If nothing was modified in LDAP, we also do not need to clean up.
+        """
+        for response in ldap_modify_responses:
+            if response and response["description"] == "success":
+                return True
+
+        logger.info("No cleanup needed")
+        return False
+
     @wait_for_change_to_finish
     async def listen_to_changes_in_employees(
         self,
@@ -212,25 +223,26 @@ class SyncTool:
             mo_object_dict["mo_employee_address"] = changed_address
 
             # Convert & Upload to LDAP
-            await self.dataloader.modify_ldap_object(
+            ldap_modify_responses = await self.dataloader.modify_ldap_object(
                 self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
 
-            addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
-                changed_employee.uuid, changed_address.address_type.uuid
-            )
+            if self.cleanup_needed(ldap_modify_responses):
+                addresses_in_mo = await self.dataloader.load_mo_employee_addresses(
+                    changed_employee.uuid, changed_address.address_type.uuid
+                )
 
-            await cleanup(
-                json_key,
-                "mo_employee_address",
-                addresses_in_mo,
-                self.user_context,
-                changed_employee,
-                routing_key.object_type,
-                dn,
-            )
+                await cleanup(
+                    json_key,
+                    "mo_employee_address",
+                    addresses_in_mo,
+                    self.user_context,
+                    changed_employee,
+                    routing_key.object_type,
+                    dn,
+                )
 
         elif routing_key.object_type == ObjectType.IT:
             logger.info("[MO] Change registered in the IT object type")
@@ -247,26 +259,28 @@ class SyncTool:
             mo_object_dict["mo_employee_it_user"] = changed_it_user
 
             # Convert & Upload to LDAP
-            await self.dataloader.modify_ldap_object(
+            ldap_modify_responses = await self.dataloader.modify_ldap_object(
                 self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
 
-            # Load IT users belonging to this employee
-            it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
-                changed_employee.uuid, it_system_type_uuid
-            )
+            if self.cleanup_needed(ldap_modify_responses):
 
-            await cleanup(
-                json_key,
-                "mo_employee_it_user",
-                it_users_in_mo,
-                self.user_context,
-                changed_employee,
-                routing_key.object_type,
-                dn,
-            )
+                # Load IT users belonging to this employee
+                it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
+                    changed_employee.uuid, it_system_type_uuid
+                )
+
+                await cleanup(
+                    json_key,
+                    "mo_employee_it_user",
+                    it_users_in_mo,
+                    self.user_context,
+                    changed_employee,
+                    routing_key.object_type,
+                    dn,
+                )
 
         elif routing_key.object_type == ObjectType.ENGAGEMENT:
             logger.info("[MO] Change registered in the Engagement object type")
@@ -284,25 +298,26 @@ class SyncTool:
             # We upload an engagement to LDAP regardless of its 'primary' attribute.
             # Because it looks like you cannot set 'primary' when creating an engagement
             # in the OS2mo GUI.
-            await self.dataloader.modify_ldap_object(
+            ldap_modify_responses = await self.dataloader.modify_ldap_object(
                 self.converter.to_ldap(mo_object_dict, json_key, dn),
                 json_key,
                 delete=delete,
             )
 
-            engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
-                changed_employee.uuid
-            )
+            if self.cleanup_needed(ldap_modify_responses):
+                engagements_in_mo = await self.dataloader.load_mo_employee_engagements(
+                    changed_employee.uuid
+                )
 
-            await cleanup(
-                json_key,
-                "mo_employee_engagement",
-                engagements_in_mo,
-                self.user_context,
-                changed_employee,
-                routing_key.object_type,
-                dn,
-            )
+                await cleanup(
+                    json_key,
+                    "mo_employee_engagement",
+                    engagements_in_mo,
+                    self.user_context,
+                    changed_employee,
+                    routing_key.object_type,
+                    dn,
+                )
 
     @wait_for_change_to_finish
     async def process_employee_address(
@@ -323,25 +338,27 @@ class SyncTool:
         }
 
         # Convert & Upload to LDAP
-        await self.dataloader.modify_ldap_object(
+        ldap_modify_responses = await self.dataloader.modify_ldap_object(
             self.converter.to_ldap(mo_object_dict, json_key, dn),
             json_key,
             delete=delete,
         )
 
-        addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
-            org_unit_uuid, changed_address.address_type.uuid
-        )
+        if self.cleanup_needed(ldap_modify_responses):
 
-        await cleanup(
-            json_key,
-            "mo_org_unit_address",
-            addresses_in_mo,
-            self.user_context,
-            affected_employee,
-            object_type,
-            dn,
-        )
+            addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
+                org_unit_uuid, changed_address.address_type.uuid
+            )
+
+            await cleanup(
+                json_key,
+                "mo_org_unit_address",
+                addresses_in_mo,
+                self.user_context,
+                affected_employee,
+                object_type,
+                dn,
+            )
 
     @wait_for_change_to_finish
     async def listen_to_changes_in_org_units(
