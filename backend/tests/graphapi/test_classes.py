@@ -44,17 +44,19 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
         query = """
             query {
                 classes {
-                    uuid
-                    user_key
-                    facet_uuid
-                    example
-                    owner
-                    org_uuid
-                    name
-                    parent_uuid
-                    published
-                    scope
-                    type
+                    objects {
+                        uuid
+                        user_key
+                        facet_uuid
+                        example
+                        owner
+                        org_uuid
+                        name
+                        parent_uuid
+                        published
+                        scope
+                        type
+                    }
                 }
             }
         """
@@ -62,7 +64,7 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert response.data["classes"] == test_data
+    assert response.data["classes"]["objects"] == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ClassRead))
@@ -82,7 +84,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     classes(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -92,7 +96,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [cla.get("uuid") for cla in response.data["classes"]]
+    result_uuids = [cla.get("uuid") for cla in response.data["classes"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -137,7 +141,7 @@ def prepare_query_data(test_data, query_response):
     td = {k: v for k, v in test_data.items() if v is not None}
 
     query_dict = (
-        query_response.data.get("classes")[0]
+        query_response.data.get("classes")["objects"][0]
         if isinstance(query_response.data, dict)
         else {}
     )
@@ -182,12 +186,14 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
     query_query = """
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
-            uuid
-            type
-            org_uuid
-            user_key
-            name
-            facet_uuid
+            objects {
+              uuid
+              type
+              org_uuid
+              user_key
+              name
+              facet_uuid
+            }
           }
         }
     """
@@ -291,13 +297,15 @@ async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> No
     class_query = f"""
         query Classes {{
             classes{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(class_query)
     assert response.errors is None
-    assert len(response.data["classes"]) == expected
+    assert len(response.data["classes"]["objects"]) == expected
 
 
 @pytest.mark.integration_test
@@ -306,8 +314,10 @@ async def test_integration_delete_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
-            uuid
-            name
+            objects {
+              uuid
+              name
+            }
           }
         }
     """
@@ -318,7 +328,9 @@ async def test_integration_delete_class() -> None:
         variable_values={"uuid": class_uuid},
     )
     assert response.errors is None
-    assert response.data == {"classes": [{"name": "Postadresse", "uuid": class_uuid}]}
+    assert response.data == {
+        "classes": {"objects": [{"name": "Postadresse", "uuid": class_uuid}]}
+    }
 
     delete_query = """
         mutation ($uuid: UUID!) {
@@ -339,7 +351,7 @@ async def test_integration_delete_class() -> None:
         variable_values={"uuid": class_uuid},
     )
     assert response.errors is None
-    assert response.data == {"classes": []}
+    assert response.data == {"classes": {"objects": []}}
 
 
 @pytest.mark.integration_test
@@ -349,10 +361,12 @@ async def test_update_class() -> None:
     read_query = """
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
-            uuid
-            name
-            user_key
-            facet_uuid
+            objects {
+              uuid
+              name
+              user_key
+              facet_uuid
+            }
           }
         }
     """
@@ -364,7 +378,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"])
+    klass = one(response.data["classes"]["objects"])
     assert klass == {
         "uuid": class_uuid,
         "name": "Postadresse",
@@ -399,7 +413,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"])
+    klass = one(response.data["classes"]["objects"])
     assert klass == {
         "uuid": class_uuid,
         "name": "Postal Address",
@@ -426,7 +440,7 @@ async def test_update_class() -> None:
         variable_values={"uuid": class_uuid},
     )
     assert response.errors is None
-    assert response.data == {"classes": []}
+    assert response.data == {"classes": {"objects": []}}
 
     update_query = """
         mutation UpdateClass($input: ClassUpdateInput!, $uuid: UUID!) {
@@ -455,7 +469,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"])
+    klass = one(response.data["classes"]["objects"])
     assert klass == {
         "uuid": class_uuid,
         "name": "Postal Address",

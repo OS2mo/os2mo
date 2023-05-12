@@ -30,9 +30,11 @@ SCHEMA = str(LatestGraphQLSchema.get())
 
 
 ORG_QUERY = "query { org { uuid } }"
-ORG_UNIT_QUERY = "query { org_units { uuid } }"
-ADDRESS_QUERY = "query { addresses { uuid } }"
-ORG_UNIT_ADDRESS_QUERY = "query { org_units { objects { addresses { uuid } } } }"
+ORG_UNIT_QUERY = "query { org_units { objects { uuid } } }"
+ADDRESS_QUERY = "query { addresses { objects { uuid } } }"
+ORG_UNIT_ADDRESS_QUERY = (
+    "query { org_units { objects { objects { addresses { uuid } } } } }"
+)
 
 
 async def load_org(keys: list[int]) -> list[OrganisationRead]:

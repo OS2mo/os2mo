@@ -44,20 +44,22 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 associations {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        org_unit_uuid
-                        employee_uuid
-                        association_type_uuid
-                        primary_uuid
-                        substitute_uuid
-                        job_function_uuid
-                        it_user_uuid
-                        dynamic_class_uuid
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            org_unit_uuid
+                            employee_uuid
+                            association_type_uuid
+                            primary_uuid
+                            substitute_uuid
+                            job_function_uuid
+                            it_user_uuid
+                            dynamic_class_uuid
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -66,7 +68,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["associations"]) == test_data
+    assert flatten_data(response.data["associations"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(AssociationRead))
@@ -81,7 +83,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     associations(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -91,7 +95,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [assoc.get("uuid") for assoc in response.data["associations"]]
+    result_uuids = [
+        assoc.get("uuid") for assoc in response.data["associations"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -197,13 +203,15 @@ async def test_association_filters(graphapi_post, filter_snippet, expected) -> N
     association_query = f"""
         query Managers {{
             associations{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(association_query)
     assert response.errors is None
-    assert len(response.data["associations"]) == expected
+    assert len(response.data["associations"]["objects"]) == expected
 
 
 @given(test_data=...)
@@ -291,13 +299,15 @@ async def test_create_association_integration_test(
         query VerifyQuery($uuid: UUID!) {
             associations(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    user_key
-                    org_unit: org_unit_uuid
-                    employee: employee_uuid
-                    association_type: association_type_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        user_key
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        association_type: association_type_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -305,7 +315,7 @@ async def test_create_association_integration_test(
     """
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["associations"])["objects"])
+    obj = one(one(response.data["associations"]["objects"])["objects"])
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
@@ -372,14 +382,16 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
                 __typename
                 associations(uuids: $uuid){
                     objects {
-                        uuid
-                        user_key
-                        org_unit: org_unit_uuid
-                        employee: employee_uuid
-                        association_type: association_type_uuid
-                        validity {
-                            to
-                            from
+                        objects {
+                            uuid
+                            user_key
+                            org_unit: org_unit_uuid
+                            employee: employee_uuid
+                            association_type: association_type_uuid
+                            validity {
+                                to
+                                from
+                            }
                         }
                     }
                 }
@@ -392,7 +404,9 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
 
     prior_data = await query_data(test_data["uuid"])
 
-    prior_data = one(one(prior_data.data.get("associations", {})).get("objects"))
+    prior_data = one(
+        one(prior_data.data.get("associations", {})["objects"]).get("objects")
+    )
 
     mutate_query = """
         mutation UpdateAssociation($input: AssociationUpdateInput!) {
@@ -411,14 +425,16 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
             __typename
             associations(uuids: $uuid){
                 objects {
-                    uuid
-                    user_key
-                    org_unit: org_unit_uuid
-                    employee: employee_uuid
-                    association_type: association_type_uuid
-                    validity {
-                        to
-                        from
+                    objects {
+                        uuid
+                        user_key
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        association_type: association_type_uuid
+                        validity {
+                            to
+                            from
+                        }
                     }
                 }
             }
@@ -430,7 +446,9 @@ async def test_update_association_integration_test(graphapi_post, test_data) -> 
         query=query_query, variables={"uuid": test_data["uuid"]}
     )
 
-    response_data = one(one(query_response.data.get("associations", {})).get("objects"))
+    response_data = one(
+        one(query_response.data.get("associations", {})["objects"]).get("objects")
+    )
 
     """Assert returned UUID from mutator is correct"""
     assert response.errors is None

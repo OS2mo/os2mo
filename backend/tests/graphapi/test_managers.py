@@ -40,17 +40,19 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 managers {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        employee_uuid
-                        manager_level_uuid
-                        manager_type_uuid
-                        org_unit_uuid
-                        responsibility_uuids
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            employee_uuid
+                            manager_level_uuid
+                            manager_type_uuid
+                            org_unit_uuid
+                            responsibility_uuids
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -59,7 +61,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["managers"]) == test_data
+    assert flatten_data(response.data["managers"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ManagerRead))
@@ -73,7 +75,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     managers(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -83,7 +87,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [manager.get("uuid") for manager in response.data["managers"]]
+    result_uuids = [
+        manager.get("uuid") for manager in response.data["managers"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -146,13 +152,15 @@ async def test_manager_employees_filters(
     manager_query = f"""
         query Managers {{
             managers{filter_snippet} {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(manager_query)
     assert response.errors is None
-    assert len(response.data["managers"]) == expected
+    assert len(response.data["managers"]["objects"]) == expected
 
 
 @given(test_data=...)
@@ -244,16 +252,18 @@ async def test_create_manager_integration_test(
         query VerifyQuery($uuid: UUID!) {
             managers(uuids: [$uuid], from_date: null, to_date: null) {
                 objects {
-                    user_key
-                    type
-                    employee: employee_uuid
-                    responsibility: responsibility_uuids
-                    org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        user_key
+                        type
+                        employee: employee_uuid
+                        responsibility: responsibility_uuids
+                        org_unit: org_unit_uuid
+                        manager_type: manager_type_uuid
+                        manager_level: manager_level_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -262,7 +272,7 @@ async def test_create_manager_integration_test(
 
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
-    obj = one(one(response.data["managers"])["objects"])
+    obj = one(one(response.data["managers"]["objects"])["objects"])
 
     assert obj["type"] == test_data.type_
     responsibility_list = [
@@ -365,16 +375,18 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
         query MyQuery($uuid: UUID!) {
             managers(uuids: [$uuid]) {
                 objects {
-                    uuid
-                    user_key
-                    person: employee_uuid
-                    responsibility: responsibility_uuids
-                    org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        person: employee_uuid
+                        responsibility: responsibility_uuids
+                        org_unit: org_unit_uuid
+                        manager_type: manager_type_uuid
+                        manager_level: manager_level_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -383,7 +395,7 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     response: GQLResponse = graphapi_post(query, {"uuid": str(uuid)})
     assert response.errors is None
 
-    pre_update_manager = one(one(response.data["managers"])["objects"])
+    pre_update_manager = one(one(response.data["managers"]["objects"])["objects"])
 
     mutation = """
         mutation UpdateManager($input: ManagerUpdateInput!) {
@@ -403,16 +415,18 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
         query VerifyQuery($uuid: UUID!) {
             managers(uuids: [$uuid]){
                 objects {
-                    uuid
-                    user_key
-                    person: employee_uuid
-                    responsibility: responsibility_uuids
-                    org_unit: org_unit_uuid
-                    manager_type: manager_type_uuid
-                    manager_level: manager_level_uuid
-                    validity {
-                        from
-                        to
+                    objects {
+                        uuid
+                        user_key
+                        person: employee_uuid
+                        responsibility: responsibility_uuids
+                        org_unit: org_unit_uuid
+                        manager_type: manager_type_uuid
+                        manager_level: manager_level_uuid
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -422,7 +436,9 @@ async def test_update_manager_integration_test(test_data, graphapi_post) -> None
     verify_response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert verify_response.errors is None
 
-    manager_objects_post_update = one(one(verify_response.data["managers"])["objects"])
+    manager_objects_post_update = one(
+        one(verify_response.data["managers"]["objects"])["objects"]
+    )
 
     expected_updated_manager = {
         k: v or pre_update_manager[k] for k, v in test_data.items()

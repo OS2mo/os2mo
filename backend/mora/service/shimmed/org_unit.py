@@ -69,7 +69,9 @@ async def get_orgunit(
         {
             org_units(uuids: [$uuid]) {
                 objects {
-                    uuid
+                    objects {
+                        uuid
+                    }
                 }
             }
         }
@@ -84,28 +86,30 @@ async def get_orgunit(
         ) {
             org_units(uuids: [$uuid], from_date: $from_date) {
                 objects {
-                    name
-                    user_key
-                    uuid
-                    parent_uuid
-                    unit_type {
-                        ...class_fields
-                    }
-                    time_planning {
-                        ...class_fields
-                    }
-                    org_unit_level {
-                        ...class_fields
-                    }
-                    validity {
-                        from
-                        to
-                    }
-                    associations @include(if: $associations) {
+                    objects {
+                        name
+                        user_key
                         uuid
-                    }
-                    engagements @include(if: $engagements) {
-                        uuid
+                        parent_uuid
+                        unit_type {
+                            ...class_fields
+                        }
+                        time_planning {
+                            ...class_fields
+                        }
+                        org_unit_level {
+                            ...class_fields
+                        }
+                        validity {
+                            from
+                            to
+                        }
+                        associations @include(if: $associations) {
+                            uuid
+                        }
+                        engagements @include(if: $engagements) {
+                            uuid
+                        }
                     }
                 }
             }
@@ -139,7 +143,7 @@ async def get_orgunit(
     handle_gql_error(response)
 
     # Handle org unit data
-    org_unit_list = flatten_data(response.data["org_units"])
+    org_unit_list = flatten_data(response.data["org_units"]["objects"])
     if not org_unit_list:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=unitid)
     try:
@@ -234,20 +238,22 @@ async def get_org_unit_children(
     ) {
         org_units(uuids: [$uuid], from_date: $from_date, hierarchies: $hierarchies) {
             objects {
-                children(hierarchies: $hierarchies) {
-                    uuid
-                    child_count(hierarchies: $hierarchies)
-                    name
-                    user_key
-                    associations @include(if: $associations) {
+                objects {
+                    children(hierarchies: $hierarchies) {
                         uuid
-                    }
-                    engagements @include(if: $engagements) {
-                        uuid
-                    }
-                    validity {
-                        from
-                        to
+                        child_count(hierarchies: $hierarchies)
+                        name
+                        user_key
+                        associations @include(if: $associations) {
+                            uuid
+                        }
+                        engagements @include(if: $engagements) {
+                            uuid
+                        }
+                        validity {
+                            from
+                            to
+                        }
                     }
                 }
             }
@@ -266,7 +272,7 @@ async def get_org_unit_children(
     response = await execute_graphql(query, variable_values=jsonable_encoder(variables))
     handle_gql_error(response)
 
-    org_unit_list = flatten_data(response.data["org_units"])
+    org_unit_list = flatten_data(response.data["org_units"]["objects"])
     if not org_unit_list:
         exceptions.ErrorCodes.E_ORG_UNIT_NOT_FOUND(org_unit_uuid=str(parentid))
     try:

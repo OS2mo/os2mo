@@ -63,25 +63,25 @@ async def get_organisation(
     query = """
     query OrganisationQuery {
       employees {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       org_units {
-        objects { uuid, parent_uuid }
+        objects { objects { uuid, parent_uuid } }
       }
       associations {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       engagements {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       leaves {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       roles {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       managers {
-        objects { uuid }
+        objects { objects { uuid } }
       }
       org {
         uuid, user_key, name
@@ -95,20 +95,20 @@ async def get_organisation(
     if response.data["org"]["uuid"] != str(orgid):
         exceptions.ErrorCodes.E_NO_SUCH_ENDPOINT()
 
-    org_units = flatten_data(response.data["org_units"])
+    org_units = flatten_data(response.data["org_units"]["objects"])
     child_count = ilen(filter_data(org_units, "parent_uuid", str(orgid)))
     return {
         "uuid": response.data["org"]["uuid"],
         "user_key": response.data["org"]["user_key"],
         "name": response.data["org"]["name"],
         "child_count": child_count,
-        "person_count": len(response.data["employees"]),
-        "unit_count": len(response.data["org_units"]),
-        "engagement_count": len(response.data["engagements"]),
-        "association_count": len(response.data["associations"]),
-        "leave_count": len(response.data["leaves"]),
-        "role_count": len(response.data["roles"]),
-        "manager_count": len(response.data["managers"]),
+        "person_count": len(response.data["employees"]["objects"]),
+        "unit_count": len(response.data["org_units"]["objects"]),
+        "engagement_count": len(response.data["engagements"]["objects"]),
+        "association_count": len(response.data["associations"]["objects"]),
+        "leave_count": len(response.data["leaves"]["objects"]),
+        "role_count": len(response.data["roles"]["objects"]),
+        "manager_count": len(response.data["managers"]["objects"]),
     }
 
 
@@ -168,19 +168,21 @@ async def get_org_children(
                 from_date: $from_date
             ) {
                 objects {
-                    name
-                    user_key
-                    uuid
-                    validity {
-                        from
-                        to
-                    }
-                    child_count(hierarchies: $hierarchies)
-                    associations @include(if: $associations) {
+                    objects {
+                        name
+                        user_key
                         uuid
-                    }
-                    engagements @include(if: $engagements) {
-                        uuid
+                        validity {
+                            from
+                            to
+                        }
+                        child_count(hierarchies: $hierarchies)
+                        associations @include(if: $associations) {
+                            uuid
+                        }
+                        engagements @include(if: $engagements) {
+                            uuid
+                        }
                     }
                 }
             }
@@ -200,7 +202,7 @@ async def get_org_children(
     )
     handle_gql_error(response)
 
-    org_units = flatten_data(response.data["org_units"])
+    org_units = flatten_data(response.data["org_units"]["objects"])
     for unit in org_units:
         unit |= (
             {"engagement_count": len(unit.pop("engagements", []))}

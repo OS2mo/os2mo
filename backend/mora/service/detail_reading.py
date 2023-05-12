@@ -339,20 +339,22 @@ async def list_addresses_employee(
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
-                  addresses {
-                    uuid
-                    user_key
-                    href
-                    name
-                    value
-                    value2
-                    validity {
-                      from
-                      to
+                  objects {
+                    addresses {
+                      uuid
+                      user_key
+                      href
+                      name
+                      value
+                      value2
+                      validity {
+                        from
+                        to
+                      }
+                      address_type_uuid
+                      employee_uuid
+                      engagement_uuid
                     }
-                    address_type_uuid
-                    employee_uuid
-                    engagement_uuid
                   }
                 }
               }
@@ -363,54 +365,56 @@ async def list_addresses_employee(
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               employees(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
-                  addresses {
-                    uuid
-                    user_key
-                    href
-                    name
-                    value
-                    value2
-                    validity {
-                      from
-                      to
-                    }
-                    address_type {
-                      user_key
+                  objects {
+                    addresses {
                       uuid
+                      user_key
+                      href
                       name
-                      scope
-                      example
-                      owner
-                      top_level_facet {
+                      value
+                      value2
+                      validity {
+                        from
+                        to
+                      }
+                      address_type {
                         user_key
                         uuid
-                        description
+                        name
+                        scope
+                        example
+                        owner
+                        top_level_facet {
+                          user_key
+                          uuid
+                          description
+                        }
+                        facet {
+                          user_key
+                          uuid
+                          description
+                        }
                       }
-                      facet {
-                        user_key
+                      visibility {
                         uuid
-                        description
+                        name
+                        user_key
+                        example
+                        scope
+                        owner
                       }
+                      employee {
+                        givenname
+                        surname
+                        name
+                        nickname
+                        nickname_surname
+                        nickname_givenname
+                        uuid
+                        seniority
+                      }
+                      engagement_uuid
                     }
-                    visibility {
-                      uuid
-                      name
-                      user_key
-                      example
-                      scope
-                      owner
-                    }
-                    employee {
-                      givenname
-                      surname
-                      name
-                      nickname
-                      nickname_surname
-                      nickname_givenname
-                      uuid
-                      seniority
-                    }
-                    engagement_uuid
                   }
                 }
               }
@@ -430,7 +434,7 @@ async def list_addresses_employee(
     if r.errors:
         raise ValueError(r.errors)
 
-    flat = flatten_data(r.data["employees"])
+    flat = flatten_data(r.data["employees"]["objects"])
     if len(flat) == 0:
         return []
 
@@ -666,19 +670,21 @@ async def list_addresses_ou(
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
-                  addresses {
-                    uuid
-                    user_key
-                    href
-                    name
-                    value
-                    value2
-                    validity {
-                      from
-                      to
+                  objects {
+                    addresses {
+                      uuid
+                      user_key
+                      href
+                      name
+                      value
+                      value2
+                      validity {
+                        from
+                        to
+                      }
+                      address_type_uuid
+                      org_unit_uuid
                     }
-                    address_type_uuid
-                    org_unit_uuid
                   }
                 }
               }
@@ -689,50 +695,52 @@ async def list_addresses_ou(
             query GetAddress($uuid: UUID!, $from_date: DateTime, $to_date: DateTime) {
               org_units(uuids: [$uuid], from_date: $from_date, to_date: $to_date) {
                 objects {
-                  addresses {
-                    uuid
-                    user_key
-                    href
-                    name
-                    validity {
-                      from
-                      to
-                    }
-                    value
-                    value2
-                    address_type {
-                      facet {
-                        user_key
-                        uuid
-                        description
-                      }
-                      top_level_facet {
-                        user_key
-                        uuid
-                        description
-                      }
+                  objects {
+                    addresses {
                       uuid
                       user_key
+                      href
                       name
-                      scope
-                      example
-                      owner
-                    }
-                    visibility {
-                      uuid
-                      name
-                      user_key
-                      example
-                      scope
-                      owner
-                    }
-                    org_unit {
-                      name
-                      user_key
-                      uuid
                       validity {
                         from
                         to
+                      }
+                      value
+                      value2
+                      address_type {
+                        facet {
+                          user_key
+                          uuid
+                          description
+                        }
+                        top_level_facet {
+                          user_key
+                          uuid
+                          description
+                        }
+                        uuid
+                        user_key
+                        name
+                        scope
+                        example
+                        owner
+                      }
+                      visibility {
+                        uuid
+                        name
+                        user_key
+                        example
+                        scope
+                        owner
+                      }
+                      org_unit {
+                        name
+                        user_key
+                        uuid
+                        validity {
+                          from
+                          to
+                        }
                       }
                     }
                   }
@@ -755,7 +763,7 @@ async def list_addresses_ou(
     if r.errors:
         raise ValueError(r.errors)
 
-    flat = flatten_data(r.data["org_units"])
+    flat = flatten_data(r.data["org_units"]["objects"])
     if len(flat) == 0:
         return []
 

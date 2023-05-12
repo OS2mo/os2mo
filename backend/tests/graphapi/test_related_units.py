@@ -20,13 +20,15 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 related_units {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        org_unit_uuids
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            org_unit_uuids
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -35,7 +37,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["related_units"]) == test_data
+    assert flatten_data(response.data["related_units"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(RelatedUnitRead))
@@ -49,7 +51,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     related_units(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -59,6 +63,8 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [related.get("uuid") for related in response.data["related_units"]]
+    result_uuids = [
+        related.get("uuid") for related in response.data["related_units"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))

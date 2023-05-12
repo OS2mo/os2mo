@@ -58,13 +58,15 @@ async def test_delete_organisationfunktion_integration_test(
     read_query = f"""
         query MyQuery {{
           {organisationfunktion} {{
-            uuid
+            objects {{
+              uuid
+            }}
           }}
         }}
     """
     response: GQLResponse = graphapi_post(read_query)
-    first_organisationfunktion = first(response.data[organisationfunktion])
-    assert first_organisationfunktion in response.data[organisationfunktion]
+    first_organisationfunktion = first(response.data[organisationfunktion]["objects"])
+    assert first_organisationfunktion in response.data[organisationfunktion]["objects"]
 
     # Delete the first one
     mutate_query = f"""

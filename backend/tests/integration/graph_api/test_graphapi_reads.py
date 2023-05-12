@@ -106,8 +106,10 @@ class TestManagerInheritance:
         {
             org_units (uuids: $uuids) {
                 objects {
-                managers(inherit: $inherit) {
-                        employee_uuid
+                    objects {
+                        managers(inherit: $inherit) {
+                            employee_uuid
+                        }
                     }
                 }
             }
@@ -120,7 +122,7 @@ class TestManagerInheritance:
         response: GQLResponse = graphapi_post(query=self.query, variables=variables)
         assert response.errors is None
         assert response.data
-        managers = flatten_data(response.data["org_units"])
+        managers = flatten_data(response.data["org_units"]["objects"])
         assert managers == [{"managers": []}]
 
     def test_manager_with_inheritance(self, graphapi_post):
@@ -129,28 +131,12 @@ class TestManagerInheritance:
         response: GQLResponse = graphapi_post(query=self.query, variables=variables)
         assert response.errors is None
         assert response.data
-        managers = flatten_data(response.data["org_units"])
+        managers = flatten_data(response.data["org_units"]["objects"])
         assert all_equal(managers)
 
 
 @pytest.mark.integration_test
 def test_regression_51523_1(graphapi_post):
-    query = """
-        query TestQuery {
-            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
-                uuid
-            }
-        }
-    """
-    response: GQLResponse = graphapi_post(query)
-
-    assert response.errors is None
-    assert response.data
-    assert response.data["org_units"] == []
-
-
-@pytest.mark.integration_test
-def test_regression_51523_2(graphapi_post):
     query = """
         query TestQuery {
             org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
@@ -164,7 +150,27 @@ def test_regression_51523_2(graphapi_post):
 
     assert response.errors is None
     assert response.data
-    assert response.data["org_units"] == []
+    assert response.data["org_units"]["objects"] == []
+
+
+@pytest.mark.integration_test
+def test_regression_51523_2(graphapi_post):
+    query = """
+        query TestQuery {
+            org_units(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {
+                objects {
+                    objects {
+                        uuid
+                    }
+                }
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(query)
+
+    assert response.errors is None
+    assert response.data
+    assert response.data["org_units"]["objects"] == []
 
 
 @pytest.mark.integration_test
@@ -173,7 +179,9 @@ def test_regression_51523_generalised(graphapi_post, field):
     query = f"""
         query TestQuery {{
             {field}(uuids: ["deadbeef-dead-beef-0000-000000000000"]) {{
-                uuid
+                objects {{
+                    uuid
+                }}
             }}
         }}
     """
@@ -181,4 +189,4 @@ def test_regression_51523_generalised(graphapi_post, field):
 
     assert response.errors is None
     assert response.data
-    assert response.data[field] == []
+    assert response.data[field]["objects"] == []

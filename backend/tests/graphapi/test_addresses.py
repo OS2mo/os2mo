@@ -78,34 +78,36 @@ def _get_address_query():
     return """
         query VerifyQuery($uuid: UUID!) {
           addresses(uuids: [$uuid], from_date: null, to_date: null) {
-            uuid
             objects {
               uuid
-
-              validity {
-                from
-                to
-              }
-
-              type
-              value
-              address_type {
+              objects {
                 uuid
-              }
 
-              visibility {
-                uuid
-              }
+                validity {
+                  from
+                  to
+                }
 
-              employee {
-                uuid
-              }
+                type
+                value
+                address_type {
+                  uuid
+                }
 
-              org_unit {
-                uuid
-              }
+                visibility {
+                  uuid
+                }
 
-              engagement_uuid
+                employee {
+                  uuid
+                }
+
+                org_unit {
+                  uuid
+                }
+
+                engagement_uuid
+              }
             }
           }
         }
@@ -211,21 +213,23 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 addresses {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        address_type_uuid
-                        employee_uuid
-                        org_unit_uuid
-                        engagement_uuid
-                        visibility_uuid
-                        type
-                        value
-                        value2
-                        validity {
-                            from
-                            to
+                        objects {
+                            uuid
+                            user_key
+                            address_type_uuid
+                            employee_uuid
+                            org_unit_uuid
+                            engagement_uuid
+                            visibility_uuid
+                            type
+                            value
+                            value2
+                            validity {
+                                from
+                                to
+                            }
                         }
                     }
                 }
@@ -235,7 +239,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["addresses"]) == test_data
+    assert flatten_data(response.data["addresses"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(AddressRead))
@@ -249,7 +253,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     addresses(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -259,7 +265,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [addr.get("uuid") for addr in response.data["addresses"]]
+    result_uuids = [addr.get("uuid") for addr in response.data["addresses"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -549,7 +555,7 @@ async def test_create_integration(data, graphapi_post):
     )
 
     assert verify_response.errors is None
-    new_addr = one(one(verify_response.data["addresses"])["objects"])
+    new_addr = one(one(verify_response.data["addresses"]["objects"])["objects"])
 
     # Asserts
     assert new_addr[mapping.UUID] is not None
@@ -695,13 +701,15 @@ async def test_address_filters(graphapi_post, filter_snippet, expected) -> None:
     address_query = f"""
         query Addresses {{
             addresses{filter_snippet} {{
-                uuid
+                objects {{
+                  uuid
+                }}
             }}
         }}
     """
     response: GQLResponse = graphapi_post(address_query)
     assert response.errors is None
-    assert len(response.data["addresses"]) == expected
+    assert len(response.data["addresses"]["objects"]) == expected
 
 
 @pytest.mark.integration_test
@@ -773,17 +781,19 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
                 __typename
                 addresses(uuids: $uuid){
                     objects {
-                        uuid
-                        user_key
-                        org_unit: org_unit_uuid
-                        employee: employee_uuid
-                        address_type: address_type_uuid
-                        engagement: engagement_uuid
-                        value
-                        visibility: visibility_uuid
-                        validity {
-                            to
-                            from
+                        objects {
+                            uuid
+                            user_key
+                            org_unit: org_unit_uuid
+                            employee: employee_uuid
+                            address_type: address_type_uuid
+                            engagement: engagement_uuid
+                            value
+                            visibility: visibility_uuid
+                            validity {
+                                to
+                                from
+                            }
                         }
                     }
                 }
@@ -795,7 +805,9 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
         return response
 
     prior_data = await query_data(test_data["uuid"])
-    prior_data = one(one(prior_data.data.get("addresses", {})).get("objects"))
+    prior_data = one(
+        one(prior_data.data.get("addresses", {})["objects"]).get("objects")
+    )
 
     mutate_query = """
         mutation UpdateAddress($input: AddressUpdateInput!) {
@@ -810,7 +822,9 @@ async def test_update_address_integration_test(test_data, graphapi_post) -> None
 
     posterior_data = await query_data(test_data["uuid"])
 
-    response_data = one(one(posterior_data.data.get("addresses", {})).get("objects"))
+    response_data = one(
+        one(posterior_data.data.get("addresses", {})["objects"]).get("objects")
+    )
 
     """Assert returned UUID from mutator is correct"""
     assert response.errors is None

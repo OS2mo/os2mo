@@ -67,7 +67,11 @@ def mock_execute_graphql(monkeypatch):
         response = mock.MagicMock()
         response.errors = {}
         response.data = {
-            "files": [{"base64_contents": b64encode(b"I am a file").decode("ascii")}]
+            "files": {
+                "objects": [
+                    {"base64_contents": b64encode(b"I am a file").decode("ascii")}
+                ]
+            }
         }
         return response
 

@@ -20,15 +20,17 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 kles {
-                    uuid
                     objects {
                         uuid
-                        user_key
-                        kle_number_uuid
-                        kle_aspect_uuids
-                        org_unit_uuid
-                        type
-                        validity {from to}
+                        objects {
+                            uuid
+                            user_key
+                            kle_number_uuid
+                            kle_aspect_uuids
+                            org_unit_uuid
+                            type
+                            validity {from to}
+                        }
                     }
                 }
             }
@@ -37,7 +39,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert flatten_data(response.data["kles"]) == test_data
+    assert flatten_data(response.data["kles"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(KLERead))
@@ -51,7 +53,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     kles(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -61,6 +65,6 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data is not None
 
     # Check UUID equivalence
-    result_uuids = [kle.get("uuid") for kle in response.data["kles"]]
+    result_uuids = [kle.get("uuid") for kle in response.data["kles"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))

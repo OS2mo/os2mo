@@ -36,13 +36,15 @@ async def get_navlinks() -> list[dict[str, Any]]:
     query = """
     query NavlinksQuery {
       configuration(identifiers: ["navlinks"]) {
-        jsonified_value
+        objects {
+          jsonified_value
+        }
       }
     }
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
-    configurations = response.data["configuration"]
+    configurations = response.data["configuration"]["objects"]
     if not configurations:
         exceptions.ErrorCodes.E_UNKNOWN()
     try:

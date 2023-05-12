@@ -4,7 +4,6 @@ from collections.abc import Callable
 
 import pytest
 
-from mora.graphapi.versions.latest.types import Cursor
 from tests.conftest import GQLResponse
 
 
@@ -101,22 +100,16 @@ async def test_pagination(
 ) -> None:
     """Test pagination."""
     query = f"""
-        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
-          {resolver}(limit: $limit, cursor: $cursor) {{
-            objects {{
-                uuid
-            }}
-            page_info {{
-                next_cursor
-            }}
+        query PaginationTestQuery($limit: int, $offset: int) {{
+          {resolver}(limit: $limit, offset: $offset) {{
+            uuid
           }}
         }}
     """
-    cursor = Cursor._scalar_definition.serialize(offset) if offset is not None else None
-    variables = dict(limit=limit, cursor=cursor)
-    response: GQLResponse = graphapi_post(query, variables)
+    variables = dict(limit=limit, offset=offset)
+    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v4")
     assert response.errors is None
-    assert len(response.data[resolver]["objects"]) == expected_length
+    assert len(response.data[resolver]) == expected_length
 
 
 @pytest.mark.integration_test
@@ -163,83 +156,16 @@ async def test_pagination_out_of_range(
 ) -> None:
     """Test that out of range pagination returns None."""
     query = f"""
-        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
-          {resolver}(limit: $limit, cursor: $cursor) {{
-            objects {{
-                uuid
-            }}
-            page_info {{
-                next_cursor
-            }}
+        query PaginationTestQuery($limit: int, $offset: int) {{
+          {resolver}(limit: $limit, offset: $offset) {{
+            uuid
           }}
         }}
     """
-    cursor = Cursor._scalar_definition.serialize(offset)
-    variables = dict(limit=limit, cursor=cursor)
-    response: GQLResponse = graphapi_post(query, variables)
+    variables = dict(limit=limit, offset=offset)
+    response: GQLResponse = graphapi_post(query, variables, url="/graphql/v4")
     assert response.errors is None
-    assert response.data[resolver]["objects"] == []
-    assert response.data[resolver]["page_info"]["next_cursor"] is None
-    assert response.extensions == {
-        "__page_out_of_range": True,
-    }
-
-
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-@pytest.mark.parametrize("limit", [1, 5, 10, 100])
-@pytest.mark.parametrize(
-    "resolver,expected",
-    [
-        ("addresses", 10),
-        ("associations", 1),
-        ("classes", 39),
-        ("employees", 5),
-        ("engagement_associations", 1),
-        ("engagements", 3),
-        ("facets", 19),
-        ("itsystems", 3),
-        ("itusers", 1),
-        ("kles", 1),
-        ("leaves", 1),
-        ("managers", 1),
-        ("org_units", 10),
-        ("related_units", 1),
-        ("roles", 1),
-    ],
-)
-async def test_cursor_based_pagination(
-    graphapi_post: Callable,
-    limit: int,
-    resolver: str,
-    expected: int,
-) -> None:
-    """Test that out of range pagination returns None."""
-    query = f"""
-        query PaginationTestQuery($limit: int, $cursor: Cursor) {{
-          {resolver}(limit: $limit, cursor: $cursor) {{
-            objects {{
-                uuid
-            }}
-            page_info {{
-                next_cursor
-            }}
-          }}
-        }}
-    """
-    elements = []
-
-    cursor = None
-    while True:
-        variables = dict(limit=limit, cursor=cursor)
-        response: GQLResponse = graphapi_post(query, variables)
-        assert response.errors is None
-        elements.extend(response.data[resolver]["objects"])
-        cursor = response.data[resolver]["page_info"]["next_cursor"]
-        if cursor is None:
-            break
-
-    assert len(elements) == expected
+    assert response.data[resolver] == []
     assert response.extensions == {
         "__page_out_of_range": True,
     }

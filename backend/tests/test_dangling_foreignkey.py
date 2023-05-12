@@ -59,10 +59,12 @@ async def test_dangling_foreign_key(graphapi_post: Callable) -> None:
     address_read_query = """
         query ReadAddress($uuid: UUID!) {
           addresses(uuids: [$uuid]) {
-            current {
-              engagement_uuid
-              engagement {
-                uuid
+            objects {
+              current {
+                engagement_uuid
+                engagement {
+                  uuid
+                }
               }
             }
           }
@@ -71,14 +73,16 @@ async def test_dangling_foreign_key(graphapi_post: Callable) -> None:
     response = graphapi_post(address_read_query, {"uuid": address_uuid})
     assert response.errors is None
     assert response.data == {
-        "addresses": [
-            {
-                "current": {
-                    "engagement_uuid": engagement_uuid,
-                    "engagement": [{"uuid": engagement_uuid}],
+        "addresses": {
+            "objects": [
+                {
+                    "current": {
+                        "engagement_uuid": engagement_uuid,
+                        "engagement": [{"uuid": engagement_uuid}],
+                    }
                 }
-            }
-        ]
+            ]
+        }
     }
 
     # Now lets delete the engagement, this creates a dangling foreign key
@@ -99,14 +103,16 @@ async def test_dangling_foreign_key(graphapi_post: Callable) -> None:
     response = graphapi_post(address_read_query, {"uuid": address_uuid})
     assert response.errors is None
     assert response.data == {
-        "addresses": [
-            {
-                "current": {
-                    # UUID is still set
-                    "engagement_uuid": engagement_uuid,
-                    # But engagement is empty since the foreign key is dangling
-                    "engagement": [],
+        "addresses": {
+            "objects": [
+                {
+                    "current": {
+                        # UUID is still set
+                        "engagement_uuid": engagement_uuid,
+                        # But engagement is empty since the foreign key is dangling
+                        "engagement": [],
+                    }
                 }
-            }
-        ]
+            ]
+        }
     }

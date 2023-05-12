@@ -52,10 +52,10 @@ async def list_export_files(response: Response, token: str = Depends(oauth2_sche
         samesite="strict",
         path="/service/exports/",
     )
-    query = "query FilesQuery { files(file_store: EXPORTS) { file_name } }"
+    query = "query FilesQuery { files(file_store: EXPORTS) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
-    files = gql_response.data["files"]
+    files = gql_response.data["files"]["objects"]
     return list(map(itemgetter("file_name"), files))
 
 
@@ -126,13 +126,15 @@ async def download_export_file(
     query = """
     query FileQuery($file_name: String!) {
       files(file_store: EXPORTS, file_names: [$file_name]) {
-        base64_contents
+        objects {
+          base64_contents
+        }
       }
     }
     """
     response = await execute_graphql(query, variable_values=variables)
     handle_gql_error(response)
-    files = response.data["files"]
+    files = response.data["files"]["objects"]
     if not files:
         exceptions.ErrorCodes.E_NOT_FOUND(filename=file_name)
     try:

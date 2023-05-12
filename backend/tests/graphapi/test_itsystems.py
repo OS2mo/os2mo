@@ -38,12 +38,14 @@ def test_query_all(test_data, graphapi_post, patch_loader):
         query = """
             query {
                 itsystems {
-                    uuid
-                    name
-                    system_type
-                    type
-                    user_key
-                    uuid
+                    objects {
+                        uuid
+                        name
+                        system_type
+                        type
+                        user_key
+                        uuid
+                    }
                 }
             }
         """
@@ -51,7 +53,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert response.data["itsystems"] == test_data
+    assert response.data["itsystems"]["objects"] == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ITSystemRead))
@@ -72,7 +74,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
         query = """
                 query TestQuery($uuids: [UUID!]) {
                     itsystems(uuids: $uuids) {
-                        uuid
+                        objects {
+                            uuid
+                        }
                     }
                 }
             """
@@ -82,7 +86,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [itsys.get("uuid") for itsys in response.data["itsystems"]]
+    result_uuids = [
+        itsys.get("uuid") for itsys in response.data["itsystems"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -102,16 +108,18 @@ def test_itsystem_create(graphapi_post) -> None:
     query = """
         query ReadITSystems {
             itsystems {
-                uuid
-                user_key
-                name
+                objects {
+                    uuid
+                    user_key
+                    name
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
     assert itsystem_map.keys() == existing_itsystem_uuids
 
     # Create new itsystem
@@ -133,7 +141,7 @@ def test_itsystem_create(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
     assert itsystem_map.keys() == existing_itsystem_uuids | {new_uuid}
 
     # Verify new object
@@ -213,16 +221,18 @@ def test_itsystem_update(graphapi_post) -> None:
     query = """
         query ReadITSystems($uuids: [UUID!]) {
             itsystems(uuids: $uuids) {
-                uuid
-                user_key
-                name
+                objects {
+                    uuid
+                    user_key
+                    name
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
-    itsystem = one(response.data["itsystems"])
+    itsystem = one(response.data["itsystems"]["objects"])
     assert itsystem["name"] == "Lokal Rammearkitektur"
 
     # Update new itsystem
@@ -249,7 +259,7 @@ def test_itsystem_update(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
-    itsystem = one(response.data["itsystems"])
+    itsystem = one(response.data["itsystems"]["objects"])
     assert itsystem["name"] == "my_name"
     assert itsystem["user_key"] == "my_user_key"
 
@@ -403,16 +413,18 @@ def test_itsystem_delete(graphapi_post) -> None:
     query = """
         query ReadITSystems {
             itsystems {
-                uuid
-                user_key
-                name
+                objects {
+                    uuid
+                    user_key
+                    name
+                }
             }
         }
     """
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
     assert itsystem_map.keys() == existing_itsystem_uuids
 
     # Delete itsystem
@@ -434,7 +446,7 @@ def test_itsystem_delete(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]}
+    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
 
 

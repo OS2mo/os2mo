@@ -50,22 +50,24 @@ async def get_employee(
     else:
         query = """
             query GetEmployee($uuid: UUID!, $from_date: DateTime) {
-                employees(uuids: [$uuid], from_date: $from_date) {
-            objects {
-              uuid, user_key, cpr_no
-              givenname, surname, name
-              nickname_givenname, nickname_surname, nickname
-                        seniority
+              employees(uuids: [$uuid], from_date: $from_date) {
+                objects {
+                  objects {
+                    uuid, user_key, cpr_no
+                    givenname, surname, name
+                    nickname_givenname, nickname_surname, nickname
+                    seniority
+                  }
+                }
+              }
+              org {
+                uuid, user_key, name
+              }
             }
-          }
-          org {
-            uuid, user_key, name
-          }
-        }
         """
 
         def transformer(data: dict[str, Any]) -> dict[str, Any]:
-            employees = flatten_data(data["employees"])
+            employees = flatten_data(data["employees"]["objects"])
             employee = one(employees)
             return {
                 **employee,
@@ -82,7 +84,7 @@ async def get_employee(
         variable_values=jsonable_encoder(variables),
     )
     handle_gql_error(response)
-    if not flatten_data(response.data["employees"]):
+    if not flatten_data(response.data["employees"]["objects"]):
         exceptions.ErrorCodes.E_USER_NOT_FOUND()
     # Transform graphql data into the original format
     return transformer(response.data)
