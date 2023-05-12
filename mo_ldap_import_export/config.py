@@ -99,6 +99,8 @@ class Settings(BaseSettings):
         "", description="OU to create new users in. For example 'OU=Test'"
     )
 
+    ldap_ou_to_scan_for_changes: str = Field("", description="OU to scan for changes")
+
     mo_url: AnyHttpUrl = Field(
         parse_obj_as(AnyHttpUrl, "http://mo-service:5000"),
         description="Base URL for OS2mo.",

@@ -42,6 +42,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .logging import logger
+from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import mo_object_is_valid
 
@@ -469,8 +470,13 @@ def setup_listener(context: Context, callback: Callable):
     # Note:
     # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
+    settings = user_context["settings"]
+    search_base = combine_dn_strings(
+        [settings.ldap_ou_to_scan_for_changes, settings.ldap_search_base]
+    )
+
     search_parameters = {
-        "search_base": user_context["settings"].ldap_search_base,
+        "search_base": search_base,
         "search_filter": "(cn=*)",
         "attributes": ["distinguishedName", "modifyTimestamp"],
     }
