@@ -4,60 +4,60 @@ import os
 import pathlib
 import unittest
 
-import tap.parser
+import pytest
+from more_itertools import one
+from tap.parser import Parser
 
 from oio_rest import config
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
+from oio_rest.db.testing import setup_testing_database
 from tests.oio_rest import util
-from tests.oio_rest.util import DBTestCase
 
 
-class SQLTests(DBTestCase):
-    def setUp(self):
-        super().setUp()
-        with get_connection() as conn, conn.cursor() as curs:
-            curs.execute('CREATE EXTENSION "pgtap";')
+@pytest.fixture(scope="session")
+def setup_pgsql_test(tests_setup_and_teardown):
+    setup_testing_database()
 
-            curs.execute(
-                'CREATE SCHEMA test AUTHORIZATION "{}";'.format(
-                    config.get_settings().db_user,
-                ),
+    with get_connection() as conn, conn.cursor() as curs:
+        curs.execute('CREATE EXTENSION "pgtap";')
+
+        curs.execute(
+            'CREATE SCHEMA test AUTHORIZATION "{}";'.format(
+                config.get_settings().db_user,
             )
+        )
 
-            for dbfile in pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"):
-                curs.execute(dbfile.read_text())
+    yield
 
-    def tearDown(self):
-        super().setUp()
+    with get_connection() as conn, conn.cursor() as curs:
+        curs.execute("DROP SCHEMA test CASCADE")
+        curs.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
 
-        with get_connection() as conn, conn.cursor() as curs:
-            curs.execute("DROP SCHEMA test CASCADE")
-            curs.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
 
-    def test_pgsql(self):
-        with get_connection() as conn, conn.cursor() as curs:
-            curs.execute("SELECT * FROM runtests ('test'::name)")
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("setup_pgsql_test")
+@pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
+def test_pgsql(subtests, dbfile):
+    with get_connection() as conn, conn.cursor() as curs:
+        # Run the actual test
+        curs.execute(dbfile.read_text())
+        # Fetch results in TAP format
+        curs.execute("SELECT * FROM runtests ('test'::name)")
+        assert curs.rowcount > 0
+        taptext = "\n".join(map(one, curs))
+        # Test is done, rollback changes
+        conn.rollback()
 
-            assert curs.rowcount > 0
-
-            # tap.py doesn't support subtests yet, so strip the line
-            # see https://github.com/python-tap/tappy/issues/71
-            #
-            # please note that the tuple unpacking below is
-            # deliberate; we're iterating over over a cursor
-            # containing single-item rows
-            taptext = "\n".join(line.strip() for (line,) in curs)
-
-        for result in tap.parser.Parser().parse_text(taptext):
-            if result.category == "test":
-                print(result)
-
-                with self.subTest(result.description):
-                    if result.skip:
-                        raise unittest.SkipTest()
-                    elif not result.ok:
-                        self.fail(result.diagnostics or result.description)
+    # Parse tap test-results and very if that all tests passed
+    tests = Parser().parse_text(taptext)
+    tests = filter(lambda result: result.category == "test", tests)
+    for test in tests:
+        with subtests.test(test.description):
+            if test.skip:
+                pytest.skip()
+            elif not test.ok:
+                pytest.fail(test.diagnostics or test.description)
 
 
 @unittest.expectedFailure
