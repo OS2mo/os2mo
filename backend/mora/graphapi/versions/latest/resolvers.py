@@ -620,7 +620,7 @@ class KLEResolver(Resolver):
         to_date: datetime | None = UNSET,
         org_units: list[UUID] | None = None,
     ):
-        """Resolve itusers."""
+        """Resolve kle."""
         kwargs = {}
         if org_units is not None:
             kwargs["tilknyttedeenheder"] = org_units

@@ -70,7 +70,7 @@ class FacetCreate(BaseModel):
     all_fields=True,
 )
 class FacetCreateInput:
-    """input model for creating a facet."""
+    """Input model for creating a facet."""
 
 
 async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -> UUID:
@@ -80,6 +80,50 @@ async def create_facet(input: FacetCreate, organisation_uuid: UUID, note: str) -
     uuid = await asyncio.to_thread(
         db.create_or_import_object, "facet", note, registration
     )
+    return uuid
+
+
+@strawberry.experimental.pydantic.input(
+    model=FacetCreate,
+    all_fields=True,
+)
+class FacetUpdateInput:
+    """Input model for updating a facet."""
+
+
+async def update_facet(
+    input: FacetCreate, facet_uuid: UUID, organisation_uuid: UUID, note: str
+) -> UUID:
+    exists = await asyncio.to_thread(db.object_exists, "facet", str(facet_uuid))
+    if not exists:
+        raise ValueError("Cannot update a non-existent object")
+
+    # Construct a LoRa registration object from our input arguments
+    registration = input.to_registration(organisation_uuid=organisation_uuid)
+
+    # Let LoRa's SQL templates do their magic
+    life_cycle_code = await asyncio.to_thread(
+        db.get_life_cycle_code, "facet", str(facet_uuid)
+    )
+    if life_cycle_code in (db.Livscyklus.SLETTET.value, db.Livscyklus.PASSIVERET.value):
+        # Reactivate and update
+        uuid = await asyncio.to_thread(
+            db.update_object,
+            "facet",
+            note,
+            registration,
+            uuid=str(facet_uuid),
+            life_cycle_code=db.Livscyklus.IMPORTERET.value,
+        )
+    else:
+        # Update
+        uuid = await asyncio.to_thread(
+            db.create_or_import_object,
+            "facet",
+            note,
+            registration,
+            str(facet_uuid),
+        )
     return uuid
 
 

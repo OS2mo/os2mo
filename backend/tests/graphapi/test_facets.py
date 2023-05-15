@@ -10,6 +10,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
+from more_itertools import one
 from os2mo_fastapi_utils.auth.models import RealmAccess
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
@@ -294,3 +295,113 @@ async def test_integration_delete_facet() -> None:
     )
     assert response.errors is None
     assert response.data == {"facets": {"objects": []}}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_update_facet() -> None:
+    """Unit test for create facet mutator."""
+    read_query = """
+        query ($uuid: [UUID!]!) {
+          facets(uuids: $uuid) {
+            objects {
+              uuid
+              user_key
+            }
+          }
+        }
+    """
+    facet_uuid = "baddc4eb-406e-4c6b-8229-17e4a21d3550"
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "facets"
+    klass = one(response.data["facets"]["objects"])
+    assert klass == {
+        "uuid": facet_uuid,
+        "user_key": "employee_address_type",
+    }
+
+    update_query = """
+        mutation UpdateFacet($input: FacetUpdateInput!, $uuid: UUID!) {
+            facet_update(input: $input, uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=update_query,
+        variable_values={
+            "uuid": facet_uuid,
+            "input": {"user_key": "New Value 1"},
+        },
+    )
+    assert response.errors is None
+    assert response.data == {"facet_update": {"uuid": facet_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "facets"
+    klass = one(response.data["facets"]["objects"])
+    assert klass == {
+        "uuid": facet_uuid,
+        "user_key": "New Value 1",
+    }
+
+    delete_query = """
+        mutation ($uuid: UUID!) {
+          facet_delete(uuid: $uuid) {
+            uuid
+          }
+        }
+    """
+    response = await execute_graphql(
+        query=delete_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"facet_delete": {"uuid": facet_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert response.data == {"facets": {"objects": []}}
+
+    update_query = """
+        mutation UpdateFacet($input: FacetUpdateInput!, $uuid: UUID!) {
+            facet_update(input: $input, uuid: $uuid) {
+                uuid
+            }
+        }
+    """
+    response = await execute_graphql(
+        query=update_query,
+        variable_values={
+            "uuid": facet_uuid,
+            "input": {
+                "user_key": "New Value 2",
+            },
+        },
+    )
+    assert response.errors is None
+    assert response.data == {"facet_update": {"uuid": facet_uuid}}
+
+    response = await execute_graphql(
+        query=read_query,
+        variable_values={"uuid": facet_uuid},
+    )
+    assert response.errors is None
+    assert one(response.data.keys()) == "facets"
+    klass = one(response.data["facets"]["objects"])
+    assert klass == {
+        "uuid": facet_uuid,
+        "user_key": "New Value 2",
+    }
