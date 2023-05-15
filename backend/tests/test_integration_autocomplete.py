@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 from mora.service.orgunit import config as orgunit_config
 from tests.conftest import GQLResponse
 
+
 # NOTE: Read "backend/tests/graphapi/test_registration.py:11",
 # for reasoning behind "@pytest.mark.xfail"
 
@@ -46,7 +47,241 @@ def mock_get_settings_custom_attrs():
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
+def test_v2_search_employee_by_uuid(mock_get_settings, service_client: TestClient):
+    mock_get_settings.return_value = MagicMock(
+        confdb_autocomplete_v2_use_legacy=False,
+    )
+
+    at = datetime.now().date()
+    query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_employee_by_name(mock_get_settings, service_client: TestClient):
+    at = datetime.now().date()
+    query = "Anders And"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+    query = "erik"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "name": "Erik Smidt Hansen",
+                "attrs": [
+                    {
+                        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_employee_by_email(mock_get_settings, service_client: TestClient):
+    at = datetime.now().date()
+    query = "bruger@example.com"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+    query = "erik"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                "name": "Erik Smidt Hansen",
+                "attrs": [
+                    {
+                        "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_employee_by_itsystem(mock_get_settings, service_client: TestClient):
+    at = datetime.now().date()
+    query = "donald"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_v2_search_orgunit_by_uuid(mock_get_settings, service_client: TestClient):
     mock_get_settings.return_value = MagicMock(
         confdb_autocomplete_v2_use_legacy=False,
     )
@@ -63,7 +298,7 @@ def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [],
             }
         ]
@@ -91,7 +326,7 @@ def test_v2_search_by_uuid(mock_get_settings, service_client: TestClient):
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
+def test_v2_search_orgunit_by_name(mock_get_settings, service_client: TestClient):
     at = datetime.now().date()
     query = "Fake Corp"
     response = service_client.get(
@@ -104,7 +339,7 @@ def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [],
             }
         ]
@@ -138,7 +373,7 @@ def test_v2_search_by_name(mock_get_settings, service_client: TestClient):
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-def test_v2_search_by_name_with_custom_fields(
+def test_v2_search_orgunit_by_name_with_custom_fields(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
     at = datetime.now().date()
@@ -153,7 +388,7 @@ def test_v2_search_by_name_with_custom_fields(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
@@ -170,7 +405,7 @@ def test_v2_search_by_name_with_custom_fields(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_v2_search_by_addr_afdelingskode(
+def test_v2_search_orgunit_by_addr_afdelingskode(
     mock_get_settings_custom_attrs, service_client: TestClient
 ):
     at = datetime.now().date()
@@ -185,7 +420,7 @@ async def test_v2_search_by_addr_afdelingskode(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
@@ -202,7 +437,7 @@ async def test_v2_search_by_addr_afdelingskode(
 @pytest.mark.integration_test
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_v2_search_by_addr_afdelingskode_addr_rename(
+def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
     graphapi_post, admin_client, mock_get_settings_custom_attrs
 ):
     newAddrName = "Fake afdelingskode changed"
@@ -241,7 +476,7 @@ async def test_v2_search_by_addr_afdelingskode_addr_rename(
             {
                 "uuid": "f494ad89-039d-478e-91f2-a63566554666",
                 "name": "Fake Corp With Addrs",
-                "path": ["Fake Corp With Addrs"],
+                "path": [],
                 "attrs": [
                     {
                         "title": "Afdelingskode",
