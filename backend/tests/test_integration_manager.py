@@ -966,7 +966,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
 
 
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-@patch("uuid.uuid4", new=lambda: mock_uuid)
+@patch("uuid.uuid4", new=lambda: UUID(mock_uuid))
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 class Tests(tests.cases.LoRATestCase):
     maxDiff = None

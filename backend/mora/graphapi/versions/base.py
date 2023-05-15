@@ -9,6 +9,7 @@ from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
 from strawberry.extensions import SchemaExtension
+from strawberry.extensions.tracing import SentryTracingExtension
 from strawberry.schema.config import StrawberryConfig
 
 from mora.graphapi.middleware import StarletteContextExtension
@@ -30,6 +31,7 @@ class BaseGraphQLSchema:
 
     extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
+        SentryTracingExtension,
     ]
 
     # Automatic camelCasing disabled because under_score style is simply better
