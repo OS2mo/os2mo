@@ -26,6 +26,7 @@ from .engagements import terminate_engagement
 from .engagements import update_engagement
 from .facets import create_facet
 from .facets import delete_facet
+from .facets import FacetCreateInput
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
@@ -38,7 +39,6 @@ from .inputs import EmployeeUpdateInput
 from .inputs import EngagementCreateInput
 from .inputs import EngagementTerminateInput
 from .inputs import EngagementUpdateInput
-from .inputs import FacetCreateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
@@ -293,8 +293,11 @@ class Mutation:
         description="Creates a facet.",
         permission_classes=[IsAuthenticatedPermission, admin_permission_class],
     )
-    async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
-        return UUIDReturn(uuid=await create_facet(input.to_pydantic()))
+    async def facet_create(self, info: Info, input: FacetCreateInput) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await create_facet(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
 
     # TODO: facet_update
     # TODO: facet_terminate
