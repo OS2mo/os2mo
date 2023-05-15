@@ -22,6 +22,7 @@ from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
 from mo_ldap_import_export.utils import mo_object_is_valid
+from mo_ldap_import_export.utils import remove_vowels
 
 
 async def test_import_class():
@@ -175,3 +176,7 @@ def test_combine_dn_strings():
     assert combine_dn_strings(["CN=Nick", "", "DC=bar"]) == "CN=Nick,DC=bar"
     assert combine_dn_strings(["CN=Nick", "OU=f", "DC=bar"]) == "CN=Nick,OU=f,DC=bar"
     assert combine_dn_strings(["CN=Nick", "DC=bar"]) == "CN=Nick,DC=bar"
+
+
+def test_remove_vowels():
+    assert remove_vowels("food") == "fd"

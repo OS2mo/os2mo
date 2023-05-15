@@ -14,6 +14,7 @@ from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
 from ramqp.mo.models import ServiceType
 
+from mo_ldap_import_export.converters import read_mapping_json
 from mo_ldap_import_export.ldap_classes import LdapObject
 
 
@@ -196,3 +197,17 @@ def username_generator() -> MagicMock:
 @pytest.fixture
 def export_checks() -> AsyncMock:
     return AsyncMock()
+
+
+def read_mapping(filename):
+    """
+    Read a json mapping file
+    """
+    return read_mapping_json(
+        os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "mo_ldap_import_export",
+            "mappings",
+            filename,
+        )
+    )

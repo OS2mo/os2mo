@@ -13,22 +13,8 @@ from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 
+from .conftest import read_mapping
 from mo_ldap_import_export.converters import LdapConverter
-from mo_ldap_import_export.converters import read_mapping_json
-
-
-def read_mapping(filename):
-    """
-    Read a json mapping file
-    """
-    return read_mapping_json(
-        os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            "mo_ldap_import_export",
-            "mappings",
-            filename,
-        )
-    )
 
 
 @pytest.fixture

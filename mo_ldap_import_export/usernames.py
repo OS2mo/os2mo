@@ -9,6 +9,7 @@ from .exceptions import IncorrectMapping
 from .ldap import paged_search
 from .logging import logger
 from .utils import combine_dn_strings
+from .utils import remove_vowels
 
 
 class UserNameGeneratorBase:
@@ -314,6 +315,37 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         common_name = self._create_common_name(name)
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+
+        dn = self._make_dn(common_name)
+        self.dataloader.add_ldap_object(dn, username)
+        return dn
+
+
+class AlleroedUserNameGenerator(UserNameGeneratorBase):
+    def generate_username(self, name):
+        # Remove vowels from all but first name
+        name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
+
+        return self._create_username(name)
+
+    def generate_dn(self, employee: Employee) -> str:
+        """
+        Generates a LDAP DN (Distinguished Name) based on information from a MO Employee
+        object.
+
+        Also adds an object to LDAP with this DN
+
+        Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
+        """
+        givenname = employee.givenname
+        surname = employee.surname
+        name = givenname.split(" ")[:4] + [surname]
+
+        common_name = self._create_common_name(name)
+        logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
+
+        username = self.generate_username(name)
+        logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
         self.dataloader.add_ldap_object(dn, username)
