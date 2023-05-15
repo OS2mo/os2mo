@@ -334,7 +334,28 @@
      // Example1: If combination = "F11LL", 'Hans Jakob Hansen' returns username="hjaha"
      // Example2: If combination = "FFLL", 'Hans Jakob Hansen' returns username="haha"
      "combinations_to_try": [
-            // Try to make a username with 5 characters.
+            // Try to make a username with 4 characters.
+            "F111",
+            "F112",
+            "F122",
+            "F222",
+            "F223",
+            "F233",
+            "F333",
+
+            "F11L",
+            "F12L",
+            "F22L",
+            "F23L",
+            "F33L",
+
+            "F1LL",
+            "F2LL",
+            "F3LL",
+
+            "FLLL",
+
+            // If we get to here, we failed to make a username with 4 characters.
             "F111L",
             "F112L",
             "F122L",
@@ -355,28 +376,7 @@
 
             "FLLLL",
 
-            // If we get to here, the user does not have a last name
-            "F1111",
-            "F1112",
-            "F1122",
-            "F1222",
-            "F2222",
-            "F2223",
-            "F2233",
-            "F2333",
-            "F3333",
-
-
             // If we get to here, we failed to make a username with 5 characters.
-            "F11L",
-            "F12L",
-            "F22L",
-            "F23L",
-            "F33L",
-            "F3LL",
-            "FLLL",
-
-            // If we get to here, we failed to make a username with 4 characters.
             "F1L",
             "F2L",
             "F3L",
@@ -387,8 +387,8 @@
             "FLX",
 
             // If we get to here, we failed to make a username that includes last-name
-            "FFFFF",
             "FFFF",
+            "FFFFF",
             "FFF",
             "FF",
             "FFX",

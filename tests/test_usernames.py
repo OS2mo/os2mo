@@ -274,34 +274,34 @@ def test_alleroed_username_generator(
 
         return username
 
-    assert generate_username(["Lars", "Løkke", "Rasmussen"]) == "llkkr"
-    assert generate_username(["Lone", "Løkke", "Rasmussen"]) == "llkrs"
-    assert generate_username(["Lærke", "Løkke", "Rasmussen"]) == "llrsm"
-    assert generate_username(["Leo", "Løkke", "Rasmussen"]) == "lrsms"
-    assert generate_username(["Lukas", "Løkke", "Rasmussen"]) == "llkr"
-    assert generate_username(["Liam", "Løkke", "Rasmussen"]) == "lrsm"
-    assert generate_username(["Ludvig", "Løkke", "Rasmussen"]) == "llr"
-    assert generate_username(["Laurits", "Løkke", "Rasmussen"]) == "lrs"
-    assert generate_username(["Loki", "Løkke", "Rasmussen"]) == "lr"
-    assert generate_username(["Lasse", "Løkke", "Rasmussen"]) == "lr2"
-    assert generate_username(["Leonardo", "Løkke", "Rasmussen"]) == "lr3"
+    assert generate_username(["Lars", "Løkke", "Rasmussen"]) == "llkk"
+    assert generate_username(["Lone", "Løkke", "Rasmussen"]) == "llkr"
+    assert generate_username(["Lærke", "Løkke", "Rasmussen"]) == "llrs"
+    assert generate_username(["Leo", "Løkke", "Rasmussen"]) == "lrsm"
+    assert generate_username(["Lukas", "Løkke", "Rasmussen"]) == "llkkr"
+    assert generate_username(["Liam", "Løkke", "Rasmussen"]) == "llkrs"
+    assert generate_username(["Ludvig", "Løkke", "Rasmussen"]) == "llrsm"
+    assert generate_username(["Laurits", "Løkke", "Rasmussen"]) == "lrsms"
+    assert generate_username(["Loki", "Løkke", "Rasmussen"]) == "llr"
+    assert generate_username(["Lasse", "Løkke", "Rasmussen"]) == "lrs"
+    assert generate_username(["Leonardo", "Løkke", "Rasmussen"]) == "lr"
+    assert generate_username(["Laus", "Løkke", "Rasmussen"]) == "lr2"
 
     assert (
-        generate_username(["Margrethe", "Alexandrine", "borhildur", "Ingrid"])
-        == "mlxnn"
+        generate_username(["Margrethe", "Alexandrine", "borhildur", "Ingrid"]) == "mlxn"
     )
 
-    assert generate_username(["Mia", "Alexandrine", "borhildur", "Ingrid"]) == "mlxbn"
-    assert generate_username(["Mike", "Alexandrine", "borhildur", "Ingrid"]) == "mlbrn"
-    assert generate_username(["Max", "Alexandrine", "borhildur", "Ingrid"]) == "mbrhn"
-    assert generate_username(["Mick", "Alexandrine", "borhildur", "Ingrid"]) == "mlxng"
-    assert generate_username(["Mads", "Alexandrine", "borhildur", "Ingrid"]) == "mlbng"
+    assert generate_username(["Mia", "Alexandrine", "borhildur", "Ingrid"]) == "mlxb"
+    assert generate_username(["Mike", "Alexandrine", "borhildur", "Ingrid"]) == "mlbr"
+    assert generate_username(["Max", "Alexandrine", "borhildur", "Ingrid"]) == "mbrh"
+    assert generate_username(["Mick", "Alexandrine", "borhildur", "Ingrid"]) == "mlbn"
+    assert generate_username(["Mads", "Alexandrine", "borhildur", "Ingrid"]) == "mbrn"
 
     assert generate_username(["Bruce", "Lee"]) == "bl"
     assert generate_username(["Boris", "Lee"]) == "bl2"
     assert generate_username(["Benjamin", "Lee"]) == "bl3"
 
-    assert generate_username(["Bruce", ""]) == "bruce"
+    assert generate_username(["Bruce", ""]) == "bruc"
 
 
 def test_alleroed_dn_generator(alleroed_username_generator: AlleroedUserNameGenerator):
