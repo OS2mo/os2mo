@@ -252,8 +252,8 @@ class UserNameGeneratorBase:
         #
         # The last attempted permutation is '9' - because we would like to limit the
         # permutation counter to a single digit.
-        for permutation_counter in range(2, 10):
-            for combi in self.combinations:
+        for combi in self.combinations:
+            for permutation_counter in range(2, 10):
                 username = self._create_from_combi(name, combi)
                 if not username:
                     continue
