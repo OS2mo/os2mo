@@ -639,8 +639,8 @@ class DataLoader:
         """
         logger.info(f"Looking for LDAP object with objectGUID = {objectGUID}")
         searchParameters = {
-            "search_base": self.user_context["settings"].ldap_search_base,
-            "search_filter": f"(objectGUID={objectGUID})",
+            "search_base": f"<GUID={objectGUID}>",
+            "search_filter": "(objectclass=*)",
             "attributes": [],
         }
 
