@@ -1,5 +1,5 @@
-import copy
 import re
+from copy import deepcopy
 from typing import Union
 
 from fastramqpi.context import Context
@@ -120,10 +120,11 @@ class UserNameGeneratorBase:
 
         return dn
 
-    def _name_fixer(self, name: list[str]) -> list[str]:
+    def _name_fixer(self, name_to_fix: list[str]) -> list[str]:
         """
         Inspired by ad_integration/usernames.py
         """
+        name = deepcopy(name_to_fix)
         for i in range(0, len(name)):
             # Replace according to replacement list
             for char, replacement in self.char_replacement.items():
@@ -239,7 +240,7 @@ class UserNameGeneratorBase:
 
         Inspired by ad_integration/usernames.py
         """
-        name = self._name_fixer(copy.deepcopy(name))
+        name = self._name_fixer(name)
         existing_usernames = self.get_existing_values("sAMAccountName")
 
         # The permutation is a number inside the username, it is normally only used in
