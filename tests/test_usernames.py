@@ -7,7 +7,9 @@ import pytest
 from fastramqpi.context import Context
 from ramodels.mo import Employee
 
+from .conftest import read_mapping
 from mo_ldap_import_export.exceptions import IncorrectMapping
+from mo_ldap_import_export.usernames import AlleroedUserNameGenerator
 from mo_ldap_import_export.usernames import UserNameGenerator
 
 
@@ -73,6 +75,20 @@ def username_generator(
         return_value=existing_usernames_ldap,
     ):
         yield UserNameGenerator(context)
+
+
+@pytest.fixture
+def alleroed_username_generator(
+    context: Context, existing_usernames_ldap: list
+) -> Iterator[AlleroedUserNameGenerator]:
+
+    context["user_context"]["mapping"] = read_mapping("alleroed.json")
+
+    with patch(
+        "mo_ldap_import_export.usernames.paged_search",
+        return_value=existing_usernames_ldap,
+    ):
+        yield AlleroedUserNameGenerator(context)
 
 
 def test_get_existing_usernames(
@@ -234,3 +250,62 @@ def test_check_check_char_replacement(username_generator: UserNameGenerator):
     username_generator.mapping = {"username_generator": {"char_replacement": [1, 2, 3]}}
     with pytest.raises(IncorrectMapping, match="entry must be a <class 'dict'>"):
         username_generator._check_char_replacement()
+
+
+def test_alleroed_username_generator(
+    alleroed_username_generator: AlleroedUserNameGenerator,
+):
+
+    generated_usernames = []
+    alleroed_username_generator.get_existing_values = MagicMock()  # type: ignore
+    alleroed_username_generator.get_existing_values.return_value = []
+
+    def generate_username(name):
+        username = alleroed_username_generator.generate_username(name)
+
+        generated_usernames.append(username)
+        alleroed_username_generator.get_existing_values.return_value = (  # type: ignore
+            generated_usernames
+        )
+
+        # Print human readable output to send to Alleroed
+        full_name = " ".join(name)
+        print(f"{full_name} -> '{username}'")
+
+        return username
+
+    assert generate_username(["Lars", "Løkke", "Rasmussen"]) == "llkk"
+    assert generate_username(["Lone", "Løkke", "Rasmussen"]) == "llkr"
+    assert generate_username(["Lærke", "Løkke", "Rasmussen"]) == "llrs"
+    assert generate_username(["Leo", "Løkke", "Rasmussen"]) == "lrsm"
+    assert generate_username(["Lukas", "Løkke", "Rasmussen"]) == "llkkr"
+    assert generate_username(["Liam", "Løkke", "Rasmussen"]) == "llkrs"
+    assert generate_username(["Ludvig", "Løkke", "Rasmussen"]) == "llrsm"
+    assert generate_username(["Laurits", "Løkke", "Rasmussen"]) == "lrsms"
+    assert generate_username(["Loki", "Løkke", "Rasmussen"]) == "llr"
+    assert generate_username(["Lasse", "Løkke", "Rasmussen"]) == "lrs"
+    assert generate_username(["Leonardo", "Løkke", "Rasmussen"]) == "lr"
+    assert generate_username(["Laus", "Løkke", "Rasmussen"]) == "lr2"
+
+    assert (
+        generate_username(["Margrethe", "Alexandrine", "borhildur", "Ingrid"]) == "mlxn"
+    )
+
+    assert generate_username(["Mia", "Alexandrine", "borhildur", "Ingrid"]) == "mlxb"
+    assert generate_username(["Mike", "Alexandrine", "borhildur", "Ingrid"]) == "mlbr"
+    assert generate_username(["Max", "Alexandrine", "borhildur", "Ingrid"]) == "mbrh"
+    assert generate_username(["Mick", "Alexandrine", "borhildur", "Ingrid"]) == "mlbn"
+    assert generate_username(["Mads", "Alexandrine", "borhildur", "Ingrid"]) == "mbrn"
+
+    assert generate_username(["Bruce", "Lee"]) == "bl"
+    assert generate_username(["Boris", "Lee"]) == "bl2"
+    assert generate_username(["Benjamin", "Lee"]) == "bl3"
+
+    assert generate_username(["Bruce", ""]) == "bruc"
+
+
+def test_alleroed_dn_generator(alleroed_username_generator: AlleroedUserNameGenerator):
+
+    employee = Employee(givenname="Patrick", surname="Bateman")
+    dn = alleroed_username_generator.generate_dn(employee)
+    assert dn == "CN=Patrick Bateman,DC=bar"

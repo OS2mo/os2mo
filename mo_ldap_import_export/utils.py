@@ -4,6 +4,7 @@
 import asyncio
 import copy
 import datetime
+import re
 from typing import Union
 
 from gql import gql
@@ -173,3 +174,7 @@ def combine_dn_strings(dn_strings: list[str]) -> str:
     )
     dn: str = safe_dn(",".join(lst))
     return dn
+
+
+def remove_vowels(string):
+    return re.sub("[aeiouAEIOU]", "", string)
