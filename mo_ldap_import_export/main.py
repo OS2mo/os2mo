@@ -256,12 +256,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...
-
     checksum = [
         settings.ldap_ou_for_new_users.endswith(ou)
         for ou in settings.ldap_ous_to_search_in
     ]
-
     if sum(checksum) == 0:
         raise Exception("ldap_ou_for_new_users is not in ldap_ous_to_search_in")
 
