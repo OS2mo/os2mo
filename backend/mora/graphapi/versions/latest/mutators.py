@@ -27,6 +27,8 @@ from .engagements import update_engagement
 from .facets import create_facet
 from .facets import delete_facet
 from .facets import FacetCreateInput
+from .facets import FacetUpdateInput
+from .facets import update_facet
 from .inputs import AddressCreateInput
 from .inputs import AddressTerminateInput
 from .inputs import AddressUpdateInput
@@ -297,6 +299,18 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid, note)
+        return UUIDReturn(uuid=uuid)
+
+    @strawberry.mutation(
+        description="Updates a facet.",
+        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+    )
+    async def facet_update(
+        self, info: Info, input: FacetUpdateInput, uuid: UUID
+    ) -> UUIDReturn:
+        note = ""
+        org = await info.context["org_loader"].load(0)
+        uuid = await update_facet(input.to_pydantic(), uuid, org.uuid, note)
         return UUIDReturn(uuid=uuid)
 
     # TODO: facet_update
