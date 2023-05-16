@@ -6,7 +6,7 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from pydantic import Field
 
-from ..latest.mutators import admin_permission_class
+from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
 from ..latest.types import UUIDReturn
 from ..v6.version import GraphQLVersion as NextGraphQLVersion
@@ -63,7 +63,10 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
     # -------
     @strawberry.mutation(
         description="Creates a facet.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("facet"),
+        ],
     )
     async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
         return UUIDReturn(uuid=await create_facet(input.to_pydantic()))

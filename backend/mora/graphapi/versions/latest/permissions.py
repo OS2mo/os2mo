@@ -112,6 +112,7 @@ def gen_role_permission(
 def gen_permission(
     collection: Collections,
     permission_type: CollectionPermissionType,
+    force_permission_check: bool = False,
 ) -> type[BasePermission]:
     """Generator function for permission classes.
 
@@ -133,7 +134,23 @@ def gen_permission(
     return gen_role_permission(
         permission_name,
         f"User does not have {permission_type}-access to {collection}",
+        force_permission_check=force_permission_check,
     )
 
 
 gen_read_permission = partial(gen_permission, permission_type="read")
+gen_create_permission = partial(
+    gen_permission, permission_type="create", force_permission_check=True
+)
+gen_update_permission = partial(
+    gen_permission, permission_type="update", force_permission_check=True
+)
+gen_terminate_permission = partial(
+    gen_permission, permission_type="terminate", force_permission_check=True
+)
+gen_delete_permission = partial(
+    gen_permission, permission_type="delete", force_permission_check=True
+)
+gen_refresh_permission = partial(
+    gen_permission, permission_type="refresh", force_permission_check=True
+)

@@ -66,7 +66,12 @@ from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
 from .org_unit import update_org_unit
+from .permissions import gen_create_permission
+from .permissions import gen_delete_permission
+from .permissions import gen_refresh_permission
 from .permissions import gen_role_permission
+from .permissions import gen_terminate_permission
+from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .schema import Address
 from .schema import Association
@@ -89,12 +94,6 @@ from ramodels.mo.details import ManagerRead
 
 logger = logging.getLogger(__name__)
 
-# NOTE: The end goal is not to require admin for all GraphQL mutators, but rather to
-# have unique roles for each mutator.
-# The current solution is merely to stop unauthorized access to writing.
-# TODO: Implement proper permissions
-admin_permission_class = gen_role_permission("admin", force_permission_check=True)
-
 
 def ensure_uuid(uuid: UUID | str) -> UUID:
     if isinstance(uuid, UUID):
@@ -112,28 +111,40 @@ class Mutation:
     # ---------
     @strawberry.mutation(
         description="Creates an address.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("address"),
+        ],
     )
     async def address_create(self, input: AddressCreateInput) -> Response[Address]:
         return uuid2response(await create_address(input.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
         description="Updates an address.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("address"),
+        ],
     )
     async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
         return uuid2response(await update_address(input.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
         description="Terminates an address.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("address"),
+        ],
     )
     async def address_terminate(self, at: AddressTerminateInput) -> Response[Address]:
         return uuid2response(await terminate_addr(at.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
         description="Deletes an address.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("address"),
+        ],
     )
     async def address_delete(self, uuid: UUID) -> Response[Address]:
         return uuid2response(await delete_organisationfunktion(uuid), AddressRead)
@@ -142,7 +153,10 @@ class Mutation:
     # ------------
     @strawberry.mutation(
         description="Creates an association.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("association"),
+        ],
     )
     async def association_create(
         self, input: AssociationCreateInput
@@ -153,7 +167,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates an association.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("association"),
+        ],
     )
     async def association_update(
         self, input: AssociationUpdateInput
@@ -164,7 +181,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Terminates an association",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("association"),
+        ],
     )
     async def association_terminate(
         self, input: AssociationTerminateInput
@@ -179,7 +199,10 @@ class Mutation:
     # -------
     @strawberry.mutation(
         description="Creates a class.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("class"),
+        ],
     )
     async def class_create(self, info: Info, input: ClassCreateInput) -> UUIDReturn:
         note = ""
@@ -189,7 +212,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates a class.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("class"),
+        ],
     )
     async def class_update(
         self, info: Info, uuid: UUID, input: ClassUpdateInput
@@ -203,7 +229,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Deletes a class.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("class"),
+        ],
     )
     async def class_delete(self, uuid: UUID) -> UUIDReturn:
         note = ""
@@ -214,21 +243,30 @@ class Mutation:
     # ---------
     @strawberry.mutation(
         description="Creates an employee.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("employee"),
+        ],
     )
     async def employee_create(self, input: EmployeeCreateInput) -> Response[Employee]:
         return uuid2response(await employee_create(input.to_pydantic()), EmployeeRead)
 
     @strawberry.mutation(
         description="Updates an employee.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("employee"),
+        ],
     )
     async def employee_update(self, input: EmployeeUpdateInput) -> Response[Employee]:
         return uuid2response(await employee_update(input.to_pydantic()), EmployeeRead)
 
     @strawberry.mutation(
         description="Terminates an employee.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("employee"),
+        ],
     )
     async def employee_terminate(
         self, input: EmployeeTerminateInput
@@ -243,7 +281,10 @@ class Mutation:
     # -----------
     @strawberry.mutation(
         description="Creates an engagement.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("engagement"),
+        ],
     )
     async def engagement_create(
         self, input: EngagementCreateInput
@@ -254,7 +295,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates an engagement.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("engagement"),
+        ],
     )
     async def engagement_update(
         self, input: EngagementUpdateInput
@@ -265,7 +309,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Terminates an engagement.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("engagement"),
+        ],
     )
     async def engagement_terminate(
         self, input: EngagementTerminateInput
@@ -276,7 +323,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Deletes an engagement.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("engagement"),
+        ],
     )
     async def engagement_delete(self, uuid: UUID) -> Response[Engagement]:
         return uuid2response(await delete_organisationfunktion(uuid), EngagementRead)
@@ -293,7 +343,10 @@ class Mutation:
     # ------
     @strawberry.mutation(
         description="Creates a facet.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("facet"),
+        ],
     )
     async def facet_create(self, info: Info, input: FacetCreateInput) -> UUIDReturn:
         note = ""
@@ -303,7 +356,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates a facet.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("facet"),
+        ],
     )
     async def facet_update(
         self, info: Info, input: FacetUpdateInput, uuid: UUID
@@ -318,7 +374,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Deletes a facet.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("facet"),
+        ],
     )
     async def facet_delete(self, uuid: UUID) -> UUIDReturn:
         note = ""
@@ -329,7 +388,10 @@ class Mutation:
     # ---------
     @strawberry.mutation(
         description="Creates an ITSystem.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("itsystem"),
+        ],
     )
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
@@ -341,7 +403,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("itsystem"),
+        ],
     )
     async def itsystem_update(
         self, info: Info, input: ITSystemCreateInput, uuid: UUID
@@ -355,7 +420,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Deletes an ITSystem.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("itsystem"),
+        ],
     )
     async def itsystem_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
         note = ""
@@ -366,28 +434,40 @@ class Mutation:
     # -------
     @strawberry.mutation(
         description="Creates an IT-User.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("ituser"),
+        ],
     )
     async def ituser_create(self, input: ITUserCreateInput) -> Response[ITUser]:
         return uuid2response(await create_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
         description="Updates an IT-User.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("ituser"),
+        ],
     )
     async def ituser_update(self, input: ITUserUpdateInput) -> Response[ITUser]:
         return uuid2response(await update_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
         description="Terminates IT-User.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("ituser"),
+        ],
     )
     async def ituser_terminate(self, input: ITUserTerminateInput) -> Response[ITUser]:
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
         description="Deletes an IT-User.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_delete_permission("ituser"),
+        ],
     )
     async def ituser_delete(self, uuid: UUID) -> Response[ITUser]:
         return uuid2response(await delete_organisationfunktion(uuid), ITUserRead)
@@ -412,21 +492,30 @@ class Mutation:
     # --------
     @strawberry.mutation(
         description="Creates a manager relation.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("manager"),
+        ],
     )
     async def manager_create(self, input: ManagerCreateInput) -> Response[Manager]:
         return uuid2response(await create_manager(input.to_pydantic()), ManagerRead)
 
     @strawberry.mutation(
         description="Updates a manager relation.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("manager"),
+        ],
     )
     async def manager_update(self, input: ManagerUpdateInput) -> Response[Manager]:
         return uuid2response(await update_manager(input.to_pydantic()), ManagerRead)
 
     @strawberry.mutation(
         description="Terminates a manager relation.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("manager"),
+        ],
     )
     async def manager_terminate(
         self, input: ManagerTerminateInput
@@ -447,7 +536,10 @@ class Mutation:
     # --------------------
     @strawberry.mutation(
         description="Trigger refresh for an organisation unit",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_refresh_permission("org_unit"),
+        ],
     )
     async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
         result = await trigger_org_unit_refresh(uuid)
@@ -456,7 +548,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Creates an organisation unit.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("org_unit"),
+        ],
     )
     async def org_unit_create(
         self, input: OrganisationUnitCreateInput
@@ -467,7 +562,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Updates an organisation unit.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_update_permission("org_unit"),
+        ],
     )
     async def org_unit_update(
         self, input: OrganisationUnitUpdateInput
@@ -478,7 +576,10 @@ class Mutation:
 
     @strawberry.mutation(
         description="Terminates an organization unit.",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("org_unit"),
+        ],
     )
     async def org_unit_terminate(
         self, unit: OrganisationUnitTerminateInput
@@ -509,7 +610,10 @@ class Mutation:
     # -----
     @strawberry.mutation(
         description="Upload a file",
-        permission_classes=[IsAuthenticatedPermission, admin_permission_class],
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_role_permission("upload_files"),
+        ],
     )
     async def upload_file(
         self, info: Info, file_store: FileStore, file: Upload, force: bool = False
