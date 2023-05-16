@@ -502,7 +502,7 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
     # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
     settings = user_context["settings"]
-    polls = []
+    pollers = []
     for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in:
         search_base = combine_dn_strings(
             [ldap_ou_to_scan_for_changes, settings.ldap_search_base]
@@ -515,7 +515,7 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
         }
 
         # Polling search
-        polls.append(
+        pollers.append(
             setup_poller(
                 context,
                 callback,
@@ -524,7 +524,7 @@ def setup_listener(context: Context, callback: Callable) -> list[Thread]:
                 user_context["poll_time"],
             )
         )
-    return polls
+    return pollers
 
 
 def setup_poller(
