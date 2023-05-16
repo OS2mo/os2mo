@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from functools import cache
+from functools import partial
 from typing import Any
+from typing import get_args
+from typing import Literal
 
 from fastapi import HTTPException
 from prometheus_client import Counter
@@ -11,6 +14,45 @@ from strawberry.types import Info
 from mora.config import get_settings
 
 rbac_counter = Counter("graphql_rbac", "Number of RBAC checks", ["role", "allowed"])
+
+
+Collections = Literal[
+    "address",
+    "association",
+    "class",
+    "configuration",
+    "employee",
+    "engagement_association",
+    "engagement",
+    "facet",
+    "file",
+    "health",
+    "itsystem",
+    "ituser",
+    "kle",
+    "leave",
+    "manager",
+    "org",
+    "org_unit",
+    "related_unit",
+    "role",
+    "version",
+]
+CollectionPermissionType = Literal[
+    "read", "create", "update", "terminate", "delete", "refresh"
+]
+FilePermissions = Literal[
+    "list_files",
+    "download_files",
+    "upload_files",
+]
+
+
+ALL_PERMISSIONS = {
+    f"{permission_type}_{collection}"
+    for permission_type in get_args(CollectionPermissionType)
+    for collection in get_args(Collections)
+}.union(get_args(FilePermissions))
 
 
 class IsAuthenticatedPermission(BasePermission):
@@ -67,35 +109,10 @@ def gen_role_permission(
     return CheckRolePermission
 
 
-# Should this list should either just be dynamic or an enum?
-PERMISSIONS = {
-    f"read_{collection_name}"
-    for collection_name in {
-        "address",
-        "association",
-        "class",
-        "configuration",
-        "employee",
-        "engagement_association",
-        "engagement",
-        "facet",
-        "file",
-        "health",
-        "itsystem",
-        "ituser",
-        "kle",
-        "leave",
-        "manager",
-        "org",
-        "org_unit",
-        "related_unit",
-        "role",
-        "version",
-    }
-}
-
-
-def gen_read_permission(collection_name: str) -> type[BasePermission]:
+def gen_permission(
+    collection: Collections,
+    permission_type: CollectionPermissionType,
+) -> type[BasePermission]:
     """Generator function for permission classes.
 
     Utilizes `gen_role_permission` with a generated role-name and a custom message.
@@ -107,9 +124,16 @@ def gen_read_permission(collection_name: str) -> type[BasePermission]:
         Permission class that checks if the `collection_name` derived role is in the
         OIDC token.
     """
-    permission_name = f"read_{collection_name}"
-    assert permission_name in PERMISSIONS, f"{permission_name} not in PERMISSIONS"
+    assert collection in get_args(Collections), f"{collection} not a valid collection"
+    assert permission_type in get_args(
+        CollectionPermissionType
+    ), f"{permission_type} not a valid permission type"
+
+    permission_name = f"{permission_type}_{collection}"
     return gen_role_permission(
         permission_name,
-        f"User does not have read-access to {collection_name}",
+        f"User does not have {permission_type}-access to {collection}",
     )
+
+
+gen_read_permission = partial(gen_permission, permission_type="read")
