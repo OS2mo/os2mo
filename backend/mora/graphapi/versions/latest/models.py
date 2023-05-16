@@ -666,23 +666,6 @@ class EngagementUpdate(UUIDBase):
 # -----------------------
 
 
-# Facets
-# ------
-class FacetCreate(UUIDBase):
-    """Model representing a facet creation/update."""
-
-    """Inherets uuid from UUIDBase"""
-
-    user_key: str = Field(description="Facet name.")
-    type_: str = Field(
-        "facet", alias="type", description="The object type"
-    )  # type is always "facet"
-
-    org_uuid: UUID = Field(description="UUID of the related organisation.")
-    parent_uuid: UUID | None = Field(description="UUID of the parent facet.")
-    published: str | None = Field(description="Published state of the facet object.")
-
-
 # ITSystems
 # ---------
 

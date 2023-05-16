@@ -12,6 +12,7 @@ from .versions.v2.version import GraphQLVersion as Version2
 from .versions.v3.version import GraphQLVersion as Version3
 from .versions.v4.version import GraphQLVersion as Version4
 from .versions.v5.version import GraphQLVersion as Version5
+from .versions.v6.version import GraphQLVersion as Version6
 from mora.graphapi.versions.base import BaseGraphQLVersion
 
 graphql_versions: list[type[BaseGraphQLVersion]] = [
@@ -20,6 +21,7 @@ graphql_versions: list[type[BaseGraphQLVersion]] = [
     Version3,
     Version4,
     Version5,
+    Version6,
 ]
 
 
