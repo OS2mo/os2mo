@@ -98,9 +98,10 @@ class UserNameGeneratorBase:
             "search_filter": f"(objectclass={user_class})",
             "attributes": [attribute],
         }
+        search_base = self.settings.ldap_search_base
         existing_values = [
             entry["attributes"][attribute].lower()
-            for entry in paged_search(self.context, searchParameters)
+            for entry in paged_search(self.context, searchParameters, search_base)
         ]
         return existing_values
 

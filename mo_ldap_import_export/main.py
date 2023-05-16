@@ -254,9 +254,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
 
-    print("x" * 80)
-    print(settings.ldap_ous_to_search_in)
-    print("x" * 80)
+    # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
+    # find newly created users...
+    if settings.ldap_ou_for_new_users not in settings.ldap_ous_to_search_in:
+        raise Exception("ldap_ou_for_new_users is not in ldap_ous_to_search_in")
 
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)

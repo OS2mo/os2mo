@@ -266,10 +266,11 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     """
     if type(searchParameters["search_base"]) is list:
         search_bases = searchParameters["search_base"].copy()
+        modified_searchParameters = searchParameters.copy()
         response = []
         for search_base in search_bases:
-            searchParameters["search_base"] = search_base
-            ldap_connection.search(**searchParameters)
+            modified_searchParameters["search_base"] = search_base
+            ldap_connection.search(**modified_searchParameters)
             response.extend(ldap_connection.response)
     else:
         ldap_connection.search(**searchParameters)
