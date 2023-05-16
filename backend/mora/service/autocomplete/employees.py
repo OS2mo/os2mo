@@ -258,8 +258,12 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for engagement in gql_employee.get("engagements", []):
         uuid = engagement["uuid"]
         value = engagement["user_key"]
+        engagement_type = engagement.get("engagement_type")
+        if not engagement_type:
+            continue
+
         if util.is_detail_unpublished(
-            value, engagement["engagement_type"]["published"]
+            value, engagement_type.get("published")
         ) or util.is_uuid(value):
             continue
 
@@ -274,8 +278,12 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for address in gql_employee.get("addresses", []):
         uuid = address["uuid"]
         value = address["value"]
+        addr_type = address.get("address_type")
+        if not addr_type:
+            continue
+
         if util.is_detail_unpublished(
-            value, address["address_type"]["published"]
+            value, addr_type.get("published")
         ) or util.is_uuid(value):
             continue
 
@@ -290,8 +298,12 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for assoc in gql_employee.get("associations", []):
         uuid = assoc["uuid"]
         value = assoc["user_key"]
+        assoc_type = assoc.get("association_type")
+        if not assoc_type:
+            continue
+
         if util.is_detail_unpublished(
-            value, assoc["association_type"]["published"]
+            value, assoc_type.get("published")
         ) or util.is_uuid(value):
             continue
 
@@ -306,6 +318,10 @@ def _gql_get_employee_attrs(gql_employee: dict):
     for ituser in gql_employee.get("itusers", []):
         uuid = ituser["uuid"]
         value = ituser["user_key"]
+
+        if not ituser.get("itsystem"):
+            continue
+
         if util.is_detail_unpublished(value) or util.is_uuid(value):
             continue
 
