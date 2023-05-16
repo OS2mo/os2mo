@@ -1200,6 +1200,18 @@ python-versions = ">=3.7.1,<4.0"
 pytest = ">=5,<8"
 
 [[package]]
+name = "pytest-subtests"
+version = "0.11.0"
+description = "unittest subTest() support and subtests fixture"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+attrs = ">=19.2.0"
+pytest = ">=7.0"
+
+[[package]]
 name = "pytest-timeouts"
 version = "1.2.1"
 description = "Linux-only Pytest plugin to control durations of various test case execution phases"
@@ -1747,7 +1759,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "e698c79ba9de71e26cfa46e6a255ff8394ccf4c450ed3d96ec84366e09e7de01"
+content-hash = "75d11b5bb4c40027628c71a48f9ebf4887c356ede4fb729d87922838165e72b3"
 
 [metadata.files]
 aio-pika = [
@@ -2725,6 +2737,10 @@ pytest-randomly = [
 pytest-split = [
     {file = "pytest_split-0.8.1-py3-none-any.whl", hash = "sha256:74b110ea091bd147cc1c5f9665a59506e5cedfa66f96a89fb03e4ab447c2c168"},
     {file = "pytest_split-0.8.1.tar.gz", hash = "sha256:2d88bd3dc528689a7a3f58fc12ea165c3aa62e90795e420dfad920afe5612d6d"},
+]
+pytest-subtests = [
+    {file = "pytest-subtests-0.11.0.tar.gz", hash = "sha256:51865c88457545f51fb72011942f0a3c6901ee9e24cbfb6d1b9dc1348bafbe37"},
+    {file = "pytest_subtests-0.11.0-py3-none-any.whl", hash = "sha256:453389984952eec85ab0ce0c4f026337153df79587048271c7fd0f49119c07e4"},
 ]
 pytest-timeouts = [
     {file = "pytest-timeouts-1.2.1.tar.gz", hash = "sha256:390351afc7ecb422ea0ec38081e0acd91cad416b383944a9a3358087de50c2fb"},

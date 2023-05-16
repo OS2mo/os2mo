@@ -73,6 +73,7 @@ pytest-randomly = "^3.12.0"
 [tool.poetry.group.dev.dependencies]
 pytest-timeouts = "^1.2.1"
 commitizen = {git = "https://github.com/noirbizarre/commitizen.git", rev = "feature/template-override"}
+pytest-subtests = "^0.11.0"
 
 [tool.commitizen]
 name = "cz_customize"
