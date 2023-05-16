@@ -65,6 +65,8 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
     if at is not None:
         graphql_vars["from_date"] = at
 
+    from mora.graphapi.versions.v4.version import GraphQLVersion
+
     employee_decorate_query = """
         query EmployeeDecorate($uuids: [UUID!], $from_date: DateTime) {
           employees(uuids: $uuids, from_date: $from_date) {
@@ -127,7 +129,9 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
     """
 
     response = await execute_graphql(
-        employee_decorate_query, variable_values=jsonable_encoder(graphql_vars)
+        employee_decorate_query,
+        graphql_version=GraphQLVersion,
+        variable_values=jsonable_encoder(graphql_vars),
     )
     handle_gql_error(response)
 

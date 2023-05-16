@@ -69,6 +69,8 @@ async def decorate_orgunit_search_result(
     if at is not None:
         graphql_vars["from_date"] = at
 
+    from mora.graphapi.versions.v4.version import GraphQLVersion
+
     orgunit_decorate_query = """
             query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
                 org_units(uuids: $uuids, from_date: $from_date) {
@@ -133,7 +135,9 @@ async def decorate_orgunit_search_result(
             """
 
     response = await execute_graphql(
-        orgunit_decorate_query, variable_values=jsonable_encoder(graphql_vars)
+        orgunit_decorate_query,
+        graphql_version=GraphQLVersion,
+        variable_values=jsonable_encoder(graphql_vars),
     )
     handle_gql_error(response)
 
