@@ -790,8 +790,14 @@ def test_is_guid():
 
 async def test_poller_healthcheck():
     poller = MagicMock()
-    poller.is_alive.return_value = True
-    assert (await poller_healthcheck({"user_context": {"poller": poller}})) is True
+    poller.is_alive.return_value = False
+    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is False
 
     poller.is_alive.return_value = True
-    assert (await poller_healthcheck({"user_context": {"poller": poller}})) is True
+    assert (await poller_healthcheck({"user_context": {"pollers": [poller]}})) is True
+
+    second_poller = MagicMock()
+    second_poller.is_alive.return_value = False
+    pollers = [poller, second_poller]
+
+    assert (await poller_healthcheck({"user_context": {"pollers": pollers}})) is False
