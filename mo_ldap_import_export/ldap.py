@@ -172,10 +172,10 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
-def paged_search(
+def _paged_search(
     context: Context,
     searchParameters: dict,
-    search_base: Union[str, None] = None,
+    search_base: str,
 ) -> list:
     """
     searchParameters : dict
@@ -185,8 +185,6 @@ def paged_search(
     """
     responses = []
     user_context = context["user_context"]
-    if not search_base:
-        search_base = user_context["settings"].ldap_search_base
     ldap_connection = user_context["ldap_connection"]
 
     # TODO: Find max. paged_size number from LDAP rather than hard-code it?
@@ -225,6 +223,27 @@ def paged_search(
     return responses
 
 
+def paged_search(
+    context: Context,
+    searchParameters: dict,
+    search_base: Union[str, None] = None,
+) -> list:
+
+    if search_base:
+        # If the search base is explicitly defined: Don't try anything fancy.
+        results = _paged_search(context, searchParameters, search_base)
+    else:
+        # Otherwise, loop over all OUs to search in
+        settings = context["user_context"]["settings"]
+
+        results = []
+        for ou in settings.ldap_ous_to_search_in:
+            search_base = combine_dn_strings([ou, settings.ldap_search_base])
+            results.extend(_paged_search(context, searchParameters, search_base))
+
+    return results
+
+
 def single_object_search(searchParameters, ldap_connection, exact_dn_match=False):
     """
     Performs an LDAP search and throws an exception if there are multiple or no search
@@ -245,8 +264,16 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     object's dn (distinguished name) as the search base and set
     searchFilter = "(objectclass=*)"
     """
-    ldap_connection.search(**searchParameters)
-    response = ldap_connection.response
+    if type(searchParameters["search_base"]) is list:
+        search_bases = searchParameters["search_base"].copy()
+        response = []
+        for search_base in search_bases:
+            searchParameters["search_base"] = search_base
+            ldap_connection.search(**searchParameters)
+            response.extend(ldap_connection.response)
+    else:
+        ldap_connection.search(**searchParameters)
+        response = ldap_connection.response
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
 

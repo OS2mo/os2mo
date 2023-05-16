@@ -43,6 +43,7 @@ from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .logging import logger
 from .utils import add_filter_to_query
+from .utils import combine_dn_strings
 
 
 class DataLoader:
@@ -201,7 +202,6 @@ class DataLoader:
         Returns all values belonging to an LDAP attribute
         """
         searchParameters = {
-            "search_base": self.user_context["settings"].ldap_search_base,
             "search_filter": "(objectclass=*)",
             "attributes": [attribute],
         }
@@ -234,6 +234,10 @@ class DataLoader:
         settings = self.user_context["settings"]
 
         search_base = settings.ldap_search_base
+        ous_to_search_in = settings.ldap_ous_to_search_in
+        search_bases = [
+            combine_dn_strings([ou, search_base]) for ou in ous_to_search_in
+        ]
         converter = self.user_context["converter"]
 
         object_class = converter.find_ldap_object_class(json_key)
@@ -243,7 +247,7 @@ class DataLoader:
         cpr_filter = f"{cpr_field}={cpr_no}"
 
         searchParameters = {
-            "search_base": search_base,
+            "search_base": search_bases,
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": list(set(attributes)),
         }

@@ -254,6 +254,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     logger.info("Retrieving settings")
     settings = Settings(**kwargs)
 
+    print("x" * 80)
+    print(settings.ldap_ous_to_search_in)
+    print("x" * 80)
+
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)
     fastramqpi.add_context(settings=settings)
