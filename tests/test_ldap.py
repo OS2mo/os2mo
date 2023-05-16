@@ -365,8 +365,7 @@ async def test_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
-
+    output = paged_search(context, searchParameters, search_base="foo")
     assert output == expected_results * len(cookies)
 
 
