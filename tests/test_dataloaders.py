@@ -1935,13 +1935,19 @@ def test_return_mo_employee_uuid_result(dataloader: DataLoader):
 
     result = {
         "itusers": [
-            {"objects": [{"employee_uuid": uuid}]},
-            {"objects": [{"employee_uuid": uuid4()}]},
+            {"objects": [{"employee_uuid": uuid, "cpr_no": "010101-1234"}]},
+            {"objects": [{"employee_uuid": uuid4(), "cpr_no": "010101-1234"}]},
         ]
     }
-    with pytest.raises(MultipleObjectsReturnedException):
+    with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
         dataloader._return_mo_employee_uuid_result(result)
 
-    result = {"employees": [{"uuid": uuid}, {"uuid": uuid4()}], "itusers": []}
-    with pytest.raises(MultipleObjectsReturnedException):
+    result = {
+        "employees": [
+            {"uuid": uuid, "cpr_no": "010101-1234"},
+            {"uuid": uuid4(), "cpr_no": "010101-1234"},
+        ],
+        "itusers": [],
+    }
+    with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
         dataloader._return_mo_employee_uuid_result(result)

@@ -443,13 +443,18 @@ async def test_single_object_search(ldap_connection: MagicMock):
     assert output == search_entry
     ldap_connection.response = [search_entry]
 
-    with pytest.raises(MultipleObjectsReturnedException):
-        ldap_connection.response = [search_entry] * 2
-        output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
+    search_parameters = {
+        "search_base": "CN=foo,DC=bar",
+        "search_filter": "CPR=010101-1234",
+    }
 
-    with pytest.raises(NoObjectsReturnedException):
+    with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
+        ldap_connection.response = [search_entry] * 2
+        output = single_object_search(search_parameters, ldap_connection)
+
+    with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
         ldap_connection.response = [search_entry] * 0
-        output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
+        output = single_object_search(search_parameters, ldap_connection)
 
     ldap_connection.response = [search_entry]
     output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
@@ -458,9 +463,10 @@ async def test_single_object_search(ldap_connection: MagicMock):
         {"search_base": "CN=moo,CN=foo,DC=bar"}, ldap_connection
     )
     assert output == search_entry
-    with pytest.raises(NoObjectsReturnedException):
+    with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
+        search_parameters["search_base"] = "CN=moo,DC=bar"
         output = single_object_search(
-            {"search_base": "CN=moo,CN=foo,DC=bar"},
+            search_parameters,
             ldap_connection,
             exact_dn_match=True,
         )
