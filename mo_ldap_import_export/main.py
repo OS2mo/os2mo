@@ -261,7 +261,7 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
         for ou in settings.ldap_ous_to_search_in
     ]
     if sum(checksum) == 0:
-        raise Exception("ldap_ou_for_new_users is not in ldap_ous_to_search_in")
+        raise ValueError("ldap_ou_for_new_users is not in ldap_ous_to_search_in")
 
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)
