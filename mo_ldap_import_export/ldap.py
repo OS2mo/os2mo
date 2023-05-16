@@ -131,8 +131,11 @@ async def ldap_healthcheck(context: Union[dict, Context]) -> bool:
 
 
 async def poller_healthcheck(context: Union[dict, Context]) -> bool:
-    poller = context["user_context"]["poller"]
-    return cast(bool, poller.is_alive())
+    pollers = context["user_context"]["pollers"]
+    for poller in pollers:
+        if not poller.is_alive():
+            return False
+    return True
 
 
 def get_ldap_schema(ldap_connection: Connection):
@@ -492,31 +495,36 @@ async def cleanup(
         )
 
 
-def setup_listener(context: Context, callback: Callable):
+def setup_listener(context: Context, callback: Callable) -> list[Thread]:
     user_context = context["user_context"]
 
     # Note:
     # We need the dn attribute to trigger sync_tool.import_single_user()
     # We need the modifyTimeStamp attribute to check for duplicate events in _poller()
     settings = user_context["settings"]
-    search_base = combine_dn_strings(
-        [settings.ldap_ou_to_scan_for_changes, settings.ldap_search_base]
-    )
+    polls = []
+    for ldap_ou_to_scan_for_changes in settings.ldap_ous_to_search_in:
+        search_base = combine_dn_strings(
+            [ldap_ou_to_scan_for_changes, settings.ldap_search_base]
+        )
 
-    search_parameters = {
-        "search_base": search_base,
-        "search_filter": "(cn=*)",
-        "attributes": ["distinguishedName", "modifyTimestamp"],
-    }
+        search_parameters = {
+            "search_base": search_base,
+            "search_filter": "(cn=*)",
+            "attributes": ["distinguishedName", "modifyTimestamp"],
+        }
 
-    # Polling search
-    return setup_poller(
-        context,
-        callback,
-        search_parameters,
-        datetime.datetime.utcnow(),
-        user_context["poll_time"],
-    )
+        # Polling search
+        polls.append(
+            setup_poller(
+                context,
+                callback,
+                search_parameters,
+                datetime.datetime.utcnow(),
+                user_context["poll_time"],
+            )
+        )
+    return polls
 
 
 def setup_poller(

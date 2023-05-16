@@ -352,11 +352,11 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     fastramqpi.add_context(poll_time=settings.poll_time)
 
     if settings.listen_to_changes_in_ldap:
-        poller = setup_listener(
+        pollers = setup_listener(
             fastramqpi.get_context(),
             partial(listener, fastramqpi.get_context()),
         )
-        fastramqpi.add_context(poller=poller)
+        fastramqpi.add_context(pollers=pollers)
         fastramqpi.add_healthcheck(name="LDAPPoller", healthcheck=poller_healthcheck)
 
     return fastramqpi
