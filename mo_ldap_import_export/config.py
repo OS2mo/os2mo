@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: MPL-2.0
 # pylint: disable=too-few-public-methods
 """Settings handling."""
+from typing import List
+
 from fastramqpi.config import Settings as FastRAMQPISettings
 from pydantic import AmqpDsn
 from pydantic import AnyHttpUrl
@@ -93,6 +95,13 @@ class Settings(BaseSettings):
     )
     ldap_search_base: str = Field(
         ..., description="Search base to utilize for all LDAP requests"
+    )
+    ldap_ous_to_search_in: List[str] = Field(
+        [""],
+        description=(
+            "OUS to search in, if this is an empty string; "
+            "Searches in all OUs in the search base"
+        ),
     )
 
     ldap_ou_for_new_users: str = Field(

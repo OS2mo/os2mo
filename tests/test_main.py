@@ -61,6 +61,21 @@ def load_settings_overrides_incorrect_mapping(
 
 
 @pytest.fixture
+def load_settings_overrides_incorrect_ou_for_new_users(
+    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+) -> Iterator[dict[str, str]]:
+    overrides = {
+        **settings_overrides,
+        "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
+        "LDAP_OU_FOR_NEW_USERS": "OU=foo",
+    }
+    for key, value in overrides.items():
+        if os.environ.get(key) is None:
+            monkeypatch.setenv(key, value)
+    yield overrides
+
+
+@pytest.fixture
 def load_settings_overrides_not_listening(
     settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
 ) -> Iterator[dict[str, str]]:
@@ -520,6 +535,16 @@ async def test_load_mapping_file_environment(
     ):
         fastramqpi = create_fastramqpi()
         assert isinstance(fastramqpi, FastRAMQPI)
+
+
+async def test_incorrect_ous_to_search_in(
+    load_settings_overrides_incorrect_ou_for_new_users: dict[str, str],
+    disable_metrics: None,
+    converter: MagicMock,
+) -> None:
+
+    with pytest.raises(ValueError):
+        create_fastramqpi()
 
 
 async def test_load_faulty_username_generator(

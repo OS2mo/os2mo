@@ -365,8 +365,7 @@ async def test_paged_search(
         "search_filter": "(objectclass=organizationalPerson)",
         "attributes": ["foo", "bar"],
     }
-    output = paged_search(context, searchParameters)
-
+    output = paged_search(context, searchParameters, search_base="foo")
     assert output == expected_results * len(cookies)
 
 
@@ -439,18 +438,18 @@ async def test_single_object_search(ldap_connection: MagicMock):
     search_entry = {"type": "searchResEntry", "dn": dn}
 
     ldap_connection.response = [search_entry]
-    output = single_object_search({}, ldap_connection)
+    output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
 
     assert output == search_entry
     ldap_connection.response = [search_entry]
 
     with pytest.raises(MultipleObjectsReturnedException):
         ldap_connection.response = [search_entry] * 2
-        output = single_object_search({}, ldap_connection)
+        output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
 
     with pytest.raises(NoObjectsReturnedException):
         ldap_connection.response = [search_entry] * 0
-        output = single_object_search({}, ldap_connection)
+        output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
 
     ldap_connection.response = [search_entry]
     output = single_object_search({"search_base": "CN=foo,DC=bar"}, ldap_connection)
