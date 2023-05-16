@@ -41,6 +41,7 @@ from mora.db import get_sessionmaker
 from mora.graphapi.main import graphql_versions
 from mora.graphapi.versions.latest.dataloaders import MOModel
 from mora.graphapi.versions.latest.models import NonEmptyString
+from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
@@ -138,7 +139,7 @@ async def fake_auth() -> Token:
 
 async def admin_auth() -> Token:
     auth = await fake_auth()
-    auth.realm_access.roles = {"admin"}
+    auth.realm_access.roles = {"admin", "owner"}.union(ALL_PERMISSIONS)
     return auth
 
 
