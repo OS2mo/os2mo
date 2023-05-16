@@ -42,6 +42,7 @@ from .ldap import paged_search
 from .ldap import single_object_search
 from .ldap_classes import LdapObject
 from .logging import logger
+from .processors import _hide_cpr as hide_cpr
 from .utils import add_filter_to_query
 from .utils import combine_dn_strings
 
@@ -555,7 +556,7 @@ class DataLoader:
     def _return_mo_employee_uuid_result(self, result: dict) -> Union[None, UUID]:
         number_of_employees = len(result.get("employees", []))
         number_of_itusers = len(result["itusers"])
-        error_message = f"Multiple matching employees in {result}"
+        error_message = hide_cpr(f"Multiple matching employees in {result}")
         exception = MultipleObjectsReturnedException(error_message)
 
         if number_of_employees == 1:

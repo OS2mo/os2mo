@@ -42,6 +42,7 @@ from .exceptions import NoObjectsReturnedException
 from .exceptions import TimeOutException
 from .ldap_classes import LdapObject
 from .logging import logger
+from .processors import _hide_cpr as hide_cpr
 from .utils import combine_dn_strings
 from .utils import datetime_to_ldap_timestamp
 from .utils import mo_object_is_valid
@@ -289,11 +290,13 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     if len(search_entries) > 1:
         logger.info(response)
         raise MultipleObjectsReturnedException(
-            f"Found multiple entries for {searchParameters}: {search_entries}"
+            hide_cpr(f"Found multiple entries for {searchParameters}: {search_entries}")
         )
     elif len(search_entries) == 0:
         logger.info(response)
-        raise NoObjectsReturnedException(f"Found no entries for {searchParameters}")
+        raise NoObjectsReturnedException(
+            hide_cpr(f"Found no entries for {searchParameters}")
+        )
     else:
         return search_entries[0]
 
