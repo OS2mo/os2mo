@@ -1921,7 +1921,7 @@ def test_create_mo_it_system(dataloader: DataLoader):
 
 
 def test_add_ldap_object(dataloader: DataLoader):
-    dataloader.add_ldap_object("CN=foo", "ini")
+    dataloader.add_ldap_object("CN=foo")
     dataloader.ldap_connection.add.assert_called_once()
 
 
