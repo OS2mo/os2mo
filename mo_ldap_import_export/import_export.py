@@ -599,7 +599,7 @@ class SyncTool:
         return converted_objects_uuid_checked
 
     @wait_for_import_to_finish
-    async def import_single_user(self, dn: str, force=False):
+    async def import_single_user(self, dn: str, force=False, manual_import=False):
         """
         Imports a single user from LDAP
 
@@ -635,7 +635,7 @@ class SyncTool:
         json_keys = ["Employee"] + [k for k in detected_json_keys if k != "Employee"]
 
         for json_key in json_keys:
-            if not self.converter.__import_to_mo__(json_key):
+            if not self.converter.__import_to_mo__(json_key, manual_import):
                 logger.info(f"__import_to_mo__ == False for json_key = '{json_key}'")
                 continue
             logger.info(f"Loading {json_key} object")

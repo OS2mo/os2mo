@@ -186,17 +186,31 @@ class LdapConverter:
         self.check_info_dicts()
         logger.info("[info dict loader] Info dicts loaded successfully")
 
-    def __import_to_mo__(self, json_key):
+    def __import_to_mo__(self, json_key: str, manual_import: bool):
         """
         Returns True, when we need to import this json key. Otherwise False
         """
-        return self.raw_mapping["ldap_to_mo"][json_key]["__import_to_mo__"]
+        import_flag = self.raw_mapping["ldap_to_mo"][json_key]["__import_to_mo__"]
+        import_flag = import_flag.lower()
+
+        if import_flag == "true":
+            return True
+        elif import_flag == "manual_import_only":
+            if manual_import:
+                return True
+            else:
+                return False
+        elif import_flag == "false":
+            return False
+        else:
+            raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
 
     def __export_to_ldap__(self, json_key):
         """
         Returns True, when we need to export this json key. Otherwise False
         """
-        return self.raw_mapping["mo_to_ldap"][json_key]["__export_to_ldap__"]
+        export_flag = self.raw_mapping["mo_to_ldap"][json_key]["__export_to_ldap__"]
+        return export_flag.lower() == "true"
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
@@ -615,14 +629,25 @@ class LdapConverter:
         for conversion in ["ldap_to_mo", "mo_to_ldap"]:
             ie_key = expected_key_dict[conversion]
 
+            if conversion == "ldap_to_mo":
+                accepted_strings = ["true", "false", "manual_import_only"]
+            elif conversion == "mo_to_ldap":
+                accepted_strings = ["true", "false"]
+
             for json_key in self.get_json_keys(conversion):
                 if ie_key not in self.raw_mapping[conversion][json_key]:
                     raise IncorrectMapping(
                         f"Missing '{ie_key}' key in {conversion}['{json_key}']"
                     )
-                if type(self.raw_mapping[conversion][json_key][ie_key]) is not bool:
+                if (
+                    self.raw_mapping[conversion][json_key][ie_key].lower()
+                    not in accepted_strings
+                ):
                     raise IncorrectMapping(
-                        f"{conversion}['{json_key}']['{ie_key}'] is not a boolean"
+                        (
+                            f"{conversion}['{json_key}']['{ie_key}'] "
+                            f"is not among {accepted_strings}"
+                        )
                     )
 
     def check_cpr_field_or_it_system(self):
