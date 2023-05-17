@@ -17,7 +17,7 @@ from mora import config
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.legacy import validate_session
 from mora.auth.keycloak.models import Token
-from mora.graphapi.versions.latest.permissions import PERMISSIONS
+from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 
 logger = get_logger()
 
@@ -31,7 +31,7 @@ async def noauth() -> Token:
     return Token(
         azp="mo-frontend",
         uuid=str(NO_AUTH_UUID),
-        realm_access=RealmAccess(roles={"admin", "owner"}.union(PERMISSIONS)),
+        realm_access=RealmAccess(roles={"admin", "owner"}.union(ALL_PERMISSIONS)),
     )
 
 
@@ -40,7 +40,7 @@ async def legacyauth() -> Token:
     return Token(
         azp="mo-frontend",
         uuid=str(LEGACY_AUTH_UUID),
-        realm_access=RealmAccess(roles={"admin", "owner"}.union(PERMISSIONS)),
+        realm_access=RealmAccess(roles={"admin", "owner"}.union(ALL_PERMISSIONS)),
     )
 
 

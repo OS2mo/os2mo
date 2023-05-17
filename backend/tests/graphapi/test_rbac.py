@@ -206,4 +206,5 @@ async def test_mutators_require_rbac(
     response = await execute_graphql(query=mutation, context_value=context)
     assert len(response.errors) >= 1
     error_messages = set(map(attrgetter("message"), response.errors))
-    assert "User does not have required role: admin" in error_messages
+    for error_message in error_messages:
+        assert "User does not have " in error_message

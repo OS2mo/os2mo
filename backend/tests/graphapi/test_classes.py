@@ -10,7 +10,6 @@ from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
 from more_itertools import one
-from os2mo_fastapi_utils.auth.models import RealmAccess
 from pydantic import parse_obj_as
 from pytest import MonkeyPatch
 
@@ -18,7 +17,7 @@ import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
 from mora import mapping
-from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import noauth
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest import dataloaders
 from mora.graphapi.versions.latest.classes import ClassCreate
@@ -240,21 +239,10 @@ async def test_unit_create_class(
 
     payload = jsonable_encoder(test_data)
 
-    async def get_token() -> Token:
-        return Token(
-            azp="mo",
-            uuid="00000000-0000-0000-0000-000000000000",
-            realm_access=RealmAccess(
-                roles={
-                    "admin",
-                }
-            ),
-        )
-
     response = await execute_graphql(
         query=mutate_query,
         variable_values={"input": payload},
-        context_value={"org_loader": AsyncMock(), "get_token": get_token},
+        context_value={"org_loader": AsyncMock(), "get_token": noauth},
     )
 
     assert response.errors is None
