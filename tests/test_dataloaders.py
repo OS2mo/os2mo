@@ -103,6 +103,7 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("AUTHENTICATION_SECRET", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
+    monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
 
     return Settings()
 
@@ -721,7 +722,7 @@ def test_cleanup_attributes_in_ldap(dataloader: DataLoader):
 
     ldap_objects = [
         # LdapObject(dn="foo", value="New address"),
-        LdapObject(dn="foo", value="Old address"),
+        LdapObject(dn="CN=foo", value="Old address"),
     ]
 
     with patch(
@@ -1676,6 +1677,17 @@ async def test_modify_ldap(
     assert response == {"description": "success"}
 
 
+async def test_modify_ldap_ou_not_in_ous_to_write_to(
+    dataloader: DataLoader,
+    sync_tool: AsyncMock,
+    ldap_connection: MagicMock,
+):
+    dataloader.ou_in_ous_to_write_to = MagicMock()  # type: ignore
+    dataloader.ou_in_ous_to_write_to.return_value = False
+
+    assert dataloader.modify_ldap("CN=foo", {}) is None  # type: ignore
+
+
 async def test_get_ldap_it_system_uuid(dataloader: DataLoader, converter: MagicMock):
     uuid = uuid4()
     converter.get_it_system_uuid.return_value = uuid
@@ -1951,3 +1963,23 @@ def test_return_mo_employee_uuid_result(dataloader: DataLoader):
     }
     with pytest.raises(MultipleObjectsReturnedException, match="010101-xxxx"):
         dataloader._return_mo_employee_uuid_result(result)
+
+
+def test_ou_in_ous_to_write_to(dataloader: DataLoader):
+
+    settings_mock = MagicMock()
+    settings_mock.ldap_ous_to_write_to = ["OU=foo", "OU=mucki,OU=bar"]
+    dataloader.user_context["settings"] = settings_mock
+
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is False
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k") is True
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is False
+
+    settings_mock.ldap_ous_to_write_to = [""]
+    dataloader.user_context["settings"] = settings_mock
+
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=foo,DC=k") is True
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is True
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k") is True
+    assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True

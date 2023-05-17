@@ -10,7 +10,9 @@ from typing import Union
 from gql import gql
 from graphql import DocumentNode
 from graphql import print_ast
+from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
+from ldap3.utils.dn import to_dn
 
 from .exceptions import InvalidQuery
 from .logging import logger
@@ -178,3 +180,26 @@ def combine_dn_strings(dn_strings: list[str]) -> str:
 
 def remove_vowels(string):
     return re.sub("[aeiouAEIOU]", "", string)
+
+
+def extract_ou_from_dn(dn: str) -> str:
+    """
+    Extract the OU part from an LDAP DN string
+
+    Examples
+    -------------
+    >>> extract_ou_from_dn("CN=Tobias,OU=mucki,OU=bar,DC=k")
+    >>> "OU=mucki,OU=bar"
+    """
+    dn_parts = to_dn(dn)
+    ou_parts = []
+    for dn_part in dn_parts:
+        dn_decomposed = parse_dn(dn_part)[0]
+        if dn_decomposed[0].lower() == "ou":
+            ou_parts.append(dn_part)
+
+    if ou_parts:
+        ou: str = safe_dn(",".join(ou_parts))
+        return ou
+    else:
+        return ""

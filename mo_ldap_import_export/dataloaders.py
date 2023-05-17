@@ -15,6 +15,7 @@ from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
+from ldap3.utils.dn import safe_dn
 from more_itertools import only
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
@@ -45,6 +46,7 @@ from .logging import logger
 from .processors import _hide_cpr as hide_cpr
 from .utils import add_filter_to_query
 from .utils import combine_dn_strings
+from .utils import extract_ou_from_dn
 
 
 class DataLoader:
@@ -259,6 +261,29 @@ class DataLoader:
 
         return ldap_object
 
+    def ou_in_ous_to_write_to(self, dn: str) -> bool:
+        """
+        Determine if an OU is among those to which we are allowed to write.
+        """
+        settings = self.user_context["settings"]
+
+        if "" in settings.ldap_ous_to_write_to:
+            # Empty string means that it is allowed to write to all OUs
+            return True
+
+        ou = extract_ou_from_dn(dn)
+        ous_to_write_to = [safe_dn(ou) for ou in settings.ldap_ous_to_write_to]
+        for ou_to_write_to in ous_to_write_to:
+            if ou.endswith(ou_to_write_to):
+                # If an OU ends with one of the OUs-to-write-to, it's OK.
+                # For example, if we are only allowed to write to "OU=foo",
+                # Then we are also allowed to write to "OU=bar,OU=foo", which is a
+                # sub-OU inside "OU=foo"
+                return True
+
+        logger.info(f"{ou} is not in {ous_to_write_to}")
+        return False
+
     def modify_ldap(
         self,
         dn: str,
@@ -271,6 +296,9 @@ class DataLoader:
         Modifies LDAP and adds the dn to dns_to_ignore
         """
         # Checks
+        if not self.ou_in_ous_to_write_to(dn):
+            return
+
         attributes = list(changes.keys())
         if len(attributes) != 1:
             raise InvalidChangeDict("Exactly one attribute can be changed at a time")
