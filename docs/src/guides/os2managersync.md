@@ -33,7 +33,7 @@ This section describes how the code logic operates when the application is trigg
    4. If the parent org-unit has `_led-adm` in its name, the manager will also become
       manager of this org-units parent org-unit (Notice: Manager level is based
       on org-unit level from the highest ranking org-unit).
-      ![led-adm](readme_images/_led-adm.png)
+      ![led-adm](docs/src/guides/os2mo_managersync_images/_led-adm.png)
       In the above illustration, manager fetched from `_leder` unit becomes manager
       in not only "Byudvikling" but also "Borgmesterens Afdeling" as "Byudvikling is
       marked as an `led-adm` unit. Manager level is then based on org-unit level
