@@ -489,7 +489,7 @@ def create_app(**kwargs: Any) -> FastAPI:
                         progress_bar.update()
                         continue
 
-                await sync_tool.import_single_user(ldap_object.dn)
+                await sync_tool.import_single_user(ldap_object.dn, manual_import=True)
 
                 progress_bar.update()
 
@@ -500,7 +500,7 @@ def create_app(**kwargs: Any) -> FastAPI:
         user=Depends(login_manager),
     ) -> Any:
         dn = dataloader.get_ldap_dn(objectGUID)
-        await sync_tool.import_single_user(dn)
+        await sync_tool.import_single_user(dn, manual_import=True)
 
     class ExportQueryParams:
         def __init__(

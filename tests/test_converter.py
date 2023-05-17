@@ -36,7 +36,7 @@ def context() -> Context:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "cpr_no": "{{ldap.employeeID or None}}",
@@ -44,7 +44,7 @@ def context() -> Context:
             },
             "Email": {
                 "objectClass": "ramodels.mo.details.address.Address",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "value": "{{ldap.mail}}",
                 "type": "{{'address'}}",
                 "validity": (
@@ -57,7 +57,7 @@ def context() -> Context:
             },
             "Active Directory": {
                 "objectClass": "ramodels.mo.details.it_system.ITUser",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "user_key": "{{ ldap.msSFU30Name or NONE }}",
                 "itsystem": "{{ dict(uuid=get_it_system_uuid(ldap.itSystemName)) }}",
                 "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -67,7 +67,7 @@ def context() -> Context:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -77,12 +77,12 @@ def context() -> Context:
             },
             "Email": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             },
             "Active Directory": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "msSFU30Name": "{{mo_employee_it_user.user_key}}",
                 "employeeID": "{{mo_employee.cpr_no}}",
             },
@@ -305,7 +305,7 @@ def test_mapping_loader() -> None:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "true",
                 "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
                 "surname": "{{ldap.surname or ldap.sn or "
                 "ldap.name|splitlast|last or ''}}",
@@ -318,7 +318,7 @@ def test_mapping_loader() -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "true",
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -414,14 +414,14 @@ def test_find_cpr_field(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "employeeID": "{{mo_employee.cpr_no or None}}",
             }
         },
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "uuid": "{{ employee_uuid }}",
             }
         },
@@ -432,14 +432,14 @@ def test_find_cpr_field(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "givenName": "{{mo_employee.givenname}}",
             }
         },
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "uuid": "{{ employee_uuid }}",
             }
         },
@@ -476,7 +476,7 @@ def test_template_lenience(context: Context) -> None:
         "ldap_to_mo": {
             "Employee": {
                 "objectClass": "ramodels.mo.employee.Employee",
-                "__import_to_mo__": True,
+                "__import_to_mo__": "True",
                 "givenname": "{{ldap.givenName}}",
                 "surname": "{{ldap.sn}}",
                 "uuid": "{{ employee_uuid }}",
@@ -485,7 +485,7 @@ def test_template_lenience(context: Context) -> None:
         "mo_to_ldap": {
             "Employee": {
                 "objectClass": "user",
-                "__export_to_ldap__": True,
+                "__export_to_ldap__": "True",
                 "givenName": "{{mo_employee.givenname}}",
                 "sn": "{{mo_employee.surname}}",
                 "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -1088,7 +1088,9 @@ def test_get_job_function_user_key(converter: LdapConverter):
 async def test_check_ldap_to_mo_references(converter: LdapConverter):
 
     converter.raw_mapping = {
-        "ldap_to_mo": {"Employee": {"name": "{{ ldap.nonExistingAttribute}}"}}
+        "ldap_to_mo": {
+            "Employee": {"active": True, "name": "{{ ldap.nonExistingAttribute}}"}
+        }
     }
 
     with patch(
@@ -1308,6 +1310,7 @@ def test_check_get_uuid_functions(converter: LdapConverter):
     converter.raw_mapping = converter.mapping = {
         "ldap_to_mo": {
             "Email": {
+                "deprecated": True,
                 "address_type": (
                     "{{ dict(uuid=get_employee_address_type_uuid('Email')) }}"
                 ),
@@ -1333,17 +1336,27 @@ def test__import_to_mo__and__export_to_ldap__(converter: LdapConverter):
 
     converter.raw_mapping = {
         "mo_to_ldap": {
-            "Employee": {"__export_to_ldap__": True},
-            "OrgUnit": {"__export_to_ldap__": False},
+            "Employee": {"__export_to_ldap__": "True"},
+            "OrgUnit": {"__export_to_ldap__": "False"},
+            "Address": {"__export_to_ldap__": "False"},
+            "Mail": {"__export_to_ldap__": "False"},
         },
         "ldap_to_mo": {
-            "Employee": {"__import_to_mo__": False},
-            "OrgUnit": {"__import_to_mo__": True},
+            "Employee": {"__import_to_mo__": "False"},
+            "OrgUnit": {"__import_to_mo__": "True"},
+            "Address": {"__import_to_mo__": "manual_import_only"},
+            "Mail": {"__import_to_mo__": "bad_flag"},
         },
     }
 
-    assert converter.__import_to_mo__("Employee") is False
-    assert converter.__import_to_mo__("OrgUnit") is True
+    assert converter.__import_to_mo__("Employee", manual_import=False) is False
+    assert converter.__import_to_mo__("OrgUnit", manual_import=False) is True
+    assert converter.__import_to_mo__("Address", manual_import=True) is True
+    assert converter.__import_to_mo__("Address", manual_import=False) is False
+
+    with pytest.raises(IncorrectMapping):
+        converter.__import_to_mo__("Mail", manual_import=False)
+
     assert converter.__export_to_ldap__("Employee") is True
     assert converter.__export_to_ldap__("OrgUnit") is False
 
@@ -1351,19 +1364,19 @@ def test__import_to_mo__and__export_to_ldap__(converter: LdapConverter):
 def test_check_import_and_export_flags(converter: LdapConverter):
     converter.raw_mapping = converter.mapping = {
         "mo_to_ldap": {
-            "Employee": {"__export_to_ldap__": "True"},
+            "Employee": {"__export_to_ldap__": "t"},
         },
         "ldap_to_mo": {
-            "Employee": {"__import_to_mo__": False},
+            "Employee": {"__import_to_mo__": "f"},
         },
     }
 
-    with pytest.raises(IncorrectMapping, match="not a boolean"):
+    with pytest.raises(IncorrectMapping, match="not among"):
         converter.check_import_and_export_flags()
 
     converter.raw_mapping = converter.mapping = {
         "mo_to_ldap": {
-            "Employee": {"__export_to_ldap__": True},
+            "Employee": {"__export_to_ldap__": "True"},
         },
         "ldap_to_mo": {
             "Employee": {},
@@ -1378,7 +1391,7 @@ def test_check_import_and_export_flags(converter: LdapConverter):
             "Employee": {},
         },
         "ldap_to_mo": {
-            "Employee": {"__import_to_mo__": True},
+            "Employee": {"__import_to_mo__": "True"},
         },
     }
 
