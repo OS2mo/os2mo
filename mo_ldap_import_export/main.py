@@ -59,6 +59,7 @@ from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
 from .import_export import SyncTool
+from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
@@ -256,12 +257,16 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
 
     # ldap_ou_for_new_users needs to be in the search base. Otherwise we cannot
     # find newly created users...
-    checksum = [
-        settings.ldap_ou_for_new_users.endswith(ou)
-        for ou in settings.ldap_ous_to_search_in
-    ]
-    if sum(checksum) == 0:
-        raise ValueError("ldap_ou_for_new_users is not in ldap_ous_to_search_in")
+    check_ou_in_list_of_ous(
+        settings.ldap_ou_for_new_users,
+        settings.ldap_ous_to_search_in,
+    )
+
+    # We also need to check for permission to write to this OU
+    check_ou_in_list_of_ous(
+        settings.ldap_ou_for_new_users,
+        settings.ldap_ous_to_write_to,
+    )
 
     logger.info("Setting up FastRAMQPI")
     fastramqpi = FastRAMQPI(application_name="ad2mosync", settings=settings.fastramqpi)

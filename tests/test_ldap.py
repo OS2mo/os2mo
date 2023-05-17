@@ -37,6 +37,7 @@ from mo_ldap_import_export.config import Settings
 from mo_ldap_import_export.exceptions import MultipleObjectsReturnedException
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import TimeOutException
+from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import cleanup
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
@@ -807,3 +808,15 @@ async def test_poller_healthcheck():
     pollers = [poller, second_poller]
 
     assert (await poller_healthcheck({"user_context": {"pollers": pollers}})) is False
+
+
+def test_check_ou_in_list_of_ous():
+    ous = ["OU=mucki,OU=bar", "OU=foo"]
+
+    check_ou_in_list_of_ous("OU=foo", ous)
+    check_ou_in_list_of_ous("OU=fighters,OU=foo", ous)
+    check_ou_in_list_of_ous("OU=mucki,OU=bar", ous)
+    with pytest.raises(ValueError):
+        check_ou_in_list_of_ous("OU=bar", ous)
+    with pytest.raises(ValueError):
+        check_ou_in_list_of_ous("OU=foo fighters", ous)

@@ -633,3 +633,12 @@ def is_guid(objectGUID: Any):
             return True
         except Exception:
             return False
+
+
+def check_ou_in_list_of_ous(ou_to_check, list_of_ous):
+    """
+    Checks if a specific OU exists in a list of OUs. Raises ValueError if it does not
+    """
+    checksum = [ou_to_check.endswith(ou) for ou in list_of_ous]
+    if sum(checksum) == 0:
+        raise ValueError(f"{ou_to_check} is not in {list_of_ous}")
