@@ -160,9 +160,7 @@ Magenta ApS <https://magenta.dk>
 ***
 ## License
 
-This project uses: [MPL-2.0](LICENSES/MPL-2.0.txt)
+This project uses: [MPL-2.0](os2mo_managersync_images/MPL-2.0.txt)
 
 This project uses [REUSE](https://reuse.software) for licensing.
 All licenses can be found in the [LICENSES folder](LICENSES) of the project.
-
-
