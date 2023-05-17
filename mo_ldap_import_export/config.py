@@ -99,11 +99,17 @@ class Settings(BaseSettings):
     ldap_ous_to_search_in: List[str] = Field(
         [""],
         description=(
-            "OUS to search in, if this is an empty string; "
+            "List of OUs to search in. If this contains an empty string; "
             "Searches in all OUs in the search base"
         ),
     )
-
+    ldap_ous_to_write_to: List[str] = Field(
+        [""],
+        description=(
+            "List of OUs to write to. If this contains an empty string; "
+            "Writes to all OUs in the search base"
+        ),
+    )
     ldap_ou_for_new_users: str = Field(
         "", description="OU to create new users in. For example 'OU=Test'"
     )

@@ -9,6 +9,7 @@ import pytest
 import pytz  # type: ignore
 from gql import gql
 from graphql import print_ast
+from ldap3.core.exceptions import LDAPInvalidDnError
 from ramodels.mo.details.address import Address
 from structlog.testing import capture_logs
 
@@ -18,6 +19,7 @@ from mo_ldap_import_export.utils import combine_dn_strings
 from mo_ldap_import_export.utils import countdown
 from mo_ldap_import_export.utils import datetime_to_ldap_timestamp
 from mo_ldap_import_export.utils import delete_keys_from_dict
+from mo_ldap_import_export.utils import extract_ou_from_dn
 from mo_ldap_import_export.utils import import_class
 from mo_ldap_import_export.utils import listener
 from mo_ldap_import_export.utils import mo_datestring_to_utc
@@ -180,3 +182,15 @@ def test_combine_dn_strings():
 
 def test_remove_vowels():
     assert remove_vowels("food") == "fd"
+
+
+def test_extract_ou_from_dn():
+    assert extract_ou_from_dn("CN=Nick,OU=org,OU=main org,DC=f") == "OU=org,OU=main org"
+    assert extract_ou_from_dn("CN=Nick,OU=org,DC=f") == "OU=org"
+    assert extract_ou_from_dn("CN=Nick,DC=f") == ""
+
+    with pytest.raises(LDAPInvalidDnError):
+        extract_ou_from_dn("CN=Nick,OU=foo, DC=f")
+
+    with pytest.raises(LDAPInvalidDnError):
+        extract_ou_from_dn("")
