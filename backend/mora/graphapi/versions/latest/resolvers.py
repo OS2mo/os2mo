@@ -8,8 +8,11 @@ from datetime import timezone
 from typing import Any
 from uuid import UUID
 
+from more_itertools import one
+from more_itertools import only
 from pydantic import PositiveInt
 from pydantic import ValidationError
+from sqlalchemy import select
 from strawberry import UNSET
 from strawberry.dataloader import DataLoader
 from strawberry.types import Info
@@ -18,6 +21,10 @@ from ...middleware import set_graphql_dates
 from .resolver_map import resolver_map
 from .types import Cursor
 from .validity import OpenValidityModel
+from mora.db import FacetAttrEgenskaber
+from mora.db import FacetRegistrering
+from mora.db import FacetRelation
+from mora.db import FacetTilsPubliceret
 from mora.util import CPR
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
@@ -245,6 +252,86 @@ async def user_keys2uuids(
 class FacetResolver(StaticResolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
+
+    async def _resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        uuids: list[UUID] | None = None,
+        user_keys: list[str] | None = None,
+        limit: PositiveInt | None = None,
+        # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
+        # and returned again as a Base64 encoded string.
+        # This way we can use it for indexing and calculations
+        cursor: Cursor | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
+    ):
+        now = datetime.now(tz=timezone.utc)
+
+        query = select(
+            FacetRegistrering.id,
+        ).where(
+            FacetRegistrering.registreringstid_start < now,
+            now < FacetRegistrering.registreringstid_slut,
+        )
+        if uuids:
+            query = query.where(FacetRegistrering.uuid.in_(uuids))
+        if user_keys:
+            query = query.join(FacetAttrEgenskaber).where(
+                FacetAttrEgenskaber.brugervendtnoegle.in_(user_keys)
+            )
+
+        query = query.order_by(FacetRegistrering.uuid)
+        query = query.limit(limit).offset(cursor or 0)
+
+        query = (
+            query.add_columns(
+                FacetRegistrering.uuid,
+                FacetAttrEgenskaber.beskrivelse,
+                FacetAttrEgenskaber.brugervendtnoegle,
+                FacetTilsPubliceret.publiceret,
+            )
+            .join(FacetAttrEgenskaber)
+            .join(FacetTilsPubliceret)
+        )
+
+        def construct_facetread(result: Any) -> FacetRead:
+            attributes = result["attributes"]
+            relations = result["relations"]
+            org = one(filter(lambda x: x.rel_type == "ansvarlig", relations))
+            parent = only(filter(lambda x: x.rel_type == "facettilhoerer", relations))
+
+            return FacetRead(
+                uuid=attributes.uuid,
+                user_key=attributes.brugervendtnoegle,
+                published=attributes.publiceret,
+                org_uuid=org.rel_maal_uuid,
+                parent_uuid=parent.rel_maal_uuid if parent else None,
+                description=attributes.beskrivelse or "",
+            )
+
+        session = info.context["sessionmaker"]()
+        async with session.begin():
+            result = await session.execute(query)
+            result = {res.id: {"attributes": res, "relations": []} for res in result}
+
+            relations = (
+                select(
+                    FacetRegistrering.id,
+                    FacetRelation.rel_type,
+                    FacetRelation.rel_maal_uuid,
+                    FacetRelation.rel_maal_urn,
+                    FacetRelation.objekt_type,
+                )
+                .join(FacetRegistrering)
+                .where(FacetRegistrering.id.in_(result.keys()))
+            )
+            relation_result = await session.execute(relations)
+            for res in relation_result:
+                result[res.id]["relations"].append(res)
+
+            result = list(map(construct_facetread, result.values()))
+            return result
 
 
 class ClassResolver(StaticResolver):
