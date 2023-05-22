@@ -354,8 +354,10 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
             {
                 "sAMAccountName": username,
                 "userPrincipalName": f"{username}@alleroed.dk",
-                # "Enabled": False,  # raises objectClassViolation in AD.
             },
         )
+
+        # raises objectClassViolation in AD.
+        self.dataloader.modify_ldap(dn, {"Enabled": [("MODIFY_REPLACE", "FALSE")]})
 
         return dn
