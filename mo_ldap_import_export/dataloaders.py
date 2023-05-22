@@ -410,17 +410,22 @@ class DataLoader:
 
         return output
 
-    def add_ldap_object(self, dn: str, sAMAccountName: str):
+    def add_ldap_object(self, dn: str, attributes: dict[str, Any] | None = None):
         """
         Adds a new object to LDAP
 
-        The json key is used to find the object class - as defined in the json file
+        Parameters
+        ---------------
+        attributes : dict
+            dictionary with attributes to populate in LDAP, when creating the user.
+            See https://ldap3.readthedocs.io/en/latest/add.html for more information
+
         """
         logger.info(f"Adding user with DN = '{dn}' to LDAP")
         self.ldap_connection.add(
             dn,
             self.user_context["converter"].find_ldap_object_class("Employee"),
-            attributes={"sAMAccountName": sAMAccountName},
+            attributes=attributes,
         )
         logger.info(f"Response: {self.ldap_connection.result}")
 

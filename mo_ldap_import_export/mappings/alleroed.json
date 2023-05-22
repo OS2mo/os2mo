@@ -256,6 +256,7 @@
       "objectClass": "user",
       "__export_to_ldap__": "true",
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
+      "userPrincipalName" : "{{ mo_employee_it_user.user_key + '@alleroed.dk'}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
 

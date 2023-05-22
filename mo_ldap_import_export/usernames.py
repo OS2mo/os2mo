@@ -318,7 +318,7 @@ class UserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         dn = self._make_dn(common_name)
-        self.dataloader.add_ldap_object(dn, username)
+        self.dataloader.add_ldap_object(dn)
         return dn
 
 
@@ -349,5 +349,12 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
-        self.dataloader.add_ldap_object(dn, username)
+        self.dataloader.add_ldap_object(
+            dn,
+            {
+                "sAMAccountName": username,
+                "userPrincipalName": f"{username}@alleroed.dk",
+            },
+        )
+
         return dn
