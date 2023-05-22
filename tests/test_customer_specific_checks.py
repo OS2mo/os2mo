@@ -37,17 +37,25 @@ async def test_check_alleroed_sd_number(
     )
 
     dataloader.load_mo_employee_engagements.return_value = [normal_engagement]
-    assert (await export_checks.check_alleroed_sd_number(uuid4())) is None
+    assert (await export_checks.check_alleroed_sd_number(uuid4(), uuid4())) is None
 
     dataloader.load_mo_employee_engagements.return_value = [
         hourly_paid_worker_engagement
     ]
     with pytest.raises(IgnoreChanges):
-        await export_checks.check_alleroed_sd_number(uuid4())
+        await export_checks.check_alleroed_sd_number(uuid4(), uuid4())
 
     dataloader.load_mo_employee_engagements.return_value = [
         hourly_paid_worker_engagement,
         normal_engagement,
     ]
     with pytest.raises(IgnoreChanges):
-        await export_checks.check_alleroed_sd_number(uuid4())
+        await export_checks.check_alleroed_sd_number(
+            uuid4(), hourly_paid_worker_engagement.uuid
+        )
+
+    assert (await export_checks.check_alleroed_sd_number(uuid4(), uuid4())) is None
+
+    dataloader.load_mo_employee_engagements.return_value = []
+
+    assert (await export_checks.check_alleroed_sd_number(uuid4(), uuid4())) is None
