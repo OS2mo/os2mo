@@ -1,15 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
 from uuid import UUID
 
 import freezegun
 import pytest
+from fastapi.encoders import jsonable_encoder
 from parameterized import parameterized
 
 import tests.cases
 from . import util
 from mora import lora
 from mora.config import Settings
+from tests.conftest import GQLResponse
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -890,3 +893,43 @@ class Tests(tests.cases.LoRATestCase):
             },
             status_code=400,
         )
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_tintin_haddock(graphapi_post):
+    tintin_haddock_uuid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+    gql = """
+    query GetEmployee($uuids:[UUID!], $from_date: DateTime){
+      employees(uuids: $uuids, from_date: $from_date) {
+        objects {
+          objects {
+            uuid
+            name
+
+
+            associations {
+              uuid
+              association_type {
+                uuid
+                name
+                full_name
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
+    payload = jsonable_encoder(
+        {
+            "uuids": [tintin_haddock_uuid],
+            "from": datetime.now().date().isoformat(),
+        }
+    )
+    gqlResp: GQLResponse = graphapi_post(gql, payload)
+    assert gqlResp.errors is None
+    assert gqlResp.status_code == 200
