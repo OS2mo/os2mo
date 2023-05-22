@@ -387,6 +387,13 @@ def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> Non
     assert response.status_code == 202
 
 
+def test_ldap_get_objectGUID_endpoint(test_client: TestClient, headers: dict) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    response = test_client.get("/objectGUID/CN=foo", headers=headers)
+    assert response.status_code == 202
+
+
 async def test_listen_to_changes(
     load_settings_overrides: dict[str, str], dataloader: AsyncMock, sync_tool: AsyncMock
 ):
