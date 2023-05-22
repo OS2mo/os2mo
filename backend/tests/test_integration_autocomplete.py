@@ -487,3 +487,103 @@ def test_v2_search_orgunit_by_addr_afdelingskode_addr_rename(
             }
         ]
     }
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@patch("mora.service.orgunit.autocomplete.search_orgunits")
+def test_v2_only_gql_decorate_orgunits(
+    mock_search_orgunits, mock_get_settings_custom_attrs, service_client: TestClient
+):
+    """Verifies that GraphQL part of the autocomplete works as intended
+
+    This test exists due to the integration tests above, is marked with 'xfail',
+    which causes the tests to be skipped. They are skipped since the way we
+    run and reset our test-db, makes the new SQLAlchemy models fail when
+    performing database transactions"""
+
+    mock_search_orgunits.return_value = [
+        MagicMock(uuid=uuid.UUID("f494ad89-039d-478e-91f2-a63566554666"))
+    ]
+
+    at = datetime.now().date()
+    query = "f494ad89-039d-478e-91f2-a63566554666"
+    response = service_client.get(
+        f"/service/ou/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+                "name": "Fake Corp With Addrs",
+                "path": [],
+                "attrs": [
+                    {
+                        "uuid": "55848eca-4e9e-4f30-954b-78d55eec0441",
+                        "title": "Afdelingskode",
+                        "value": "Fake afdelingskode",
+                    }
+                ],
+            }
+        ]
+    }
+
+
+@pytest.mark.integration_test
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@patch("mora.service.employee.autocomplete.search_employees")
+def test_v2_only_gql_decorate_employees(
+    mock_search_employees, mock_get_settings_custom_attrs, service_client: TestClient
+):
+    """Verifies that GraphQL part of the autocomplete works as intended
+
+    This test exists due to the integration tests above, is marked with 'xfail',
+    which causes the tests to be skipped. They are skipped since the way we
+    run and reset our test-db, makes the new SQLAlchemy models fail when
+    performing database transactions"""
+
+    mock_search_employees.return_value = [
+        MagicMock(uuid=uuid.UUID("53181ed2-f1de-4c4a-a8fd-ab358c2c454a"))
+    ]
+
+    at = datetime.now().date()
+    query = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    response = service_client.get(
+        f"/service/e/autocomplete/?query={query}&at={at.isoformat()}"
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "items": [
+            {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                "name": "Anders And",
+                "attrs": [
+                    {
+                        "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                        "title": "Ansat",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+                        "title": "Email",
+                        "value": "bruger@example.com",
+                    },
+                    {
+                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+                        "title": "Medlem",
+                        "value": "bvn",
+                    },
+                    {
+                        "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+                        "title": "Active Directory",
+                        "value": "donald",
+                    },
+                ],
+            }
+        ]
+    }
