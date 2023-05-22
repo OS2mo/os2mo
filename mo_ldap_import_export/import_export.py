@@ -159,7 +159,7 @@ class SyncTool:
 
         return modified_func
 
-    async def perform_export_checks(self, employee_uuid):
+    async def perform_export_checks(self, employee_uuid: UUID, object_uuid: UUID):
         """
         Perform a number of customer-specific checks. Raising IgnoreChanges() if a
         check fails
@@ -168,7 +168,10 @@ class SyncTool:
         if self.settings.check_alleroed_sd_number:
             # Check that an SD-employee number does not start with 9
             # If it does, rejectMessage is raised.
-            await self.export_checks.check_alleroed_sd_number(employee_uuid)
+            await self.export_checks.check_alleroed_sd_number(
+                employee_uuid,
+                object_uuid,
+            )
 
     def cleanup_needed(self, ldap_modify_responses: list[dict]):
         """
@@ -198,7 +201,7 @@ class SyncTool:
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
         # those changes potentially map to multiple employees
         self.uuids_to_ignore.check(payload.object_uuid)
-        await self.perform_export_checks(payload.uuid)
+        await self.perform_export_checks(payload.uuid, payload.object_uuid)
 
         try:
             dn = await self.dataloader.find_or_make_mo_employee_dn(payload.uuid)
@@ -353,7 +356,7 @@ class SyncTool:
         delete,
         object_type,
     ):
-        await self.perform_export_checks(affected_employee.uuid)
+        await self.perform_export_checks(affected_employee.uuid, changed_address.uuid)
         dn = await self.dataloader.find_or_make_mo_employee_dn(affected_employee.uuid)
 
         mo_object_dict = {
