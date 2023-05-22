@@ -354,6 +354,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
             {
                 "sAMAccountName": username,
                 "userPrincipalName": f"{username}@alleroed.dk",
+                "Enabled": False,
             },
         )
 
