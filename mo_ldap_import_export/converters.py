@@ -755,8 +755,9 @@ class LdapConverter:
         items_to_join = [a for a in args if a]
         return ", ".join(items_to_join)
 
-    def get_object_user_key_from_uuid(self, info_dict: dict, uuid: str):
-        return info_dict[str(uuid)]["user_key"]
+    def get_object_user_key_from_uuid(self, info_dict: dict, uuid: str) -> str:
+        user_key: str = info_dict[str(uuid)]["user_key"]
+        return user_key
 
     @staticmethod
     def name_normalizer(name):
@@ -840,19 +841,19 @@ class LdapConverter:
             self.org_unit_level_info, org_unit_level
         )
 
-    def get_employee_address_type_user_key(self, uuid: str):
+    def get_employee_address_type_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.employee_address_type_info, uuid)
 
-    def get_org_unit_address_type_user_key(self, uuid: str):
+    def get_org_unit_address_type_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.org_unit_address_type_info, uuid)
 
-    def get_it_system_user_key(self, uuid: str):
+    def get_it_system_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.it_system_info, uuid)
 
-    def get_engagement_type_user_key(self, uuid: str):
+    def get_engagement_type_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.engagement_type_info, uuid)
 
-    def get_job_function_user_key(self, uuid: str):
+    def get_job_function_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.job_function_info, uuid)
 
     def create_org_unit(self, org_unit_path_string: str):
