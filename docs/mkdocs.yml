@@ -41,6 +41,7 @@ nav:
           - api-dokumentation/amqp-legacy.md
       - GraphQL:
           - graphql/intro.md
+          - graphql/migration.md
           - graphql/reads.md
   - LoRa:
       - Introduction: lora/index.md
