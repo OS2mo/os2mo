@@ -802,7 +802,7 @@ class DataLoader:
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
             f"""
-            query SinlgeEmployee {{
+            query SingleEmployee {{
               employees(uuids:"{uuid}") {{
                 objects {{
                     uuid
