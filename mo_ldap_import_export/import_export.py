@@ -638,8 +638,8 @@ class SyncTool:
         json_keys = ["Employee"] + [k for k in detected_json_keys if k != "Employee"]
 
         for json_key in json_keys:
-            if not self.converter.__import_to_mo__(json_key, manual_import):
-                logger.info(f"__import_to_mo__ == False for json_key = '{json_key}'")
+            if not self.converter._import_to_mo_(json_key, manual_import):
+                logger.info(f"_import_to_mo_ == False for json_key = '{json_key}'")
                 continue
             logger.info(f"Loading {json_key} object")
             loaded_object = self.dataloader.load_ldap_object(
@@ -667,12 +667,12 @@ class SyncTool:
                 # The dataloader will raise NoObjectsReturnedException
                 #
                 # This can happen, for example:
-                # If converter.__import_to_mo__('Address') = True
-                # And converter.__import_to_mo__('Employee') = False
+                # If converter._import_to_mo_('Address') = True
+                # And converter._import_to_mo_('Employee') = False
                 #
                 # Because an address cannot be imported for an employee that does not
                 # exist. The non-existing employee is also not created because
-                # converter.__import_to_mo__('Employee') = False
+                # converter._import_to_mo_('Employee') = False
                 logger.info("Could not format converted objects. Moving on.")
                 continue
 

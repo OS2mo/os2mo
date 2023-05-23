@@ -484,8 +484,8 @@ def dataloader() -> AsyncMock:
 @pytest.fixture()
 def converter() -> MagicMock:
     converter = MagicMock()
-    converter.__export_to_ldap__ = MagicMock()
-    converter.__export_to_ldap__.return_value = True
+    converter._export_to_ldap_ = MagicMock()
+    converter._export_to_ldap_.return_value = True
 
     def to_ldap(conversion_dict, json_key, dn):
         return LdapObject(
@@ -660,7 +660,7 @@ async def test_cleanup_no_export_False(
     internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
-    converter.__export_to_ldap__.return_value = False
+    converter._export_to_ldap_.return_value = False
 
     args = dict(
         json_key="Address",
@@ -676,7 +676,7 @@ async def test_cleanup_no_export_False(
         await asyncio.gather(cleanup(**args))  # type:ignore
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
-            "__export_to_ldap__ == False",
+            "_export_to_ldap_ == False",
             log_messages[-1]["event"],
         )
 

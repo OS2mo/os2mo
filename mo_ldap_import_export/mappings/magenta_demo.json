@@ -16,7 +16,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
       "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
@@ -27,7 +27,7 @@
     // Contain CPR-numbers. Its user_key attribute must link to ldap.distinguishedName
     "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -36,7 +36,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ldap.mail or NONE}}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
@@ -45,7 +45,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "AddressEmployeeText": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode, ldap.l) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('AddressEmployeeText')) }}",
@@ -54,7 +54,7 @@
     // Note: This key needs to be a valid MO address type user_key*
     "LocationUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ ldap.postalAddress or NONE }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('LocationUnit')) }}",
@@ -62,7 +62,7 @@
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
       "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_or_create_engagement_type_uuid(ldap.employeeType)) }}",
@@ -73,7 +73,7 @@
     },
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ ldap.telephoneNumber or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
@@ -81,7 +81,7 @@
     },
     "ADSAMA": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.sAMAccountName }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -91,7 +91,7 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -102,21 +102,21 @@
     // Note: This key needs to be a valid MO IT-system user_key*
     "ADGUID": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "EmailEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "mail": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     },
     // Note: This key needs to be a valid MO address type user_key*
     "AddressEmployeeText": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       "streetAddress": "{{mo_employee_address.value|splitlast(',')|first|splitlast(',')|first|trim}}",
       "postalCode": "{{mo_employee_address.value|splitlast(',')|first|splitlast(',')|last|trim}}",
@@ -124,14 +124,14 @@
     },
     "LocationUnit": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
     },
     "Engagement" : {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       "department": "{{NONE}}",
       "company": "{{NONE}}",
@@ -145,13 +145,13 @@
     },
     "PhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "false",
+      "_export_to_ldap_": "false",
       "telephoneNumber": "{{mo_employee_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
     },
     "ADSAMA": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
