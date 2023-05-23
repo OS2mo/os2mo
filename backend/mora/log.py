@@ -66,6 +66,7 @@ def init(log_level: str, json: bool = True):
         _drop_color_message_key,
         timestamper,
         structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
     ]
 
     if json:
