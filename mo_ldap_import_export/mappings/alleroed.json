@@ -50,7 +50,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import_to_mo__": "false",
+      "_import_to_mo_": "false",
       "givenname": "{{ldap.givenName}}",
       "surname": "{{ldap.sn}}",
       "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}",
@@ -60,7 +60,7 @@
     },
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
-      "__import_to_mo__": "false",
+      "_import_to_mo_": "false",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid('månedsløn')) }}",
@@ -71,7 +71,7 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode, ldap.l) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PostAdresseTextUnit')) }}",
@@ -79,7 +79,7 @@
     },
     "PublicEmailUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ldap.extensionAttribute5}}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PublicEmailUnit')) }}",
@@ -87,7 +87,7 @@
     },
     "SecureEmailUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ldap.extensionAttribute4}}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('SecureEmailUnit')) }}",
@@ -95,7 +95,7 @@
     },
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ ldap.mail or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
@@ -103,7 +103,7 @@
     },
     "MobilePhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ ldap.mobile or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('MobilePhoneEmployee')) }}",
@@ -111,7 +111,7 @@
     },
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ ldap.telephoneNumber or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
@@ -119,7 +119,7 @@
     },
     "PrivatePhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ ldap.homePhone or NONE }}",
       "validity": "{{ dict(from_date = now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PrivatePhoneEmployee')) }}",
@@ -128,7 +128,7 @@
     },
     "LocationEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "manual_import_only",
+      "_import_to_mo_": "manual_import_only",
       "value": "{{ ldap.physicalDeliveryOfficeName or NONE }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
@@ -136,7 +136,7 @@
     },
     "DepartmentEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "false",
+      "_import_to_mo_": "false",
       "value": "{{ ldap.department or NONE }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('DepartmentEmployee')) }}",
@@ -144,7 +144,7 @@
     },
     "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -152,7 +152,7 @@
     },
     "ADSAMA": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.sAMAccountName }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -162,7 +162,7 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "givenName" : "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
@@ -171,7 +171,7 @@
     },
     "Engagement" : {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
@@ -182,7 +182,7 @@
     },
     "PostAdresseTextUnit": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|first|trim}}",
       "postalCode": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|last|trim}}",
       "l": "{{mo_org_unit_address.value|splitlast(',')|last|trim}}",
@@ -192,7 +192,7 @@
     },
     "PublicEmailUnit": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "extensionAttribute5": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
@@ -200,7 +200,7 @@
     },
     "SecureEmailUnit": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "extensionAttribute4": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
@@ -208,53 +208,53 @@
     },
     "EmailEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "false",
+      "_export_to_ldap_": "false",
       "mail": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "MobilePhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "mobile": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "PhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "telephoneNumber": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "PrivatePhoneEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "homePhone": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "LocationEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "physicalDeliveryOfficeName": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "DepartmentEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "department": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "ADGUID": {
       "objectClass": "user",
-      "__export_to_ldap__": "false",
+      "_export_to_ldap_": "false",
       "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "ADSAMA": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
       "userPrincipalName" : "{{ mo_employee_it_user.user_key + '@alleroed.dk'}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"

@@ -179,8 +179,8 @@ def converter() -> MagicMock:
         "EmailEmployee",
     ]
     converter.cpr_field = "EmployeeID"
-    converter.__import_to_mo__ = MagicMock()
-    converter.__import_to_mo__.return_value = True
+    converter._import_to_mo_ = MagicMock()
+    converter._import_to_mo_.return_value = True
 
     return converter
 

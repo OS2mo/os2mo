@@ -124,7 +124,7 @@ jinja2 templates, to be used for extracting values. For example:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
   }
@@ -140,7 +140,7 @@ More advanced template strings may be constructed, such as:
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "user",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
@@ -154,8 +154,8 @@ must be present to map the employee to the proper object in OS2mo. In this case,
 uuid attribute links to a [global](#filters-and-globals) variable called `employee_uuid`.
 
 Note that you can also choose not to export this information to LDAP, by setting 
-`__export_to_ldap__` equal to `false`. Similarly, you can choose not to import any information
-into OS2mo by setting `__import_to_mo__` equal to `false`
+`_export_to_ldap_` equal to `false`. Similarly, you can choose not to import any information
+into OS2mo by setting `_import_to_mo_` equal to `false`
 
 #### Address conversion
 
@@ -173,7 +173,7 @@ An example of an address conversion dict is as follows:
   "mo_to_ldap": {
     "EmailEmployee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "mail": "{{mo_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
@@ -194,7 +194,7 @@ Converting the other way around can be done as follows:
   "ldap_to_mo": {
     "EmailEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ldap.mail or None}}",
       "type": "address",
       "validity": "{{ dict(from_date = ldap.mail_validity_from or now()|mo_datestring) }}",
@@ -235,7 +235,7 @@ engaged at the organizational unit. This can be set up as follows:
   "mo_to_ldap": {
     "LocationUnit": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "postalAddress": "{{mo_org_unit_address.value}}",
       "employeeID": "{{mo_employee.cpr_no}}",
       "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
@@ -251,7 +251,7 @@ And the other way around:
   "ldap_to_mo": {
     "LocationUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "value": "{{ ldap.postalAddress or NONE }}",
       "type": "address",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -280,7 +280,7 @@ user conversion dict is as follows:
   "mo_to_ldap": {
     "Active Directory": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "msSFU30Name" : "{{mo_it_user.user_key}}",
       "employeeID": "{{mo_employee.cpr_no}}"
     }
@@ -295,7 +295,7 @@ And the other way around:
   "ldap_to_mo": {
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.msSFU30Name or None }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -318,7 +318,7 @@ an engagement conversion dict is as follows:
   "mo_to_ldap": {
     "Engagement" : {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       "department": "{{NONE}}",
       "company": "{{NONE}}",
@@ -346,7 +346,7 @@ Converting the other way around can be done like this:
   "ldap_to_mo": {
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
       "job_function": "{{ dict(uuid=get_job_function_uuid(ldap.title)) }}",
       "engagement_type": "{{ dict(uuid=get_engagement_type_uuid(ldap.employeeType)) }}",
@@ -409,7 +409,7 @@ This can be configured in the file mapping as follows:
   "mo_to_ldap": {
     "Active Directory": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "distinguishedName" : "{{mo_employee_it_user.user_key}}",
     },
   }
@@ -423,7 +423,7 @@ And the other way around:
   "ldap_to_mo": {
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.distinguishedName }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -453,7 +453,7 @@ This required an employee to be configured as follows in the mapping file:
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
       [...]
     },
@@ -468,7 +468,7 @@ And the other way around:
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "cpr_no": "{{ldap.employeeID|strip_non_digits}}",
       "uuid": "{{ employee_uuid or NONE }}"
       [...]

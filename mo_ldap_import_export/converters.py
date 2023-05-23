@@ -123,7 +123,7 @@ class LdapConverter:
 
         mapping = delete_keys_from_dict(
             self.raw_mapping,
-            ["objectClass", "__import_to_mo__", "__export_to_ldap__"],
+            ["objectClass", "_import_to_mo_", "_export_to_ldap_"],
         )
 
         environment = Environment(undefined=Undefined)
@@ -186,11 +186,11 @@ class LdapConverter:
         self.check_info_dicts()
         logger.info("[info dict loader] Info dicts loaded successfully")
 
-    def __import_to_mo__(self, json_key: str, manual_import: bool):
+    def _import_to_mo_(self, json_key: str, manual_import: bool):
         """
         Returns True, when we need to import this json key. Otherwise False
         """
-        import_flag = self.raw_mapping["ldap_to_mo"][json_key]["__import_to_mo__"]
+        import_flag = self.raw_mapping["ldap_to_mo"][json_key]["_import_to_mo_"]
         import_flag = import_flag.lower()
 
         if import_flag == "true":
@@ -205,11 +205,11 @@ class LdapConverter:
         else:
             raise IncorrectMapping(f"Import flag = '{import_flag}' not recognized")
 
-    def __export_to_ldap__(self, json_key):
+    def _export_to_ldap_(self, json_key):
         """
         Returns True, when we need to export this json key. Otherwise False
         """
-        export_flag = self.raw_mapping["mo_to_ldap"][json_key]["__export_to_ldap__"]
+        export_flag = self.raw_mapping["mo_to_ldap"][json_key]["_export_to_ldap_"]
         return export_flag.lower() == "true"
 
     def find_object_class(self, json_key, conversion):
@@ -617,13 +617,13 @@ class LdapConverter:
 
     def check_import_and_export_flags(self):
         """
-        Checks that '__import_to_mo__' and '__export_to_ldap__' keys are present in
+        Checks that '_import_to_mo_' and '_export_to_ldap_' keys are present in
         the json dict
         """
 
         expected_key_dict = {
-            "ldap_to_mo": "__import_to_mo__",
-            "mo_to_ldap": "__export_to_ldap__",
+            "ldap_to_mo": "_import_to_mo_",
+            "mo_to_ldap": "_export_to_ldap_",
         }
 
         for conversion in ["ldap_to_mo", "mo_to_ldap"]:

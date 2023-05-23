@@ -419,8 +419,8 @@ async def cleanup(
     internal_amqpsystem = user_context["internal_amqpsystem"]
     uuids_to_publish = []
 
-    if not converter.__export_to_ldap__(json_key):
-        logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
+    if not converter._export_to_ldap_(json_key):
+        logger.info(f"_export_to_ldap_ == False for json_key = '{json_key}'")
         return
 
     # Get matching LDAP object for this user (note that LDAP can contain

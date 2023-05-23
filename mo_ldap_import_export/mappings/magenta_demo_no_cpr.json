@@ -2,7 +2,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
       "uuid": "{{ employee_uuid or NONE }}"
@@ -12,7 +12,7 @@
     // Contain CPR-numbers. Its user_key attribute must link to ldap.distinguishedName
     "Active Directory": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "__import_to_mo__": "true",
+      "_import_to_mo_": "true",
       "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('Active Directory')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
@@ -22,7 +22,7 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
@@ -31,7 +31,7 @@
     // Note: This key needs to be a valid MO IT-system user_key*
     "Active Directory": {
       "objectClass": "user",
-      "__export_to_ldap__": "true",
+      "_export_to_ldap_": "true",
       "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
     },
   },

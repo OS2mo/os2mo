@@ -6,7 +6,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "__import_to_mo__":"true",
+      "_import_to_mo_":"true",
       "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
       "surname": "{{ldap.surname or ldap.sn or ldap.name|splitlast|last or ''}}",
       "cpr_no": "{{ldap.cpr or None}}",
@@ -18,7 +18,7 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "__export_to_ldap__":"true",
+      "_export_to_ldap_":"true",
       "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",

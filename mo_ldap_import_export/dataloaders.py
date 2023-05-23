@@ -450,8 +450,8 @@ class DataLoader:
             Set to True to delete contents in LDAP, instead of creating/modifying them
         """
         converter = self.user_context["converter"]
-        if not converter.__export_to_ldap__(json_key):
-            logger.info(f"__export_to_ldap__ == False for json_key = '{json_key}'")
+        if not converter._export_to_ldap_(json_key):
+            logger.info(f"_export_to_ldap_ == False for json_key = '{json_key}'")
             return []
         success = 0
         failed = 0

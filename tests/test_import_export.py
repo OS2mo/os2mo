@@ -806,7 +806,7 @@ async def test_import_single_object_from_LDAP_force(
 async def test_import_single_object_from_LDAP_but_import_equals_false(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-    converter.__import_to_mo__.return_value = False
+    converter._import_to_mo_.return_value = False
 
     with capture_logs() as cap_logs:
         await asyncio.gather(sync_tool.import_single_user("CN=foo"))
@@ -814,7 +814,7 @@ async def test_import_single_object_from_LDAP_but_import_equals_false(
         messages = [w for w in cap_logs if w["log_level"] == "info"]
         for message in messages[1:]:
             assert re.match(
-                "__import_to_mo__ == False",
+                "_import_to_mo_ == False",
                 message["event"],
             )
 
