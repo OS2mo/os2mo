@@ -538,7 +538,7 @@ def test_get_ldap_attributes(converter: LdapConverter, context: Context):
     )
 
     expected_attributes = [
-        a for a in all_attributes if a != "objectClass" and not a.startswith("__")
+        a for a in all_attributes if a != "objectClass" and not a.startswith("_")
     ]
 
     assert attributes == expected_attributes
@@ -552,7 +552,7 @@ def test_get_mo_attributes(converter: LdapConverter, context: Context):
     )
 
     expected_attributes = [
-        a for a in all_attributes if a != "objectClass" and not a.startswith("__")
+        a for a in all_attributes if a != "objectClass" and not a.startswith("_")
     ]
 
     assert attributes == expected_attributes
