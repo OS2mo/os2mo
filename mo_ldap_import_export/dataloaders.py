@@ -676,9 +676,11 @@ class DataLoader:
         Given an objectGUID, find the DistinguishedName
         """
         logger.info(f"Looking for LDAP object with objectGUID = {objectGUID}")
+        converter = self.user_context["converter"]
+        user_class = converter.find_ldap_object_class("Employee")
         searchParameters = {
             "search_base": f"<GUID={objectGUID}>",
-            "search_filter": "(objectclass=*)",
+            "search_filter": f"(objectclass={user_class})",
             "attributes": [],
         }
 
