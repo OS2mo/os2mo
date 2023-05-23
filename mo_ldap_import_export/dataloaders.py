@@ -624,35 +624,30 @@ class DataLoader:
                 cpr_no = None
 
         if cpr_field and cpr_no:
-            cpr_query = (
-                """
-            employees(cpr_numbers: "%s") {
+            cpr_query = f"""
+            employees(cpr_numbers: "{cpr_no}") {{
               uuid
-            }
+            }}
             """
-                % cpr_no
-            )
         else:
             cpr_query = ""
 
-        ituser_query = """
-        itusers(user_keys: "%s") {
-          objects {
+        objectGUID = self.get_ldap_objectGUID(dn)
+        ituser_query = f"""
+        itusers(user_keys: "{objectGUID}") {{
+          objects {{
             employee_uuid
-          }
-        }
-        """ % self.get_ldap_objectGUID(
-            dn
-        )
+          }}
+        }}
+        """
 
         query = gql(
+            f"""
+            query FindEmployeeUUID {{
+              {cpr_query}
+              {ituser_query}
+            }}
             """
-            query FindEmployeeUUID {
-              %s
-              %s
-            }
-            """
-            % (cpr_query, ituser_query)
         )
 
         result = await self.query_mo(query, raise_if_empty=False)
@@ -806,21 +801,20 @@ class DataLoader:
 
     async def load_mo_employee(self, uuid: UUID, current_objects_only=True) -> Employee:
         query = gql(
-            """
-            query SinlgeEmployee {
-              employees(uuids:"%s") {
-                objects {
+            f"""
+            query SingleEmployee {{
+              employees(uuids:"{uuid}") {{
+                objects {{
                     uuid
                     cpr_no
                     givenname
                     surname
                     nickname_givenname
                     nickname_surname
-                }
-              }
-            }
+                }}
+              }}
+            }}
             """
-            % uuid
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
@@ -835,18 +829,17 @@ class DataLoader:
         Load all current employees engaged to an org unit
         """
         query = gql(
-            """
-            query EmployeeOrgUnitUUIDs {
-              org_units(uuids: "%s") {
-                objects {
-                  engagements {
+            f"""
+            query EmployeeOrgUnitUUIDs {{
+              org_units(uuids: "{org_unit_uuid}") {{
+                objects {{
+                  engagements {{
                     employee_uuid
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % org_unit_uuid
         )
 
         result = await self.query_mo(query)
@@ -858,18 +851,17 @@ class DataLoader:
 
     def load_mo_facet(self, user_key) -> dict:
         query = gql(
-            """
-            query FacetQuery {
-              facets(user_keys: "%s") {
-                classes {
+            f"""
+            query FacetQuery {{
+              facets(user_keys: "{user_key}") {{
+                classes {{
                   user_key
                   uuid
                   scope
-                }
-              }
-            }
+                }}
+              }}
+            }}
             """
-            % user_key
         )
         result = self.query_mo_sync(query, raise_if_empty=False)
 
@@ -882,14 +874,13 @@ class DataLoader:
 
     def load_mo_facet_uuid(self, user_key: str) -> UUID:
         query = gql(
-            """
-            query FacetUUIDQuery {
-              facets(user_keys: "%s") {
+            f"""
+            query FacetUUIDQuery {{
+              facets(user_keys: "{user_key}") {{
                 uuid
-              }
-            }
+              }}
+            }}
             """
-            % user_key
         )
         result = self.query_mo_sync(query)
         facets = result["facets"]
@@ -974,22 +965,21 @@ class DataLoader:
 
     async def load_mo_it_user(self, uuid: UUID, current_objects_only=True) -> ITUser:
         query = gql(
-            """
-            query MyQuery {
-              itusers(uuids: "%s") {
-                objects {
+            f"""
+            query MyQuery {{
+              itusers(uuids: "{uuid}") {{
+                objects {{
                   user_key
-                  validity {
+                  validity {{
                     from
                     to
-                  }
+                  }}
                   employee_uuid
                   itsystem_uuid
-                }
-              }
-            }
+                }}
+              }}
+            }}
             """
-            % (uuid)
         )
 
         result = await self.query_past_future_mo(query, current_objects_only)
@@ -1014,31 +1004,31 @@ class DataLoader:
         Only returns addresses which are valid today. Meaning the to/from date is valid.
         """
         query = gql(
-            """
-            query SingleAddress {
-              addresses(uuids: "%s") {
-                objects {
+            f"""
+            query SingleAddress {{
+              addresses(uuids: "{uuid}") {{
+                objects {{
                   value: name
                   value2
                   uuid
                   visibility_uuid
                   employee_uuid
                   org_unit_uuid
-                  person: employee {
+                  person: employee {{
                     cpr_no
-                  }
-                  validity {
-                      from
-                      to
-                    }
-                  address_type {
-                      user_key
-                      uuid}
-                }
-              }
-            }
+                  }}
+                  validity {{
+                    from
+                    to
+                  }}
+                  address_type {{
+                    user_key
+                    uuid
+                  }}
+                }}
+              }}
+            }}
             """
-            % (uuid)
         )
 
         logger.info(f"Loading address={uuid}")
@@ -1065,16 +1055,15 @@ class DataLoader:
         Determine if an engagement is the primary engagement or not.
         """
         query = gql(
-            """
-            query IsPrimary {
-              engagements(uuids: "%s") {
-                objects {
+            f"""
+            query IsPrimary {{
+              engagements(uuids: "{engagement_uuid}") {{
+                objects {{
                   is_primary
-                }
-              }
-            }
+                }}
+              }}
+            }}
             """
-            % (engagement_uuid)
         )
 
         result = await self.query_mo(query)
@@ -1086,10 +1075,10 @@ class DataLoader:
         current_objects_only: bool = True,
     ) -> Engagement:
         query = gql(
-            """
-            query SingleEngagement {
-              engagements(uuids: "%s") {
-                objects {
+            f"""
+            query SingleEngagement {{
+              engagements(uuids: "{uuid}") {{
+                objects {{
                   user_key
                   extension_1
                   extension_2
@@ -1107,15 +1096,14 @@ class DataLoader:
                   org_unit_uuid
                   engagement_type_uuid
                   employee_uuid
-                  validity {
+                  validity {{
                     from
                     to
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % (uuid)
         )
 
         logger.info(f"Loading engagement={uuid}")
@@ -1153,18 +1141,17 @@ class DataLoader:
         Loads all current addresses of a specific type for an employee
         """
         query = gql(
-            """
-            query GetEmployeeAddresses {
-              employees(uuids: "%s") {
-                objects {
-                  addresses(address_types: "%s") {
+            f"""
+            query GetEmployeeAddresses {{
+              employees(uuids: "{employee_uuid}") {{
+                objects {{
+                  addresses(address_types: "{address_type_uuid}") {{
                     uuid
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % (employee_uuid, address_type_uuid)
         )
 
         result = await self.query_mo(query)
@@ -1182,18 +1169,17 @@ class DataLoader:
         Loads all current addresses of a specific type for an org unit
         """
         query = gql(
-            """
-            query GetOrgUnitAddresses {
-              org_units(uuids: "%s") {
-                objects {
-                  addresses(address_types: "%s") {
+            f"""
+            query GetOrgUnitAddresses {{
+              org_units(uuids: "{org_unit_uuid}") {{
+                objects {{
+                  addresses(address_types: "{address_type_uuid}") {{
                     uuid
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % (org_unit_uuid, address_type_uuid)
         )
 
         result = await self.query_mo(query)
@@ -1213,19 +1199,18 @@ class DataLoader:
         Load all current it users of a specific type linked to an employee
         """
         query = gql(
-            """
-            query ItUserQuery {
-              employees(uuids: "%s") {
-                objects {
-                  itusers {
+            f"""
+            query ItUserQuery {{
+              employees(uuids: "{employee_uuid}") {{
+                objects {{
+                  itusers {{
                     uuid
                     itsystem_uuid
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % employee_uuid
         )
 
         result = await self.query_mo(query)
@@ -1244,18 +1229,17 @@ class DataLoader:
         Load all current engagements linked to an employee
         """
         query = gql(
-            """
-            query EngagementQuery {
-              employees(uuids: "%s") {
-                objects {
-                  engagements {
+            f"""
+            query EngagementQuery {{
+              employees(uuids: "{employee_uuid}") {{
+                objects {{
+                  engagements {{
                     uuid
-                  }
-                }
-              }
-            }
+                  }}
+                }}
+              }}
+            }}
             """
-            % employee_uuid
         )
 
         result = await self.query_mo(query)
@@ -1288,18 +1272,6 @@ class DataLoader:
         to these object types. "object_types_to_try" needs to be a tuple with strings
         matching self.object_type_dict.keys()
         """
-
-        query_template = """
-                         query AllObjects {
-                             %s %s {
-                                 objects {
-                                     uuid
-                                     %s
-                                     %s
-                                     }
-                                 }
-                             }
-                         """
 
         if add_validity:
             validity_query = """
@@ -1335,8 +1307,17 @@ class DataLoader:
                                    """
 
             query = gql(
-                query_template
-                % (object_type, uuid_filter, additional_uuids, validity_query)
+                f"""
+                query AllObjects {{
+                    {object_type} {uuid_filter} {{
+                        objects {{
+                            uuid
+                            {additional_uuids}
+                            {validity_query}
+                            }}
+                        }}
+                    }}
+                """
             )
 
             try:
@@ -1449,20 +1430,19 @@ class DataLoader:
         """
         logger.info(f"Creating MO class with user_key = '{user_key}'")
         query = gql(
-            """
-            mutation CreateClass {
+            f"""
+            mutation CreateClass {{
               class_create(
-                input: {name: "%s",
-                        user_key: "%s",
-                        org_uuid: "%s",
-                        facet_uuid: "%s",
-                        scope: "%s"}
-              ) {
+                input: {{name: "{name}",
+                        user_key: "{user_key}",
+                        org_uuid: "{self.root_org_uuid}",
+                        facet_uuid: "{facet_uuid}",
+                        scope: "{scope}"}}
+              ) {{
                 uuid
-              }
-            }
+              }}
+            }}
             """
-            % (name, user_key, self.root_org_uuid, facet_uuid, scope)
         )
         result = self.query_mo_sync(query)
         return UUID(result["class_create"]["uuid"])
@@ -1523,17 +1503,16 @@ class DataLoader:
         """
         logger.info(f"Creating MO it-system with user_key = '{user_key}'")
         query = gql(
-            """
-            mutation CreateITSystem {
+            f"""
+            mutation CreateITSystem {{
               itsystem_create(
-                input: {name: "%s",
-                        user_key: "%s"}
-              ) {
+                input: {{name: "{name}",
+                        user_key: "{user_key}"}}
+              ) {{
                 uuid
-              }
-            }
+              }}
+            }}
             """
-            % (name, user_key)
         )
         result = self.query_mo_sync(query)
         return UUID(result["itsystem_create"]["uuid"])
