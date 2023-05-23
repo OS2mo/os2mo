@@ -1015,16 +1015,16 @@ class DataLoader:
                   employee_uuid
                   org_unit_uuid
                   person: employee {{
-                      cpr_no
-                    }}
+                    cpr_no
+                  }}
                   validity {{
-                      from
-                      to
-                    }}
+                    from
+                    to
+                  }}
                   address_type {{
-                      user_key
-                      uuid
-                    }}
+                    user_key
+                    uuid
+                  }}
                 }}
               }}
             }}
