@@ -719,12 +719,19 @@ def create_app(**kwargs: Any) -> FastAPI:
     ) -> Any:
         return dataloader.load_ldap_attribute_values(attribute)
 
-    # Get LDAP object
-    @app.get("/Inspect/object/{objectGUID}", status_code=202, tags=["LDAP"])
-    async def load_object_from_ldap(
+    # Get LDAP object by objectGUID
+    @app.get("/Inspect/object/objectGUID", status_code=202, tags=["LDAP"])
+    async def load_object_from_ldap_by_objectGUID(
         objectGUID: UUID, user=Depends(login_manager), nest: bool = False
     ) -> Any:
         dn = dataloader.get_ldap_dn(objectGUID)
+        return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
+
+    # Get LDAP object by DN
+    @app.get("/Inspect/object/dn", status_code=202, tags=["LDAP"])
+    async def load_object_from_ldap_by_dn(
+        dn: str, user=Depends(login_manager), nest: bool = False
+    ) -> Any:
         return encode_result(dataloader.load_ldap_object(dn, ["*"], nest=nest))
 
     # Get LDAP objectGUID

@@ -379,11 +379,24 @@ def test_ldap_get_attribute_details_endpoint(
     assert response.status_code == 202
 
 
-def test_ldap_get_object_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_object_by_objectGUID_endpoint(
+    test_client: TestClient, headers: dict
+) -> None:
     """Test the LDAP get endpoint on our app."""
 
     uuid = uuid4()
-    response = test_client.get(f"/Inspect/object/{uuid}", headers=headers)
+    params = {"objectGUID": uuid}
+    response = test_client.get(
+        "/Inspect/object/objectGUID", headers=headers, params=params
+    )
+    assert response.status_code == 202
+
+
+def test_ldap_get_object_by_dn_endpoint(test_client: TestClient, headers: dict) -> None:
+    """Test the LDAP get endpoint on our app."""
+
+    params = {"dn": "CN=foo"}
+    response = test_client.get("/Inspect/object/dn", headers=headers, params=params)
     assert response.status_code == 202
 
 
