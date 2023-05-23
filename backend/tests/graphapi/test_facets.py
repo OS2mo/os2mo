@@ -42,13 +42,15 @@ def test_query_all(test_data, graphapi_post, patch_loader):
             query {
                 facets {
                     objects {
-                        uuid
-                        user_key
-                        description
-                        parent_uuid
-                        org_uuid
-                        published
-                        type
+                        current {
+                            uuid
+                            user_key
+                            description
+                            parent_uuid
+                            org_uuid
+                            published
+                            type
+                        }
                     }
                 }
             }
@@ -57,7 +59,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert response.data["facets"]["objects"] == test_data
+    assert [x["current"] for x in response.data["facets"]["objects"]] == test_data
 
 
 @given(test_input=graph_data_uuids_strat(FacetRead))
@@ -79,7 +81,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 query TestQuery($uuids: [UUID!]) {
                     facets(uuids: $uuids) {
                         objects {
-                            uuid
+                            current {
+                                uuid
+                            }
                         }
                     }
                 }
@@ -90,7 +94,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [facet.get("uuid") for facet in response.data["facets"]["objects"]]
+    result_uuids = [
+        facet["current"].get("uuid") for facet in response.data["facets"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -130,7 +136,7 @@ def prepare_query_data(test_data, query_response):
     td = {k: v for k, v in test_data.items() if v is not None}
 
     query_dict = (
-        query_response.data.get("facets").get("objects")[0]
+        one(query_response.data.get("facets").get("objects"))["current"]
         if isinstance(query_response.data, dict)
         else {}
     )
@@ -178,12 +184,14 @@ async def test_create_facet(test_data, graphapi_post):
         query ($uuid: [UUID!]!) {
             facets(uuids: $uuid) {
                 objects {
-                    uuid
-                    type
-                    org_uuid
-                    user_key
-                    published
-                    parent_uuid
+                    current {
+                        uuid
+                        type
+                        org_uuid
+                        user_key
+                        published
+                        parent_uuid
+                    }
                 }
             }
         }
@@ -244,8 +252,10 @@ async def test_integration_delete_facet() -> None:
         query ($uuid: [UUID!]!) {
           facets(uuids: $uuid) {
             objects {
-              uuid
-              user_key
+              current {
+                uuid
+                user_key
+              }
             }
           }
         }
@@ -259,7 +269,9 @@ async def test_integration_delete_facet() -> None:
     assert response.errors is None
     assert response.data == {
         "facets": {
-            "objects": [{"user_key": "engagement_job_function", "uuid": facet_uuid}]
+            "objects": [
+                {"current": {"user_key": "engagement_job_function", "uuid": facet_uuid}}
+            ]
         }
     }
 
@@ -293,8 +305,10 @@ async def test_update_facet() -> None:
         query ($uuid: [UUID!]!) {
           facets(uuids: $uuid) {
             objects {
-              uuid
-              user_key
+              current {
+                uuid
+                user_key
+              }
             }
           }
         }
@@ -307,7 +321,7 @@ async def test_update_facet() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "facets"
-    klass = one(response.data["facets"]["objects"])
+    klass = one(response.data["facets"]["objects"])["current"]
     assert klass == {
         "uuid": facet_uuid,
         "user_key": "employee_address_type",
@@ -336,7 +350,7 @@ async def test_update_facet() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "facets"
-    klass = one(response.data["facets"]["objects"])
+    klass = one(response.data["facets"]["objects"])["current"]
     assert klass == {
         "uuid": facet_uuid,
         "user_key": "New Value 1",
@@ -388,7 +402,7 @@ async def test_update_facet() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "facets"
-    klass = one(response.data["facets"]["objects"])
+    klass = one(response.data["facets"]["objects"])["current"]
     assert klass == {
         "uuid": facet_uuid,
         "user_key": "New Value 2",

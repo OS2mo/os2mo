@@ -48,7 +48,9 @@ async def list_it_systems(orgid: UUID):
     query ITSystemQuery {
       itsystems {
         objects {
-          uuid, name, system_type, user_key
+          current {
+            uuid, name, system_type, user_key
+          }
         }
       }
       org {
@@ -60,4 +62,4 @@ async def list_it_systems(orgid: UUID):
     handle_gql_error(response)
     if response.data["org"]["uuid"] != orgid:
         return []
-    return response.data["itsystems"]["objects"]
+    return [x["current"] for x in response.data["itsystems"]["objects"]]

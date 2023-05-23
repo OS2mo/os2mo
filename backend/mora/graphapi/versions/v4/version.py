@@ -7,6 +7,7 @@ from inspect import signature
 from typing import Any
 
 import strawberry
+from more_itertools import flatten
 from pydantic import PositiveInt
 
 from ..latest.permissions import gen_read_permission
@@ -66,6 +67,15 @@ def to_response(resolver):  # type: ignore
     return resolve_response
 
 
+def to_list(resolver):  # type: ignore
+    @wraps(resolver.resolve)
+    async def resolve_response(*args, **kwargs):  # type: ignore
+        result = await resolver.resolve(*args, **kwargs)
+        return list(flatten(result.values()))
+
+    return resolve_response
+
+
 def offset2cursor(func: Callable) -> Callable:
     sig = signature(func)
     parameters = sig.parameters.copy()
@@ -120,7 +130,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Classes
     # -------
     classes: list[Class] = strawberry.field(
-        resolver=offset2cursor(ClassResolver().resolve),
+        resolver=offset2cursor(to_list(ClassResolver())),
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -158,7 +168,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # Facets
     # ------
     facets: list[Facet] = strawberry.field(
-        resolver=offset2cursor(FacetResolver().resolve),
+        resolver=offset2cursor(to_list(FacetResolver())),
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
@@ -166,7 +176,7 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
     # ITSystems
     # ---------
     itsystems: list[ITSystem] = strawberry.field(
-        resolver=offset2cursor(ITSystemResolver().resolve),
+        resolver=offset2cursor(to_list(ITSystemResolver())),
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )

@@ -178,7 +178,7 @@ async def test_get_classes_formatted(mock_get_all):
     mock_get_all.return_value = [(lora_obj_uuid, lora_class_multiple_attrs_and_states)]
 
     response = await dataloaders.get_classes(facet_uuids=[uuid.UUID(lora_obj_uuid)])
-    mo_class = one(response)
+    mo_class = one(one(response.values()))
 
     assert mo_class.name == "-"
     assert mo_class.published == "IkkePubliceret"

@@ -52,8 +52,8 @@ from .resolvers import LeaveResolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import RelatedUnitResolver
+from .resolvers import Resolver
 from .resolvers import RoleResolver
-from .resolvers import StaticResolver
 from .types import Cursor
 from mora import common
 from mora import config
@@ -155,7 +155,7 @@ def force_none_return_wrapper(func: Callable) -> Callable:
 
 
 def seed_resolver(
-    resolver: StaticResolver,
+    resolver: Resolver,
     seeds: dict[str, Callable[[Any], Any]] | None = None,
     result_translation: Callable[[Any], R] | None = None,
 ) -> Callable[..., Awaitable[R]]:
@@ -253,15 +253,6 @@ seed_resolver_one = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
-seed_static_resolver_list = seed_resolver
-seed_static_resolver_only = partial(
-    seed_resolver,
-    result_translation=only,
-)
-seed_static_resolver_one = partial(
-    seed_resolver,
-    result_translation=one,
-)
 
 
 def uuid2list(uuid: UUID | None) -> list[UUID]:
@@ -338,11 +329,15 @@ class Response(Generic[MOObject]):
             now = datetime.now().replace(tzinfo=DEFAULT_TIMEZONE)
             datetime_min = datetime.min.replace(tzinfo=DEFAULT_TIMEZONE)
             datetime_max = datetime.max.replace(tzinfo=DEFAULT_TIMEZONE)
-            return (
-                (obj.validity.from_date or datetime_min)
-                < now
-                < (obj.validity.to_date or datetime_max)
-            )
+            try:
+                return (
+                    (obj.validity.from_date or datetime_min)
+                    < now
+                    < (obj.validity.to_date or datetime_max)
+                )
+            except AttributeError:  # occurs when objects do not contain validity
+                # TODO: Get rid of this entire branch by implementing non-static facet, etc.
+                return True
 
         # TODO: This should really do its own instantaneous query to find whatever is
         #       active right now, regardless of the values in objects.
@@ -440,7 +435,7 @@ LazyRole = Annotated["Role", LazySchema]
 )
 class Address:
     address_type: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
         ),
         description="Address type",
@@ -448,7 +443,7 @@ class Address:
     )
 
     visibility: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
         description="Address visibility",
@@ -554,7 +549,7 @@ class Address:
 )
 class Association:
     association_type: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(),
             {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
@@ -563,7 +558,7 @@ class Association:
     )
 
     dynamic_class: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
         ),
         description="dynamic class",
@@ -571,7 +566,7 @@ class Association:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description="Primary status",
@@ -607,7 +602,7 @@ class Association:
     )
 
     job_function: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
         ),
         description="Connected job function",
@@ -635,7 +630,7 @@ class Association:
 )
 class Class:
     parent: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description="Immediate parent class",
@@ -643,7 +638,7 @@ class Class:
     )
 
     children: list[LazyClass] = strawberry.field(
-        resolver=seed_static_resolver_list(
+        resolver=seed_resolver_list(
             ClassResolver(),
             {"parents": lambda root: [root.uuid]},
         ),
@@ -652,7 +647,7 @@ class Class:
     )
 
     facet: LazyFacet = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
         ),
         description="Associated facet",
@@ -785,7 +780,7 @@ class Employee:
 )
 class Engagement:
     engagement_type: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(),
             {"uuids": lambda root: [root.engagement_type_uuid]},
         ),
@@ -794,7 +789,7 @@ class Engagement:
     )
 
     job_function: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(),
             {"uuids": lambda root: [root.job_function_uuid]},
         ),
@@ -803,7 +798,7 @@ class Engagement:
     )
 
     primary: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description="Primary status",
@@ -892,7 +887,7 @@ class EngagementAssociation:
     )
 
     engagement_association_type: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(),
             {"uuids": lambda root: [root.engagement_association_type_uuid]},
         ),
@@ -912,7 +907,7 @@ class EngagementAssociation:
 )
 class Facet:
     classes: list[LazyClass] = strawberry.field(
-        resolver=seed_static_resolver_list(
+        resolver=seed_resolver_list(
             ClassResolver(), {"facets": lambda root: [root.uuid]}
         ),
         description="Associated classes",
@@ -992,7 +987,7 @@ class ITUser:
     )
 
     itsystem: LazyITSystem = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
         ),
         description="Connected itsystem",
@@ -1011,7 +1006,7 @@ class ITUser:
 )
 class KLE:
     kle_number: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
         ),
         description="KLE number",
@@ -1019,7 +1014,7 @@ class KLE:
     )
 
     kle_aspects: list[LazyClass] = strawberry.field(
-        resolver=seed_static_resolver_list(
+        resolver=seed_resolver_list(
             ClassResolver(),
             {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
@@ -1055,7 +1050,7 @@ class KLE:
 )
 class Leave:
     leave_type: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
         ),
         description="Leave type",
@@ -1095,7 +1090,7 @@ class Leave:
 )
 class Manager:
     manager_type: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
         description="Manager type",
@@ -1103,7 +1098,7 @@ class Manager:
     )
 
     manager_level: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
         description="Manager level",
@@ -1111,7 +1106,7 @@ class Manager:
     )
 
     responsibilities: list[LazyClass] = strawberry.field(
-        resolver=seed_static_resolver_list(
+        resolver=seed_resolver_list(
             ClassResolver(),
             {"parents": lambda root: root.responsibility_uuids or []},
         ),
@@ -1238,7 +1233,7 @@ class OrganisationUnit:
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
     org_unit_hierarchy_model: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
         ),
         description="Organisation unit hierarchy",
@@ -1246,7 +1241,7 @@ class OrganisationUnit:
     )
 
     unit_type: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
         description="Organisation unit hierarchy",
@@ -1255,7 +1250,7 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     org_unit_level: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
         ),
         description="Organisation unit level",
@@ -1263,7 +1258,7 @@ class OrganisationUnit:
     )
 
     time_planning: LazyClass | None = strawberry.field(
-        resolver=seed_static_resolver_only(
+        resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
         ),
         description="Time planning strategy",
@@ -1413,7 +1408,7 @@ class RelatedUnit:
 )
 class Role:
     role_type: LazyClass = strawberry.field(
-        resolver=seed_static_resolver_one(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
         ),
         description="Role type",

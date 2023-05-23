@@ -34,8 +34,8 @@ from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import PagedResolver
 from .resolvers import RelatedUnitResolver
+from .resolvers import Resolver
 from .resolvers import RoleResolver
-from .resolvers import StaticResolver
 from .schema import Address
 from .schema import Association
 from .schema import Class
@@ -134,9 +134,7 @@ class ConfigurationResolver(PagedResolver):
         return cast(list[Configuration], parsed_settings)
 
 
-def to_response(
-    resolver: StaticResolver, result: dict[UUID, list[dict]]
-) -> list[Response]:
+def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
     return [
         Response(uuid=uuid, model=resolver.model, object_cache=objects)
         for uuid, objects in result.items()
@@ -198,8 +196,8 @@ class Query:
 
     # Classes
     # -------
-    classes: Paged[Class] = strawberry.field(
-        resolver=to_paged(ClassResolver()),
+    classes: Paged[Response[Class]] = strawberry.field(
+        resolver=to_paged_response(ClassResolver()),
         description="Get a list of all classes, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -236,16 +234,16 @@ class Query:
 
     # Facets
     # ------
-    facets: Paged[Facet] = strawberry.field(
-        resolver=to_paged(FacetResolver()),
+    facets: Paged[Response[Facet]] = strawberry.field(
+        resolver=to_paged_response(FacetResolver()),
         description="Get a list of all facets, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
     # ITSystems
     # ---------
-    itsystems: Paged[ITSystem] = strawberry.field(
-        resolver=to_paged(ITSystemResolver()),
+    itsystems: Paged[Response[ITSystem]] = strawberry.field(
+        resolver=to_paged_response(ITSystemResolver()),
         description="Get a list of all ITSystems, optionally by uuid(s)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )

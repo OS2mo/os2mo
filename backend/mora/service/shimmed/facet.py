@@ -81,7 +81,9 @@ async def get_class(
         {
           classes(uuids: [$uuid]) {
             objects {
-              uuid
+              current {
+                uuid
+              }
             }
           }
         }
@@ -96,21 +98,23 @@ async def get_class(
         ) {
           classes(uuids: [$uuid]) {
             objects {
-              uuid
-              name
-              user_key
-              example
-              scope
-              owner
+              current {
+                uuid
+                name
+                user_key
+                example
+                scope
+                owner
 
-              full_name @include(if: $full_name)
+                full_name @include(if: $full_name)
 
-              top_level_facet @include(if: $top_level_facet) {
-                ...facet_fields
-              }
+                top_level_facet @include(if: $top_level_facet) {
+                  ...facet_fields
+                }
 
-              facet @include(if: $facet) {
-                ...facet_fields
+                facet @include(if: $facet) {
+                  ...facet_fields
+                }
               }
             }
           }
@@ -125,7 +129,7 @@ async def get_class(
     handle_gql_error(response)
 
     # Handle org unit data
-    class_list = response.data["classes"]["objects"]
+    class_list = [x["current"] for x in response.data["classes"]["objects"]]
     if not class_list:
         exceptions.ErrorCodes.E_CLASS_NOT_FOUND(class_uuid=classid)
     try:
@@ -170,10 +174,12 @@ async def list_facets(
     query FacetQuery {
       facets {
         objects {
-          uuid
-          user_key
-          description
-          org_uuid
+          current {
+            uuid
+            user_key
+            description
+            org_uuid
+          }
         }
       }
     }
@@ -182,7 +188,7 @@ async def list_facets(
     handle_gql_error(response)
 
     # Handle org unit data
-    facets = response.data["facets"]["objects"]
+    facets = [x["current"] for x in response.data["facets"]["objects"]]
     if not facets:
         return []
 
@@ -275,15 +281,17 @@ async def facet_user_key_to_uuid(user_key: str) -> UUID | None:
     query FacetQuery {
       facets {
         objects {
-          uuid
-          user_key
+          current {
+            uuid
+            user_key
+          }
         }
       }
     }
     """
     response = await execute_graphql(query)
     handle_gql_error(response)
-    facets = response.data["facets"]["objects"]
+    facets = [x["current"] for x in response.data["facets"]["objects"]]
     if not facets:
         return None
     facet_map = dict(map(itemgetter("user_key", "uuid"), facets))
@@ -319,19 +327,21 @@ async def get_all_classes(
     ) {
       facets(uuids: [$uuid]) {
         objects {
-          uuid
-          user_key
-          description
-          children: classes @include(if: $only_primary_uuid) {
+          current {
             uuid
-          }
-          children: classes @skip(if: $only_primary_uuid) {
-            uuid
-            name
             user_key
-            example
-            scope
-            owner
+            description
+            children: classes @include(if: $only_primary_uuid) {
+              uuid
+            }
+            children: classes @skip(if: $only_primary_uuid) {
+              uuid
+              name
+              user_key
+              example
+              scope
+              owner
+            }
           }
         }
       }
@@ -345,7 +355,7 @@ async def get_all_classes(
         },
     )
     handle_gql_error(response)
-    facets = response.data["facets"]["objects"]
+    facets = [x["current"] for x in response.data["facets"]["objects"]]
     if not facets:
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
@@ -423,15 +433,17 @@ async def get_all_classes_children(
     ) {
       facets(uuids: [$uuid]) {
         objects {
-          classes @include(if: $only_primary_uuid) {
-            uuid
-          }
-          classes @skip(if: $only_primary_uuid) {
-            uuid
-            name
-            user_key
-            children {
+          current {
+            classes @include(if: $only_primary_uuid) {
               uuid
+            }
+            classes @skip(if: $only_primary_uuid) {
+              uuid
+              name
+              user_key
+              children {
+                uuid
+              }
             }
           }
         }
@@ -446,7 +458,7 @@ async def get_all_classes_children(
         },
     )
     handle_gql_error(response)
-    facets = response.data["facets"]["objects"]
+    facets = [x["current"] for x in response.data["facets"]["objects"]]
     if not facets:
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
@@ -483,15 +495,17 @@ async def get_all_class_children(
     ) {
       classes(uuids: [$uuid]) {
         objects {
-          children @include(if: $only_primary_uuid) {
-            uuid
-          }
-          children @skip(if: $only_primary_uuid) {
-            uuid
-            name
-            user_key
-            children {
+          current {
+            children @include(if: $only_primary_uuid) {
               uuid
+            }
+            children @skip(if: $only_primary_uuid) {
+              uuid
+              name
+              user_key
+              children {
+                uuid
+              }
             }
           }
         }
@@ -506,7 +520,7 @@ async def get_all_class_children(
         },
     )
     handle_gql_error(response)
-    classes = response.data["classes"]["objects"]
+    classes = [x["current"] for x in response.data["classes"]["objects"]]
     if not classes:
         exceptions.ErrorCodes.E_UNKNOWN()
     try:
@@ -592,27 +606,29 @@ async def get_classes(
     ) {
       facets(uuids: [$uuid]) {
         objects {
-          ...facet_fields
-          children: classes @include(if: $only_primary_uuid) {
-            uuid
-          }
-          children: classes @skip(if: $only_primary_uuid) {
-            uuid
-            name
-            user_key
-            example
-            scope
-            owner
-            published
-
-            full_name @include(if: $full_name)
-
-            top_level_facet @include(if: $top_level_facet) {
-              ...facet_fields
+          current {
+            ...facet_fields
+            children: classes @include(if: $only_primary_uuid) {
+              uuid
             }
+            children: classes @skip(if: $only_primary_uuid) {
+              uuid
+              name
+              user_key
+              example
+              scope
+              owner
+              published
 
-            facet @include(if: $facet) {
-              ...facet_fields
+              full_name @include(if: $full_name)
+
+              top_level_facet @include(if: $top_level_facet) {
+                ...facet_fields
+              }
+
+              facet @include(if: $facet) {
+                ...facet_fields
+              }
             }
           }
         }
@@ -635,7 +651,7 @@ async def get_classes(
         },
     )
     handle_gql_error(response)
-    facets = response.data["facets"]["objects"]
+    facets = [x["current"] for x in response.data["facets"]["objects"]]
     if not facets:
         exceptions.ErrorCodes.E_NOT_FOUND()
     try:
