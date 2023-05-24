@@ -1,7 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 import freezegun
 import pytest
+from fastapi.testclient import TestClient
 
 import tests.cases
 from mora import lora
@@ -551,190 +554,159 @@ class WritingMinimal(tests.cases.LoRATestCase):
         )
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_reading_organisation(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "name": "Lokal Rammearkitektur",
+        },
+        {
+            "system_type": None,
+            "user_key": "SAP",
+            "uuid": "14466fb0-f9de-439c-a6c2-b3262c367da7",
+            "name": "SAP",
+        },
+        {
+            "system_type": None,
+            "user_key": "AD",
+            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            "name": "Active Directory",
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_reading_employee(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it",
+        params={"only_primary_uuid": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "itsystem": {
+                "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            },
+            "org_unit": None,
+            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+            "engagement": None,
+            "user_key": "donald",
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "validity": {"from": "2017-01-01", "to": None},
+            "primary": None,
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "unitid",
+    [
+        "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "85715fc7-925d-401b-822d-467eb4b163b6",
+        "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+    ],
+)
+@pytest.mark.parametrize("validity", ["past", "present", "future"])
+def test_reading_unit_empty(
+    service_client: TestClient, unitid: str, validity: str
+) -> None:
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/it", params={"validity": validity}
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+reading_unit_result = [
+    {
+        "itsystem": {
+            "name": "Lokal Rammearkitektur",
+            "reference": None,
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {"from": "2010-01-01", "to": None},
+        },
+        "org_unit": {
+            "name": "Afdeling for Fortidshistorik",
+            "user_key": "frem",
+            "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            "validity": {"from": "2016-01-01", "to": "2018-12-31"},
+        },
+        "person": None,
+        "user_key": "fwaf",
+        "engagement": None,
+        "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
+        "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+        "primary": None,
+    }
+]
+reading_unit_result_now = [
+    {
+        "itsystem": {
+            "name": "Lokal Rammearkitektur",
+            "reference": None,
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {"from": "2010-01-01", "to": None},
+        },
+        "org_unit": {
+            "name": "Afdeling for Samtidshistorik",
+            "user_key": "frem",
+            "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            "validity": {"from": "2016-01-01", "to": "2018-12-31"},
+        },
+        "person": None,
+        "user_key": "fwaf",
+        "engagement": None,
+        "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
+        "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+        "primary": None,
+    }
+]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "params,expected",
+    [
+        # 2017-01-01 (via freeze_time)
+        ({"validity": "past"}, []),
+        ({"validity": "present"}, reading_unit_result_now),
+        ({}, reading_unit_result_now),
+        ({"validity": "future"}, []),
+        # 2016-06-01
+        ({"at": "2016-06-01", "validity": "past"}, []),
+        ({"at": "2016-06-01", "validity": "present"}, []),
+        ({"at": "2016-06-01"}, []),
+        ({"at": "2016-06-01", "validity": "future"}, reading_unit_result),
+        # 2018-06-01
+        ({"at": "2018-06-01", "validity": "past"}, reading_unit_result),
+        ({"at": "2018-06-01", "validity": "present"}, []),
+        ({"at": "2018-06-01"}, []),
+        ({"at": "2018-06-01", "validity": "future"}, []),
+    ],
+)
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.LoRATestCase):
-    def test_reading_organisation(self):
-        self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
-            [
-                {
-                    "system_type": None,
-                    "user_key": "LoRa",
-                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                    "name": "Lokal Rammearkitektur",
-                },
-                {
-                    "system_type": None,
-                    "user_key": "SAP",
-                    "uuid": "14466fb0-f9de-439c-a6c2-b3262c367da7",
-                    "name": "SAP",
-                },
-                {
-                    "system_type": None,
-                    "user_key": "AD",
-                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-                    "name": "Active Directory",
-                },
-            ],
-        )
-
-    def test_reading_employee(self):
-        self.assertRequestResponse(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
-            "details/it?only_primary_uuid=1",
-            [
-                {
-                    "itsystem": {
-                        "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-                    },
-                    "org_unit": None,
-                    "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
-                    "engagement": None,
-                    "user_key": "donald",
-                    "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
-                    "validity": {"from": "2017-01-01", "to": None},
-                    "primary": None,
-                },
-            ],
-        )
-
-    def test_reading_unit(self):
-        for unitid in (
-            "2874e1dc-85e6-4269-823a-e1125484dfd3",
-            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "85715fc7-925d-401b-822d-467eb4b163b6",
-            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-        ):
-            for validity in ("past", "present", "future"):
-                with self.subTest(f"{unitid} - {validity}"):
-                    self.assertRequestResponse(
-                        "/service/ou/{}/details/it?validity={}".format(
-                            unitid,
-                            validity,
-                        ),
-                        [],
-                    )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Samtidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "engagement": None,
-                    "user_key": "fwaf",
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=past",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=future",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01&validity=future",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Fortidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "engagement": None,
-                    "user_key": "fwaf",
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01&validity=past",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=present",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=past",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Fortidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "user_key": "fwaf",
-                    "engagement": None,
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=future",
-            [],
-        )
+def test_reading_unit(
+    service_client: TestClient, params: dict[str, Any], expected: list[dict]
+) -> None:
+    unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+    response = service_client.get(f"/service/ou/{unitid}/details/it", params=params)
+    assert response.status_code == 200
+    assert response.json() == expected
