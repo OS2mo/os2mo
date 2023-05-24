@@ -41,6 +41,13 @@ class TestRole:
         assert r is None
 
 
+class TestOwner:
+    async def test_raise_exception_when_owner_but_no_user_uuid(self):
+        token = mock_auth(role=OWNER, user_uuid=None)()  # noqa: FURB120
+        with pytest.raises(AuthorizationError):
+            await _rbac(token, None, False)
+
+
 class TestOwnerSingleOrgUnit:
     """
     This class covers test cases where the user has the owner role and

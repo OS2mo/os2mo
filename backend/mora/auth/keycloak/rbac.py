@@ -39,6 +39,9 @@ async def _rbac(token: Token, request: Request, admin_only: bool) -> None:
         logger.debug("User has admin role - write permission granted")
         return
     if OWNER in roles and not admin_only:
+        if token.uuid is None:
+            raise AuthorizationError("User has owner role, but UUID unset.")
+
         logger.debug("User has owner role - checking ownership...")
 
         # E.g. the uuids variable will be {<uuid1>} if we are editing details

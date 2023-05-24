@@ -52,14 +52,11 @@ def mock_auth(role: str = None, user_uuid: str = None):
         "session_state": "d94f8dc3-d930-49b3-a9dd-9cdc1893b86a",
         "sub": "c420894f-36ba-4cd5-b4f8-1b24bd8c53db",
         "typ": "Bearer",
-        "uuid": "00000000-0000-0000-0000-000000000000",
+        "uuid": user_uuid,
     }
 
-    if bool(role) ^ bool(user_uuid):
-        raise AssertionError("Both of arguments should be set or not set")
-
-    if role and user_uuid:
-        token.update({"realm_access": {"roles": [role]}, "uuid": user_uuid})
+    if role is not None:
+        token["realm_access"] = {"roles": [role]}
 
     def fake_auth():
         return Token.parse_obj(token)
