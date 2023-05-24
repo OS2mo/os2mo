@@ -51,8 +51,8 @@
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "manual_import_only",
-      "givenname": "{{ldap.givenName}}",
-      "surname": "{{ldap.sn}}",
+      "givenname": "{{ldap.name|splitlast|first}}",
+      "surname": "{{ldap.name|splitlast|last}}",
       "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}",
       "nickname_givenname": "{{ldap.displayName|splitlast|first}}",
       "nickname_surname": "{{ldap.displayName|splitlast|last}}",
@@ -167,6 +167,7 @@
       "givenName" : "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.nickname_givenname}} {{mo_employee.nickname_surname}}",
+      "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
     "Engagement" : {
