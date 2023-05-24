@@ -28,10 +28,10 @@ class KeycloakToken(BaseToken):
         return values
 
     @validator("uuid", pre=True)
-    def parse_base64_uuid(uuid):
+    def parse_base64_uuid(cls, uuid):
         """Attempt to parse incoming UUID as base64"""
         if uuid is not None:
-            with suppress((ValueError, binascii.Error)):
+            with suppress(ValueError, binascii.Error):
                 uuid = UUID(bytes_le=b64decode(uuid))
         return uuid
 
