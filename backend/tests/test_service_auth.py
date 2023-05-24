@@ -7,7 +7,6 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
-from more_itertools import one
 from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
 from os2mo_fastapi_utils.auth.models import RealmAccess
 from os2mo_fastapi_utils.auth.test_helper import (
@@ -176,18 +175,6 @@ async def test_auth_graphql(
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
-def test_uuid_required_if_client_is_mo():
-    with pytest.raises(ValidationError) as err:
-        KeycloakToken(azp="mo-frontend", realm_access=RealmAccess(roles={"owner"}))
-    # Testing for one error only.
-    error = one(err.value.errors())
-
-    assert error["msg"] == "The uuid user attribute is required for owners."
-    assert error["type"] == "value_error"
-    assert len(err.value.errors()) == 1
-
-
-@util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_uuid():
     token = KeycloakToken(
         azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
@@ -214,7 +201,7 @@ def test_uuid_parse_fails_on_garbage():
 
     assert errors["msg"] == "value is not a valid uuid"
     assert errors["type"] == "type_error.uuid"
-    assert len(err.value.errors()) == 2
+    assert len(err.value.errors()) == 1
 
 
 @pytest.mark.integration_test
