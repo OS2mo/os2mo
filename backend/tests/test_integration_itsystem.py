@@ -8,7 +8,6 @@ from fastapi.testclient import TestClient
 
 import tests.cases
 from mora import lora
-from tests.util import sample_structures_minimal_cls_fixture
 
 
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -308,26 +307,14 @@ class AsyncWritingITSystem(tests.cases.AsyncLoRATestCase):
         self.assertRegistrationsEqual(expected_it_func, actual_it_func)
 
 
-@sample_structures_minimal_cls_fixture
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class WritingMinimal(tests.cases.LoRATestCase):
-    maxDiff = None
-
-    @classmethod
-    def get_lora_environ(cls):
-        # force LoRA to run under a UTC timezone, ensuring that we
-        # handle this case correctly for writing
-        return {
-            "TZ": "UTC",
-        }
-
-    def test_errors(self):
-        # In Postgres 10.0 the messages mentioning type names was changed. See
-        # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
-        # This test will fail if run against postgres >=10.0. We can ignore it
-        # with `pytest -m "not psql_9_dependent"`.
-        self.assertRequestResponse(
-            "/service/details/create",
+@pytest.mark.parametrize(
+    "operation,expected,payload,status_code",
+    [
+        (
+            "create",
             {
                 "description": "Missing itsystem",
                 "error": True,
@@ -340,7 +327,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": None,
@@ -350,18 +337,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "E_NOT_FOUND",
                 "description": "Not found.",
                 "status": 404,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -373,11 +359,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=404,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            404,
+        ),
+        (
+            "create",
             {
                 "description": "Missing itsystem",
                 "error": True,
@@ -390,7 +375,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": None,
@@ -400,11 +385,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "V_MISSING_START_DATE",
@@ -416,7 +400,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     "validity": {"from": None, "to": None},
                 },
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -428,18 +412,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "description": 'invalid input syntax for type uuid: "None"',
                 "error": True,
                 "error_key": "E_INVALID_INPUT",
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {},
@@ -449,11 +432,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "E_INVALID_UUID",
@@ -461,7 +443,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 "status": 400,
                 "obj": {"uuid": "42"},
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -473,18 +455,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+            400,
+        ),
+        (
+            "edit",
             {
                 "description": "Not found.",
                 "error": True,
                 "error_key": "E_NOT_FOUND",
                 "status": 404,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     # WRONG:
@@ -507,11 +488,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=404,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+            404,
+        ),
+        (
+            "edit",
             {
                 "description": "Missing uuid",
                 "error": True,
@@ -531,7 +511,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "original": {
@@ -550,8 +530,20 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
+            400,
+        ),
+    ],
+)
+def test_errors(
+    service_client: TestClient,
+    operation: str,
+    expected: list[dict],
+    payload: dict,
+    status_code: int,
+) -> None:
+    response = service_client.post(f"/service/details/{operation}", json=payload)
+    assert response.status_code == status_code
+    assert response.json() == expected
 
 
 @pytest.mark.integration_test
