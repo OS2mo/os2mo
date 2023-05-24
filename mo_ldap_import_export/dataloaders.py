@@ -13,6 +13,7 @@ from gql.client import AsyncClientSession
 from gql.client import SyncClientSession
 from gql.transport.exceptions import TransportQueryError
 from graphql import DocumentNode
+from ldap3 import BASE
 from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
@@ -194,10 +195,9 @@ class DataLoader:
             "search_base": dn,
             "search_filter": "(objectclass=*)",
             "attributes": attributes,
+            "search_scope": BASE,
         }
-        search_result = single_object_search(
-            searchParameters, self.ldap_connection, exact_dn_match=True
-        )
+        search_result = single_object_search(searchParameters, self.ldap_connection)
         return make_ldap_object(search_result, self.context, nest=nest)
 
     def load_ldap_attribute_values(self, attribute):
@@ -671,12 +671,11 @@ class DataLoader:
         Given an objectGUID, find the DistinguishedName
         """
         logger.info(f"Looking for LDAP object with objectGUID = {objectGUID}")
-        converter = self.user_context["converter"]
-        user_class = converter.find_ldap_object_class("Employee")
         searchParameters = {
             "search_base": f"<GUID={objectGUID}>",
-            "search_filter": f"(objectclass={user_class})",
+            "search_filter": "(objectclass=*)",
             "attributes": [],
+            "search_scope": BASE,
         }
 
         search_result = single_object_search(searchParameters, self.ldap_connection)

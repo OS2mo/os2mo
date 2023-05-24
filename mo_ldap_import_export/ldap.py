@@ -18,6 +18,7 @@ from uuid import UUID
 
 from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
+from ldap3 import BASE
 from ldap3 import Connection
 from ldap3 import NTLM
 from ldap3 import RANDOM
@@ -248,7 +249,7 @@ def paged_search(
     return results
 
 
-def single_object_search(searchParameters, ldap_connection, exact_dn_match=False):
+def single_object_search(searchParameters, ldap_connection):
     """
     Performs an LDAP search and throws an exception if there are multiple or no search
     results.
@@ -266,7 +267,7 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
     ------
     If you want to be 100% sure that the search only returns one result; Supply an
     object's dn (distinguished name) as the search base and set
-    searchFilter = "(objectclass=*)"
+    searchFilter = "(objectclass=*)" and search_scope = BASE
     """
     if type(searchParameters["search_base"]) is list:
         search_bases = searchParameters["search_base"].copy()
@@ -281,11 +282,6 @@ def single_object_search(searchParameters, ldap_connection, exact_dn_match=False
         response = ldap_connection.response
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
-
-    if exact_dn_match:
-        search_entries = [
-            s for s in search_entries if s["dn"] == searchParameters["search_base"]
-        ]
 
     if len(search_entries) > 1:
         logger.info(response)
@@ -330,10 +326,9 @@ def get_ldap_object(dn, context, nest=True):
         "search_base": dn,
         "search_filter": "(objectclass=*)",
         "attributes": ["*"],
+        "search_scope": BASE,
     }
-    search_result = single_object_search(
-        searchParameters, ldap_connection, exact_dn_match=True
-    )
+    search_result = single_object_search(searchParameters, ldap_connection)
     dn = search_result["dn"]
     logger.info(f"[get_ldap_object] Found {dn}")
     return make_ldap_object(search_result, context, nest=nest)

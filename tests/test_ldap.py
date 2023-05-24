@@ -466,11 +466,7 @@ async def test_single_object_search(ldap_connection: MagicMock):
     assert output == search_entry
     with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
         search_parameters["search_base"] = "CN=moo,DC=bar"
-        output = single_object_search(
-            search_parameters,
-            ldap_connection,
-            exact_dn_match=True,
-        )
+        output = single_object_search(search_parameters, ldap_connection)
 
 
 @pytest.fixture()
@@ -484,8 +480,8 @@ def dataloader() -> AsyncMock:
 @pytest.fixture()
 def converter() -> MagicMock:
     converter = MagicMock()
-    converter._export_to_ldap_ = MagicMock()
-    converter._export_to_ldap_.return_value = True
+    converter.__export_to_ldap__ = MagicMock()
+    converter.__export_to_ldap__.return_value = True
 
     def to_ldap(conversion_dict, json_key, dn):
         return LdapObject(
@@ -660,7 +656,7 @@ async def test_cleanup_no_export_False(
     internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
-    converter._export_to_ldap_.return_value = False
+    converter.__export_to_ldap__.return_value = False
 
     args = dict(
         json_key="Address",
@@ -676,7 +672,7 @@ async def test_cleanup_no_export_False(
         await asyncio.gather(cleanup(**args))  # type:ignore
         log_messages = [log for log in cap_logs if log["log_level"] == "info"]
         assert re.match(
-            "_export_to_ldap_ == False",
+            "__export_to_ldap__ == False",
             log_messages[-1]["event"],
         )
 
