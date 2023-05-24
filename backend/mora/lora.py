@@ -22,7 +22,6 @@ from functools import partial
 from itertools import starmap
 from typing import Any
 from typing import Literal
-from typing import NoReturn
 from typing import TypeVar
 
 import httpx
@@ -123,7 +122,7 @@ class LoraObjectType(Enum):
     facet = "klassifikation/facet"
 
 
-def raise_on_status(status_code: int, msg, cause=None) -> NoReturn:
+def raise_on_status(status_code: int, msg, cause=None) -> None:
     """
     unified raising error codes
 
