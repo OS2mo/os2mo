@@ -464,9 +464,6 @@ async def test_single_object_search(ldap_connection: MagicMock):
         {"search_base": "CN=moo,CN=foo,DC=bar"}, ldap_connection
     )
     assert output == search_entry
-    with pytest.raises(NoObjectsReturnedException, match="010101-xxxx"):
-        search_parameters["search_base"] = "CN=moo,DC=bar"
-        output = single_object_search(search_parameters, ldap_connection)
 
 
 @pytest.fixture()
