@@ -12,86 +12,87 @@ nav:
       - Velkommen: index.md
       - Release History: changelog.md
       - Arkitektur og design:
-          - arkitektur-design/overview.md
-          - arkitektur-design/facets.md
           - arkitektur-design/system.md
-      - User and developer guides:
-          - Getting started:
-              - guides/environment/docker.md
-              - guides/environment/install-source.md
-          - Tests: guides/tests.md
-          - Conventions: guides/conventions.md
-          - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
-          - MED-organisation i OS2mo: guides/MED-organisationen.md
-          - ADFS:
-              - guides/adfs-setup.md
-              - guides/adfs-rbac-setup.md
+          - arkitektur-design/facets.md
+          - arkitektur-design/overview.md
+      - API Dokumentation:
+                - api-dokumentation/it-associations.md
+                - api-dokumentation/triggers.md
+                - api-dokumentation/events.md
+                - api-dokumentation/amqp-legacy.md
+                - api-dokumentation/user-configuration.md
       - Drift og support:
           - drift-support/auth.md
+          - drift-support/keycloak.md
           - drift-support/cookbook.md
+          - drift-support/mocloud.md
           - drift-support/manual.md
           - drift-support/settings.md
-          - drift-support/mocloud.md
-          - drift-support/keycloak.md
-      - API Dokumentation:
-          - api-dokumentation/events.md
-          - api-dokumentation/triggers.md
-          - api-dokumentation/user-configuration.md
-          - api-dokumentation/it-associations.md
-          - api-dokumentation/amqp-legacy.md
       - GraphQL:
           - graphql/intro.md
           - graphql/migration.md
           - graphql/reads.md
+      - User and developer guides:
+          - Getting started:
+              - guides/environment/docker.md
+              - guides/environment/install-source.md
+          - ADFS:
+              - guides/adfs-setup.md
+              - guides/adfs-rbac-setup.md
+          - Conventions: guides/conventions.md
+          - Manager script: guides/os2mo-manager-sync.md
+          - MED-organisation i OS2mo: guides/MED-organisationen.md
+          - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
+          - Tests: guides/tests.md
   - LoRa:
       - Introduction: lora/index.md
+      - Developer Documentation:
+          - lora/dev/building-docs.md
+          - lora/dev/migrations.md
+          - lora/dev/database.md
+          - lora/dev/beskedfordeler.md
+          - lora/dev/testing-rest.md
+          - lora/dev/test.md
+          - lora/dev/wildcards.md
       - User Documentation:
+          - lora/user/auth.md
+          - lora/user/database.md
+          - lora/user/deployment.md
+          - lora/user/installation.md
           - lora/user/overview.md
           - lora/user/praesentation.md
-          - lora/user/installation.md
-          - lora/user/database.md
+          - lora/user/agents.md
           - Objects:
               - lora/user/objects.md
+          - lora/user/operating-mox.md
           - REST API:
+              - lora/user/api/tutorial.md
               - lora/user/api.md
               - lora/user/api/self-documentation.md
-              - lora/user/api/tutorial.md
               - Operations:
+                  - Create: lora/user/api/create.md
                   - Read: lora/user/api/read.md
+                  - Update:
+                      - lora/user/api/update/deleting.md
+                      - lora/user/api/update/merging.md
+                      - lora/user/api/update.md
+                  - Delete: lora/user/api/delete.md
+                  - File operations:
+                      - lora/user/api/advanced/deleting-document.md
+                      - lora/user/api/advanced/file-operations.md
+                  - Import: lora/user/api/import.md
                   - List: lora/user/api/list.md
                   - Search: lora/user/api/search.md
-                  - Create: lora/user/api/create.md
-                  - Update:
-                      - lora/user/api/update.md
-                      - lora/user/api/update/merging.md
-                      - lora/user/api/update/deleting.md
                   - Passivate: lora/user/api/passivate.md
-                  - Delete: lora/user/api/delete.md
-                  - Import: lora/user/api/import.md
-                  - File operations:
-                      - lora/user/api/advanced/file-operations.md
-                      - lora/user/api/advanced/deleting-document.md
           - lora/user/log-haendelse.md
-          - lora/user/agents.md
-          - lora/user/auth.md
-          - lora/user/deployment.md
           - lora/user/settings.md
-          - lora/user/operating-mox.md
-      - Developer Documentation:
-          - lora/dev/database.md
-          - lora/dev/migrations.md
-          - lora/dev/wildcards.md
-          - lora/dev/test.md
-          - lora/dev/testing-rest.md
-          - lora/dev/building-docs.md
-          - lora/dev/beskedfordeler.md
   - DIPEX:
       - data-import-export/intro.md
       - Integrationer:
-          - data-import-export/integrations/sdloen.md
-          - data-import-export/integrations/opusloen.md
-          - data-import-export/integrations/ad.md
           - data-import-export/integrations/aarhus-los.md
+          - data-import-export/integrations/ad.md
+          - data-import-export/integrations/opusloen.md
+          - data-import-export/integrations/sdloen.md
       - Exporter:
           - data-import-export/exporters/exporters.md
           - data-import-export/exporters/plan2learn.md
@@ -101,8 +102,8 @@ nav:
           - data-import-export/exporters/os2rollekatalog.md
           - data-import-export/exporters/os2sync.md
       - OS2MO Data Import:
-          - data-import-export/os2mo_data_import/import-tool.md
           - data-import-export/os2mo_data_import/integration-abstraction.md
+          - data-import-export/os2mo_data_import/import-tool.md
       - data-import-export/reports.md
       - data-import-export/tools.md
 theme:
