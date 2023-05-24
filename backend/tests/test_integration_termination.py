@@ -4,6 +4,7 @@ import copy
 
 import freezegun
 import pytest
+from fastapi.testclient import TestClient
 
 import tests.cases
 from mora import lora
@@ -702,175 +703,72 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             )
 
 
+manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-class Tests(tests.cases.LoRATestCase):
-    @freezegun.freeze_time("2018-01-01")
-    def test_validation_missing_validity(self):
-        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
-
-        for req in (
-            {
-                "type": "manager",
-                "uuid": manager_uuid,
-            },
-            {
-                "type": "manager",
-                "uuid": manager_uuid,
-                "validity": {},
-            },
-            {
-                "type": "manager",
-                "uuid": manager_uuid,
-                "validity": {
-                    "from": "2000-12-01",
-                },
-            },
-        ):
-            with self.subTest(req):
-                self.assertRequestResponse(
-                    "/service/details/terminate",
-                    {
-                        "description": "Missing required value.",
-                        "error": True,
-                        "error_key": "V_MISSING_REQUIRED_VALUE",
-                        "key": "Validity must be set with either 'to' or both "
-                        "'from' and 'to'",
-                        "obj": req,
-                        "status": 400,
-                    },
-                    status_code=400,
-                    json=req,
-                )
-
-        with self.subTest("invalid type"):
-            self.assertRequestFails(
-                "/service/details/terminate",
-                404,
-                json={
-                    "type": "association",
-                    "uuid": manager_uuid,
-                    "validity": {
-                        "to": "2018-01-01",
-                    },
-                },
-            )
-
-    @freezegun.freeze_time("2018-01-01")
-    def test_validation_allow_to_equal_none(self):
-        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
-        self.assertRequestResponse(
-            "/service/details/terminate",
-            json={
-                "type": "address",
-                "uuid": manager_uuid,
-                "validity": {"from": "2000-12-01", "to": None},
-            },
-            status_code=200,
-            expected=manager_uuid,
-        )
-
-    @freezegun.freeze_time("2018-01-01")
-    def _test_validation_missing_validity(self):
-        manager_uuid = "05609702-977f-4869-9fb4-50ad74c6999a"
-        terminate_uri = "/service/details/terminate"
-
-        # Requests to be tested (after changing to pydantic validation)
-        req_1 = {
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {
             "type": "manager",
             "uuid": manager_uuid,
-        }
-        req_2 = {
+        },
+        {
             "type": "manager",
             "uuid": manager_uuid,
             "validity": {},
-        }
-        req_3 = {
+        },
+        {
             "type": "manager",
             "uuid": manager_uuid,
             "validity": {
                 "from": "2000-12-01",
             },
-        }
+        },
+    ],
+)
+def test_validation_missing_validity(service_client: TestClient, payload: dict) -> None:
+    response = service_client.post("/service/details/terminate", json=payload)
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Missing required value.",
+        "error": True,
+        "error_key": "V_MISSING_REQUIRED_VALUE",
+        "key": "Validity must be set with either 'to' or both " "'from' and 'to'",
+        "obj": payload,
+        "status": 400,
+    }
 
-        validity_missing_to_date_expected_errs = [
-            {
-                "loc": ["body"],
-                "msg": "value is not a valid list",
-                "type": "type_error.list",
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_validation_missing_validity_invalid_type(service_client: TestClient) -> None:
+    response = service_client.post(
+        "/service/details/terminate",
+        json={
+            "type": "association",
+            "uuid": manager_uuid,
+            "validity": {
+                "to": "2018-01-01",
             },
-            {
-                "loc": ["body", "validity", "to"],
-                "msg": "field required",
-                "type": "value_error.missing",
-            },
-        ]
+        },
+    )
+    assert response.status_code == 404
 
-        test_request = [
-            (
-                req_1,
-                {
-                    "error": True,
-                    "description": "Invalid input.",
-                    "status": 400,
-                    "error_key": "E_INVALID_INPUT",
-                    "request": req_1,
-                    "errors": [
-                        {
-                            "loc": ["body"],
-                            "msg": "value is not a valid list",
-                            "type": "type_error.list",
-                        },
-                        {
-                            "loc": ["body", "validity"],
-                            "msg": "field required",
-                            "type": "value_error.missing",
-                        },
-                    ],
-                },
-            ),
-            (
-                req_2,
-                {
-                    "error": True,
-                    "description": "Invalid input.",
-                    "status": 400,
-                    "error_key": "E_INVALID_INPUT",
-                    "request": req_2,
-                    "errors": validity_missing_to_date_expected_errs,
-                },
-            ),
-            (
-                req_3,
-                {
-                    "error": True,
-                    "description": "Invalid input.",
-                    "status": 400,
-                    "error_key": "E_INVALID_INPUT",
-                    "request": req_3,
-                    "errors": validity_missing_to_date_expected_errs,
-                },
-            ),
-        ]
 
-        for req_test_tuple in test_request:
-            req, expted_response = req_test_tuple
-            with self.subTest(req):
-                self.assertRequestResponse(
-                    path=terminate_uri,
-                    expected=expted_response,
-                    status_code=expted_response.get("status"),
-                    json=req,
-                )
-
-        with self.subTest("invalid type"):
-            self.assertRequestFails(
-                "/service/details/terminate",
-                404,
-                json={
-                    "type": "association",
-                    "uuid": manager_uuid,
-                    "validity": {
-                        "to": "2018-01-01",
-                    },
-                },
-            )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2018-01-01")
+def test_validation_allow_to_equal_none(service_client: TestClient) -> None:
+    response = service_client.post(
+        "/service/details/terminate",
+        json={
+            "type": "address",
+            "uuid": manager_uuid,
+            "validity": {"from": "2000-12-01", "to": None},
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == manager_uuid
