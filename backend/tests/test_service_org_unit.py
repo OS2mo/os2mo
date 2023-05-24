@@ -17,7 +17,6 @@ from httpx import Response
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
-import tests.cases
 from mora import lora
 from mora import mapping
 from mora.config import Settings
@@ -31,7 +30,6 @@ from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from tests import util
-from tests.util import sample_structures_minimal_cls_fixture
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
@@ -348,41 +346,40 @@ def test_returns_404_on_unknown_unit(service_client: TestClient) -> None:
         assert "NOT_FOUND" in result.get("error_key")
 
 
-@sample_structures_minimal_cls_fixture
-class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
-        self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@util.patch_query_args()
+async def test_get_one_orgunit_with_association_count() -> None:
+    _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    orgunit = await get_one_orgunit(
+        _connector,
+        "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        count_related={"association": AssociationReader},
+    )
+    assert orgunit is not None
+    assert "association_count" in orgunit
 
-    @util.patch_query_args()
-    async def test_get_one_orgunit_with_association_count(self):
-        result = await get_one_orgunit(
-            self._connector,
-            self._orgunit_uuid,
-            count_related={"association": AssociationReader},
-        )
-        assert "association_count" in result
 
-    @util.patch_query_args()
-    async def test_details_nchildren(self):
-        await self._assert_orgunit_keys(
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "details,expected_keys",
+    [
+        (
+            UnitDetails.NCHILDREN,
             {"uuid", "name", "user_key", "validity", "child_count"},
-            details=UnitDetails.NCHILDREN,
-        )
-
-    @util.patch_query_args()
-    async def test_details_path(self):
-        await self._assert_orgunit_keys(
-            {"uuid", "name", "user_key", "validity", "location"},
-            details=UnitDetails.PATH,
-        )
-
-    async def _assert_orgunit_keys(self, expected_keys, **kwargs):
-        orgunit = await get_one_orgunit(self._connector, self._orgunit_uuid, **kwargs)
-        self.assertSetEqual(set(orgunit.keys()), expected_keys)
+        ),
+        (UnitDetails.PATH, {"uuid", "name", "user_key", "validity", "location"}),
+    ],
+)
+@util.patch_query_args()
+async def test_details(details: UnitDetails, expected_keys: set[str]) -> None:
+    _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    orgunit = await get_one_orgunit(
+        _connector, "2874e1dc-85e6-4269-823a-e1125484dfd3", details=details
+    )
+    assert orgunit is not None
+    assert set(orgunit.keys()) == expected_keys
 
 
 @pytest.mark.parametrize(
