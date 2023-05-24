@@ -50,7 +50,7 @@
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "_import_to_mo_": "false",
+      "_import_to_mo_": "manual_import_only",
       "givenname": "{{ldap.givenName}}",
       "surname": "{{ldap.sn}}",
       "cpr_no": "{{ldap.employeeNumber|strip_non_digits}}",
