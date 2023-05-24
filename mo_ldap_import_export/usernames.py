@@ -357,7 +357,4 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
             },
         )
 
-        # raises objectClassViolation in AD.
-        self.dataloader.modify_ldap(dn, {"Enabled": [("MODIFY_REPLACE", "FALSE")]})
-
         return dn
