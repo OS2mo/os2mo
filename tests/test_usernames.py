@@ -171,7 +171,7 @@ def test_create_common_name(username_generator: UserNameGenerator):
     common_name = username_generator._create_common_name(
         ["Nick", "Gerardus", "Cornelis", "Johnson"]
     )
-    assert common_name == "Nick Johnson"
+    assert common_name == "Nick Gerardus Cornelis Johnson"
 
     # Users without a last name are supported
     common_name = username_generator._create_common_name(["Nick", ""])
@@ -184,6 +184,32 @@ def test_create_common_name(username_generator: UserNameGenerator):
     ):
         with pytest.raises(RuntimeError):
             username_generator._create_common_name(["Nick", ""])
+
+    # If a name is over 64 characters, a middle name is removed.
+    common_name = username_generator._create_common_name(
+        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Johnson"]
+    )
+    assert common_name == "Nick Gerardus Cornelis Johnson"
+
+    # If the name is still over 64 characters, another middle name is removed.
+    common_name = username_generator._create_common_name(
+        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Hansen", "Johnson"]
+    )
+    assert common_name == "Nick Gerardus Cornelis Johnson"
+
+    # In the rare case that someone has a first or last name with over 64 characters,
+    # we cut off characters from his name
+    # Because AD does not allow common names with more than 64 characters
+    common_name = username_generator._create_common_name(["Nick" * 40, "Johnson"])
+    assert common_name == ("Nick" * 40)[:60]
+
+    common_name = username_generator._create_common_name(["Nick", "Johnson" * 40])
+    assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
+
+    common_name = username_generator._create_common_name(
+        ["Nick", "Gerardus", "Cornelis", "Johnson" * 40]
+    )
+    assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
 
 def test_generate_dn(username_generator: UserNameGenerator):
