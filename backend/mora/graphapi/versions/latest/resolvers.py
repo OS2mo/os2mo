@@ -47,8 +47,8 @@ class PagedResolver:
         raise NotImplementedError
 
 
-class StaticResolver(PagedResolver):
-    neutral_element_constructor: Callable[[], Any] = list
+class Resolver(PagedResolver):
+    neutral_element_constructor: Callable[[], Any] = dict
 
     def __init__(self, model: type) -> None:
         """Create a field resolver by specifying a model.
@@ -65,10 +65,32 @@ class StaticResolver(PagedResolver):
         user_keys: list[str] | None = None,
         limit: PositiveInt | None = None,
         cursor: Cursor | None = None,
+        from_date: datetime | None = UNSET,
+        to_date: datetime | None = UNSET,
     ):
-        """Resolve queries with no validity, i.e. class/facet/itsystem.
+        """Resolve a query using the specified arguments.
 
-        Uses getters/loaders from the context.
+        Args:
+            uuids: Only retrieve these UUIDs. Defaults to None.
+            user_keys: Only retrieve these user_keys. Defaults to None.
+            limit: The maximum number of elements to return. Fewer elements may be
+                returned if the query itself yields fewer elements.
+            from_date: Lower bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case from_date is today.
+            to_date: Upper bound of the object validity (bitemporal lookup).
+                Defaults to UNSET, in which case to_date is from_date + 1 ms.
+
+        Note:
+            While OFFSET and LIMITing is done in LoRa/SQL, further filtering is
+            sometimes applied in MO. Confusingly, this means that receiving a list
+            shorter than the requested limit does not imply that we are at the end.
+
+        Returns:
+            List of response objects based on getters/loaders.
+
+        Note:
+            The default behaviour of from_date and to_date, i.e. both being
+            UNSET, is equivalent to validity=present in the service API.
         """
         return await self._resolve(
             info=info,
@@ -76,8 +98,8 @@ class StaticResolver(PagedResolver):
             user_keys=user_keys,
             limit=limit,
             cursor=cursor,
-            from_date=None,  # from -inf
-            to_date=None,  # to inf
+            from_date=from_date,
+            to_date=to_date,
         )
 
     async def _resolve(  # type: ignore[no-untyped-def,override]
@@ -139,73 +161,6 @@ class StaticResolver(PagedResolver):
     @staticmethod
     # type: ignore[no-untyped-def,override]
     async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
-        """Get data from a list of UUIDs. Only unique UUIDs are loaded.
-
-        Args:
-            dataloader: Strawberry dataloader to use.
-            uuids: List of UUIDs to load.
-
-        Returns:
-            List of objects found.
-            Type: Union[list[ClassRead], list[FacetRead], list[ITSystemRead]]
-        """
-        responses = await dataloader.load_many(list(set(uuids)))
-        if not responses:
-            return responses
-        # These loaders can return None, which we need to filter here.
-        return [response for response in responses if response is not None]
-
-
-class Resolver(StaticResolver):
-    neutral_element_constructor: Callable[[], Any] = dict
-
-    async def resolve(  # type: ignore[no-untyped-def,override]
-        self,
-        info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-    ):
-        """Resolve a query using the specified arguments.
-
-        Args:
-            uuids: Only retrieve these UUIDs. Defaults to None.
-            user_keys: Only retrieve these user_keys. Defaults to None.
-            limit: The maximum number of elements to return. Fewer elements may be
-                returned if the query itself yields fewer elements.
-            from_date: Lower bound of the object validity (bitemporal lookup).
-                Defaults to UNSET, in which case from_date is today.
-            to_date: Upper bound of the object validity (bitemporal lookup).
-                Defaults to UNSET, in which case to_date is from_date + 1 ms.
-
-        Note:
-            While OFFSET and LIMITing is done in LoRa/SQL, further filtering is
-            sometimes applied in MO. Confusingly, this means that receiving a list
-            shorter than the requested limit does not imply that we are at the end.
-
-        Returns:
-            List of response objects based on getters/loaders.
-
-        Note:
-            The default behaviour of from_date and to_date, i.e. both being
-            UNSET, is equivalent to validity=present in the service API.
-        """
-        return await super()._resolve(
-            info=info,
-            uuids=uuids,
-            user_keys=user_keys,
-            limit=limit,
-            cursor=cursor,
-            from_date=from_date,
-            to_date=to_date,
-        )
-
-    @staticmethod
-    # type: ignore[no-untyped-def,override]
-    async def get_by_uuid(dataloader: DataLoader, uuids: list[UUID]):
         deduplicated_uuids = list(set(uuids))
         responses = await dataloader.load_many(deduplicated_uuids)
         # Filter empty objects, see: https://redmine.magenta-aps.dk/issues/51523.
@@ -217,7 +172,7 @@ class Resolver(StaticResolver):
 
 
 async def user_keys2uuids(
-    resolver: StaticResolver, info: Info, user_keys: list[str]
+    resolver: Resolver, info: Info, user_keys: list[str]
 ) -> list[UUID]:
     """Translate a list of user-keys into a list of UUIDs.
 
@@ -230,7 +185,7 @@ async def user_keys2uuids(
         A list of UUIDs resolved from the user-keys.
     """
     objects = await resolver.resolve(info, user_keys=user_keys)
-    uuids = [obj.uuid for obj in objects]
+    uuids = list(objects.keys())
     if uuids:
         return uuids
 
@@ -242,12 +197,12 @@ async def user_keys2uuids(
     return [UUID("00000000-baad-1dea-ca11-fa11fa11c0de")]
 
 
-class FacetResolver(StaticResolver):
+class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
 
 
-class ClassResolver(StaticResolver):
+class ClassResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ClassRead)
 
@@ -566,7 +521,7 @@ class EngagementAssociationResolver(Resolver):
         )
 
 
-class ITSystemResolver(StaticResolver):
+class ITSystemResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(ITSystemRead)
 

@@ -44,17 +44,19 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
             query {
                 classes {
                     objects {
-                        uuid
-                        user_key
-                        facet_uuid
-                        example
-                        owner
-                        org_uuid
-                        name
-                        parent_uuid
-                        published
-                        scope
-                        type
+                        current {
+                            uuid
+                            user_key
+                            facet_uuid
+                            example
+                            owner
+                            org_uuid
+                            name
+                            parent_uuid
+                            published
+                            scope
+                            type
+                        }
                     }
                 }
             }
@@ -63,7 +65,7 @@ def test_query_all(test_data, graphapi_post, graphapi_test, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert response.data["classes"]["objects"] == test_data
+    assert [x["current"] for x in response.data["classes"]["objects"]] == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ClassRead))
@@ -84,7 +86,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 query TestQuery($uuids: [UUID!]) {
                     classes(uuids: $uuids) {
                         objects {
-                            uuid
+                            current {
+                                uuid
+                            }
                         }
                     }
                 }
@@ -95,7 +99,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     assert response.data
 
     # Check UUID equivalence
-    result_uuids = [cla.get("uuid") for cla in response.data["classes"]["objects"]]
+    result_uuids = [
+        cla["current"].get("uuid") for cla in response.data["classes"]["objects"]
+    ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
 
@@ -140,7 +146,7 @@ def prepare_query_data(test_data, query_response):
     td = {k: v for k, v in test_data.items() if v is not None}
 
     query_dict = (
-        query_response.data.get("classes")["objects"][0]
+        one(query_response.data.get("classes")["objects"])["current"]
         if isinstance(query_response.data, dict)
         else {}
     )
@@ -186,12 +192,14 @@ async def test_integration_create_class(test_data, graphapi_post) -> None:
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
             objects {
-              uuid
-              type
-              org_uuid
-              user_key
-              name
-              facet_uuid
+              current {
+                uuid
+                type
+                org_uuid
+                user_key
+                name
+                facet_uuid
+              }
             }
           }
         }
@@ -286,7 +294,9 @@ async def test_class_facet_filter(graphapi_post, filter_snippet, expected) -> No
         query Classes {{
             classes{filter_snippet} {{
                 objects {{
-                    uuid
+                    current {{
+                        uuid
+                    }}
                 }}
             }}
         }}
@@ -303,8 +313,10 @@ async def test_integration_delete_class() -> None:
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
             objects {
-              uuid
-              name
+              current {
+                uuid
+                name
+              }
             }
           }
         }
@@ -317,7 +329,9 @@ async def test_integration_delete_class() -> None:
     )
     assert response.errors is None
     assert response.data == {
-        "classes": {"objects": [{"name": "Postadresse", "uuid": class_uuid}]}
+        "classes": {
+            "objects": [{"current": {"name": "Postadresse", "uuid": class_uuid}}]
+        }
     }
 
     delete_query = """
@@ -350,10 +364,12 @@ async def test_update_class() -> None:
         query ($uuid: [UUID!]!) {
           classes(uuids: $uuid) {
             objects {
-              uuid
-              name
-              user_key
-              facet_uuid
+              current {
+                uuid
+                name
+                user_key
+                facet_uuid
+              }
             }
           }
         }
@@ -366,7 +382,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"]["objects"])
+    klass = one(response.data["classes"]["objects"])["current"]
     assert klass == {
         "uuid": class_uuid,
         "name": "Postadresse",
@@ -401,7 +417,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"]["objects"])
+    klass = one(response.data["classes"]["objects"])["current"]
     assert klass == {
         "uuid": class_uuid,
         "name": "Postal Address",
@@ -457,7 +473,7 @@ async def test_update_class() -> None:
     )
     assert response.errors is None
     assert one(response.data.keys()) == "classes"
-    klass = one(response.data["classes"]["objects"])
+    klass = one(response.data["classes"]["objects"])["current"]
     assert klass == {
         "uuid": class_uuid,
         "name": "Postal Address",

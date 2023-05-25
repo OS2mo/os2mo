@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 """Test the seed_resolver function."""
 from collections.abc import Callable
+from datetime import datetime
 from functools import partial
 from inspect import Parameter
 from inspect import signature
@@ -10,9 +11,10 @@ from uuid import UUID
 
 import pytest
 from pydantic import PositiveInt
+from strawberry import UNSET
 from strawberry.types.info import Info
 
-from mora.graphapi.versions.latest.resolvers import StaticResolver
+from mora.graphapi.versions.latest.resolvers import Resolver
 from mora.graphapi.versions.latest.schema import seed_resolver
 from mora.graphapi.versions.latest.types import Cursor
 
@@ -21,8 +23,8 @@ class DummyModel:
     """Dummy MOModel for testing."""
 
 
-class DummyResolver(StaticResolver):
-    """Dummy StaticResolver for testing."""
+class DummyResolver(Resolver):
+    """Dummy Resolver for testing."""
 
     def __init__(self):
         super().__init__(DummyModel)
@@ -32,7 +34,7 @@ class DummyResolver(StaticResolver):
     async def _resolve(self, *args, **kwargs):
         self.args = args
         self.kwargs = kwargs
-        return []
+        return {}
 
 
 def dict_remove_keys(
@@ -83,6 +85,10 @@ async def test_signature_changes(seeds: dict[str, Any]) -> None:
         ),
         "limit": pos_parameter("limit", annotation=PositiveInt | None, default=None),
         "cursor": pos_parameter("cursor", annotation=Cursor | None, default=None),
+        "from_date": pos_parameter(
+            "from_date", annotation=datetime | None, default=UNSET
+        ),
+        "to_date": pos_parameter("to_date", annotation=datetime | None, default=UNSET),
     }
 
     # Check the signature
@@ -178,8 +184,8 @@ async def test_call_values(
         "user_keys": None,
         "limit": None,
         "cursor": None,
-        "from_date": None,
-        "to_date": None,
+        "from_date": UNSET,
+        "to_date": UNSET,
     }
 
     assert resolver.args == ()

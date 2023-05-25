@@ -11,6 +11,44 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 7
+
+GraphQL version 7 introduces a breaking change to the response formats for
+the `facet`, `class` and `itsystems` data-types, ensuring that these
+top-level types now return formats akin to the rest of the data types
+in the interface ensuring uniformity across (bi-)temporal data-types.
+
+Please note that this change does not in fact implement (bi-)temporality
+for the mentioned data-types, but rather just adapt the interface in
+preparation of the future implementation of (bi-)temporality.
+
+To migrate to the new schema, change all current GraphQL calls from
+version 6 (`/graphql/v6`) to version 7 (`/graphql/v7`) and modify
+queries for the mentioned data-types, from:
+```graphql
+{
+  facets {
+    objects {
+      user_key
+    }
+  }
+}
+```
+to:
+```
+{
+  facets {
+    objects {
+      current {
+        user_key
+      }
+    }
+  }
+}
+```
+And modify the corresponding code that extract the data to strip the
+extra `current` wrapper object layer.
+
 ## Version 6
 
 GraphQL version 6 introduces a breaking change to the `facet_create`-mutator.

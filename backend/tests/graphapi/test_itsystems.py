@@ -16,6 +16,7 @@ from pytest import MonkeyPatch
 import mora.lora as lora
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
 from oio_rest import db
 from ramodels.mo.details import ITSystemRead
@@ -39,12 +40,14 @@ def test_query_all(test_data, graphapi_post, patch_loader):
             query {
                 itsystems {
                     objects {
-                        uuid
-                        name
-                        system_type
-                        type
-                        user_key
-                        uuid
+                        objects {
+                            uuid
+                            name
+                            system_type
+                            type
+                            user_key
+                            uuid
+                        }
                     }
                 }
             }
@@ -53,7 +56,7 @@ def test_query_all(test_data, graphapi_post, patch_loader):
 
     assert response.errors is None
     assert response.data
-    assert response.data["itsystems"]["objects"] == test_data
+    assert flatten_data(response.data["itsystems"]["objects"]) == test_data
 
 
 @given(test_input=graph_data_uuids_strat(ITSystemRead))
@@ -75,7 +78,9 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
                 query TestQuery($uuids: [UUID!]) {
                     itsystems(uuids: $uuids) {
                         objects {
-                            uuid
+                            current {
+                                uuid
+                            }
                         }
                     }
                 }
@@ -87,7 +92,7 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
 
     # Check UUID equivalence
     result_uuids = [
-        itsys.get("uuid") for itsys in response.data["itsystems"]["objects"]
+        itsys["current"].get("uuid") for itsys in response.data["itsystems"]["objects"]
     ]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
@@ -109,9 +114,11 @@ def test_itsystem_create(graphapi_post) -> None:
         query ReadITSystems {
             itsystems {
                 objects {
-                    uuid
-                    user_key
-                    name
+                    current {
+                        uuid
+                        user_key
+                        name
+                    }
                 }
             }
         }
@@ -119,7 +126,10 @@ def test_itsystem_create(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
+    itsystem_map = {
+        UUID(x["current"]["uuid"]): x["current"]
+        for x in response.data["itsystems"]["objects"]
+    }
     assert itsystem_map.keys() == existing_itsystem_uuids
 
     # Create new itsystem
@@ -141,7 +151,10 @@ def test_itsystem_create(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
+    itsystem_map = {
+        UUID(x["current"]["uuid"]): x["current"]
+        for x in response.data["itsystems"]["objects"]
+    }
     assert itsystem_map.keys() == existing_itsystem_uuids | {new_uuid}
 
     # Verify new object
@@ -222,9 +235,11 @@ def test_itsystem_update(graphapi_post) -> None:
         query ReadITSystems($uuids: [UUID!]) {
             itsystems(uuids: $uuids) {
                 objects {
-                    uuid
-                    user_key
-                    name
+                    current {
+                        uuid
+                        user_key
+                        name
+                    }
                 }
             }
         }
@@ -232,7 +247,7 @@ def test_itsystem_update(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
-    itsystem = one(response.data["itsystems"]["objects"])
+    itsystem = one(response.data["itsystems"]["objects"])["current"]
     assert itsystem["name"] == "Lokal Rammearkitektur"
 
     # Update new itsystem
@@ -259,7 +274,7 @@ def test_itsystem_update(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query, {"uuids": str(existing_itsystem_uuid)})
     assert response.errors is None
     assert response.data
-    itsystem = one(response.data["itsystems"]["objects"])
+    itsystem = one(response.data["itsystems"]["objects"])["current"]
     assert itsystem["name"] == "my_name"
     assert itsystem["user_key"] == "my_user_key"
 
@@ -414,9 +429,11 @@ def test_itsystem_delete(graphapi_post) -> None:
         query ReadITSystems {
             itsystems {
                 objects {
-                    uuid
-                    user_key
-                    name
+                    current {
+                        uuid
+                        user_key
+                        name
+                    }
                 }
             }
         }
@@ -424,7 +441,9 @@ def test_itsystem_delete(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
+    itsystem_map = {
+        UUID(x["current"]["uuid"]): x for x in response.data["itsystems"]["objects"]
+    }
     assert itsystem_map.keys() == existing_itsystem_uuids
 
     # Delete itsystem
@@ -446,7 +465,9 @@ def test_itsystem_delete(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query)
     assert response.errors is None
     assert response.data
-    itsystem_map = {UUID(x["uuid"]): x for x in response.data["itsystems"]["objects"]}
+    itsystem_map = {
+        UUID(x["current"]["uuid"]): x for x in response.data["itsystems"]["objects"]
+    }
     assert itsystem_map.keys() == existing_itsystem_uuids - {deleted_uuid}
 
 

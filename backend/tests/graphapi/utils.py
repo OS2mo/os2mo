@@ -76,8 +76,10 @@ def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
         query FetchClassUUIDs($user_key: String!) {
             facets(user_keys: [$user_key]) {
                 objects {
-                    classes {
-                        uuid
+                    current {
+                        classes {
+                            uuid
+                        }
                     }
                 }
             }
@@ -85,6 +87,6 @@ def fetch_class_uuids(graphapi_post: Callable, facet_name: str) -> list[UUID]:
     """
     response: GQLResponse = graphapi_post(class_query, {"user_key": facet_name})
     assert response.errors is None
-    facet = one(response.data["facets"]["objects"])
+    facet = one(response.data["facets"]["objects"])["current"]
     class_uuids = list(map(UUID, map(itemgetter("uuid"), facet["classes"])))
     return class_uuids

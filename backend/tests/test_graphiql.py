@@ -11,11 +11,12 @@ from mora.graphapi.router import DEPRECATION_NOTICE
     "url,deprecated",
     [
         ("/graphql", False),
-        ("/graphql/v6", False),
-        ("/graphql/v5", True),
-        ("/graphql/v4", True),
-        ("/graphql/v3", True),
         ("/graphql/v2", True),
+        ("/graphql/v3", True),
+        ("/graphql/v4", True),
+        ("/graphql/v5", True),
+        ("/graphql/v6", True),
+        ("/graphql/v7", False),
     ],
 )
 def test_graphiql_overrides(
