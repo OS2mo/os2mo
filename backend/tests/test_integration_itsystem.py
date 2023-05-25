@@ -1,330 +1,297 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
+
 import freezegun
 import pytest
+from fastapi.testclient import TestClient
+from more_itertools import one
 
-import tests.cases
 from mora import lora
-from tests.util import sample_structures_minimal_cls_fixture
+from tests.cases import assert_registrations_equal
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncWritingITSystem(tests.cases.AsyncLoRATestCase):
-    async def test_create_employee_itsystem(self):
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+async def test_create_employee_itsystem(service_client: TestClient) -> None:
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+    read_url = f"/service/e/{userid}/details/it"
 
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+    # preconditions
+    for validity in ("past", "present", "future"):
+        response = service_client.get(read_url, params={"validity": validity})
+        assert response.status_code == 200
+        assert response.json() == []
 
-        with self.subTest("preconditions"):
-            await self.assertRequestResponse(
-                f"/service/e/{userid}/details/it?validity=past",
-                [],
+    assert (
+        list(
+            await c.organisationfunktion.get_all(
+                funktionsnavn="IT-system", tilknyttedebrugere=userid
             )
-
-            await self.assertRequestResponse(
-                f"/service/e/{userid}/details/it",
-                [],
-            )
-
-            await self.assertRequestResponse(
-                f"/service/e/{userid}/details/it?validity=future",
-                [],
-            )
-
-        assert (
-            list(
-                await c.organisationfunktion.get_all(
-                    funktionsnavn="IT-system", tilknyttedebrugere=userid
-                )
-            )
-            == []
         )
+        == []
+    )
 
-        (funcid,) = await self.assertRequest(
-            "/service/details/create",
-            json=[
-                {
-                    "type": "it",
-                    "user_key": "goofy-moofy",
-                    "person": {
-                        "uuid": userid,
-                    },
-                    "engagement": {"uuid": "b6c268d2-4671-4609-8441-6029077d8efc"},
-                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
-                    "validity": {"from": "2018-09-01", "to": None},
+    response = service_client.post(
+        "/service/details/create",
+        json=[
+            {
+                "type": "it",
+                "user_key": "goofy-moofy",
+                "person": {
+                    "uuid": userid,
                 },
-            ],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            f"/service/e/{userid}/details/it?validity=past",
-            [],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            f"/service/e/{userid}/details/it",
-            [],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            "/service/e/{}/details/it?validity=future&only_primary_uuid=1".format(
-                userid
-            ),
-            [
-                {
-                    "itsystem": {
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                    },
-                    "org_unit": None,
-                    "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
-                    "engagement": None,
-                    "user_key": "goofy-moofy",
-                    "uuid": funcid,
-                    "validity": {"from": "2018-09-01", "to": None},
-                    "primary": None,
-                }
-            ],
-            amqp_topics={"employee.it.create": 1},
-        )
-
-    async def test_create_unit_itsystem(self):
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-
-        with self.subTest("preconditions"):
-            await self.assertRequestResponse(
-                f"/service/ou/{unitid}/details/it?validity=past",
-                [],
-            )
-
-            await self.assertRequestResponse(
-                f"/service/ou/{unitid}/details/it",
-                [],
-            )
-
-            await self.assertRequestResponse(
-                f"/service/ou/{unitid}/details/it?validity=future",
-                [],
-            )
-
-        assert (
-            list(
-                await c.organisationfunktion.get_all(
-                    funktionsnavn="IT-system", tilknyttedebrugere=unitid
-                )
-            )
-            == []
-        )
-
-        (funcid,) = await self.assertRequest(
-            "/service/details/create",
-            json=[
-                {
-                    "type": "it",
-                    "user_key": "root",
-                    "org_unit": {
-                        "uuid": unitid,
-                    },
-                    "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
-                    "validity": {"from": "2018-09-01", "to": None},
-                },
-            ],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            f"/service/ou/{unitid}/details/it?validity=past",
-            [],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            f"/service/ou/{unitid}/details/it",
-            [],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-        await self.assertRequestResponse(
-            f"/service/ou/{unitid}/details/it?validity=future",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Samfundsvidenskabelige fakultet",
-                        "user_key": "samf",
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "validity": {"from": "2017-01-01", "to": None},
-                    },
-                    "person": None,
-                    "engagement": None,
-                    "user_key": "root",
-                    "uuid": funcid,
-                    "validity": {"from": "2018-09-01", "to": None},
-                    "primary": None,
-                }
-            ],
-            amqp_topics={"org_unit.it.create": 1},
-        )
-
-    @freezegun.freeze_time("2017-06-22", tz_offset=2)
-    async def test_edit_itsystem(self):
-        it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
-
-        old_unit_id = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-        new_unit_id = "0eb323ac-8513-4b18-80fd-b1dfa7fd9a02"
-
-        old_it_system_id = "0872fb72-926d-4c5c-a063-ff800b8ee697"
-        new_it_system_id = "7e7c4f54-a85c-41fa-bae4-74e410215320"
-
-        await self.assertRequestResponse(
-            "/service/details/edit",
-            [it_func_id],
-            json=[
-                {
-                    "type": "it",
-                    "uuid": it_func_id,
-                    "data": {
-                        "itsystem": {
-                            "uuid": new_it_system_id,
-                        },
-                        "org_unit": {
-                            "uuid": new_unit_id,
-                        },
-                        "validity": {
-                            "from": "2017-06-22",
-                            "to": "2018-06-01",
-                        },
-                    },
-                }
-            ],
-            amqp_topics={"org_unit.it.update": 1},
-        )
-
-        expected_it_func = {
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "brugervendtnoegle": "fwaf",
-                        "funktionsnavn": "IT-system",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ]
+                "engagement": {"uuid": "b6c268d2-4671-4609-8441-6029077d8efc"},
+                "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
+                "validity": {"from": "2018-09-01", "to": None},
             },
-            "livscykluskode": "Rettet",
-            "note": "Rediger IT-system",
-            "relationer": {
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": old_unit_id,
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-06-22 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "uuid": new_unit_id,
-                        "virkning": {
-                            "from": "2017-06-22 " "00:00:00+02",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                ],
-                "tilknyttedeitsystemer": [
-                    {
-                        "uuid": old_it_system_id,
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-06-22 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                    {
-                        "uuid": new_it_system_id,
-                        "virkning": {
-                            "from": "2017-06-22 " "00:00:00+02",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    },
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ],
+        ],
+    )
+    assert response.status_code == 201
+    funcid = one(response.json())
+
+    response = service_client.get(read_url, params={"validity": "past"})
+    assert response.status_code == 200
+    assert response.json() == []
+
+    response = service_client.get(read_url, params={"validity": "present"})
+    assert response.status_code == 200
+    assert response.json() == []
+
+    response = service_client.get(
+        read_url, params={"validity": "future", "only_primary_uuid": 1}
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "itsystem": {
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
             },
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from": "2017-01-01 " "00:00:00+01",
-                            "from_included": True,
-                            "to": "2018-06-02 " "00:00:00+02",
-                            "to_included": False,
-                        },
-                    }
-                ]
-            },
+            "org_unit": None,
+            "person": {"uuid": "6ee24785-ee9a-4502-81c2-7697009c9053"},
+            "engagement": None,
+            "user_key": "goofy-moofy",
+            "uuid": funcid,
+            "validity": {"from": "2018-09-01", "to": None},
+            "primary": None,
         }
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_it_func = await c.organisationfunktion.get(it_func_id)
-
-        self.assertRegistrationsEqual(expected_it_func, actual_it_func)
+    ]
 
 
-@sample_structures_minimal_cls_fixture
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class WritingMinimal(tests.cases.LoRATestCase):
-    maxDiff = None
+async def test_create_unit_itsystem(service_client: TestClient) -> None:
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+    read_url = f"/service/ou/{unitid}/details/it"
 
-    @classmethod
-    def get_lora_environ(cls):
-        # force LoRA to run under a UTC timezone, ensuring that we
-        # handle this case correctly for writing
-        return {
-            "TZ": "UTC",
+    # preconditions
+    for validity in ("past", "present", "future"):
+        response = service_client.get(read_url, params={"validity": validity})
+        assert response.status_code == 200
+        assert response.json() == []
+
+    assert (
+        list(
+            await c.organisationfunktion.get_all(
+                funktionsnavn="IT-system", tilknyttedebrugere=unitid
+            )
+        )
+        == []
+    )
+
+    response = service_client.post(
+        "/service/details/create",
+        json=[
+            {
+                "type": "it",
+                "user_key": "root",
+                "org_unit": {
+                    "uuid": unitid,
+                },
+                "itsystem": {"uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697"},
+                "validity": {"from": "2018-09-01", "to": None},
+            },
+        ],
+    )
+    assert response.status_code == 201
+    funcid = one(response.json())
+
+    response = service_client.get(read_url, params={"validity": "past"})
+    assert response.status_code == 200
+    assert response.json() == []
+
+    response = service_client.get(read_url, params={"validity": "present"})
+    assert response.status_code == 200
+    assert response.json() == []
+
+    response = service_client.get(read_url, params={"validity": "future"})
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "itsystem": {
+                "name": "Lokal Rammearkitektur",
+                "reference": None,
+                "system_type": None,
+                "user_key": "LoRa",
+                "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+                "validity": {"from": "2010-01-01", "to": None},
+            },
+            "org_unit": {
+                "name": "Samfundsvidenskabelige fakultet",
+                "user_key": "samf",
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                "validity": {"from": "2017-01-01", "to": None},
+            },
+            "person": None,
+            "engagement": None,
+            "user_key": "root",
+            "uuid": funcid,
+            "validity": {"from": "2018-09-01", "to": None},
+            "primary": None,
         }
+    ]
 
-    def test_errors(self):
-        # In Postgres 10.0 the messages mentioning type names was changed. See
-        # https://github.com/postgres/postgres/commit/9a34123bc315e55b33038464422ef1cd2b67dab2
-        # This test will fail if run against postgres >=10.0. We can ignore it
-        # with `pytest -m "not psql_9_dependent"`.
-        self.assertRequestResponse(
-            "/service/details/create",
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-06-22", tz_offset=2)
+async def test_edit_itsystem(service_client: TestClient):
+    it_func_id = "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276"
+
+    old_unit_id = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+    new_unit_id = "0eb323ac-8513-4b18-80fd-b1dfa7fd9a02"
+
+    old_it_system_id = "0872fb72-926d-4c5c-a063-ff800b8ee697"
+    new_it_system_id = "7e7c4f54-a85c-41fa-bae4-74e410215320"
+
+    response = service_client.post(
+        "/service/details/edit",
+        json=[
+            {
+                "type": "it",
+                "uuid": it_func_id,
+                "data": {
+                    "itsystem": {
+                        "uuid": new_it_system_id,
+                    },
+                    "org_unit": {
+                        "uuid": new_unit_id,
+                    },
+                    "validity": {
+                        "from": "2017-06-22",
+                        "to": "2018-06-01",
+                    },
+                },
+            }
+        ],
+    )
+    assert response.status_code == 200
+    assert response.json() == [it_func_id]
+
+    expected_it_func = {
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                {
+                    "brugervendtnoegle": "fwaf",
+                    "funktionsnavn": "IT-system",
+                    "virkning": {
+                        "from": "2017-01-01 " "00:00:00+01",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                }
+            ]
+        },
+        "livscykluskode": "Rettet",
+        "note": "Rediger IT-system",
+        "relationer": {
+            "tilknyttedeenheder": [
+                {
+                    "uuid": old_unit_id,
+                    "virkning": {
+                        "from": "2017-01-01 " "00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-06-22 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "uuid": new_unit_id,
+                    "virkning": {
+                        "from": "2017-06-22 " "00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+            ],
+            "tilknyttedeitsystemer": [
+                {
+                    "uuid": old_it_system_id,
+                    "virkning": {
+                        "from": "2017-01-01 " "00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-06-22 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+                {
+                    "uuid": new_it_system_id,
+                    "virkning": {
+                        "from": "2017-06-22 " "00:00:00+02",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                },
+            ],
+            "tilknyttedeorganisationer": [
+                {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                        "from": "2017-01-01 " "00:00:00+01",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                }
+            ],
+        },
+        "tilstande": {
+            "organisationfunktiongyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                        "from": "2017-01-01 " "00:00:00+01",
+                        "from_included": True,
+                        "to": "2018-06-02 " "00:00:00+02",
+                        "to_included": False,
+                    },
+                }
+            ]
+        },
+    }
+
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    actual_it_func = await c.organisationfunktion.get(it_func_id)
+
+    assert_registrations_equal(expected_it_func, actual_it_func)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "operation,expected,payload,status_code",
+    [
+        (
+            "create",
             {
                 "description": "Missing itsystem",
                 "error": True,
@@ -337,7 +304,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": None,
@@ -347,18 +314,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "E_NOT_FOUND",
                 "description": "Not found.",
                 "status": 404,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -370,11 +336,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=404,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            404,
+        ),
+        (
+            "create",
             {
                 "description": "Missing itsystem",
                 "error": True,
@@ -387,7 +352,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": None,
@@ -397,11 +362,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "V_MISSING_START_DATE",
@@ -413,7 +377,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     "validity": {"from": None, "to": None},
                 },
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -425,18 +389,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "description": 'invalid input syntax for type uuid: "None"',
                 "error": True,
                 "error_key": "E_INVALID_INPUT",
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {},
@@ -446,11 +409,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/create",
+            400,
+        ),
+        (
+            "create",
             {
                 "error": True,
                 "error_key": "E_INVALID_UUID",
@@ -458,7 +420,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 "status": 400,
                 "obj": {"uuid": "42"},
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "itsystem": {
@@ -470,18 +432,17 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+            400,
+        ),
+        (
+            "edit",
             {
                 "description": "Not found.",
                 "error": True,
                 "error_key": "E_NOT_FOUND",
                 "status": 404,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     # WRONG:
@@ -504,11 +465,10 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=404,
-        )
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+            404,
+        ),
+        (
+            "edit",
             {
                 "description": "Missing uuid",
                 "error": True,
@@ -528,7 +488,7 @@ class WritingMinimal(tests.cases.LoRATestCase):
                 },
                 "status": 400,
             },
-            json=[
+            [
                 {
                     "type": "it",
                     "original": {
@@ -547,194 +507,175 @@ class WritingMinimal(tests.cases.LoRATestCase):
                     },
                 },
             ],
-            status_code=400,
-        )
+            400,
+        ),
+    ],
+)
+def test_errors(
+    service_client: TestClient,
+    operation: str,
+    expected: list[dict],
+    payload: dict,
+    status_code: int,
+) -> None:
+    response = service_client.post(f"/service/details/{operation}", json=payload)
+    assert response.status_code == status_code
+    assert response.json() == expected
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_reading_organisation(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "name": "Lokal Rammearkitektur",
+        },
+        {
+            "system_type": None,
+            "user_key": "SAP",
+            "uuid": "14466fb0-f9de-439c-a6c2-b3262c367da7",
+            "name": "SAP",
+        },
+        {
+            "system_type": None,
+            "user_key": "AD",
+            "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            "name": "Active Directory",
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_reading_employee(service_client: TestClient) -> None:
+    response = service_client.get(
+        "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/details/it",
+        params={"only_primary_uuid": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "itsystem": {
+                "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
+            },
+            "org_unit": None,
+            "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
+            "engagement": None,
+            "user_key": "donald",
+            "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
+            "validity": {"from": "2017-01-01", "to": None},
+            "primary": None,
+        },
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "unitid",
+    [
+        "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+        "b688513d-11f7-4efc-b679-ab082a2055d0",
+        "85715fc7-925d-401b-822d-467eb4b163b6",
+        "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+    ],
+)
+@pytest.mark.parametrize("validity", ["past", "present", "future"])
+def test_reading_unit_empty(
+    service_client: TestClient, unitid: str, validity: str
+) -> None:
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/it", params={"validity": validity}
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+reading_unit_result = [
+    {
+        "itsystem": {
+            "name": "Lokal Rammearkitektur",
+            "reference": None,
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {"from": "2010-01-01", "to": None},
+        },
+        "org_unit": {
+            "name": "Afdeling for Fortidshistorik",
+            "user_key": "frem",
+            "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            "validity": {"from": "2016-01-01", "to": "2018-12-31"},
+        },
+        "person": None,
+        "user_key": "fwaf",
+        "engagement": None,
+        "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
+        "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+        "primary": None,
+    }
+]
+reading_unit_result_now = [
+    {
+        "itsystem": {
+            "name": "Lokal Rammearkitektur",
+            "reference": None,
+            "system_type": None,
+            "user_key": "LoRa",
+            "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
+            "validity": {"from": "2010-01-01", "to": None},
+        },
+        "org_unit": {
+            "name": "Afdeling for Samtidshistorik",
+            "user_key": "frem",
+            "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            "validity": {"from": "2016-01-01", "to": "2018-12-31"},
+        },
+        "person": None,
+        "user_key": "fwaf",
+        "engagement": None,
+        "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
+        "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+        "primary": None,
+    }
+]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "params,expected",
+    [
+        # 2017-01-01 (via freeze_time)
+        ({"validity": "past"}, []),
+        ({"validity": "present"}, reading_unit_result_now),
+        ({}, reading_unit_result_now),
+        ({"validity": "future"}, []),
+        # 2016-06-01
+        ({"at": "2016-06-01", "validity": "past"}, []),
+        ({"at": "2016-06-01", "validity": "present"}, []),
+        ({"at": "2016-06-01"}, []),
+        ({"at": "2016-06-01", "validity": "future"}, reading_unit_result),
+        # 2018-06-01
+        ({"at": "2018-06-01", "validity": "past"}, reading_unit_result),
+        ({"at": "2018-06-01", "validity": "present"}, []),
+        ({"at": "2018-06-01"}, []),
+        ({"at": "2018-06-01", "validity": "future"}, []),
+    ],
+)
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Reading(tests.cases.LoRATestCase):
-    def test_reading_organisation(self):
-        self.assertRequestResponse(
-            "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/it/",
-            [
-                {
-                    "system_type": None,
-                    "user_key": "LoRa",
-                    "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                    "name": "Lokal Rammearkitektur",
-                },
-                {
-                    "system_type": None,
-                    "user_key": "SAP",
-                    "uuid": "14466fb0-f9de-439c-a6c2-b3262c367da7",
-                    "name": "SAP",
-                },
-                {
-                    "system_type": None,
-                    "user_key": "AD",
-                    "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-                    "name": "Active Directory",
-                },
-            ],
-        )
-
-    def test_reading_employee(self):
-        self.assertRequestResponse(
-            "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/"
-            "details/it?only_primary_uuid=1",
-            [
-                {
-                    "itsystem": {
-                        "uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb",
-                    },
-                    "org_unit": None,
-                    "person": {"uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"},
-                    "engagement": None,
-                    "user_key": "donald",
-                    "uuid": "aaa8c495-d7d4-4af1-b33a-f4cb27b82c66",
-                    "validity": {"from": "2017-01-01", "to": None},
-                    "primary": None,
-                },
-            ],
-        )
-
-    def test_reading_unit(self):
-        for unitid in (
-            "2874e1dc-85e6-4269-823a-e1125484dfd3",
-            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-            "b688513d-11f7-4efc-b679-ab082a2055d0",
-            "85715fc7-925d-401b-822d-467eb4b163b6",
-            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-        ):
-            for validity in ("past", "present", "future"):
-                with self.subTest(f"{unitid} - {validity}"):
-                    self.assertRequestResponse(
-                        "/service/ou/{}/details/it?validity={}".format(
-                            unitid,
-                            validity,
-                        ),
-                        [],
-                    )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Samtidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "engagement": None,
-                    "user_key": "fwaf",
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=past",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?validity=future",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01&validity=future",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Fortidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "engagement": None,
-                    "user_key": "fwaf",
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2016-06-01&validity=past",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=present",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=past",
-            [
-                {
-                    "itsystem": {
-                        "name": "Lokal Rammearkitektur",
-                        "reference": None,
-                        "system_type": None,
-                        "user_key": "LoRa",
-                        "uuid": "0872fb72-926d-4c5c-a063-ff800b8ee697",
-                        "validity": {"from": "2010-01-01", "to": None},
-                    },
-                    "org_unit": {
-                        "name": "Afdeling for Fortidshistorik",
-                        "user_key": "frem",
-                        "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "person": None,
-                    "user_key": "fwaf",
-                    "engagement": None,
-                    "uuid": "cd4dcccb-5bf7-4c6b-9e1a-f6ebb193e276",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                    "primary": None,
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/it"
-            "?at=2018-06-01&validity=future",
-            [],
-        )
+def test_reading_unit(
+    service_client: TestClient, params: dict[str, Any], expected: list[dict]
+) -> None:
+    unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+    response = service_client.get(f"/service/ou/{unitid}/details/it", params=params)
+    assert response.status_code == 200
+    assert response.json() == expected

@@ -17,7 +17,6 @@ from httpx import Response
 from os2mo_http_trigger_protocol import MOTriggerRegister
 from starlette.datastructures import ImmutableMultiDict
 
-import tests.cases
 from mora import lora
 from mora import mapping
 from mora.config import Settings
@@ -31,7 +30,6 @@ from mora.triggers import Trigger
 from mora.triggers.internal.http_trigger import HTTPTriggerException
 from mora.triggers.internal.http_trigger import register
 from tests import util
-from tests.util import sample_structures_minimal_cls_fixture
 
 
 @pytest.mark.usefixtures("mock_asgi_transport")
@@ -348,41 +346,40 @@ def test_returns_404_on_unknown_unit(service_client: TestClient) -> None:
         assert "NOT_FOUND" in result.get("error_key")
 
 
-@sample_structures_minimal_cls_fixture
-class AsyncTestGetOneOrgUnit(tests.cases.AsyncLoRATestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
-        self._orgunit_uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@util.patch_query_args()
+async def test_get_one_orgunit_with_association_count() -> None:
+    _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    orgunit = await get_one_orgunit(
+        _connector,
+        "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        count_related={"association": AssociationReader},
+    )
+    assert orgunit is not None
+    assert "association_count" in orgunit
 
-    @util.patch_query_args()
-    async def test_get_one_orgunit_with_association_count(self):
-        result = await get_one_orgunit(
-            self._connector,
-            self._orgunit_uuid,
-            count_related={"association": AssociationReader},
-        )
-        assert "association_count" in result
 
-    @util.patch_query_args()
-    async def test_details_nchildren(self):
-        await self._assert_orgunit_keys(
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "details,expected_keys",
+    [
+        (
+            UnitDetails.NCHILDREN,
             {"uuid", "name", "user_key", "validity", "child_count"},
-            details=UnitDetails.NCHILDREN,
-        )
-
-    @util.patch_query_args()
-    async def test_details_path(self):
-        await self._assert_orgunit_keys(
-            {"uuid", "name", "user_key", "validity", "location"},
-            details=UnitDetails.PATH,
-        )
-
-    async def _assert_orgunit_keys(self, expected_keys, **kwargs):
-        orgunit = await get_one_orgunit(self._connector, self._orgunit_uuid, **kwargs)
-        self.assertSetEqual(set(orgunit.keys()), expected_keys)
+        ),
+        (UnitDetails.PATH, {"uuid", "name", "user_key", "validity", "location"}),
+    ],
+)
+@util.patch_query_args()
+async def test_details(details: UnitDetails, expected_keys: set[str]) -> None:
+    _connector = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    orgunit = await get_one_orgunit(
+        _connector, "2874e1dc-85e6-4269-823a-e1125484dfd3", details=details
+    )
+    assert orgunit is not None
+    assert set(orgunit.keys()) == expected_keys
 
 
 @pytest.mark.parametrize(
@@ -416,54 +413,40 @@ def test_valid_name(arguments, value, expected_raise):
             assert value == _get_count_related()
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestGetUnitAncestorTree(tests.cases.AsyncLoRATestCase):
-    async def asyncSetUp(self):
-        await super().asyncSetUp()
-        self._connector = lora.Connector(
-            virkningfra="-infinity", virkningtil="infinity"
-        )
-        # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
-        # We need the UUID of a *child* OU to test `get_unit_ancestor_tree`.
-        # Below is the UUID of "Filosofisk Institut".
-        self._orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
-
-    async def test_count_association(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "association"})):
-            result = await get_unit_ancestor_tree(
-                self._orgunit_uuid, only_primary_uuid=False
-            )
-            self._assert_matching_ou_has(
-                result,
-                user_key="hum",
-                association_count=1,
-            )
-
-    async def test_count_engagement(self):
-        with util.patch_query_args(ImmutableMultiDict({"count": "engagement"})):
-            result = await get_unit_ancestor_tree(
-                self._orgunit_uuid, only_primary_uuid=False
-            )
-            self._assert_matching_ou_has(
-                result,
-                user_key="hum",
-                engagement_count=3,
-            )
-
-    def _assert_matching_ou_has(self, doc, user_key=None, **attrs):
-        # Recurse into `doc` until we find a dictionary whose `user_key` equals
-        # `user_key`. Then, assert that each key-value pair in `attrs` is
-        # present in the matching dict, and has the expected value.
-        def visit(node):
-            if isinstance(node, list):
-                for ou in node:
+def _assert_matching_ou_has(doc, user_key=None, **attrs):
+    # Recurse into `doc` until we find a dictionary whose `user_key` equals
+    # `user_key`. Then, assert that each key-value pair in `attrs` is
+    # present in the matching dict, and has the expected value.
+    def visit(node):
+        if isinstance(node, list):
+            for ou in node:
+                visit(ou)
+        elif isinstance(node, dict):
+            if "children" in node:
+                for ou in node["children"]:
                     visit(ou)
-            elif isinstance(node, dict):
-                if "children" in node:
-                    for ou in node["children"]:
-                        visit(ou)
-                if node.get("user_key") == user_key:
-                    for attr_name, attr_value in attrs.items():
-                        assert node.get(attr_name) == attr_value
+            if node.get("user_key") == user_key:
+                for attr_name, attr_value in attrs.items():
+                    assert node.get(attr_name) == attr_value
 
-        visit(doc)
+    visit(doc)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "collection,attrs",
+    [
+        ("association", {"association_count": 1}),
+        ("engagement", {"engagement_count": 3}),
+    ],
+)
+async def test_counts(collection: str, attrs: dict[str, int]) -> None:
+    # The OU "Humanistisk Fakultet" has 3 engagements and 1 association.
+    # We need the UUID of a *child* OU to test `get_unit_ancestor_tree`.
+    # Below is the UUID of "Filosofisk Institut".
+    _orgunit_uuid = [UUID("9d07123e-47ac-4a9a-88c8-da82e3a4bc9e")]
+
+    with util.patch_query_args(ImmutableMultiDict({"count": collection})):
+        result = await get_unit_ancestor_tree(_orgunit_uuid, only_primary_uuid=False)
+        _assert_matching_ou_has(result, user_key="hum", **attrs)
