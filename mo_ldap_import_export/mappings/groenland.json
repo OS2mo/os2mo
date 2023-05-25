@@ -3,8 +3,8 @@
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "true",
-      "givenname": "{{ldap.givenName or ldap.name|splitlast|first}}",
-      "surname": "{{ ldap.sn or ldap.name|splitlast|last or ''}}",
+      "givenname": "{{ldap.name|splitlast|first if ' ' in ldap.name else ldap.name}}",
+      "surname": "{{ldap.name|splitlast|last if ' ' in ldap.name else ''}}",
       "uuid": "{{ employee_uuid or NONE }}"
     },
     "ADGUID": {
