@@ -347,7 +347,7 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
-        givenname = employee.givenname
+        givenname = employee.givenname.strip()
         surname = employee.surname
         name = givenname.split(" ")[:4] + [surname]
 
