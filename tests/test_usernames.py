@@ -19,7 +19,7 @@ def dataloader() -> MagicMock:
 
 
 @pytest.fixture
-def context(dataloader: MagicMock) -> Context:
+def context(dataloader: MagicMock, converter: MagicMock) -> Context:
 
     mapping = {
         "mo_to_ldap": {"Employee": {"objectClass": "user"}},
@@ -39,6 +39,7 @@ def context(dataloader: MagicMock) -> Context:
             "mapping": mapping,
             "settings": settings_mock,
             "dataloader": dataloader,
+            "converter": converter,
         }
     }
 

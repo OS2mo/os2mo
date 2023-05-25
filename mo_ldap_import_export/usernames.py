@@ -298,6 +298,14 @@ class UserNameGeneratorBase:
 
         return common_name
 
+    def _get_employee_ldap_attributes(self, employee: Employee, dn: str):
+        converter = self.user_context["converter"]
+        employee_ldap = converter.to_ldap({"mo_employee": employee}, "Employee", dn)
+        attributes = employee_ldap.dict()
+        attributes.pop("dn")
+
+        return attributes
+
 
 class UserNameGenerator(UserNameGeneratorBase):
     def generate_dn(self, employee: Employee) -> str:
@@ -318,7 +326,8 @@ class UserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         dn = self._make_dn(common_name)
-        self.dataloader.add_ldap_object(dn)
+        employee_attributes = self._get_employee_ldap_attributes(employee, dn)
+        self.dataloader.add_ldap_object(dn, employee_attributes)
         return dn
 
 
@@ -349,12 +358,15 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
+        employee_attributes = self._get_employee_ldap_attributes(employee, dn)
+        other_attributes = {
+            "sAMAccountName": username,
+            "userPrincipalName": f"{username}@alleroed.dk",
+        }
+
         self.dataloader.add_ldap_object(
             dn,
-            {
-                "sAMAccountName": username,
-                "userPrincipalName": f"{username}@alleroed.dk",
-            },
+            employee_attributes | other_attributes,
         )
 
         return dn
