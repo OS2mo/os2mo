@@ -422,6 +422,8 @@ class DataLoader:
 
         """
         logger.info(f"Adding user with DN = '{dn}' to LDAP")
+        if attributes:
+            logger.info(f"And the following attributes: {attributes}")
         self.ldap_connection.add(
             dn,
             self.user_context["converter"].find_ldap_object_class("Employee"),
