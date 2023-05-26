@@ -191,6 +191,7 @@ async def listen_to_changes(
 
     if mo_routing_key.service_type == ServiceType.EMPLOYEE:
         await sync_tool.listen_to_changes_in_employees(**args)
+        await sync_tool.export_org_unit_addresses_on_engagement_change(**args)
     elif mo_routing_key.service_type == ServiceType.ORG_UNIT:
         await sync_tool.listen_to_changes_in_org_units(**args)
 

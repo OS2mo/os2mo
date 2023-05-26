@@ -18,6 +18,7 @@ from ramodels.mo.details.engagement import Engagement
 from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
+from ramqp.mo.models import ObjectType
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import DNNotFound
@@ -35,6 +36,7 @@ def context(
     converter: MagicMock,
     export_checks: AsyncMock,
     settings: MagicMock,
+    internal_amqpsystem: MagicMock,
 ) -> Context:
     context = Context(
         {
@@ -42,6 +44,7 @@ def context(
                 "dataloader": dataloader,
                 "converter": converter,
                 "export_checks": export_checks,
+                "internal_amqpsystem": internal_amqpsystem,
                 "settings": settings,
             }
         }
@@ -1116,3 +1119,26 @@ async def test_wait_for_import_to_finish(sync_tool: SyncTool):
 
     assert elapsed_time >= 0.2
     assert elapsed_time < 0.3
+
+
+async def test_refresh_object(sync_tool: SyncTool):
+    await sync_tool.refresh_object(uuid4(), ObjectType.ADDRESS)
+    sync_tool.internal_amqpsystem.publish_message.assert_awaited_once()
+
+
+async def test_export_org_unit_addresses_on_engagement_change(
+    sync_tool: SyncTool,
+    dataloader: AsyncMock,
+    converter: MagicMock,
+):
+    converter.org_unit_address_type_info = {uuid4(): "Email"}
+    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
+
+    dataloader.load_mo_org_unit_addresses.return_value = [address]
+    sync_tool.refresh_object = AsyncMock()  # type: ignore
+
+    routing_key = MORoutingKey.build("employee.engagement.create")
+    payload = MagicMock()
+    await sync_tool.export_org_unit_addresses_on_engagement_change(routing_key, payload)
+
+    sync_tool.refresh_object.assert_awaited_once()

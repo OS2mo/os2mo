@@ -15,11 +15,14 @@ from typing import Union
 from uuid import UUID
 from uuid import uuid4
 
+from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from httpx import HTTPStatusError
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from ramqp.mo.models import PayloadType
+from ramqp.mo.models import RequestType
+from ramqp.mo.models import ServiceType
 
 from .exceptions import DNNotFound
 from .exceptions import IgnoreChanges
@@ -112,6 +115,7 @@ class SyncTool:
         self.dns_in_progress: list[str] = []
         self.export_checks = self.user_context["export_checks"]
         self.settings = self.user_context["settings"]
+        self.internal_amqpsystem = self.user_context["internal_amqpsystem"]
 
     @staticmethod
     def wait_for_export_to_finish(func: Callable, sleep_time: float = 2):
@@ -689,3 +693,50 @@ class SyncTool:
                     logger.warning(e)
                     for mo_object in converted_objects:
                         self.uuids_to_ignore.remove(mo_object.uuid)
+
+    async def refresh_object(self, uuid: UUID, object_type: ObjectType):
+        """
+        Sends out an AMQP message on the internal AMQP system to refresh an object
+        """
+        mo_object_dict = await self.dataloader.load_mo_object(str(uuid), object_type)
+        routing_key = MORoutingKey.build(
+            service_type=mo_object_dict["service_type"],
+            object_type=mo_object_dict["object_type"],
+            request_type=RequestType.REFRESH,
+        )
+        payload = mo_object_dict["payload"]
+
+        logger.info(f"Publishing {routing_key}")
+        logger.info(f"with payload.uuid = {payload.uuid}")
+        logger.info(f"and payload.object_uuid = {payload.object_uuid}")
+
+        await self.internal_amqpsystem.publish_message(
+            str(routing_key), jsonable_encoder(payload)
+        )
+
+    async def export_org_unit_addresses_on_engagement_change(
+        self, routing_key, payload, **kwargs
+    ):
+
+        if (
+            routing_key.service_type == ServiceType.EMPLOYEE
+            and routing_key.object_type == ObjectType.ENGAGEMENT
+        ):
+            changed_engagement = await self.dataloader.load_mo_engagement(
+                payload.object_uuid
+            )
+            org_unit_uuid = changed_engagement.org_unit.uuid
+
+            # Load UUIDs for all addresses in this org-unit
+            org_unit_address_uuids = []
+            for address_type_uuid in self.converter.org_unit_address_type_info.keys():
+                org_unit_addresses = await self.dataloader.load_mo_org_unit_addresses(
+                    org_unit_uuid,
+                    address_type_uuid,
+                )
+                for address in org_unit_addresses:
+                    org_unit_address_uuids.append(address.uuid)
+
+            # Export this org-unit's addresses to LDAP by publishing to internal AMQP
+            for org_unit_address_uuid in org_unit_address_uuids:
+                await self.refresh_object(org_unit_address_uuid, ObjectType.ADDRESS)
