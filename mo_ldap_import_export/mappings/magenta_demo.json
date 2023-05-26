@@ -17,8 +17,8 @@
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "true",
-      "givenname": "{{ldap.name|splitlast|first if ' ' in ldap.name else ldap.name}}",
-      "surname": "{{ldap.name|splitlast|last if ' ' in ldap.name else ''}}",
+      "givenname": "{{ldap.givenName}}",
+      "surname": "{{ldap.sn}}",
       "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
       "uuid": "{{ employee_uuid or NONE }}"
     },
@@ -95,7 +95,6 @@
       "givenName": "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
       "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
-      "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "employeeID": "{{mo_employee.cpr_no or NONE}}",
       "department": "{{NONE}}"
     },

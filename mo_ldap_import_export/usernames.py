@@ -335,7 +335,8 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         dn = self._make_dn(common_name)
         employee_attributes = self._get_employee_ldap_attributes(employee, dn)
-        self.dataloader.add_ldap_object(dn, employee_attributes)
+        other_attributes = {"sAMAccountName": username}
+        self.dataloader.add_ldap_object(dn, employee_attributes | other_attributes)
         return dn
 
 
