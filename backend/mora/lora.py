@@ -22,13 +22,16 @@ from functools import partial
 from itertools import starmap
 from typing import Any
 from typing import Literal
+from typing import overload
 from typing import TypeVar
+from uuid import UUID
 
 import httpx
 import lora_utils
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
+from more_itertools import one
 from starlette_context import context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
@@ -690,22 +693,54 @@ class Scope(BaseScope):
 
         return {"total": total, "offset": start, "items": list(obj_iter)}
 
-    async def get(self, uuid, **params):
+    @overload
+    async def get(
+        self, uuid: str | UUID, registreretfra: Any, **params: dict[str, Any]
+    ) -> list[dict] | None:
+        ...
+
+    @overload
+    async def get(
+        self, uuid: str | UUID, registrerettil: Any, **params: dict[str, Any]
+    ) -> list[dict] | None:
+        ...
+
+    @overload
+    async def get(self, uuid: str | UUID, **params: dict[str, Any]) -> dict | None:
+        ...
+
+    async def get(
+        self, uuid: str | UUID, **params: dict[str, Any]
+    ) -> list[dict] | dict | None:
+        """Fetch registration(s) for a single object from LoRa.
+
+        Args:
+            uuid: UUID to fetch registrations for in LoRa.
+            params: Parameters to send along with the request.
+
+        Returns:
+            None if the object could not be found,
+            None if the object has no registrations,
+            A list of registrations if registreretfra or registrerettil is in params,
+            A single registration otherwise.
+        """
         d = await self.load(uuid=str(uuid), **params)
-
-        if not d or not d[0]:
+        # If object was not found => return None
+        if not d:
             return None
-
-        registrations = d[0]["registreringer"]
-
-        assert len(d) == 1
-
+        # We expect exactly one object as UUIDs are unique
+        obj = one(d)
+        # If the object does not have registrations => return None
+        if not obj:
+            return None
+        # Extract registrations
+        registrations = obj["registreringer"]
+        # If our parameters included a registration time interval
+        # We expect a list of registrations
         if params.keys() & {"registreretfra", "registrerettil"}:
             return registrations
-        else:
-            assert len(registrations) == 1
-
-            return registrations[0]
+        # If we did not include an interval, we expect only one registration
+        return one(registrations)
 
     async def create(self, obj, uuid=None):
         obj = uuid_to_str(obj)

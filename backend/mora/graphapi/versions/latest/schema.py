@@ -1165,7 +1165,8 @@ class Organisation:
             The municipality code, if any is found.
         """
         org = await common.get_connector().organisation.get(root.uuid)
-
+        if org is None:
+            return None
         authorities = org.get("relationer", {}).get("myndighed", [])
         for authority in authorities:
             m = MUNICIPALITY_CODE_PATTERN.fullmatch(authority.get("urn"))
