@@ -6,6 +6,7 @@
 Used for shimming the service API.
 """
 from datetime import date
+from functools import cache
 from typing import Any
 from typing import Optional
 from uuid import UUID
@@ -15,6 +16,7 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import root_validator
 from pydantic import validator
+from strawberry import Schema
 from strawberry.types import ExecutionResult
 
 from .versions.base import BaseGraphQLVersion
@@ -194,6 +196,15 @@ class MOAddress(AddressRead):
     name: str | None
 
 
+@cache
+def get_schema(graphql_version: type[BaseGraphQLVersion]) -> Schema:
+    """Cache GraphQL version schema for performance.
+
+    Without the cache, we would block the event loop for ~500ms on shimmed call.
+    """
+    return graphql_version.schema.get()
+
+
 async def execute_graphql(
     *args: Any, graphql_version: type[BaseGraphQLVersion] | None = None, **kwargs: Any
 ) -> ExecutionResult:
@@ -208,7 +219,7 @@ async def execute_graphql(
         #  service API shims get RBAC equivalent to the GraphQL API for free.
         kwargs["context_value"] = await graphql_version.get_context(get_token=noauth)
 
-    schema = graphql_version.schema.get()
+    schema = get_schema(graphql_version)
     return await schema.execute(*args, **kwargs)
 
 
