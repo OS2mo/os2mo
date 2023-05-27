@@ -7,12 +7,11 @@ from uuid import UUID
 import freezegun
 import pytest
 from fastapi.encoders import jsonable_encoder
+from fastapi.testclient import TestClient
 from pydantic import BaseModel
 from pydantic import Field
 
 from mora.mapping import OwnerInferencePriority
-from tests.cases import AsyncLoRATestCase
-from tests.cases import LoRATestCase
 from tests.util import load_fixture
 
 
@@ -37,11 +36,7 @@ class OrgUnitRef(ConfiguredBase):
     uuid: UUID
 
 
-class MoObj(ConfiguredBase):
-    pass
-
-
-class Owner(MoObj):
+class Owner(ConfiguredBase):
     type: Literal["owner"] = "owner"
     uuid: UUID | None = None
     owner: Person | None = None
@@ -67,10 +62,7 @@ def simplified_owner(
     org_unit: UUID | None = None,
     person: UUID | None = None,
     owner_inference_priority: OwnerInferencePriority | None = None,
-    from_date: str = "2017-01-01",
-    to_date: str | None = None,
-    as_json: bool = True,
-) -> Owner | dict[str, Any]:
+) -> dict[str, Any]:
     """
     human-friendly helper function: creates an owner object, either as the
     model object, or directly as json-friendly dict
@@ -79,9 +71,6 @@ def simplified_owner(
     :param owner:
     :param org_unit:
     :param person:
-    :param from_date:
-    :param to_date:
-    :param as_json:
     :return:
     """
     owner = Owner(
@@ -91,102 +80,86 @@ def simplified_owner(
         person=Person(uuid=person) if person else None,
         owner_inference_priority=owner_inference_priority,
         validity=Validity(
-            from_date=from_date,
-            to_date=to_date,
+            from_date="2017-01-01",
+            to_date=None,
         ),
     )
-    if as_json:
-        return jsonable_encoder(owner, by_alias=True)
-    return owner
+    return jsonable_encoder(owner, by_alias=True)
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-class OwnerOrgUnitTestCase(LoRATestCase):
-    def create_helper(
-        self,
-        jsonified_owner: dict[str, Any],
-        create_status_code: int,
-        verifying_org_unit: UUID = top_level_ou,
-        verifying_response: list[dict[str, Any]] | None = None,
-    ):
-        """
-
-        :param jsonified_owner: Ready-to-send dict; Containing create-payload
-        :param create_status_code: expected status code of create-operation
-        :param verifying_org_unit: Target for verification, only used with response
-        :param verifying_response: If success is expected, the returned value
-        :return:
-        """
-        self.assertRequest(
-            "/service/details/create",
-            json=jsonified_owner,
-            status_code=create_status_code,
-        )
-
-        # verify
-        if verifying_response:
-            self.assertRequestResponse(
-                f"service/ou/{verifying_org_unit}/details/"
-                f"owner?validity=present&at=2017-01-01&inherit_owner=1",
-                jsonable_encoder(verifying_response),
-            )
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_inherit_top_level_empty(service_client: TestClient) -> None:
+    """When hitting top-level simply return nothing."""
+    response = service_client.get(
+        f"service/ou/{level2_ou}/details/owner",
+        params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == []
 
 
-class BaseTests(OwnerOrgUnitTestCase):
-    maxDiff = None
-
-    def test_create_no_person_and_no_ou(self):
-        """
-        only partially filled; fail
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(uuid=func_uuid, owner=person1),
-            create_status_code=400,
-        )
-
-    def test_create_owner_non_existing(self):
-        """
-        if owner if set, it needs to be a valid person
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "payload, status_code, verifying_org_unit, verifying_response",
+    [
+        # Inherit
+        # When absolutely no owner-orgfunc exists, inherit via the org hierarchy
+        # Attempt successful create, verify via child org-unit
+        (
+            simplified_owner(
                 uuid=func_uuid,
-                owner=UUID("64181ed2-f1de-4c4a-a8fd-ab358c2c767b"),  # ANY value
+                owner=person1,
                 org_unit=top_level_ou,
             ),
-            create_status_code=404,
-        )
-
-
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class OrgUnitCreateTests(OwnerOrgUnitTestCase):
-    maxDiff = None
-
-    def test_create_ou_non_existing(self):
-        """
-        need valid ou
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+            201,
+            level2_ou,
+            [
+                {
+                    "org_unit": {
+                        "name": "Overordnet Enhed",
+                        "user_key": "root",
+                        "uuid": top_level_ou,
+                        "validity": {"from": "2016-01-01", "to": None},
+                    },
+                    "owner": {
+                        "givenname": "Anders",
+                        "name": "Anders And",
+                        "nickname": "Donald Duck",
+                        "nickname_givenname": "Donald",
+                        "nickname_surname": "Duck",
+                        "seniority": None,
+                        "surname": "And",
+                        "uuid": person1,
+                    },
+                    "person": None,
+                    "owner_inference_priority": None,
+                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
+                    "uuid": func_uuid,
+                    "validity": {"from": "2017-01-01", "to": None},
+                }
+            ],
+        ),
+        # Non existing
+        # Need valid OU
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=person1,
                 org_unit=UUID("64181ed2-f1de-4c4a-a8fd-ab358c2c767b"),  # ANY value
             ),
-            create_status_code=404,
-        )
-
-    def test_create_no_owner(self):
-        """
-        should be possible to create vacant owner
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(uuid=func_uuid, org_unit=top_level_ou),
-            create_status_code=201,
-            verifying_response=[
+            404,
+            None,
+            None,
+        ),
+        # No owner
+        (
+            simplified_owner(uuid=func_uuid, org_unit=top_level_ou),
+            201,
+            None,
+            [
                 {
                     "org_unit": {
                         "name": "Overordnet Enhed",
@@ -202,23 +175,19 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
                     "validity": {"from": "2017-01-01", "to": None},
                 }
             ],
-        )
-
-    def test_create_valid(self):
-        """
-        it should be possible to create "vacant" owners, i.e. valid org_unit, but simply
-        no owner / vacant owner seat
-        :return:
-        """
-
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+        ),
+        # Valid
+        # It should be possible to create "vacant" owners, i.e. valid org_unit
+        # But simply no owner / vacant owner seat
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=person1,
                 org_unit=top_level_ou,
             ),
-            create_status_code=201,
-            verifying_response=[
+            201,
+            None,
+            [
                 {
                     "org_unit": {
                         "name": "Overordnet Enhed",
@@ -243,297 +212,141 @@ class OrgUnitCreateTests(OwnerOrgUnitTestCase):
                     "validity": {"from": "2017-01-01", "to": None},
                 }
             ],
-        )
-
-    def test_create_with_inference_priority(self):
-        """
-        inference priority is only relevant when dealing with person-person owners, so
-        this should always fail
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+        ),
+        # Interference priority
+        # Inference priority is only relevant when dealing with person-person owners,
+        # so this should always fail
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=person1,
                 org_unit=top_level_ou,
                 owner_inference_priority=OwnerInferencePriority.engagement,
             ),
-            create_status_code=400,
-        )
-
-
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
-class OrgUnitInheritTests(OwnerOrgUnitTestCase):
-    maxDiff = None
-
-    def test_inherit(self):
-        """
-        when absolutely no owner-orgfunc exists, inherit via the org hierarchy
-        :return:
-        """
-        # attempt successful create, verify via child org-unit
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+            400,
+            None,
+            None,
+        ),
+        # No person and no ou
+        # Only partically filled => fail
+        (
+            simplified_owner(uuid=func_uuid, owner=person1),
+            400,
+            None,
+            None,
+        ),
+        # Owner non existing
+        (
+            simplified_owner(
                 uuid=func_uuid,
-                owner=person1,
+                owner=UUID("64181ed2-f1de-4c4a-a8fd-ab358c2c767b"),  # ANY value
                 org_unit=top_level_ou,
             ),
-            create_status_code=201,
-            verifying_org_unit=level2_ou,
-            verifying_response=[
-                {
-                    "org_unit": {
-                        "name": "Overordnet Enhed",
-                        "user_key": "root",
-                        "uuid": top_level_ou,
-                        "validity": {"from": "2016-01-01", "to": None},
-                    },
-                    "owner": {
-                        "givenname": "Anders",
-                        "name": "Anders And",
-                        "nickname": "Donald Duck",
-                        "nickname_givenname": "Donald",
-                        "nickname_surname": "Duck",
-                        "seniority": None,
-                        "surname": "And",
-                        "uuid": person1,
-                    },
-                    "person": None,
-                    "owner_inference_priority": None,
-                    "user_key": "64181ed2-f1de-4c4a-a8fd-ab358c2c565b",
-                    "uuid": func_uuid,
-                    "validity": {"from": "2017-01-01", "to": None},
-                }
-            ],
-        )
-
-    def test_inherit_top_level_empty(self):
-        """
-        when hitting top-level simply return nothing
-        :return:
-        """
-        self.assertRequestResponse(
-            f"service/ou/{level2_ou}/details/"
-            f"owner?validity=present&at=2017-01-01&inherit_owner=1",
-            [],
-        )
-
-
-class AsyncOwnerPersonTestCase(AsyncLoRATestCase):
-    async def create_helper(
-        self,
-        jsonified_owner: dict[str, Any],
-        create_status_code: int,
-        verifying_person: UUID = person1,
-        verifying_response: list[dict[str, Any]] | None = None,
-    ):
-        """
-
-        :param jsonified_owner: Ready-to-send dict; Containing create-payload
-        :param create_status_code: expected status code of create-operation
-        :param verifying_org_unit: Target for verification, only used with response
-        :param verifying_response: If success is expected, the returned value
-        :return:
-        """
-        await self.assertRequest(
-            "/service/details/create",
-            json=jsonified_owner,
-            status_code=create_status_code,
-        )
-
-        # verify
-        if verifying_response:
-            await self.assertRequestResponse(
-                f"service/e/{verifying_person}/details/"
-                f"owner?validity=present&at=2017-01-01&inherit_owner=1",
-                verifying_response,
-            )
-
-
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class OwnerPersonTestCase(LoRATestCase):
-    def create_helper(
-        self,
-        jsonified_owner: dict[str, Any],
-        create_status_code: int,
-        verifying_person: UUID = person1,
-        verifying_response: list[dict[str, Any]] | None = None,
-    ):
-        """
-
-        :param jsonified_owner: Ready-to-send dict; Containing create-payload
-        :param create_status_code: expected status code of create-operation
-        :param verifying_org_unit: Target for verification, only used with response
-        :param verifying_response: If success is expected, the returned value
-        :return:
-        """
-        self.assertRequest(
-            "/service/details/create",
-            json=jsonified_owner,
-            status_code=create_status_code,
-        )
-
-        # verify
-        if verifying_response:
-            self.assertRequestResponse(
-                f"service/e/{verifying_person}/details/"
-                f"owner?validity=present&at=2017-01-01&inherit_owner=1",
-                verifying_response,
-            )
-
-
+            404,
+            None,
+            None,
+        ),
+    ],
+)
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class PersonTests(OwnerPersonTestCase):
-    maxDiff = None
+def test_create_org_unit(
+    service_client: TestClient,
+    payload: dict[str, Any],
+    status_code: int,
+    verifying_org_unit: UUID | None,
+    verifying_response: dict[str, None] | None,
+) -> None:
+    response = service_client.post(
+        "/service/details/create", json=jsonable_encoder(payload)
+    )
+    assert response.status_code == status_code
 
-    def test_create_person_non_existing(self):
-        """
-        need valid person
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+    # verify
+    if verifying_response is not None:
+        verifying_org_unit = verifying_org_unit or top_level_ou
+        response = service_client.get(
+            f"service/ou/{verifying_org_unit}/details/owner",
+            params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
+        )
+        assert response.status_code == 200
+        assert response.json() == jsonable_encoder(verifying_response)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "payload, status_code",
+    [
+        # Non existing
+        # Need valid person
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=UUID("64181ed2-f1de-4c4a-a8fd-ab358c2c767b"),  # ANY value
                 person=person1,
             ),
-            create_status_code=404,
-        )
-
-    def test_create_no_owner(self):
-        """
-        it should be possible to create "vacant" owners, i.e. valid person, but simply
-        no owner / vacant owner seat
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+            404,
+        ),
+        # No owner
+        # It should be possible to create "vacant" owners, i.e. valid person,
+        # but simply no owner / vacant owner seat
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 person=person1,
             ),
-            create_status_code=201,
-            verifying_response=[],
-        )
-
-    def test_create_valid(self):
-        """
-        simply set both owner and person to valid objects
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+            201,
+        ),
+        # Create valid
+        # Simply set both owner and person to valid objects
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=person2,
                 person=person1,
             ),
-            create_status_code=201,
-            verifying_response=[],
-        )
-
-    def test_create_with_inference_and_owner(self):
-        """
-        cannot infer and have an owner
-        :return:
-        """
-        self.create_helper(
-            jsonified_owner=simplified_owner(
+            201,
+        ),
+        # With interference and owner
+        # Cannot infer and have an owner
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 owner=person2,
                 person=person1,
                 owner_inference_priority=OwnerInferencePriority.engagement,
             ),
-            create_status_code=400,
-            verifying_response=[],
-        )
+            400,
+        ),
+    ],
+)
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_create_person(
+    service_client: TestClient,
+    payload: dict[str, Any],
+    status_code: int,
+) -> None:
+    response = service_client.post(
+        "/service/details/create", json=jsonable_encoder(payload)
+    )
+    assert response.status_code == status_code
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
-    async def asyncSetUp(self):
-        """
-        Load a bunch of data so we have something to inherit.
-        Particularly, we need both engagements and associations
-        :return:
-        """
-        await super().asyncSetUp()
-
-        await load_fixture(
-            "organisation/organisationfunktion",
-            "create_organisationfunktion_tilknytning_eriksmidthansen.json",
-        )
-        await load_fixture(
-            "organisation/organisationfunktion",
-            "create_organisationfunktion_tilknytning_eriksmidthansen_sekundaer.json",
-        )
-        await self.setup_org_units()
-
-    async def setup_org_units(self):
-        """
-        set some owners, so we have something to inherit
-        :return:
-        """
-        # create owner in org_unit so we have something to inherit
-        await self.assertRequest(
-            "/service/details/create",
-            json=simplified_owner(
-                owner=person1,
-                org_unit=top_level_ou,
-            ),
-            status_code=201,
-        )
-
-        # create owner in level2 org_unit so we can distinguish from top_level
-        await self.assertRequest(
-            "/service/details/create",
-            json=simplified_owner(
-                owner=person3,
-                org_unit=level2_ou,
-            ),
-            status_code=201,
-        )
-
-    async def create_helper(
-        self,
-        jsonified_owner: dict[str, Any],
-        create_status_code: int,
-        verifying_response: list[dict[str, Any]] | None = None,
-    ):
-        """
-
-        :param jsonified_owner: Ready-to-send dict; Containing create-payload
-        :param create_status_code: expected status code of create-operation
-        :param verifying_response: If success is expected, the returned value
-        :return:
-        """
-
-        await self.assertRequest(
-            "/service/details/create",
-            json=jsonified_owner,
-            status_code=create_status_code,
-        )
-
-        # verify
-        if verifying_response:
-            await self.assertRequestResponse(
-                f"service/e/{person2}/details/"
-                f"owner?validity=present&at=2017-01-01&inherit_owner=1",
-                verifying_response,
-            )
-
-    async def test_create_with_engagement_priority_and_engagement(self):
-        """
-        should follow engagement and find owner
-        :return:
-        """
-        await self.create_helper(
-            jsonified_owner=simplified_owner(
+@pytest.mark.parametrize(
+    "payload, status_code, verifying_response",
+    [
+        # Engagement with priority and engagement
+        # Should follow engagement and find owner
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 person=person2,
                 owner_inference_priority=OwnerInferencePriority.engagement,
             ),
-            create_status_code=201,
-            verifying_response=[
+            201,
+            [
                 {
                     "org_unit": None,
                     "owner": {
@@ -562,21 +375,17 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
                     "validity": {"from": "2017-01-01", "to": None},
                 }
             ],
-        )
-
-    async def test_create_with_association_priority_and_multiple_associations(self):
-        """
-        should follow association with highest priority
-        :return:
-        """
-        await self.create_helper(
-            jsonified_owner=simplified_owner(
+        ),
+        # Association with priorty and multiple associations
+        # Should follow association with highest priority
+        (
+            simplified_owner(
                 uuid=func_uuid,
                 person=person2,
                 owner_inference_priority=OwnerInferencePriority.association,
             ),
-            create_status_code=201,
-            verifying_response=[
+            201,
+            [
                 {
                     "org_unit": None,
                     "owner": {
@@ -605,4 +414,58 @@ class AsyncOwnerPersonTestInheritCase(AsyncOwnerPersonTestCase):
                     "validity": {"from": "2017-01-01", "to": None},
                 }
             ],
+        ),
+    ],
+)
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_create_person_extended(
+    service_client: TestClient,
+    payload: dict[str, Any],
+    status_code: int,
+    verifying_response: dict[str, None] | None,
+) -> None:
+    # Load a bunch of data so we have something to inherit.
+    # Particularly, we need both engagements and associations
+    await load_fixture(
+        "organisation/organisationfunktion",
+        "create_organisationfunktion_tilknytning_eriksmidthansen.json",
+    )
+    await load_fixture(
+        "organisation/organisationfunktion",
+        "create_organisationfunktion_tilknytning_eriksmidthansen_sekundaer.json",
+    )
+
+    # Set some owners, so we have something to inherit
+    # create owner in org_unit so we have something to inherit
+    response = service_client.post(
+        "/service/details/create",
+        json=simplified_owner(
+            owner=person1,
+            org_unit=top_level_ou,
+        ),
+    )
+    assert response.status_code == 201
+
+    # create owner in level2 org_unit so we can distinguish from top_level
+    response = service_client.post(
+        "/service/details/create",
+        json=simplified_owner(
+            owner=person3,
+            org_unit=level2_ou,
+        ),
+    )
+    assert response.status_code == 201
+
+    response = service_client.post(
+        "/service/details/create", json=jsonable_encoder(payload)
+    )
+    assert response.status_code == status_code
+
+    # verify
+    if verifying_response is not None:
+        response = service_client.get(
+            f"service/e/{person2}/details/owner",
+            params={"validity": "present", "at": "2017-01-01", "inherit_owner": 1},
         )
+        assert response.status_code == 200
+        assert response.json() == jsonable_encoder(verifying_response)
