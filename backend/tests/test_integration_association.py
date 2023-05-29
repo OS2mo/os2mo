@@ -1049,16 +1049,102 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         assert actual_association == expected
 
 
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
-    maxDiff = None
+def test_create_association_from_missing_unit(service_client: TestClient) -> None:
+    unitid = "00000000-0000-0000-0000-000000000000"
+    userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
 
-    def test_create_association_from_missing_unit(self):
-        unitid = "00000000-0000-0000-0000-000000000000"
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+    payload = [
+        {
+            "type": "association",
+            "org_unit": {"uuid": unitid},
+            "person": {"uuid": userid},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "address": {
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefonnummer",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+                },
+                "value": "33369696",
+            },
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+        }
+    ]
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 404
+    assert response.json() == {
+        "description": "Org unit not found.",
+        "error": True,
+        "error_key": "E_ORG_UNIT_NOT_FOUND",
+        "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
+        "status": 404,
+    }
 
-        payload = [
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_create_association_succeeds_on_two_associations(
+    service_client: TestClient,
+) -> None:
+    """An employee can have more than one active association per org unit"""
+
+    # These are the user/unit ids on the already existing association
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+    payload = [
+        {
+            "type": "association",
+            "org_unit": {"uuid": unitid},
+            "person": {"uuid": userid},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "address": {"uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+        }
+    ]
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_create_association_with_preexisting(service_client: TestClient) -> None:
+    """An employee cannot have more than one active association per org
+    unit"""
+    # These are the user/unit ids on the already existing association
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    response = service_client.post(
+        "/service/details/terminate",
+        json=[
+            {
+                "type": "association",
+                "uuid": association_uuid,
+                "validity": {"to": "2017-02-01"},
+            }
+        ],
+    )
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
+
+    response = service_client.post(
+        "/service/details/create",
+        json=[
             {
                 "type": "association",
                 "org_unit": {"uuid": unitid},
@@ -1072,400 +1158,269 @@ class Tests(tests.cases.LoRATestCase):
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
+                    "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
                     "value": "33369696",
                 },
                 "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
+                    "from": "2018-01-01",
+                    "to": None,
                 },
             }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "Org unit not found.",
-                "error": True,
-                "error_key": "E_ORG_UNIT_NOT_FOUND",
-                "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
-                "status": 404,
-            },
-            json=payload,
-            status_code=404,
-        )
-
-    def test_create_association_succeeds_on_two_associations(self):
-        """An employee can have more than one active association per org unit"""
-
-        # These are the user/unit ids on the already existing association
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-        payload = [
-            {
-                "type": "association",
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "address": {"uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        self.assertRequest(
-            "/service/details/create",
-            json=payload,
-            status_code=201,
-        )
-
-    def test_create_association_with_preexisting(self):
-        """An employee cannot have more than one active association per org
-        unit"""
-        # These are the user/unit ids on the already existing association
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-
-        self.assertRequestResponse(
-            "/service/details/terminate",
-            [association_uuid],
-            json=[
-                {
-                    "type": "association",
-                    "uuid": association_uuid,
-                    "validity": {"to": "2017-02-01"},
-                },
-            ],
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-            },
-        )
-
-        self.assertRequest(
-            "/service/details/create",
-            json=[
-                {
-                    "type": "association",
-                    "org_unit": {"uuid": unitid},
-                    "person": {"uuid": userid},
-                    "association_type": {
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-                    },
-                    "address": {
-                        "address_type": {
-                            "example": "20304060",
-                            "name": "Telefonnummer",
-                            "scope": "PHONE",
-                            "user_key": "Telefon",
-                            "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                        },
-                        "uuid": "414044e0-fe5f-4f82-be20-1e107ad50e80",
-                        "value": "33369696",
-                    },
-                    "validity": {
-                        "from": "2018-01-01",
-                        "to": None,
-                    },
-                }
-            ],
-            amqp_topics={
-                "employee.association.delete": 1,
-                "org_unit.association.delete": 1,
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-    def test_create_association_no_unit(self):
-        # Check the POST request
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-
-        payload = [
-            {
-                "type": "association",
-                "person": {"uuid": userid},
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "address": {
-                    "address_type": {
-                        "example": "<UUID>",
-                        "name": "Adresse",
-                        "scope": "DAR",
-                        "user_key": "AdressePost",
-                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                    },
-                    "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
-                },
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "Missing org_unit",
-                "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "key": "org_unit",
-                "obj": payload[0],
-                "status": 400,
-            },
-            json=payload,
-            status_code=400,
-        )
-
-    def test_create_association_fails_on_empty_payload(self):
-        payload = [
-            {
-                "type": "association",
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/create",
-            {
-                "description": "Missing org_unit",
-                "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "key": "org_unit",
-                "obj": {"type": "association"},
-                "status": 400,
-            },
-            json=payload,
-            status_code=400,
-        )
-
-    @set_settings_contextmanager(
-        confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
+        ],
     )
-    def test_edit_association(self):
-        # Check the POST request
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-
-        req = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "dynamic_classes": [],
-                "data": {
-                    "association_type": {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                    },
-                    "substitute": {
-                        "uuid": subid,
-                    },
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [association_uuid],
-            json=req,
-            amqp_topics={
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
-            [
-                {
-                    "association_type": {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
-                    },
-                    "dynamic_classes": [],
-                    "org_unit": {
-                        "uuid": unitid,
-                    },
-                    "person": {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    "primary": None,
-                    "user_key": "bvn",
-                    "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                    "substitute": {
-                        "uuid": subid,
-                    },
-                    "validity": {
-                        "from": "2017-01-01",
-                        "to": None,
-                    },
-                    "it": None,
-                    "job_function": None,
-                }
-            ],
-            amqp_topics={
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-        with self.subTest("change to vacant"):
-            new_req = copy.deepcopy(req)
-            new_req[0]["data"]["person"] = None
-            self.assertRequestResponse(
-                "/service/details/edit",
-                [association_uuid],
-                json=new_req,
-                amqp_topics={
-                    "employee.association.update": 1,
-                    "org_unit.association.update": 2,
-                },
-            )
-
-            self.assertRequestResponse(
-                f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
-                [
-                    {
-                        "association_type": {
-                            "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
-                        },
-                        "dynamic_classes": [],
-                        "org_unit": {
-                            "uuid": unitid,
-                        },
-                        "person": None,
-                        "primary": None,
-                        "user_key": "bvn",
-                        "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                        "substitute": {
-                            "uuid": subid,
-                        },
-                        "validity": {
-                            "from": "2017-01-01",
-                            "to": None,
-                        },
-                        "it": None,
-                        "job_function": None,
-                    }
-                ],
-                amqp_topics={
-                    "employee.association.update": 1,
-                    "org_unit.association.update": 2,
-                },
-            )
-
-    @set_settings_contextmanager(
-        confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
-    )
-    def test_edit_association_substitute(self):
-        """Test that substitute field is removed when writing an association
-        type that is not meant to have substitutes"""
-        # Check the POST request
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-
-        req = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "dynamic_classes": [],
-                "data": {
-                    "association_type": {
-                        "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"
-                    },
-                    "substitute": {"uuid": subid},
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [association_uuid],
-            json=req,
-            amqp_topics={
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-
-        req = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "dynamic_classes": [],
-                "data": {
-                    "association_type": {
-                        "uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a"
-                    },
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            [association_uuid],
-            json=req,
-            amqp_topics={
-                "employee.association.update": 2,
-                "org_unit.association.update": 2,
-            },
-        )
-
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/details/association?only_primary_uuid=1",
-            [
-                {
-                    "association_type": {
-                        "uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a",
-                    },
-                    "dynamic_classes": [],
-                    "org_unit": {
-                        "uuid": unitid,
-                    },
-                    "person": {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                    },
-                    "primary": None,
-                    "user_key": "bvn",
-                    "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
-                    "substitute": None,
-                    "validity": {
-                        "from": "2017-01-01",
-                        "to": None,
-                    },
-                    "it": None,
-                    "job_function": None,
-                }
-            ],
-            amqp_topics={
-                "employee.association.update": 2,
-                "org_unit.association.update": 2,
-            },
-        )
-
-        self.assertRequestResponse(
-            f"/service/ou/{subid}/details/association?only_primary_uuid=1",
-            [],
-            amqp_topics={
-                "employee.association.update": 2,
-                "org_unit.association.update": 2,
-            },
-        )
+    assert response.status_code == 201
 
 
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_create_association_no_unit(service_client: TestClient) -> None:
+    # Check the POST request
+    userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+
+    payload = [
+        {
+            "type": "association",
+            "person": {"uuid": userid},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "address": {
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "AdressePost",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+                },
+                "uuid": "0a3f50a0-23c9-32b8-e044-0003ba298018",
+            },
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+        }
+    ]
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Missing org_unit",
+        "error": True,
+        "error_key": "V_MISSING_REQUIRED_VALUE",
+        "key": "org_unit",
+        "obj": payload[0],
+        "status": 400,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+def test_create_association_fails_on_empty_payload(service_client: TestClient) -> None:
+    payload = [
+        {
+            "type": "association",
+        }
+    ]
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Missing org_unit",
+        "error": True,
+        "error_key": "V_MISSING_REQUIRED_VALUE",
+        "key": "org_unit",
+        "obj": {"type": "association"},
+        "status": 400,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@set_settings_contextmanager(
+    confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
+)
+def test_edit_association(service_client: TestClient) -> None:
+    # Check the POST request
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+    subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
+
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "dynamic_classes": [],
+            "data": {
+                "association_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+                "substitute": {
+                    "uuid": subid,
+                },
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
+
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "association_type": {
+                "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
+            },
+            "dynamic_classes": [],
+            "org_unit": {
+                "uuid": unitid,
+            },
+            "person": {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            "primary": None,
+            "user_key": "bvn",
+            "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+            "substitute": {
+                "uuid": subid,
+            },
+            "validity": {
+                "from": "2017-01-01",
+                "to": None,
+            },
+            "it": None,
+            "job_function": None,
+        }
+    ]
+
+    # Change to vacant
+    new_req = copy.deepcopy(req)
+    new_req[0]["data"]["person"] = None
+
+    response = service_client.post("/service/details/edit", json=new_req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
+
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "association_type": {
+                "uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2",
+            },
+            "dynamic_classes": [],
+            "org_unit": {
+                "uuid": unitid,
+            },
+            "person": None,
+            "primary": None,
+            "user_key": "bvn",
+            "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+            "substitute": {
+                "uuid": subid,
+            },
+            "validity": {
+                "from": "2017-01-01",
+                "to": None,
+            },
+            "it": None,
+            "job_function": None,
+        }
+    ]
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@set_settings_contextmanager(
+    confdb_substitute_roles="bcd05828-cc10-48b1-bc48-2f0d204859b2"
+)
+def test_edit_association_substitute(service_client: TestClient) -> None:
+    """Test that substitute field is removed when writing an association
+    type that is not meant to have substitutes"""
+    # Check the POST request
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+    subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
+
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "dynamic_classes": [],
+            "data": {
+                "association_type": {"uuid": "bcd05828-cc10-48b1-bc48-2f0d204859b2"},
+                "substitute": {"uuid": subid},
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
+
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "dynamic_classes": [],
+            "data": {
+                "association_type": {"uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a"},
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
+
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/association", params={"only_primary_uuid": 1}
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "association_type": {
+                "uuid": "46de8c9f-ecbe-4638-8b2b-386845729c9a",
+            },
+            "dynamic_classes": [],
+            "org_unit": {
+                "uuid": unitid,
+            },
+            "person": {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            "primary": None,
+            "user_key": "bvn",
+            "uuid": "c2153d5d-4a2b-492d-a18c-c498f7bb6221",
+            "substitute": None,
+            "validity": {
+                "from": "2017-01-01",
+                "to": None,
+            },
+            "it": None,
+            "job_function": None,
+        }
+    ]
+
+    response = service_client.get(
+        f"/service/ou/{subid}/details/association", params={"only_primary_uuid": 1}
+    )
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_terminate_association_directly(service_client: TestClient) -> None:
     userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
     associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
@@ -1511,9 +1466,9 @@ def test_terminate_association_directly(service_client: TestClient) -> None:
     assert response.json() == []
 
 
-@freezegun.freeze_time("2018-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2018-01-01", tz_offset=1)
 def test_terminate_association_in_the_past(service_client: TestClient) -> None:
     associationid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
 
