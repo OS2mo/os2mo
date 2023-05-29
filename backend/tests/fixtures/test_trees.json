@@ -92,6 +92,12 @@
         }
       },
       {
+        "name": "Fake Corp With Addrs",
+        "user_key": "fake-orgunit-addrs",
+        "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+        "validity": {"from": "2016-01-01", "to": null}
+      },
+      {
         "name": "IT-Support",
         "user_key": "it_sup",
         "uuid": "fa2e23c9-860a-4c90-bcc6-2c0721869a25",
@@ -99,12 +105,6 @@
           "from": "2016-01-01",
           "to": null
         }
-      },
-      {
-        "name": "Fake Corp With Addrs",
-        "user_key": "fake-orgunit-addrs",
-        "uuid": "f494ad89-039d-478e-91f2-a63566554666",
-        "validity": {"from": "2016-01-01", "to": null}
       }
     ],
     "offset": 0,
@@ -159,6 +159,12 @@
     "total": 1
   },
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?at=2017-06-01": [
+    {
+      "name": "Fake Corp With Addrs",
+      "user_key": "fake-orgunit-addrs",
+      "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+      "validity": {"from": "2016-01-01", "to": null}
+    },
     {
       "children": [
         {
@@ -267,15 +273,15 @@
         "from": "2016-01-01",
         "to": null
       }
-    },
+    }
+  ],
+  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?query=fak&at=2017-06-01": [
     {
       "name": "Fake Corp With Addrs",
       "user_key": "fake-orgunit-addrs",
       "uuid": "f494ad89-039d-478e-91f2-a63566554666",
       "validity": {"from": "2016-01-01", "to": null}
-    }
-  ],
-  "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?query=fak&at=2017-06-01": [
+    },
     {
       "children": [
         {
@@ -304,12 +310,6 @@
         "from": "2016-01-01",
         "to": null
       }
-    },
-    {
-      "name": "Fake Corp With Addrs",
-      "user_key": "fake-orgunit-addrs",
-      "uuid": "f494ad89-039d-478e-91f2-a63566554666",
-      "validity": {"from": "2016-01-01", "to": null}
     }
   ],
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?query=fak&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
@@ -336,6 +336,13 @@
   ],
   "/service/ou/ancestor-tree?uuid=2874e1dc-85e6-4269-823a-e1125484dfd3&at=2017-06-01": [
     {
+      "child_count": 0,
+      "name": "Fake Corp With Addrs",
+      "user_key": "fake-orgunit-addrs",
+      "uuid": "f494ad89-039d-478e-91f2-a63566554666",
+      "validity": {"from": "2016-01-01", "to": null}
+    },
+    {
       "child_count": 1,
       "name": "Lønorganisation",
       "user_key": "løn",
@@ -354,16 +361,16 @@
         "from": "2016-01-01",
         "to": null
       }
-    },
+    }
+  ],
+  "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
     {
       "child_count": 0,
       "name": "Fake Corp With Addrs",
       "user_key": "fake-orgunit-addrs",
       "uuid": "f494ad89-039d-478e-91f2-a63566554666",
       "validity": {"from": "2016-01-01", "to": null}
-    }
-  ],
-  "/service/ou/ancestor-tree?uuid=b688513d-11f7-4efc-b679-ab082a2055d0&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&at=2017-06-01": [
+    },
     {
       "child_count": 1,
       "name": "Lønorganisation",
@@ -424,13 +431,6 @@
         "from": "2016-01-01",
         "to": null
       }
-    },
-    {
-      "child_count": 0,
-      "name": "Fake Corp With Addrs",
-      "user_key": "fake-orgunit-addrs",
-      "uuid": "f494ad89-039d-478e-91f2-a63566554666",
-      "validity": {"from": "2016-01-01", "to": null}
     }
   ],
   "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/ou/tree?query=fak&uuid=9d07123e-47ac-4a9a-88c8-da82e3a4bc9e&uuid=b688513d-11f7-4efc-b679-ab082a2055d0&at=2017-06-01": [

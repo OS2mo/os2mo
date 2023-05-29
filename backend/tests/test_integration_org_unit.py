@@ -2,10 +2,12 @@
 # SPDX-License-Identifier: MPL-2.0
 import unittest
 from itertools import cycle
+from typing import Any
 
 import freezegun
 import pytest
-from parameterized import parameterized
+from fastapi.testclient import TestClient
+from more_itertools import one
 
 import tests.cases
 from . import util
@@ -14,6 +16,11 @@ from mora.service import orgunit as service_orgunit
 from tests.util import set_get_configuration
 
 
+org_unit_hierarchy_facet = {
+    "description": "",
+    "user_key": "org_unit_hierarchy",
+    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
+}
 org_unit_type_facet = {
     "description": "",
     "user_key": "org_unit_type",
@@ -468,11 +475,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         "user_key": "Telefon",
                         "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                     },
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
+                    "org": org,
                     "validity": {
                         "from": "2016-02-04",
                         "to": "2017-10-21",
@@ -488,11 +491,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         "user_key": "Adresse",
                         "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                     },
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
+                    "org": org,
                     "validity": {
                         "from": "2016-02-04",
                         "to": "2017-10-21",
@@ -620,11 +619,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 {
                     "location": "Overordnet Enhed",
                     "name": "Fake Corp",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
+                    "org": org,
                     "org_unit_level": {
                         "example": None,
                         "facet": org_unit_level_facet,
@@ -636,50 +631,16 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         "user_key": "orgunitlevel10",
                         "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
                     },
-                    "time_planning": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "name": "Institut",
-                        "full_name": "Institut",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "inst",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                    },
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "name": "Institut",
-                        "full_name": "Institut",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "inst",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                    },
+                    "time_planning": org_unit_type_institute,
+                    "org_unit_type": org_unit_type_institute,
                     "parent": {
                         "location": "",
                         "name": "Overordnet Enhed",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
+                        "org": org,
                         "org_unit_level": None,
-                        "time_planning": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "name": "Afdeling",
-                            "full_name": "Afdeling",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "afd",
-                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        },
+                        "org_unit_type": org_unit_type_department,
                         "parent": None,
+                        "time_planning": None,
                         "user_key": "root",
                         "user_settings": {"orgunit": {}},
                         "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
@@ -839,7 +800,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/org_unit" "?validity=past".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/org_unit?validity=past",
             [],
             amqp_topics={"org_unit.org_unit.update": 1},
         )
@@ -849,23 +810,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             [
                 {
                     "name": "Whatever",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
+                    "org": org,
                     "time_planning": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Fakultet",
-                        "name": "Fakultet",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "fak",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                    },
+                    "org_unit_type": org_unit_type_faculty,
                     "parent": {
                         "name": "Overordnet Enhed",
                         "user_key": "root",
@@ -887,7 +834,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
         await self.assertRequestResponse(
-            "/service/ou/{}/details/org_unit" "?validity=future".format(org_unit_uuid),
+            f"/service/ou/{org_unit_uuid}/details/org_unit?validity=future",
             [],
             amqp_topics={"org_unit.org_unit.update": 1},
         )
@@ -923,7 +870,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Whatever",
                         "virkning": {
-                            "from": "2018-01-01 " "00:00:00+01",
+                            "from": "2018-01-01 00:00:00+01",
                             "from_included": True,
                             "to": "infinity",
                             "to_included": False,
@@ -931,11 +878,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     },
                     {
                         "brugervendtnoegle": "root",
-                        "enhedsnavn": "Overordnet " "Enhed",
+                        "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2016-01-01 " "00:00:00+01",
+                            "from": "2016-01-01 00:00:00+01",
                             "from_included": True,
-                            "to": "2018-01-01 " "00:00:00+01",
+                            "to": "2018-01-01 00:00:00+01",
                             "to_included": False,
                         },
                     },
@@ -1028,7 +975,7 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                         "brugervendtnoegle": "root",
                         "enhedsnavn": "Whatever",
                         "virkning": {
-                            "from": "2018-01-01 " "00:00:00+01",
+                            "from": "2018-01-01 00:00:00+01",
                             "from_included": True,
                             "to": "infinity",
                             "to_included": False,
@@ -1036,11 +983,11 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     },
                     {
                         "brugervendtnoegle": "root",
-                        "enhedsnavn": "Overordnet " "Enhed",
+                        "enhedsnavn": "Overordnet Enhed",
                         "virkning": {
-                            "from": "2016-01-01 " "00:00:00+01",
+                            "from": "2016-01-01 00:00:00+01",
                             "from_included": True,
-                            "to": "2018-01-01 " "00:00:00+01",
+                            "to": "2018-01-01 00:00:00+01",
                             "to_included": False,
                         },
                     },
@@ -1232,23 +1179,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 [
                     {
                         "name": "AlexTestah",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
+                        "org": org,
                         "time_planning": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Afdeling",
-                            "name": "Afdeling",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "afd",
-                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        },
+                        "org_unit_type": org_unit_type_department,
                         "parent": {
                             "name": "Overordnet Enhed",
                             "user_ky": "root",
@@ -1261,23 +1194,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     },
                     {
                         "name": "AlexTestikah",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
+                        "org": org,
                         "time_planning": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Afdeling",
-                            "name": "Afdeling",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "afd",
-                            "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                        },
+                        "org_unit_type": org_unit_type_department,
                         "parent": {
                             "name": "Overordnet Enhed",
                             "user_key": "root",
@@ -1291,23 +1210,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                     },
                     {
                         "name": "AlexTestikah",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
+                        "org": org,
                         "time_planning": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Fakultet",
-                            "name": "Fakultet",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "fak",
-                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        },
+                        "org_unit_type": org_unit_type_faculty,
                         "parent": {
                             "name": "Samfundsvidenskabelige fakultet",
                             "user_key": "samf",
@@ -1326,23 +1231,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
                 [
                     {
                         "name": "AlexTest",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
+                        "org": org,
                         "time_planning": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Fakultet",
-                            "name": "Fakultet",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "fak",
-                            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                        },
+                        "org_unit_type": org_unit_type_faculty,
                         "parent": {
                             "name": "Samfundsvidenskabelige fakultet",
                             "user_key": "samf",
@@ -1378,23 +1269,9 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
             [
                 {
                     "name": "AlexTest",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
+                    "org": org,
                     "time_planning": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Fakultet",
-                        "name": "Fakultet",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "fak",
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                    },
+                    "org_unit_type": org_unit_type_faculty,
                     "parent": {
                         "name": "Samfundsvidenskabelige fakultet",
                         "user_key": "samf",
@@ -1534,1340 +1411,504 @@ class AsyncTests(tests.cases.AsyncLoRATestCase):
         )
 
 
+org = {
+    "name": "Aarhus Universitet",
+    "user_key": "AU",
+    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+}
+org_unit_type_department = {
+    "example": None,
+    "facet": org_unit_type_facet,
+    "full_name": "Afdeling",
+    "name": "Afdeling",
+    "owner": None,
+    "scope": None,
+    "top_level_facet": org_unit_type_facet,
+    "user_key": "afd",
+    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
+}
+org_unit_type_institute = {
+    "example": None,
+    "facet": org_unit_type_facet,
+    "full_name": "Institut",
+    "name": "Institut",
+    "owner": None,
+    "scope": None,
+    "top_level_facet": org_unit_type_facet,
+    "user_key": "inst",
+    "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
+}
+org_unit_type_faculty = {
+    "example": None,
+    "facet": org_unit_type_facet,
+    "full_name": "Fakultet",
+    "name": "Fakultet",
+    "owner": None,
+    "scope": None,
+    "top_level_facet": org_unit_type_facet,
+    "user_key": "fak",
+    "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+}
+
+parent_org_unit = {
+    "location": "",
+    "name": "Overordnet Enhed",
+    "org": org,
+    "org_unit_hierarchy": None,
+    "org_unit_level": None,
+    "org_unit_type": org_unit_type_department,
+    "parent": None,
+    "time_planning": None,
+    "user_key": "root",
+    "user_settings": {"orgunit": {}},
+    "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+    "validity": {"from": "2016-01-01", "to": None},
+}
+humanities_org_unit = {
+    "location": "Overordnet Enhed",
+    "name": "Humanistisk fakultet",
+    "org": org,
+    "org_unit_hierarchy": {
+        "example": None,
+        "facet": org_unit_hierarchy_facet,
+        "full_name": "Selvejet institution",
+        "name": "Selvejet institution",
+        "owner": None,
+        "scope": "TEXT",
+        "top_level_facet": org_unit_hierarchy_facet,
+        "user_key": "selvejet",
+        "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
+    },
+    "org_unit_level": None,
+    "org_unit_type": org_unit_type_institute,
+    "parent": parent_org_unit,
+    "time_planning": None,
+    "user_key": "hum",
+    "user_settings": {"orgunit": {}},
+    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+    "validity": {"from": "2016-01-01", "to": None},
+}
+historical_institute_org_unit = {
+    "location": "Overordnet Enhed\\Humanistisk fakultet",
+    "name": "Historisk Institut",
+    "org": org,
+    "org_unit_hierarchy": None,
+    "org_unit_level": None,
+    "org_unit_type": org_unit_type_institute,
+    "parent": humanities_org_unit,
+    "time_planning": None,
+    "user_key": "hist",
+    "user_settings": {"orgunit": {}},
+    "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+    "validity": {"from": "2016-01-01", "to": "2018-12-31"},
+}
+
+future_org_unit = {
+    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
+    "name": "Afdeling for Fremtidshistorik",
+    "org": org,
+    "org_unit_type": org_unit_type_department,
+    "org_unit_hierarchy": None,
+    "org_unit_level": None,
+    "parent": historical_institute_org_unit,
+    "time_planning": None,
+    "user_key": "frem",
+    "user_settings": {"orgunit": {}},
+    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+    "validity": {"from": "2016-01-01", "to": "2016-12-31"},
+}
+present_org_unit = {
+    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
+    "name": "Afdeling for Samtidshistorik",
+    "org": org,
+    "org_unit_hierarchy": None,
+    "org_unit_level": None,
+    "org_unit_type": org_unit_type_department,
+    "parent": historical_institute_org_unit,
+    "time_planning": None,
+    "user_key": "frem",
+    "user_settings": {"orgunit": {}},
+    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
+}
+past_org_unit = {
+    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
+    "name": "Afdeling for Fortidshistorik",
+    "org": org,
+    "org_unit_hierarchy": None,
+    "org_unit_level": None,
+    "org_unit_type": org_unit_type_department,
+    "parent": historical_institute_org_unit,
+    "time_planning": None,
+    "user_key": "frem",
+    "user_settings": {"orgunit": {}},
+    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+    "validity": {"from": "2018-01-01", "to": "2018-12-31"},
+}
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "params, expected",
+    [
+        ({"validity": "past"}, [future_org_unit]),
+        ({"validity": "present"}, [present_org_unit]),
+        ({"validity": "future"}, [past_org_unit]),
+        (
+            {"validity": "past", "at": "2020-01-01"},
+            [future_org_unit, present_org_unit, past_org_unit],
+        ),
+        ({"validity": "present", "at": "2020-01-01"}, []),
+        ({"validity": "future", "at": "2020-01-01"}, []),
+    ],
+)
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class Tests(tests.cases.LoRATestCase):
-    maxDiff = None
+@set_get_configuration("mora.service.orgunit.get_configuration")
+def test_org_unit_temporality(
+    service_client: TestClient, params: dict[str, Any], expected: list[dict[str, Any]]
+) -> None:
+    response = service_client.get(
+        "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48/details/org_unit",
+        params=params,
+    )
+    assert response.status_code == 200
+    assert response.json() == expected
 
-    @set_get_configuration("mora.service.orgunit.get_configuration")
-    def test_org_unit_temporality(self):
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=past",
-            [
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet"
-                    "\\Historisk Institut",
-                    "name": "Afdeling for Fremtidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "user_key": "inst",
-                            "top_level_facet": org_unit_type_facet,
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": org_unit_type_facet,
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": org_unit_type_facet,
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": org_unit_type_facet,
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": org_unit_type_facet,
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2016-01-01", "to": "2016-12-31"},
-                }
-            ],
-        )
 
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=present",
-            [
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-                    "name": "Afdeling for Samtidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                }
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=future",
-            [
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-                    "name": "Afdeling for Fortidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2018-01-01", "to": "2018-12-31"},
-                }
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=past&at=2020-01-01",
-            [
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-                    "name": "Afdeling for Fortidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2018-01-01", "to": "2018-12-31"},
-                },
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-                    "name": "Afdeling for Fremtidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2016-01-01", "to": "2016-12-31"},
-                },
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet\\Historisk Institut",
-                    "name": "Afdeling for Samtidshistorik",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "full_name": "Afdeling",
-                        "name": "Afdeling",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": {
-                            "description": "",
-                            "user_key": "org_unit_type",
-                            "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                        },
-                        "user_key": "afd",
-                        "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed\\Humanistisk fakultet",
-                        "name": "Historisk Institut",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": None,
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_type",
-                                "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                            },
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "Overordnet Enhed",
-                            "name": "Humanistisk fakultet",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "full_name": "Selvejet institution",
-                                "name": "Selvejet institution",
-                                "owner": None,
-                                "scope": "TEXT",
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_hierarchy",
-                                    "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                                },
-                                "user_key": "selvejet",
-                                "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                            },
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "full_name": "Institut",
-                                "name": "Institut",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": {
-                                    "description": "",
-                                    "user_key": "org_unit_type",
-                                    "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                },
-                                "user_key": "inst",
-                                "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                            },
-                            "parent": {
-                                "location": "",
-                                "name": "Overordnet Enhed",
-                                "org": {
-                                    "name": "Aarhus Universitet",
-                                    "user_key": "AU",
-                                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                                },
-                                "org_unit_hierarchy": None,
-                                "org_unit_level": None,
-                                "org_unit_type": {
-                                    "example": None,
-                                    "facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "full_name": "Afdeling",
-                                    "name": "Afdeling",
-                                    "owner": None,
-                                    "scope": None,
-                                    "top_level_facet": {
-                                        "description": "",
-                                        "user_key": "org_unit_type",
-                                        "uuid": "fc917e7c-fc3b-47c2-8aa5-a0383342a280",
-                                    },
-                                    "user_key": "afd",
-                                    "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                                },
-                                "parent": None,
-                                "time_planning": None,
-                                "user_key": "root",
-                                "user_settings": {"orgunit": {}},
-                                "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                                "validity": {"from": "2016-01-01", "to": None},
-                            },
-                            "time_planning": None,
-                            "user_key": "hum",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hist",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                        "validity": {"from": "2016-01-01", "to": "2018-12-31"},
-                    },
-                    "time_planning": None,
-                    "user_key": "frem",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    "validity": {"from": "2017-01-01", "to": "2017-12-31"},
-                },
-            ],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=present&at=2020-01-01",
-            [],
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/04c78fc2-72d2-4d02-b55f-807af19eac48"
-            "/details/org_unit?validity=future&at=2020-01-01",
-            [],
-        )
-
-    def test_create_org_unit_fails_validation_outside_org_unit(self):
-        """Validation should fail when date range is outside of org unit
-        range"""
-        payload = {
-            "name": "Fake Corp",
-            "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
-            "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-            "addresses": [
-                {
-                    "address_type": {
-                        "example": "20304060",
-                        "name": "Telefon",
-                        "scope": "PHONE",
-                        "user_key": "Telefon",
-                        "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                    },
-                    "value": "11 22 33 44",
-                },
-                {
-                    "address_type": {
-                        "example": "<UUID>",
-                        "name": "Adresse",
-                        "scope": "DAR",
-                        "user_key": "Adresse",
-                        "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                    },
-                    "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
-                },
-            ],
-            "validity": {
-                "from": "2010-02-04",
-                "to": "2017-10-21",
-            },
-        }
-
-        expected = {
-            "description": "Date range exceeds validity "
-            "range of associated org unit.",
-            "error": True,
-            "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
-            "org_unit_uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-            "status": 400,
-            "valid_from": "2016-01-01",
-            "valid_to": None,
-            "wanted_valid_from": "2010-02-04",
-            "wanted_valid_to": "2017-10-21",
-        }
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            expected,
-            json=payload,
-            status_code=400,
-        )
-
-        self.assertRequestResponse(
-            "/service/ou/create?force=0",
-            expected,
-            json=payload,
-            status_code=400,
-        )
-
-        self.assertRequest(
-            "/service/ou/create?force=1",
-            json=payload,
-            amqp_topics={"org_unit.org_unit.create": 1},
-        )
-
-    def test_edit_missing_org_unit(self):
-        req = [
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_create_org_unit_fails_validation_outside_org_unit(
+    service_client: TestClient,
+) -> None:
+    """Validation should fail when date range is outside of org unit
+    range"""
+    payload = {
+        "name": "Fake Corp",
+        "parent": {"uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3"},
+        "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
+        "addresses": [
             {
-                "type": "org_unit",
-                "data": {
-                    "org_unit_type": {"uuid": "79e15798-7d6d-4e85-8496-dcc8887a1c1a"},
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
+                "address_type": {
+                    "example": "20304060",
+                    "name": "Telefon",
+                    "scope": "PHONE",
+                    "user_key": "Telefon",
+                    "uuid": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
                 },
-            }
-        ]
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+                "value": "11 22 33 44",
+            },
             {
-                "description": "Missing uuid",
-                "error": True,
-                "error_key": "V_MISSING_REQUIRED_VALUE",
-                "key": "uuid",
-                "obj": req[0]["data"],
-                "status": 400,
-            },
-            json=req,
-            status_code=400,
-        )
-
-    @freezegun.freeze_time("2010-01-01")
-    def test_edit_org_unit_earlier_start(self):
-        """Test setting the start date to something earlier (#23182)"""
-
-        org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            org_unit_uuid,
-            json={
-                "type": "org_unit",
-                "data": {
-                    "uuid": org_unit_uuid,
-                    "user_key": org_unit_uuid,
-                    "validity": {
-                        "from": "2016-06-01",
-                    },
+                "address_type": {
+                    "example": "<UUID>",
+                    "name": "Adresse",
+                    "scope": "DAR",
+                    "user_key": "Adresse",
+                    "uuid": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
                 },
+                "uuid": "44c532e1-f617-4174-b144-d37ce9fda2bd",
             },
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
+        ],
+        "validity": {
+            "from": "2010-02-04",
+            "to": "2017-10-21",
+        },
+    }
 
-        self.assertRequest(
-            "/service/ou/" + org_unit_uuid + "/?at=2016-06-01",
-            200,
-            "should exist on 2016-06-01",
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
+    expected = {
+        "description": "Date range exceeds validity range of associated org unit.",
+        "error": True,
+        "error_key": "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+        "org_unit_uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
+        "status": 400,
+        "valid_from": "2016-01-01",
+        "valid_to": None,
+        "wanted_valid_from": "2010-02-04",
+        "wanted_valid_to": "2017-10-21",
+    }
 
-        self.assertRequest(
-            "/service/ou/" + org_unit_uuid + "/?at=2016-05-31",
-            404,
-            "should not exist before start",
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
+    response = service_client.post("/service/ou/create", json=payload)
+    assert response.status_code == 400
+    assert response.json() == expected
 
-    @freezegun.freeze_time("2016-01-01")
-    @util.mock("aabogade.json", allow_mox=True, real_http=True)
-    def test_edit_org_unit_extending_end(self, m):
-        unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
-        topics = {}
+    response = service_client.post(
+        "/service/ou/create", json=payload, params={"force": 0}
+    )
+    assert response.status_code == 400
+    assert response.json() == expected
 
-        def check_future_names(*names):
-            assert list(names) == [
-                (d["name"], d["validity"]["from"], d["validity"]["to"])
-                for d in self.assertRequest(
-                    f"/service/ou/{unitid}/details/org_unit?validity=future",
-                    amqp_topics=topics,
-                )
-            ]
+    response = service_client.post(
+        "/service/ou/create", json=payload, params={"force": 1}
+    )
+    assert response.status_code == 201
 
-        with self.subTest("prerequisites"):
-            check_future_names(
-                ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-                ("Afdeling for Fortidshistorik", "2018-01-01", "2018-12-31"),
-            )
 
-        topics = {"org_unit.org_unit.update": 1}
-        self.assertRequestResponse(
-            "/service/details/edit",
-            unitid,
-            "Editing with clamp should succeed",
-            json={
-                "type": "org_unit",
-                "data": {
-                    "name": "Institut for Vrøvl",
-                    "uuid": unitid,
-                    "clamp": True,
-                    "validity": {
-                        "from": "2018-03-01",
-                    },
-                },
-            },
-            amqp_topics=topics,
-        )
-
-        topics["org_unit.org_unit.update"] += 1
-        self.assertRequestResponse(
-            "/service/details/edit",
-            unitid,
-            "Editing with clamp should succeed",
-            json={
-                "type": "org_unit",
-                "data": {
-                    "name": "Institut for Sludder",
-                    "uuid": unitid,
-                    "clamp": True,
-                    "validity": {
-                        "from": "2018-06-01",
-                        "to": "2018-09-30",
-                    },
-                },
-            },
-            amqp_topics=topics,
-        )
-
-        check_future_names(
-            ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
-            ("Afdeling for Fortidshistorik", "2018-01-01", "2018-02-28"),
-            ("Institut for Vrøvl", "2018-03-01", "2018-05-31"),
-            ("Institut for Sludder", "2018-06-01", "2018-09-30"),
-            ("Institut for Vrøvl", "2018-10-01", "2018-12-31"),
-        )
-
-    def test_create_missing_parent(self):
-        payload = {
-            "name": "Fake Corp",
-            "parent": {"uuid": "00000000-0000-0000-0000-000000000000"},
-            "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
-            "addresses": [],
-            "validity": {
-                "from": "2017-01-01",
-                "to": "2018-01-01",
-            },
-        }
-
-        self.assertRequestResponse(
-            "/service/ou/create",
-            {
-                "description": "Org unit not found.",
-                "error": True,
-                "error_key": "E_ORG_UNIT_NOT_FOUND",
-                "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
-                "status": 404,
-            },
-            json=payload,
-            status_code=404,
-        )
-
-    def test_edit_time_planning(self):
-        org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
-
-        self.assertRequestResponse(
-            "/service/details/edit",
-            org_unit_uuid,
-            json={
-                "type": "org_unit",
-                "data": {
-                    "time_planning": {
-                        "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                    },
-                    "uuid": org_unit_uuid,
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                },
-            },
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
-
-        response = self.assertRequest(
-            f"/service/ou/{org_unit_uuid}/details/org_unit?validity=present",
-            amqp_topics={"org_unit.org_unit.update": 1},
-        )
-
-        expected = {
-            "example": None,
-            "facet": org_unit_type_facet,
-            "full_name": "Fakultet",
-            "name": "Fakultet",
-            "owner": None,
-            "scope": None,
-            "top_level_facet": org_unit_type_facet,
-            "user_key": "fak",
-            "uuid": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-        }
-
-        actual = response[-1].get("time_planning")
-
-        assert expected == actual
-
-    def test_move_org_unit_should_fail_validation(self):
-        """Should fail validation when trying to move an org unit to one of
-        its children"""
-
-        org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        req = {
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_edit_missing_org_unit(service_client: TestClient) -> None:
+    req = [
+        {
             "type": "org_unit",
             "data": {
-                "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
-                "uuid": org_unit_uuid,
+                "org_unit_type": {"uuid": "79e15798-7d6d-4e85-8496-dcc8887a1c1a"},
                 "validity": {
-                    "from": "2017-07-01",
+                    "from": "2017-01-01",
                 },
             },
         }
+    ]
 
-        self.assertRequestResponse(
-            "/service/details/edit",
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "Missing uuid",
+        "error": True,
+        "error_key": "V_MISSING_REQUIRED_VALUE",
+        "key": "uuid",
+        "obj": req[0]["data"],
+        "status": 400,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2010-01-01")
+def test_edit_org_unit_earlier_start(service_client: TestClient) -> None:
+    """Test setting the start date to something earlier (#23182)"""
+
+    org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+
+    response = service_client.post(
+        "/service/details/edit",
+        json={
+            "type": "org_unit",
+            "data": {
+                "uuid": org_unit_uuid,
+                "user_key": org_unit_uuid,
+                "validity": {
+                    "from": "2016-06-01",
+                },
+            },
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == org_unit_uuid
+
+    response = service_client.get(
+        f"/service/ou/{org_unit_uuid}/", params={"at": "2016-06-01"}
+    )
+    assert response.status_code == 200, "should exist on 2016-06-01"
+
+    response = service_client.get(
+        f"/service/ou/{org_unit_uuid}/", params={"at": "2016-05-31"}
+    )
+    assert response.status_code == 404, "should not exist before start"
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2016-01-01")
+def test_edit_org_unit_extending_end(service_client: TestClient) -> None:
+    unitid = "04c78fc2-72d2-4d02-b55f-807af19eac48"
+
+    def check_future_names(*names):
+        response = service_client.get(
+            f"/service/ou/{unitid}/details/org_unit", params={"validity": "future"}
+        )
+        assert response.status_code == 200
+        result = response.json()
+
+        assert list(names) == [
+            (d["name"], d["validity"]["from"], d["validity"]["to"]) for d in result
+        ]
+
+    # Prerequisites
+    check_future_names(
+        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
+        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-12-31"),
+    )
+
+    response = service_client.post(
+        "/service/details/edit",
+        json={
+            "type": "org_unit",
+            "data": {
+                "name": "Institut for Vrøvl",
+                "uuid": unitid,
+                "clamp": True,
+                "validity": {
+                    "from": "2018-03-01",
+                },
+            },
+        },
+    )
+    assert response.status_code == 200, "Editing with clamp should succeed"
+    assert response.json() == unitid
+
+    response = service_client.post(
+        "/service/details/edit",
+        json={
+            "type": "org_unit",
+            "data": {
+                "name": "Institut for Sludder",
+                "uuid": unitid,
+                "clamp": True,
+                "validity": {
+                    "from": "2018-06-01",
+                    "to": "2018-09-30",
+                },
+            },
+        },
+    )
+    assert response.status_code == 200, "Editing with clamp should succeed"
+    assert response.json() == unitid
+
+    check_future_names(
+        ("Afdeling for Samtidshistorik", "2017-01-01", "2017-12-31"),
+        ("Afdeling for Fortidshistorik", "2018-01-01", "2018-02-28"),
+        ("Institut for Vrøvl", "2018-03-01", "2018-05-31"),
+        ("Institut for Sludder", "2018-06-01", "2018-09-30"),
+        ("Institut for Vrøvl", "2018-10-01", "2018-12-31"),
+    )
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2016-01-01")
+def test_create_missing_parent(service_client: TestClient) -> None:
+    payload = {
+        "name": "Fake Corp",
+        "parent": {"uuid": "00000000-0000-0000-0000-000000000000"},
+        "org_unit_type": {"uuid": "ca76a441-6226-404f-88a9-31e02e420e52"},
+        "addresses": [],
+        "validity": {
+            "from": "2017-01-01",
+            "to": "2018-01-01",
+        },
+    }
+
+    response = service_client.post("/service/ou/create", json=payload)
+    assert response.status_code == 404
+    assert response.json() == {
+        "description": "Org unit not found.",
+        "error": True,
+        "error_key": "E_ORG_UNIT_NOT_FOUND",
+        "org_unit_uuid": "00000000-0000-0000-0000-000000000000",
+        "status": 404,
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_edit_time_planning(service_client: TestClient) -> None:
+    org_unit_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"
+
+    response = service_client.post(
+        "/service/details/edit",
+        json={
+            "type": "org_unit",
+            "data": {
+                "time_planning": {
+                    "uuid": org_unit_type_faculty["uuid"],
+                },
+                "uuid": org_unit_uuid,
+                "validity": {
+                    "from": "2017-01-01",
+                },
+            },
+        },
+    )
+    assert response.status_code == 200
+    assert response.json() == org_unit_uuid
+
+    response = service_client.get(
+        f"/service/ou/{org_unit_uuid}/details/org_unit",
+        params={"validity": "present"},
+    )
+    assert response.status_code == 200
+    result = one(response.json())
+
+    assert result["time_planning"] == org_unit_type_faculty
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "payload, expected",
+    [
+        # Should fail validation when trying to move an org unit to one of its children.
+        (
             {
-                "description": "Org unit cannot be moved to "
-                "one of its own child units",
+                "type": "org_unit",
+                "data": {
+                    "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {
+                        "from": "2017-07-01",
+                    },
+                },
+            },
+            {
+                "description": "Org unit cannot be moved to one of its own child units",
                 "error": True,
                 "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
                 "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
                 "status": 400,
             },
-            status_code=400,
-            json=req,
-        )
-
-    def test_move_org_unit_to_root_fails(self):
-        """Should fail validation when trying to move an org unit to the root
-        level"""
-
-        org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-
-        req = {
-            "type": "org_unit",
-            "data": {
-                "parent": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
-                "uuid": org_unit_uuid,
-                "validity": {
-                    "from": "2017-07-01T00:00:00+02",
+        ),
+        # Should fail validation when trying to move an org unit to the root level
+        (
+            {
+                "type": "org_unit",
+                "data": {
+                    "parent": {"uuid": "456362c4-0ee4-4e5e-a72c-751239745e62"},
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "validity": {
+                        "from": "2017-07-01T00:00:00+02",
+                    },
                 },
             },
-        }
-
-        self.assertRequestResponse(
-            "/service/details/edit",
             {
-                "description": "Moving an org unit to the root " "level is not allowed",
+                "description": "Moving an org unit to the root level is not allowed",
                 "error": True,
                 "error_key": "V_CANNOT_MOVE_UNIT_TO_ROOT_LEVEL",
                 "status": 400,
             },
-            status_code=400,
-            json=req,
-        )
-
-    def test_move_org_autoparent(self):
-        "Verify that we cannot create cycles when moving organisational units"
-
-        hum_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"  # parent
-        fil_uuid = "85715fc7-925d-401b-822d-467eb4b163b6"  # child
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+        ),
+        # Verify that we cannot create cycles when moving organisational units
+        (
             {
-                "description": "Org unit cannot be moved to one of its own "
-                "child units",
-                "error": True,
-                "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
-                "status": 400,
-                "org_unit_uuid": hum_uuid,
-            },
-            status_code=400,
-            json={
                 "type": "org_unit",
                 "data": {
-                    "parent": {
-                        "uuid": fil_uuid,
-                    },
-                    "uuid": hum_uuid,
+                    "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},  # child
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",  # parent
                     "validity": {
                         "from": "2018-01-01",
                     },
                 },
             },
-        )
-
-    def test_move_org_nowhere(self):
-        "Verify that we cannot move units to places that don't exist"
-
-        org_unit_uuid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-
-        self.assertRequestResponse(
-            "/service/details/edit",
+            {
+                "description": "Org unit cannot be moved to one of its own child units",
+                "error": True,
+                "error_key": "V_ORG_UNIT_MOVE_TO_CHILD",
+                "status": 400,
+                "org_unit_uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",  # parent
+            },
+        ),
+        # Verify that we cannot move units to places that do not exist
+        (
+            {
+                "type": "org_unit",
+                "data": {
+                    "parent": {
+                        "uuid": "00000000-0000-0000-0000-000000000001",
+                    },
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "validity": {
+                        "from": "2017-01-01",
+                    },
+                },
+            },
             {
                 "description": "Org unit not found.",
                 "error": True,
@@ -2875,395 +1916,328 @@ class Tests(tests.cases.LoRATestCase):
                 "org_unit_uuid": "00000000-0000-0000-0000-000000000001",
                 "status": 404,
             },
-            status_code=404,
-            json={
-                "type": "org_unit",
-                "data": {
-                    "parent": {
-                        "uuid": "00000000-0000-0000-0000-000000000001",
-                    },
-                    "uuid": org_unit_uuid,
-                    "validity": {
-                        "from": "2017-01-01",
-                    },
-                },
+        ),
+    ],
+)
+def test_move_fail_validation(
+    service_client: TestClient, payload: dict[str, Any], expected: dict[str, Any]
+) -> None:
+    response = service_client.post("/service/details/edit", json=payload)
+    assert response.status_code == expected["status"]
+    assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_edit_org_unit_should_fail_validation_when_end_before_start(
+    service_client: TestClient,
+) -> None:
+    """Should fail validation when trying to edit an org unit with the
+    to-time being before the from-time"""
+
+    org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+
+    req = {
+        "type": "org_unit",
+        "data": {
+            "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
+            "uuid": org_unit_uuid,
+            "validity": {
+                "from": "2017-07-01",
+                "to": "2015-07-01",
             },
-        )
+        },
+    }
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 400
+    assert response.json() == {
+        "description": "End date is before start date.",
+        "error": True,
+        "error_key": "V_END_BEFORE_START",
+        "status": 400,
+        "obj": req["data"],
+    }
 
-    def test_edit_org_unit_should_fail_validation_when_end_before_start(self):
-        """Should fail validation when trying to edit an org unit with the
-        to-time being before the from-time"""
 
-        org_unit_uuid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "inactive_validity, expected_validity",
+    [
+        # Test new payload, which includes both "from" and "to" dates
+        (
+            # The payload asks for an *inactive* period from Jan 1, 2017 to
+            # Jan 1, 2018.
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # Upon termination, the org unit will have an *active* period from
+            # Jan 1, 2016 to Dec 31, 2016 (the day before its termination.)
+            {"from": "2016-01-01", "to": "2016-12-31"},
+        ),
+        # Test old payload, which only has a "to" date
+        (
+            # The payload asks for an *inactive* period beginning infinitely
+            # far in the past and ending on Oct 21, 2016.
+            {"to": "2016-10-21"},
+            # Upon termination, the org unit will have an *active* period from
+            # Jan 1, 2016 to Oct 21, 2016 (the day of its termination.)
+            {"from": "2016-01-01", "to": "2016-10-21"},
+        ),
+    ],
+)
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+@set_get_configuration("mora.service.orgunit.get_configuration")
+def test_terminate_org_unit(
+    service_client: TestClient,
+    inactive_validity: dict[str, str],
+    expected_validity: dict[str, str],
+) -> None:
+    unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
+    payload = {"validity": inactive_validity}
 
-        req = {
-            "type": "org_unit",
-            "data": {
-                "parent": {"uuid": "85715fc7-925d-401b-822d-467eb4b163b6"},
-                "uuid": org_unit_uuid,
-                "validity": {
-                    "from": "2017-07-01",
-                    "to": "2015-07-01",
-                },
-            },
+    response = service_client.post(f"/service/ou/{unitid}/terminate", json=payload)
+    assert response.status_code == 200
+    assert response.json() == unitid
+
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/org_unit", params={"validity": "past"}
+    )
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "location": "Overordnet Enhed\\Humanistisk fakultet",
+            "name": "Filosofisk Institut",
+            "org": org,
+            "org_unit_hierarchy": None,
+            "org_unit_level": None,
+            "org_unit_type": org_unit_type_institute,
+            "parent": humanities_org_unit,
+            "time_planning": None,
+            "user_key": "fil",
+            "user_settings": {"orgunit": {}},
+            "uuid": unitid,
+            "validity": expected_validity,
         }
+    ]
 
-        self.assertRequestResponse(
-            "/service/details/edit",
-            {
-                "description": "End date is before start date.",
-                "error": True,
-                "error_key": "V_END_BEFORE_START",
-                "status": 400,
-                "obj": req["data"],
-            },
-            status_code=400,
-            json=req,
-        )
-
-    @parameterized.expand(
-        [
-            # Test new payload, which includes both "from" and "to" dates
-            (
-                # The payload asks for an *inactive* period from Jan 1, 2017 to
-                # Jan 1, 2018.
-                {"from": "2017-01-01", "to": "2018-01-01"},
-                # Upon termination, the org unit will have an *active* period from
-                # Jan 1, 2016 to Dec 31, 2016 (the day before its termination.)
-                {"from": "2016-01-01", "to": "2016-12-31"},
-            ),
-            # Test old payload, which only has a "to" date
-            (
-                # The payload asks for an *inactive* period beginning infinitely
-                # far in the past and ending on Oct 21, 2016.
-                {"to": "2016-10-21"},
-                # Upon termination, the org unit will have an *active* period from
-                # Jan 1, 2016 to Oct 21, 2016 (the day of its termination.)
-                {"from": "2016-01-01", "to": "2016-10-21"},
-            ),
-        ]
+    # Verify that we are no longer able to see org unit
+    response = service_client.get(
+        f"/service/ou/{unitid}/details/org_unit", params={"validity": "present"}
     )
-    @set_get_configuration("mora.service.orgunit.get_configuration")
-    def test_terminate_org_unit(self, inactive_validity, expected_validity):
-        unitid = "85715fc7-925d-401b-822d-467eb4b163b6"
-        payload = {"validity": inactive_validity}
+    assert response.status_code == 200
+    assert response.json() == []
 
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/terminate",
-            unitid,
-            json=payload,
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
 
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}" + "/details/org_unit?validity=past",
-            [
-                {
-                    "location": "Overordnet Enhed\\Humanistisk fakultet",
-                    "name": "Filosofisk Institut",
-                    "org": {
-                        "name": "Aarhus Universitet",
-                        "user_key": "AU",
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    },
-                    "org_unit_hierarchy": None,
-                    "org_unit_level": None,
-                    "org_unit_type": {
-                        "example": None,
-                        "facet": org_unit_type_facet,
-                        "full_name": "Institut",
-                        "name": "Institut",
-                        "owner": None,
-                        "scope": None,
-                        "top_level_facet": org_unit_type_facet,
-                        "user_key": "inst",
-                        "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                    },
-                    "parent": {
-                        "location": "Overordnet Enhed",
-                        "name": "Humanistisk fakultet",
-                        "org": {
-                            "name": "Aarhus Universitet",
-                            "user_key": "AU",
-                            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        },
-                        "org_unit_hierarchy": {
-                            "example": None,
-                            "facet": {
-                                "description": "",
-                                "user_key": "org_unit_hierarchy",
-                                "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                            },
-                            "full_name": "Selvejet institution",
-                            "name": "Selvejet institution",
-                            "owner": None,
-                            "scope": "TEXT",
-                            "top_level_facet": {
-                                "description": "",
-                                "user_key": "org_unit_hierarchy",
-                                "uuid": "403eb28f-e21e-bdd6-3612-33771b098a12",
-                            },
-                            "user_key": "selvejet",
-                            "uuid": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                        },
-                        "org_unit_level": None,
-                        "org_unit_type": {
-                            "example": None,
-                            "facet": org_unit_type_facet,
-                            "full_name": "Institut",
-                            "name": "Institut",
-                            "owner": None,
-                            "scope": None,
-                            "top_level_facet": org_unit_type_facet,
-                            "user_key": "inst",
-                            "uuid": "ca76a441-6226-404f-88a9-31e02e420e52",
-                        },
-                        "parent": {
-                            "location": "",
-                            "name": "Overordnet Enhed",
-                            "org": {
-                                "name": "Aarhus Universitet",
-                                "user_key": "AU",
-                                "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                            },
-                            "org_unit_hierarchy": None,
-                            "org_unit_level": None,
-                            "org_unit_type": {
-                                "example": None,
-                                "facet": org_unit_type_facet,
-                                "full_name": "Afdeling",
-                                "name": "Afdeling",
-                                "owner": None,
-                                "scope": None,
-                                "top_level_facet": org_unit_type_facet,
-                                "user_key": "afd",
-                                "uuid": "32547559-cfc1-4d97-94c6-70b192eff825",
-                            },
-                            "parent": None,
-                            "time_planning": None,
-                            "user_key": "root",
-                            "user_settings": {"orgunit": {}},
-                            "uuid": "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                            "validity": {"from": "2016-01-01", "to": None},
-                        },
-                        "time_planning": None,
-                        "user_key": "hum",
-                        "user_settings": {"orgunit": {}},
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "validity": {"from": "2016-01-01", "to": None},
-                    },
-                    "time_planning": None,
-                    "user_key": "fil",
-                    "user_settings": {"orgunit": {}},
-                    "uuid": unitid,
-                    "validity": expected_validity,
-                }
-            ],
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "validity",
+    [
+        # Test new payload, which includes both "from" and "to" dates
+        {"from": "2017-01-01", "to": "2018-01-01"},
+        # Test old payload, which only has a "to" date
+        {"to": "2016-10-21"},
+    ],
+)
+def test_terminate_org_unit_invalid_uuid(
+    service_client: TestClient, validity: dict[str, str]
+) -> None:
+    unitid = "00000000-0000-0000-0000-000000000000"
 
-        # Verify that we are no longer able to see org unit
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}" + "/details/org_unit?validity=present",
-            [],
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
-
-    @parameterized.expand(
-        [
-            # Test new payload, which includes both "from" and "to" dates
-            ({"from": "2017-01-01", "to": "2018-01-01"},),
-            # Test old payload, which only has a "to" date
-            ({"to": "2016-10-21"},),
-        ]
+    response = service_client.post(
+        f"/service/ou/{unitid}/terminate", json={"validity": validity}
     )
-    def test_terminate_org_unit_invalid_uuid(self, validity):
-        unitid = "00000000-0000-0000-0000-000000000000"
-        self.assertRequestResponse(
-            f"/service/ou/{unitid}/terminate",
-            {
-                "error": True,
-                "error_key": "E_ORG_UNIT_NOT_FOUND",
-                "description": "Org unit not found.",
-                "org_unit_uuid": unitid,
-                "status": 404,
-            },
-            json={"validity": validity},
-            status_code=404,
-        )
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": True,
+        "error_key": "E_ORG_UNIT_NOT_FOUND",
+        "description": "Org unit not found.",
+        "org_unit_uuid": unitid,
+        "status": 404,
+    }
 
-    @parameterized.expand(
-        [
-            # Test new payload, which includes both "from" and "to" dates
-            (
-                # org unit uuid
-                "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                # payload
-                {"from": "2017-01-01", "to": "2018-01-01"},
-                # expected error response
-                expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "org_unit_uuid, validity, expected_error_response",
+    [
+        # Test new payload, which includes both "from" and "to" dates
+        (
+            # org unit uuid
+            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            # payload
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # expected error response
+            expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"from": "2017-01-01", "to": "2018-01-01"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                "engagement_association",
+                child_count=2,
             ),
-            (
-                # org unit uuid
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                # payload
-                {"from": "2017-01-01", "to": "2018-01-01"},
-                # expected error response
-                expected_error_response(
-                    "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                    "engagement_association",
-                    child_count=2,
-                ),
+        ),
+        # Test old payload, which only has a "to" date
+        (
+            # org unit uuid
+            "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            # payload
+            {"to": "2017-01-01"},
+            # expected error response
+            expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "2017-01-01"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                "engagement_association",
+                child_count=2,
             ),
-            # Test old payload, which only has a "to" date
-            (
-                # org unit uuid
-                "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                # payload
-                {"to": "2017-01-01"},
-                # expected error response
-                expected_error_response("V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES"),
+        ),
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "2018-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
+                roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
+                "engagement_association",
+                child_count=1,
             ),
-            (
-                # org unit uuid
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                # payload
-                {"to": "2017-01-01"},
-                # expected error response
-                expected_error_response(
-                    "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                    "engagement_association",
-                    child_count=2,
-                ),
-            ),
-            (
-                # org unit uuid
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                # payload
-                {"to": "2018-12-31"},
-                # expected error response
-                expected_error_response(
-                    "V_TERMINATE_UNIT_WITH_CHILDREN_AND_ROLES",
-                    roles="Adresse, Engagement, Leder, Relateret Enhed, Rolle, Tilknytning, "
-                    "engagement_association",
-                    child_count=1,
-                ),
-            ),
-        ]
+        ),
+    ],
+)
+def test_terminate_org_unit_active_children_and_roles(
+    service_client: TestClient,
+    org_unit_uuid: str,
+    validity: dict[str, str],
+    expected_error_response: dict[str, Any],
+) -> None:
+    response = service_client.post(
+        f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
     )
-    def test_terminate_org_unit_active_children_and_roles(
-        self, org_unit_uuid, validity, expected_error_response
-    ):
-        self.assertRequestResponse(
-            f"/service/ou/{org_unit_uuid}/terminate",
-            {"error": True, "status": 400, **expected_error_response},
-            json={"validity": validity},
-            status_code=400,
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
+    assert response.status_code == 400
+    assert response.json() == {"error": True, "status": 400, **expected_error_response}
 
-    def test_terminate_org_unit_validations_other(self):
-        unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
-        unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
-        self.assertRequestResponse(
-            f"/service/ou/{unitid_a}/terminate",
-            unitid_a,
-            json={"validity": {"to": "2018-12-31"}},
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+def test_terminate_org_unit_validations_other(service_client: TestClient) -> None:
+    unitid_a = "85715fc7-925d-401b-822d-467eb4b163b6"
+    unitid_b = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
 
-        self.assertRequestResponse(
-            f"/service/ou/{unitid_b}/terminate",
-            {
-                "error": True,
-                "status": 400,
-                **expected_error_response("V_TERMINATE_UNIT_WITH_ROLES"),
-            },
-            status_code=400,
-            json={
-                "validity": {
-                    # inclusion of timestamp is deliberate
-                    "to": "2018-12-31T00:00:00+01"
-                }
-            },
-            amqp_topics={"org_unit.org_unit.delete": 1},
-        )
-
-    @parameterized.expand(
-        [
-            (
-                # org unit uuid
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                # payload
-                {"to": "1999-12-31"},
-                # expected error response
-                expected_error_response(
-                    "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
-                    org_unit_uuid="9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    valid_from="2016-01-01",
-                    valid_to=None,
-                    wanted_valid_from="1999-12-31",
-                    wanted_valid_to="1999-12-31",
-                ),
-                # message
-                None,
-            ),
-            (
-                # org unit uuid
-                "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                # payload
-                {"to": "2099-12-31"},
-                # expected error response
-                expected_error_response(
-                    "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
-                    org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    valid_from="2016-01-01",
-                    valid_to="2018-12-31",
-                    wanted_valid_from="2099-12-31",
-                    wanted_valid_to="2099-12-31",
-                ),
-                # message
-                None,
-            ),
-            (
-                # org unit uuid
-                "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                # payload
-                {"to": "2015-12-31"},
-                # expected error response
-                expected_error_response(
-                    "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
-                    org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
-                    valid_from="2016-01-01",
-                    valid_to="2018-12-31",
-                    wanted_valid_from="2015-12-31",
-                    wanted_valid_to="2015-12-31",
-                ),
-                # message
-                "No terminating on creation date!",
-            ),
-        ]
+    response = service_client.post(
+        f"/service/ou/{unitid_a}/terminate", json={"validity": {"to": "2018-12-31"}}
     )
-    def test_terminate_org_unit_date_outside_org_unit_range(
-        self,
-        org_unit_uuid,
-        validity,
-        expected_error_response,
-        message,
-    ):
-        self.assertRequestResponse(
-            f"/service/ou/{org_unit_uuid}/terminate",
-            {"error": True, "status": 400, **expected_error_response},
-            json={"validity": validity},
-            status_code=400,
-            amqp_topics={"org_unit.org_unit.delete": 1},
-            message=message,
-        )
+    assert response.status_code == 200
+    assert response.json() == unitid_a
 
-    def test_tree(self):
-        for path, expected in util.get_fixture("test_trees.json").items():
-            with self.subTest(path):
-                self.assertRequestResponse(path, expected)
+    response = service_client.post(
+        f"/service/ou/{unitid_b}/terminate",
+        json={
+            "validity": {
+                # inclusion of timestamp is deliberate
+                "to": "2018-12-31T00:00:00+01"
+            }
+        },
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "error": True,
+        "status": 400,
+        **expected_error_response("V_TERMINATE_UNIT_WITH_ROLES"),
+    }
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "org_unit_uuid, validity, expected_error_response, message",
+    [
+        (
+            # org unit uuid
+            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # payload
+            {"to": "1999-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                valid_from="2016-01-01",
+                valid_to=None,
+                wanted_valid_from="1999-12-31",
+                wanted_valid_to="1999-12-31",
+            ),
+            # message
+            None,
+        ),
+        (
+            # org unit uuid
+            "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # payload
+            {"to": "2099-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
+                valid_from="2016-01-01",
+                valid_to="2018-12-31",
+                wanted_valid_from="2099-12-31",
+                wanted_valid_to="2099-12-31",
+            ),
+            # message
+            None,
+        ),
+        (
+            # org unit uuid
+            "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            # payload
+            {"to": "2015-12-31"},
+            # expected error response
+            expected_error_response(
+                "V_DATE_OUTSIDE_ORG_UNIT_RANGE",
+                org_unit_uuid="04c78fc2-72d2-4d02-b55f-807af19eac48",
+                valid_from="2016-01-01",
+                valid_to="2018-12-31",
+                wanted_valid_from="2015-12-31",
+                wanted_valid_to="2015-12-31",
+            ),
+            # message
+            "No terminating on creation date!",
+        ),
+    ],
+)
+def test_terminate_org_unit_date_outside_org_unit_range(
+    service_client: TestClient,
+    org_unit_uuid: str,
+    validity: dict[str, str],
+    expected_error_response: dict[str, Any],
+    message: str | None,
+) -> None:
+    response = service_client.post(
+        f"/service/ou/{org_unit_uuid}/terminate", json={"validity": validity}
+    )
+    assert response.status_code == 400, message
+    assert response.json() == {"error": True, "status": 400, **expected_error_response}
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize("path, expected", util.get_fixture("test_trees.json").items())
+def test_tree(service_client: TestClient, path: str, expected: dict[str, Any]) -> None:
+    response = service_client.get(path)
+    assert response.status_code == 200
+    assert response.json() == expected
