@@ -1,15 +1,18 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
 from copy import deepcopy
+from typing import Any
 
 import pytest
-from parameterized import parameterized
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from more_itertools import one
 from starlette.status import HTTP_200_OK
 from starlette.status import HTTP_201_CREATED
 from starlette.status import HTTP_400_BAD_REQUEST
 from starlette.status import HTTP_403_FORBIDDEN
 
-import tests.cases
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from mora.mapping import ADMIN
@@ -26,41 +29,158 @@ FEDTMULE = "6ee24785-ee9a-4502-81c2-7697009c9053"
 LIS_JENSEN = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 ERIK_SMIDT_HANSEN = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
 
-# URLs
-URL_CREATE_DETAIL = "/service/details/create"
-URL_EDIT_DETAIL = "/service/details/edit"
-URL_TERMINATE_DETAIL = "/service/details/terminate"
+
+def parametrize_roles_code(status_code: int) -> Callable:
+    def wrapper(func: Callable) -> Callable:
+        return pytest.mark.parametrize(
+            "role, userid, status_code",
+            # Test of write access for the following cases:
+            [
+                # 1) Normal user (no roles set)
+                (None, None, HTTP_403_FORBIDDEN),
+                # 2) User with the owner role, but not owner of the relevant entity
+                (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
+                # 3) User with the owner role and owner of the relative entity
+                (OWNER, ANDERS_AND, status_code),
+                # 4) User with the admin role
+                (ADMIN, FEDTMULE, status_code),
+            ],
+        )(func)
+
+    return wrapper
 
 
-class TestCommon(tests.cases.LoRATestCase):
-    def setUp(self):
-        super().setUp()
-        self.create_owner_payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_employee_owner.json"
-        )
-        self.create_owner_payload[0][OWNER][UUID] = ANDERS_AND
-        self.create_owner_payload[0][PERSON][UUID] = LIS_JENSEN
-
-        # Use an admin user while setting up the test fixtures
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_owner_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-        # Set the user back to a normal user, i.e. Bruce Lee
-        self.app.dependency_overrides[auth] = mock_auth()
+parametrize_roles = parametrize_roles_code(HTTP_200_OK)
+parametrize_roles_create = parametrize_roles_code(HTTP_201_CREATED)
 
 
+@pytest.fixture
+def create_employee_owner_payload() -> dict[str, Any]:
+    payload = one(jsonfile_to_dict("tests/fixtures/rbac/create_employee_owner.json"))
+    payload[OWNER][UUID] = ANDERS_AND
+    payload[PERSON][UUID] = LIS_JENSEN
+    return payload
+
+
+@pytest.fixture
+async def create_lis_owner(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_owner_payload: dict[str, Any],
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, FEDTMULE)
+
+    payload = create_employee_owner_payload
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+
+
+@pytest.fixture
+async def create_fedtmule_owner(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_owner_payload: dict[str, Any],
+) -> None:
+    # Let Anders And be the owner of Erik Smidt Hansen
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+
+    payload = create_employee_owner_payload
+    payload[PERSON][UUID] = FEDTMULE
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+
+
+@pytest.fixture
+async def create_erik_owner(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_owner_payload: dict[str, Any],
+) -> None:
+    # Let Anders And be the owner of Erik Smidt Hansen
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
+
+    payload = create_employee_owner_payload
+    payload[PERSON][UUID] = ERIK_SMIDT_HANSEN
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+
+
+@pytest.fixture
+def create_it_system_payload() -> dict[str, Any]:
+    return {
+        "type": "it",
+        "user_key": "AD",
+        "person": {"uuid": LIS_JENSEN},
+        "itsystem": {"uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"},
+        "org": {
+            "name": "Aarhus Universitet",
+            "user_key": "AU",
+            "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+        },
+        "validity": {"from": "2021-08-11", "to": None},
+    }
+
+
+@pytest.fixture
+def create_employee_payload() -> dict[str, Any]:
+    payload = one(jsonfile_to_dict("tests/fixtures/rbac/create_employee_detail.json"))
+    payload["person"]["uuid"] = LIS_JENSEN
+    return payload
+
+
+@pytest.fixture
+def create_employment_payload(
+    create_employee_payload: dict[str, Any]
+) -> dict[str, Any]:
+    payload = create_employee_payload
+    payload["type"] = "engagement"
+    payload["job_function"] = {
+        "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+        "name": "Bogopsætter",
+        "user_key": "Bogopsætter",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+    payload["engagement_type"] = {
+        "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
+        "name": "Ansat",
+        "user_key": "ansat",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+    return payload
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestCreateEmployee(tests.cases.LoRATestCase):
-    def setUp(self):
-        super().setUp()
-        self.create_employee_url = "/service/e/create"
-
-        self.create_employee_payload = {
+@pytest.mark.parametrize(
+    "role, userid, status_code",
+    # Test of write access for the following cases:
+    [
+        # 1) Normal user (no roles set)
+        (None, None, HTTP_403_FORBIDDEN),
+        # 2) User with owner role
+        (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
+        # 3) User with the admin role
+        (ADMIN, ANDERS_AND, HTTP_201_CREATED),
+    ],
+)
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_employee(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    response = service_client.post(
+        "/service/e/create",
+        json={
             "name": "Mickey Mouse",
             "nickname_givenname": "",
             "cpr_no": "1111111111",
@@ -70,755 +190,386 @@ class TestCreateEmployee(tests.cases.LoRATestCase):
                 "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
             },
             "details": [],
-        }
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_403_FORBIDDEN),
-            (ADMIN, ANDERS_AND, HTTP_201_CREATED),
-        ]
+        },
     )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_employee(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with owner role
-        3) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-        self.assertRequest(
-            self.create_employee_url,
-            json=self.create_employee_payload,
-            status_code=status_code,
-        )
+    assert response.status_code == status_code
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestCreateEmployeeDetailViaEmployee(TestCommon):
-    # The "create details" endpoint is used for creating creating addresses,
-    # it-systems, leaves and owners
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_creating_detail_address(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
 
-    def setUp(self):
-        super().setUp()
-
-        # Payload for creating detail (phone number) on employee
-        self.create_detail_payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_employee_detail_phone.json"
-        )
-        self.create_detail_payload[0][PERSON][UUID] = LIS_JENSEN
-        self.create_it_system_payload = [
-            {
-                "type": "it",
-                "user_key": "AD",
-                "person": {"uuid": LIS_JENSEN},
-                "itsystem": {"uuid": "59c135c9-2b15-41cc-97c8-b5dff7180beb"},
-                "org": {
-                    "name": "Aarhus Universitet",
-                    "user_key": "AU",
-                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                },
-                "validity": {"from": "2021-08-11", "to": None},
-            }
-        ]
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_201_CREATED),
-            (ADMIN, FEDTMULE, HTTP_201_CREATED),
-        ]
+    # Payload for creating detail (phone number) on employee
+    payload = one(
+        jsonfile_to_dict("tests/fixtures/rbac/create_employee_detail_phone.json")
     )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_creating_detail_address(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
+    payload[PERSON][UUID] = LIS_JENSEN
 
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.create_detail_payload, status_code=status_code
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_201_when_creating_it_system_detail_as_owner_of_employee(self):
-        # Use user "Anders And" (who owns the employee)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_it_system_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(self):
-        # Use user "Anders And" (who owns the employee)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.create_it_system_payload.append(self.create_it_system_payload[0])
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_it_system_payload,
-            status_code=HTTP_201_CREATED,
-        )
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestCreateEmployeeDetailViaOrgUnit(tests.cases.LoRATestCase):
-    """
-    When creating employee details in the frontend some details actually
-    resides under an org unit, e.g. employment, role, association,...
-    A selection of these details are tested here (with respect to creating
-    details)
-    """
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_201_when_creating_it_system_detail_as_owner_of_employee(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_it_system_payload: dict[str, Any],
+) -> None:
+    # Use user "Anders And" (who owns the employee)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
 
-    def setUp(self) -> None:
-        super().setUp()
-        self.payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_employee_detail.json"
-        )
-        self.payload[0]["person"]["uuid"] = LIS_JENSEN
+    payload = [create_it_system_payload]
 
-        self.create_multiple_associations = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_multiple_associations.json"
-        )
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_201_CREATED
 
-        create_employment_payload = deepcopy(self.payload)
-        create_employment_payload[0]["type"] = "engagement"
-        create_employment_payload[0]["job_function"] = {
-            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-            "name": "Bogopsætter",
-            "user_key": "Bogopsætter",
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_201_when_creating_multiple_it_system_details_as_owner_of_employee(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_it_system_payload: dict[str, Any],
+) -> None:
+    # Use user "Anders And" (who owns the employee)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    payload = [create_it_system_payload, create_it_system_payload]
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_201_CREATED
+
+
+# When creating employee details in the frontend some details actually
+# resides under an org unit, e.g. employment, role, association, ...
+# A selection of these details are tested here (with respect to creating details)
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_employment(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employment_payload: dict[str, Any],
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+
+    payload = create_employment_payload
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_multiple_employments_owns_one_unit_but_not_the_other(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+) -> None:
+    # Use user "Anders And" (who owns one unit but not the other)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    payload = jsonfile_to_dict("tests/fixtures/rbac/create_multiple_employments.json")
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_multiple_employments_owns_all_units(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employment_payload: dict[str, Any],
+) -> None:
+    # Use user "Anders And" (who owns all units)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    payload = [create_employment_payload, create_employment_payload]
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_201_CREATED
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_multiple_associations_owns_one_unit_but_not_the_other(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+) -> None:
+    # Use user "Anders And" (who owns one unit but not the other)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    create_multiple_associations = jsonfile_to_dict(
+        "tests/fixtures/rbac/create_multiple_associations.json"
+    )
+    payload = create_multiple_associations
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_403_FORBIDDEN
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_multiple_associations_owns_all_units(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+) -> None:
+    # Use user "Anders And" (who owns all units)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    create_multiple_associations = jsonfile_to_dict(
+        "tests/fixtures/rbac/create_multiple_associations.json"
+    )
+    create_multiple_associations[1] = create_multiple_associations[0]
+    payload = create_multiple_associations
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == HTTP_201_CREATED
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_role(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_payload: dict[str, Any],
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+
+    payload = create_employee_payload
+    payload["type"] = "role"
+    payload["role_type"] = {
+        "uuid": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
+        "name": "Tillidsrepræsentant",
+        "user_key": "Tillidsrepræsentant",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_association(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_payload: dict[str, Any],
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+
+    payload = create_employee_payload
+    payload["type"] = "association"
+    payload["association_type"] = {
+        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+        "name": "Medlem",
+        "user_key": "medl",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_create_manager(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    create_employee_payload: dict[str, Any],
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+
+    payload = create_employee_payload
+    payload["type"] = "manager"
+    payload["manager_type"] = {
+        "uuid": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+        "name": "Direktør",
+        "user_key": "Direktør",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+    payload["manager_level"] = {
+        "uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
+        "name": "Niveau 1",
+        "user_key": "Niveau1",
+        "example": None,
+        "scope": None,
+        "owner": None,
+    }
+    payload["responsibility"] = [
+        {
+            "uuid": "93ea44f9-127c-4465-a34c-77d149e3e928",
+            "name": "Beredskabsledelse",
+            "user_key": "Beredskabsledelse",
             "example": None,
             "scope": None,
             "owner": None,
         }
-        create_employment_payload[0]["engagement_type"] = {
-            "uuid": "06f95678-166a-455a-a2ab-121a8d92ea23",
-            "name": "Ansat",
-            "user_key": "ansat",
-            "example": None,
-            "scope": None,
-            "owner": None,
-        }
+    ]
 
-        self.create_employment_payload = create_employment_payload
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
 
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_object_types_in_list_must_be_identical(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+) -> None:
+    # Use user "Anders And" (who owns all units)
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
+
+    create_multiple_associations = jsonfile_to_dict(
+        "tests/fixtures/rbac/create_multiple_associations.json"
     )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_employment(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
+    create_multiple_associations[1] = deepcopy(create_multiple_associations[0])
+    create_multiple_associations[1]["type"] = "address"
 
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_employment_payload,
-            status_code=status_code,
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_multiple_employments_owns_one_unit_but_not_the_other(self):
-        # Use user "Anders And" (who owns one unit but not the other)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/create_multiple_employments.json"
-        )
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=payload, status_code=HTTP_403_FORBIDDEN
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_multiple_employments_owns_all_units(self):
-        # Use user "Anders And" (who owns all units)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-        self.create_employment_payload.append(self.create_employment_payload[0])
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_employment_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_multiple_associations_owns_one_unit_but_not_the_other(self):
-        # Use user "Anders And" (who owns one unit but not the other)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_multiple_associations,
-            status_code=HTTP_403_FORBIDDEN,
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_multiple_associations_owns_all_units(self):
-        # Use user "Anders And" (who owns all units)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.create_multiple_associations[1] = self.create_multiple_associations[0]
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_multiple_associations,
-            status_code=HTTP_201_CREATED,
-        )
-
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
+    response = service_client.post(
+        "/service/details/create", json=create_multiple_associations
     )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_role(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.payload[0]["type"] = "role"
-        self.payload[0]["role_type"] = {
-            "uuid": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
-            "name": "Tillidsrepræsentant",
-            "user_key": "Tillidsrepræsentant",
-            "example": None,
-            "scope": None,
-            "owner": None,
-        }
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_association(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.payload[0]["type"] = "association"
-        self.payload[0]["association_type"] = {
-            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-            "name": "Medlem",
-            "user_key": "medl",
-            "example": None,
-            "scope": None,
-            "owner": None,
-        }
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [(OWNER, ANDERS_AND, HTTP_201_CREATED), (OWNER, FEDTMULE, HTTP_403_FORBIDDEN)]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_create_manager(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.payload[0]["type"] = "manager"
-        self.payload[0]["manager_type"] = {
-            "uuid": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-            "name": "Direktør",
-            "user_key": "Direktør",
-            "example": None,
-            "scope": None,
-            "owner": None,
-        }
-        self.payload[0]["manager_level"] = {
-            "uuid": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
-            "name": "Niveau 1",
-            "user_key": "Niveau1",
-            "example": None,
-            "scope": None,
-            "owner": None,
-        }
-        self.payload[0]["responsibility"] = [
-            {
-                "uuid": "93ea44f9-127c-4465-a34c-77d149e3e928",
-                "name": "Beredskabsledelse",
-                "user_key": "Beredskabsledelse",
-                "example": None,
-                "scope": None,
-                "owner": None,
-            }
-        ]
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload, status_code=status_code
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_object_types_in_list_must_be_identical(self):
-        # Use user "Anders And" (who owns all units)
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, ANDERS_AND)
-
-        self.create_multiple_associations[1] = deepcopy(
-            self.create_multiple_associations[0]
-        )
-
-        self.create_multiple_associations[1]["type"] = "address"
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_multiple_associations,
-            status_code=HTTP_400_BAD_REQUEST,
-        )
+    assert response.status_code == HTTP_400_BAD_REQUEST
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestEditEmployeeDetail(TestCommon):
-    def setUp(self) -> None:
-        super().setUp()
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.parametrize(
+    "fixture",
+    [
+        "edit_address",
+        "edit_association",
+        "edit_employment",
+        "edit_manager",
+        "edit_role",
+        "move_employment",
+        "move_multiple_employments",
+    ],
+)
+@parametrize_roles
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_edit(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    fixture: str,
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
 
-        self.payload_edit_address = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_address.json"
-        )
-
-        self.payload_edit_employment = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_employment.json"
-        )
-
-        self.payload_edit_role = jsonfile_to_dict("tests/fixtures/rbac/edit_role.json")
-
-        self.payload_edit_association = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_association.json"
-        )
-
-        self.payload_edit_manager = jsonfile_to_dict(
-            "tests/fixtures/rbac/edit_manager.json"
-        )
-
-        # Let Anders And be the owner of Fedtmule
-
-        # Use an admin user while setting up the test fixtures
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-
-        self.create_owner_payload[0]["person"]["uuid"] = FEDTMULE
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_owner_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-        # Let Anders And be the owner of Erik Smidt Hansen
-
-        # Use an admin user while setting up the test fixtures
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-
-        self.create_owner_payload[0]["person"]["uuid"] = ERIK_SMIDT_HANSEN
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_owner_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-        # Set the user back to a normal user, i.e. Bruce Lee
-        self.app.dependency_overrides[auth] = mock_auth()
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-            (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_edit_address(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_address, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-            (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_edit_employment(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_employment, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_edit_role(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_role, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_edit_association(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_association, status_code=status_code
-        )
-
-    @parameterized.expand(
-        [
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_edit_manager(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL, json=self.payload_edit_manager, status_code=status_code
-        )
+    payload = jsonfile_to_dict(f"tests/fixtures/rbac/{fixture}.json")
+    response = service_client.post("/service/details/edit", json=payload)
+    assert response.status_code == status_code
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestMoveEmployment(tests.cases.LoRATestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        # Move Erik Smidt Hansen from hum to samf
-        self.move_single_employment_payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/move_employment.json"
-        )
-
-        self.move_multiple_employments_payload = jsonfile_to_dict(
-            "tests/fixtures/rbac/move_multiple_employments.json"
-        )
-
-    @parameterized.expand(
-        [
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_move_employment(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) User with the owner role, but not owner of the relevant entity
-        2) User with the owner role and owner of the relative entity
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL,
-            json=self.move_single_employment_payload,
-            status_code=status_code,
-        )
-
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_move_multiple_employments_as_non_owner_of_source_unit(self):
-        self.app.dependency_overrides[auth] = mock_auth(OWNER, FEDTMULE)
-
-        self.assertRequest(
-            URL_EDIT_DETAIL,
-            json=self.move_multiple_employments_payload,
-            status_code=HTTP_403_FORBIDDEN,
-        )
-
-
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestTerminateDetail(TestCommon):
-    def setUp(self) -> None:
-        super().setUp()
-
-        self.payload_terminate_address = {
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_fedtmule_owner")
+@pytest.mark.parametrize(
+    "payload",
+    [
+        # Address
+        {
             "type": "address",
             "uuid": "64ea02e2-8469-4c54-a523-3d46729e86a7",
             "validity": {"to": "2021-08-20"},
-        }
-
-        self.payload_terminate_employment = {
+        },
+        # Engagement
+        {
             "type": "engagement",
             "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
             "validity": {"to": "2021-08-13"},
-        }
+        },
+    ],
+)
+@parametrize_roles
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_terminate_details(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    payload: dict[str, Any],
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    response = service_client.post("/service/details/terminate", json=payload)
+    assert response.status_code == status_code
 
-        # Let Anders And be the owner of Fedtmule
 
-        # Use an admin user while setting up the test fixtures
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-
-        self.create_owner_payload[0]["person"]["uuid"] = FEDTMULE
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_owner_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-        # Set the user back to a normal user, i.e. Bruce Lee
-        self.app.dependency_overrides[auth] = mock_auth()
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-            (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_lis_owner")
+@parametrize_roles
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_terminate_employee(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    response = service_client.post(
+        f"/service/e/{LIS_JENSEN}/terminate", json={"validity": {"to": "2021-08-17"}}
     )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_terminate_address(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_TERMINATE_DETAIL,
-            json=self.payload_terminate_address,
-            status_code=status_code,
-        )
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-            (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_terminate_employment(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_TERMINATE_DETAIL,
-            json=self.payload_terminate_employment,
-            status_code=status_code,
-        )
+    assert response.status_code == status_code
 
 
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestTerminateEmployee(TestCommon):
-    def setUp(self) -> None:
-        super().setUp()
-
-        self.url_terminate_employee = f"/service/e/{LIS_JENSEN}/terminate"
-        self.payload_terminate_employee = {"validity": {"to": "2021-08-17"}}
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_200_OK),
-            (ADMIN, FEDTMULE, HTTP_200_OK),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_terminate_employee(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            self.url_terminate_employee,
-            json=self.payload_terminate_employee,
-            status_code=status_code,
-        )
-
-
-@pytest.mark.usefixtures("load_fixture_data_with_reset")
-class TestEmployeeLeave(TestCommon):
-    def setUp(self) -> None:
-        super().setUp()
-        self.payload_leave = jsonfile_to_dict("tests/fixtures/rbac/leave.json")
-
-        # Let Anders And be the owner of Erik Smidt Hansen
-
-        # Use an admin user while setting up the test fixtures
-        self.app.dependency_overrides[auth] = mock_auth(ADMIN, ANDERS_AND)
-
-        self.create_owner_payload[0]["person"]["uuid"] = ERIK_SMIDT_HANSEN
-
-        self.assertRequest(
-            URL_CREATE_DETAIL,
-            json=self.create_owner_payload,
-            status_code=HTTP_201_CREATED,
-        )
-
-        # Set the user back to a normal user, i.e. Bruce Lee
-        self.app.dependency_overrides[auth] = mock_auth()
-
-    @parameterized.expand(
-        [
-            (None, None, HTTP_403_FORBIDDEN),
-            (OWNER, FEDTMULE, HTTP_403_FORBIDDEN),
-            (OWNER, ANDERS_AND, HTTP_201_CREATED),
-            (ADMIN, FEDTMULE, HTTP_201_CREATED),
-        ]
-    )
-    @override_config(Settings(keycloak_rbac_enabled=True))
-    def test_employee_leave(self, role: str, userid: str, status_code: int):
-        """
-        Test of write access for the following cases:
-        1) Normal user (no roles set)
-        2) User with the owner role, but not owner of the relevant entity
-        3) User with the owner role and owner of the relative entity
-        4) User with the admin role
-
-        :param role: the role of the user
-        :param userid: the UUID of the user
-        :param status_code: the expected HTTP status code
-        """
-        self.app.dependency_overrides[auth] = mock_auth(role, userid)
-
-        self.assertRequest(
-            URL_CREATE_DETAIL, json=self.payload_leave, status_code=status_code
-        )
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset", "create_erik_owner")
+@parametrize_roles_create
+@override_config(Settings(keycloak_rbac_enabled=True))
+def test_employee_leave(
+    fastapi_test_app: FastAPI,
+    service_client: TestClient,
+    role: str,
+    userid: str,
+    status_code: int,
+) -> None:
+    fastapi_test_app.dependency_overrides[auth] = mock_auth(role, userid)
+    payload = jsonfile_to_dict("tests/fixtures/rbac/leave.json")
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == status_code
