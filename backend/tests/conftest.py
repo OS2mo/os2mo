@@ -239,7 +239,7 @@ def service_client(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client.
 
@@ -277,20 +277,9 @@ async def load_fixture_data() -> None:
         are_fixtures_loaded = True
 
 
-@pytest.fixture(scope="class")
-async def load_fixture_data_with_class_reset() -> YieldFixture[None]:
+@pytest.fixture(scope="session")
+async def load_fixture() -> None:
     await load_fixture_data()
-
-    conn = get_connection()
-    try:
-        conn.set_session(autocommit=False)
-    except psycopg2.ProgrammingError:
-        conn.rollback()  # If a transaction is already in progress roll it back
-        conn.set_session(autocommit=False)
-
-    yield
-
-    conn.rollback()
 
 
 @pytest.fixture(scope="function")
@@ -342,7 +331,7 @@ class GQLResponse:
     status_code: int
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def graphapi_post(admin_client: TestClient, latest_graphql_url: str):
     def _post(
         query: str,
@@ -450,10 +439,8 @@ def mock_get_valid_organisations(respx_mock) -> YieldFixture[UUID]:
 st.register_type_strategy(NonEmptyString, st.text(min_size=1))
 
 
-@pytest.fixture(scope="class", name="org_uuids")
-def fetch_org_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="org_uuids")
+def fetch_org_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     parent_uuids_query = """
         query FetchOrgUUIDs {
             org_units {
@@ -471,10 +458,8 @@ def fetch_org_uuids(
     return uuids
 
 
-@pytest.fixture(scope="class", name="employee_uuids")
-def fetch_employee_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="employee_uuids")
+def fetch_employee_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     parent_uuids_query = """
         query FetchEmployeeUUIDs {
             employees {
@@ -492,10 +477,8 @@ def fetch_employee_uuids(
     return uuids
 
 
-@pytest.fixture(scope="class", name="itsystem_uuids")
-def fetch_itsystem_uuids(
-    load_fixture_data_with_class_reset, graphapi_post: Callable
-) -> list[UUID]:
+@pytest.fixture(scope="session", name="itsystem_uuids")
+def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     itsystem_uuids_query = """
         query FetchITSystemUUIDs {
             itsystems {
