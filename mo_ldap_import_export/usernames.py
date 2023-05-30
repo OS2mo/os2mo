@@ -91,18 +91,17 @@ class UserNameGeneratorBase:
         self._check_combinations_to_try()
 
     def get_existing_values(self, attribute):
-        user_class = self.user_context["mapping"]["mo_to_ldap"]["Employee"][
-            "objectClass"
-        ]
         searchParameters = {
-            "search_filter": f"(objectclass={user_class})",
+            "search_filter": "(objectclass=*)",
             "attributes": [attribute],
         }
         search_base = self.settings.ldap_search_base
-        existing_values = [
-            entry["attributes"][attribute].lower()
+        all_values = [
+            entry["attributes"][attribute]
             for entry in paged_search(self.context, searchParameters, search_base)
         ]
+
+        existing_values = [a.lower() for a in all_values if a]
         return existing_values
 
     def _make_cn(self, username_string: str):
