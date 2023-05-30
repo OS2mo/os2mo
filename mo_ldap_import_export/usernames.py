@@ -90,19 +90,19 @@ class UserNameGeneratorBase:
         self._check_forbidden_usernames()
         self._check_combinations_to_try()
 
-    def get_existing_values(self, attribute):
+    def get_existing_values(self, attributes: list[str]):
         searchParameters = {
             "search_filter": "(objectclass=*)",
-            "attributes": [attribute],
+            "attributes": attributes,
         }
         search_base = self.settings.ldap_search_base
-        all_values = [
-            entry["attributes"][attribute]
-            for entry in paged_search(self.context, searchParameters, search_base)
-        ]
+        output = {}
+        search_result = paged_search(self.context, searchParameters, search_base)
+        for attribute in attributes:
+            all_values = [entry["attributes"][attribute] for entry in search_result]
 
-        existing_values = [a.lower() for a in all_values if a]
-        return existing_values
+            output[attribute] = [a.lower() for a in all_values if a]
+        return output
 
     def _make_cn(self, username_string: str):
 
@@ -228,7 +228,7 @@ class UserNameGeneratorBase:
                 username += "X"
         return username
 
-    def _create_username(self, name: list) -> str:
+    def _create_username(self, name: list, existing_usernames: list[str]) -> str:
         """
         Create a new username in accordance with the rules specified in the json file.
         The username will be the highest quality available and the value will be
@@ -242,7 +242,6 @@ class UserNameGeneratorBase:
         Inspired by ad_integration/usernames.py
         """
         name = self._name_fixer(name)
-        existing_usernames = self.get_existing_values("sAMAccountName")
 
         # The permutation is a number inside the username, it is normally only used in
         # case a username is already occupied. It can be specified using 'X' in the
@@ -266,7 +265,7 @@ class UserNameGeneratorBase:
         # If we get to here, we completely failed to make a username
         raise RuntimeError("Failed to create user name.")
 
-    def _create_common_name(self, name: list) -> str:
+    def _create_common_name(self, name: list, existing_common_names: list[str]) -> str:
         """
         Create an LDAP-style common name (CN) based on first and last name
 
@@ -292,7 +291,6 @@ class UserNameGeneratorBase:
                 common_name = " ".join(clean_name)  # Try to make a name again
 
         permutation_counter = 2
-        existing_common_names = self.get_existing_values("cn")
         while common_name.lower() in existing_common_names:
             common_name = (
                 common_name.replace(f"_{permutation_counter-1}", "")
@@ -313,6 +311,20 @@ class UserNameGeneratorBase:
 
         return attributes
 
+    def _get_existing_names(self):
+        existing_values = self.get_existing_values(
+            ["cn", "sAMAccountName", "userPrincipalName"]
+        )
+
+        user_principal_names = [
+            s.split("@")[0] for s in existing_values["userPrincipalName"]
+        ]
+
+        existing_usernames = existing_values["sAMAccountName"] + user_principal_names
+        existing_common_names = existing_values["cn"]
+
+        return existing_usernames, existing_common_names
+
 
 class UserNameGenerator(UserNameGeneratorBase):
     def generate_dn(self, employee: Employee) -> str:
@@ -322,14 +334,16 @@ class UserNameGenerator(UserNameGeneratorBase):
 
         Also adds an object to LDAP with this DN
         """
+        existing_usernames, existing_common_names = self._get_existing_names()
+
         givenname = employee.givenname
         surname = employee.surname
         name = givenname.split(" ")[:4] + [surname]
 
-        username = self._create_username(name)
+        username = self._create_username(name, existing_usernames)
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
-        common_name = self._create_common_name(name)
+        common_name = self._create_common_name(name, existing_common_names)
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
         dn = self._make_dn(common_name)
@@ -340,11 +354,11 @@ class UserNameGenerator(UserNameGeneratorBase):
 
 
 class AlleroedUserNameGenerator(UserNameGeneratorBase):
-    def generate_username(self, name):
+    def generate_username(self, name, existing_usernames: list[str]):
         # Remove vowels from all but first name
         name = [name[0]] + [remove_vowels(n) for n in self._name_fixer(name)[1:]]
 
-        return self._create_username(name)
+        return self._create_username(name, existing_usernames)
 
     def generate_dn(self, employee: Employee) -> str:
         """
@@ -355,14 +369,16 @@ class AlleroedUserNameGenerator(UserNameGeneratorBase):
 
         Follows guidelines from https://redmine.magenta-aps.dk/issues/56080
         """
+        existing_usernames, existing_common_names = self._get_existing_names()
+
         givenname = employee.givenname.strip()
         surname = employee.surname
         name = givenname.split(" ")[:4] + [surname]
 
-        common_name = self._create_common_name(name)
+        common_name = self._create_common_name(name, existing_common_names)
         logger.info(f"Generated CommonName for {givenname} {surname}: '{common_name}'")
 
-        username = self.generate_username(name)
+        username = self.generate_username(name, existing_usernames)
         logger.info(f"Generated username for {givenname} {surname}: '{username}'")
 
         dn = self._make_dn(common_name)
