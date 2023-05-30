@@ -7,9 +7,23 @@
     "facets" : {
       "employee_address_type": {
         "AddressEmployeeText": {
-          "title": "Address (free-text)",
+          "title": "Address (AD)",
           "scope": "TEXT"
-        }
+        },
+        "EmailEmployee": {
+          "title": "Mail (AD)",
+          "scope": "EMAIL"
+        },
+        "PhoneEmployee": {
+          "title": "Telefon (AD)",
+          "scope": "PHONE"
+        },
+      },
+      "org_unit_address_type": {
+        "LocationUnit": {
+          "title": "Lokation (AD)",
+          "scope": "TEXT"
+        },
       }
     }
   },

@@ -63,11 +63,33 @@ def test_create_facets_facet_exists(dataloader: MagicMock, init_engine: InitEngi
         class_uuid: {
             "user_key": "AddressEmployeeText",
             "uuid": class_uuid,
+            "name": "Address (free-text)",
+            "scope": "TEXT",
         }
     }
     init_engine.create_facets()
 
     dataloader.create_mo_class.assert_not_called()
+    dataloader.create_mo_it_system.assert_not_called()
+
+
+def test_modify_facets(dataloader: MagicMock, init_engine: InitEngine):
+    """
+    Try to update an existing facet.
+    """
+    class_uuid = str(uuid4())
+    dataloader.load_mo_facet.return_value = {
+        class_uuid: {
+            "user_key": "AddressEmployeeText",
+            "uuid": class_uuid,
+            "name": "Address (free-text)",
+            "scope": "ADDRESS",  # Scope is different here, so a class is updated
+        }
+    }
+    init_engine.create_facets()
+
+    dataloader.create_mo_class.assert_not_called()
+    dataloader.update_mo_class.assert_called_once()
     dataloader.create_mo_it_system.assert_not_called()
 
 

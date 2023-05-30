@@ -7,41 +7,41 @@
     "facets" : {
       "employee_address_type": {
         "EmailEmployee": {
-          "title": "Email",
+          "title": "Email (AD)",
           "scope": "EMAIL"
         },
         "MobilePhoneEmployee": {
-          "title": "Telefon (mobil)",
+          "title": "Telefon (mobil) (AD)",
           "scope": "PHONE"
         },
         "PhoneEmployee": {
-          "title": "Telefon",
+          "title": "Telefon (AD)",
           "scope": "PHONE"
         },
         "PrivatePhoneEmployee": {
-          "title": "Telefon (privat)",
+          "title": "Telefon (privat) (AD)",
           "scope": "PHONE"
         },
         "LocationEmployee": {
-          "title": "Lokation",
+          "title": "Lokation (AD)",
           "scope": "TEXT"
         },
         "DepartmentEmployee": {
-          "title": "Afdeling",
+          "title": "Afdeling (AD)",
           "scope": "TEXT"
         },
       },
       "org_unit_address_type": {
         "PostAdresseTextUnit": {
-          "title": "Postadresse (fri tekst)",
+          "title": "Postadresse (AD)",
           "scope": "TEXT"
         },
         "SecureEmailUnit": {
-          "title": "Secure Email",
+          "title": "Secure Email (AD)",
           "scope": "EMAIL"
         },
         "PublicEmailUnit": {
-          "title": "Public Email",
+          "title": "Public Email (AD)",
           "scope": "EMAIL"
         },
       },
