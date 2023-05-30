@@ -17,14 +17,29 @@ class InitEngine:
 
             facet_info = self.dataloader.load_mo_facet(facet_user_key)
             facet_uuid = self.dataloader.load_mo_facet_uuid(facet_user_key)
-
-            existing_classes = [f["user_key"] for f in facet_info.values()]
+            existing_classes = {f["user_key"]: f for f in facet_info.values()}
 
             # Loop over class user_keys. For example "EmailEmployee"
             for class_user_key, class_details in class_mapping.items():
                 if class_user_key in existing_classes:
-                    logger.info(f"[init] '{class_user_key}' class exists. Moving on.")
-                    continue
+                    existing_class = existing_classes[class_user_key]
+                    current_title = existing_class["name"]
+                    current_scope = existing_class["scope"]
+                    if (
+                        class_details["title"] == current_title
+                        and class_details["scope"] == current_scope
+                    ):
+                        logger.info(f"[init] '{class_user_key}' class exists.")
+                        continue
+                    else:
+                        self.dataloader.update_mo_class(
+                            name=class_details["title"],
+                            user_key=class_user_key,
+                            facet_uuid=facet_uuid,
+                            class_uuid=existing_class["uuid"],
+                            scope=class_details["scope"],
+                        )
+
                 else:
                     self.dataloader.create_mo_class(
                         name=class_details["title"],

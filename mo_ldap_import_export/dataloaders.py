@@ -865,6 +865,7 @@ class DataLoader:
                   user_key
                   uuid
                   scope
+                  name
                 }}
               }}
             }}
@@ -1453,6 +1454,41 @@ class DataLoader:
         )
         result = self.query_mo_sync(query)
         return UUID(result["class_create"]["uuid"])
+
+    def update_mo_class(
+        self,
+        name: str,
+        user_key: str,
+        facet_uuid: UUID,
+        class_uuid: UUID,
+        scope="",
+    ) -> UUID:
+        """
+        Updates a class in MO
+
+        Returns
+        ----------
+        uuid: UUID
+            The uuid of the updated class
+        """
+        logger.info(f"Modifying MO class with user_key = '{user_key}'")
+        query = gql(
+            f"""
+            mutation UpdateClass {{
+              class_update(
+                input: {{name: "{name}",
+                        user_key: "{user_key}",
+                        facet_uuid: "{facet_uuid}",
+                        scope: "{scope}"}},
+                uuid: "{class_uuid}"
+              ) {{
+                uuid
+              }}
+            }}
+            """
+        )
+        result = self.query_mo_sync(query)
+        return UUID(result["class_update"]["uuid"])
 
     def create_mo_job_function(self, name) -> UUID:
         """

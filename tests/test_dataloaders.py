@@ -1859,6 +1859,16 @@ def test_create_mo_class(dataloader: DataLoader):
     assert dataloader.create_mo_class("", "", uuid4()) == uuid
 
 
+def test_update_mo_class(dataloader: DataLoader):
+
+    uuid = uuid4()
+
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    dataloader.query_mo_sync.return_value = {"class_update": {"uuid": str(uuid)}}
+
+    assert dataloader.update_mo_class("", "", uuid4(), uuid4()) == uuid
+
+
 def test_create_mo_job_function(dataloader: DataLoader):
 
     uuid1 = uuid4()
