@@ -196,6 +196,11 @@ def username_generator() -> MagicMock:
 
 
 @pytest.fixture
+def sync_tool() -> AsyncMock:
+    return AsyncMock()
+
+
+@pytest.fixture
 def internal_amqpsystem() -> AsyncMock:
     return AsyncMock()
 

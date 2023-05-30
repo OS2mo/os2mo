@@ -16,7 +16,6 @@ from typing import Dict
 from typing import Union
 from uuid import UUID
 
-from fastapi.encoders import jsonable_encoder
 from fastramqpi.context import Context
 from ldap3 import BASE
 from ldap3 import Connection
@@ -32,9 +31,7 @@ from ldap3.utils.dn import safe_dn
 from more_itertools import always_iterable
 from more_itertools import only
 from ramodels.mo.employee import Employee
-from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
-from ramqp.mo.models import RequestType
 
 from .config import ServerConfig
 from .config import Settings
@@ -411,7 +408,7 @@ async def cleanup(
     """
     dataloader = user_context["dataloader"]
     converter = user_context["converter"]
-    internal_amqpsystem = user_context["internal_amqpsystem"]
+    sync_tool = user_context["sync_tool"]
     uuids_to_publish = []
 
     if not converter._export_to_ldap_(json_key):
@@ -476,21 +473,7 @@ async def cleanup(
 
     # Publish to internal AMQP system
     for uuid in uuids_to_publish:
-        mo_object_dict = await dataloader.load_mo_object(str(uuid), object_type)
-        routing_key = MORoutingKey.build(
-            service_type=mo_object_dict["service_type"],
-            object_type=mo_object_dict["object_type"],
-            request_type=RequestType.REFRESH,
-        )
-        payload = mo_object_dict["payload"]
-
-        logger.info(f"Publishing {routing_key}")
-        logger.info(f"with payload.uuid = {payload.uuid}")
-        logger.info(f"and payload.object_uuid = {payload.object_uuid}")
-
-        await internal_amqpsystem.publish_message(
-            str(routing_key), jsonable_encoder(payload)
-        )
+        await sync_tool.refresh_object(uuid, object_type)
 
 
 def setup_listener(context: Context, callback: Callable) -> list[Thread]:
