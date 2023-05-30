@@ -2,17 +2,18 @@
 # SPDX-License-Identifier: MPL-2.0
 import copy
 from functools import partial
+from typing import Any
 from urllib.parse import urlencode
 from uuid import uuid4
 
 import freezegun
 import pytest
 from fastapi.testclient import TestClient
-from parameterized import parameterized
+from more_itertools import one
 
-import tests.cases
 from mora import lora
 from mora import mapping
+from tests.cases import assert_registrations_equal
 from tests.util import set_settings_contextmanager
 
 
@@ -98,955 +99,892 @@ def _mo_return_it_user_doc():
     return doc
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "mo_data, mo_expected, lora_expected",
+    [
+        # 1. Test usage of "substitute" property on associations
+        (
+            # MO payload: extra data
+            {
+                "substitute": {"uuid": _substitute_uuid},
+            },
+            # MO response: expected extra data
+            {
+                "substitute": {"uuid": _substitute_uuid},
+                "it": None,
+                "job_function": None,
+            },
+            # LoRa response: expected extra data
+            {
+                "relationer": {
+                    "tilknyttedefunktioner": [_lora_virkning(uuid=_substitute_uuid)]
+                }
+            },
+        ),
+        # 2. Test usage of "it" and "job_function" properties on associations
+        (
+            # MO payload: extra data
+            {
+                "it": {"uuid": _it_user_uuid},
+                "job_function": {"uuid": _job_function_uuid},
+            },
+            # MO response: expected extra data
+            {
+                "substitute": None,
+                "it": [_mo_return_it_user_doc()],
+                "job_function": {"uuid": _job_function_uuid},
+            },
+            # LoRa response: expected extra data
+            {
+                "relationer": {
+                    "tilknyttedeitsystemer": [_lora_virkning(uuid=_it_user_uuid)],
+                    "tilknyttedefunktioner": [_lora_virkning(uuid=_job_function_uuid)],
+                }
+            },
+        ),
+    ],
+)
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_create_association(
+    service_client: TestClient,
+    mo_data: dict[str, Any],
+    mo_expected: dict[str, Any],
+    lora_expected: dict[str, Any],
+) -> None:
+    def url(employee_uuid: str, **kwargs):
+        base = f"/service/e/{employee_uuid}/details/association"
+        args = {"validity": "future", "only_primary_uuid": "1"}
+        if "it" in mo_data and "first_party_perspective" not in kwargs:
+            args.update(it="1")
+        if kwargs:
+            args.update(**kwargs)
+        return f"{base}?{urlencode(args)}"
+
+    seed_substitute_roles = partial(
+        set_settings_contextmanager,
+        confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9",
+    )
+
+    # Create an "IT User" (aka. "IT system binding")
+    response = service_client.post(
+        "/service/details/create", json=_mo_create_it_user_doc()
+    )
+    assert response.status_code == 201
+
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
+    association_uuid = "00000000-0000-0000-0000-000000000000"
+
+    payload = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "org_unit": {"uuid": _unitid},
+            "person": {"uuid": _userid},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "user_key": "1234",
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        }
+    ]
+
+    payload[0].update(mo_data)
+
+    with seed_substitute_roles():
+        response = service_client.post("/service/details/create", json=payload)
+        assert response.status_code == 201
+        assert response.json() == [association_uuid]
+
+    # Check that we created the expected "organisationfunktion" in LoRa
+    expected = _lora_organisationfunktion(**lora_expected)
+    associations = await c.organisationfunktion.fetch(
+        tilknyttedebrugere=_userid, funktionsnavn="Tilknytning"
+    )
+    associationid = one(associations)
+    actual_association = await c.organisationfunktion.get(associationid)
+    assert_registrations_equal(actual_association, expected)
+
+    # Check that we get the expected response from MO, case 1
+    expected = {
+        "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        "dynamic_classes": [],
+        "org_unit": {"uuid": _unitid},
+        "person": {"uuid": _userid},
+        "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+        "user_key": "1234",
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+    }
+    expected.update(mo_expected)
+    with seed_substitute_roles():
+        response = service_client.get(url(_userid))
+        assert response.status_code == 200
+        assert response.json() == [expected]
+
+    # Check that we get the expected response from MO, case 2
+    expected = {
+        "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        "dynamic_classes": [],
+        "org_unit": {"uuid": _unitid},
+        "person": {"uuid": _userid},
+        "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+        "user_key": "1234",
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        "first_party_association_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        },
+        "third_party_associated": {"uuid": _substitute_uuid},
+        "third_party_association_type": _substitute_association,
+    }
+    expected.update(mo_expected)
+    with seed_substitute_roles():
+        response = service_client.get(
+            url(_userid, first_party_perspective="1"),
+        )
+        assert response.status_code == 200
+        assert response.json() == ([expected] if "it" not in mo_data else [])
+
+    # Check that we get the expected response from MO, case 3
+    response = service_client.get(url(_substitute_uuid))
+    assert response.status_code == 200
+    assert response.json() == []
+
+    # Check that we get the expected response from MO, case 2
+    expected = {
+        "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        "dynamic_classes": [],
+        "org_unit": {"uuid": _unitid},
+        "person": {"uuid": _userid},
+        "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+        "user_key": "1234",
+        "uuid": "00000000-0000-0000-0000-000000000000",
+        "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+        "first_party_association_type": _substitute_association,
+        "third_party_associated": {"uuid": _userid},
+        "third_party_association_type": {
+            "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
+        },
+    }
+    expected.update(mo_expected)
+    with seed_substitute_roles():
+        response = service_client.get(
+            url(_substitute_uuid, first_party_perspective="1")
+        )
+        assert response.status_code == 200
+        assert response.json() == ([expected] if "it" not in mo_data else [])
+
+
+@pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-class AsyncTests(tests.cases.AsyncLoRATestCase):
-    maxDiff = None
+async def test_create_vacant_association(service_client: TestClient) -> None:
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
 
-    @parameterized.expand(
-        [
-            # 1. Test usage of "substitute" property on associations
-            (
-                # MO payload: extra data
-                {
-                    "substitute": {"uuid": _substitute_uuid},
-                },
-                # MO response: expected extra data
-                {
-                    "substitute": {"uuid": _substitute_uuid},
-                    "it": None,
-                    "job_function": None,
-                },
-                # LoRa response: expected extra data
-                {
-                    "relationer": {
-                        "tilknyttedefunktioner": [_lora_virkning(uuid=_substitute_uuid)]
-                    }
-                },
-            ),
-            # 2. Test usage of "it" and "job_function" properties on associations
-            (
-                # MO payload: extra data
-                {
-                    "it": {"uuid": _it_user_uuid},
-                    "job_function": {"uuid": _job_function_uuid},
-                },
-                # MO response: expected extra data
-                {
-                    "substitute": None,
-                    "it": [_mo_return_it_user_doc()],
-                    "job_function": {"uuid": _job_function_uuid},
-                },
-                # LoRa response: expected extra data
-                {
-                    "relationer": {
-                        "tilknyttedeitsystemer": [_lora_virkning(uuid=_it_user_uuid)],
-                        "tilknyttedefunktioner": [
-                            _lora_virkning(uuid=_job_function_uuid)
-                        ],
-                    }
-                },
-            ),
-        ]
-    )
-    async def test_create_association(self, mo_data, mo_expected, lora_expected):
-        def url(employee_uuid: str, **kwargs):
-            base = f"/service/e/{employee_uuid}/details/association"
-            args = {"validity": "future", "only_primary_uuid": "1"}
-            if "it" in mo_data and "first_party_perspective" not in kwargs:
-                args.update(it="1")
-            if kwargs:
-                args.update(**kwargs)
-            return f"{base}?{urlencode(args)}"
+    # test multiple valid formats
+    association_uuid = "00000000-0000-0000-0000-000000000000"
+    association_uuid2 = "00000000-0000-0000-0000-000000000001"
 
-        seed_substitute_roles = partial(
-            set_settings_contextmanager,
-            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9",
-        )
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
 
-        # Create an "IT User" (aka. "IT system binding")
-        await self.request("/service/details/create", json=_mo_create_it_user_doc())
+    def payload(assoc_uuid, include_person=True):
+        """
+        :param assoc_uuid: uuid to use
+        :param include_person: change between formats (both legal)
+        :return: valid assoication payload
+        """
 
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        association_uuid = "00000000-0000-0000-0000-000000000000"
-
-        payload = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "org_unit": {"uuid": _unitid},
-                "person": {"uuid": _userid},
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "user_key": "1234",
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-            }
-        ]
-
-        payload[0].update(mo_data)
-
-        with seed_substitute_roles():
-            await self.assertRequestResponse(
-                "/service/details/create",
-                [association_uuid],
-                json=payload,
-                amqp_topics={
-                    "employee.association.create": 1,
-                    "org_unit.association.create": 1,
-                },
-            )
-
-        # Check that we created the expected "organisationfunktion" in LoRa
-        expected = _lora_organisationfunktion(**lora_expected)
-        associations = await c.organisationfunktion.fetch(
-            tilknyttedebrugere=_userid, funktionsnavn="Tilknytning"
-        )
-        assert len(associations) == 1
-        associationid = associations[0]
-        actual_association = await c.organisationfunktion.get(associationid)
-        self.assertRegistrationsEqual(actual_association, expected)
-
-        # Check that we get the expected response from MO, case 1
-        expected = {
-            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-            "dynamic_classes": [],
-            "org_unit": {"uuid": _unitid},
-            "person": {"uuid": _userid},
-            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-            "user_key": "1234",
-            "uuid": "00000000-0000-0000-0000-000000000000",
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-        }
-        expected.update(mo_expected)
-        with seed_substitute_roles():
-            await self.assertRequestResponse(
-                url(_userid),
-                [expected],
-                amqp_topics={
-                    "employee.association.create": 1,
-                    "org_unit.association.create": 1,
-                },
-            )
-
-        # Check that we get the expected response from MO, case 2
-        expected = {
-            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-            "dynamic_classes": [],
-            "org_unit": {"uuid": _unitid},
-            "person": {"uuid": _userid},
-            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-            "user_key": "1234",
-            "uuid": "00000000-0000-0000-0000-000000000000",
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-            "first_party_association_type": {
-                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-            },
-            "third_party_associated": {"uuid": _substitute_uuid},
-            "third_party_association_type": _substitute_association,
-        }
-        expected.update(mo_expected)
-        with seed_substitute_roles():
-            await self.assertRequestResponse(
-                url(_userid, first_party_perspective="1"),
-                [expected] if "it" not in mo_data else [],
-                amqp_topics={
-                    "employee.association.create": 1,
-                    "org_unit.association.create": 1,
-                },
-            )
-
-        # Check that we get the expected response from MO, case 3
-        await self.assertRequestResponse(
-            url(_substitute_uuid),
-            [],
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-        # Check that we get the expected response from MO, case 2
-        expected = {
-            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-            "dynamic_classes": [],
-            "org_unit": {"uuid": _unitid},
-            "person": {"uuid": _userid},
-            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-            "user_key": "1234",
-            "uuid": "00000000-0000-0000-0000-000000000000",
-            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-            "first_party_association_type": _substitute_association,
-            "third_party_associated": {"uuid": _userid},
-            "third_party_association_type": {
-                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9"
-            },
-        }
-        expected.update(mo_expected)
-        with seed_substitute_roles():
-            await self.assertRequestResponse(
-                url(_substitute_uuid, first_party_perspective="1"),
-                [expected] if "it" not in mo_data else [],
-                amqp_topics={
-                    "employee.association.create": 1,
-                    "org_unit.association.create": 1,
-                },
-            )
-
-    async def test_create_vacant_association(self):
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        # test multiple valid formats
-        association_uuid = "00000000-0000-0000-0000-000000000000"
-        association_uuid2 = "00000000-0000-0000-0000-000000000001"
-
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        subid = "7626ad64-327d-481f-8b32-36c78eb12f8c"
-
-        def payload(assoc_uuid, include_person=True):
-            """
-            :param assoc_uuid: uuid to use
-            :param include_person: change between formats (both legal)
-            :return: valid assoication payload
-            """
-
-            main = {
-                "type": "association",
-                "uuid": assoc_uuid,
-                "org_unit": {"uuid": unitid},
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "substitute": {"uuid": subid},
-                "user_key": "1234",
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-                "it": None,
-                "job_function": None,
-            }
-            if include_person:
-                main["person"] = None
-            return [main]
-
-        with set_settings_contextmanager(
-            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
-        ):
-            await self.assertRequestResponse(
-                "/service/details/create",
-                [association_uuid],
-                json=payload(association_uuid),
-                amqp_topics={
-                    "org_unit.association.create": 1,
-                },
-            )
-            await self.assertRequestResponse(
-                "/service/details/create",
-                [association_uuid2],
-                json=payload(association_uuid2, include_person=False),
-                amqp_topics={
-                    "org_unit.association.create": 2,
-                },
-            )
-
-        expected = {
-            "livscykluskode": "Importeret",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "gyldighed": "Aktiv",
-                    }
-                ]
-            },
-            "note": "Oprettet i MO",
-            "relationer": {
-                "tilknyttedeorganisationer": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": unitid,
-                    }
-                ],
-                "tilknyttedefunktioner": [
-                    {
-                        "uuid": subid,
-                        "virkning": {
-                            "from": "2017-12-01 00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-12-02 00:00:00+01",
-                            "to_included": False,
-                        },
-                    }
-                ],
-                "primær": [
-                    {
-                        "uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474",
-                        "virkning": {
-                            "from": "2017-12-01 00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-12-02 00:00:00+01",
-                            "to_included": False,
-                        },
-                    }
-                ],
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "brugervendtnoegle": "1234",
-                        "funktionsnavn": "Tilknytning",
-                    }
-                ]
-            },
-        }
-
-        associations = await c.organisationfunktion.fetch(
-            tilknyttedeenheder=unitid,
-            tilknyttedeorganisationer="456362c4-0ee4-4e5e-a72c-751239745e62",
-            brugervendtnoegle="1234",
-            funktionsnavn="Tilknytning",
-        )
-        assert len(associations) == 2
-        for associationid in associations:
-            # assert we got back one of the newly created associations (ie. exists)
-            assert associationid in (association_uuid, association_uuid2)
-
-            # check that the content is also as expected
-            actual_association = await c.organisationfunktion.get(associationid)
-
-            self.assertRegistrationsEqual(actual_association, expected)
-
-        def assoc_content_only_primary_uuid(assoc_uuid):
-            """
-            creates expected format
-
-            :param assoc_uuid:
-            :return:
-            """
-            return {
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "dynamic_classes": [],
-                "org_unit": {"uuid": unitid},
-                "person": None,
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "user_key": "1234",
-                "uuid": assoc_uuid,
-                "substitute": {"uuid": subid},
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "it": None,
-                "job_function": None,
-            }
-
-        expected = [
-            assoc_content_only_primary_uuid(association_uuid),
-            assoc_content_only_primary_uuid(association_uuid2),
-        ]
-
-        with set_settings_contextmanager(
-            confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
-        ):
-            await self.assertRequestResponse(  # contains sorting (ie. unordered comparison)
-                "/service/ou/{}/details/association"
-                "?validity=future&only_primary_uuid=1".format(unitid),
-                expected,
-                amqp_topics={
-                    "org_unit.association.create": 2,
-                },
-            )
-
-    async def test_create_association_with_dynamic_classes(self):
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        association_uuid = "00000000-0000-0000-0000-000000000000"
-        unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-        userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
-        classid = "cafebabe-c370-4502-81c2-7697009c9053"
-
-        payload = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "dynamic_classes": [{"uuid": classid}],
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "user_key": "1234",
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "validity": {
-                    "from": "2017-12-01",
-                    "to": "2017-12-01",
-                },
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/details/create",
-            [association_uuid],
-            json=payload,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-        expected = {
-            "livscykluskode": "Importeret",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "gyldighed": "Aktiv",
-                    }
-                ]
-            },
-            "note": "Oprettet i MO",
-            "relationer": {
-                "tilknyttedeorganisationer": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                    }
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": userid,
-                    }
-                ],
-                "tilknyttedeklasser": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": classid,
-                    }
-                ],
-                "organisatoriskfunktionstype": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "uuid": unitid,
-                    }
-                ],
-                "primær": [
-                    {
-                        "uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474",
-                        "virkning": {
-                            "from": "2017-12-01 00:00:00+01",
-                            "from_included": True,
-                            "to": "2017-12-02 00:00:00+01",
-                            "to_included": False,
-                        },
-                    }
-                ],
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "to_included": False,
-                            "to": "2017-12-02 00:00:00+01",
-                            "from_included": True,
-                            "from": "2017-12-01 00:00:00+01",
-                        },
-                        "brugervendtnoegle": "1234",
-                        "funktionsnavn": "Tilknytning",
-                    }
-                ]
-            },
-        }
-
-        associations = await c.organisationfunktion.fetch(
-            tilknyttedebrugere=userid, funktionsnavn="Tilknytning"
-        )
-        assert len(associations) == 1
-        associationid = associations[0]
-
-        actual_association = await c.organisationfunktion.get(associationid)
-
-        self.assertRegistrationsEqual(actual_association, expected)
-
-        expected = [
-            {
-                "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-                "dynamic_classes": [{"uuid": "cafebabe-c370-4502-81c2-7697009c9053"}],
-                "org_unit": {"uuid": unitid},
-                "person": {"uuid": userid},
-                "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
-                "user_key": "1234",
-                "uuid": "00000000-0000-0000-0000-000000000000",
-                "substitute": None,
-                "validity": {"from": "2017-12-01", "to": "2017-12-01"},
-                "it": None,
-                "job_function": None,
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/e/{}/details/association"
-            "?validity=future&only_primary_uuid=1".format(userid),
-            expected,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-    async def test_edit_association_with_preexisting(self):
-        """More than one active association is allowed for each employee in each
-        org unit"""
-
-        # Check the POST request
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-
-        payload = {
+        main = {
             "type": "association",
+            "uuid": assoc_uuid,
+            "org_unit": {"uuid": unitid},
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "substitute": {"uuid": subid},
+            "user_key": "1234",
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "validity": {
+                "from": "2017-12-01",
+                "to": "2017-12-01",
+            },
+            "it": None,
+            "job_function": None,
+        }
+        if include_person:
+            main["person"] = None
+        return [main]
+
+    with set_settings_contextmanager(
+        confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
+    ):
+        response = service_client.post(
+            "/service/details/create", json=payload(association_uuid)
+        )
+        assert response.status_code == 201
+        assert response.json() == [association_uuid]
+
+        response = service_client.post(
+            "/service/details/create",
+            json=payload(association_uuid2, include_person=False),
+        )
+        assert response.status_code == 201
+        assert response.json() == [association_uuid2]
+
+    expected = {
+        "livscykluskode": "Importeret",
+        "tilstande": {
+            "organisationfunktiongyldighed": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "gyldighed": "Aktiv",
+                }
+            ]
+        },
+        "note": "Oprettet i MO",
+        "relationer": {
+            "tilknyttedeorganisationer": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                }
+            ],
+            "organisatoriskfunktionstype": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                }
+            ],
+            "tilknyttedeenheder": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": unitid,
+                }
+            ],
+            "tilknyttedefunktioner": [
+                {
+                    "uuid": subid,
+                    "virkning": {
+                        "from": "2017-12-01 00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-12-02 00:00:00+01",
+                        "to_included": False,
+                    },
+                }
+            ],
+            "primær": [
+                {
+                    "uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474",
+                    "virkning": {
+                        "from": "2017-12-01 00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-12-02 00:00:00+01",
+                        "to_included": False,
+                    },
+                }
+            ],
+        },
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "brugervendtnoegle": "1234",
+                    "funktionsnavn": "Tilknytning",
+                }
+            ]
+        },
+    }
+
+    associations = await c.organisationfunktion.fetch(
+        tilknyttedeenheder=unitid,
+        tilknyttedeorganisationer="456362c4-0ee4-4e5e-a72c-751239745e62",
+        brugervendtnoegle="1234",
+        funktionsnavn="Tilknytning",
+    )
+    assert len(associations) == 2
+    for associationid in associations:
+        # assert we got back one of the newly created associations (ie. exists)
+        assert associationid in (association_uuid, association_uuid2)
+
+        # check that the content is also as expected
+        actual_association = await c.organisationfunktion.get(associationid)
+
+        assert_registrations_equal(actual_association, expected)
+
+    def assoc_content_only_primary_uuid(assoc_uuid):
+        """
+        creates expected format
+
+        :param assoc_uuid:
+        :return:
+        """
+        return {
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "dynamic_classes": [],
+            "org_unit": {"uuid": unitid},
+            "person": None,
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "user_key": "1234",
+            "uuid": assoc_uuid,
+            "substitute": {"uuid": subid},
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "it": None,
+            "job_function": None,
+        }
+
+    expected = [
+        assoc_content_only_primary_uuid(association_uuid),
+        assoc_content_only_primary_uuid(association_uuid2),
+    ]
+
+    with set_settings_contextmanager(
+        confdb_substitute_roles="62ec821f-4179-4758-bfdf-134529d186e9"
+    ):
+        # contains sorting (ie. unordered comparison)
+        response = service_client.get(
+            f"/service/ou/{unitid}/details/association",
+            params={"validity": "future", "only_primary_uuid": 1},
+        )
+        assert response.status_code == 200
+        assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_create_association_with_dynamic_classes(
+    service_client: TestClient,
+) -> None:
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
+    association_uuid = "00000000-0000-0000-0000-000000000000"
+    unitid = "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+    userid = "6ee24785-ee9a-4502-81c2-7697009c9053"
+    classid = "cafebabe-c370-4502-81c2-7697009c9053"
+
+    payload = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "dynamic_classes": [{"uuid": classid}],
             "org_unit": {"uuid": unitid},
             "person": {"uuid": userid},
             "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
-            "dynamic_classes": [],
+            "user_key": "1234",
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
             "validity": {
                 "from": "2017-12-01",
                 "to": "2017-12-01",
             },
         }
+    ]
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+    assert response.json() == [association_uuid]
 
-        await self.assertRequest(
-            "/service/details/create",
-            json=payload,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-            },
-        )
-
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        associations = await c.organisationfunktion.fetch(
-            tilknyttedeenheder=unitid,
-            tilknyttedebrugere=userid,
-            funktionsnavn=mapping.ASSOCIATION_KEY,
-        )
-        assert len(associations) == 1
-
-        with self.subTest("validation"):
-            req = [
+    expected = {
+        "livscykluskode": "Importeret",
+        "tilstande": {
+            "organisationfunktiongyldighed": [
                 {
-                    "type": "association",
-                    "uuid": association_uuid,
-                    "data": {
-                        "validity": {
-                            "from": "2017-12-01",
-                            "to": "2017-12-01",
-                        },
-                        "org_unit": {"uuid": unitid},
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
                     },
+                    "gyldighed": "Aktiv",
                 }
             ]
+        },
+        "note": "Oprettet i MO",
+        "relationer": {
+            "tilknyttedeorganisationer": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                }
+            ],
+            "tilknyttedebrugere": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": userid,
+                }
+            ],
+            "tilknyttedeklasser": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": classid,
+                }
+            ],
+            "organisatoriskfunktionstype": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                }
+            ],
+            "tilknyttedeenheder": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "uuid": unitid,
+                }
+            ],
+            "primær": [
+                {
+                    "uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474",
+                    "virkning": {
+                        "from": "2017-12-01 00:00:00+01",
+                        "from_included": True,
+                        "to": "2017-12-02 00:00:00+01",
+                        "to_included": False,
+                    },
+                }
+            ],
+        },
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                {
+                    "virkning": {
+                        "to_included": False,
+                        "to": "2017-12-02 00:00:00+01",
+                        "from_included": True,
+                        "from": "2017-12-01 00:00:00+01",
+                    },
+                    "brugervendtnoegle": "1234",
+                    "funktionsnavn": "Tilknytning",
+                }
+            ]
+        },
+    }
 
-            await self.assertRequestResponse(
-                "/service/details/edit",
-                [association_uuid],
-                json=req,
-                status_code=200,
-                amqp_topics={
-                    "employee.association.create": 1,
-                    "org_unit.association.create": 1,
+    associations = await c.organisationfunktion.fetch(
+        tilknyttedebrugere=userid, funktionsnavn="Tilknytning"
+    )
+    associationid = one(associations)
+
+    actual_association = await c.organisationfunktion.get(associationid)
+
+    assert_registrations_equal(actual_association, expected)
+
+    expected = [
+        {
+            "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+            "dynamic_classes": [{"uuid": "cafebabe-c370-4502-81c2-7697009c9053"}],
+            "org_unit": {"uuid": unitid},
+            "person": {"uuid": userid},
+            "primary": {"uuid": "f49c797b-d3e8-4dc2-a7a8-c84265432474"},
+            "user_key": "1234",
+            "uuid": "00000000-0000-0000-0000-000000000000",
+            "substitute": None,
+            "validity": {"from": "2017-12-01", "to": "2017-12-01"},
+            "it": None,
+            "job_function": None,
+        }
+    ]
+    response = service_client.get(
+        f"/service/e/{userid}/details/association",
+        params={"validity": "future", "only_primary_uuid": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_edit_association_with_preexisting(service_client: TestClient) -> None:
+    """More than one active association is allowed for each employee in each
+    org unit"""
+
+    # Check the POST request
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    unitid = "da77153e-30f3-4dc2-a611-ee912a28d8aa"
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    payload = {
+        "type": "association",
+        "org_unit": {"uuid": unitid},
+        "person": {"uuid": userid},
+        "association_type": {"uuid": "62ec821f-4179-4758-bfdf-134529d186e9"},
+        "dynamic_classes": [],
+        "validity": {
+            "from": "2017-12-01",
+            "to": "2017-12-01",
+        },
+    }
+    response = service_client.post("/service/details/create", json=payload)
+    assert response.status_code == 201
+
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    associations = await c.organisationfunktion.fetch(
+        tilknyttedeenheder=unitid,
+        tilknyttedebrugere=userid,
+        funktionsnavn=mapping.ASSOCIATION_KEY,
+    )
+    assert len(associations) == 1
+
+    # validation
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "data": {
+                "validity": {
+                    "from": "2017-12-01",
+                    "to": "2017-12-01",
                 },
-            )
-
-        req = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "data": {
-                    "validity": {
-                        "from": "2017-12-02",
-                        "to": "2017-12-02",
-                    },
-                    "org_unit": {"uuid": unitid},
-                },
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/details/edit",
-            [association_uuid],
-            json=req,
-            amqp_topics={
-                "employee.association.create": 1,
-                "org_unit.association.create": 1,
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-
-    async def test_edit_association_move(self):
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-        unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
-
-        req = [
-            {
-                "type": "association",
-                "uuid": association_uuid,
-                "data": {
-                    "org_unit": {"uuid": unitid},
-                    "validity": {
-                        "from": "2018-04-01",
-                        "to": "2019-03-31",
-                    },
-                },
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/details/edit",
-            [association_uuid],
-            json=req,
-            amqp_topics={
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-
-        expected_association = {
-            "note": "Rediger tilknytning",
-            "relationer": {
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2018-04-01 00:00:00+02",
-                        },
-                    },
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2019-04-01 00:00:00+02",
-                            "to": "infinity",
-                        },
-                    },
-                    {
-                        "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2018-04-01 00:00:00+02",
-                            "to": "2019-04-01 00:00:00+02",
-                        },
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Tilknytning",
-                    }
-                ]
+                "org_unit": {"uuid": unitid},
             },
         }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
 
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-        actual_association = await c.organisationfunktion.get(association_uuid)
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "data": {
+                "validity": {
+                    "from": "2017-12-02",
+                    "to": "2017-12-02",
+                },
+                "org_unit": {"uuid": unitid},
+            },
+        }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
 
-        self.assertRegistrationsEqual(expected_association, actual_association)
 
-        expected = [
-            {
-                "association_type": {
-                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                },
-                "dynamic_classes": [],
-                "org_unit": {
-                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                },
-                "person": {
-                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                },
-                "primary": None,
-                "user_key": "bvn",
-                "substitute": None,
-                "uuid": association_uuid,
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_edit_association_move(service_client: TestClient) -> None:
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+    unitid = "b688513d-11f7-4efc-b679-ab082a2055d0"
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    req = [
+        {
+            "type": "association",
+            "uuid": association_uuid,
+            "data": {
+                "org_unit": {"uuid": unitid},
                 "validity": {
                     "from": "2018-04-01",
                     "to": "2019-03-31",
                 },
-                "it": None,
-                "job_function": None,
-            }
-        ]
-
-        await self.assertRequestResponse(
-            "/service/e/{}/details/association?at=2018-06-01"
-            "&only_primary_uuid=1".format(userid),
-            expected,
-            amqp_topics={
-                "employee.association.update": 1,
-                "org_unit.association.update": 1,
-            },
-        )
-
-    async def test_terminate_association_via_user(self):
-        # Check the POST request
-        c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
-
-        userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
-
-        payload = {"validity": {"to": "2017-11-30"}}
-        await self.assertRequestResponse(
-            f"/service/e/{userid}/terminate",
-            userid,
-            json=payload,
-            amqp_topics={
-                "employee.employee.delete": 1,
-                "employee.association.delete": 1,
-                "employee.engagement.delete": 1,
-                "employee.manager.delete": 1,
-                "employee.address.delete": 1,
-                "employee.role.delete": 1,
-                "employee.it.delete": 1,
-                "employee.leave.delete": 1,
-                "org_unit.association.delete": 1,
-                "org_unit.engagement.delete": 1,
-                "org_unit.manager.delete": 1,
-                "org_unit.role.delete": 1,
-            },
-        )
-
-        expected = {
-            "note": "Afsluttet",
-            "relationer": {
-                "organisatoriskfunktionstype": [
-                    {
-                        "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-                "tilknyttedeorganisationer": [
-                    {
-                        "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-                "tilknyttedeenheder": [
-                    {
-                        "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    },
-                ],
-                "tilknyttedebrugere": [
-                    {
-                        "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    }
-                ],
-            },
-            "livscykluskode": "Rettet",
-            "tilstande": {
-                "organisationfunktiongyldighed": [
-                    {
-                        "gyldighed": "Aktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "2017-12-01 00:00:00+01",
-                        },
-                    },
-                    {
-                        "gyldighed": "Inaktiv",
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-12-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                    },
-                ]
-            },
-            "attributter": {
-                "organisationfunktionegenskaber": [
-                    {
-                        "virkning": {
-                            "from_included": True,
-                            "to_included": False,
-                            "from": "2017-01-01 00:00:00+01",
-                            "to": "infinity",
-                        },
-                        "brugervendtnoegle": "bvn",
-                        "funktionsnavn": "Tilknytning",
-                    }
-                ]
             },
         }
+    ]
+    response = service_client.post("/service/details/edit", json=req)
+    assert response.status_code == 200
+    assert response.json() == [association_uuid]
 
-        association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+    expected_association = {
+        "note": "Rediger tilknytning",
+        "relationer": {
+            "organisatoriskfunktionstype": [
+                {
+                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "tilknyttedeorganisationer": [
+                {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "tilknyttedeenheder": [
+                {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "2018-04-01 00:00:00+02",
+                    },
+                },
+                {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2019-04-01 00:00:00+02",
+                        "to": "infinity",
+                    },
+                },
+                {
+                    "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2018-04-01 00:00:00+02",
+                        "to": "2019-04-01 00:00:00+02",
+                    },
+                },
+            ],
+            "tilknyttedebrugere": [
+                {
+                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+        },
+        "livscykluskode": "Rettet",
+        "tilstande": {
+            "organisationfunktiongyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ]
+        },
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                {
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                    "brugervendtnoegle": "bvn",
+                    "funktionsnavn": "Tilknytning",
+                }
+            ]
+        },
+    }
 
-        actual_association = await c.organisationfunktion.get(association_uuid)
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+    actual_association = await c.organisationfunktion.get(association_uuid)
 
-        # drop lora-generated timestamps & users
-        del (
-            actual_association["fratidspunkt"],
-            actual_association["tiltidspunkt"],
-            actual_association["brugerref"],
-        )
+    assert_registrations_equal(expected_association, actual_association)
 
-        assert actual_association == expected
+    expected = [
+        {
+            "association_type": {
+                "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+            },
+            "dynamic_classes": [],
+            "org_unit": {
+                "uuid": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            },
+            "person": {
+                "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+            },
+            "primary": None,
+            "user_key": "bvn",
+            "substitute": None,
+            "uuid": association_uuid,
+            "validity": {
+                "from": "2018-04-01",
+                "to": "2019-03-31",
+            },
+            "it": None,
+            "job_function": None,
+        }
+    ]
+    response = service_client.get(
+        f"/service/e/{userid}/details/association",
+        params={"at": "2018-06-01", "only_primary_uuid": 1},
+    )
+    assert response.status_code == 200
+    assert response.json() == expected
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_terminate_association_via_user(service_client: TestClient) -> None:
+    # Check the POST request
+    c = lora.Connector(virkningfra="-infinity", virkningtil="infinity")
+
+    userid = "53181ed2-f1de-4c4a-a8fd-ab358c2c454a"
+
+    payload = {"validity": {"to": "2017-11-30"}}
+    response = service_client.post(f"/service/e/{userid}/terminate", json=payload)
+    assert response.status_code == 200
+    assert response.json() == userid
+
+    expected = {
+        "note": "Afsluttet",
+        "relationer": {
+            "organisatoriskfunktionstype": [
+                {
+                    "uuid": "62ec821f-4179-4758-bfdf-134529d186e9",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "tilknyttedeorganisationer": [
+                {
+                    "uuid": "456362c4-0ee4-4e5e-a72c-751239745e62",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+            "tilknyttedeenheder": [
+                {
+                    "uuid": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                },
+            ],
+            "tilknyttedebrugere": [
+                {
+                    "uuid": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                }
+            ],
+        },
+        "livscykluskode": "Rettet",
+        "tilstande": {
+            "organisationfunktiongyldighed": [
+                {
+                    "gyldighed": "Aktiv",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "2017-12-01 00:00:00+01",
+                    },
+                },
+                {
+                    "gyldighed": "Inaktiv",
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-12-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                },
+            ]
+        },
+        "attributter": {
+            "organisationfunktionegenskaber": [
+                {
+                    "virkning": {
+                        "from_included": True,
+                        "to_included": False,
+                        "from": "2017-01-01 00:00:00+01",
+                        "to": "infinity",
+                    },
+                    "brugervendtnoegle": "bvn",
+                    "funktionsnavn": "Tilknytning",
+                }
+            ]
+        },
+    }
+
+    association_uuid = "c2153d5d-4a2b-492d-a18c-c498f7bb6221"
+
+    actual_association = await c.organisationfunktion.get(association_uuid)
+    assert actual_association is not None
+
+    # drop lora-generated timestamps & users
+    del (
+        actual_association["fratidspunkt"],
+        actual_association["tiltidspunkt"],
+        actual_association["brugerref"],
+    )
+
+    assert actual_association == expected
 
 
 @pytest.mark.integration_test
