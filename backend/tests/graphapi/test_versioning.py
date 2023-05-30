@@ -11,7 +11,7 @@ from mora.graphapi.main import graphql_versions
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.versions.base import BaseGraphQLVersion
 from mora.graphapi.versions.latest.version import LatestGraphQLVersion
-from tests.cases import fake_auth
+from tests.conftest import fake_auth
 
 
 def get_test_client(

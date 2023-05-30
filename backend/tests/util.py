@@ -1,6 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import asyncio
 import contextlib
 import json
 import os
@@ -514,50 +513,3 @@ def set_get_configuration(
     with patch(get_configuration_path) as mock:
         mock.return_value = configuration
         yield
-
-
-def _sample_structures_cls_fixture(cls, minimal: bool):
-    """Yeah, this is pretty awful.
-
-    This method essentially implements a pytest-fixture-like class-decorator
-    suitable for use with the `unittest` framework.
-    """
-
-    from tests.cases import AsyncLoRATestCase
-    from tests.cases import LoRATestCase
-
-    class FireableOffense(cls):
-        async def asyncSetUp(self):
-            _mox_testing_api("db-setup")
-            await load_sample_structures(minimal=minimal)
-            await super().asyncSetUp()
-
-        async def asyncTearDown(self):
-            await super().asyncTearDown()
-            _mox_testing_api("db-reset")
-
-    class FireableOffenseSync(cls):
-        def setUp(self):
-            _mox_testing_api("db-setup")
-            asyncio.run(load_sample_structures(minimal=minimal))
-            super().setUp()
-
-        def tearDown(self):
-            super().tearDown()
-            _mox_testing_api("db-reset")
-
-    if issubclass(cls, AsyncLoRATestCase):
-        return FireableOffense
-    if issubclass(cls, LoRATestCase):
-        return FireableOffenseSync
-    raise NotImplementedError(
-        f"sample_structures with minimal={minimal} is not implemented for {cls}"
-    )
-
-
-def sample_structures_minimal_cls_fixture(cls):
-    return _sample_structures_cls_fixture(cls, minimal=True)
-
-
-def sample_structures_cls_fixture(cls):
-    return _sample_structures_cls_fixture(cls, minimal=False)

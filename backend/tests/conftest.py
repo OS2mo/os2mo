@@ -213,19 +213,10 @@ def fastapi_admin_test_app() -> FastAPI:
     return admin_test_app()
 
 
-def get_latest_graphql_url() -> str:
-    """Return the latest GraphQL endpoint URL.
-
-    This is defined in a separate function to allow usage from old
-    unittest.TestCase classes.
-    """
-    latest = last(graphql_versions)
-    return f"/graphql/v{latest.version}"
-
-
 @pytest.fixture(scope="session")
 def latest_graphql_url() -> str:
-    return get_latest_graphql_url()
+    latest = last(graphql_versions)
+    return f"/graphql/v{latest.version}"
 
 
 @pytest.fixture(scope="session")

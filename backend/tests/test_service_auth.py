@@ -26,7 +26,6 @@ from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from mora.graphapi.main import graphql_versions
 from tests import util
-from tests.conftest import get_latest_graphql_url
 
 
 @pytest.fixture(scope="session")
@@ -134,10 +133,8 @@ async def test_auth_service_with_payload(raw_client: TestClient, url: str) -> No
     assert response.text == '"Not authenticated"'
 
 
-async def test_no_auth_graphql(raw_client: TestClient) -> None:
-    response = raw_client.post(
-        get_latest_graphql_url(), json={"query": "{ org { uuid } }"}
-    )
+async def test_no_auth_graphql(raw_client: TestClient, latest_graphql_url: str) -> None:
+    response = raw_client.post(latest_graphql_url, json={"query": "{ org { uuid } }"})
     assert response.status_code == 200
     assert response.json() == {
         "data": None,
@@ -161,10 +158,12 @@ def test_auth_service_org(raw_client: TestClient, auth_headers: dict[str, str]) 
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("sample_structures_minimal")
 async def test_auth_graphql(
-    raw_client: TestClient, auth_headers: dict[str, str]
+    raw_client: TestClient,
+    auth_headers: dict[str, str],
+    latest_graphql_url: str,
 ) -> None:
     response = raw_client.post(
-        get_latest_graphql_url(),
+        latest_graphql_url,
         headers=auth_headers,
         json={"query": "{ org { uuid } }"},
     )
