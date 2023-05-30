@@ -200,7 +200,7 @@ class DataLoader:
         search_result = single_object_search(searchParameters, self.ldap_connection)
         return make_ldap_object(search_result, self.context, nest=nest)
 
-    def load_ldap_attribute_values(self, attribute):
+    def load_ldap_attribute_values(self, attribute, search_base=None):
         """
         Returns all values belonging to an LDAP attribute
         """
@@ -209,7 +209,11 @@ class DataLoader:
             "attributes": [attribute],
         }
 
-        responses = paged_search(self.context, searchParameters)
+        responses = paged_search(
+            self.context,
+            searchParameters,
+            search_base=search_base,
+        )
         return sorted(set([str(r["attributes"][attribute]) for r in responses]))
 
     def load_ldap_cpr_object(

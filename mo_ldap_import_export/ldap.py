@@ -179,12 +179,6 @@ def _paged_search(
     searchParameters: dict,
     search_base: str,
 ) -> list:
-    """
-    searchParameters : dict
-        Dict with the following keys:
-            * search_filter
-            * attributes
-    """
     responses = []
     user_context = context["user_context"]
     ldap_connection = user_context["ldap_connection"]
@@ -230,6 +224,17 @@ def paged_search(
     searchParameters: dict,
     search_base: Union[str, None] = None,
 ) -> list:
+    """
+    Parameters
+    -----------------
+    searchParameters : dict
+        Dict with the following keys:
+            * search_filter
+            * attributes
+    search_base : str
+        Search base to search in. If empty, uses settings.search_base combined with
+        settings.ous_to_search_in
+    """
 
     if search_base:
         # If the search base is explicitly defined: Don't try anything fancy.
