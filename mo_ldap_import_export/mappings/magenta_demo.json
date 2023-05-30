@@ -81,7 +81,7 @@
     },
     "ADSAMA": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "_import_to_mo_": "true",
+      "_import_to_mo_": "manual_import_only",
       "user_key": "{{ ldap.sAMAccountName }}",
       "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
