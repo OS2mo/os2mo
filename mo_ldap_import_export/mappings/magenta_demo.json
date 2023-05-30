@@ -140,7 +140,8 @@
       "employeeType": "{{get_engagement_type_user_key(mo_employee_engagement.engagement_type.uuid)}}",
       "memberOf": "{{NONE}}",
       "primaryGroupID": "{{mo_employee_engagement.user_key}}",
-      "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}"
+      "title": "{{get_job_function_user_key(mo_employee_engagement.job_function.uuid)}}",
+      "comment": "{{mo_employee_engagement.validity.to_date.strftime('%Y-%m-%d') if mo_employee_engagement.validity.to_date else NONE}}",
     },
     "PhoneEmployee": {
       "objectClass": "user",
