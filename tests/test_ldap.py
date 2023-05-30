@@ -492,17 +492,8 @@ def converter() -> MagicMock:
 
 
 @pytest.fixture()
-def internal_amqpsystem() -> AsyncMock:
-    internal_amqpsystem = AsyncMock()
-    return internal_amqpsystem
-
-
-@pytest.fixture()
 def user_context(
-    dataloader: AsyncMock,
-    converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
-    sync_tool: AsyncMock,
+    dataloader: AsyncMock, converter: MagicMock, sync_tool: AsyncMock
 ) -> dict:
 
     user_context = dict(dataloader=dataloader, converter=converter, sync_tool=sync_tool)
@@ -512,7 +503,6 @@ def user_context(
 async def test_cleanup(
     dataloader: AsyncMock,
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
 
@@ -549,7 +539,6 @@ async def test_cleanup(
 async def test_cleanup_no_sync_required(
     dataloader: AsyncMock,
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
 
@@ -588,7 +577,6 @@ async def test_cleanup_no_sync_required(
 async def test_cleanup_refresh_mo_object(
     dataloader: AsyncMock,
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
 
@@ -645,7 +633,6 @@ async def test_cleanup_refresh_mo_object(
 async def test_cleanup_no_export_False(
     dataloader: AsyncMock,
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
     user_context: dict,
 ):
     converter._export_to_ldap_.return_value = False
