@@ -716,9 +716,10 @@ def create_app(**kwargs: Any) -> FastAPI:
     @app.get("/Inspect/attribute/values/{attribute}", status_code=202, tags=["LDAP"])
     async def load_unique_attribute_values_from_LDAP(
         attribute: Literal[accepted_attributes],  # type: ignore
+        search_base: str | None = None,
         user=Depends(login_manager),
     ) -> Any:
-        return dataloader.load_ldap_attribute_values(attribute)
+        return dataloader.load_ldap_attribute_values(attribute, search_base=search_base)
 
     # Get LDAP object by objectGUID
     @app.get("/Inspect/object/objectGUID", status_code=202, tags=["LDAP"])
