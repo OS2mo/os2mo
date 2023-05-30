@@ -499,14 +499,13 @@ def internal_amqpsystem() -> AsyncMock:
 
 @pytest.fixture()
 def user_context(
-    dataloader: AsyncMock, converter: MagicMock, internal_amqpsystem: AsyncMock
+    dataloader: AsyncMock,
+    converter: MagicMock,
+    internal_amqpsystem: AsyncMock,
+    sync_tool: AsyncMock,
 ) -> dict:
 
-    user_context = dict(
-        dataloader=dataloader,
-        converter=converter,
-        internal_amqpsystem=internal_amqpsystem,
-    )
+    user_context = dict(dataloader=dataloader, converter=converter, sync_tool=sync_tool)
     return user_context
 
 
@@ -630,6 +629,7 @@ async def test_cleanup_refresh_mo_object(
     }
 
     # And None in LDAP
+    sync_tool = user_context["sync_tool"]
     for none_val in [[], None, ""]:  # type: ignore
         dataloader.load_ldap_object.return_value = LdapObject(
             dn="CN=foo", address=none_val
@@ -638,13 +638,8 @@ async def test_cleanup_refresh_mo_object(
         # We would expect that an AMQP message is sent over the internal AMQP system
         await asyncio.gather(cleanup(**args))  # type:ignore
 
-        messages = internal_amqpsystem.publish_message.await_args_list
-        assert len(messages) == 1
-        assert messages[0].args[0] == "employee.address.refresh"
-        assert messages[0].args[1]["uuid"] == employee_uuid
-        assert messages[0].args[1]["object_uuid"] == object_uuid
-
-        internal_amqpsystem.publish_message.reset_mock()
+        sync_tool.refresh_object.assert_called_once()
+        sync_tool.refresh_object.reset_mock()
 
 
 async def test_cleanup_no_export_False(
