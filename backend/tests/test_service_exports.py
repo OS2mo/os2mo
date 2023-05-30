@@ -24,7 +24,7 @@ from tests.conftest import test_app
 from tests.conftest import YieldFixture
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def fastapi_test_app_weird_auth() -> FastAPI:
     async def _noop_oauth2_scheme(request: Request) -> str | None:
         return "jwt-goes-here"
@@ -37,7 +37,7 @@ def fastapi_test_app_weird_auth() -> FastAPI:
     return test_app_weird_auth()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def service_client_weird_auth(
     fastapi_test_app_weird_auth: FastAPI,
 ) -> YieldFixture[TestClient]:

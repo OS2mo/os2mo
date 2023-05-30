@@ -88,7 +88,7 @@ def clear_configured_organisation():
     ConfiguredOrganisation.clear()
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def mock_asgi_transport() -> YieldFixture[None]:
     HTTPCoreMocker.add_targets(
         "httpx._transports.asgi.ASGITransport",
@@ -221,30 +221,21 @@ def latest_graphql_url() -> str:
 
 @pytest.fixture(scope="session")
 def raw_client(fastapi_raw_test_app: FastAPI) -> YieldFixture[TestClient]:
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
+    """Fixture yielding a FastAPI test client."""
     with TestClient(fastapi_raw_test_app) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
 def service_client(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
+    """Fixture yielding a FastAPI test client."""
     with TestClient(fastapi_test_app) as client:
         yield client
 
 
 @pytest.fixture(scope="session")
 def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
+    """Fixture yielding a FastAPI test client."""
     with TestClient(fastapi_admin_test_app) as client:
         yield client
 
@@ -282,7 +273,7 @@ async def load_fixture() -> None:
     await load_fixture_data()
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 async def load_fixture_data_with_reset() -> YieldFixture[None]:
     await load_fixture_data()
 
@@ -315,10 +306,7 @@ async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
 
 @pytest.fixture(scope="session")
 def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
+    """Fixture yielding a FastAPI test client."""
     with TestClient(fastapi_test_app, raise_server_exceptions=False) as client:
         yield client
 
@@ -496,7 +484,7 @@ def fetch_itsystem_uuids(load_fixture, graphapi_post: Callable) -> list[UUID]:
     return uuids
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def patch_loader():
     """Fixture to patch dataloaders for mocks.
 
@@ -519,10 +507,7 @@ def patch_loader():
 
 @pytest.fixture(scope="session")
 def graphapi_test(fastapi_admin_test_app: FastAPI) -> TestClient:
-    """Fixture yielding a FastAPI test client.
-
-    This fixture is class scoped to ensure safe teardowns between test classes.
-    """
+    """Fixture yielding a FastAPI test client."""
     return TestClient(fastapi_admin_test_app)
 
 
@@ -532,7 +517,6 @@ def graphapi_test_no_exc(fastapi_admin_test_app: FastAPI) -> TestClient:
 
     This test client does not raise server errors. We use it to check error handling
     in our GraphQL stack.
-    This fixture is class scoped to ensure safe teardowns between test classes.
     """
     return TestClient(fastapi_admin_test_app, raise_server_exceptions=False)
 
