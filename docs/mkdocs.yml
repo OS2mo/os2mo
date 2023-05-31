@@ -42,6 +42,7 @@ nav:
           - Conventions: guides/conventions.md
           - Manager script: guides/os2mo-manager-sync.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
+          - Organisational chart: guides/org-chart.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
           - Tests: guides/tests.md
   - LoRa:
