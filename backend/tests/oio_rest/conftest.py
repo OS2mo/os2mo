@@ -3,7 +3,9 @@
 import os
 
 import pytest
+from fastapi.testclient import TestClient
 
+from oio_rest.app import create_app
 from oio_rest.db.testing import ensure_testing_database_exists
 from oio_rest.db.testing import teardown_testing_database
 
@@ -22,3 +24,10 @@ def tests_setup_and_teardown():
 
     # Will be executed after the last test
     teardown_testing_database()
+
+
+@pytest.fixture(scope="session")
+def lora_client() -> TestClient:
+    app = create_app()
+    client = TestClient(app)
+    return client
