@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from more_itertools import one
 
 from mora import lora
+from mora.graphapi.shim import execute_graphql
 from mora.util import get_effect_from
 from tests import util
 from tests.cases import assert_registrations_equal
@@ -1146,11 +1147,25 @@ def test_edit_errors(service_client: TestClient) -> None:
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_class(service_client: TestClient) -> None:
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
-        # The relevant address_type klasse is not present in the minimal dataset
         await util.load_fixture(
             "organisation/organisationfunktion",
             "create_organisationfunktion_email_andersand.json",
         )
+
+        delete_query = """
+            mutation ($uuid: UUID!) {
+              class_delete(uuid: $uuid) {
+                uuid
+              }
+            }
+        """
+        class_uuid = "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0"
+        response = await execute_graphql(
+            query=delete_query,
+            variable_values={"uuid": class_uuid},
+        )
+        assert response.errors is None
+        assert response.data == {"class_delete": {"uuid": class_uuid}}
 
         with pytest.raises(ValueError, match="too few items in iterable"):
             service_client.get(
