@@ -300,14 +300,6 @@ def event_loop() -> YieldFixture[asyncio.AbstractEventLoop]:
     loop.close()
 
 
-@pytest.fixture
-async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
-    """Function scoped fixture, which is called on every test with a teardown"""
-    await load_sample_structures(minimal=True)
-    yield
-    reset_testing_database()
-
-
 @pytest.fixture(scope="session")
 def service_client_not_raising(fastapi_test_app: FastAPI) -> YieldFixture[TestClient]:
     """Fixture yielding a FastAPI test client."""

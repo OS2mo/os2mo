@@ -74,7 +74,7 @@ async def load_fixture(path, fixture_name, uuid=None, **kwargs):
     return r
 
 
-async def load_sample_structures(minimal=False):
+async def load_sample_structures():
     """Inject our test data into LoRA."""
     orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"
 
@@ -153,106 +153,105 @@ async def load_sample_structures(minimal=False):
         "sap": "14466fb0-f9de-439c-a6c2-b3262c367da7",
     }
 
-    if not minimal:
-        units.update(
-            {
-                # L2
-                "hum": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                # L3
-                "fil": "85715fc7-925d-401b-822d-467eb4b163b6",
-                # L2
-                "samf": "b688513d-11f7-4efc-b679-ab082a2055d0",
-                "social_og_sundhed": "68c5d78e-ae26-441f-a143-0103eca8b62a",
-                "skole_og_børn": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
-                # L3
-                "it_sup": "fa2e23c9-860a-4c90-bcc6-2c0721869a25",
-                # L1
-                "løn": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
-                # L2
-                "social_og_sundhed_løn": "5942ce50-2be8-476f-914b-6769a888a7c8",
-                "hist": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
-                "frem": "04c78fc2-72d2-4d02-b55f-807af19eac48",
-                "only_addrs": "f494ad89-039d-478e-91f2-a63566554666",
-            }
-        )
+    units.update(
+        {
+            # L2
+            "hum": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+            # L3
+            "fil": "85715fc7-925d-401b-822d-467eb4b163b6",
+            # L2
+            "samf": "b688513d-11f7-4efc-b679-ab082a2055d0",
+            "social_og_sundhed": "68c5d78e-ae26-441f-a143-0103eca8b62a",
+            "skole_og_børn": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            # L3
+            "it_sup": "fa2e23c9-860a-4c90-bcc6-2c0721869a25",
+            # L1
+            "løn": "b1f69701-86d8-496e-a3f1-ccef18ac1958",
+            # L2
+            "social_og_sundhed_løn": "5942ce50-2be8-476f-914b-6769a888a7c8",
+            "hist": "da77153e-30f3-4dc2-a611-ee912a28d8aa",
+            "frem": "04c78fc2-72d2-4d02-b55f-807af19eac48",
+            "only_addrs": "f494ad89-039d-478e-91f2-a63566554666",
+        }
+    )
 
-        classes.update(
-            {
-                # org_unit_type
-                "fakultet": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
-                "institut": "ca76a441-6226-404f-88a9-31e02e420e52",
-                # association_type
-                "medlem": "62ec821f-4179-4758-bfdf-134529d186e9",
-                "projektleder": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
-                "teammedarbejder": "45751985-321f-4d4f-ae16-847f0a633360",
-                # engagement_job_function
-                "specialist": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
-                "skolepsykolog": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
-                "bogopsaetter": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
-                # engagement_type
-                "ansat": "06f95678-166a-455a-a2ab-121a8d92ea23",
-                # employee_address_type
-                "bruger_adresse": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
-                "bruger_email": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
-                "bruger_telefon": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
-                # org_unit_address_type
-                "org_unit_adresse": "28d71012-2919-4b67-a2f0-7b59ed52561e",
-                "org_unit_ean": "e34d4426-9845-4c72-b31e-709be85d6fa2",
-                "org_unit_email": "73360db1-bad3-4167-ac73-8d827c0c8751",
-                "org_unit_telefon": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
-                "org_unit_contactopenhours": "e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b",
-                "org_unit_afdelingskode": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
-                # org_unit_hierarchy
-                "linjeorg": "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
-                "hide": "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
-                "selvejet": "69de6410-bfe7-bea5-e6cc-376b3302189c",
-                # org_unit_level
-                "org_unit_level_10": "0f015b67-f250-43bb-9160-043ec19fad48",
-                # visibility
-                "public": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
-                # primary_level
-                "primaer": "89b6cef8-3d03-49ac-816f-f7530b383411",
-                "sekundaer": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
-                # role_type
-                "tillidsrepraesentant": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
-                # manager_type
-                "direktoer": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
-                # manager_level
-                "niveau1": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
-                "niveau3": "991915c0-f4f4-4337-95fa-dbeb9da13247",
-                # responsibility
-                "beredskabsledelse": "93ea44f9-127c-4465-a34c-77d149e3e928",
-                # leave_type
-                "barselsorlov": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
-                # time_planning
-                "tjenestetid": "ebce5c35-4e30-4ba8-9a08-c34592650b04",
-                # kle_aspect
-                "kle_ansvarlig": "9016d80a-c6d2-4fb4-83f1-87ecc23ab062",
-                "kle_indsigt": "fdbdb18f-5a28-4414-bc43-d5c2b70c0510",
-                "kle_udfoerende": "f9748c65-3354-4682-a035-042c534c6b4e",
-                # kle_number
-                "kle_number": "d7c12965-6207-4c82-88b8-68dbf6667492",
-                # engagement_association_type
-                "ea_k1": "5695e331-d837-473f-9b00-6f528fbd23f6",
-                "ea_k2": "51cc63b8-d8d1-4b74-95df-7c105c9c88dd",
-            }
-        )
+    classes.update(
+        {
+            # org_unit_type
+            "fakultet": "4311e351-6a3c-4e7e-ae60-8a3b2938fbd6",
+            "institut": "ca76a441-6226-404f-88a9-31e02e420e52",
+            # association_type
+            "medlem": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "projektleder": "8eea787c-c2c7-46ca-bd84-2dd50f47801e",
+            "teammedarbejder": "45751985-321f-4d4f-ae16-847f0a633360",
+            # engagement_job_function
+            "specialist": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
+            "skolepsykolog": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+            "bogopsaetter": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+            # engagement_type
+            "ansat": "06f95678-166a-455a-a2ab-121a8d92ea23",
+            # employee_address_type
+            "bruger_adresse": "4e337d8e-1fd2-4449-8110-e0c8a22958ed",
+            "bruger_email": "c78eb6f7-8a9e-40b3-ac80-36b9f371c3e0",
+            "bruger_telefon": "cbadfa0f-ce4f-40b9-86a0-2e85d8961f5d",
+            # org_unit_address_type
+            "org_unit_adresse": "28d71012-2919-4b67-a2f0-7b59ed52561e",
+            "org_unit_ean": "e34d4426-9845-4c72-b31e-709be85d6fa2",
+            "org_unit_email": "73360db1-bad3-4167-ac73-8d827c0c8751",
+            "org_unit_telefon": "1d1d3711-5af4-4084-99b3-df2b8752fdec",
+            "org_unit_contactopenhours": "e8ea1a09-d3d4-4203-bfe9-d9a2da100f3b",
+            "org_unit_afdelingskode": "e8ea1a09-d3d4-4203-bfe9-d9a213371337",
+            # org_unit_hierarchy
+            "linjeorg": "f805eb80-fdfe-8f24-9367-68ea955b9b9b",
+            "hide": "8c30ab5a-8c3a-566c-bf12-790bdd7a9fef",
+            "selvejet": "69de6410-bfe7-bea5-e6cc-376b3302189c",
+            # org_unit_level
+            "org_unit_level_10": "0f015b67-f250-43bb-9160-043ec19fad48",
+            # visibility
+            "public": "f63ad763-0e53-4972-a6a9-63b42a0f8cb7",
+            # primary_level
+            "primaer": "89b6cef8-3d03-49ac-816f-f7530b383411",
+            "sekundaer": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
+            # role_type
+            "tillidsrepraesentant": "0fa6073f-32c0-4f82-865f-adb622ca0b04",
+            # manager_type
+            "direktoer": "0d72900a-22a4-4390-a01e-fd65d0e0999d",
+            # manager_level
+            "niveau1": "3c791935-2cfa-46b5-a12e-66f7f54e70fe",
+            "niveau3": "991915c0-f4f4-4337-95fa-dbeb9da13247",
+            # responsibility
+            "beredskabsledelse": "93ea44f9-127c-4465-a34c-77d149e3e928",
+            # leave_type
+            "barselsorlov": "bf65769c-5227-49b4-97c5-642cfbe41aa1",
+            # time_planning
+            "tjenestetid": "ebce5c35-4e30-4ba8-9a08-c34592650b04",
+            # kle_aspect
+            "kle_ansvarlig": "9016d80a-c6d2-4fb4-83f1-87ecc23ab062",
+            "kle_indsigt": "fdbdb18f-5a28-4414-bc43-d5c2b70c0510",
+            "kle_udfoerende": "f9748c65-3354-4682-a035-042c534c6b4e",
+            # kle_number
+            "kle_number": "d7c12965-6207-4c82-88b8-68dbf6667492",
+            # engagement_association_type
+            "ea_k1": "5695e331-d837-473f-9b00-6f528fbd23f6",
+            "ea_k2": "51cc63b8-d8d1-4b74-95df-7c105c9c88dd",
+        }
+    )
 
-        functions.update(
-            {
-                "email_andersand": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
-                "email_fedtmule": "64ea02e2-8469-4c54-a523-3d46729e86a7",
-                "adresse_engagement_andersand": "00e96933-91e4-42ac-9881-0fe1738b2e59",
-                "adresse_fedtmule": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
-                "adresse_root": "414044e0-fe5f-4f82-be20-1e107ad50e80",
-                "adresse_hum": "e1a9cede-8c9b-4367-b628-113834361871",
-                "tlf_hum": "55848eca-4e9e-4f30-954b-78d55eec0473",
-                "ean_hum": "a0fe7d43-1e0d-4232-a220-87098024b34d",
-                "engagement_association": "a0fe7d43-1e0d-4232-a220-87009134b45e",
-                "adresse_orgunit_only_addrs": "55848eca-4e9e-4f30-954b-78d55eec0444",
-                "adresse_orgunit_only_addrs_afdelingskode": "55848eca-4e9e-4f30-954b-78d55eec0441",
-            }
-        )
+    functions.update(
+        {
+            "email_andersand": "fba61e38-b553-47cc-94bf-8c7c3c2a6887",
+            "email_fedtmule": "64ea02e2-8469-4c54-a523-3d46729e86a7",
+            "adresse_engagement_andersand": "00e96933-91e4-42ac-9881-0fe1738b2e59",
+            "adresse_fedtmule": "cd6008bc-1ad2-4272-bc1c-d349ef733f52",
+            "adresse_root": "414044e0-fe5f-4f82-be20-1e107ad50e80",
+            "adresse_hum": "e1a9cede-8c9b-4367-b628-113834361871",
+            "tlf_hum": "55848eca-4e9e-4f30-954b-78d55eec0473",
+            "ean_hum": "a0fe7d43-1e0d-4232-a220-87098024b34d",
+            "engagement_association": "a0fe7d43-1e0d-4232-a220-87009134b45e",
+            "adresse_orgunit_only_addrs": "55848eca-4e9e-4f30-954b-78d55eec0444",
+            "adresse_orgunit_only_addrs_afdelingskode": "55848eca-4e9e-4f30-954b-78d55eec0441",
+        }
+    )
 
     for facetkey, facetid in facets.items():
         fixtures.append(

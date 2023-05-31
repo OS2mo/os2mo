@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from collections.abc import Callable
+from operator import itemgetter
 
 import freezegun
 import pytest
@@ -540,16 +541,6 @@ async def test_employee(service_client: TestClient) -> None:
     }
 
 
-@pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
-async def test_children_minimal(service_client: TestClient) -> None:
-    response = service_client.get(
-        "/service/ou/2874e1dc-85e6-4269-823a-e1125484dfd3/children"
-    )
-    assert response.status_code == 200
-    assert response.json() == []
-
-
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
@@ -597,7 +588,7 @@ def test_children(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 def test_facet_create_and_update(service_client: TestClient) -> None:
     # Tests new creation - 200 message
     response = service_client.post(
@@ -615,6 +606,33 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
     actual_post = response.json()
     assert actual_post == "18638313-d9e6-4e1d-aea6-67f5fce7a6b0"
 
+    job_functions = [
+        {
+            "example": None,
+            "name": "Skolepsykolog",
+            "owner": None,
+            "scope": None,
+            "user_key": "Skolepsykolog",
+            "uuid": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
+        },
+        {
+            "example": None,
+            "name": "Specialist",
+            "owner": None,
+            "scope": "TEXT",
+            "user_key": "specialist",
+            "uuid": "890d4ff0-b453-4900-b79b-dbb461eda3ee",
+        },
+        {
+            "example": None,
+            "name": "Bogopsætter",
+            "owner": None,
+            "scope": None,
+            "user_key": "Bogopsætter",
+            "uuid": "f42dd694-f1fd-42a6-8a97-38777b73adc4",
+        },
+    ]
+
     # Tests the GET data matches
     response = service_client.get("/service/f/engagement_job_function/")
     assert response.status_code == 200
@@ -624,18 +642,22 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
         "user_key": "engagement_job_function",
         "description": "",
         "data": {
-            "total": 1,
+            "total": 4,
             "offset": 0,
-            "items": [
-                {
-                    "example": None,
-                    "name": "Jurist",
-                    "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
-                    "scope": "TEXT",
-                    "user_key": "BVN",
-                    "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                }
-            ],
+            "items": sorted(
+                job_functions
+                + [
+                    {
+                        "example": None,
+                        "name": "Jurist",
+                        "owner": "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e",
+                        "scope": "TEXT",
+                        "user_key": "BVN",
+                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                    }
+                ],
+                key=itemgetter("uuid"),
+            ),
         },
     }
 
@@ -665,18 +687,22 @@ def test_facet_create_and_update(service_client: TestClient) -> None:
         "user_key": "engagement_job_function",
         "description": "",
         "data": {
-            "total": 1,
+            "total": 4,
             "offset": 0,
-            "items": [
-                {
-                    "example": None,
-                    "name": "Ergoterapeut",
-                    "owner": None,
-                    "scope": "TEXT",
-                    "user_key": "BVN",
-                    "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
-                }
-            ],
+            "items": sorted(
+                job_functions
+                + [
+                    {
+                        "example": None,
+                        "name": "Ergoterapeut",
+                        "owner": None,
+                        "scope": "TEXT",
+                        "user_key": "BVN",
+                        "uuid": "18638313-d9e6-4e1d-aea6-67f5fce7a6b0",
+                    }
+                ],
+                key=itemgetter("uuid"),
+            ),
         },
     }
 

@@ -8,7 +8,7 @@ from tests.util import load_fixture
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 async def test_dangling_foreign_key(graphapi_post: Callable) -> None:
     engagement_uuid = "301a906b-ef51-4d5c-9c77-386fb8410459"
     employee_uuid = "236e0a78-11a0-4ed9-8545-6286bb8611c7"
