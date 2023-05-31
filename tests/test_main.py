@@ -798,3 +798,34 @@ def test_wraps():
     Test that the decorated listen_to_changes function keeps its name
     """
     assert listen_to_changes.__name__ == "listen_to_changes"
+
+
+def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
+    test_client_no_cpr: TestClient,
+    headers: dict,
+    dataloader: AsyncMock,
+):
+    response = test_client_no_cpr.get("/Inspect/duplicate_cpr_numbers", headers=headers)
+    assert response.status_code == 404
+
+
+def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
+    test_client: TestClient,
+    headers: dict,
+    dataloader: AsyncMock,
+):
+
+    searchResponse = [
+        {"dn": "foo", "attributes": {"EmployeeID": "12"}},
+        {"dn": "mucki", "attributes": {"EmployeeID": "123"}},
+        {"dn": "bar", "attributes": {"EmployeeID": "123"}},
+    ]
+
+    with patch("mo_ldap_import_export.main.paged_search", return_value=searchResponse):
+
+        response = test_client.get("/Inspect/duplicate_cpr_numbers", headers=headers)
+        assert response.status_code == 202
+        result = response.json()
+        assert "123" in result
+        assert "mucki" in result["123"]
+        assert "bar" in result["123"]
