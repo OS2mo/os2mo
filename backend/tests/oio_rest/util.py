@@ -15,9 +15,9 @@ from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app
 from oio_rest.auth.oidc import auth
-from oio_rest.db.testing import reset_testing_database
-from oio_rest.db.testing import setup_testing_database
 from tests.cases import sort_inner_lists
+from tests.db_testing import reset_testing_database
+from tests.db_testing import setup_testing_database
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)

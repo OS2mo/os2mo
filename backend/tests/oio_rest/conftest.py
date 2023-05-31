@@ -6,8 +6,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from oio_rest.app import create_app
-from oio_rest.db.testing import ensure_testing_database_exists
-from oio_rest.db.testing import teardown_testing_database
+from tests.db_testing import ensure_testing_database_exists
+from tests.db_testing import teardown_testing_database
 
 
 # Parts of the LoRa test suite assume that Keycloak authentication is turned on.

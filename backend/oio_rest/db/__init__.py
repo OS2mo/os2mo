@@ -79,11 +79,9 @@ _connection = None
 
 
 def _get_dbname():
-    from .testing import get_testing  # avoid circular import
-
     settings = config.get_settings()
     dbname = settings.db_name
-    if get_testing():
+    if os.environ.get("TESTING", "") == "True":
         dbname = f"{settings.db_name}_test"
     return dbname
 

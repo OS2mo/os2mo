@@ -6,15 +6,15 @@ from psycopg2.errors import OperationalError
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from . import get_connection
-from .. import config
-from .alembic_helpers import get_alembic_cfg
-from .alembic_helpers import get_prerequisites
-from .alembic_helpers import is_schema_installed
-from .alembic_helpers import setup_database
-from .alembic_helpers import stamp_database
-from .alembic_helpers import truncate_all_tables
 from alembic import command
+from oio_rest import config
+from oio_rest.db import get_connection
+from oio_rest.db.alembic_helpers import get_alembic_cfg
+from oio_rest.db.alembic_helpers import get_prerequisites
+from oio_rest.db.alembic_helpers import is_schema_installed
+from oio_rest.db.alembic_helpers import setup_database
+from oio_rest.db.alembic_helpers import stamp_database
+from oio_rest.db.alembic_helpers import truncate_all_tables
 
 
 def ensure_testing_database_exists():
@@ -87,10 +87,6 @@ def _begin_or_continue_testing():
 
 def stop_testing():
     os.environ.pop("TESTING", None)
-
-
-def get_testing() -> bool:
-    return os.environ.get("TESTING", "") == "True"
 
 
 def _check_current_database_is_testing():

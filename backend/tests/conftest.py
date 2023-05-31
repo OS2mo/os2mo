@@ -45,9 +45,9 @@ from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
-from oio_rest.db.testing import ensure_testing_database_exists
-from oio_rest.db.testing import teardown_testing_database
 from ramodels.mo import Validity
+from tests.db_testing import ensure_testing_database_exists
+from tests.db_testing import teardown_testing_database
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import darmock
 from tests.util import load_sample_structures
