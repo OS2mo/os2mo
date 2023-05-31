@@ -11,7 +11,7 @@ from tap.parser import Parser
 from oio_rest import config
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
-from oio_rest.db.testing import setup_testing_database
+from tests.db_testing import setup_testing_database
 from tests.oio_rest import util
 
 
