@@ -316,11 +316,6 @@ class ExtTestCase(BaseTestCase):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("transactional_connection")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
-
-    def setUp(self):
-        super().setUp()
-        # Truncate tables before each test
-        reset_testing_database()

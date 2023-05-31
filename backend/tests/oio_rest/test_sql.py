@@ -33,7 +33,7 @@ def setup_pgsql_test(testing_db: None):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("setup_pgsql_test")
+@pytest.mark.usefixtures("setup_pgsql_test", "transactional_connection")
 @pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
 def test_pgsql(subtests, dbfile):
     with get_connection() as conn, conn.cursor() as curs:

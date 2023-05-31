@@ -274,6 +274,20 @@ async def load_fixture() -> None:
 
 
 @pytest.fixture
+async def transactional_connection(testing_db: None) -> YieldFixture[None]:
+    conn = get_connection()
+    try:
+        conn.set_session(autocommit=False)
+    except psycopg2.ProgrammingError:
+        conn.rollback()  # If a transaction is already in progress roll it back
+        conn.set_session(autocommit=False)
+
+    yield
+
+    conn.rollback()
+
+
+@pytest.fixture
 async def load_fixture_data_with_reset() -> YieldFixture[None]:
     await load_fixture_data()
 
