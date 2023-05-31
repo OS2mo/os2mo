@@ -290,8 +290,8 @@ def test_children_filtered(service_client: TestClient):
 
 
 @pytest.mark.integration_test
-@freezegun.freeze_time("2017-01-01", tz_offset=1)
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
 def test_create_root_unit_without_org_id(service_client: TestClient) -> None:
     unitid = "00000000-0000-0000-0000-000000000000"
     orgid = "456362c4-0ee4-4e5e-a72c-751239745e62"

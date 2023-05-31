@@ -94,7 +94,7 @@ def test_uuid_endpoints(lora_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize("endpoint", UUID_ENDPOINTS)
 def test_finding_nothing(lora_client: TestClient, endpoint: str) -> None:
     response = lora_client.get(endpoint, params={"bvn": "%"})
@@ -103,7 +103,7 @@ def test_finding_nothing(lora_client: TestClient, endpoint: str) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("empty_db")
 @pytest.mark.parametrize(
     "endpoint,params",
     [

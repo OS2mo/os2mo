@@ -1,15 +1,15 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import os
+import random
+import string
 
-from psycopg2.errors import OperationalError
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-from alembic import command
 from oio_rest import config
+from oio_rest.db import close_connection
 from oio_rest.db import get_connection
-from oio_rest.db.alembic_helpers import get_alembic_cfg
+from oio_rest.db import get_new_connection
 from oio_rest.db.alembic_helpers import get_prerequisites
 from oio_rest.db.alembic_helpers import is_schema_installed
 from oio_rest.db.alembic_helpers import setup_database
@@ -17,29 +17,26 @@ from oio_rest.db.alembic_helpers import stamp_database
 from oio_rest.db.alembic_helpers import truncate_all_tables
 
 
-def ensure_testing_database_exists():
+def create_new_testing_database(identifier: str) -> str:
     settings = config.get_settings()
     non_test_dbname = settings.db_name
 
-    _begin_or_continue_testing()
+    random_id = "".join([random.choice(string.ascii_lowercase) for _ in range(8)])
+    new_db_name = "_".join([non_test_dbname, identifier, random_id, "test"])
 
-    with get_connection(dbname=non_test_dbname) as connection:
+    with get_new_connection() as connection:
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
-            connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-            _terminate_connections(cursor, "mox_test")
-            try:
-                # try and get a connection to mox_test
-                get_connection()
-            except OperationalError:
-                # could not get a connection to mox_test; create new db
-                cursor.execute("create database mox_test owner mox encoding utf8")
-                for prerequisite in get_prerequisites(db_name="mox_test"):
-                    cursor.execute(prerequisite)
-    # Install "actual_state" schema in testing database
-    setup_testing_database()
+            cursor.execute(f"CREATE DATABASE {new_db_name} OWNER mox")
+            for prerequisite in get_prerequisites(db_name=new_db_name):
+                cursor.execute(prerequisite)
+
+    close_connection()
+
+    return new_db_name
 
 
-def setup_testing_database():
+def setup_testing_database() -> None:
     """Install "actual_state" schema in testing database"""
 
     _check_current_database_is_testing()
@@ -57,39 +54,42 @@ def setup_testing_database():
         setup_database()
 
 
-def reset_testing_database():
+def reset_testing_database() -> None:
     """Truncate all tables in the 'actual_state' schema, in the testing database"""
     # HACK as long as we have two ways to generate sample structure data
     # the are_fixtures_loaded needs to be set to false to ensure
     # the correct change between minimal and full sample structure data
 
-    from tests import conftest
-
-    conftest.are_fixtures_loaded
-    _begin_or_continue_testing()
     _check_current_database_is_testing()
     truncate_all_tables()
-    conftest.are_fixtures_loaded = False
 
 
-def teardown_testing_database():
-    """Remove "actual_state" schema from testing database"""
+def remove_testing_database(new_db_name: str) -> None:
+    """Remove the testing database entirely"""
+    with get_new_connection() as connection:
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with connection.cursor() as cursor:
+            # Forcefully terminate all connections to the database
+            cursor.execute(
+                """
+                select
+                    pg_terminate_backend(pid)
+                from
+                    pg_stat_activity
+                where
+                    datname = %s
+                    and
+                    pid <> pg_backend_pid()
+                """,
+                (new_db_name,),
+            )
+            # Drop the database
+            cursor.execute(f"DROP DATABASE {new_db_name}")
 
-    _begin_or_continue_testing()
-    _check_current_database_is_testing()
-    command.downgrade(get_alembic_cfg(), "base")
-    stop_testing()
+    close_connection()
 
 
-def _begin_or_continue_testing():
-    os.environ["TESTING"] = "True"
-
-
-def stop_testing():
-    os.environ.pop("TESTING", None)
-
-
-def _check_current_database_is_testing():
+def _check_current_database_is_testing() -> None:
     # Check that we are operating on the testing database
     with get_connection().cursor() as cursor:
         cursor.execute("select current_database()")
@@ -106,19 +106,3 @@ def _is_alembic_installed() -> bool:
             return False
         else:
             return cursor.fetchone()[0] > 0
-
-
-def _terminate_connections(cursor, dbname):
-    return cursor.execute(
-        """
-        select
-            pg_terminate_backend(pid)
-        from
-            pg_stat_activity
-        where
-            datname = %s
-            and
-            pid <> pg_backend_pid()
-        """,
-        (dbname,),
-    )

@@ -9,15 +9,13 @@ from fastapi.testclient import TestClient
 from mora import lora
 from oio_rest.db import get_connection
 from tests.cases import assert_registrations_equal
-from tests.conftest import load_fixture_data
 
 
-@pytest.fixture()
-async def test_db_resets_rollbacks():
+@pytest.fixture
+async def test_db_resets_rollbacks(load_fixture: None) -> None:
     """Used for testing that db actually resets after running tests
     Should be used before a db-reseting method.
     """
-    await load_fixture_data()
     query_last_commit = "select count(*) as count from bruger;"
     user_count_intitial = "initial_commits"
     user_count_after = "user_count_after"

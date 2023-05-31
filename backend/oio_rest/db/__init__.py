@@ -7,6 +7,7 @@ import enum
 import os
 import pathlib
 from contextlib import suppress
+from contextvars import ContextVar
 from typing import Any
 
 import dateutil
@@ -78,15 +79,33 @@ jinja_env.filters["adapt"] = adapt
 _connection = None
 
 
+dbname_context = ContextVar("dbname")
+
+
 def _get_dbname():
     settings = config.get_settings()
     dbname = settings.db_name
-    if os.environ.get("TESTING", "") == "True":
-        dbname = f"{settings.db_name}_test"
+    dbname = dbname_context.get(dbname)
     return dbname
 
 
-def get_connection(dbname=None):
+def get_new_connection(dbname: str | None = None, autocommit: bool = True):
+    settings = config.get_settings()
+
+    connection = psycopg2.connect(
+        dbname=dbname or settings.db_name,
+        user=settings.db_user,
+        password=settings.db_password,
+        host=settings.db_host,
+        port=settings.db_port,
+        application_name="mox init connection",
+        sslmode=settings.db_sslmode,
+    )
+    connection.autocommit = autocommit
+    return connection
+
+
+def get_connection(dbname: str | None = None):
     """Return a psycopg connection."""
     global _connection
 
@@ -95,8 +114,6 @@ def get_connection(dbname=None):
 
     if (_connection is not None) and (_connection.info.dbname != dbname):
         _connection = None
-
-    settings = config.get_settings()
 
     # If no connection exists, or the current connection is closed, or the
     # current transaction is aborted, then open a new connection.
@@ -108,20 +125,10 @@ def get_connection(dbname=None):
         return _connection.info.transaction_status == TRANSACTION_STATUS_INERROR
 
     if (_connection is None) or closed() or in_error():
-        _connection = psycopg2.connect(
-            dbname=dbname,
-            user=settings.db_user,
-            password=settings.db_password,
-            host=settings.db_host,
-            port=settings.db_port,
-            application_name="mox init connection",
-            sslmode=settings.db_sslmode,
-        )
-
         commit = True
         if os.environ.get("TESTING", "") == "True":
             commit = False
-        _connection.autocommit = commit
+        _connection = get_new_connection(dbname, commit)
 
     return _connection
 
