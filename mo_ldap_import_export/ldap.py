@@ -246,7 +246,7 @@ def paged_search(
         results = []
         for ou in settings.ldap_ous_to_search_in:
             search_base = combine_dn_strings([ou, settings.ldap_search_base])
-            results.extend(_paged_search(context, searchParameters, search_base))
+            results.extend(_paged_search(context, searchParameters.copy(), search_base))
 
     return results
 
