@@ -23,5 +23,3 @@ Alle OS2mo's oplysninger skal afspejles i de IT-systemer, der har behov for dem,
 Det er også muligt at udstille OS2mo's oplysninger i et organisationsdiagram som alle kan tilgå på intranettet eller internettet.
 
 ![image](graphics/ForsideOS2mo.png)
-
-![image](graphics/orgview.png)
