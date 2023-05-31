@@ -11,14 +11,11 @@ from tap.parser import Parser
 from oio_rest import config
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
-from tests.db_testing import setup_testing_database
 from tests.oio_rest import util
 
 
 @pytest.fixture(scope="session")
-def setup_pgsql_test(tests_setup_and_teardown):
-    setup_testing_database()
-
+def setup_pgsql_test(testing_db: None):
     with get_connection() as conn, conn.cursor() as curs:
         curs.execute('CREATE EXTENSION "pgtap";')
 
