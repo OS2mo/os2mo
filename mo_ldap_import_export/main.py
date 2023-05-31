@@ -643,11 +643,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
         responses = [
             r
-            for r in paged_search(
-                fastramqpi._context,
-                searchParameters,
-                search_base=settings.ldap_search_base,
-            )
+            for r in paged_search(fastramqpi._context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 
