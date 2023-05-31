@@ -1,1 +1,1 @@
-![image](./graphics/orgview.png)
+![image](../graphics/orgview.png)
