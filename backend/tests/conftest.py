@@ -261,7 +261,6 @@ async def load_fixture_data() -> None:
     """
     global are_fixtures_loaded
     if not are_fixtures_loaded:
-        ensure_testing_database_exists()
         conn = get_connection()
         await load_sample_structures()
         conn.commit()  # commit the initial sample structures
@@ -269,12 +268,12 @@ async def load_fixture_data() -> None:
 
 
 @pytest.fixture(scope="session")
-async def load_fixture() -> None:
+async def load_fixture(testing_db: None) -> None:
     await load_fixture_data()
 
 
 @pytest.fixture
-async def load_fixture_data_with_reset() -> YieldFixture[None]:
+async def load_fixture_data_with_reset(testing_db: None) -> YieldFixture[None]:
     await load_fixture_data()
 
     conn = get_connection()
