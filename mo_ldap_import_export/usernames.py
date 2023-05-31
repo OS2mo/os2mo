@@ -99,9 +99,11 @@ class UserNameGeneratorBase:
         output = {}
         search_result = paged_search(self.context, searchParameters, search_base)
         for attribute in attributes:
-            all_values = [entry["attributes"][attribute] for entry in search_result]
-
-            output[attribute] = [a.lower() for a in all_values if a]
+            output[attribute] = [
+                entry["attributes"][attribute].lower()
+                for entry in search_result
+                if entry["attributes"][attribute]
+            ]
         return output
 
     def _make_cn(self, username_string: str):
