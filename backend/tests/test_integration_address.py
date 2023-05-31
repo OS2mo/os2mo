@@ -1142,7 +1142,7 @@ def test_edit_errors(service_client: TestClient) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("sample_structures_minimal")
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_missing_class(service_client: TestClient) -> None:
     with util.darmock("dawa-addresses.json", allow_mox=True, real_http=True):
