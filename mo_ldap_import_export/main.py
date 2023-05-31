@@ -63,6 +63,7 @@ from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
 from .ldap import get_attribute_types
 from .ldap import ldap_healthcheck
+from .ldap import paged_search
 from .ldap import poller_healthcheck
 from .ldap import setup_listener
 from .ldap_classes import LdapObject
@@ -629,6 +630,37 @@ def create_app(**kwargs: Any) -> FastAPI:
     ) -> Any:
         result = await dataloader.load_ldap_objects(json_key, ["objectGUID"])
         return encode_result(result[-entries_to_return:])
+
+    @app.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
+    async def get_duplicate_cpr_numbers_from_LDAP(user=Depends(login_manager)) -> Any:
+        if not cpr_field:
+            raise CPRFieldNotFound("cpr_field is not configured")
+
+        searchParameters = {
+            "search_filter": "(objectclass=*)",
+            "attributes": [cpr_field],
+        }
+
+        responses = [
+            r
+            for r in paged_search(
+                fastramqpi._context,
+                searchParameters,
+                search_base=settings.ldap_search_base,
+            )
+            if r["attributes"][cpr_field]
+        ]
+
+        cpr_values = [r["attributes"][cpr_field] for r in responses]
+        output = {}
+
+        for cpr in set(cpr_values):
+            if cpr_values.count(cpr) > 1:
+                output[cpr] = [
+                    r["dn"] for r in responses if r["attributes"][cpr_field] == cpr
+                ]
+
+        return output
 
     # Get all objects from LDAP with invalid cpr numbers
     @app.get("/Inspect/invalid_cpr_numbers", status_code=202, tags=["LDAP"])
