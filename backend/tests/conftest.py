@@ -46,9 +46,7 @@ from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
-from oio_rest.db.testing import reset_testing_database
-from oio_rest.db.testing import setup_testing_database
-from oio_rest.db.testing import stop_testing
+from oio_rest.db.testing import teardown_testing_database
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import darmock
@@ -245,10 +243,8 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
 @pytest.fixture(scope="session")
 def testing_db() -> YieldFixture[None]:
     ensure_testing_database_exists()
-    setup_testing_database()
     yield
-    reset_testing_database()
-    stop_testing()
+    teardown_testing_database()
 
 
 # Due to the current tight coupling between our unit and integration test,
