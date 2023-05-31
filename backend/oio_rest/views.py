@@ -4,13 +4,11 @@ import os
 from operator import attrgetter
 from uuid import UUID
 
-from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from fastapi.responses import PlainTextResponse
 from fastapi.responses import RedirectResponse
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -22,9 +20,6 @@ from oio_rest import klassifikation
 from oio_rest import organisation
 from oio_rest.auth.oidc import auth
 from oio_rest.custom_exceptions import OIOException
-from oio_rest.db.testing import ensure_testing_database_exists
-from oio_rest.db.testing import reset_testing_database
-from oio_rest.db.testing import stop_testing
 from oio_rest.kubernetes import kubernetes_router
 from oio_rest.mo.autocomplete import find_org_units_matching
 from oio_rest.mo.autocomplete import find_users_matching
@@ -89,35 +84,6 @@ def setup_views(app):
     )
 
     app.include_router(kubernetes_router)
-
-    testing_router = APIRouter()
-
-    @testing_router.get("/db-setup")
-    def testing_db_setup():
-        logger.debug("Test database setup endpoint called")
-        ensure_testing_database_exists()
-        return PlainTextResponse("Test database setup")
-
-    @testing_router.get("/db-reset")
-    def testing_db_reset():
-        logger.debug("Test database reset endpoint called")
-        reset_testing_database()
-        return PlainTextResponse("Test database reset")
-
-    @testing_router.get("/db-teardown")
-    def testing_db_teardown():
-        logger.debug("Test database teardown endpoint called")
-        reset_testing_database()
-        stop_testing()
-        return PlainTextResponse("Test database teardown")
-
-    if config.get_settings().testing_api:
-        app.include_router(
-            testing_router,
-            tags=["Testing"],
-            prefix="/testing",
-            dependencies=[Depends(auth)],
-        )
 
     @app.exception_handler(OIOException)
     def handle_not_allowed(request: Request, exc: OIOException):

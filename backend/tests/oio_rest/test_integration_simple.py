@@ -64,9 +64,6 @@ class Tests(DBTestCase):
                     "/organisation/organisationfunktion/" + UUID_PATTERN,
                     "/redoc",
                     "/site-map",
-                    "/testing/db-reset",
-                    "/testing/db-setup",
-                    "/testing/db-teardown",
                     "/version",
                 ]
             },
