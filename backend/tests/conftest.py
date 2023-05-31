@@ -46,9 +46,11 @@ from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
 from oio_rest.db import get_connection
 from oio_rest.db.testing import ensure_testing_database_exists
+from oio_rest.db.testing import reset_testing_database
+from oio_rest.db.testing import setup_testing_database
+from oio_rest.db.testing import stop_testing
 from ramodels.mo import Validity
 from tests.hypothesis_utils import validity_model_strat
-from tests.util import _mox_testing_api
 from tests.util import darmock
 from tests.util import load_sample_structures
 from tests.util import MockAioresponses
@@ -242,9 +244,11 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
 
 @pytest.fixture(scope="class")
 def testing_db() -> YieldFixture[None]:
-    _mox_testing_api("db-setup")
+    ensure_testing_database_exists()
+    setup_testing_database()
     yield
-    _mox_testing_api("db-teardown")
+    reset_testing_database()
+    stop_testing()
 
 
 # Due to the current tight coupling between our unit and integration test,
@@ -301,7 +305,7 @@ async def sample_structures_minimal(testing_db) -> YieldFixture[None]:
     """Function scoped fixture, which is called on every test with a teardown"""
     await load_sample_structures(minimal=True)
     yield
-    _mox_testing_api("db-reset")
+    reset_testing_database()
 
 
 @pytest.fixture(scope="session")

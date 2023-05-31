@@ -25,10 +25,6 @@ from mora import lora
 from mora.config import get_settings
 from mora.config import Settings
 from mora.service.address_handler.dar import load_addresses
-from oio_rest.db.testing import ensure_testing_database_exists
-from oio_rest.db.testing import reset_testing_database
-from oio_rest.db.testing import setup_testing_database
-from oio_rest.db.testing import stop_testing
 
 
 TESTS_DIR = os.path.dirname(__file__)
@@ -41,20 +37,6 @@ jinja_env = jinja2.Environment(
         searchpath=FIXTURE_DIR,
     ),
 )
-
-
-def _mox_testing_api(method: str) -> None:
-    """Calls MOX `testing/<method>` REST API."""
-    if method == "db-setup":
-        ensure_testing_database_exists()
-        setup_testing_database()
-    elif method == "db-teardown":
-        reset_testing_database()
-        stop_testing()
-    elif method == "db-reset":
-        reset_testing_database()
-    else:
-        raise ValueError("Unknown method: " + method)
 
 
 def jsonfile_to_dict(path):
