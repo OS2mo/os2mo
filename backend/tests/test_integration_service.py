@@ -19,7 +19,7 @@ org_unit_type_facet = {
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("testing_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
-async def test_employee(service_client: TestClient) -> None:
+async def test_employee_empty_db(service_client: TestClient) -> None:
     # empty
     response = service_client.get(
         "/service/o/00000000-0000-0000-0000-000000000000/e/",
@@ -33,9 +33,11 @@ async def test_employee(service_client: TestClient) -> None:
     assert response.status_code == 200
     assert response.json() == {"total": 0, "items": [], "offset": 0}
 
-    # load data
-    await util.load_sample_structures(minimal=True)
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@freezegun.freeze_time("2017-01-01", tz_offset=1)
+async def test_employee(service_client: TestClient) -> None:
     # invalid
     response = service_client.get(
         "/service/e/53181ed2-f1de-4c4a-a8fd-ab358c2c454a/?at=1920-01-01T00:00:00Z",
