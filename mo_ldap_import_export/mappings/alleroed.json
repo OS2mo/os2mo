@@ -32,8 +32,16 @@
         },
       },
       "org_unit_address_type": {
-        "PostAdresseTextUnit": {
-          "title": "Postadresse (AD)",
+        "StreetAdressUnit": {
+          "title": "Gade (AD)",
+          "scope": "TEXT"
+        },
+        "PostCodeAdressUnit": {
+          "title": "Postnummer (AD)",
+          "scope": "TEXT"
+        },
+        "CityAdressUnit": {
+          "title": "By (AD)",
           "scope": "TEXT"
         },
         "SecureEmailUnit": {
@@ -69,12 +77,28 @@
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
       "primary": "{{ dict(uuid=get_primary_type_uuid('Ansat')) }}"
     },
-    "PostAdresseTextUnit": {
+    "StreetAdressUnit": {
       "objectClass": "ramodels.mo.details.address.Address",
       "_import_to_mo_": "manual_import_only",
-      "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode, ldap.l) }}",
+      "value": "{{ ldap.streetAddress }}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PostAdresseTextUnit')) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('StreetAdressUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    },
+    "PostCodeAdressUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "_import_to_mo_": "manual_import_only",
+      "value": "{{ ldap.postalCode }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('PostCodeAdressUnit')) }}",
+      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
+    },
+    "CityAdressUnit": {
+      "objectClass": "ramodels.mo.details.address.Address",
+      "_import_to_mo_": "manual_import_only",
+      "value": "{{ ldap.l }}",
+      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
+      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('CityAdressUnit')) }}",
       "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.extensionAttribute3)) }}"
     },
     "PublicEmailUnit": {
@@ -181,12 +205,26 @@
       "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}",
       "employeeID": "{{mo_employee_engagement.user_key}}",
     },
-    "PostAdresseTextUnit": {
+    "StreetAdressUnit": {
       "objectClass": "user",
       "_export_to_ldap_": "true",
-      "streetAddress": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|first|trim}}",
-      "postalCode": "{{mo_org_unit_address.value|splitlast(',')|first|splitlast(',')|last|trim}}",
-      "l": "{{mo_org_unit_address.value|splitlast(',')|last|trim}}",
+      "streetAddress": "{{mo_org_unit_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
+      "extensionAttribute2": "{{mo_org_unit_address.org_unit.uuid}}"
+    },
+    "PostCodeAdressUnit": {
+      "objectClass": "user",
+      "_export_to_ldap_": "true",
+      "postalCode": "{{mo_org_unit_address.value}}",
+      "employeeNumber": "{{mo_employee.cpr_no}}",
+      "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
+      "extensionAttribute2": "{{mo_org_unit_address.org_unit.uuid}}"
+    },
+    "CityAdressUnit": {
+      "objectClass": "user",
+      "_export_to_ldap_": "true",
+      "l": "{{mo_org_unit_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}",
       "extensionAttribute2": "{{mo_org_unit_address.org_unit.uuid}}"
