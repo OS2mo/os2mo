@@ -242,7 +242,7 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
-@pytest.fixture(scope="class")
+@pytest.fixture(scope="session")
 def testing_db() -> YieldFixture[None]:
     ensure_testing_database_exists()
     setup_testing_database()
