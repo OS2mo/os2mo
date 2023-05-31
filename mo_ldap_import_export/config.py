@@ -49,8 +49,8 @@ class ServerList(ConstrainedList):
 
 
 class InternalAMQPConnectionSettings(AMQPConnectionSettings):
-    exchange = "ldap_ie"
-    queue_prefix = "ldap_ie"
+    exchange = "ldap_ie_internal"
+    queue_prefix = "ldap_ie_internal"
     prefetch_count = 1  # MO cannot handle too many requests
     url: AmqpDsn = parse_obj_as(AmqpDsn, "amqp://guest:guest@msg_broker")
 
