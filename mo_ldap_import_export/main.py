@@ -69,6 +69,7 @@ from .ldap import setup_listener
 from .ldap_classes import LdapObject
 from .logging import logger
 from .os2mo_init import InitEngine
+from .processors import _hide_cpr as hide_cpr
 from .utils import countdown
 from .utils import listener
 from .utils import mo_datestring_to_utc
@@ -643,11 +644,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
         responses = [
             r
-            for r in paged_search(
-                fastramqpi._context,
-                searchParameters,
-                search_base=settings.ldap_search_base,
-            )
+            for r in paged_search(fastramqpi._context, searchParameters)
             if r["attributes"][cpr_field]
         ]
 
@@ -656,7 +653,7 @@ def create_app(**kwargs: Any) -> FastAPI:
 
         for cpr in set(cpr_values):
             if cpr_values.count(cpr) > 1:
-                output[cpr] = [
+                output[hide_cpr(cpr)] = [
                     r["dn"] for r in responses if r["attributes"][cpr_field] == cpr
                 ]
 
