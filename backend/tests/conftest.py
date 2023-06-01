@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
+from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
@@ -59,6 +61,7 @@ from tests.util import MockAioresponses
 
 T = TypeVar("T")
 YieldFixture = Generator[T, None, None]
+AsyncYieldFixture = AsyncGenerator[T, None]
 
 
 # Configs + fixtures
@@ -245,9 +248,12 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
+@contextmanager
 def test_database(identifier: str) -> YieldFixture[str]:
     new_db_name = create_new_testing_database(identifier)
     try:
+        # Set dbname_context to ensure all coming database connections connect
+        # to our new database instead of the 'mox' database.
         token = dbname_context.set(new_db_name)
         # Install "actual_state" schema in testing database
         setup_testing_database()
@@ -259,33 +265,65 @@ def test_database(identifier: str) -> YieldFixture[str]:
 
 @pytest.fixture(scope="session")
 def testing_db() -> YieldFixture[str]:
-    yield from test_database("empty")
+    """Setup a new empty database.
 
-
-@pytest.fixture
-def empty_db(testing_db: str) -> YieldFixture[str]:
-    token = dbname_context.set(testing_db)
-    reset_testing_database()
-    yield testing_db
-    dbname_context.reset(token)
+    Yields:
+        The newly created databases name.
+    """
+    with test_database("empty") as db_name:
+        yield db_name
 
 
 @pytest.fixture(scope="session")
 def fixture_db() -> YieldFixture[str]:
-    yield from test_database("fixture")
+    """Setup a new empty database.
+
+    Yields:
+        The newly created databases name.
+    """
+    with test_database("fixture") as db_name:
+        yield db_name
 
 
 @pytest.fixture(scope="session")
-async def load_fixture(fixture_db: str) -> None:
+async def load_fixture(fixture_db: str) -> AsyncYieldFixture[str]:
+    """Load our database fixture into an new database.
+
+    Note:
+        This function cannot be merged to `fixture_db` due to this function being
+        async and `fixture_db` being a sync fixture.
+
+    Yields:
+        The newly created databases name.
+    """
     conn = get_connection()
     await load_sample_structures()
     conn.commit()  # commit the initial sample structures
-    return fixture_db
+    yield fixture_db
+
+
+@pytest.fixture
+def empty_db(testing_db: str) -> YieldFixture[None]:
+    """Ensure an empty testing database is available."""
+    # Set dbname_context again, as we are just about to run a test,
+    # and as it may be set to another testing database
+    token = dbname_context.set(testing_db)
+    reset_testing_database()
+    try:
+        yield
+    finally:
+        dbname_context.reset(token)
 
 
 @pytest.fixture
 def load_fixture_data_with_reset(load_fixture: None) -> YieldFixture[None]:
+    """Ensure a fixture testing database is available. Run test inside transaction."""
+    # Set dbname_context again, as we are just about to run a test,
+    # and as it may be set to another testing database
     token = dbname_context.set(load_fixture)
+
+    # Pre-seed the connection, disabling auto-commit on it.
+    # Ensuring tests do not ruin our fixture database.
     conn = get_connection()
     try:
         conn.set_session(autocommit=False)
@@ -293,10 +331,11 @@ def load_fixture_data_with_reset(load_fixture: None) -> YieldFixture[None]:
         conn.rollback()  # If a transaction is already in progress roll it back
         conn.set_session(autocommit=False)
 
-    yield
-
-    conn.rollback()
-    dbname_context.reset(token)
+    try:
+        yield
+    finally:
+        conn.rollback()
+        dbname_context.reset(token)
 
 
 @pytest.fixture(scope="session")

@@ -1,8 +1,5 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-import random
-import string
-
 from psycopg2.errors import UndefinedTable
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
@@ -21,8 +18,7 @@ def create_new_testing_database(identifier: str) -> str:
     settings = config.get_settings()
     non_test_dbname = settings.db_name
 
-    random_id = "".join([random.choice(string.ascii_lowercase) for _ in range(8)])
-    new_db_name = "_".join([non_test_dbname, identifier, random_id, "test"])
+    new_db_name = "_".join([non_test_dbname, identifier, "test"])
 
     with get_new_connection() as connection:
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
