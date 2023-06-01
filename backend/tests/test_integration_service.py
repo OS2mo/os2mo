@@ -18,7 +18,7 @@ org_unit_type_facet = {
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("testing_db")
+@pytest.mark.usefixtures("empty_db")
 @freezegun.freeze_time("2017-01-01", tz_offset=1)
 async def test_employee_empty_db(service_client: TestClient) -> None:
     # empty

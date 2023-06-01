@@ -17,7 +17,6 @@ from oio_rest.app import create_app
 from oio_rest.auth.oidc import auth
 from tests.cases import sort_inner_lists
 from tests.db_testing import reset_testing_database
-from tests.db_testing import setup_testing_database
 
 TESTS_DIR = os.path.dirname(__file__)
 BASE_DIR = os.path.dirname(TESTS_DIR)
@@ -316,16 +315,9 @@ class ExtTestCase(BaseTestCase):
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("tests_setup_and_teardown")
+@pytest.mark.usefixtures("testing_db")
 class DBTestCase(BaseTestCase):
     """Testcase with database access"""
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        # Install 'actual_state' schema in testing database. Or if already
-        # installed, truncate the tables in the 'actual_state' schema.
-        setup_testing_database()
 
     def setUp(self):
         super().setUp()

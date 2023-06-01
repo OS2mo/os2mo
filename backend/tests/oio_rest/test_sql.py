@@ -3,40 +3,44 @@
 import os
 import pathlib
 import unittest
+from contextlib import suppress
 
 import pytest
 from more_itertools import one
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from tap.parser import Parser
 
 from oio_rest import config
 from oio_rest.db import db_templating
 from oio_rest.db import get_connection
-from tests.db_testing import setup_testing_database
+from oio_rest.db import get_new_connection
 from tests.oio_rest import util
 
 
 @pytest.fixture(scope="session")
-def setup_pgsql_test(tests_setup_and_teardown):
-    setup_testing_database()
-
-    with get_connection() as conn, conn.cursor() as curs:
-        curs.execute('CREATE EXTENSION "pgtap";')
-
-        curs.execute(
-            'CREATE SCHEMA test AUTHORIZATION "{}";'.format(
-                config.get_settings().db_user,
+def setup_pgsql_test(testing_db: str):
+    with get_new_connection(testing_db) as connection:
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with connection.cursor() as cursor:
+            cursor.execute('CREATE EXTENSION "pgtap";')
+            cursor.execute(
+                'CREATE SCHEMA test AUTHORIZATION "{}";'.format(
+                    config.get_settings().db_user,
+                )
             )
-        )
 
     yield
 
-    with get_connection() as conn, conn.cursor() as curs:
-        curs.execute("DROP SCHEMA test CASCADE")
-        curs.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
+    with get_new_connection(testing_db) as connection:
+        connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        with connection.cursor() as cursor:
+            with suppress():
+                cursor.execute("DROP SCHEMA test CASCADE")
+                cursor.execute('DROP EXTENSION IF EXISTS "pgtap" CASCADE;')
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("setup_pgsql_test")
+@pytest.mark.usefixtures("setup_pgsql_test", "empty_db")
 @pytest.mark.parametrize("dbfile", pathlib.Path(util.TESTS_DIR).glob("sql/*.sql"))
 def test_pgsql(subtests, dbfile):
     with get_connection() as conn, conn.cursor() as curs:

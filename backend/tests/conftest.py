@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
+from collections.abc import AsyncGenerator
 from collections.abc import Awaitable
 from collections.abc import Callable
 from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from operator import itemgetter
 from typing import Any
@@ -44,10 +46,13 @@ from mora.graphapi.versions.latest.models import NonEmptyString
 from mora.graphapi.versions.latest.permissions import ALL_PERMISSIONS
 from mora.service.org import ConfiguredOrganisation
 from oio_rest.config import get_settings as lora_get_settings
+from oio_rest.db import dbname_context
 from oio_rest.db import get_connection
 from ramodels.mo import Validity
-from tests.db_testing import ensure_testing_database_exists
-from tests.db_testing import teardown_testing_database
+from tests.db_testing import create_new_testing_database
+from tests.db_testing import remove_testing_database
+from tests.db_testing import reset_testing_database
+from tests.db_testing import setup_testing_database
 from tests.hypothesis_utils import validity_model_strat
 from tests.util import darmock
 from tests.util import load_sample_structures
@@ -56,6 +61,7 @@ from tests.util import MockAioresponses
 
 T = TypeVar("T")
 YieldFixture = Generator[T, None, None]
+AsyncYieldFixture = AsyncGenerator[T, None]
 
 
 # Configs + fixtures
@@ -77,6 +83,7 @@ def seed_lora_client() -> None:
 
 
 def pytest_runtest_protocol(item) -> None:
+    os.environ["TESTING"] = "True"
     os.environ["PYTEST_RUNNING"] = "True"
 
 
@@ -173,13 +180,6 @@ def test_app(**overrides: Any) -> FastAPI:
     app = raw_test_app(**overrides)
     app.dependency_overrides[auth] = fake_auth
     app.dependency_overrides[token_getter] = fake_token_getter
-    lora_settings = lora_get_settings()
-    app.state.sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name="mox_test",
-    )
     return app
 
 
@@ -188,13 +188,6 @@ def admin_test_app(**overrides: Any) -> FastAPI:
     app.dependency_overrides[auth] = admin_auth
     app.dependency_overrides[fetch_authenticated_user] = admin_auth_uuid
     app.dependency_overrides[token_getter] = admin_token_getter
-    lora_settings = lora_get_settings()
-    app.state.sessionmaker = get_sessionmaker(
-        user=lora_settings.db_user,
-        password=lora_settings.db_password,
-        host=lora_settings.db_host,
-        name="mox_test",
-    )
     return app
 
 
@@ -211,6 +204,21 @@ def fastapi_test_app() -> FastAPI:
 @pytest.fixture(scope="session")
 def fastapi_admin_test_app() -> FastAPI:
     return admin_test_app()
+
+
+@pytest.fixture(scope="session")
+def fastapi_session_test_app(
+    fastapi_test_app: FastAPI,
+    fixture_db: str,
+) -> FastAPI:
+    lora_settings = lora_get_settings()
+    fastapi_test_app.state.sessionmaker = get_sessionmaker(
+        user=lora_settings.db_user,
+        password=lora_settings.db_password,
+        host=lora_settings.db_host,
+        name=fixture_db,
+    )
+    return fastapi_test_app
 
 
 @pytest.fixture(scope="session")
@@ -240,43 +248,82 @@ def admin_client(fastapi_admin_test_app: FastAPI) -> YieldFixture[TestClient]:
         yield client
 
 
+@contextmanager
+def test_database(identifier: str) -> YieldFixture[str]:
+    new_db_name = create_new_testing_database(identifier)
+    try:
+        # Set dbname_context to ensure all coming database connections connect
+        # to our new database instead of the 'mox' database.
+        token = dbname_context.set(new_db_name)
+        # Install "actual_state" schema in testing database
+        setup_testing_database()
+        yield new_db_name
+        dbname_context.reset(token)
+    finally:
+        remove_testing_database(new_db_name)
+
+
 @pytest.fixture(scope="session")
-def testing_db() -> YieldFixture[None]:
-    ensure_testing_database_exists()
-    yield
-    teardown_testing_database()
+def testing_db() -> YieldFixture[str]:
+    """Setup a new empty database.
 
-
-# Due to the current tight coupling between our unit and integration test,
-# The load_fixture_data can not be set as a session
-# scoped fixture with autouse true. Session fixture can not be
-# used as an input to default/function scoped fixture.
-are_fixtures_loaded = False
-
-
-async def load_fixture_data() -> None:
-    """Loads full sample structure
-    Also naively looks if some of the sample structures are loaded
-    to avoid loading all sample data more than once.
+    Yields:
+        The newly created databases name.
     """
-    global are_fixtures_loaded
-    if not are_fixtures_loaded:
-        ensure_testing_database_exists()
-        conn = get_connection()
-        await load_sample_structures()
-        conn.commit()  # commit the initial sample structures
-        are_fixtures_loaded = True
+    with test_database("empty") as db_name:
+        yield db_name
 
 
 @pytest.fixture(scope="session")
-async def load_fixture() -> None:
-    await load_fixture_data()
+def fixture_db() -> YieldFixture[str]:
+    """Setup a new empty database.
+
+    Yields:
+        The newly created databases name.
+    """
+    with test_database("fixture") as db_name:
+        yield db_name
+
+
+@pytest.fixture(scope="session")
+async def load_fixture(fixture_db: str) -> AsyncYieldFixture[str]:
+    """Load our database fixture into an new database.
+
+    Note:
+        This function cannot be merged to `fixture_db` due to this function being
+        async and `fixture_db` being a sync fixture.
+
+    Yields:
+        The newly created databases name.
+    """
+    conn = get_connection()
+    await load_sample_structures()
+    conn.commit()  # commit the initial sample structures
+    yield fixture_db
 
 
 @pytest.fixture
-async def load_fixture_data_with_reset() -> YieldFixture[None]:
-    await load_fixture_data()
+def empty_db(testing_db: str) -> YieldFixture[None]:
+    """Ensure an empty testing database is available."""
+    # Set dbname_context again, as we are just about to run a test,
+    # and as it may be set to another testing database
+    token = dbname_context.set(testing_db)
+    reset_testing_database()
+    try:
+        yield
+    finally:
+        dbname_context.reset(token)
 
+
+@pytest.fixture
+def load_fixture_data_with_reset(load_fixture: None) -> YieldFixture[None]:
+    """Ensure a fixture testing database is available. Run test inside transaction."""
+    # Set dbname_context again, as we are just about to run a test,
+    # and as it may be set to another testing database
+    token = dbname_context.set(load_fixture)
+
+    # Pre-seed the connection, disabling auto-commit on it.
+    # Ensuring tests do not ruin our fixture database.
     conn = get_connection()
     try:
         conn.set_session(autocommit=False)
@@ -284,9 +331,11 @@ async def load_fixture_data_with_reset() -> YieldFixture[None]:
         conn.rollback()  # If a transaction is already in progress roll it back
         conn.set_session(autocommit=False)
 
-    yield
-
-    conn.rollback()
+    try:
+        yield
+    finally:
+        conn.rollback()
+        dbname_context.reset(token)
 
 
 @pytest.fixture(scope="session")
