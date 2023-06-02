@@ -3,15 +3,12 @@
 from prometheus_client import Gauge
 from prometheus_client import Info
 from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_fastapi_instrumentator.metrics import default
 
 from .config import get_settings
 
 
 def setup_metrics(app):
-    instrumentator = Instrumentator(should_instrument_requests_inprogress=True)
-    instrumentator.add(default())
-    instrumentator.instrument(app).expose(app)
+    Instrumentator().instrument(app).expose(app)
 
     settings = get_settings()
     Info("os2mo_version", "Current version").info(
