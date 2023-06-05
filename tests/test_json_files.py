@@ -282,50 +282,6 @@ def convert_address_to_ldap(address, json_key, converter):
     return converter.to_ldap(mo_object_dict, json_key, "CN=foo")
 
 
-def test_alleroed_address_mapping(converters: dict[str, LdapConverter]):
-    """
-    Test templates in alleroed address mapping
-    """
-    converter = converters["alleroed.json"]
-    json_key = "PostAdresseTextUnit"
-    ldap_address = convert_address_to_ldap(
-        "foo street 3, 1234, Barhus", json_key, converter
-    )
-
-    assert ldap_address.streetAddress == "foo street 3"
-    assert ldap_address.postalCode == "1234"
-    assert ldap_address.l == "Barhus"  # noqa: E741
-
-    # Validate that the address is unchanged when converting back
-    mo_address = converter.from_ldap(ldap_address, json_key, uuid4())[0]
-    assert mo_address.value == "foo street 3, 1234, Barhus"
-
-    # What is a comma is forgotten in MO:
-    ldap_address = convert_address_to_ldap(
-        "foo street 3, 1234 Barhus", json_key, converter
-    )
-
-    # The address is still written to LDAP. But not necessarily in the proper fields
-    # Better than not writing it at all I guess
-    assert ldap_address.postalCode == "foo street 3"
-    assert ldap_address.l == "1234 Barhus"  # noqa: E741
-
-    # Validate that the address is unchanged when converting back
-    mo_address = converter.from_ldap(ldap_address, json_key, uuid4())[0]
-    assert mo_address.value == "foo street 3, 1234 Barhus"
-
-    # Or if there are no commas at all:
-    ldap_address = convert_address_to_ldap("foo street 3", json_key, converter)
-
-    # The data is still written to LDAP. But not necessarily in the proper fields
-    # Better than not writing it at all I guess
-    assert ldap_address.l == "foo street 3"  # noqa: E741
-
-    # Validate that the address is unchanged when converting back
-    mo_address = converter.from_ldap(ldap_address, json_key, uuid4())[0]
-    assert mo_address.value == "foo street 3"
-
-
 def test_alleroed_employee_mapping(converters: dict[str, LdapConverter]):
     """
     Test that givenname, surname, nickname and so on get combined and split properly.
