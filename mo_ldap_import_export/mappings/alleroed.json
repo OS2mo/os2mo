@@ -190,7 +190,7 @@
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "givenName" : "{{mo_employee.givenname}}",
       "sn": "{{mo_employee.surname}}",
-      "displayName": "{{mo_employee.nickname_givenname}} {{mo_employee.nickname_surname}}",
+      "displayName": "{{mo_employee.nickname_givenname or mo_employee.givenname}} {{mo_employee.nickname_surname or mo_employee.surname}}",
       "name": "{{mo_employee.givenname}} {{mo_employee.surname}}",
       "extensionAttribute6": "{{mo_employee.uuid}}"
     },
