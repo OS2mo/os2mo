@@ -1547,7 +1547,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.180.1"
+version = "0.180.5"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1755,7 +1755,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "f378723be7850aa766d777e781cb9f9ab4c856daec754689303db3a5292e0d78"
+content-hash = "180f4aece4ac10fbb8e200e37dbbca4daf434aede32feb4a2a003cbfe96530a8"
 
 [metadata.files]
 aio-pika = [
@@ -2896,8 +2896,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.180.1-py3-none-any.whl", hash = "sha256:7580b21d632e0901196e77d0752f303fd561832a5398fafbbaa5e0d3ea45ff13"},
-    {file = "strawberry_graphql-0.180.1.tar.gz", hash = "sha256:f15eb91d92d6b241cdffc850870a064c12b5dcf7c4f3ed13b257fdc3c63ab617"},
+    {file = "strawberry_graphql-0.180.5-py3-none-any.whl", hash = "sha256:f08c4445711205d9bb12fd59cba7631e754efe93fe08ec5b7a7d7f2ee60750fa"},
+    {file = "strawberry_graphql-0.180.5.tar.gz", hash = "sha256:3ef3e4a3d82f69c7da8436ca36504414230c83063e46a967df8eb5645121b6b5"},
 ]
 structlog = [
     {file = "structlog-22.3.0-py3-none-any.whl", hash = "sha256:b403f344f902b220648fa9f286a23c0cc5439a5844d271fec40562dbadbc70ad"},
