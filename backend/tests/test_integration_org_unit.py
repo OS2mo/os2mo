@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from copy import deepcopy
 from itertools import cycle
 from typing import Any
 
@@ -684,6 +685,12 @@ async def test_create_org_unit(service_client: TestClient) -> None:
     actual_org_unit = await c.organisationenhed.get(unitid)
     assert_registrations_equal(actual_org_unit, expected)
 
+    org_unit_type_institute_without_published = deepcopy(org_unit_type_institute)
+    org_unit_type_institute_without_published.pop("published")
+
+    org_unit_type_department_without_published = deepcopy(org_unit_type_department)
+    org_unit_type_department_without_published.pop("published")
+
     with set_get_configuration("mora.service.shimmed.org_unit.get_configuration"):
         response = service_client.get(f"/service/ou/{unitid}/")
         assert response.status_code == 200
@@ -702,14 +709,14 @@ async def test_create_org_unit(service_client: TestClient) -> None:
                 "user_key": "orgunitlevel10",
                 "uuid": "0f015b67-f250-43bb-9160-043ec19fad48",
             },
-            "time_planning": org_unit_type_institute,
-            "org_unit_type": org_unit_type_institute,
+            "time_planning": org_unit_type_institute_without_published,
+            "org_unit_type": org_unit_type_institute_without_published,
             "parent": {
                 "location": "",
                 "name": "Overordnet Enhed",
                 "org": org,
                 "org_unit_level": None,
-                "org_unit_type": org_unit_type_department,
+                "org_unit_type": org_unit_type_department_without_published,
                 "parent": None,
                 "time_planning": None,
                 "user_key": "root",
@@ -1195,6 +1202,7 @@ org_unit_type_department = {
     "full_name": "Afdeling",
     "name": "Afdeling",
     "owner": None,
+    "published": "Publiceret",
     "scope": None,
     "top_level_facet": org_unit_type_facet,
     "user_key": "afd",
@@ -1206,6 +1214,7 @@ org_unit_type_institute = {
     "full_name": "Institut",
     "name": "Institut",
     "owner": None,
+    "published": "Publiceret",
     "scope": None,
     "top_level_facet": org_unit_type_facet,
     "user_key": "inst",
@@ -1217,6 +1226,7 @@ org_unit_type_faculty = {
     "full_name": "Fakultet",
     "name": "Fakultet",
     "owner": None,
+    "published": "Publiceret",
     "scope": None,
     "top_level_facet": org_unit_type_facet,
     "user_key": "fak",
@@ -1247,6 +1257,7 @@ humanities_org_unit = {
         "full_name": "Selvejet institution",
         "name": "Selvejet institution",
         "owner": None,
+        "published": "Publiceret",
         "scope": "TEXT",
         "top_level_facet": org_unit_hierarchy_facet,
         "user_key": "selvejet",

@@ -109,6 +109,7 @@ def test_ou_details(service_client: TestClient):
                 "name": "Afdeling",
                 "full_name": "Afdeling",
                 "owner": None,
+                "published": "Publiceret",
                 "scope": None,
                 "top_level_facet": org_unit_type_facet,
                 "user_key": "afd",
