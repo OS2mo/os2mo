@@ -1354,9 +1354,20 @@ async def test_load_all_mo_objects(dataloader: DataLoader, gql_client: AsyncMock
         },
     ]
 
-    gql_client.execute.side_effect = return_values
+    async def execute_paged_mock(*args, **kwargs):
+        query = args[1]
+        query_str = print_ast(query)
+        for return_value in return_values:
+            for object_type, object_dicts in return_value.items():
+                if object_type in query_str:
+                    for obj in object_dicts:
+                        yield obj
 
-    output = await asyncio.gather(dataloader.load_all_mo_objects())
+    with patch(
+        "mo_ldap_import_export.dataloaders.execute_paged",
+        execute_paged_mock,
+    ):
+        output = await asyncio.gather(dataloader.load_all_mo_objects())
 
     all_objects = output[0]
 
@@ -1419,13 +1430,13 @@ async def test_load_all_mo_objects_add_validity(
     query_mo.return_value = {}
     dataloader.query_mo = query_mo  # type: ignore
 
-    await dataloader.load_all_mo_objects(add_validity=True)
+    await dataloader.load_all_mo_objects(add_validity=True, uuid=str(uuid4()))
     query = query_mo.call_args[0][0].to_dict()
     assert "validity" in str(query)
 
     query_mo.reset_mock()
 
-    await dataloader.load_all_mo_objects(add_validity=False)
+    await dataloader.load_all_mo_objects(add_validity=False, uuid=str(uuid4()))
     query = query_mo.call_args[0][0].to_dict()
     assert "validity" not in str(query)
 
@@ -1477,9 +1488,6 @@ async def test_load_all_mo_objects_invalid_query(
 
     # Return a single it-user, which belongs neither to an employee nor org-unit
     return_value: dict = {
-        "employees": [],
-        "org_units": [],
-        "addresses": [],
         "itusers": [
             {
                 "objects": [
@@ -1487,11 +1495,16 @@ async def test_load_all_mo_objects_invalid_query(
                 ]
             }
         ],
-        "engagements": [],
     }
-    gql_client.execute.return_value = return_value
 
-    with pytest.raises(InvalidQueryResponse):
+    async def execute_paged_mock(*args, **kwargs):
+        for obj in return_value["itusers"]:
+            yield obj
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.execute_paged",
+        execute_paged_mock,
+    ), pytest.raises(InvalidQueryResponse):
         await asyncio.gather(dataloader.load_all_mo_objects())
 
 
@@ -1504,12 +1517,22 @@ async def test_load_all_mo_objects_TransportQueryError(
     return_values = [
         {"employees": [{"objects": [{"uuid": employee_uuid}]}]},
         {"org_units": [{"objects": [{"uuid": org_unit_uuid}]}]},
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
     ]
-    gql_client.execute.side_effect = return_values
-    with capture_logs() as cap_logs:
+
+    async def execute_paged_mock(*args, **kwargs):
+        query = args[1]
+        query_str = print_ast(query)
+        if "employees" in query_str:
+            yield return_values[0]["employees"][0]
+        elif "org_units" in query_str:
+            yield return_values[1]["org_units"][0]
+        else:
+            raise TransportQueryError("foo")
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.execute_paged",
+        execute_paged_mock,
+    ), capture_logs() as cap_logs:
 
         output = await asyncio.gather(dataloader.load_all_mo_objects())
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
@@ -1523,16 +1546,14 @@ async def test_load_all_mo_objects_TransportQueryError(
 async def test_load_all_mo_objects_only_TransportQueryErrors(
     dataloader: DataLoader, gql_client: AsyncMock
 ):
+    async def execute_paged_mock(*args, **kwargs):
+        raise TransportQueryError("foo")
+        yield
 
-    return_values = [
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-        TransportQueryError("foo"),
-    ]
-    gql_client.execute.side_effect = return_values
-    with capture_logs() as cap_logs:
+    with patch(
+        "mo_ldap_import_export.dataloaders.execute_paged",
+        execute_paged_mock,
+    ), capture_logs() as cap_logs:
         await asyncio.gather(dataloader.load_all_mo_objects())
         warnings = [w for w in cap_logs if w["log_level"] == "warning"]
         assert len(warnings) == 5
