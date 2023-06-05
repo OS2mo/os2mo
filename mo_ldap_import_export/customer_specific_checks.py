@@ -51,3 +51,21 @@ class ExportChecks:
             # Only ignore the specific engagement which states that he is hourly paid
             if engagement_dict.get(object_uuid, "").startswith("9"):
                 raise IgnoreChanges(error_message)
+
+    async def check_it_user(self, employee_uuid: UUID, it_system_user_key: str):
+
+        if not it_system_user_key:
+            return
+
+        it_system_uuid = self.converter.get_it_system_uuid(it_system_user_key)
+        it_users = await self.dataloader.load_mo_employee_it_users(
+            employee_uuid, it_system_uuid
+        )
+
+        if not it_users:
+            raise IgnoreChanges(
+                (
+                    f"employee with uuid = {employee_uuid} "
+                    f"does not have an it-user with user_key = {it_system_user_key}"
+                )
+            )

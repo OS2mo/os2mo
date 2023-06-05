@@ -177,6 +177,12 @@ class SyncTool:
                 object_uuid,
             )
 
+        # Check that the employee has an it-user with user_key = it_user_to_check
+        await self.export_checks.check_it_user(
+            employee_uuid,
+            self.settings.it_user_to_check,
+        )
+
     def cleanup_needed(self, ldap_modify_responses: list[dict]):
         """
         If nothing was modified in LDAP, we also do not need to clean up.

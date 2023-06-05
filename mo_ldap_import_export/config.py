@@ -170,3 +170,11 @@ class Settings(BaseSettings):
             "before writing to LDAP"
         ),
     )
+
+    it_user_to_check: str = Field(
+        "",
+        description=(
+            "Check that an employee has an it-user with this user_key "
+            "before writing to LDAP"
+        ),
+    )
