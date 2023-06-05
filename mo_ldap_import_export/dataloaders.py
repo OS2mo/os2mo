@@ -18,6 +18,7 @@ from ldap3.core.exceptions import LDAPInvalidValueError
 from ldap3.protocol import oid
 from ldap3.utils.dn import safe_dn
 from more_itertools import only
+from raclients.graph.util import execute_paged
 from ramodels.mo._shared import validate_cpr
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -1291,8 +1292,6 @@ class DataLoader:
         else:
             validity_query = ""
 
-        uuid_filter = f'(uuids: "{str(uuid)}")' if uuid else ""
-
         result: dict = {}
         warnings: list[str] = []
 
@@ -1314,10 +1313,24 @@ class DataLoader:
                                    employee_uuid
                                    """
 
+            paged_query = gql(
+                f"""
+                query AllObjects($limit: int, $offset: int) {{
+                    page: {object_type} (limit: $limit, offset: $offset) {{
+                        objects {{
+                            uuid
+                            {additional_uuids}
+                            {validity_query}
+                            }}
+                        }}
+                    }}
+                """
+            )
+
             query = gql(
                 f"""
-                query AllObjects {{
-                    {object_type} {uuid_filter} {{
+                query SingleObject {{
+                    {object_type} (uuids: "{uuid}") {{
                         objects {{
                             uuid
                             {additional_uuids}
@@ -1329,7 +1342,14 @@ class DataLoader:
             )
 
             try:
-                sub_result = await self.query_mo(query, raise_if_empty=False)
+                if uuid:
+                    sub_result: dict = await self.query_mo(query, raise_if_empty=False)
+                else:
+                    sub_result = {object_type: []}
+                    session = self.user_context["gql_client"]
+                    async for obj in execute_paged(session, paged_query):
+                        sub_result[object_type].append(obj)
+
                 result = result | sub_result
             except TransportQueryError as e:
                 warnings.append(str(e))

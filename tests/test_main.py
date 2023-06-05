@@ -385,7 +385,7 @@ def test_ldap_get_object_by_objectGUID_endpoint(
     """Test the LDAP get endpoint on our app."""
 
     uuid = uuid4()
-    params = {"objectGUID": uuid}
+    params = {"objectGUID": str(uuid)}
     response = test_client.get(
         "/Inspect/object/objectGUID", headers=headers, params=params
     )
@@ -671,7 +671,7 @@ async def test_export_endpoint(
     test_mo_objects: list,
 ):
 
-    params = {
+    params: dict = {
         "publish_amqp_messages": True,
         "uuid": str(uuid4()),
         "delay_in_hours": 0,
