@@ -384,6 +384,7 @@ async def list_addresses_employee(
                         scope
                         example
                         owner
+                        published
                         top_level_facet {
                           user_key
                           uuid
@@ -402,6 +403,7 @@ async def list_addresses_employee(
                         example
                         scope
                         owner
+                        published
                       }
                       employee {
                         givenname
@@ -724,6 +726,7 @@ async def list_addresses_ou(
                         scope
                         example
                         owner
+                        published
                       }
                       visibility {
                         uuid
@@ -732,6 +735,7 @@ async def list_addresses_ou(
                         example
                         scope
                         owner
+                        published
                       }
                       org_unit {
                         name
