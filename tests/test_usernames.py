@@ -57,11 +57,20 @@ def existing_common_names() -> list:
 
 
 @pytest.fixture
-def existing_usernames_ldap(existing_usernames, existing_common_names) -> list:
+def existing_user_principal_names() -> list:
+    return ["nj@magenta.dk", "ngc2@magenta.dk"]
+
+
+@pytest.fixture
+def existing_usernames_ldap(
+    existing_usernames, existing_common_names, existing_user_principal_names
+) -> list:
 
     existing_usernames_ldap = [
-        {"attributes": {"cn": cn, "sAMAccountName": sam}}
-        for cn, sam in zip(existing_common_names, existing_usernames)
+        {"attributes": {"cn": cn, "sAMAccountName": sam, "userPrincipalName": up}}
+        for cn, sam, up in zip(
+            existing_common_names, existing_usernames, existing_user_principal_names
+        )
     ]
     return existing_usernames_ldap
 
@@ -97,62 +106,58 @@ def test_get_existing_usernames(
     existing_usernames: list,
     existing_common_names: list,
 ):
-    result = username_generator.get_existing_values("sAMAccountName")
-    assert result == existing_usernames
-
-    result = username_generator.get_existing_values("cn")
-    assert result == [cn.lower() for cn in existing_common_names]
+    result = username_generator.get_existing_values(["sAMAccountName", "cn"])
+    assert result["sAMAccountName"] == existing_usernames
+    assert result["cn"] == [cn.lower() for cn in existing_common_names]
 
 
 def test_create_username(username_generator: UserNameGenerator):
     # Regular user
-    username = username_generator._create_username(["Nick", "Janssen"])
+    username = username_generator._create_username(["Nick", "Janssen"], [])
     assert username == "njans"
 
     # User with a funny character
-    username = username_generator._create_username(["Nick", "Jænssen"])
+    username = username_generator._create_username(["Nick", "Jænssen"], [])
     assert username == "njaen"
 
     # User with a funny character which is not in the character replacement mapping
-    username = username_generator._create_username(["N1ck", "Janssen"])
+    username = username_generator._create_username(["N1ck", "Janssen"], [])
     assert username == "njans"
 
     # User with a middle name
-    username = username_generator._create_username(["Nick", "Gerardus", "Janssen"])
+    username = username_generator._create_username(["Nick", "Gerardus", "Janssen"], [])
     assert username == "ngjan"
 
     # User with two middle names
     username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Janssen"]
+        ["Nick", "Gerardus", "Cornelis", "Janssen"], []
     )
     assert username == "ngcja"
 
     # User with three middle names
     username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"]
+        ["Nick", "Gerardus", "Cornelis", "Optimus", "Janssen"], []
     )
     assert username == "ngcoj"
 
     # User with 4 middle names (only the first three are used)
     username = username_generator._create_username(
-        ["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"]
+        ["Nick", "Gerardus", "Cornelis", "Optimus", "Prime", "Janssen"], []
     )
     assert username == "ngcoj"
 
     # Simulate case where 'njans' is taken
-    with patch(
-        "mo_ldap_import_export.usernames.UserNameGenerator.get_existing_values",
-        return_value=["njans"],
-    ):
-        username = username_generator._create_username(["Nick", "Janssen"])
-        assert username == "njans2"
+    username = username_generator._create_username(["Nick", "Janssen"], ["njans"])
+    assert username == "njans2"
 
     # Simulate a case which fits none of the models (last name is too short)
     with pytest.raises(RuntimeError):
-        username = username_generator._create_username(["Nick", "Ja"])
+        username = username_generator._create_username(["Nick", "Ja"], [])
 
     # Simulate a case where a forbidden username is generated
-    username = username_generator._create_username(["Harry", "Alexander", "Terpstra"])
+    username = username_generator._create_username(
+        ["Harry", "Alexander", "Terpstra"], []
+    )
     assert username != "hater"
     assert username == "hterp"
 
@@ -160,54 +165,54 @@ def test_create_username(username_generator: UserNameGenerator):
 def test_create_common_name(username_generator: UserNameGenerator):
 
     # Regular case
-    common_name = username_generator._create_common_name(["Nick", "Johnson"])
+    common_name = username_generator._create_common_name(["Nick", "Johnson"], [])
     assert common_name == "Nick Johnson"
 
     # When 'Nick Janssen' already exists and so does 'Nick Janssen_2'
-    common_name = username_generator._create_common_name(["Nick", "Janssen"])
+    common_name = username_generator._create_common_name(
+        ["Nick", "Janssen"], ["nick janssen", "nick janssen_2"]
+    )
     assert common_name == "Nick Janssen_3"
 
     # Middle names are not used
     common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "Johnson"]
+        ["Nick", "Gerardus", "Cornelis", "Johnson"], []
     )
     assert common_name == "Nick Gerardus Cornelis Johnson"
 
     # Users without a last name are supported
-    common_name = username_generator._create_common_name(["Nick", ""])
+    common_name = username_generator._create_common_name(["Nick", ""], [])
     assert common_name == "Nick"
 
     # Nick_1 until Nick_2000 exists - we cannot generate a username
-    with patch(
-        "mo_ldap_import_export.usernames.UserNameGenerator.get_existing_values",
-        return_value=["nick"] + [f"nick_{d}" for d in range(2000)],
-    ):
-        with pytest.raises(RuntimeError):
-            username_generator._create_common_name(["Nick", ""])
+    with pytest.raises(RuntimeError):
+        username_generator._create_common_name(
+            ["Nick", ""], ["nick"] + [f"nick_{d}" for d in range(2000)]
+        )
 
     # If a name is over 64 characters, a middle name is removed.
     common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Johnson"]
+        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Johnson"], []
     )
     assert common_name == "Nick Gerardus Cornelis Johnson"
 
     # If the name is still over 64 characters, another middle name is removed.
     common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Hansen", "Johnson"]
+        ["Nick", "Gerardus", "Cornelis", "long name" * 20, "Hansen", "Johnson"], []
     )
     assert common_name == "Nick Gerardus Cornelis Johnson"
 
     # In the rare case that someone has a first or last name with over 64 characters,
     # we cut off characters from his name
     # Because AD does not allow common names with more than 64 characters
-    common_name = username_generator._create_common_name(["Nick" * 40, "Johnson"])
+    common_name = username_generator._create_common_name(["Nick" * 40, "Johnson"], [])
     assert common_name == ("Nick" * 40)[:60]
 
-    common_name = username_generator._create_common_name(["Nick", "Johnson" * 40])
+    common_name = username_generator._create_common_name(["Nick", "Johnson" * 40], [])
     assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
     common_name = username_generator._create_common_name(
-        ["Nick", "Gerardus", "Cornelis", "Johnson" * 40]
+        ["Nick", "Gerardus", "Cornelis", "Johnson" * 40], []
     )
     assert common_name == ("Nick" + " " + "Johnson" * 40)[:60]
 
@@ -283,52 +288,65 @@ def test_alleroed_username_generator(
     alleroed_username_generator: AlleroedUserNameGenerator,
 ):
 
-    generated_usernames = []
-    alleroed_username_generator.get_existing_values = MagicMock()  # type: ignore
-    alleroed_username_generator.get_existing_values.return_value = []
+    existing_names: list[str] = []
+    expected_usernames = iter(
+        [
+            "llkk",
+            "llkr",
+            "llrs",
+            "lrsm",
+            "llkkr",
+            "llkrs",
+            "llrsm",
+            "lrsms",
+            "llr",
+            "lrs",
+            "lr",
+            "lr2",
+            "mlxn",
+            "mlxb",
+            "mlbr",
+            "mbrh",
+            "mlbn",
+            "mbrn",
+            "bl",
+            "bl2",
+            "bl3",
+            "bruc",
+        ]
+    )
 
-    def generate_username(name):
-        username = alleroed_username_generator.generate_username(name)
-
-        generated_usernames.append(username)
-        alleroed_username_generator.get_existing_values.return_value = (  # type: ignore
-            generated_usernames
-        )
+    for name in [
+        ["Lars", "Løkke", "Rasmussen"],
+        ["Lone", "Løkke", "Rasmussen"],
+        ["Lærke", "Løkke", "Rasmussen"],
+        ["Leo", "Løkke", "Rasmussen"],
+        ["Lukas", "Løkke", "Rasmussen"],
+        ["Liam", "Løkke", "Rasmussen"],
+        ["Ludvig", "Løkke", "Rasmussen"],
+        ["Laurits", "Løkke", "Rasmussen"],
+        ["Loki", "Løkke", "Rasmussen"],
+        ["Lasse", "Løkke", "Rasmussen"],
+        ["Leonardo", "Løkke", "Rasmussen"],
+        ["Laus", "Løkke", "Rasmussen"],
+        ["Margrethe", "Alexandrine", "borhildur", "Ingrid"],
+        ["Mia", "Alexandrine", "borhildur", "Ingrid"],
+        ["Mike", "Alexandrine", "borhildur", "Ingrid"],
+        ["Max", "Alexandrine", "borhildur", "Ingrid"],
+        ["Mick", "Alexandrine", "borhildur", "Ingrid"],
+        ["Mads", "Alexandrine", "borhildur", "Ingrid"],
+        ["Bruce", "Lee"],
+        ["Boris", "Lee"],
+        ["Benjamin", "Lee"],
+        ["Bruce", ""],
+    ]:
+        username = alleroed_username_generator.generate_username(name, existing_names)
+        assert username == next(expected_usernames)
+        existing_names.append(username)
 
         # Print human readable output to send to Alleroed
         full_name = " ".join(name)
         print(f"{full_name} -> '{username}'")
-
-        return username
-
-    assert generate_username(["Lars", "Løkke", "Rasmussen"]) == "llkk"
-    assert generate_username(["Lone", "Løkke", "Rasmussen"]) == "llkr"
-    assert generate_username(["Lærke", "Løkke", "Rasmussen"]) == "llrs"
-    assert generate_username(["Leo", "Løkke", "Rasmussen"]) == "lrsm"
-    assert generate_username(["Lukas", "Løkke", "Rasmussen"]) == "llkkr"
-    assert generate_username(["Liam", "Løkke", "Rasmussen"]) == "llkrs"
-    assert generate_username(["Ludvig", "Løkke", "Rasmussen"]) == "llrsm"
-    assert generate_username(["Laurits", "Løkke", "Rasmussen"]) == "lrsms"
-    assert generate_username(["Loki", "Løkke", "Rasmussen"]) == "llr"
-    assert generate_username(["Lasse", "Løkke", "Rasmussen"]) == "lrs"
-    assert generate_username(["Leonardo", "Løkke", "Rasmussen"]) == "lr"
-    assert generate_username(["Laus", "Løkke", "Rasmussen"]) == "lr2"
-
-    assert (
-        generate_username(["Margrethe", "Alexandrine", "borhildur", "Ingrid"]) == "mlxn"
-    )
-
-    assert generate_username(["Mia", "Alexandrine", "borhildur", "Ingrid"]) == "mlxb"
-    assert generate_username(["Mike", "Alexandrine", "borhildur", "Ingrid"]) == "mlbr"
-    assert generate_username(["Max", "Alexandrine", "borhildur", "Ingrid"]) == "mbrh"
-    assert generate_username(["Mick", "Alexandrine", "borhildur", "Ingrid"]) == "mlbn"
-    assert generate_username(["Mads", "Alexandrine", "borhildur", "Ingrid"]) == "mbrn"
-
-    assert generate_username(["Bruce", "Lee"]) == "bl"
-    assert generate_username(["Boris", "Lee"]) == "bl2"
-    assert generate_username(["Benjamin", "Lee"]) == "bl3"
-
-    assert generate_username(["Bruce", ""]) == "bruc"
 
 
 def test_alleroed_dn_generator(alleroed_username_generator: AlleroedUserNameGenerator):
