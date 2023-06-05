@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 from fastramqpi.context import Context
 from ramodels.mo.details.engagement import Engagement
+from ramodels.mo.details.it_system import ITUser
 
 from mo_ldap_import_export.customer_specific_checks import ExportChecks
 from mo_ldap_import_export.exceptions import IgnoreChanges
@@ -59,3 +60,20 @@ async def test_check_alleroed_sd_number(
     dataloader.load_mo_employee_engagements.return_value = []
 
     assert (await export_checks.check_alleroed_sd_number(uuid4(), uuid4())) is None
+
+
+async def test_check_it_user(export_checks: ExportChecks, dataloader: MagicMock):
+    dataloader.load_mo_employee_it_users.return_value = [
+        ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
+    ]
+
+    # If the user_key attribute is empty, no exception should be raised
+    await export_checks.check_it_user(uuid4(), "")
+
+    # If the it-user exist, no exception should be raised
+    await export_checks.check_it_user(uuid4(), "foo")
+
+    # If the it-user does not exist, we need to raise
+    dataloader.load_mo_employee_it_users.return_value = []
+    with pytest.raises(IgnoreChanges):
+        await export_checks.check_it_user(uuid4(), "foo")
