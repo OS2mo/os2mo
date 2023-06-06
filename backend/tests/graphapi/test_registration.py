@@ -1,10 +1,13 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from datetime import datetime
+from datetime import timedelta
 from uuid import uuid4
 
 import pytest
 from more_itertools import one
 
+from mora.util import DEFAULT_TIMEZONE
 from tests.conftest import GQLResponse
 
 
@@ -44,16 +47,18 @@ from tests.conftest import GQLResponse
 @pytest.mark.xfail
 @pytest.mark.integration_test
 @pytest.mark.usefixtures("load_fixture_data_with_reset")
-async def test_read_registration(graphapi_post) -> None:
-    """Integrationtest for reading registrations."""
+async def test_writing_registration(graphapi_post) -> None:
+    """Integrationtest for reading and writing registrations."""
     query = """
-        query ReadRegistration($uuid: UUID!) {
+        query ReadObjectRegistration($uuid: UUID!) {
           org_units(uuids: [$uuid]) {
-            uuid
-            registrations {
-              registration_id
-              start
-              end
+            objects {
+              uuid
+              registrations {
+                registration_id
+                start
+                end
+              }
             }
           }
         }
@@ -64,7 +69,7 @@ async def test_read_registration(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
-    org_unit = one(response.data["org_units"])
+    org_unit = one(response.data["org_units"]["objects"])
     assert org_unit["uuid"] == uuid
 
     # We cannot assert anything meaningful about the registration_id at this point, as
@@ -96,7 +101,7 @@ async def test_read_registration(graphapi_post) -> None:
     response: GQLResponse = graphapi_post(query, {"uuid": uuid})
     assert response.errors is None
     assert response.data
-    org_unit = one(response.data["org_units"])
+    org_unit = one(response.data["org_units"]["objects"])
     assert org_unit["uuid"] == uuid
 
     # We expect exactly two registrations now
@@ -108,3 +113,87 @@ async def test_read_registration(graphapi_post) -> None:
     # as the new registration has the None instead
     assert new_registration["end"] is None
     assert new_registration["registration_id"] > old_registration["registration_id"]
+
+
+def assert_around_now(time: datetime) -> None:
+    """Assert the provided datetime is close to now.
+
+    Args:
+        time: The datetime to test.
+    """
+    now = datetime.now(tz=DEFAULT_TIMEZONE).replace(tzinfo=None)
+    registration_start = time.replace(tzinfo=None)
+    assert (
+        now - timedelta(minutes=1) <= registration_start <= now + timedelta(minutes=1)
+    )
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_read_object_registration(graphapi_post) -> None:
+    """Object registration reading integration-test."""
+    query = """
+        query ReadObjectRegistration($uuid: UUID!) {
+          org_units(uuids: [$uuid]) {
+            objects {
+              uuid
+              registrations {
+                actor
+                model
+                uuid
+                start
+                end
+              }
+            }
+          }
+        }
+    """
+    uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+
+    # Fetch the current registrations
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+    assert response.data
+    org_unit = one(response.data["org_units"]["objects"])
+    assert org_unit["uuid"] == uuid
+
+    registration = one(org_unit["registrations"])
+    assert registration["actor"] == "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+    assert registration["model"] == "org_unit"
+    assert registration["uuid"] == uuid
+    assert_around_now(datetime.fromisoformat(registration["start"]))
+    assert registration["end"] is None
+
+
+@pytest.mark.xfail
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_read_top_level_registration(graphapi_post) -> None:
+    """Top-level registration reading integration-test."""
+    query = """
+        query ReadRegistration($uuid: UUID!) {
+          registrations(uuids: [$uuid]) {
+            objects {
+              actor
+              model
+              uuid
+              start
+              end
+            }
+          }
+        }
+    """
+    uuid = "2874e1dc-85e6-4269-823a-e1125484dfd3"
+
+    # Fetch the current registrations
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+    assert response.data
+    registration = one(response.data["registrations"]["objects"])
+
+    assert registration["actor"] == "42c432e8-9c4a-11e6-9f62-873cf34a735f"
+    assert registration["model"] == "org_unit"
+    assert registration["uuid"] == uuid
+    assert_around_now(datetime.fromisoformat(registration["start"]))
+    assert registration["end"] is None

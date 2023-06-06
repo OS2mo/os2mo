@@ -34,6 +34,7 @@ Collections = Literal[
     "manager",
     "org",
     "org_unit",
+    "registration",
     "related_unit",
     "role",
     "version",

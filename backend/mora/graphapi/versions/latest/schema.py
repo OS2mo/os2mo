@@ -25,7 +25,6 @@ import strawberry
 from fastapi.encoders import jsonable_encoder
 from more_itertools import one
 from more_itertools import only
-from sqlalchemy import select
 from starlette_context import context
 from strawberry import UNSET
 from strawberry.types import Info
@@ -35,6 +34,8 @@ from .models import FileStore
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
+from .registration import Registration
+from .registration import RegistrationResolver
 from .resolver_map import resolver_map
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
@@ -43,7 +44,6 @@ from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
-from .resolvers import get_date_interval
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
@@ -58,17 +58,10 @@ from .validity import OpenValidity
 from .validity import Validity
 from mora import common
 from mora import config
-from mora.db import BrugerRegistrering
-from mora.db import FacetRegistrering
-from mora.db import ITSystemRegistrering
-from mora.db import KlasseRegistrering
-from mora.db import OrganisationEnhedRegistrering
-from mora.db import OrganisationFunktionRegistrering
 from mora.service.address_handler import dar
 from mora.service.address_handler import multifield_text
 from mora.service.facet import is_class_uuid_primary
 from mora.util import DEFAULT_TIMEZONE
-from mora.util import parsedatetime
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
 from ramodels.mo import FacetRead
@@ -273,80 +266,24 @@ def uuid2list(uuid: UUID | None) -> list[UUID]:
     return [uuid]
 
 
-def model2dbregistration(model: Any) -> Any:
+def model2name(model: Any) -> Any:
     mapping = {
-        ClassRead: KlasseRegistrering,
-        EmployeeRead: BrugerRegistrering,
-        FacetRead: FacetRegistrering,
-        OrganisationUnitRead: OrganisationEnhedRegistrering,
-        AddressRead: OrganisationFunktionRegistrering,
-        AssociationRead: OrganisationFunktionRegistrering,
-        EngagementAssociationRead: OrganisationFunktionRegistrering,
-        EngagementRead: OrganisationFunktionRegistrering,
-        ITSystemRead: ITSystemRegistrering,
-        ITUserRead: OrganisationFunktionRegistrering,
-        KLERead: KlasseRegistrering,
-        LeaveRead: OrganisationFunktionRegistrering,
-        RoleRead: OrganisationFunktionRegistrering,
-        ManagerRead: OrganisationFunktionRegistrering,
+        ClassRead: "class",
+        EmployeeRead: "employee",
+        FacetRead: "facet",
+        OrganisationUnitRead: "org_unit",
+        AddressRead: "address",
+        AssociationRead: "association",
+        EngagementAssociationRead: "engagement_association",
+        EngagementRead: "engagement",
+        ITSystemRead: "itsystem",
+        ITUserRead: "ituser",
+        KLERead: "kle",
+        LeaveRead: "leave",
+        RoleRead: "role",
+        ManagerRead: "manager",
     }
     return mapping[model]
-
-
-@strawberry.type(
-    description=dedent(
-        """
-    Bitemporal container.
-
-    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
-
-    Note:
-    Will eventually contain a full temporal axis per bitemporal container.
-    """
-    )
-)
-class Registration(Generic[MOObject]):
-    registration_id: int = strawberry.field(
-        description=dedent(
-            """
-        Internal registration ID for the registration.
-        """
-        ),
-        deprecation_reason=dedent(
-            """
-            May be removed in the future once the bitemporal scheme is finished.
-            """
-        ),
-    )
-
-    start: datetime = strawberry.field(
-        description=dedent(
-            """
-        Start of the bitemporal interval.
-        """
-        )
-    )
-    end: datetime | None = strawberry.field(
-        description=dedent(
-            """
-        End of the bitemporal interval.
-
-        `null` indicates the open interval, aka. infinity.
-        """
-        )
-    )
-
-    actor: UUID = strawberry.field(
-        description=dedent(
-            """
-        UUID of the actor (integration or user) who changed the data.
-
-        Note:
-        Currently mostly returns `"42c432e8-9c4a-11e6-9f62-873cf34a735f"`.
-        Will eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.
-        """
-        )
-    )
 
 
 @strawberry.type(
@@ -450,7 +387,7 @@ class Response(Generic[MOObject]):
         return await info.context[resolver].load(root.uuid)
 
     # TODO: Implement using a dataloader
-    @strawberry.field(
+    registrations: list[Registration] = strawberry.field(
         description=dedent(
             """
             Bitemporal state entrypoint.
@@ -470,51 +407,14 @@ class Response(Generic[MOObject]):
             """
         ),
         permission_classes=[IsAuthenticatedPermission],
+        resolver=seed_resolver(
+            RegistrationResolver(),  # type: ignore
+            {
+                "uuids": lambda root: uuid2list(root.uuid),
+                "models": lambda root: model2name(root.model),
+            },
+        ),
     )
-    # TODO: Document the arguments in the resolver once !1667 has been merged.
-    async def registrations(
-        self,
-        root: "Response",
-        info: Info,
-        actors: list[UUID] | None = None,
-        start: datetime | None = None,
-        end: datetime | None = None,
-    ) -> list[Registration[MOObject]]:
-        table = model2dbregistration(root.model)
-        dates = get_date_interval(start, end)
-        query = select(table).where(
-            table.uuid == root.uuid,
-            table.registreringstid_start.between(
-                dates.from_date or datetime(1, 1, 1),
-                dates.to_date or datetime(9999, 12, 31),
-            ),
-            table.registreringstid_slut.between(
-                dates.from_date or datetime(1, 1, 1),
-                dates.to_date or datetime(9999, 12, 31),
-            ),
-        )
-        if actors is not None:
-            query = query.where(table.actor.in_(actors))
-
-        def row2registration(res: Any) -> Registration:
-            start: datetime = parsedatetime(res.registreringstid_start)
-            end: datetime | None = parsedatetime(res.registreringstid_slut)
-            assert end is not None
-            if end.date() == date(9999, 12, 31):
-                end = None
-
-            return Registration(  # type: ignore
-                registration_id=res.id,
-                start=start,
-                end=end,
-                actor=res.actor,
-            )
-
-        session = info.context["sessionmaker"]()
-        async with session.begin():
-            result = await session.scalars(query)
-            result = list(map(row2registration, result))
-            return result
 
 
 LazySchema = strawberry.lazy(".schema")

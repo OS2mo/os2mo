@@ -19,6 +19,7 @@ import urllib.parse
 import uuid
 from contextlib import suppress
 from functools import reduce
+from zoneinfo import ZoneInfo
 
 import dateutil.parser
 import dateutil.tz
@@ -38,7 +39,7 @@ MINIMAL_INTERVAL = datetime.timedelta(microseconds=1)
 ONE_DAY = datetime.timedelta(days=1)
 
 # TODO: the default timezone should be configurable, shouldn't it?
-DEFAULT_TIMEZONE = dateutil.tz.gettz("Europe/Copenhagen")
+DEFAULT_TIMEZONE = ZoneInfo("Europe/Copenhagen")
 
 _tzinfos = {
     None: DEFAULT_TIMEZONE,

@@ -16,6 +16,8 @@ from .health import health_map
 from .models import FileStore
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
+from .registration import Registration
+from .registration import RegistrationResolver
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
@@ -348,6 +350,22 @@ class Query:
             IsAuthenticatedPermission,
             gen_read_permission("configuration"),
         ],
+    )
+
+    registrations: Paged[Registration] = strawberry.field(
+        resolver=to_paged(RegistrationResolver()),
+        description=dedent(
+            """
+            Get a list of registrations.
+
+            Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+            **Warning**:
+            This entry should **not** be used to implement event-driven integrations.
+            Such integration should rather utilize the AMQP-based event-system.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission],
     )
 
     # Root Organisation
