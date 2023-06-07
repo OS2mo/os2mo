@@ -41,6 +41,7 @@ from mo_ldap_import_export.ldap import check_ou_in_list_of_ous
 from mo_ldap_import_export.ldap import cleanup
 from mo_ldap_import_export.ldap import configure_ldap_connection
 from mo_ldap_import_export.ldap import construct_server
+from mo_ldap_import_export.ldap import get_attribute_types
 from mo_ldap_import_export.ldap import get_client_strategy
 from mo_ldap_import_export.ldap import get_ldap_attributes
 from mo_ldap_import_export.ldap import is_dn
@@ -795,3 +796,9 @@ def test_check_ou_in_list_of_ous():
         check_ou_in_list_of_ous("OU=bar", ous)
     with pytest.raises(ValueError):
         check_ou_in_list_of_ous("OU=foo fighters", ous)
+
+
+def test_get_attribute_types():
+    ldap_connection = MagicMock()
+    ldap_connection.server.schema.attribute_types = ["a1", "a2"]
+    assert get_attribute_types(ldap_connection) == ["a1", "a2"]
