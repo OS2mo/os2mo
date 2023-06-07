@@ -22,6 +22,8 @@ from fastapi.testclient import TestClient
 from fastramqpi.context import Context
 from fastramqpi.main import FastRAMQPI
 from gql.transport.exceptions import TransportQueryError
+from ramodels.mo.details.address import Address
+from ramodels.mo.details.it_system import ITUser
 from ramodels.mo.employee import Employee
 from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
@@ -35,6 +37,7 @@ from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
 from mo_ldap_import_export.exceptions import NotSupportedException
 from mo_ldap_import_export.ldap_classes import LdapObject
+from mo_ldap_import_export.main import construct_gql_client
 from mo_ldap_import_export.main import create_app
 from mo_ldap_import_export.main import create_fastramqpi
 from mo_ldap_import_export.main import get_delete_flag
@@ -43,89 +46,214 @@ from mo_ldap_import_export.main import open_ldap_connection
 from mo_ldap_import_export.main import reject_on_failure
 
 
-@pytest.fixture
-def load_settings_overrides_incorrect_mapping(
-    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
-) -> Iterator[dict[str, str]]:
-    """Fixture to construct dictionary of minimal overrides for valid settings,
-       but pointing to a nonexistent mapping file
+@pytest.fixture(scope="module")
+def settings_overrides() -> Iterator[dict[str, str]]:
+    """Fixture to construct dictionary of minimal overrides for valid settings.
 
     Yields:
         Minimal set of overrides.
     """
-    overrides = {**settings_overrides, "CONVERSION_MAP": "nonexisting_file"}
-    for key, value in overrides.items():
-        if os.environ.get(key) is None:
-            monkeypatch.setenv(key, value)
-    yield overrides
-
-
-@pytest.fixture
-def load_settings_overrides_incorrect_ou_for_new_users(
-    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
-) -> Iterator[dict[str, str]]:
     overrides = {
-        **settings_overrides,
+        "CLIENT_ID": "Foo",
+        "CLIENT_SECRET": "bar",
+        "LDAP_CONTROLLERS": '[{"host": "localhost"}]',
+        "LDAP_DOMAIN": "LDAP",
+        "LDAP_USER": "foo",
+        "LDAP_PASSWORD": "foo",
+        "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
+        "ADMIN_PASSWORD": "admin",
+        "AUTHENTICATION_SECRET": "foo",
+        "DEFAULT_ORG_UNIT_LEVEL": "foo",
+        "DEFAULT_ORG_UNIT_TYPE": "foo",
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
-        "LDAP_OU_FOR_NEW_USERS": "OU=foo",
+        "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
     }
-    for key, value in overrides.items():
-        if os.environ.get(key) is None:
-            monkeypatch.setenv(key, value)
     yield overrides
 
 
-@pytest.fixture
-def load_settings_overrides_not_listening(
-    settings_overrides: dict[str, str], monkeypatch: pytest.MonkeyPatch
+@pytest.fixture(scope="module")
+def load_settings_overrides(
+    settings_overrides: dict[str, str],
 ) -> Iterator[dict[str, str]]:
-    """Fixture to construct dictionary of minimal overrides for valid settings,
-       but with listen_to_changes equal to False
+    """Fixture to set happy-path settings overrides as environmental variables.
+
+    Note:
+        Only loads environmental variables, if variables are not already set.
+
+    Args:
+        settings_overrides: The list of settings to load in.
+        monkeypatch: Pytest MonkeyPatch instance to set environmental variables.
 
     Yields:
         Minimal set of overrides.
     """
-    overrides = {**settings_overrides, "LISTEN_TO_CHANGES_IN_MO": "False"}
-    for key, value in overrides.items():
+
+    mp = pytest.MonkeyPatch()
+    for key, value in settings_overrides.items():
         if os.environ.get(key) is None:
-            monkeypatch.setenv(key, value)
-    yield overrides
+            mp.setenv(key, value)
+    yield settings_overrides
 
 
-@pytest.fixture
-def disable_metrics(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+@pytest.fixture(scope="module")
+def test_mo_address() -> Address:
+    test_mo_address = Address.from_simplified_fields(
+        "foo@bar.dk", uuid4(), "2021-01-01"
+    )
+    return test_mo_address
+
+
+@pytest.fixture(scope="module")
+def test_mo_objects() -> list:
+    return [
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "to": None,
+            },
+        },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": "2021-01-01",
+                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+            },
+        },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": "2021-01-01",
+                "to": "2021-05-01",
+            },
+        },
+        {
+            "uuid": uuid4(),
+            "service_type": ServiceType.EMPLOYEE,
+            "payload": PayloadType(
+                uuid=uuid4(), object_uuid=uuid4(), time=datetime.datetime.now()
+            ),
+            "object_type": ObjectType.EMPLOYEE,
+            "validity": {
+                "from": datetime.datetime.today().strftime("%Y-%m-%d"),
+                "to": datetime.datetime.today().strftime("%Y-%m-%d"),
+            },
+        },
+    ]
+
+
+@pytest.fixture(scope="module")
+def dataloader(
+    sync_dataloader: MagicMock, test_mo_address: Address, test_mo_objects: list
+) -> AsyncMock:
+
+    test_ldap_object = LdapObject(
+        name="Tester", Department="QA", dn="someDN", EmployeeID="0101012002"
+    )
+    test_mo_employee = Employee(cpr_no="1212121234")
+
+    test_mo_it_user = ITUser.from_simplified_fields("foo", uuid4(), "2021-01-01")
+
+    load_ldap_cpr_object = MagicMock()
+    load_ldap_cpr_object.return_value = test_ldap_object
+
+    dataloader = AsyncMock()
+    dataloader.load_ldap_object = sync_dataloader
+    dataloader.load_ldap_populated_overview = sync_dataloader
+    dataloader.load_ldap_overview = sync_dataloader
+    dataloader.load_ldap_cpr_object = load_ldap_cpr_object
+    dataloader.load_ldap_objects.return_value = [test_ldap_object] * 3
+    dataloader.load_mo_employee.return_value = test_mo_employee
+    dataloader.load_mo_address.return_value = test_mo_address
+    dataloader.load_mo_it_user.return_value = test_mo_it_user
+    dataloader.load_mo_employee_address_types = sync_dataloader
+    dataloader.load_mo_org_unit_address_types = sync_dataloader
+    dataloader.load_mo_it_systems = sync_dataloader
+    dataloader.load_mo_primary_types = sync_dataloader
+    dataloader.load_mo_employee_addresses.return_value = [test_mo_address] * 2
+    dataloader.load_all_mo_objects.return_value = test_mo_objects
+    dataloader.load_mo_object.return_value = test_mo_objects[0]
+    dataloader.load_ldap_attribute_values = sync_dataloader
+    dataloader.modify_ldap_object.return_value = [{"description": "success"}]
+    dataloader.get_ldap_objectGUID = sync_dataloader
+
+    return dataloader
+
+
+@pytest.fixture(scope="module")
+def sync_dataloader() -> MagicMock:
+
+    dataloader = MagicMock()
+    return dataloader
+
+
+@pytest.fixture(scope="module")
+def converter() -> MagicMock:
+    converter = MagicMock()
+    converter.get_accepted_json_keys.return_value = [
+        "Employee",
+        "Address",
+        "EmailEmployee",
+    ]
+    converter.cpr_field = "EmployeeID"
+    converter._import_to_mo_ = MagicMock()
+    converter._import_to_mo_.return_value = True
+
+    return converter
+
+
+@pytest.fixture(scope="module")
+def disable_metrics() -> Iterator[None]:
     """Fixture to set the ENABLE_METRICS environmental variable to False.
 
     Yields:
         None
     """
-    monkeypatch.setenv("ENABLE_METRICS", "False")
+    mp = pytest.MonkeyPatch()
+    mp.setenv("ENABLE_METRICS", "False")
     yield
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def gql_client() -> Iterator[AsyncMock]:
     yield AsyncMock()
 
 
-@pytest.fixture
-def internal_amqpsystem() -> AsyncMock:
-    return AsyncMock()
+@pytest.fixture(scope="module")
+def internal_amqpsystem() -> MagicMock:
+    mock = MagicMock()
+    mock.publish_message = AsyncMock()
+    return mock
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def sync_tool() -> AsyncMock:
     return AsyncMock()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def fastramqpi(
     disable_metrics: None,
     load_settings_overrides: dict[str, str],
     gql_client: AsyncMock,
     dataloader: AsyncMock,
     converter: MagicMock,
-    internal_amqpsystem: AsyncMock,
+    internal_amqpsystem: MagicMock,
     sync_tool: AsyncMock,
 ) -> Iterator[FastRAMQPI]:
     """Fixture to construct a FastRAMQPI system.
@@ -150,11 +278,13 @@ def fastramqpi(
         "mo_ldap_import_export.main.AMQPSystem", return_value=internal_amqpsystem
     ), patch(
         "mo_ldap_import_export.main.InitEngine", return_value=MagicMock()
+    ), patch(
+        "mo_ldap_import_export.main.asyncio.get_event_loop", return_value=None
     ):
         yield create_fastramqpi()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
     """Fixture to construct a FastAPI application.
 
@@ -164,7 +294,7 @@ def app(fastramqpi: FastRAMQPI) -> Iterator[FastAPI]:
     yield create_app()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def test_client(app: FastAPI) -> Iterator[TestClient]:
     """Fixture to construct a FastAPI test-client.
 
@@ -201,7 +331,7 @@ def ldap_connection() -> Iterator[MagicMock]:
     yield MagicMock()
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def headers(test_client: TestClient) -> dict:
     response = test_client.post(
         "/login", data={"username": "admin", "password": "admin"}
@@ -212,7 +342,6 @@ def headers(test_client: TestClient) -> dict:
 
 def test_create_app(
     fastramqpi: FastRAMQPI,
-    load_settings_overrides: dict[str, str],
 ) -> None:
     """Test that we can construct our FastAPI application."""
 
@@ -221,9 +350,7 @@ def test_create_app(
     assert isinstance(app, FastAPI)
 
 
-def test_create_fastramqpi(
-    load_settings_overrides: dict[str, str], disable_metrics: None, converter: MagicMock
-) -> None:
+def test_create_fastramqpi(disable_metrics: None, converter: MagicMock) -> None:
     """Test that we can construct our FastRAMQPI system."""
 
     with patch(
@@ -292,7 +419,8 @@ def test_ldap_post_ldap_employee_endpoint(
     ldap_person_to_post = {
         "dn": "CN=Lars Peter Thomsen,OU=Users,OU=Magenta,DC=ad,DC=addev",
         "cpr": "0101121234",
-        "name": "Lars Peter Thomsen",
+        "givenname": "Lars Peter",
+        "surname": "Thomsen",
         "Department": None,
     }
     response = test_client.post(
@@ -319,7 +447,6 @@ def test_mo_post_employee_endpoint(test_client: TestClient, headers: dict) -> No
         "type": "employee",
         "givenname": "Jens Pedersen Munch",
         "surname": "Bisgaard",
-        "name": None,
         "cpr_no": "0910443755",
         "seniority": None,
         "org": None,
@@ -407,9 +534,7 @@ def test_ldap_get_objectGUID_endpoint(test_client: TestClient, headers: dict) ->
     assert response.status_code == 202
 
 
-async def test_listen_to_changes(
-    load_settings_overrides: dict[str, str], dataloader: AsyncMock, sync_tool: AsyncMock
-):
+async def test_listen_to_changes(dataloader: AsyncMock, sync_tool: AsyncMock):
 
     context = {"user_context": {"dataloader": dataloader, "sync_tool": sync_tool}}
     payload = MagicMock()
@@ -425,9 +550,10 @@ async def test_listen_to_changes(
     sync_tool.listen_to_changes_in_org_units.assert_awaited_once()
 
 
-async def test_listen_to_changes_not_listening(
-    load_settings_overrides_not_listening: dict[str, str]
-) -> None:
+async def test_listen_to_changes_not_listening() -> None:
+
+    mp = pytest.MonkeyPatch()
+    mp.setenv("LISTEN_TO_CHANGES_IN_MO", "False")
 
     mo_routing_key = MORoutingKey.build("employee.employee.edit")
     context: dict = {}
@@ -437,14 +563,15 @@ async def test_listen_to_changes_not_listening(
         await asyncio.gather(
             listen_to_changes(context, payload, mo_routing_key=mo_routing_key),
         )
+    mp.setenv("LISTEN_TO_CHANGES_IN_MO", "True")
 
 
 def test_ldap_get_all_converted_endpoint_failure(
     test_client: TestClient, converter: MagicMock, headers: dict
 ) -> None:
     def from_ldap(ldap_object, json_key, employee_uuid=None):
-        # This will raise a validationError because the ldap_object is not converted
-        return Employee(**ldap_object.dict())
+        # This will raise a validationError (which is what we want to test)
+        return Employee(**{"foo": None})
 
     converter.from_ldap = from_ldap
     with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
@@ -514,7 +641,6 @@ async def test_import_one_object_from_LDAP(
 
 
 async def test_import_all_objects_from_LDAP_no_cpr_field(
-    converter: MagicMock,
     test_client_no_cpr: TestClient,
     headers: dict,
 ) -> None:
@@ -540,40 +666,46 @@ async def test_import_all_objects_from_LDAP_invalid_cpr(
         )
 
 
-async def test_load_mapping_file_environment(
-    load_settings_overrides_incorrect_mapping: dict[str, str],
-    disable_metrics: None,
-    converter: MagicMock,
-) -> None:
+async def test_load_mapping_file_environment() -> None:
+
+    mp = pytest.MonkeyPatch()
+    mp.setenv("CONVERSION_MAP", "nonexisting_file")
 
     with patch(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch(
-        "mo_ldap_import_export.main.LdapConverter", return_value=converter
+        "mo_ldap_import_export.main.LdapConverter", return_value=MagicMock()
     ), pytest.raises(
         FileNotFoundError
     ):
         fastramqpi = create_fastramqpi()
         assert isinstance(fastramqpi, FastRAMQPI)
 
+    mp.setenv("CONVERSION_MAP", "")
 
-async def test_incorrect_ous_to_search_in(
-    load_settings_overrides_incorrect_ou_for_new_users: dict[str, str],
-    disable_metrics: None,
-    converter: MagicMock,
-) -> None:
+
+async def test_incorrect_ous_to_search_in() -> None:
+
+    mp = pytest.MonkeyPatch()
+    overrides = {
+        "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
+        "LDAP_OU_FOR_NEW_USERS": "OU=foo,",
+    }
+    for key, value in overrides.items():
+        mp.setenv(key, value)
 
     with pytest.raises(ValueError):
         create_fastramqpi()
 
+    overrides = {
+        "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
+        "LDAP_OU_FOR_NEW_USERS": "OU=foo,OU=bar",
+    }
+    for key, value in overrides.items():
+        mp.setenv(key, value)
 
-async def test_load_faulty_username_generator(
-    disable_metrics: None,
-    load_settings_overrides: dict[str, str],
-    gql_client: AsyncMock,
-    dataloader: AsyncMock,
-    converter: MagicMock,
-) -> None:
+
+async def test_load_faulty_username_generator() -> None:
 
     usernames_mock = MagicMock()
     usernames_mock.UserNameGenerator.return_value = "foo"
@@ -582,11 +714,11 @@ async def test_load_faulty_username_generator(
         "mo_ldap_import_export.main.configure_ldap_connection", new_callable=MagicMock()
     ), patch(
         "mo_ldap_import_export.main.construct_gql_client",
-        return_value=gql_client,
+        return_value=MagicMock(),
     ), patch(
-        "mo_ldap_import_export.main.DataLoader", return_value=dataloader
+        "mo_ldap_import_export.main.DataLoader", return_value=MagicMock()
     ), patch(
-        "mo_ldap_import_export.main.LdapConverter", return_value=converter
+        "mo_ldap_import_export.main.LdapConverter", return_value=MagicMock()
     ), patch(
         "mo_ldap_import_export.main.usernames", usernames_mock
     ), pytest.raises(
@@ -617,7 +749,7 @@ def test_invalid_username(test_client: TestClient):
 async def test_synchronize_todays_events(
     test_client: TestClient,
     headers: dict,
-    internal_amqpsystem: AsyncMock,
+    internal_amqpsystem: MagicMock,
     test_mo_objects: list,
 ):
     today = datetime.datetime.today().strftime("%Y-%m-%d")
@@ -667,7 +799,7 @@ async def test_synchronize_todays_events(
 async def test_export_endpoint(
     test_client: TestClient,
     headers: dict,
-    internal_amqpsystem: AsyncMock,
+    internal_amqpsystem: MagicMock,
     test_mo_objects: list,
 ):
 
@@ -679,6 +811,8 @@ async def test_export_endpoint(
         "delay_in_seconds": 0.1,
     }
 
+    current_awaits = internal_amqpsystem.publish_message.await_count
+
     response = test_client.post("/Export", headers=headers, params=params)
     assert response.status_code == 202
 
@@ -688,7 +822,10 @@ async def test_export_endpoint(
             "employee.employee.refresh", payload
         )
 
-    assert internal_amqpsystem.publish_message.await_count == len(test_mo_objects)
+    assert (
+        internal_amqpsystem.publish_message.await_count
+        == len(test_mo_objects) + current_awaits
+    )
 
 
 async def test_reject_on_failure():
@@ -787,7 +924,6 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     test_client_no_cpr: TestClient,
     headers: dict,
-    dataloader: AsyncMock,
 ):
     response = test_client_no_cpr.get("/Inspect/invalid_cpr_numbers", headers=headers)
     assert response.status_code == 404
@@ -801,18 +937,14 @@ def test_wraps():
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client_no_cpr: TestClient,
-    headers: dict,
-    dataloader: AsyncMock,
+    test_client_no_cpr: TestClient, headers: dict
 ):
     response = test_client_no_cpr.get("/Inspect/duplicate_cpr_numbers", headers=headers)
     assert response.status_code == 404
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
-    test_client: TestClient,
-    headers: dict,
-    dataloader: AsyncMock,
+    test_client: TestClient, headers: dict
 ):
 
     searchResponse = [
@@ -829,3 +961,18 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
         assert "123" in result
         assert "mucki" in result["123"]
         assert "bar" in result["123"]
+
+
+def test_construct_gql_client():
+
+    settings = MagicMock(mo_url="mo-url")
+
+    with patch("mo_ldap_import_export.main.PersistentGraphQLClient", MagicMock):
+        gql_client = construct_gql_client(settings)
+        gql_client_sync = construct_gql_client(settings, sync=True)
+
+        assert gql_client.sync is False
+        assert gql_client_sync.sync is True
+
+        for client in [gql_client, gql_client_sync]:
+            assert client.url == "mo-url/graphql/v3"
