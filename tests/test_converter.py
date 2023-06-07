@@ -9,7 +9,6 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 from uuid import uuid4
 
-import pandas as pd
 import pytest
 from fastramqpi.context import Context
 from jinja2 import Environment
@@ -369,44 +368,6 @@ def test_mapping_loader_failure(context: Context) -> None:
             converter.to_ldap(obj_dict, "Employee", "CN=foo")
 
 
-def test_splitfirst() -> None:
-    assert LdapConverter.filter_splitfirst("Test") == ["Test", ""]
-    assert LdapConverter.filter_splitfirst("Test Testersen") == [
-        "Test",
-        "Testersen",
-    ]
-    assert LdapConverter.filter_splitfirst("Test Testersen med test") == [
-        "Test",
-        "Testersen med test",
-    ]
-    assert LdapConverter.filter_splitfirst("") == ["", ""]
-    assert LdapConverter.filter_splitfirst("foo,bar,pub", separator=",") == [
-        "foo",
-        "bar,pub",
-    ]
-
-
-def test_splitlast() -> None:
-    assert LdapConverter.filter_splitlast("Test") == ["", "Test"]
-    assert LdapConverter.filter_splitlast("Test Testersen") == ["Test", "Testersen"]
-    assert LdapConverter.filter_splitlast("Test Testersen med test") == [
-        "Test Testersen med",
-        "test",
-    ]
-    assert LdapConverter.filter_splitlast("") == ["", ""]
-    assert LdapConverter.filter_splitlast("foo,bar,pub", separator=",") == [
-        "foo,bar",
-        "pub",
-    ]
-
-
-def test_strip_non_digits() -> None:
-    assert LdapConverter.filter_strip_non_digits("01-01-01-1234") == "0101011234"
-    assert LdapConverter.filter_strip_non_digits("01/01/01-1234") == "0101011234"
-    assert LdapConverter.filter_strip_non_digits("010101-1234") == "0101011234"
-    assert LdapConverter.filter_strip_non_digits(101011234) is None
-
-
 def test_find_cpr_field(context: Context) -> None:
 
     # This mapping is accepted
@@ -591,19 +552,6 @@ def test_str_to_dict(converter: LdapConverter):
 
     output = converter.str_to_dict("{'foo':Undefined}")
     assert output == {"foo": None}
-
-
-def test_filter_mo_datestring(converter: LdapConverter):
-    output = converter.filter_mo_datestring(datetime.datetime(2019, 4, 13, 20, 10, 10))
-    # Note: Dates are always at midnight in MO
-    assert output == "2019-04-13T00:00:00"
-    assert converter.filter_mo_datestring([]) is None
-    assert converter.filter_mo_datestring("") is None
-    assert converter.filter_mo_datestring(None) is None
-
-
-def test_filter_remove_curly_brackets(converter: LdapConverter):
-    assert converter.filter_remove_curly_brackets("{foo}") == "foo"
 
 
 def test_get_number_of_entries(converter: LdapConverter):
@@ -1223,19 +1171,6 @@ def test_check_org_unit_info_dict(converter: LdapConverter):
     converter.org_unit_info = {uuid4(): {"name": "invalid\\name"}}
     with pytest.raises(InvalidNameException):
         converter.check_org_unit_info_dict()
-
-
-def test_filter_parse_datetime(converter: LdapConverter):
-    date = converter.filter_parse_datetime("2021-01-01")
-    assert date.strftime("%Y-%m-%d") == "2021-01-01"
-
-    assert converter.filter_parse_datetime("9999-12-31") == pd.Timestamp.max
-    assert converter.filter_parse_datetime("200-12-31") == pd.Timestamp.min
-    assert converter.filter_parse_datetime("") is None
-    assert converter.filter_parse_datetime("None") is None
-    assert converter.filter_parse_datetime("NONE") is None
-    assert converter.filter_parse_datetime([]) is None
-    assert converter.filter_parse_datetime(None) is None
 
 
 def test_check_uuid_refs_in_mo_objects(converter: LdapConverter):
