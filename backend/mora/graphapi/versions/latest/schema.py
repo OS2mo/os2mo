@@ -1108,7 +1108,7 @@ class Manager:
     responsibilities: list[LazyClass] = strawberry.field(
         resolver=seed_resolver_list(
             ClassResolver(),
-            {"parents": lambda root: root.responsibility_uuids or []},
+            {"uuids": lambda root: root.responsibility_uuids or []},
         ),
         description="Manager responsibilities",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
