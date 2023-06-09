@@ -1089,16 +1089,16 @@ class Leave:
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
-    manager_type: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
+    manager_type: LazyClass = strawberry.field(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
         description="Manager type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    manager_level: LazyClass | None = strawberry.field(
-        resolver=seed_resolver_only(
+    manager_level: LazyClass = strawberry.field(
+        resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
         description="Manager level",
