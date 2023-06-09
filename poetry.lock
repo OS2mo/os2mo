@@ -247,7 +247,7 @@ tomlkit = ">=0.5.3,<1.0.0"
 type = "git"
 url = "https://github.com/noirbizarre/commitizen.git"
 reference = "feature/template-override"
-resolved_reference = "18d8fb4e8d5dd0c1dca085e3cc45b34530d34598"
+resolved_reference = "70e8e7d438c89a6e274f443e80bc403008db0c2b"
 
 [[package]]
 name = "coverage"
@@ -510,7 +510,7 @@ http2 = ["h2 (>=3,<5)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.76.0"
+version = "6.77.0"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -1755,7 +1755,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "180f4aece4ac10fbb8e200e37dbbca4daf434aede32feb4a2a003cbfe96530a8"
+content-hash = "5ef333bf0befb1f8e4b22ac1c14a7e8f45832cfb5fad621b22fcc1cb6fd70fb4"
 
 [metadata.files]
 aio-pika = [
@@ -2302,8 +2302,8 @@ httpx = [
     {file = "httpx-0.19.0.tar.gz", hash = "sha256:92ecd2c00c688b529eda11cedb15161eaf02dee9116712f621c70d9a40b2cdd0"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.76.0-py3-none-any.whl", hash = "sha256:034f73dd485933b0f4c319d7c3c58230492fdd7b16e821d67d150a78138adb93"},
-    {file = "hypothesis-6.76.0.tar.gz", hash = "sha256:526657eb3e4f2076b0383f722b2e6a92fd15d1d42db532decae8c41b14cab801"},
+    {file = "hypothesis-6.77.0-py3-none-any.whl", hash = "sha256:bfa03bb5c7d8b775378fc795d9251c885cd1be7d8ddf677f3ebd8f3892efc782"},
+    {file = "hypothesis-6.77.0.tar.gz", hash = "sha256:23bfe3743d0c88e61330debca60fc813db2ef83be5777f2baf113d035ac76081"},
 ]
 hypothesis-graphql = [
     {file = "hypothesis_graphql-0.10.0-py3-none-any.whl", hash = "sha256:f65895ddc72f9414427268e2b3cc9ffa79aac55e962d69f37be716fa710b02c6"},
