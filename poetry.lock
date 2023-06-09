@@ -247,7 +247,7 @@ tomlkit = ">=0.5.3,<1.0.0"
 type = "git"
 url = "https://github.com/noirbizarre/commitizen.git"
 reference = "feature/template-override"
-resolved_reference = "18d8fb4e8d5dd0c1dca085e3cc45b34530d34598"
+resolved_reference = "70e8e7d438c89a6e274f443e80bc403008db0c2b"
 
 [[package]]
 name = "coverage"
@@ -1547,7 +1547,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.180.5"
+version = "0.183.6"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1755,7 +1755,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "180f4aece4ac10fbb8e200e37dbbca4daf434aede32feb4a2a003cbfe96530a8"
+content-hash = "5fe9f7b3ac29d44789160f3d732e3c5b43f304e5b84b02b280e1a37731125560"
 
 [metadata.files]
 aio-pika = [
@@ -2896,8 +2896,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.180.5-py3-none-any.whl", hash = "sha256:f08c4445711205d9bb12fd59cba7631e754efe93fe08ec5b7a7d7f2ee60750fa"},
-    {file = "strawberry_graphql-0.180.5.tar.gz", hash = "sha256:3ef3e4a3d82f69c7da8436ca36504414230c83063e46a967df8eb5645121b6b5"},
+    {file = "strawberry_graphql-0.183.6-py3-none-any.whl", hash = "sha256:36beb6ad64af935d53920fc47e1f94ef16ebba26ad611eb847aae94ac2a55f43"},
+    {file = "strawberry_graphql-0.183.6.tar.gz", hash = "sha256:cf8a6266a806afea27f399632e832c5d96e606f1a65e1b7807feb781f0c6c561"},
 ]
 structlog = [
     {file = "structlog-22.3.0-py3-none-any.whl", hash = "sha256:b403f344f902b220648fa9f286a23c0cc5439a5844d271fec40562dbadbc70ad"},
