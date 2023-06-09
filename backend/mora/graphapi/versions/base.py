@@ -74,12 +74,11 @@ class BaseGraphQLVersion:
         return {}
 
     @classmethod
-    def get_router(cls, **kwargs: Any) -> APIRouter:
+    def get_router(cls, is_latest: bool) -> APIRouter:
         """Get Strawberry FastAPI router serving this GraphQL API version."""
-        params = dict(
+        router = CustomGraphQLRouter(
+            is_latest=is_latest,
             schema=cls.schema.get(),
-            path=f"/v{cls.version}",
             context_getter=cls.get_context,
         )
-        params.update(kwargs)  # allows overriding values
-        return CustomGraphQLRouter(**params)  # type: ignore
+        return router
