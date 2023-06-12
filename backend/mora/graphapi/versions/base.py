@@ -5,11 +5,13 @@ from collections.abc import Sequence
 from typing import Any
 
 from fastapi import APIRouter
+from starlette.responses import PlainTextResponse
 from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
 from strawberry.extensions import SchemaExtension
 from strawberry.extensions.tracing import SentryTracingExtension
+from strawberry.printer import print_schema
 from strawberry.schema.config import StrawberryConfig
 
 from mora.graphapi.middleware import StarletteContextExtension
@@ -81,4 +83,10 @@ class BaseGraphQLVersion:
             schema=cls.schema.get(),
             context_getter=cls.get_context,
         )
+
+        @router.get("/schema.graphql", response_class=PlainTextResponse)
+        async def schema() -> str:
+            """Return the GraphQL version's schema definition in SDL format."""
+            return print_schema(cls.schema.get())
+
         return router

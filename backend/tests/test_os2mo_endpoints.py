@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import more_itertools
+
 from mora.app import create_app
 from mora.graphapi.main import graphql_versions
 
@@ -93,7 +95,16 @@ service_api = {
     "/service/ou/{id}/details/related_unit",
     "/service/ou/{id}/details/role",
 }
-graphql_endpoints = {f"/graphql/v{version.version}" for version in graphql_versions}
+
+graphql_endpoints = set(
+    more_itertools.flatten(
+        (
+            f"/graphql/v{version.version}",
+            f"/graphql/v{version.version}/schema.graphql",
+        )
+        for version in graphql_versions
+    )
+)
 
 
 all_endpoints = (
