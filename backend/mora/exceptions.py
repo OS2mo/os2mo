@@ -180,6 +180,9 @@ class HTTPException(fastapiHTTPException):
 
         super().__init__(status_code=self.key.code, detail=body)
 
+    def __str__(self) -> str:
+        return self.__repr__()
+
 
 class ImproperlyConfigured(Exception):
     """MO is somehow improperly configured."""
