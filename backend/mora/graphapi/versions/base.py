@@ -1,14 +1,19 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
 from typing import Any
 
 from fastapi import APIRouter
+from fastapi import HTTPException
+from fastapi.encoders import jsonable_encoder
+from graphql.error import GraphQLError
 from starlette.responses import PlainTextResponse
 from strawberry import Schema
 from strawberry.custom_scalar import ScalarDefinition
 from strawberry.custom_scalar import ScalarWrapper
+from strawberry.exceptions import StrawberryGraphQLError
 from strawberry.extensions import SchemaExtension
 from strawberry.extensions.tracing import SentryTracingExtension
 from strawberry.printer import print_schema
@@ -16,6 +21,30 @@ from strawberry.schema.config import StrawberryConfig
 
 from mora.graphapi.middleware import StarletteContextExtension
 from mora.graphapi.router import CustomGraphQLRouter
+
+
+def add_exception_extension(error: GraphQLError) -> StrawberryGraphQLError:
+    extensions = {}
+    if isinstance(error.original_error, HTTPException):
+        extensions["error_context"] = jsonable_encoder(error.original_error.detail)
+
+    return StrawberryGraphQLError(
+        extensions=extensions,
+        nodes=error.nodes,
+        source=error.source,
+        positions=error.positions,
+        path=error.path,
+        original_error=error.original_error,
+        message=error.message,
+    )
+
+
+class ExtendedErrorFormatExtension(SchemaExtension):
+    async def on_operation(self) -> AsyncIterator[None]:
+        yield
+        result = self.execution_context.result
+        if result and hasattr(result, "errors") and result.errors is not None:
+            result.errors = list(map(add_exception_extension, result.errors))
 
 
 class BaseGraphQLSchema:
@@ -34,6 +63,7 @@ class BaseGraphQLSchema:
     extensions: Sequence[type[SchemaExtension] | SchemaExtension] = [
         StarletteContextExtension,
         SentryTracingExtension,
+        ExtendedErrorFormatExtension,
     ]
 
     # Automatic camelCasing disabled because under_score style is simply better
