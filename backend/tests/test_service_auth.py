@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 from uuid import UUID
 
+import more_itertools
 import pytest
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
@@ -48,7 +49,15 @@ def no_auth_endpoints():
         "/graphql",
         "/graphql/v{version_number}",
     }
-    graphql_endpoints = {f"/graphql/v{version.version}" for version in graphql_versions}
+    graphql_endpoints = set(
+        more_itertools.flatten(
+            (
+                f"/graphql/v{version.version}",
+                f"/graphql/v{version.version}/schema.graphql",
+            )
+            for version in graphql_versions
+        )
+    )
 
     yield no_auth_endpoints | graphql_endpoints
 
