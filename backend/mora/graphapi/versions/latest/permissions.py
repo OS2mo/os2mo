@@ -102,6 +102,10 @@ def gen_role_permission(
             # Allow access only if expected role is in roles
             token = await info.context["get_token"]()
             roles = token.realm_access.roles
+            # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
+            # migrated to Azure.
+            if settings.graphql_rbac_legacy_admin_role and "admin" in roles:
+                return True
             allow_access = role_name in roles
             rbac_counter.labels(role=role_name, allowed=allow_access).inc()
             return allow_access
