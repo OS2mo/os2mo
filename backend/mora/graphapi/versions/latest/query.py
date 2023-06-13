@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from functools import partial
 from functools import wraps
+from textwrap import dedent
 from typing import Any
 from typing import cast
 from uuid import UUID
@@ -337,10 +338,14 @@ class Query:
     # Root Organisation
     # -----------------
     @strawberry.field(
-        description=(
-            "Get the root-organisation. "
-            "This endpoint fails if not exactly one exists in LoRa."
+        description=dedent(
+            """
+            Get the root organisation.
+
+            This endpoint fails if not exactly one exists in LoRa.
+            """
         ),
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
     )
     async def org(self, info: Info) -> Organisation:
