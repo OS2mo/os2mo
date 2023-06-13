@@ -354,7 +354,7 @@ class Query:
     # Version
     # -------
     @strawberry.field(
-        description="Get component versions",
+        description="Get component versions of OS2mo",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("version")],
     )
     async def version(self) -> Version:

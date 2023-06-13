@@ -58,7 +58,6 @@ from .resolvers import RoleResolver
 from .types import Cursor
 from mora import common
 from mora import config
-from mora import lora
 from mora.db import BrugerRegistrering
 from mora.db import FacetRegistrering
 from mora.db import ITSystemRegistrering
@@ -1507,9 +1506,23 @@ class Role:
 
 # Health & version
 # ----------------
-@strawberry.type(description="MO & LoRa & DIPEX versions")
+@strawberry.type(description="MO and DIPEX versions")
 class Version:
-    @strawberry.field(description="OS2mo Version")
+    @strawberry.field(
+        description=dedent(
+            """
+            OS2mo Version.
+
+            Contains a [semantic version](https://semver.org/) on released versions of OS2mo.
+            Contains the string `HEAD` on development builds of OS2mo.
+
+            Examples:
+            * `HEAD`
+            * `22.2.6`
+            * `21.0.0`
+            """
+        )
+    )
     async def mo_version(self) -> str | None:
         """Get the mo version.
 
@@ -1518,7 +1531,21 @@ class Version:
         """
         return config.get_settings().commit_tag
 
-    @strawberry.field(description="OS2mo commit hash")
+    @strawberry.field(
+        description=dedent(
+            """
+            OS2mo commit hash.
+
+            Contains a git hash on released versions of OS2mo.
+            Contains the empty string on development builds of OS2mo.
+
+            Examples:
+            * `""`
+            * `880bd2009baccbdf795a8cef3b5b32b42c91c51b`
+            * `b29e45449a857cf78725eff10c5856075417ea51`
+            """
+        )
+    )
     async def mo_hash(self) -> str | None:
         """Get the mo commit hash.
 
@@ -1527,16 +1554,33 @@ class Version:
         """
         return config.get_settings().commit_sha
 
-    @strawberry.field(description="LoRa version")
+    @strawberry.field(
+        description="LoRa version. Returns the exact same as `mo_version`.",
+        deprecation_reason="MO and LoRa are shipped and versioned together",
+    )
     async def lora_version(self) -> str | None:
         """Get the lora version.
 
         Returns:
             The version.
         """
-        return await lora.get_version()
+        return config.get_settings().commit_tag
 
-    @strawberry.field(description="DIPEX version")
+    @strawberry.field(
+        description=dedent(
+            """
+            DIPEX version.
+
+            Contains a [semantic version](https://semver.org/) if configured.
+            Contains the `null` on development builds of OS2mo.
+
+            Examples:
+            * `null`
+            * `4.34.1`
+            * `4.28.0`
+            """
+        )
+    )
     async def dipex_version(self) -> str | None:
         return config.get_settings().confdb_dipex_version__do_not_use
 
