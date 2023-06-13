@@ -1076,13 +1076,3 @@ class FileRead(BaseModel):
 
     file_store: FileStore = Field(description="The file store the file is stored in.")
     file_name: str = Field(description="Name of the export file.")
-
-
-# Configuration
-# -------------
-
-
-class ConfigurationRead(BaseModel):
-    """Payload model for configuration."""
-
-    key: str = Field(description="Settings key.")
