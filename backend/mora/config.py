@@ -102,6 +102,10 @@ class Settings(BaseSettings):
     # This hotfix will be removed again later, once the security issues has been fixed.
     graphql_rbac: bool = False
 
+    # TODO (#55042): Backwards-compatible fix for !1594. Remove when Aarhus is
+    # migrated to Azure.
+    graphql_rbac_legacy_admin_role: bool = False
+
     log_level: LogLevel = LogLevel.INFO
 
     @root_validator
