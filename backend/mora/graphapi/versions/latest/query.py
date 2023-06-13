@@ -338,9 +338,11 @@ class Query:
     # -----------------
     @strawberry.field(
         description=(
-            "Get the root-organisation. "
+            "Get the root organisation\n"
+            "\n"
             "This endpoint fails if not exactly one exists in LoRa."
         ),
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
     )
     async def org(self, info: Info) -> Organisation:
