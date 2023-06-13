@@ -48,7 +48,7 @@ sentry-sdk = {extras = ["fastapi"], version = "^1.25.1"}
 psycopg = "^3.1.8"
 
 [tool.poetry.dev-dependencies]
-requests-mock = "^1.10.0"
+requests-mock = "^1.11.0"
 freezegun = "^1.2.2"
 pytest = "^7.3.2"
 pytest-cov = "^4.1.0"
