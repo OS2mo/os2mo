@@ -11,13 +11,13 @@ import pytest
 from strawberry import UNSET
 from strawberry.types.info import Info
 
-from mora.graphapi.versions.latest.resolvers import cursor_type
-from mora.graphapi.versions.latest.resolvers import from_date_filter_type
-from mora.graphapi.versions.latest.resolvers import limit_type
+from mora.graphapi.versions.latest.resolvers import CursorType
+from mora.graphapi.versions.latest.resolvers import FromDateFilterType
+from mora.graphapi.versions.latest.resolvers import LimitType
 from mora.graphapi.versions.latest.resolvers import Resolver
-from mora.graphapi.versions.latest.resolvers import to_date_filter_type
-from mora.graphapi.versions.latest.resolvers import user_keys_filter_type
-from mora.graphapi.versions.latest.resolvers import uuids_filter_type
+from mora.graphapi.versions.latest.resolvers import ToDateFilterType
+from mora.graphapi.versions.latest.resolvers import UserKeysFilterType
+from mora.graphapi.versions.latest.resolvers import UUIDsFilterType
 from mora.graphapi.versions.latest.schema import seed_resolver
 
 
@@ -81,18 +81,16 @@ async def test_signature_changes(seeds: dict[str, Any]) -> None:
     pos_parameter = partial(Parameter, kind=Parameter.POSITIONAL_OR_KEYWORD)
     resolver_params = {
         "info": pos_parameter("info", annotation=Info),
-        "uuids": pos_parameter("uuids", annotation=uuids_filter_type, default=None),
+        "uuids": pos_parameter("uuids", annotation=UUIDsFilterType, default=None),
         "user_keys": pos_parameter(
-            "user_keys", annotation=user_keys_filter_type, default=None
+            "user_keys", annotation=UserKeysFilterType, default=None
         ),
-        "limit": pos_parameter("limit", annotation=limit_type, default=None),
-        "cursor": pos_parameter("cursor", annotation=cursor_type, default=None),
+        "limit": pos_parameter("limit", annotation=LimitType, default=None),
+        "cursor": pos_parameter("cursor", annotation=CursorType, default=None),
         "from_date": pos_parameter(
-            "from_date", annotation=from_date_filter_type, default=UNSET
+            "from_date", annotation=FromDateFilterType, default=UNSET
         ),
-        "to_date": pos_parameter(
-            "to_date", annotation=to_date_filter_type, default=UNSET
-        ),
+        "to_date": pos_parameter("to_date", annotation=ToDateFilterType, default=UNSET),
     }
 
     # Check the signature
