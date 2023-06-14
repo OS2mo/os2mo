@@ -22,16 +22,17 @@ from .permissions import IsAuthenticatedPermission
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
-from .resolvers import cursor_type
+from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
 from .resolvers import FacetResolver
+from .resolvers import gen_filter_string
 from .resolvers import ITSystemResolver
 from .resolvers import ITUserResolver
 from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
-from .resolvers import limit_type
+from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
 from .resolvers import PagedResolver
@@ -67,9 +68,14 @@ from mora.config import get_public_settings
 class HealthResolver(PagedResolver):
     async def resolve(  # type: ignore[override]
         self,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        identifiers: list[str] | None = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        identifiers: Annotated[
+            list[str] | None,
+            strawberry.argument(
+                description=gen_filter_string("Healthcheck identifiers", "identifiers")
+            ),
+        ] = None,
     ) -> list[Health]:
         healthchecks = set(health_map.keys())
         if identifiers is not None:
@@ -90,10 +96,20 @@ class FileResolver(PagedResolver):
     async def resolve(  # type: ignore[override]
         self,
         info: Info,
-        file_store: FileStore,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        file_names: list[str] | None = None,
+        file_store: Annotated[
+            FileStore,
+            strawberry.argument(
+                description=gen_filter_string("Filestore", "file_store")
+            ),
+        ],
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        file_names: Annotated[
+            list[str] | None,
+            strawberry.argument(
+                description=gen_filter_string("Filename", "file_names")
+            ),
+        ] = None,
     ) -> list[File]:
         filestorage = info.context["filestorage"]
         found_files = filestorage.list_files(file_store)
@@ -115,28 +131,11 @@ class FileResolver(PagedResolver):
 class ConfigurationResolver(PagedResolver):
     async def resolve(  # type: ignore[override]
         self,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         identifiers: Annotated[
             list[str] | None,
-            strawberry.argument(
-                description=dedent(
-                    """
-            Key filter limiting which entries are returned.
-
-            | `identifier` | Elements returned                            |
-            |--------------|----------------------------------------------|
-            | not provided | All                                          |
-            | `null`       | All                                          |
-            | `[]`         | None                                         |
-            | `""`         | None                                         |
-            | `"x"`        | `["x"]` or `[]` (`*`)                        |
-            | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
-
-            `*`: Elements returned depends on which elements were found.
-            """
-                )
-            ),
+            strawberry.argument(description=gen_filter_string("Key", "identifiers")),
         ] = None,
     ) -> list[Configuration]:
         settings_keys = get_public_settings()
@@ -162,7 +161,7 @@ def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolve
     result_transformer = result_transformer or (lambda _, x: x)
 
     @wraps(resolver.resolve)
-    async def resolve_response(*args, limit: limit_type, cursor: cursor_type, **kwargs):  # type: ignore
+    async def resolve_response(*args, limit: LimitType, cursor: CursorType, **kwargs):  # type: ignore
         result = await resolver.resolve(*args, limit=limit, cursor=cursor, **kwargs)
 
         end_cursor: int | None = None

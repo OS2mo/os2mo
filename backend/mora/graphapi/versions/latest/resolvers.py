@@ -38,12 +38,22 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-limit_type = Annotated[
+limit_type_note = """
+Note:
+
+Sometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.
+
+This may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.
+
+Not to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.
+"""
+
+LimitType = Annotated[
     PositiveInt | None,
     strawberry.argument(
         description=dedent(
             r"""
-    Number of elements to fetch.
+    Limit the maximum number of elements to fetch.
 
     | `limit`      | \# elements fetched |
     |--------------|---------------------|
@@ -53,14 +63,16 @@ limit_type = Annotated[
     | `x`          | Between `0` and `x` |
 
     `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
+
     """
+            + limit_type_note
         )
     ),
 ]
 # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
 # and returned again as a Base64 encoded string.
 # This way we can use it for indexing and calculations
-cursor_type = Annotated[
+CursorType = Annotated[
     Cursor | None,
     strawberry.argument(
         description=dedent(
@@ -71,7 +83,7 @@ cursor_type = Annotated[
     |----------------|--------------------|
     | not provided   | First              |
     | `null`         | First              |
-    | `"CUR="` (`*`) | First after Cursor |
+    | `"MA=="` (`*`) | First after Cursor |
 
     `*`: Placeholder for the cursor returned by the previous iteration.
     """
@@ -80,12 +92,139 @@ cursor_type = Annotated[
 ]
 
 
+def gen_filter_string(title: str, key: str) -> str:
+    return dedent(
+        f"""
+        {title} filter limiting which entries are returned.
+
+        | `{key}`      | Elements returned                            |
+        |--------------|----------------------------------------------|
+        | not provided | All                                          |
+        | `null`       | All                                          |
+        | `[]`         | None                                         |
+        | `"x"`        | `["x"]` or `[]` (`*`)                        |
+        | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
+
+        `*`: Elements returned depends on which elements were found.
+        """
+    )
+
+
+UUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(description=gen_filter_string("UUID", "uuids")),
+]
+UserKeysFilterType = Annotated[
+    list[str] | None,
+    strawberry.argument(description=gen_filter_string("User-key", "user_keys")),
+]
+
+FromDateFilterType = Annotated[
+    datetime | None,
+    strawberry.argument(
+        description=dedent(
+            """
+    Limit the elements returned by their starting validity.
+    """
+        )
+    ),
+]
+ToDateFilterType = Annotated[
+    datetime | None,
+    strawberry.argument(
+        description=dedent(
+            """
+    Limit the elements returned by their ending validity.
+    """
+        )
+    ),
+]
+
+FacetUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(description=gen_filter_string("Facet UUID", "facets")),
+]
+FacetUserKeysFilterType = Annotated[
+    list[str] | None,
+    strawberry.argument(
+        description=gen_filter_string("Facet user-key", "facet_user_keys")
+    ),
+]
+
+ParentUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(description=gen_filter_string("Parent UUID", "parents")),
+]
+ParentUserKeysFilterType = Annotated[
+    list[str] | None,
+    strawberry.argument(
+        description=gen_filter_string("Parent user-key", "parent_user_keys")
+    ),
+]
+
+AddressTypeUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(
+        description=gen_filter_string("Address type UUID", "address_types")
+    ),
+]
+AddressTypeUserKeysFilterType = Annotated[
+    list[str] | None,
+    strawberry.argument(
+        description=gen_filter_string("Address type user-key", "address_type_user_keys")
+    ),
+]
+EmployeeUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(description=gen_filter_string("Employee UUID", "employees")),
+]
+EngagementUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(
+        description=gen_filter_string("Engagement UUID", "engagements")
+    ),
+]
+OrgUnitUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(
+        description=gen_filter_string("Organisational Unit UUID", "org_units")
+    ),
+]
+
+AssociationTypeUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(
+        description=gen_filter_string("Association type UUID", "association_types")
+    ),
+]
+AssociationTypeUserKeysFilterType = Annotated[
+    list[str] | None,
+    strawberry.argument(
+        description=gen_filter_string(
+            "Association type user-key", "association_type_user_keys"
+        )
+    ),
+]
+
+CPRNumberFilterType = Annotated[
+    list[CPR] | None,
+    strawberry.argument(description=gen_filter_string("CPR number", "cpr_numbers")),
+]
+
+HierarchiesUUIDsFilterType = Annotated[
+    list[UUID] | None,
+    strawberry.argument(
+        description=gen_filter_string("Organisation unit hierarchy UUID", "hierarchies")
+    ),
+]
+
+
 class PagedResolver:
     async def resolve(
         self,
         *args: Any,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
         **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
@@ -105,12 +244,12 @@ class Resolver(PagedResolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
     ):
         """Resolve a query using the specified arguments.
 
@@ -149,12 +288,12 @@ class Resolver(PagedResolver):
     async def _resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
         **kwargs: Any,
     ):
         """The internal resolve interface, allowing for kwargs."""
@@ -250,14 +389,14 @@ class ClassResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        facets: list[UUID] | None = None,
-        facet_user_keys: list[str] | None = None,
-        parents: list[UUID] | None = None,
-        parent_user_keys: list[str] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        facets: FacetUUIDsFilterType = None,
+        facet_user_keys: FacetUserKeysFilterType = None,
+        parents: ParentUUIDsFilterType = None,
+        parent_user_keys: ParentUserKeysFilterType = None,
     ):
         """Resolve classes."""
         if facet_user_keys is not None:
@@ -297,17 +436,17 @@ class AddressResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        address_types: list[UUID] | None = None,
-        address_type_user_keys: list[str] | None = None,
-        employees: list[UUID] | None = None,
-        engagements: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        address_types: AddressTypeUUIDsFilterType = None,
+        address_type_user_keys: AddressTypeUserKeysFilterType = None,
+        employees: EmployeeUUIDsFilterType = None,
+        engagements: EngagementUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve addresses."""
         if address_type_user_keys is not None:
@@ -346,16 +485,16 @@ class AssociationResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
-        association_types: list[UUID] | None = None,
-        association_type_user_keys: list[str] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
+        association_types: AssociationTypeUUIDsFilterType = None,
+        association_type_user_keys: AssociationTypeUserKeysFilterType = None,
     ):
         """Resolve associations."""
         if association_type_user_keys is not None:
@@ -391,13 +530,13 @@ class EmployeeResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        cpr_numbers: list[CPR] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        cpr_numbers: CPRNumberFilterType = None,
     ):
         """Resolve employees."""
         kwargs = {}
@@ -424,14 +563,14 @@ class EngagementResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve engagements."""
         kwargs = {}
@@ -458,14 +597,14 @@ class ManagerResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve managers."""
         kwargs = {}
@@ -492,14 +631,14 @@ class OrganisationUnitResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        parents: list[UUID] | None = UNSET,
-        hierarchies: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        parents: ParentUUIDsFilterType = UNSET,
+        hierarchies: HierarchiesUUIDsFilterType = None,
     ):
         """Resolve organisation units."""
         kwargs = {}
@@ -532,15 +671,15 @@ class EngagementAssociationResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        engagements: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        engagements: EngagementUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve engagement-associations."""
         kwargs = {}
@@ -574,14 +713,14 @@ class ITUserResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve it-users."""
         kwargs = {}
@@ -608,13 +747,13 @@ class KLEResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve kle."""
         kwargs = {}
@@ -639,14 +778,14 @@ class LeaveResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve leaves."""
         kwargs = {}
@@ -673,13 +812,13 @@ class RelatedUnitResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve leaves."""
         kwargs = {}
@@ -704,14 +843,14 @@ class RoleResolver(Resolver):
     async def resolve(  # type: ignore[no-untyped-def,override]
         self,
         info: Info,
-        uuids: list[UUID] | None = None,
-        user_keys: list[str] | None = None,
-        limit: limit_type = None,
-        cursor: cursor_type = None,
-        from_date: datetime | None = UNSET,
-        to_date: datetime | None = UNSET,
-        employees: list[UUID] | None = None,
-        org_units: list[UUID] | None = None,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
     ):
         """Resolve roles."""
         kwargs = {}
@@ -732,7 +871,7 @@ class RoleResolver(Resolver):
 
 
 def get_date_interval(
-    from_date: datetime | None = UNSET, to_date: datetime | None = UNSET
+    from_date: FromDateFilterType = UNSET, to_date: ToDateFilterType = UNSET
 ) -> OpenValidityModel:
     """Get the date interval for GraphQL queries to support bitemporal lookups.
 
