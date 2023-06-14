@@ -568,7 +568,16 @@ class Association:
             ClassResolver(),
             {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
-        description="Association type",
+        description=dedent(
+            """
+            Describes the employee's connection to an organisation unit
+
+            Examples:
+            * `"Chairman"`
+            * `"Leader"`
+            * `"Employee"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -576,7 +585,9 @@ class Association:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.dynamic_class_uuid)}
         ),
-        description="dynamic class",
+        # TODO: Document this
+        # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
+        description="dynamic classes",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -584,7 +595,18 @@ class Association:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
-        description="Primary status",
+        description=dedent(
+            """
+            Describes whether this is the primary association of the employee.
+
+            Can be set to either of the primary-classes, by their UUID.
+
+            Examples:
+            * `primary(UUID)`
+            * `non-primary(UUID)`
+            * `explicitly-primary(UUID)`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -620,7 +642,16 @@ class Association:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
         ),
-        description="Connected job function",
+        description=dedent(
+            """
+            The position held by the employee
+
+            Examples of user-keys:
+            * `"Payroll consultant"`
+            * `"Office student"`
+            * `"Jurist"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
