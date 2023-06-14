@@ -12,9 +12,6 @@ class Settings(BaseSettings):
     E.g. DB_NAME == db_name
     """
 
-    commit_tag: str = "DEVELOPMENT BUILD"
-    commit_sha: str = ""
-
     db_name: str = "mox"
     db_user: str = "mox"
     db_password: str | None

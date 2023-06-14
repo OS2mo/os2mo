@@ -42,7 +42,6 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
-from oio_rest.config import get_settings as get_lora_settings
 
 
 T = TypeVar("T")
@@ -784,11 +783,6 @@ class Scope(BaseScope):
             lambda a: self.connector.is_range_relevant(*a),  # noqa: FURB111
             effects,
         )
-
-
-async def get_version():
-    settings = get_lora_settings()
-    return settings.commit_tag
 
 
 class AutocompleteScope(BaseScope):
