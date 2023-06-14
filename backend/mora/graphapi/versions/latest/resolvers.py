@@ -5,9 +5,12 @@ from collections.abc import Callable
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
+from textwrap import dedent
+from typing import Annotated
 from typing import Any
 from uuid import UUID
 
+import strawberry
 from pydantic import PositiveInt
 from pydantic import ValidationError
 from strawberry import UNSET
@@ -35,13 +38,54 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
+limit_type = Annotated[
+    PositiveInt | None,
+    strawberry.argument(
+        description=dedent(
+            r"""
+    Number of elements to fetch.
+
+    | `limit`      | \# elements fetched |
+    |--------------|---------------------|
+    | not provided | All                 |
+    | `null`       | All                 |
+    | `0`          | `0` (`*`)           |
+    | `x`          | Between `0` and `x` |
+
+    `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
+    """
+        )
+    ),
+]
+# Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
+# and returned again as a Base64 encoded string.
+# This way we can use it for indexing and calculations
+cursor_type = Annotated[
+    Cursor | None,
+    strawberry.argument(
+        description=dedent(
+            """
+    Cursor defining the next elements to fetch.
+
+    | `cursor`       | Next element is    |
+    |----------------|--------------------|
+    | not provided   | First              |
+    | `null`         | First              |
+    | `"CUR="` (`*`) | First after Cursor |
+
+    `*`: Placeholder for the cursor returned by the previous iteration.
+    """
+        )
+    ),
+]
+
 
 class PagedResolver:
     async def resolve(
         self,
         *args: Any,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         **kwargs: Any,
     ) -> Any:
         raise NotImplementedError
@@ -63,8 +107,8 @@ class Resolver(PagedResolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
     ):
@@ -107,11 +151,8 @@ class Resolver(PagedResolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        # Cursor's input is a Base64 encoded string eg. `Mw==`, but is parsed as an int
-        # and returned again as a Base64 encoded string.
-        # This way we can use it for indexing and calculations
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         **kwargs: Any,
@@ -211,8 +252,8 @@ class ClassResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         facets: list[UUID] | None = None,
         facet_user_keys: list[str] | None = None,
         parents: list[UUID] | None = None,
@@ -258,8 +299,8 @@ class AddressResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         address_types: list[UUID] | None = None,
@@ -307,8 +348,8 @@ class AssociationResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -352,8 +393,8 @@ class EmployeeResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         cpr_numbers: list[CPR] | None = None,
@@ -385,8 +426,8 @@ class EngagementResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -419,8 +460,8 @@ class ManagerResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -453,8 +494,8 @@ class OrganisationUnitResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         parents: list[UUID] | None = UNSET,
@@ -493,8 +534,8 @@ class EngagementAssociationResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -535,8 +576,8 @@ class ITUserResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -569,8 +610,8 @@ class KLEResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         org_units: list[UUID] | None = None,
@@ -600,8 +641,8 @@ class LeaveResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
@@ -634,8 +675,8 @@ class RelatedUnitResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         org_units: list[UUID] | None = None,
@@ -665,8 +706,8 @@ class RoleResolver(Resolver):
         info: Info,
         uuids: list[UUID] | None = None,
         user_keys: list[str] | None = None,
-        limit: PositiveInt | None = None,
-        cursor: Cursor | None = None,
+        limit: limit_type = None,
+        cursor: cursor_type = None,
         from_date: datetime | None = UNSET,
         to_date: datetime | None = UNSET,
         employees: list[UUID] | None = None,
