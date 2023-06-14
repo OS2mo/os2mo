@@ -102,7 +102,7 @@ def ensure_uuid(uuid: UUID | str) -> UUID:
 
 
 def uuid2response(uuid: UUID | str, model: type) -> Response:
-    return Response(uuid=ensure_uuid(uuid), model=model)
+    return Response(uuid=ensure_uuid(uuid), model=model)  # type: ignore[call-arg]
 
 
 @strawberry.type
@@ -208,7 +208,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -223,7 +223,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # TODO: class_terminate
 
@@ -237,7 +237,7 @@ class Mutation:
     async def class_delete(self, uuid: UUID) -> UUIDReturn:
         note = ""
         uuid = await delete_class(uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # Employees
     # ---------
@@ -352,7 +352,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -367,7 +367,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # TODO: facet_update
     # TODO: facet_terminate
@@ -382,7 +382,7 @@ class Mutation:
     async def facet_delete(self, uuid: UUID) -> UUIDReturn:
         note = ""
         uuid = await delete_facet(uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # ITSystems
     # ---------
@@ -399,7 +399,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
@@ -414,7 +414,7 @@ class Mutation:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_itsystem(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # TODO: itsystem_terminate
 
@@ -428,7 +428,7 @@ class Mutation:
     async def itsystem_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
         note = ""
         uuid = await delete_itsystem(uuid, note)
-        return UUIDReturn(uuid=uuid)
+        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
 
     # ITUsers
     # -------
