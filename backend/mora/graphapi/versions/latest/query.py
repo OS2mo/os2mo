@@ -318,7 +318,7 @@ class Query:
     # -----
     roles: Paged[Response[Role]] = strawberry.field(
         resolver=to_paged_response(RoleResolver()),
-        description="Get a list of all roles, optionally by uuid(s)",
+        description="Get role-mappings.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
