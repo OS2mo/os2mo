@@ -430,14 +430,22 @@ LazyRole = Annotated["Role", LazySchema]
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     all_fields=True,
-    description="Address information for an employee or organisation unit",
+    description="Address information for either an employee or organisational unit",
 )
 class Address:
     address_type: LazyClass = strawberry.field(
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
         ),
-        description="Address type",
+        description=dedent(
+            """The Address type, describes which type of address we're dealing with.
+
+            Examples of user_keys:
+            * `EmailUnit`
+            * `p-nummer`
+            * `PhoneEmployee`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -445,7 +453,15 @@ class Address:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
-        description="Address visibility",
+        description=dedent(
+            """Describes the visibility of the address,
+
+            Examples:
+            * `Intern`
+            * `Ekstern`
+            * `Hemmelig`
+        """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
