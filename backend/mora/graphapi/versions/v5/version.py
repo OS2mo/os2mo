@@ -69,7 +69,7 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
         ],
     )
     async def facet_create(self, input: FacetCreateInput) -> UUIDReturn:
-        return UUIDReturn(uuid=await create_facet(input.to_pydantic()))
+        return UUIDReturn(uuid=await create_facet(input.to_pydantic()))  # type: ignore[call-arg]
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore

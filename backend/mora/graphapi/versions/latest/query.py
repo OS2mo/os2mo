@@ -137,7 +137,7 @@ class ConfigurationResolver(PagedResolver):
 
 def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
     return [
-        Response(uuid=uuid, model=resolver.model, object_cache=objects)
+        Response(uuid=uuid, model=resolver.model, object_cache=objects)  # type: ignore[call-arg]
         for uuid, objects in result.items()
     ]
 
@@ -156,9 +156,9 @@ def to_paged(resolver: PagedResolver, result_transformer: Callable[[PagedResolve
             end_cursor = None
 
         assert result_transformer is not None
-        return Paged(
+        return Paged(  # type: ignore[call-arg]
             objects=result_transformer(resolver, result),
-            page_info=PageInfo(next_cursor=end_cursor),
+            page_info=PageInfo(next_cursor=end_cursor),  # type: ignore[call-arg]
         )
 
     return resolve_response

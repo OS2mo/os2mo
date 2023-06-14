@@ -60,7 +60,7 @@ class Mutation(NextGraphQLVersion.schema.mutation):  # type: ignore[name-defined
         ],
     )
     async def class_create(self, input: ClassCreateInput) -> UUIDReturn:
-        return UUIDReturn(uuid=await create_class(input.to_pydantic()))
+        return UUIDReturn(uuid=await create_class(input.to_pydantic()))  # type: ignore[call-arg]
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore
