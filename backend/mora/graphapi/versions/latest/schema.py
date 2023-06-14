@@ -31,7 +31,6 @@ from strawberry import UNSET
 from strawberry.types import Info
 
 from .health import health_map
-from .models import ConfigurationRead
 from .models import FileRead
 from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
@@ -1599,15 +1598,50 @@ class Health:
 T = TypeVar("T")
 
 
-@strawberry.type
+@strawberry.type(
+    description=dedent(
+        """
+    Container for page information.
+
+    Contains the cursors necessary to fetch other pages.
+    Contains information on when to stop iteration.
+    """
+    )
+)
 class PageInfo:
-    next_cursor: Cursor | None = None
+    next_cursor: Cursor | None = strawberry.field(
+        description=dedent(
+            """
+            Cursor for the next page of results.
+
+            Should be provided to the `cursor` argument to iterate forwards.
+            """
+        ),
+        default=None,
+    )
 
 
-@strawberry.type
+@strawberry.type(description="Result page in cursor-based pagination.")
 class Paged(Generic[T]):
-    objects: list[T]
-    page_info: PageInfo
+    objects: list[T] = strawberry.field(
+        description=dedent(
+            """
+            List of results.
+
+            The number of elements is defined by the `limit` argument.
+            """
+        )
+    )
+    page_info: PageInfo = strawberry.field(
+        description=dedent(
+            """
+            Container for page information.
+
+            Contains the cursors necessary to fetch other pages.
+            Contains information on when to stop iteration.
+            """
+        )
+    )
 
 
 # File
@@ -1646,38 +1680,70 @@ class OrganisationUnitRefresh:
 
 # Configuration
 # -------------
-def get_settings_value(key: str) -> Any:
-    """Get the settings value.
-
-    Args:
-        key: The settings key.
-
-    Returns:
-        The settings value.
-    """
-    return getattr(config.get_settings(), key)
-
-
-@strawberry.experimental.pydantic.type(
-    model=ConfigurationRead,
-    all_fields=True,
-    description="A configuration setting",
-)
+@strawberry.type(description="A configuration setting.")
 class Configuration:
-    @strawberry.field(description="JSONified value")
-    def jsonified_value(self, root: ConfigurationRead) -> str:
+    def get_settings_value(self) -> Any:
+        """Get the settings value.
+
+        Args:
+            key: The settings key.
+
+        Returns:
+            The settings value.
+        """
+        return getattr(config.get_settings(), self.key)
+
+    key: str = strawberry.field(
+        description=dedent(
+            """
+        The unique settings identifier.
+
+        Examples:
+        * `commit_tag`
+        * `environment`
+        * `confdb_show_roles`
+        """
+        )
+    )
+
+    @strawberry.field(
+        description=dedent(
+            """
+        JSONified settings value.
+
+        Examples:
+        * `"true"`
+        * `"\\"\\""`
+        * `"null"`
+        * `"[]"`
+        """
+        )
+    )
+    def jsonified_value(self) -> str:
         """Get the jsonified value.
 
         Returns:
             The value.
         """
-        return json.dumps(jsonable_encoder(get_settings_value(root.key)))
+        return json.dumps(jsonable_encoder(self.get_settings_value()))
 
-    @strawberry.field(description="Stringified value")
-    def stringified_value(self, root: ConfigurationRead) -> str:
+    @strawberry.field(
+        description=dedent(
+            """
+        Stringified settings value.
+
+        Examples:
+        * `"True"`
+        * `""`
+        * `"None"`
+        * `"[]"`
+        """
+        )
+    )
+    def stringified_value(self) -> str:
         """Get the stringified value.
 
         Returns:
             The value.
         """
-        return str(get_settings_value(root.key))
+        return str(self.get_settings_value())

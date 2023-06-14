@@ -4,17 +4,17 @@ from collections.abc import Callable
 from functools import partial
 from functools import wraps
 from textwrap import dedent
+from typing import Annotated
 from typing import Any
-from typing import cast
 from uuid import UUID
 
 import strawberry
 from pydantic import parse_obj_as
+from pydantic import PositiveInt
 from starlette_context import context
 from strawberry.types import Info
 
 from .health import health_map
-from .models import ConfigurationRead
 from .models import FileRead
 from .models import FileStore
 from .models import HealthRead
@@ -115,24 +115,75 @@ class FileResolver(PagedResolver):
 class ConfigurationResolver(PagedResolver):
     async def resolve(  # type: ignore[override]
         self,
-        limit: int | None = None,
-        cursor: Cursor | None = None,
-        identifiers: list[str] | None = None,
+        limit: Annotated[
+            PositiveInt | None,
+            strawberry.argument(
+                description=dedent(
+                    r"""
+            Number of elements to fetch.
+
+            | `limit`      | \# elements fetched |
+            |--------------|---------------------|
+            | not provided | All                 |
+            | `null`       | All                 |
+            | `0`          | `0` (`*`)           |
+            | `x`          | Between `0` and `x` |
+
+            `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
+            """
+                )
+            ),
+        ] = None,
+        cursor: Annotated[
+            Cursor | None,
+            strawberry.argument(
+                description=dedent(
+                    """
+            Cursor defining the next elements to fetch.
+
+            | `cursor`       | Next element is    |
+            |----------------|--------------------|
+            | not provided   | First              |
+            | `null`         | First              |
+            | `"CUR="` (`*`) | First after Cursor |
+
+            `*`: Placeholder for the cursor returned by the previous iteration.
+            """
+                )
+            ),
+        ] = None,
+        identifiers: Annotated[
+            list[str] | None,
+            strawberry.argument(
+                description=dedent(
+                    """
+            Key filter limiting which entries are returned.
+
+            | `identifier` | Elements returned                            |
+            |--------------|----------------------------------------------|
+            | not provided | All                                          |
+            | `null`       | All                                          |
+            | `[]`         | None                                         |
+            | `""`         | None                                         |
+            | `"x"`        | `["x"]` or `[]` (`*`)                        |
+            | `["x", "y"]` | `["x", "y"]`, `["x"]`, `["y"]` or `[]` (`*`) |
+
+            `*`: Elements returned depends on which elements were found.
+            """
+                )
+            ),
+        ] = None,
     ) -> list[Configuration]:
         settings_keys = get_public_settings()
         if identifiers is not None:
             settings_keys = settings_keys.intersection(set(identifiers))
 
-        def construct(identifier: Any) -> dict[str, Any]:
-            return {"key": identifier}
-
-        settings = list(map(construct, settings_keys))
+        settings = list(settings_keys)
         settings = settings[cursor:][:limit]
         if not settings:
             context["lora_page_out_of_range"] = True
 
-        parsed_settings = parse_obj_as(list[ConfigurationRead], settings)
-        return cast(list[Configuration], parsed_settings)
+        return [Configuration(key=key) for key in settings]  # type: ignore[call-arg]
 
 
 def to_response(resolver: Resolver, result: dict[UUID, list[dict]]) -> list[Response]:
@@ -328,7 +379,7 @@ class Query:
     # -------------
     configuration: Paged[Configuration] = strawberry.field(
         resolver=to_paged(ConfigurationResolver()),
-        description="Get a list of configuration variables.",
+        description="Get configuration variables.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("configuration"),
