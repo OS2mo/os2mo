@@ -1,10 +1,8 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import strawberry
-from pydantic import parse_obj_as
 from strawberry.types import Info
 
-from ..latest.models import HealthRead
 from ..latest.permissions import gen_read_permission
 from ..latest.schema import Health
 from ..v3.version import GraphQLVersion as NextGraphQLVersion
@@ -29,7 +27,6 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
             query HealthQuery ($identifiers: [String!]){
                 healths(identifiers: $identifiers) {
                     objects {
-                        status
                         identifier
                     }
                 }
@@ -41,8 +38,10 @@ class Query(NextGraphQLVersion.schema.query):  # type: ignore[name-defined]
         )
 
         healths = response.data["healths"]["objects"]
-        parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return list(map(Health.from_pydantic, parsed_healths))
+        return [
+            Health(identifier=health["identifier"])  # type: ignore[call-arg]
+            for health in healths
+        ]
 
 
 class GraphQLSchema(NextGraphQLVersion.schema):  # type: ignore

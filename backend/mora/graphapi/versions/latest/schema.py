@@ -32,7 +32,6 @@ from strawberry.types import Info
 
 from .health import health_map
 from .models import FileStore
-from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
@@ -1521,8 +1520,8 @@ class Role:
     )
 
 
-# Health & version
-# ----------------
+# Version
+# -------
 @strawberry.type(description="MO and DIPEX versions")
 class Version:
     @strawberry.field(
@@ -1602,15 +1601,39 @@ class Version:
         return config.get_settings().confdb_dipex_version__do_not_use
 
 
-@strawberry.experimental.pydantic.type(
-    model=HealthRead,
-    all_fields=True,
-    description="Checks whether a specific subsystem is working",
-)
+@strawberry.type(description="Status on whether a specific subsystem is working")
 class Health:
-    @strawberry.field(description="Healthcheck status")
-    async def status(self, root: HealthRead) -> bool | None:
-        return await health_map[root.identifier]()
+    identifier: str = strawberry.field(
+        description=dedent(
+            """
+        Healthcheck identifier.
+
+        Examples:
+        * `"dataset"`
+        * `"dar"`
+        * `"amqp"`
+        """
+        )
+    )
+
+    @strawberry.field(
+        description=dedent(
+            """
+        Healthcheck status.
+
+        Returns:
+        * `true` if the healthcheck passed
+        * `false` if the healthcheck failed
+        * `null` if the healthcheck is irrelevant (submodule not loaded, etc)
+
+        Note:
+        Querying the healthcheck status executes the underlying healthcheck directly.
+        Excessively querying this endpoint may have performance implications.
+        """
+        )
+    )
+    async def status(self) -> bool | None:
+        return await health_map[self.identifier]()
 
 
 T = TypeVar("T")
