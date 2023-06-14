@@ -2,21 +2,23 @@
 # SPDX-License-Identifier: MPL-2.0
 """Test the seed_resolver function."""
 from collections.abc import Callable
-from datetime import datetime
 from functools import partial
 from inspect import Parameter
 from inspect import signature
 from typing import Any
-from uuid import UUID
 
 import pytest
-from pydantic import PositiveInt
 from strawberry import UNSET
 from strawberry.types.info import Info
 
+from mora.graphapi.versions.latest.resolvers import CursorType
+from mora.graphapi.versions.latest.resolvers import FromDateFilterType
+from mora.graphapi.versions.latest.resolvers import LimitType
 from mora.graphapi.versions.latest.resolvers import Resolver
+from mora.graphapi.versions.latest.resolvers import ToDateFilterType
+from mora.graphapi.versions.latest.resolvers import UserKeysFilterType
+from mora.graphapi.versions.latest.resolvers import UUIDsFilterType
 from mora.graphapi.versions.latest.schema import seed_resolver
-from mora.graphapi.versions.latest.types import Cursor
 
 
 class DummyModel:
@@ -79,16 +81,16 @@ async def test_signature_changes(seeds: dict[str, Any]) -> None:
     pos_parameter = partial(Parameter, kind=Parameter.POSITIONAL_OR_KEYWORD)
     resolver_params = {
         "info": pos_parameter("info", annotation=Info),
-        "uuids": pos_parameter("uuids", annotation=list[UUID] | None, default=None),
+        "uuids": pos_parameter("uuids", annotation=UUIDsFilterType, default=None),
         "user_keys": pos_parameter(
-            "user_keys", annotation=list[str] | None, default=None
+            "user_keys", annotation=UserKeysFilterType, default=None
         ),
-        "limit": pos_parameter("limit", annotation=PositiveInt | None, default=None),
-        "cursor": pos_parameter("cursor", annotation=Cursor | None, default=None),
+        "limit": pos_parameter("limit", annotation=LimitType, default=None),
+        "cursor": pos_parameter("cursor", annotation=CursorType, default=None),
         "from_date": pos_parameter(
-            "from_date", annotation=datetime | None, default=UNSET
+            "from_date", annotation=FromDateFilterType, default=UNSET
         ),
-        "to_date": pos_parameter("to_date", annotation=datetime | None, default=UNSET),
+        "to_date": pos_parameter("to_date", annotation=ToDateFilterType, default=UNSET),
     }
 
     # Check the signature
