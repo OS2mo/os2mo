@@ -86,6 +86,10 @@ from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
 
+# TODO: Remove RAModels dependency, be purely Strawberry models
+# TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
+
+
 MOObject = TypeVar("MOObject")
 R = TypeVar("R")
 
@@ -1573,16 +1577,70 @@ class OrganisationUnit:
 
 @strawberry.experimental.pydantic.type(
     model=RelatedUnitRead,
-    all_fields=True,
-    description="list of related organisation units",
+    description="An organisation unit relation mapping",
 )
 class RelatedUnit:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: RelatedUnitRead) -> UUID:
+        return root.uuid
+
+    @strawberry.field(
+        description=dedent(
+            """
+        User-key of the entity.
+
+        Usually constructed from the user-keys of our organisation units at creation time.
+
+        Examples:
+        * `"Administrative <-> Payroll"`
+        * `"IT-Support <-> IT-Support`
+        * `"Majora School <-> Alias School"`
+        """
+        )
+    )
+    async def user_key(self, root: RelatedUnitRead) -> str:
+        return root.user_key
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `related_units`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: RelatedUnitRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    validity: Validity = strawberry.auto
+
+    org_unit_uuids: list[UUID] = strawberry.auto
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: root.org_unit_uuids or []},
         ),
-        description="Related organisation units",
+        description=dedent(
+            """
+            Related organisation units.
+
+            Examples of user-keys:
+            * `["Administrative", "Payroll"]`
+            * `["IT-Support", "IT-Support]`
+            * `["Majora School", "Alias School"]`
+
+            Note:
+            The result list should always be of length 2, corresponding to the elements of the bijection.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
