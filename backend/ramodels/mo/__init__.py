@@ -1,8 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from ._shared import ExtensionsField
 from ._shared import MOBase
 from ._shared import MORef
 from ._shared import OpenValidity
+from ._shared import UUIDBase
 from ._shared import Validity
 from .class_ import ClassRead
 from .class_ import ClassWrite
@@ -22,6 +24,7 @@ __all__ = [
     "Employee",
     "EmployeeRead",
     "EmployeeWrite",
+    "ExtensionsField",
     "FacetRead",
     "FacetWrite",
     "MOBase",
@@ -31,5 +34,6 @@ __all__ = [
     "OrganisationUnit",
     "OrganisationUnitRead",
     "OrganisationUnitWrite",
+    "UUIDBase",
     "Validity",
 ]

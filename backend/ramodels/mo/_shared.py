@@ -103,7 +103,7 @@ class EngagementType(MORef):
 class ExtensionsField(RABase):
     """Extensions field for an Engagement object."""
 
-    def __int__(self, **kwargs):
+    def __init(self, **kwargs):
         for i in range(1, 11):
             extension_field_number = f"extension_{i}"
             extension_field_value = kwargs.get(extension_field_number)

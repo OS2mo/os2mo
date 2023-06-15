@@ -610,8 +610,15 @@ class EngagementCreate(UUIDBase):
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
     extension: ExtensionsField = Field(
-        description="An optional field for storing potential extra data to use as "
-        "keywords when extraordinary occasions requires it"
+        description=dedent(
+            """
+            Arbitrary value extension fields.
+
+            A collection of field for storing arbitrary extra data.
+            Can be used for extraordinary occasions when no standardized field to model the data exists.
+
+        """
+        )
     )
 
     def to_handler_dict(self) -> dict:
@@ -621,10 +628,10 @@ class EngagementCreate(UUIDBase):
             return {"uuid": str(uuid)}
 
         extension_field_number = [f"extension_{i}" for i in range(1, 11)]
-        extension_value = [
-            getattr(self.extension, field_name, None)
+        extension_dict = {
+            field_name: getattr(self.extension, field_name, None)
             for field_name in extension_field_number
-        ]
+        }
 
         return {
             "uuid": str(self.uuid),
@@ -639,7 +646,7 @@ class EngagementCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            **dict(zip(extension_field_number, extension_value)),
+            **extension_dict,
         }
 
 
@@ -652,8 +659,15 @@ class EngagementUpdate(UUIDBase):
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
     extension: ExtensionsField = Field(
-        description="An optional field for storing potential extra data to use as "
-        "keywords when extraordinary occasions requires it"
+        description=dedent(
+            """
+            Arbitrary value extension fields.
+
+            A collection of field for storing arbitrary extra data.
+            Can be used for extraordinary occasions when no standardized field to model the data exists.
+
+        """
+        )
     )
 
     def to_handler_dict(self) -> dict:
@@ -663,10 +677,10 @@ class EngagementUpdate(UUIDBase):
             return {"uuid": str(uuid)}
 
         extension_field_number = [f"extension_{i}" for i in range(1, 11)]
-        extension_value = [
-            getattr(self.extension, field_name, None)
+        extension_dict = {
+            field_name: getattr(self.extension, field_name, None)
             for field_name in extension_field_number
-        ]
+        }
 
         data_dict = {
             "user_key": self.user_key,
@@ -680,7 +694,7 @@ class EngagementUpdate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            **dict(zip(extension_field_number, extension_value)),
+            **extension_dict,
         }
         return {k: v for k, v in data_dict.items() if v}
 
