@@ -438,7 +438,8 @@ class Address:
             ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
         ),
         description=dedent(
-            """The Address type, describes which type of address we're dealing with.
+            """
+            Describes which type of address we're dealing with.
 
             Examples of user_keys:
             * `EmailUnit`
@@ -454,13 +455,14 @@ class Address:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
         description=dedent(
-            """Describes the visibility of the address,
+            """
+            Describes who the address is visible to.
 
-            Examples:
-            * `Intern`
-            * `Ekstern`
-            * `Hemmelig`
-        """
+            Examples of user_keys:
+            * `External` (Exposed to the internet)
+            * `Internal` (Exposed to internal intranet)
+            * `Secret` (Will stay in MO and not be exposed anywhere else)
+            """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
@@ -738,7 +740,7 @@ class Employee:
             EngagementResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Engagements for the employee",
+        description="List of Engagements for the employee",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -750,7 +752,11 @@ class Employee:
             ManagerResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Manager roles for the employee",
+        description=dedent(
+            """List of UUIDS to connected manager roles to the Employee, empty if
+            employee is not a manager
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
@@ -830,7 +836,16 @@ class Engagement:
             ClassResolver(),
             {"uuids": lambda root: [root.engagement_type_uuid]},
         ),
-        description="Engagement type",
+        description=dedent(
+            """
+            Describes the employee's affiliation to an organisation unit
+
+            Examples:
+            * `"Employed"`
+            * `"Social worker"`
+            * `"Employee (hourly wage)"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -839,7 +854,16 @@ class Engagement:
             ClassResolver(),
             {"uuids": lambda root: [root.job_function_uuid]},
         ),
-        description="Job function",
+        description=dedent(
+            """
+            Describes the position of the employee in the organisation unit
+
+            Examples:
+            * `"Payroll consultant"`
+            * `"Office student"`
+            * `"Jurist"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -847,7 +871,18 @@ class Engagement:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
-        description="Primary status",
+        description=dedent(
+            """
+            Describes whether this is the primary association of the employee.
+
+            Can be set to either of the primary-classes, by their UUID.
+
+            Examples:
+            * `primary(UUID)`
+            * `non-primary(UUID)`
+            * `explicitly-primary(UUID)`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1099,7 +1134,16 @@ class Leave:
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
         ),
-        description="Leave type",
+        description=dedent(
+            """
+            Describes which kind of leave (e.g parental leave)
+
+            Examples:
+            * `"Maternity leave"`
+            * `"Parental leave"`
+            * `"Leave to care for sick relative"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1139,7 +1183,16 @@ class Manager:
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
-        description="Manager type",
+        description=dedent(
+            """
+            Describes the title of the Manager
+
+            Examples:
+            * `"Director"`
+            * `"Area manager"`
+            * `"Center manager"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1147,7 +1200,16 @@ class Manager:
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
-        description="Manager level",
+        description=dedent(
+            """
+            Describes the hierarchy of managers
+
+            Examples:
+            * `"Level 1"`
+            * `"Level 2"`
+            * `"Level 3"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1156,7 +1218,16 @@ class Manager:
             ClassResolver(),
             {"uuids": lambda root: root.responsibility_uuids or []},
         ),
-        description="Manager responsibilities",
+        description=dedent(
+            """
+            Returns a list of area of responsibilities that the Manager is responsible for
+
+            Examples:
+            * `["Responsible for buildings and areas"]
+            * `["Responsible for buildings and areas", "Staff: Sick leave"]
+            * `[]`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1173,7 +1244,7 @@ class Manager:
                 },
             ),
         ),
-        description="Manager identity details",
+        description="Employee fulfilling the managerial position",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -1183,7 +1254,7 @@ class Manager:
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="Managed organisation unit",
+        description="Organisation unit being managed",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
