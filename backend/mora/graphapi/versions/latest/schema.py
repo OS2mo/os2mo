@@ -54,6 +54,7 @@ from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .types import Cursor
+from .validity import Validity
 from mora import common
 from mora import config
 from mora.db import BrugerRegistrering
@@ -1488,34 +1489,72 @@ class RelatedUnit:
 # ----
 @strawberry.experimental.pydantic.type(
     model=RoleRead,
-    all_fields=True,
-    description="Role an employee has within an organisation unit",
+    description="The role a person has within an organisation unit",
 )
 class Role:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: RoleRead) -> UUID:
+        return root.uuid
+
+    user_key: str = strawberry.auto
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `role`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: RoleRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    validity: Validity = strawberry.auto
+
+    role_type_uuid: UUID = strawberry.auto
     role_type: LazyClass = strawberry.field(
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
         ),
-        description="Role type",
+        description=dedent(
+            """
+            The role that is being fulfilled.
+
+            Examples of user-keys:
+            * `"Staff representative"`
+            * `"Coordinator"`
+            * `"Security personnel"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    employee_uuid: UUID = strawberry.auto
     # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
         ),
-        description="Connected employee",
+        description="The person fulfilling the role.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
+    org_unit_uuid: UUID = strawberry.auto
     # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="Connected organisation unit",
+        description="The organisational unit in which the role is being fulfilled.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
