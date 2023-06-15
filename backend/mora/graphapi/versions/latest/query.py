@@ -9,13 +9,11 @@ from typing import Any
 from uuid import UUID
 
 import strawberry
-from pydantic import parse_obj_as
 from starlette_context import context
 from strawberry.types import Info
 
 from .health import health_map
 from .models import FileStore
-from .models import HealthRead
 from .permissions import gen_read_permission
 from .permissions import IsAuthenticatedPermission
 from .resolvers import AddressResolver
@@ -80,15 +78,14 @@ class HealthResolver(PagedResolver):
         if identifiers is not None:
             healthchecks = healthchecks.intersection(set(identifiers))
 
-        def construct(identifier: Any) -> dict[str, Any]:
-            return {"identifier": identifier}
-
-        healths = list(map(construct, healthchecks))
+        healths = list(healthchecks)
         healths = healths[cursor:][:limit]
         if not healths:
             context["lora_page_out_of_range"] = True
-        parsed_healths = parse_obj_as(list[HealthRead], healths)
-        return list(map(Health.from_pydantic, parsed_healths))
+        return [
+            Health(identifier=identifier)  # type: ignore[call-arg]
+            for identifier in healths
+        ]
 
 
 class FileResolver(PagedResolver):
@@ -329,7 +326,7 @@ class Query:
     # ------
     healths: Paged[Health] = strawberry.field(
         resolver=to_paged(HealthResolver()),
-        description="Get a list of all health checks, optionally by identifier(s)",
+        description="Query healthcheck status.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("health")],
     )
 
@@ -338,7 +335,7 @@ class Query:
     files: Paged[File] = strawberry.field(
         resolver=to_paged(FileResolver()),
         deprecation_reason="The file-store functionality will be removed in a future version of OS2mo",
-        description="Fetch files from the configured file backend (if any)",
+        description="Fetch files from the configured file backend (if any).",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
     )
 
@@ -372,7 +369,7 @@ class Query:
     # Version
     # -------
     @strawberry.field(
-        description="Get component versions of OS2mo",
+        description="Get component versions of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("version")],
     )
     async def version(self) -> Version:

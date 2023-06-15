@@ -2,14 +2,14 @@
 # SPDX-License-Identifier: MPL-2.0
 from pytest import MonkeyPatch
 
-from mora.graphapi.versions.latest.models import HealthRead
+from mora.graphapi.versions.latest.schema import Health
 
 
 def test_v2_shim_healths(graphapi_post):
     """Test that the v2 API returns a list of healths as before."""
-    health1 = HealthRead(identifier="health1")
-    health2 = HealthRead(identifier="health2")
-    health3 = HealthRead(identifier="health3")
+    health1 = Health(identifier="health1")  # type: ignore[call-arg]
+    health2 = Health(identifier="health2")  # type: ignore[call-arg]
+    health3 = Health(identifier="health3")  # type: ignore[call-arg]
     test_data = {"health1": health1, "health2": health2, "health3": health3}
 
     with MonkeyPatch.context() as patch:

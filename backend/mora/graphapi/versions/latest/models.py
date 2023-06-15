@@ -1049,21 +1049,6 @@ class OrganisationUnitUpdate(UUIDBase):
         return {k: v for k, v in data_dict.items() if v}
 
 
-# Related Units
-# -------------
-
-# Roles
-# -----
-
-
-# Health
-# ------
-class HealthRead(BaseModel):
-    """Payload model for health."""
-
-    identifier: str = Field(description="Short, unique key.")
-
-
 # Files
 # -----
 @strawberry.enum(
