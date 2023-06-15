@@ -307,7 +307,7 @@ class Query:
     # -------------
     related_units: Paged[Response[RelatedUnit]] = strawberry.field(
         resolver=to_paged_response(RelatedUnitResolver()),
-        description="Get a list of related organisation units, optionally by uuid(s)",
+        description="Get related organisation units",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
