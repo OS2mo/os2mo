@@ -31,7 +31,7 @@ from strawberry import UNSET
 from strawberry.types import Info
 
 from .health import health_map
-from .models import FileRead
+from .models import FileStore
 from .models import HealthRead
 from .models import OrganisationUnitRefreshRead
 from .permissions import gen_read_permission
@@ -1166,6 +1166,8 @@ MUNICIPALITY_CODE_PATTERN = re.compile(r"urn:dk:kommune:(\d+)")
 
 @strawberry.type(description="Root organisation - one and only one of these can exist")
 class Organisation:
+    # TODO: Eliminate the OrganisationRead model from here. Use self instead.
+
     @strawberry.field(description="UUID of the entity")
     async def uuid(self, root: OrganisationRead) -> UUID:
         return root.uuid
@@ -1662,22 +1664,87 @@ class Paged(Generic[T]):
 
 # File
 # ----
-@strawberry.experimental.pydantic.type(
-    model=FileRead,
-    all_fields=True,
-    description="Checks whether a specific subsystem is working",
-)
+@strawberry.type(description="A stored file available for download.")
 class File:
-    @strawberry.field(description="Text contents")
-    def text_contents(self, root: FileRead, info: Info) -> str:
-        filestorage = info.context["filestorage"]
-        return cast(str, filestorage.load_file(root.file_store, root.file_name))
+    file_store: FileStore = strawberry.field(
+        description=dedent(
+            """
+        The store the file is in.
 
-    @strawberry.field(description="Base64 encoded contents")
-    def base64_contents(self, root: FileRead, info: Info) -> str:
+        The FileStore type lists all possible enum values.
+    """
+        )
+    )
+
+    file_name: str = strawberry.field(
+        description=dedent(
+            """
+        Name of the file.
+
+        Examples:
+        * `"report.odt"`
+        * `"result.csv"`
+        """
+        )
+    )
+
+    @strawberry.field(
+        description=dedent(
+            """
+        The textual contents of the file.
+
+        Examples:
+        * A csv-file:
+        ```
+        Year,Model,Make
+        1997,Ford,E350
+        2000,Mercury,Cougar
+        ...
+        ```
+        * A textual report:
+        ```
+        Status of this Memo
+
+        This document specifies an Internet standards track
+        ...
+        ```
+
+        Note:
+        This should only be used for text files formats such as `.txt` or `.csv`.
+        For binary formats please use `base64_contents` instead.
+        """
+        )
+    )
+    def text_contents(self, info: Info) -> str:
+        filestorage = info.context["filestorage"]
+        return cast(str, filestorage.load_file(self.file_store, self.file_name))
+
+    @strawberry.field(
+        description=dedent(
+            """
+        The base64 encoded contents of the file.
+
+        Examples:
+        * A text file:
+        ```
+        TW96aWxsYSBQdWJsaWMgTGljZW5zZSBWZXJzaW9uIDIuMAo
+        ...
+        ```
+        * A binary file:
+        ```
+        f0VMRgIBAQAAAAAAAAAAAAIAPgABAAAAoF5GAAAA
+        ...
+        ```
+
+        Note:
+        While this works for binary and text files alike, it may be preferable to use `text_contents` for text files.
+        """
+        )
+    )
+    def base64_contents(self, info: Info) -> str:
         filestorage = info.context["filestorage"]
         data = cast(
-            bytes, filestorage.load_file(root.file_store, root.file_name, binary=True)
+            bytes, filestorage.load_file(self.file_store, self.file_name, binary=True)
         )
         data = b64encode(data)
         return data.decode("ascii")

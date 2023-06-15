@@ -38,15 +38,6 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-limit_type_note = """
-Note:
-
-Sometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.
-
-This may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.
-
-Not to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.
-"""
 
 LimitType = Annotated[
     PositiveInt | None,
@@ -64,8 +55,14 @@ LimitType = Annotated[
 
     `*`: This behavior is equivalent to SQL's `LIMIT 0` behavior.
 
+    Note:
+
+    Sometimes the caller may receieve a shorter list (or even an empty list) of results compared to the expected per the limit argument.
+
+    This may seem confusing, but it is the expected behavior given the way that limiting is implemented in the bitemporal database layer, combined with how filtering and object change consolidation is handled.
+
+    Not to worry; all the expected elements will eventually be returned, as long as the iteration is continued until the `next_cursor` is `null`.
     """
-            + limit_type_note
         )
     ),
 ]

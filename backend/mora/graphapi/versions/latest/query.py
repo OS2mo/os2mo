@@ -14,7 +14,6 @@ from starlette_context import context
 from strawberry.types import Info
 
 from .health import health_map
-from .models import FileRead
 from .models import FileStore
 from .models import HealthRead
 from .permissions import gen_read_permission
@@ -99,7 +98,11 @@ class FileResolver(PagedResolver):
         file_store: Annotated[
             FileStore,
             strawberry.argument(
-                description=gen_filter_string("Filestore", "file_store")
+                description=dedent(
+                    """
+                    File Store enum deciding which file-store to fetch files from.
+                """
+                )
             ),
         ],
         limit: LimitType = None,
@@ -116,16 +119,15 @@ class FileResolver(PagedResolver):
         if file_names is not None:
             found_files = found_files.intersection(set(file_names))
 
-        def construct(file_name: str) -> dict[str, Any]:
-            return {"file_store": file_store, "file_name": file_name}
-
-        files = list(map(construct, found_files))
+        files = list(found_files)
         files = files[cursor:][:limit]
         if not files:
             context["lora_page_out_of_range"] = True
 
-        parsed_files = parse_obj_as(list[FileRead], files)
-        return list(map(File.from_pydantic, parsed_files))
+        return [
+            File(file_store=file_store, file_name=file_name)  # type: ignore[call-arg]
+            for file_name in files
+        ]
 
 
 class ConfigurationResolver(PagedResolver):
@@ -335,7 +337,8 @@ class Query:
     # -----
     files: Paged[File] = strawberry.field(
         resolver=to_paged(FileResolver()),
-        description="Get a list of all files, optionally by filename(s)",
+        deprecation_reason="The file-store functionality will be removed in a future version of OS2mo",
+        description="Fetch files from the configured file backend (if any)",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
     )
 

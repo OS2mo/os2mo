@@ -3,6 +3,7 @@
 import datetime
 import logging
 from enum import Enum
+from textwrap import dedent
 from typing import Any
 from uuid import UUID
 
@@ -1065,14 +1066,33 @@ class HealthRead(BaseModel):
 
 # Files
 # -----
-@strawberry.enum
+@strawberry.enum(
+    description=dedent(
+        """
+    Enum for all the supported file stores.
+
+    File stores can be thought of a separate folders or drives in desktop computing.
+    """
+    )
+)
 class FileStore(Enum):
-    EXPORTS = 1
-    INSIGHTS = 2
+    EXPORTS = strawberry.enum_value(
+        1,
+        description=dedent(
+            """
+        The exports file store.
 
+        Used to hold files uploaded by export jobs.
+        """
+        ),
+    )
+    INSIGHTS = strawberry.enum_value(
+        2,
+        description=dedent(
+            """
+        The insights file store.
 
-class FileRead(BaseModel):
-    """Payload model for file download."""
-
-    file_store: FileStore = Field(description="The file store the file is stored in.")
-    file_name: str = Field(description="Name of the export file.")
+        Used to hold data-files supporting the insights functionality in OS2mo.
+        """
+        ),
+    )
