@@ -510,7 +510,7 @@ http2 = ["h2 (>=3,<5)"]
 
 [[package]]
 name = "hypothesis"
-version = "6.76.0"
+version = "6.78.2"
 description = "A library for property-based testing"
 category = "dev"
 optional = false
@@ -1756,7 +1756,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "b05d8a5970961340874bdaaf73dd6a5f73816a97fff7ce8732285cae60ff067d"
+content-hash = "950aad21cdd265da90ae4e4e04269cf3e051c5502696e38839d65d4279464d50"
 
 [metadata.files]
 aio-pika = [
@@ -2303,8 +2303,8 @@ httpx = [
     {file = "httpx-0.19.0.tar.gz", hash = "sha256:92ecd2c00c688b529eda11cedb15161eaf02dee9116712f621c70d9a40b2cdd0"},
 ]
 hypothesis = [
-    {file = "hypothesis-6.76.0-py3-none-any.whl", hash = "sha256:034f73dd485933b0f4c319d7c3c58230492fdd7b16e821d67d150a78138adb93"},
-    {file = "hypothesis-6.76.0.tar.gz", hash = "sha256:526657eb3e4f2076b0383f722b2e6a92fd15d1d42db532decae8c41b14cab801"},
+    {file = "hypothesis-6.78.2-py3-none-any.whl", hash = "sha256:2a62951846ca2efa928e02c132b64f7fb8f114663409552482fa740f923d1959"},
+    {file = "hypothesis-6.78.2.tar.gz", hash = "sha256:117a46fb50f4a388eb43fedae1403ba495bcf92adc891422d4a7977357ae3bb2"},
 ]
 hypothesis-graphql = [
     {file = "hypothesis_graphql-0.10.0-py3-none-any.whl", hash = "sha256:f65895ddc72f9414427268e2b3cc9ffa79aac55e962d69f37be716fa710b02c6"},
