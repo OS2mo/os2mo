@@ -21,8 +21,8 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
+from ramodels.mo._shared import ExtensionsField
 from ramodels.mo._shared import UUIDBase
-
 
 logger = logging.getLogger(__name__)
 
@@ -609,12 +609,22 @@ class EngagementCreate(UUIDBase):
     engagement_type: UUID
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    extension: ExtensionsField = Field(
+        description="An optional field for storing potential extra data to use as "
+        "keywords when extraordinary occasions requires it"
+    )
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
+
+        extension_field_number = [f"extension_{i}" for i in range(1, 11)]
+        extension_value = [
+            getattr(self.extension, field_name, None)
+            for field_name in extension_field_number
+        ]
 
         return {
             "uuid": str(self.uuid),
@@ -629,6 +639,7 @@ class EngagementCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            **dict(zip(extension_field_number, extension_value)),
         }
 
 
@@ -640,12 +651,22 @@ class EngagementUpdate(UUIDBase):
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    extension: ExtensionsField = Field(
+        description="An optional field for storing potential extra data to use as "
+        "keywords when extraordinary occasions requires it"
+    )
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
+
+        extension_field_number = [f"extension_{i}" for i in range(1, 11)]
+        extension_value = [
+            getattr(self.extension, field_name, None)
+            for field_name in extension_field_number
+        ]
 
         data_dict = {
             "user_key": self.user_key,
@@ -659,6 +680,7 @@ class EngagementUpdate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            **dict(zip(extension_field_number, extension_value)),
         }
         return {k: v for k, v in data_dict.items() if v}
 

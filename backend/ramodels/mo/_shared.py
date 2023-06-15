@@ -100,6 +100,16 @@ class EngagementType(MORef):
     """Engagement type reference."""
 
 
+class ExtensionsField(RABase):
+    """Extensions field for an Engagement object."""
+
+    def __int__(self, **kwargs):
+        for i in range(1, 11):
+            extension_field_number = f"extension_{i}"
+            extension_field_value = kwargs.get(extension_field_number)
+            setattr(self, extension_field_number, extension_field_value)
+
+
 class AssociationType(MORef):
     """Association type reference."""
 
