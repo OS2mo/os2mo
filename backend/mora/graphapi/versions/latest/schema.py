@@ -244,15 +244,15 @@ def seed_resolver(
 # seed_resolver functions pre-seeded with result_translation functions assuming that
 # only a single UUID will be returned, converting the objects list to either a list or
 # an optional entity.
-seed_resolver_list = partial(
+seed_resolver_list: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: list(chain.from_iterable(result.values())),
 )
-seed_resolver_only = partial(
+seed_resolver_only: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: only(chain.from_iterable(result.values())),
 )
-seed_resolver_one = partial(
+seed_resolver_one: Callable[..., Any] = partial(
     seed_resolver,
     result_translation=lambda result: one(chain.from_iterable(result.values())),
 )
@@ -292,19 +292,85 @@ def model2dbregistration(model: Any) -> Any:
     return mapping[model]
 
 
-@strawberry.type
-class Registration:
-    registration_id: int
-    # TODO: Let datetimes be lazily resolved
-    start: datetime
-    end: datetime | None
-    # UUID of who made the change
-    actor: UUID
+@strawberry.type(
+    description=dedent(
+        """
+    Bitemporal container.
+
+    Mostly useful for auditing purposes seeing when data-changes were made and by whom.
+
+    Note:
+    Will eventually contain a full temporal axis per bitemporal container.
+    """
+    )
+)
+class Registration(Generic[MOObject]):
+    registration_id: int = strawberry.field(
+        description=dedent(
+            """
+        Internal registration ID for the registration.
+        """
+        ),
+        deprecation_reason=dedent(
+            """
+            May be removed in the future once the bitemporal scheme is finished.
+            """
+        ),
+    )
+
+    start: datetime = strawberry.field(
+        description=dedent(
+            """
+        Start of the bitemporal interval.
+        """
+        )
+    )
+    end: datetime | None = strawberry.field(
+        description=dedent(
+            """
+        End of the bitemporal interval.
+
+        `null` indicates the open interval, aka. infinity.
+        """
+        )
+    )
+
+    actor: UUID = strawberry.field(
+        description=dedent(
+            """
+        UUID of the actor (integration or user) who changed the data.
+
+        Note:
+        Currently mostly returns `"42c432e8-9c4a-11e6-9f62-873cf34a735f"`.
+        Will eventually contain for the UUID of the integration or user who mutated data, based on the JWT token.
+        """
+        )
+    )
 
 
-@strawberry.type
+@strawberry.type(
+    description=dedent(
+        """
+    Top-level container for (bi)-temporal and actual state data access.
+
+    Contains a UUID uniquely denoting the bitemporal object.
+
+    Contains three different object temporality axis:
+
+    | entrypoint      | temporal axis | validity time | assertion time |
+    |-----------------|---------------|---------------|----------------|
+    | `current`       | actual state  | current       | current        |
+    | `objects`       | temporal      | varying       | current        |
+    | `registrations` | bitemporal    | varying       | varying        |
+
+    The argument for having three different entrypoints into the data is limiting complexity according to use-case.
+
+    That is, if a certain integration or UI only needs, say, actual state data, the complexities of the bitemporal data modelling is unwanted complexity, and as such, better left out.
+    """
+    )
+)
 class Response(Generic[MOObject]):
-    uuid: UUID
+    uuid: UUID = strawberry.field(description="UUID of the bitemporal object")
 
     # Object cache is a temporary workaround ensuring that current resolvers keep
     # working as-is while also allowing for lazy resolution based entirely on the UUID.
@@ -316,7 +382,18 @@ class Response(Generic[MOObject]):
     model: strawberry.Private[type[MOObject]]
 
     @strawberry.field(
-        description="Current state at query validity time",
+        description=dedent(
+            """
+            Actual / current state entrypoint.
+
+            Returns the state of the object at current validity and current assertion time.
+
+            A single object is returned as only one validity can be active at a given assertion time.
+
+            Note:
+            This the entrypoint is appropriate to use for actual-state integrations and UIs.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission],
     )
     async def current(self, root: "Response", info: Info) -> MOObject | None:
@@ -348,7 +425,19 @@ class Response(Generic[MOObject]):
         return only(filter(active_now, objects))
 
     @strawberry.field(
-        description="Validities at query registration time",
+        description=dedent(
+            """
+            Temporal state entrypoint.
+
+            Returns the state of the object at varying validities and current assertion time.
+
+            A list of objects are returned as only many different validity intervals can be active at a given assertion time.
+
+            Note:
+            This the entrypoint should be used for temporal integrations and UIs.
+            For actual-state integrations, please consider using `current` instead.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission],
     )
     async def objects(self, root: "Response", info: Info) -> list[MOObject]:
@@ -361,9 +450,27 @@ class Response(Generic[MOObject]):
 
     # TODO: Implement using a dataloader
     @strawberry.field(
-        description="Registrations for the current entity",
+        description=dedent(
+            """
+            Bitemporal state entrypoint.
+
+            Returns the state of the object at varying validities and varying assertion times.
+
+            A list of bitemporal container objects are returned, each containing many different validity intervals.
+
+            Note:
+            This the entrypoint should only be used for bitemporal integrations and UIs, such as for auditing purposes.
+            For temporal integration, please consider using `objects` instead.
+            For actual-state integrations, please consider using `current` instead.
+
+            **Warning**:
+            This entrypoint should **not** be used to implement event-driven integrations.
+            Such integration should rather utilize the AMQP-based event-system.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission],
     )
+    # TODO: Document the arguments in the resolver once !1667 has been merged.
     async def registrations(
         self,
         root: "Response",
@@ -371,7 +478,7 @@ class Response(Generic[MOObject]):
         actors: list[UUID] | None = None,
         start: datetime | None = None,
         end: datetime | None = None,
-    ) -> list[Registration]:
+    ) -> list[Registration[MOObject]]:
         table = model2dbregistration(root.model)
         dates = get_date_interval(start, end)
         query = select(table).where(
@@ -1413,10 +1520,13 @@ class OrganisationUnit:
     )
 
     child_count: int = strawberry.field(
-        resolver=seed_resolver(
-            OrganisationUnitResolver(),
-            {"parents": lambda root: [root.uuid]},
-            lambda result: len(result.keys()),
+        resolver=cast(
+            Callable[..., Any],
+            seed_resolver(
+                OrganisationUnitResolver(),
+                {"parents": lambda root: [root.uuid]},
+                lambda result: len(result.keys()),
+            ),
         ),
         description="Children count of the organisation unit.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
