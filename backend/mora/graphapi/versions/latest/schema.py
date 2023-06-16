@@ -540,7 +540,6 @@ LazyRole = Annotated["Role", LazySchema]
 
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
-    all_fields=True,
     description="Address information for either an employee or organisational unit",
 )
 class Address:
@@ -664,6 +663,28 @@ class Address:
             return dar.open_street_map_href_from_dar_object(address_object)
 
         return None
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    type_: str = strawberry.auto
+
+    address_type_uuid: UUID = strawberry.auto
+
+    employee_uuid: UUID | None = strawberry.auto
+
+    org_unit_uuid: UUID | None = strawberry.auto
+
+    engagement_uuid: UUID | None = strawberry.auto
+
+    visibility_uuid: UUID | None = strawberry.auto
+
+    value: str = strawberry.auto
+
+    value2: str | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # Association
