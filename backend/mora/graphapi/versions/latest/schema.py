@@ -845,7 +845,6 @@ class Association:
 
 @strawberry.experimental.pydantic.type(
     model=ClassRead,
-    all_fields=True,
     description="The value component of the class/facet choice setup",
 )
 class Class:
@@ -887,6 +886,45 @@ class Class:
     @strawberry.field(description="Full name, for backwards compatibility")
     async def full_name(self, root: ClassRead) -> str:
         return root.name
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `class`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: ClassRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    name: str = strawberry.auto
+
+    facet_uuid: UUID = strawberry.auto
+
+    org_uuid: UUID = strawberry.auto
+
+    scope: str | None = strawberry.auto
+
+    published: str | None = strawberry.auto
+
+    parent_uuid: UUID | None = strawberry.auto
+
+    example: str | None = strawberry.auto
+
+    owner: UUID | None = strawberry.auto
 
 
 # Employee
