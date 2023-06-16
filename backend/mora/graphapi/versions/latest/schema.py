@@ -693,7 +693,6 @@ class Address:
 
 @strawberry.experimental.pydantic.type(
     model=AssociationRead,
-    all_fields=True,
     description="Connects organisation units and employees",
 )
 class Association:
@@ -797,6 +796,47 @@ class Association:
         description="Connected IT user",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `association`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: AssociationRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    validity: Validity = strawberry.auto
+
+    dynamic_class_uuid: UUID | None = strawberry.auto
+
+    org_unit_uuid: UUID = strawberry.auto
+
+    employee_uuid: UUID | None = strawberry.auto
+
+    association_type_uuid: UUID | None = strawberry.auto
+
+    primary_uuid: UUID | None = strawberry.auto
+
+    substitute_uuid: UUID | None = strawberry.auto
+
+    job_function_uuid: UUID | None = strawberry.auto
+
+    it_user_uuid: UUID | None = strawberry.auto
 
 
 # Class
