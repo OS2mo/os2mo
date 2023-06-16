@@ -90,10 +90,20 @@ CursorType = Annotated[
 
 
 def gen_filter_string(title: str, key: str) -> str:
-    return dedent(
-        f"""
+    return (
+        dedent(
+            f"""
         {title} filter limiting which entries are returned.
 
+        """
+        )
+        + gen_filter_table(key)
+    )
+
+
+def gen_filter_table(key: str) -> str:
+    return dedent(
+        f"""
         | `{key}`      | Elements returned                            |
         |--------------|----------------------------------------------|
         | not provided | All                                          |
@@ -211,7 +221,24 @@ CPRNumberFilterType = Annotated[
 HierarchiesUUIDsFilterType = Annotated[
     list[UUID] | None,
     strawberry.argument(
-        description=gen_filter_string("Organisation unit hierarchy UUID", "hierarchies")
+        description=dedent(
+            """
+        Filter organisation units by their organisational hierarchy labels.
+
+        Can be used to extract a subset of the organisational structure.
+
+        Examples of user-keys:
+        * `"Line-management"`
+        * `"Self-owned institution"`
+        * `"Outside organisation"`
+        * `"Hidden"`
+
+        Note:
+        The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
+
+        """
+        )
+        + gen_filter_table("hierarchies")
     ),
 ]
 

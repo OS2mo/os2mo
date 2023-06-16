@@ -299,7 +299,7 @@ class Query:
     # --------------------
     org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitResolver()),
-        description="Get a list of all organisation units, optionally by uuid(s)",
+        description="Get organisation units",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
