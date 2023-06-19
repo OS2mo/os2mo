@@ -110,10 +110,8 @@ def uuid2response(uuid: UUID | str, model: type) -> Response:
     return Response(uuid=ensure_uuid(uuid), model=model)  # type: ignore[call-arg]
 
 
-@strawberry.type(description="Entrypoint for all modification-operations")
-class Mutation:
-    # Addresses
-    # ---------
+@strawberry.type(description="Entrypoint for all address-operations")
+class AddressOperations:
     @strawberry.mutation(
         description="Creates an address.",
         permission_classes=[
@@ -121,7 +119,7 @@ class Mutation:
             gen_create_permission("address"),
         ],
     )
-    async def address_create(self, input: AddressCreateInput) -> Response[Address]:
+    async def create(self, input: AddressCreateInput) -> Response[Address]:
         return uuid2response(await create_address(input.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
@@ -131,7 +129,7 @@ class Mutation:
             gen_update_permission("address"),
         ],
     )
-    async def address_update(self, input: AddressUpdateInput) -> Response[Address]:
+    async def update(self, input: AddressUpdateInput) -> Response[Address]:
         return uuid2response(await update_address(input.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
@@ -141,7 +139,7 @@ class Mutation:
             gen_terminate_permission("address"),
         ],
     )
-    async def address_terminate(self, at: AddressTerminateInput) -> Response[Address]:
+    async def terminate(self, at: AddressTerminateInput) -> Response[Address]:
         return uuid2response(await terminate_addr(at.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
@@ -151,8 +149,17 @@ class Mutation:
             gen_delete_permission("address"),
         ],
     )
-    async def address_delete(self, uuid: UUID) -> Response[Address]:
+    async def delete(self, uuid: UUID) -> Response[Address]:
         return uuid2response(await delete_organisationfunktion(uuid), AddressRead)
+
+
+@strawberry.type(description="Entrypoint for all modification-operations")
+class Mutation:
+    # Addresses
+    # ---------
+    @strawberry.field
+    def address() -> AddressOperations:
+        return AddressOperations()
 
     # Associations
     # ------------
