@@ -4,16 +4,16 @@ import asyncio
 from uuid import UUID
 
 import strawberry
-from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
 
+from .models import UUIDBase
 from mora.util import to_lora_time
 from oio_rest import db
 from oio_rest import validate
 
 
-class ClassCreate(BaseModel):
+class ClassCreate(UUIDBase):
     """Model representing a Class creation."""
 
     name: str = Field(description="Mo-class name.")
@@ -113,7 +113,11 @@ async def create_class(input: ClassCreate, organisation_uuid: UUID, note: str) -
     registration = input.to_registration(organisation_uuid=organisation_uuid)
     # Let LoRa's SQL templates do their magic
     uuid = await asyncio.to_thread(
-        db.create_or_import_object, "klasse", note, registration
+        db.create_or_import_object,
+        "klasse",
+        note,
+        registration,
+        str(input.uuid) if input.uuid else None,
     )
     return uuid
 
