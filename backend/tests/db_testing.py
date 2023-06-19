@@ -23,6 +23,7 @@ def create_new_testing_database(identifier: str) -> str:
     with get_new_connection() as connection:
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
+            cursor.execute(f"DROP DATABASE IF EXISTS {new_db_name}")
             cursor.execute(f"CREATE DATABASE {new_db_name} OWNER mox")
             for prerequisite in get_prerequisites(db_name=new_db_name):
                 cursor.execute(prerequisite)
