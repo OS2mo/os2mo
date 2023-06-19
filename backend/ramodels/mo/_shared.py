@@ -101,13 +101,8 @@ class EngagementType(MORef):
 
 
 class ExtensionsField(RABase):
-    """Extensions field for an Engagement object."""
-
-    def __init(self, **kwargs):
-        for i in range(1, 11):
-            extension_field_number = f"extension_{i}"
-            extension_field_value = kwargs.get(extension_field_number)
-            setattr(self, extension_field_number, extension_field_value)
+    """Extensions field for an Engagement object. May be used to store arbitrary value,
+    for extraordinary occasions when no standardized field to model the data exists."""
 
 
 class AssociationType(MORef):

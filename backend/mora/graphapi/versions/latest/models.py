@@ -609,7 +609,7 @@ class EngagementCreate(UUIDBase):
     engagement_type: UUID
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension: ExtensionsField = Field(
+    extension_1: ExtensionsField | None = Field(
         description=dedent(
             """
             Arbitrary value extension fields.
@@ -620,18 +620,102 @@ class EngagementCreate(UUIDBase):
         """
         )
     )
+    extension_2: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_3: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_4: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_5: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_6: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_7: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_8: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_9: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_10: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
-
-        extension_field_number = [f"extension_{i}" for i in range(1, 11)]
-        extension_dict = {
-            field_name: getattr(self.extension, field_name, None)
-            for field_name in extension_field_number
-        }
 
         return {
             "uuid": str(self.uuid),
@@ -646,7 +730,16 @@ class EngagementCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            **extension_dict,
+            "extension_1": self.extension_1,
+            "extension_2": self.extension_2,
+            "extension_3": self.extension_3,
+            "extension_4": self.extension_4,
+            "extension_5": self.extension_5,
+            "extension_6": self.extension_6,
+            "extension_7": self.extension_7,
+            "extension_8": self.extension_8,
+            "extension_9": self.extension_9,
+            "extension_10": self.extension_10,
         }
 
 
@@ -658,7 +751,7 @@ class EngagementUpdate(UUIDBase):
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension: ExtensionsField = Field(
+    extension_1: ExtensionsField | None = Field(
         description=dedent(
             """
             Arbitrary value extension fields.
@@ -669,18 +762,102 @@ class EngagementUpdate(UUIDBase):
         """
         )
     )
+    extension_2: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_3: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_4: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_5: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_6: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_7: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_8: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_9: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
+    extension_10: ExtensionsField | None = Field(
+        description=dedent(
+            """
+    Arbitrary value extension fields.
+
+    A collection of field for storing arbitrary extra data.
+    Can be used for extraordinary occasions when no standardized field to model the data exists.
+    """
+        )
+    )
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
             if uuid is None:
                 return None
             return {"uuid": str(uuid)}
-
-        extension_field_number = [f"extension_{i}" for i in range(1, 11)]
-        extension_dict = {
-            field_name: getattr(self.extension, field_name, None)
-            for field_name in extension_field_number
-        }
 
         data_dict = {
             "user_key": self.user_key,
@@ -694,7 +871,16 @@ class EngagementUpdate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
-            **extension_dict,
+            "extension_1": self.extension_1,
+            "extension_2": self.extension_2,
+            "extension_3": self.extension_3,
+            "extension_4": self.extension_4,
+            "extension_5": self.extension_5,
+            "extension_6": self.extension_6,
+            "extension_7": self.extension_7,
+            "extension_8": self.extension_8,
+            "extension_9": self.extension_9,
+            "extension_10": self.extension_10,
         }
         return {k: v for k, v in data_dict.items() if v}
 
