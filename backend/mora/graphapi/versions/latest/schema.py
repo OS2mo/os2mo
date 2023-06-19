@@ -999,7 +999,6 @@ class Employee:
 
 @strawberry.experimental.pydantic.type(
     model=EngagementRead,
-    all_fields=True,
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
@@ -1104,6 +1103,65 @@ class Engagement:
             gen_read_permission("engagement_association"),
         ],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `engagement`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: EngagementRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    org_unit_uuid: UUID = strawberry.auto
+
+    employee_uuid: UUID = strawberry.auto
+
+    engagement_type_uuid: UUID = strawberry.auto
+
+    job_function_uuid: UUID = strawberry.auto
+
+    leave_uuid: UUID | None = strawberry.auto
+
+    primary_uuid: UUID | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
+
+    fraction: int | None = strawberry.auto
+
+    extension_1: str | None = strawberry.auto
+
+    extension_2: str | None = strawberry.auto
+
+    extension_3: str | None = strawberry.auto
+
+    extension_4: str | None = strawberry.auto
+
+    extension_5: str | None = strawberry.auto
+
+    extension_6: str | None = strawberry.auto
+
+    extension_7: str | None = strawberry.auto
+
+    extension_8: str | None = strawberry.auto
+
+    extension_9: str | None = strawberry.auto
+
+    extension_10: str | None = strawberry.auto
 
 
 # Engagement Association
