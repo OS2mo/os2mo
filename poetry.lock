@@ -1548,7 +1548,7 @@ starlette = "*"
 
 [[package]]
 name = "strawberry-graphql"
-version = "0.180.5"
+version = "0.186.2"
 description = "A library for creating GraphQL APIs"
 category = "main"
 optional = false
@@ -1557,16 +1557,16 @@ python-versions = ">=3.7,<4.0"
 [package.dependencies]
 graphql-core = ">=3.2.0,<3.3.0"
 python-dateutil = ">=2.7.0,<3.0.0"
-typing_extensions = ">=4.0.0,<5.0.0"
+typing_extensions = ">=4.1.0"
 
 [package.extras]
 aiohttp = ["aiohttp (>=3.7.4.post0,<4.0.0)"]
 asgi = ["python-multipart (>=0.0.5,<0.0.7)", "starlette (>=0.18.0)"]
 chalice = ["chalice (>=1.22,<2.0)"]
 channels = ["asgiref (>=3.2,<4.0)", "channels (>=3.0.5)"]
-cli = ["click (>=7.0,<9.0)", "libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "rich (>=12.0.0)"]
+cli = ["libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "rich (>=12.0.0)", "typer (>=0.7.0)"]
 debug = ["libcst (>=0.4.7)", "rich (>=12.0.0)"]
-debug-server = ["click (>=7.0,<9.0)", "libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "python-multipart (>=0.0.5,<0.0.7)", "rich (>=12.0.0)", "starlette (>=0.18.0)", "uvicorn (>=0.11.6,<0.22.0)"]
+debug-server = ["libcst (>=0.4.7)", "pygments (>=2.3,<3.0)", "python-multipart (>=0.0.5,<0.0.7)", "rich (>=12.0.0)", "starlette (>=0.18.0)", "typer (>=0.7.0)", "uvicorn (>=0.11.6,<0.22.0)"]
 django = ["Django (>=3.2)", "asgiref (>=3.2,<4.0)"]
 fastapi = ["fastapi (>=0.65.2)", "python-multipart (>=0.0.5,<0.0.7)"]
 flask = ["flask (>=1.1)"]
@@ -1756,7 +1756,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "c65bab1a9bfb042107a34406c7cf8f5ecddfaf819f93e20d2b876587b05e8f7d"
+content-hash = "66fa2269873e014361a128e3edc590de73e9c24036c24d4132efc786b993453f"
 
 [metadata.files]
 aio-pika = [
@@ -2897,8 +2897,8 @@ starlette-context = [
     {file = "starlette_context-0.3.6.tar.gz", hash = "sha256:d361a36ba2d4acca3ab680f917b25e281533d725374752d47607a859041958cb"},
 ]
 strawberry-graphql = [
-    {file = "strawberry_graphql-0.180.5-py3-none-any.whl", hash = "sha256:f08c4445711205d9bb12fd59cba7631e754efe93fe08ec5b7a7d7f2ee60750fa"},
-    {file = "strawberry_graphql-0.180.5.tar.gz", hash = "sha256:3ef3e4a3d82f69c7da8436ca36504414230c83063e46a967df8eb5645121b6b5"},
+    {file = "strawberry_graphql-0.186.2-py3-none-any.whl", hash = "sha256:f5890ec43f086ca35a32043df600da539efa968a75ca65323ce202310f00ecbb"},
+    {file = "strawberry_graphql-0.186.2.tar.gz", hash = "sha256:624fd469ec488dc6675c6e14dc0a9f07a623a805856de284b55a3a128ad9c210"},
 ]
 structlog = [
     {file = "structlog-22.3.0-py3-none-any.whl", hash = "sha256:b403f344f902b220648fa9f286a23c0cc5439a5844d271fec40562dbadbc70ad"},
