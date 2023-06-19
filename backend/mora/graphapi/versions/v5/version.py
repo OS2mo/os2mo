@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from textwrap import dedent
 from uuid import UUID
 
 import strawberry
@@ -8,11 +9,23 @@ from pydantic import Field
 
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.types import UUIDReturn
 from ..v6.version import GraphQLVersion as NextGraphQLVersion
 from mora.common import get_connector
 from ramodels.lora.facet import Facet as LoraFacet
 from ramodels.mo._shared import UUIDBase
+
+
+@strawberry.type(
+    description=dedent(
+        """
+        Wrapper model around a single UUID.
+
+        The purpose of this model is to allow for future non-breaking expansion of the return type.
+    """
+    )
+)
+class UUIDReturn:
+    uuid: UUID
 
 
 class FacetCreate(UUIDBase):

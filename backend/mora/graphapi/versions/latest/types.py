@@ -5,7 +5,6 @@ from base64 import b64decode
 from base64 import b64encode
 from textwrap import dedent
 from typing import NewType
-from uuid import UUID
 
 import strawberry
 
@@ -65,16 +64,3 @@ Cursor = strawberry.scalar(
         """
     ),
 )
-
-
-@strawberry.type(
-    description=dedent(
-        """
-        Wrapper model around a single UUID.
-
-        The purpose of this model is to allow for future non-breaking expansion of the return type.
-    """
-    )
-)
-class UUIDReturn:
-    uuid: UUID
