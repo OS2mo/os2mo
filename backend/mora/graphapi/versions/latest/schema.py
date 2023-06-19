@@ -1579,7 +1579,6 @@ class KLE:
 
 @strawberry.experimental.pydantic.type(
     model=LeaveRead,
-    all_fields=True,
     description="Leave (e.g. parental leave) for employees",
 )
 class Leave:
@@ -1620,6 +1619,37 @@ class Leave:
             gen_read_permission("engagement"),
         ],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `leave`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: LeaveRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    employee_uuid: UUID = strawberry.auto
+
+    leave_type_uuid: UUID = strawberry.auto
+
+    engagement_uuid: UUID | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # Manager
