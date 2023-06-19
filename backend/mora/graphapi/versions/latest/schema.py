@@ -2528,11 +2528,14 @@ class File:
 # -------------------------
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitRefreshRead,
-    all_fields=True,
     description="Response model for Organisation Unit refresh event.",
 )
 class OrganisationUnitRefresh:
-    pass
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    message: str = strawberry.auto
 
 
 # Configuration
