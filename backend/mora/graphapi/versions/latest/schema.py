@@ -1330,11 +1330,35 @@ class Facet:
 
 @strawberry.experimental.pydantic.type(
     model=ITSystemRead,
-    all_fields=True,
     description="Systems that IT users are connected to",
 )
 class ITSystem:
-    pass
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `itsystem`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: ITSystemRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    name: str = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    system_type: str | None = strawberry.auto
 
 
 @strawberry.experimental.pydantic.type(
