@@ -75,20 +75,25 @@ from .permissions import gen_update_permission
 from .permissions import IsAuthenticatedPermission
 from .schema import Address
 from .schema import Association
+from .schema import Class
 from .schema import Employee
 from .schema import Engagement
+from .schema import Facet
+from .schema import ITSystem
 from .schema import ITUser
 from .schema import Manager
 from .schema import OrganisationUnit
 from .schema import OrganisationUnitRefresh
 from .schema import Response
-from .types import UUIDReturn
 from mora.common import get_connector
+from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
+from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationUnitRead
 from ramodels.mo.details import AddressRead
 from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
+from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import ManagerRead
 
@@ -105,7 +110,7 @@ def uuid2response(uuid: UUID | str, model: type) -> Response:
     return Response(uuid=ensure_uuid(uuid), model=model)  # type: ignore[call-arg]
 
 
-@strawberry.type
+@strawberry.type(description="Entrypoint for all modification-operations")
 class Mutation:
     # Addresses
     # ---------
@@ -204,11 +209,13 @@ class Mutation:
             gen_create_permission("class"),
         ],
     )
-    async def class_create(self, info: Info, input: ClassCreateInput) -> UUIDReturn:
+    async def class_create(
+        self, info: Info, input: ClassCreateInput
+    ) -> Response[Class]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_class(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ClassRead)
 
     @strawberry.mutation(
         description="Updates a class.",
@@ -219,11 +226,11 @@ class Mutation:
     )
     async def class_update(
         self, info: Info, uuid: UUID, input: ClassUpdateInput
-    ) -> UUIDReturn:
+    ) -> Response[Class]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_class(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ClassRead)
 
     # TODO: class_terminate
 
@@ -234,10 +241,10 @@ class Mutation:
             gen_delete_permission("class"),
         ],
     )
-    async def class_delete(self, uuid: UUID) -> UUIDReturn:
+    async def class_delete(self, uuid: UUID) -> Response[Class]:
         note = ""
         uuid = await delete_class(uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ClassRead)
 
     # Employees
     # ---------
@@ -348,11 +355,13 @@ class Mutation:
             gen_create_permission("facet"),
         ],
     )
-    async def facet_create(self, info: Info, input: FacetCreateInput) -> UUIDReturn:
+    async def facet_create(
+        self, info: Info, input: FacetCreateInput
+    ) -> Response[Facet]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_facet(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, FacetRead)
 
     @strawberry.mutation(
         description="Updates a facet.",
@@ -363,11 +372,11 @@ class Mutation:
     )
     async def facet_update(
         self, info: Info, input: FacetUpdateInput, uuid: UUID
-    ) -> UUIDReturn:
+    ) -> Response[Facet]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_facet(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, FacetRead)
 
     # TODO: facet_update
     # TODO: facet_terminate
@@ -379,10 +388,10 @@ class Mutation:
             gen_delete_permission("facet"),
         ],
     )
-    async def facet_delete(self, uuid: UUID) -> UUIDReturn:
+    async def facet_delete(self, uuid: UUID) -> Response[Facet]:
         note = ""
         uuid = await delete_facet(uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, FacetRead)
 
     # ITSystems
     # ---------
@@ -395,11 +404,11 @@ class Mutation:
     )
     async def itsystem_create(
         self, info: Info, input: ITSystemCreateInput
-    ) -> UUIDReturn:
+    ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await create_itsystem(input.to_pydantic(), org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ITSystemRead)
 
     @strawberry.mutation(
         description="Updates an ITSystem.",
@@ -410,11 +419,11 @@ class Mutation:
     )
     async def itsystem_update(
         self, info: Info, input: ITSystemCreateInput, uuid: UUID
-    ) -> UUIDReturn:
+    ) -> Response[ITSystem]:
         note = ""
         org = await info.context["org_loader"].load(0)
         uuid = await update_itsystem(input.to_pydantic(), uuid, org.uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ITSystemRead)
 
     # TODO: itsystem_terminate
 
@@ -425,10 +434,10 @@ class Mutation:
             gen_delete_permission("itsystem"),
         ],
     )
-    async def itsystem_delete(self, info: Info, uuid: UUID) -> UUIDReturn:
+    async def itsystem_delete(self, info: Info, uuid: UUID) -> Response[ITSystem]:
         note = ""
         uuid = await delete_itsystem(uuid, note)
-        return UUIDReturn(uuid=uuid)  # type: ignore[call-arg]
+        return uuid2response(uuid, ITSystemRead)
 
     # ITUsers
     # -------

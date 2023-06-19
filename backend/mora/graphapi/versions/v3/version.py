@@ -7,8 +7,8 @@ from pydantic import Field
 
 from ..latest.permissions import gen_create_permission
 from ..latest.permissions import IsAuthenticatedPermission
-from ..latest.types import UUIDReturn
 from ..v4.version import GraphQLVersion as NextGraphQLVersion
+from ..v5.version import UUIDReturn
 from mora import mapping
 from mora.service.facet import ClassRequestHandler
 from ramodels.mo._shared import UUIDBase
