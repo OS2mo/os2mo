@@ -1658,7 +1658,6 @@ class Leave:
 
 @strawberry.experimental.pydantic.type(
     model=ManagerRead,
-    all_fields=True,
     description="Managers of organisation units and their connected identities",
 )
 class Manager:
@@ -1740,6 +1739,41 @@ class Manager:
         description="Organisation unit being managed",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `manager`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: ManagerRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    org_unit_uuid: UUID = strawberry.auto
+
+    employee_uuid: UUID | None = strawberry.auto
+
+    manager_type_uuid: UUID | None = strawberry.auto
+
+    manager_level_uuid: UUID | None = strawberry.auto
+
+    responsibility_uuids: list[UUID] | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # Organisation
