@@ -1400,7 +1400,6 @@ class ITSystem:
 
 @strawberry.experimental.pydantic.type(
     model=ITUserRead,
-    all_fields=True,
     description="User information related to IT systems",
 )
 class ITUser:
@@ -1463,6 +1462,41 @@ class ITUser:
         description="Connected itsystem",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `it`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: ITUserRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    itsystem_uuid: UUID = strawberry.auto
+
+    employee_uuid: UUID | None = strawberry.auto
+
+    org_unit_uuid: UUID | None = strawberry.auto
+
+    engagement_uuid: UUID | None = strawberry.auto
+
+    primary_uuid: UUID | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # KLE
