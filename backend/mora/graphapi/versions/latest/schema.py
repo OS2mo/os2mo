@@ -54,6 +54,7 @@ from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
 from .types import Cursor
+from .validity import OpenValidity
 from .validity import Validity
 from mora import common
 from mora import config
@@ -933,7 +934,6 @@ class Class:
 
 @strawberry.experimental.pydantic.type(
     model=EmployeeRead,
-    all_fields=True,
     description="Employee/identity specific information",
 )
 class Employee:
@@ -1029,6 +1029,43 @@ class Employee:
             gen_read_permission("engagement_association"),
         ],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `employee`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: EmployeeRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    cpr_no: str | None = strawberry.auto
+
+    seniority: date | None = strawberry.auto
+
+    givenname: str = strawberry.auto
+
+    surname: str = strawberry.auto
+
+    nickname_givenname: str | None = strawberry.auto
+
+    nickname_surname: str | None = strawberry.auto
+
+    validity: OpenValidity = strawberry.auto
 
 
 # Engagement
