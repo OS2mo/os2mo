@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import logging
+from textwrap import dedent
 from uuid import UUID
 
 import strawberry
@@ -110,7 +111,37 @@ def uuid2response(uuid: UUID | str, model: type) -> Response:
     return Response(uuid=ensure_uuid(uuid), model=model)  # type: ignore[call-arg]
 
 
-@strawberry.type(description="Entrypoint for all modification-operations")
+delete_warning = dedent(
+    """
+
+    **Warning**:
+    This mutator does bitemporal deletion, **not** temporal termination.
+    Do **not** use this mutator **unless** you **fully understand** its implications.
+
+    Bitemporal deletion and temporal termination are **very** different operations and should **not** be confused.
+    If you do not know which of the operations you need, you most likely need temporal termination.
+
+    Bitemporal deletion works on the bitemporal time-axis, and should **only** be used by clients that **fully understand** the underlying bitemporal model, including how a bitemporal delete affects the registration history.
+
+    After this call the deleted entity will no longer show up in **any** temporal listing.
+
+    Note:
+    It is currently the callers responsibility to ensure that references are dealt with before doing bitemporal deletions.
+    Failure to do so **will** leave dangling references breaking temporal foreign-keys, and potentially breaking invariants in the data.
+    """
+)
+
+
+@strawberry.type(
+    description=dedent(
+        """
+    Entrypoint for all modification-operations.
+
+    **Warning**:
+    Do **not** use any `*_delete`-mutators without **thoroughly** understanding its implications and the documentation.
+    """
+    )
+)
 class Mutation:
     # Addresses
     # ---------
@@ -145,7 +176,7 @@ class Mutation:
         return uuid2response(await terminate_addr(at.to_pydantic()), AddressRead)
 
     @strawberry.mutation(
-        description="Deletes an address.",
+        description="Deletes an address." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("address"),
@@ -235,7 +266,7 @@ class Mutation:
     # TODO: class_terminate
 
     @strawberry.mutation(
-        description="Deletes a class.",
+        description="Deletes a class." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("class"),
@@ -329,7 +360,7 @@ class Mutation:
         )
 
     @strawberry.mutation(
-        description="Deletes an engagement.",
+        description="Deletes an engagement." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("engagement"),
@@ -382,7 +413,7 @@ class Mutation:
     # TODO: facet_terminate
 
     @strawberry.mutation(
-        description="Deletes a facet.",
+        description="Deletes a facet." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("facet"),
@@ -428,7 +459,7 @@ class Mutation:
     # TODO: itsystem_terminate
 
     @strawberry.mutation(
-        description="Deletes an ITSystem.",
+        description="Deletes an ITSystem." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("itsystem"),
@@ -472,7 +503,7 @@ class Mutation:
         return uuid2response(await terminate_ituser(input.to_pydantic()), ITUserRead)
 
     @strawberry.mutation(
-        description="Deletes an IT-User.",
+        description="Deletes an IT-User." + delete_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_delete_permission("ituser"),
@@ -549,6 +580,7 @@ class Mutation:
             IsAuthenticatedPermission,
             gen_refresh_permission("org_unit"),
         ],
+        deprecation_reason="The mutator will be removed in a future version of OS2mo",
     )
     async def org_unit_refresh(self, uuid: UUID) -> OrganisationUnitRefresh:
         result = await trigger_org_unit_refresh(uuid)

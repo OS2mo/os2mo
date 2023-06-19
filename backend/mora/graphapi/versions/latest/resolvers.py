@@ -94,7 +94,6 @@ def gen_filter_string(title: str, key: str) -> str:
         dedent(
             f"""
         {title} filter limiting which entries are returned.
-
         """
         )
         + gen_filter_table(key)
@@ -104,6 +103,7 @@ def gen_filter_string(title: str, key: str) -> str:
 def gen_filter_table(key: str) -> str:
     return dedent(
         f"""
+
         | `{key}`      | Elements returned                            |
         |--------------|----------------------------------------------|
         | not provided | All                                          |
@@ -235,7 +235,6 @@ HierarchiesUUIDsFilterType = Annotated[
 
         Note:
         The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
-
         """
         )
         + gen_filter_table("hierarchies")

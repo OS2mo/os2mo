@@ -169,7 +169,6 @@ ActorUUIDsFilterType = Annotated[
         Filter registrations by their changing actor.
 
         Can be used to select all changes made by a particular user or integration.
-
         """
         )
         + gen_filter_table("actors")
@@ -183,7 +182,6 @@ ModelFilterType = Annotated[
         Filter registrations by their model type.
 
         Can be used to select all changes of a type.
-
         """
         )
         + gen_filter_table("models")
