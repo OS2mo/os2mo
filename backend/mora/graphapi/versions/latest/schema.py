@@ -1505,7 +1505,6 @@ class ITUser:
 
 @strawberry.experimental.pydantic.type(
     model=KLERead,
-    all_fields=True,
     description="Kommunernes Landsforenings Emnesystematik",
 )
 class KLE:
@@ -1541,6 +1540,37 @@ class KLE:
         description="Associated organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `kle`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: KLERead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    kle_number_uuid: UUID = strawberry.auto
+
+    kle_aspect_uuids: list[UUID] = strawberry.auto
+
+    org_unit_uuid: UUID | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # Leave
