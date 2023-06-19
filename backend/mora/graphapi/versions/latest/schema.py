@@ -1885,7 +1885,6 @@ class Organisation:
 
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitRead,
-    all_fields=True,
     description="Hierarchical unit within the organisation tree",
 )
 class OrganisationUnit:
@@ -1984,6 +1983,43 @@ class OrganisationUnit:
             gen_read_permission("engagement"),
         ],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `org_unit`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: OrganisationUnitRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    name: str = strawberry.auto
+
+    parent_uuid: UUID | None = strawberry.auto
+
+    org_unit_hierarchy: UUID | None = strawberry.auto
+
+    unit_type_uuid: UUID | None = strawberry.auto
+
+    org_unit_level_uuid: UUID | None = strawberry.auto
+
+    time_planning_uuid: UUID | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
     @strawberry.field(
         description="Managers of the organisation unit",
