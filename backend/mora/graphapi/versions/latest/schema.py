@@ -1208,7 +1208,6 @@ class Engagement:
 
 @strawberry.experimental.pydantic.type(
     model=EngagementAssociationRead,
-    all_fields=True,
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
@@ -1243,6 +1242,37 @@ class EngagementAssociation:
         description="Related engagement association type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
+
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `engagement_association`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: EngagementAssociationRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    uuid: UUID = strawberry.auto
+
+    user_key: str = strawberry.auto
+
+    validity: Validity = strawberry.auto
+
+    org_unit_uuid: UUID = strawberry.auto
+
+    engagement_uuid: UUID = strawberry.auto
+
+    engagement_association_type_uuid: UUID = strawberry.auto
 
 
 # Facet
