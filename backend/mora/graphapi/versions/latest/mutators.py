@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 from textwrap import dedent
+from typing import Annotated
 from uuid import UUID
 
 import strawberry
@@ -650,14 +651,69 @@ class Mutation:
     # Files
     # -----
     @strawberry.mutation(
-        description="Upload a file",
+        description=dedent(
+            """
+            Upload a file.
+
+            File upload must be done via multipart form-data.
+
+            How to do this is client-specific, but below is an example using [curl](https://curl.se/):
+            ```console
+            curl https://{{MO_URL}}/graphql/v7 \\
+              -H "Authorization: Bearer {{TOKEN}}" \\
+              -F operations="{\\\"query\\\": \\\"{{QUERY}}\\\", \\
+                  \\\"variables\\\": {\\\"file\\\": null}}" \\
+              -F map='{"file": ["variables.file"]}' \\
+              -F file=@myfile.txt
+            ```
+            Where:
+            * `myfile.txt` is the file to upload.
+            * `{{MO_URL}}` is the base-url for the OS2mo instance to upload the file to.
+            * `{{TOKEN}}` is a valid JWT-token acquired from Keycloak.
+            * `{{QUERY}}` is the upload query:
+            ```gql
+            mutation($file: Upload!) {
+              upload_file(
+                file_store: EXPORTS,
+                file: $file
+              )
+            }
+            ```
+
+            Note:
+            As GraphiQL does not support sending multipart form-data payloads, it is unfortunately not possible to upload files from GraphiQL.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_role_permission("upload_files"),
         ],
     )
     async def upload_file(
-        self, info: Info, file_store: FileStore, file: Upload, force: bool = False
+        self,
+        info: Info,
+        file_store: Annotated[
+            FileStore,
+            strawberry.argument(description="The filestore to upload the file into"),
+        ],
+        file: Annotated[
+            Upload,
+            strawberry.argument(
+                description=dedent(
+                    """
+                    Multipart form-data file payload.
+
+                    Contains both the data and the filename to be uploaded.
+
+                    See the `upload_file`-mutator description for how to send this.
+                    """
+                )
+            ),
+        ],
+        force: Annotated[
+            bool,
+            strawberry.argument(description="Whether to override pre-existing files."),
+        ] = False,
     ) -> str:
         filestorage = info.context["filestorage"]
 
