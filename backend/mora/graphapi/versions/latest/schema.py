@@ -670,6 +670,7 @@ class Address:
             Short unique key.
 
             Usually set to the `value` provided on object creation.
+            May also be set to the key used in external systems.
 
             Examples:
             * `"25052943"`
@@ -790,7 +791,7 @@ class Association:
         ),
         description=dedent(
             """
-            Describes the employee's connection to an organisation unit
+            The type of connection that the employee has to the organisation unit.
 
             Examples:
             * `"Chairman"`
@@ -807,7 +808,20 @@ class Association:
         ),
         # TODO: Document this
         # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
-        description="dynamic classes",
+        description=dedent(
+            """
+            List of arbitrary classes.
+
+            The purpose of this field is ill-defined.
+            It is currently mainly used for (trade) union specification.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Will be removed in a future version of GraphQL.
+            Currently no replacement is in place, but specialized fields will probably arive in the future.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -817,14 +831,22 @@ class Association:
         ),
         description=dedent(
             """
-            Describes whether this is the primary association of the employee.
+            Marks which association is primary.
 
-            Can be set to either of the primary-classes, by their UUID.
+            When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
 
-            Examples:
-            * `primary(UUID)`
-            * `non-primary(UUID)`
-            * `explicitly-primary(UUID)`
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one association for each employee is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more associations are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+
+            Note:
+            The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -854,7 +876,11 @@ class Association:
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
         ),
-        description="Connected substitute employee",
+        description=dedent(
+            """
+            Optional subsitute if `employee` is unavailable.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -864,7 +890,7 @@ class Association:
         ),
         description=dedent(
             """
-            The position held by the employee
+            The position held by the employee in the organisation unit.
 
             Examples of user-keys:
             * `"Payroll consultant"`
@@ -875,12 +901,19 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Can there be more than one ITUser per association?
+    # TODO: modify list[LazyITUser] to LazyITUser | None
     it_user: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
         ),
-        description="Connected IT user",
+        description=dedent(
+            """
+            The IT-user utilized by the employee when fulfilling the association responsibilities.
+
+            **Warning**:
+            This field will probably become an optional entity instead of a list in the future.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
@@ -903,27 +936,83 @@ class Association:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: AssociationRead) -> UUID:
+        return root.uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
+
+            Usually set to be set to the key used in external systems.
+
+            Examples:
+            * `"1462"`
+            * `"XSIMP"`
+            """
+        )
+    )
+    async def user_key(self, root: AssociationRead) -> str:
+        return root.user_key
+
+    @strawberry.field(
+        description="UUID of the dynamically attached class.",
+        deprecation_reason=gen_uuid_field_deprecation("dynamic_class"),
+    )
+    async def dynamic_class_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.dynamic_class_uuid
+
+    @strawberry.field(
+        description="UUID of the organisation unit related to the association.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: AssociationRead) -> UUID:
+        return root.org_unit_uuid
+
+    @strawberry.field(
+        description="UUID of the employee related to the association.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.employee_uuid
+
+    @strawberry.field(
+        description="UUID of the association type.",
+        deprecation_reason=gen_uuid_field_deprecation("association_type"),
+    )
+    async def association_type_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.association_type_uuid
+
+    @strawberry.field(
+        description="UUID of the primary type of the association.",
+        deprecation_reason=gen_uuid_field_deprecation("primary"),
+    )
+    async def primary_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.primary_uuid
+
+    @strawberry.field(
+        description="UUID of the substitute for the employee in the association.",
+        deprecation_reason=gen_uuid_field_deprecation("subsitute"),
+    )
+    async def substitute_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.substitute_uuid
+
+    @strawberry.field(
+        description="UUID of a job function class, only defined for 'IT associations.",
+        deprecation_reason=gen_uuid_field_deprecation("job_function"),
+    )
+    async def job_function_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.job_function_uuid
+
+    @strawberry.field(
+        description="UUID of an 'ITUser' model, only defined for 'IT associations.",
+        deprecation_reason=gen_uuid_field_deprecation("it_user"),
+    )
+    async def it_user_uuid(self, root: AssociationRead) -> UUID | None:
+        return root.it_user_uuid
 
     validity: Validity = strawberry.auto
-
-    dynamic_class_uuid: UUID | None = strawberry.auto
-
-    org_unit_uuid: UUID = strawberry.auto
-
-    employee_uuid: UUID | None = strawberry.auto
-
-    association_type_uuid: UUID | None = strawberry.auto
-
-    primary_uuid: UUID | None = strawberry.auto
-
-    substitute_uuid: UUID | None = strawberry.auto
-
-    job_function_uuid: UUID | None = strawberry.auto
-
-    it_user_uuid: UUID | None = strawberry.auto
 
 
 # Class
@@ -1205,14 +1294,22 @@ class Engagement:
         ),
         description=dedent(
             """
-            Describes whether this is the primary association of the employee.
+            Marks which engagement is primary.
 
-            Can be set to either of the primary-classes, by their UUID.
+            When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
 
-            Examples:
-            * `primary(UUID)`
-            * `non-primary(UUID)`
-            * `explicitly-primary(UUID)`
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one engagement for each employee is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more engagements are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+
+            Note:
+            The calculate-primary integration can be used to automatically calculate and update primarity fields.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
