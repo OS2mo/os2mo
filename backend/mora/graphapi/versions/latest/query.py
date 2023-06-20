@@ -336,8 +336,8 @@ class Query:
     # -----
     files: Paged[File] = strawberry.field(
         resolver=to_paged(FileResolver()),
-        deprecation_reason="The file-store functionality will be removed in a future version of OS2mo",
         description="Fetch files from the configured file backend (if any).",
+        deprecation_reason="The file-store functionality will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("file")],
     )
 
@@ -378,7 +378,7 @@ class Query:
             This endpoint fails if not exactly one exists in LoRa.
             """
         ),
-        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo",
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org")],
     )
     async def org(self, info: Info) -> Organisation:
