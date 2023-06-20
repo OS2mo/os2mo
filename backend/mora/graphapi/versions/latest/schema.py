@@ -435,13 +435,35 @@ LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
 LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
 LazyRole = Annotated["Role", LazySchema]
 
+
+def gen_uuid_field_deprecation(field: str) -> str:
+    """Generate a deprecation warning for `_uuid` fields.
+
+    Args:
+        field: Name of the field that has the `_uuid` ending.
+
+    Returns:
+        Deprecation message explaining how to fetch the field in the future.
+    """
+    return dedent(
+        f"""
+        Will be removed in a future version of GraphQL.
+        Use `{field} {{uuid}}` instead.
+        """
+    )
+
+
 # Address
 # -------
 
 
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
-    description="Address information for either an employee or organisational unit",
+    description=dedent(
+        """
+        Address information for either an employee or organisational unit
+        """
+    ),
 )
 class Address:
     address_type: LazyClass = strawberry.field(
@@ -450,12 +472,20 @@ class Address:
         ),
         description=dedent(
             """
-            Describes which type of address we're dealing with.
+            The address category or type.
 
-            Examples of user_keys:
-            * `EmailUnit`
-            * `p-nummer`
-            * `PhoneEmployee`
+            In OS2mo addresses can be of a variety of different types:
+            * Phone numbers
+            * Addresses
+            * Registration numbers
+            * Card codes
+
+            This field is what encodes the type of an address.
+
+            Examples of user-keys:
+            * `"EmailUnit"`
+            * `"p-nummer"`
+            * `"PhoneEmployee"`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -467,12 +497,22 @@ class Address:
         ),
         description=dedent(
             """
-            Describes who the address is visible to.
+            Determines who can see the address and how it is exported.
 
-            Examples of user_keys:
-            * `External` (Exposed to the internet)
-            * `Internal` (Exposed to internal intranet)
-            * `Secret` (Will stay in MO and not be exposed anywhere else)
+            In OS2mo addresses can be of a variety of privacy classes.
+            For instance OS2mo may contain a list of phone numbers for an employee;
+            * A private mobile phone number
+            * An internal work mobile phone number
+            * A shared external phone number
+
+            This field is what encodes the privacy class of an address.
+            Thereby stating who should be allowed to see what addresses.
+
+            Examples of user-keys:
+            * `null`: Undetermined / non-classified.
+            * `"Secret"`: Should be treated carefully and perhaps not be exported.
+            * `"Internal"` Should be treated carefully but perhaps exposed to an internal intranet.
+            * `"External"`: Can probably be exposed to the internet
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
@@ -491,8 +531,14 @@ class Address:
                 },
             ),
         ),
-        description="Connected employee. "
-        "Note that this is mutually exclusive with the org_unit field",
+        description=dedent(
+            """
+            Connected employee.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -508,8 +554,14 @@ class Address:
                 },
             ),
         ),
-        description="Connected organisation unit. "
-        "Note that this is mutually exclusive with the employee field",
+        description=dedent(
+            """
+            Connected organisation unit.
+
+            Note:
+            This field is mutually exclusive with the `employee` field.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -525,14 +577,39 @@ class Address:
                 },
             )
         ),
-        description="Connected Engagement",
+        description=dedent(
+            """
+            Connected engagement.
+
+            Note:
+            This field is **not** mutually exclusive with neither the `employee` nor the `org_unit` field.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
         ],
     )
 
-    @strawberry.field(description="Name of address")
+    @strawberry.field(
+        description=dedent(
+            """
+        Human readable name of the address.
+
+        Name is *usually* equal to `value`, but may differ if `value` is not human readable.
+        This may for instance be the case for `DAR` addresses, where the value is the DAR UUID, while the name is a human readable address.
+
+        Examples:
+        * `"Vifdam 20, 1. th, 6000 Kolding"`
+        * `"25052943"`
+        * `"info@magenta.dk"`
+        * `"Building 11"`
+
+        Note:
+        Requesting this field may incur a performance penalty as the returned value may be dynamically resolved from the `value`-field.
+        """
+        )
+    )
     async def name(self, root: AddressRead, info: Info) -> str | None:
         address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
@@ -546,7 +623,25 @@ class Address:
 
         return root.value
 
-    @strawberry.field(description="href of address")
+    @strawberry.field(
+        description=dedent(
+            """
+        Hypertext Reference of the address.
+
+        The `href` field makes a hyperlink from the address value, such that the link can be included in user interfaces.
+
+        Examples:
+        * `null`: For non-hyperlinkable addresses.
+        * `"tel:88888888"`: For phone numbers.
+        * `"mailto:info@magenta.dk"`: For email addresses.
+        * `"https://www.openstreetmap.org/?mlon=11&mlat=56"`: For postal addresses, locations, etc
+
+        Note:
+        Requesting this field may incur a performance penalty as the returned value may be dynamically resolved from the `value`-field.
+
+        """
+        )
+    )
     async def href(self, root: AddressRead, info: Info) -> str | None:
         address_type = await Address.address_type(root=root, info=info)  # type: ignore[operator]
 
@@ -565,25 +660,116 @@ class Address:
 
         return None
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: AddressRead) -> UUID:
+        return root.uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
 
-    type_: str = strawberry.auto
+            Usually set to the `value` provided on object creation.
 
-    address_type_uuid: UUID = strawberry.auto
+            Examples:
+            * `"25052943"`
+            * `"info@magenta.dk"`
+            * `"Building 11"`
+            """
+        )
+    )
+    async def user_key(self, root: AddressRead) -> str:
+        return root.user_key
 
-    employee_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
 
-    org_unit_uuid: UUID | None = strawberry.auto
+            Always contains the string `address`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: AddressRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
 
-    engagement_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the address type class.",
+        deprecation_reason=gen_uuid_field_deprecation("address_type"),
+    )
+    async def address_type_uuid(self, root: AddressRead) -> UUID:
+        return root.address_type_uuid
 
-    visibility_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the employee related to the address.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: AddressRead) -> UUID | None:
+        return root.employee_uuid
 
-    value: str = strawberry.auto
+    @strawberry.field(
+        description="UUID of the organisation unit related to the address.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: AddressRead) -> UUID | None:
+        return root.org_unit_uuid
 
-    value2: str | None = strawberry.auto
+    @strawberry.field(
+        description="Optional UUID of an associated engagement.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+    )
+    async def engagement_uuid(self, root: AddressRead) -> UUID | None:
+        return root.engagement_uuid
+
+    @strawberry.field(
+        description="UUID of the visibility class of the address.",
+        deprecation_reason=gen_uuid_field_deprecation("visibility"),
+    )
+    async def visibility_uuid(self, root: AddressRead) -> UUID | None:
+        return root.visibility_uuid
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Machine processable value of the address.
+
+            The value of the address, which may or may not be fit for human consumption.
+            If an address for human consumption is required, consider using `name` or `href` instead.
+
+            Examples:
+            * `"3cb0a0c6-37d0-0e4a-e044-0003ba298018"`
+            * `"25052943"`
+            * `"info@magenta.dk"`
+            * `"Building 11"`
+            """
+        )
+    )
+    async def value(self, root: AddressRead) -> str:
+        return root.value
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Optional second machine processable value of the address.
+
+            This value is `null` for most address types, but may be utilized by some address-types for extra information.
+
+            Examples:
+            * `null`
+            * `"Office 12"`
+            * `"+45"`
+            """
+        )
+    )
+    async def value2(self, root: AddressRead) -> str | None:
+        return root.value2
 
     validity: Validity = strawberry.auto
 
