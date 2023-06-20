@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from unittest.mock import ANY
 from unittest.mock import patch
 from uuid import UUID
 from uuid import uuid4
@@ -221,6 +222,8 @@ def test_itsystem_create_mocked(
                     ]
                 },
             },
+            # NOTE: ANY, because it's the auto-generated UUID - its unknown when input.uuid = None
+            ANY,
         )
 
 

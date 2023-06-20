@@ -5,16 +5,16 @@ from datetime import datetime
 from uuid import UUID
 
 import strawberry
-from pydantic import BaseModel
 from pydantic import Extra
 from pydantic import Field
 
+from .models import UUIDBase
 from mora.util import to_lora_time
 from oio_rest import db
 from oio_rest import validate
 
 
-class ITSystemCreate(BaseModel):
+class ITSystemCreate(UUIDBase):
     """Model representing an itsystem creation."""
 
     class Config:
@@ -94,7 +94,11 @@ async def create_itsystem(
     registration = input.to_registration(organisation_uuid=organisation_uuid)
     # Let LoRa's SQL templates do their magic
     uuid = await asyncio.to_thread(
-        db.create_or_import_object, "itsystem", note, registration
+        db.create_or_import_object,
+        "itsystem",
+        note,
+        registration,
+        str(input.uuid) if input.uuid else None,
     )
     return uuid
 
