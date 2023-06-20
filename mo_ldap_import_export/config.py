@@ -151,7 +151,7 @@ class Settings(BaseSettings):
     )
 
     org_unit_path_string_separator: str = Field(
-        "//", description="separator for full paths to org units in LDAP"
+        "\\", description="separator for full paths to org units in LDAP"
     )
 
     poll_time: float = Field(
