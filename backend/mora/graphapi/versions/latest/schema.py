@@ -54,6 +54,7 @@ from .resolvers import OrganisationUnitResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
+from .types import CPRType
 from .validity import OpenValidity
 from .validity import Validity
 from mora import common
@@ -1432,7 +1433,7 @@ class Employee:
         """Implemented for backwards compatability."""
         return root.type_
 
-    cpr_no: str | None = strawberry.auto
+    cpr_no: CPRType | None = strawberry.auto
 
     seniority: date | None = strawberry.auto
 
