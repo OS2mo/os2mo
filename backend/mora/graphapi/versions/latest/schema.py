@@ -1855,6 +1855,26 @@ class ITSystem:
     description="User information related to IT systems",
 )
 class ITUser:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: ITUserRead) -> UUID:
+        return root.uuid
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
+
+            Usually set to the key used in external systems.
+
+            Examples:
+            * `"KarK"`
+            * `"AnkS"`
+            """
+        )
+    )
+    async def user_key(self, root: ITUserRead) -> str:
+        return root.user_key
+
     # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
@@ -1934,19 +1954,40 @@ class ITUser:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the ITSystem related to the user.",
+        deprecation_reason=gen_uuid_field_deprecation("itsystem"),
+    )
+    async def itsystem_uuid(self, root: ITUserRead) -> UUID:
+        return root.itsystem_uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description="UUID of the employee related to the user.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: ITUserRead) -> UUID | None:
+        return root.employee_uuid
 
-    itsystem_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the organisation unit related to the user.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: ITUserRead) -> UUID | None:
+        return root.org_unit_uuid
 
-    employee_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the engagement related to the user.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+    )
+    async def engagement_uuid(self, root: ITUserRead) -> UUID | None:
+        return root.engagement_uuid
 
-    org_unit_uuid: UUID | None = strawberry.auto
-
-    engagement_uuid: UUID | None = strawberry.auto
-
-    primary_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the primary klasse of the user.",
+        deprecation_reason=gen_uuid_field_deprecation("primary"),
+    )
+    async def primary_uuid(self, root: ITUserRead) -> UUID | None:
+        return root.primary_uuid
 
     validity: Validity = strawberry.auto
 
