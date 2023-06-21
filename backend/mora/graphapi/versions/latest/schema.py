@@ -1681,6 +1681,12 @@ class Engagement:
     description="Employee engagement in an organisation unit",
 )
 class EngagementAssociation:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: EngagementAssociationRead) -> UUID:
+        return root.uuid
+
+    user_key: str = strawberry.auto
+
     # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
@@ -1732,17 +1738,30 @@ class EngagementAssociation:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the organisation unit related to the engagement association.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: EngagementAssociationRead) -> UUID:
+        return root.org_unit_uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description="UUID of the engagement related to the engagement association.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+    )
+    async def engagement_uuid(self, root: EngagementAssociationRead) -> UUID:
+        return root.engagement_uuid
+
+    @strawberry.field(
+        description="UUID of the engagement association type class.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement_association_type"),
+    )
+    async def engagement_association_type_uuid(
+        self, root: EngagementAssociationRead
+    ) -> UUID:
+        return root.engagement_association_type_uuid
 
     validity: Validity = strawberry.auto
-
-    org_unit_uuid: UUID = strawberry.auto
-
-    engagement_uuid: UUID = strawberry.auto
-
-    engagement_association_type_uuid: UUID = strawberry.auto
 
 
 # Facet
