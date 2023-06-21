@@ -378,7 +378,7 @@ async def test_open_ldap_connection() -> None:
     ldap_connection = manager()
 
     assert not state
-    async with open_ldap_connection(ldap_connection):
+    async with open_ldap_connection(ldap_connection):  # type: ignore
         assert state == [1]
     assert state == [1, 2]
 

@@ -107,7 +107,7 @@ def configure_ldap_connection(settings: Settings) -> ContextManager:
         password=settings.ldap_password.get_secret_value(),
         authentication=NTLM,
         client_strategy=get_client_strategy(),
-        auto_bind=True,
+        auto_bind=True,  # type: ignore
     )
 
     # Turn off the alarm

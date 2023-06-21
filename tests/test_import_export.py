@@ -21,6 +21,7 @@ from ramqp.mo.models import MORoutingKey
 from ramqp.mo.models import ObjectType
 from structlog.testing import capture_logs
 
+from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
 from mo_ldap_import_export.exceptions import DNNotFound
 from mo_ldap_import_export.exceptions import IgnoreChanges
 from mo_ldap_import_export.exceptions import NoObjectsReturnedException
@@ -61,7 +62,6 @@ def sync_tool(context: Context) -> SyncTool:
 async def test_listen_to_changes_in_org_units(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     org_unit_info = {uuid4(): {"name": "Magenta Aps"}}
 
     dataloader.load_mo_org_units = MagicMock()
@@ -224,7 +224,6 @@ async def test_listen_to_changes_in_employees(
     sync_tool: SyncTool,
     converter: MagicMock,
 ) -> None:
-
     settings_mock = MagicMock()
     settings_mock.ldap_search_base = "bar"
 
@@ -385,7 +384,6 @@ async def test_listen_to_changes_in_employees_no_dn(
 async def test_format_converted_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.get_mo_attributes.return_value = ["user_key", "job_function"]
     converter.find_mo_object_class.return_value = "Engagement"
     converter.import_mo_object_class.return_value = Engagement
@@ -472,7 +470,6 @@ async def test_format_converted_engagement_objects(
 async def test_format_converted_employee_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.find_mo_object_class.return_value = "Employee"
 
     employee1 = Employee(cpr_no="1212121234")
@@ -491,7 +488,6 @@ async def test_format_converted_employee_objects(
 async def test_format_converted_employee_address_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -531,7 +527,6 @@ async def test_format_converted_employee_address_objects(
 async def test_format_converted_org_unit_address_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -571,7 +566,6 @@ async def test_format_converted_org_unit_address_objects(
 async def test_format_converted_org_unit_address_objects_identical_to_mo(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -606,7 +600,6 @@ async def test_format_converted_org_unit_address_objects_identical_to_mo(
 async def test_format_converted_address_objects_without_person_or_org_unit(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     converter.get_mo_attributes.return_value = ["value", "address_type"]
     converter.find_mo_object_class.return_value = "Address"
     converter.import_mo_object_class.return_value = Address
@@ -668,7 +661,6 @@ async def test_format_converted_it_user_objects(
 async def test_format_converted_primary_engagement_objects(
     converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
 ):
-
     employee_uuid = uuid4()
     primary_uuid = uuid4()
     engagement1_in_mo_uuid = uuid4()
@@ -932,7 +924,6 @@ async def test_import_single_object_from_LDAP_non_existing_employee(
 
 
 async def test_ignoreMe():
-
     # Initialize empty ignore dict
     strings_to_ignore = IgnoreMe()
     assert len(strings_to_ignore) == 0
@@ -977,7 +968,6 @@ async def test_ignoreMe():
 
 
 async def test_remove_from_ignoreMe():
-
     # Initialize empty ignore dict
     strings_to_ignore = IgnoreMe()
 
@@ -998,7 +988,6 @@ async def test_remove_from_ignoreMe():
 
 
 async def test_wait_for_export_to_finish(sync_tool: SyncTool):
-
     wait_for_export_to_finish = partial(
         sync_tool.wait_for_export_to_finish, sleep_time=0.1
     )
@@ -1064,7 +1053,6 @@ def test_cleanup_needed(sync_tool: SyncTool):
 
 
 async def test_wait_for_import_to_finish(sync_tool: SyncTool):
-
     wait_for_import_to_finish = partial(
         sync_tool.wait_for_import_to_finish, sleep_time=0.1
     )
@@ -1186,3 +1174,41 @@ async def test_refresh_employee(
     # Two for the IT-users
     # One for the engagement
     assert sync_tool.refresh_object.await_count == 5
+
+
+async def test_import_holstebroengagementupdate_objects(
+    context: Context, converter: MagicMock, dataloader: AsyncMock, sync_tool: SyncTool
+):
+    converter.find_mo_object_class.return_value = (
+        "mo_ldap_import_export.customer_specific.HolstebroEngagementUpdate"
+    )
+    converter.import_mo_object_class.return_value = HolstebroEngagementUpdate
+    converter.get_mo_attributes.return_value = ["user", "uuid", "job_function"]
+    converter.get_ldap_to_mo_json_keys.return_value = [
+        "Custom",
+    ]
+
+    user_uuid = uuid4()
+    job_function_uuid = uuid4()
+    eng_uuid = str(uuid4())
+
+    converted_objects = [
+        HolstebroEngagementUpdate.from_simplified_fields(
+            user_uuid=user_uuid, job_function_uuid=job_function_uuid
+        ),
+    ]
+
+    converter.from_ldap.return_value = converted_objects
+
+    with patch(
+        "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
+        return_value=converted_objects,
+    ), patch(
+        "mo_ldap_import_export.customer_specific.HolstebroEngagementUpdate.sync_to_mo",
+        return_value=[
+            eng_uuid,
+        ],
+    ):
+        await asyncio.gather(sync_tool.import_single_user("CN=foo"))
+        dataloader.upload_mo_objects.assert_called_once()
+        assert eng_uuid in sync_tool.uuids_to_ignore.ignore_dict

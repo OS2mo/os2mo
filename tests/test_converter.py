@@ -534,9 +534,10 @@ def test_check_attributes(converter: LdapConverter):
 
 def test_get_accepted_json_keys(converter: LdapConverter):
     output = converter.get_accepted_json_keys()
-    assert len(output) == 5
+    assert len(output) == 6
     assert "Employee" in output
     assert "Engagement" in output
+    assert "Custom" in output
     assert "Email" in output
     assert "Post" in output
     assert "Active Directory" in output

@@ -692,16 +692,23 @@ class SyncTool:
             if len(converted_objects) > 0:
                 logger.info(f"Importing {converted_objects}")
 
-                for mo_object in converted_objects:
-                    self.uuids_to_ignore.add(mo_object.uuid)
-
-                try:
-                    await self.dataloader.upload_mo_objects(converted_objects)
-                except HTTPStatusError as e:
-                    # This can happen, for example if a phone number in LDAP is invalid
-                    logger.warning(e)
+                if json_key == "Custom":
+                    for obj in converted_objects:
+                        uuids_to_ignore = await obj.sync_to_mo(self.context)
+                        for ignore in uuids_to_ignore:
+                            self.uuids_to_ignore.add(ignore)
+                else:
                     for mo_object in converted_objects:
-                        self.uuids_to_ignore.remove(mo_object.uuid)
+                        self.uuids_to_ignore.add(mo_object.uuid)
+
+                    try:
+                        await self.dataloader.upload_mo_objects(converted_objects)
+                    except HTTPStatusError as e:
+                        # This can happen, for example if a phone number in LDAP is
+                        # invalid
+                        logger.warning(e)
+                        for mo_object in converted_objects:
+                            self.uuids_to_ignore.remove(mo_object.uuid)
 
     async def refresh_object(self, uuid: UUID, object_type: ObjectType):
         """

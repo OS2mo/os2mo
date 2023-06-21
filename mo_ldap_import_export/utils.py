@@ -14,6 +14,7 @@ from ldap3.utils.dn import parse_dn
 from ldap3.utils.dn import safe_dn
 from ldap3.utils.dn import to_dn
 
+from .customer_specific import HolstebroEngagementUpdate
 from .exceptions import InvalidQuery
 from .logging import logger
 
@@ -21,7 +22,12 @@ from .logging import logger
 # https://stackoverflow.com/questions/547829/how-to-dynamically-load-a-python-class
 def import_class(name):
     components = name.split(".")
-    mod = __import__(components[0])
+    if components[0] == "Custom":
+        match components[1]:
+            case "HolstebroEngagementUpdate":
+                return HolstebroEngagementUpdate
+    else:
+        mod = __import__(components[0])
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
