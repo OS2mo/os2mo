@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from pydantic import ConstrainedStr
 from pydantic import Field
 from pydantic import root_validator
+from schema import ExtensionsField  # type: ignore
 
 from mora import common
 from mora import exceptions
@@ -21,7 +22,6 @@ from mora.util import ONE_DAY
 from mora.util import POSITIVE_INFINITY
 from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
-from ramodels.mo._shared import ExtensionsField
 from ramodels.mo._shared import UUIDBase
 
 logger = logging.getLogger(__name__)
@@ -602,6 +602,17 @@ class EngagementTerminate(ValidityTerminate):
         )
 
 
+EXTENSION_FIELD_DESCRIPTION = dedent(
+    """
+            Arbitrary value extension fields.
+
+            A collection of field for storing arbitrary extra data.
+            Can be used for extraordinary occasions when no standardized field to model the data exists.
+
+        """
+)
+
+
 class EngagementCreate(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID = Field(description="The related org-unit object.")
@@ -609,106 +620,17 @@ class EngagementCreate(UUIDBase):
     engagement_type: UUID
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension_1: ExtensionsField | None = Field(
-        description=dedent(
-            """
-            Arbitrary value extension fields.
-
-            A collection of field for storing arbitrary extra data.
-            Can be used for extraordinary occasions when no standardized field to model the data exists.
-
-        """
-        )
-    )
-    extension_2: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_3: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_4: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_5: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_6: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_7: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_8: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_9: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
+    extension_1: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_10: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
+        description=EXTENSION_FIELD_DESCRIPTION
     )
 
     def to_handler_dict(self) -> dict:
@@ -751,106 +673,17 @@ class EngagementUpdate(UUIDBase):
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension_1: ExtensionsField | None = Field(
-        description=dedent(
-            """
-            Arbitrary value extension fields.
-
-            A collection of field for storing arbitrary extra data.
-            Can be used for extraordinary occasions when no standardized field to model the data exists.
-
-        """
-        )
-    )
-    extension_2: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_3: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_4: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_5: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_6: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_7: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_8: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
-    extension_9: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
-    )
+    extension_1: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_10: ExtensionsField | None = Field(
-        description=dedent(
-            """
-    Arbitrary value extension fields.
-
-    A collection of field for storing arbitrary extra data.
-    Can be used for extraordinary occasions when no standardized field to model the data exists.
-    """
-        )
+        description=EXTENSION_FIELD_DESCRIPTION
     )
 
     def to_handler_dict(self) -> dict:
