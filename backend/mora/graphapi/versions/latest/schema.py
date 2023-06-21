@@ -2192,16 +2192,6 @@ class OrganisationUnit:
 
     name: str = strawberry.auto
 
-    parent_uuid: UUID | None = strawberry.auto
-
-    org_unit_hierarchy: UUID | None = strawberry.auto
-
-    unit_type_uuid: UUID | None = strawberry.auto
-
-    org_unit_level_uuid: UUID | None = strawberry.auto
-
-    time_planning_uuid: UUID | None = strawberry.auto
-
     validity: Validity = strawberry.auto
 
     @strawberry.field(
@@ -2304,6 +2294,41 @@ class OrganisationUnit:
             gen_read_permission("engagement_association"),
         ],
     )
+
+    @strawberry.field(
+        description="UUID of the parent organisation unit.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit_hierarchy_model"),
+    )
+    async def org_unit_hierarchy(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.org_unit_hierarchy
+
+    @strawberry.field(
+        description="UUID of the parent organisation unit.",
+        deprecation_reason=gen_uuid_field_deprecation("parent"),
+    )
+    async def parent_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.parent_uuid
+
+    @strawberry.field(
+        description="UUID of the organisation unit type.",
+        deprecation_reason=gen_uuid_field_deprecation("unit_type"),
+    )
+    async def unit_type_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.unit_type_uuid
+
+    @strawberry.field(
+        description="UUID of the organisation unit level.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit_level"),
+    )
+    async def org_unit_level_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.org_unit_level_uuid
+
+    @strawberry.field(
+        description="UUID of the time planning object.",
+        deprecation_reason=gen_uuid_field_deprecation("time_planning"),
+    )
+    async def time_planning_uuid(self, root: OrganisationUnitRead) -> UUID | None:
+        return root.time_planning_uuid
 
 
 # Related Unit
