@@ -196,7 +196,7 @@ class Query:
     # ---------
     addresses: Paged[Response[Address]] = strawberry.field(
         resolver=to_paged_response(AddressResolver()),
-        description="Get a list of all addresses, optionally by uuid(s)",
+        description="Get addresses.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
@@ -204,7 +204,7 @@ class Query:
     # ------------
     associations: Paged[Response[Association]] = strawberry.field(
         resolver=to_paged_response(AssociationResolver()),
-        description="Get a list of all Associations, optionally by uuid(s)",
+        description="Get associations.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
@@ -215,7 +215,7 @@ class Query:
     # -------
     classes: Paged[Response[Class]] = strawberry.field(
         resolver=to_paged_response(ClassResolver()),
-        description="Get a list of all classes, optionally by uuid(s)",
+        description="Get classes.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -223,7 +223,7 @@ class Query:
     # ---------
     employees: Paged[Response[Employee]] = strawberry.field(
         resolver=to_paged_response(EmployeeResolver()),
-        description="Get a list of all employees, optionally by uuid(s)",
+        description="Get employees.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -231,7 +231,7 @@ class Query:
     # -----------
     engagements: Paged[Response[Engagement]] = strawberry.field(
         resolver=to_paged_response(EngagementResolver()),
-        description="Get a list of all engagements, optionally by uuid(s)",
+        description="Get engagements.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -242,7 +242,7 @@ class Query:
     # -----------
     engagement_associations: Paged[Response[EngagementAssociation]] = strawberry.field(
         resolver=to_paged_response(EngagementAssociationResolver()),
-        description="Get a list of engagement associations",
+        description="Get engagement associations.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement_association"),
@@ -253,7 +253,7 @@ class Query:
     # ------
     facets: Paged[Response[Facet]] = strawberry.field(
         resolver=to_paged_response(FacetResolver()),
-        description="Get a list of all facets, optionally by uuid(s)",
+        description="Get facets.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
     )
 
@@ -261,7 +261,7 @@ class Query:
     # ---------
     itsystems: Paged[Response[ITSystem]] = strawberry.field(
         resolver=to_paged_response(ITSystemResolver()),
-        description="Get a list of all ITSystems, optionally by uuid(s)",
+        description="Get it-systems.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
     )
 
@@ -269,7 +269,7 @@ class Query:
     # -------
     itusers: Paged[Response[ITUser]] = strawberry.field(
         resolver=to_paged_response(ITUserResolver()),
-        description="Get a list of all ITUsers, optionally by uuid(s)",
+        description="Get it-users.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
@@ -277,7 +277,7 @@ class Query:
     # ----
     kles: Paged[Response[KLE]] = strawberry.field(
         resolver=to_paged_response(KLEResolver()),
-        description="Get a list of all KLE's, optionally by uuid(s)",
+        description="Get kles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
@@ -285,7 +285,7 @@ class Query:
     # -----
     leaves: Paged[Response[Leave]] = strawberry.field(
         resolver=to_paged_response(LeaveResolver()),
-        description="Get a list of all leaves, optionally by uuid(s)",
+        description="Get leaves.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
@@ -293,7 +293,7 @@ class Query:
     # --------
     managers: Paged[Response[Manager]] = strawberry.field(
         resolver=to_paged_response(ManagerResolver()),
-        description="Get a list of all managers, optionally by uuid(s)",
+        description="Get manager roles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
 
@@ -301,7 +301,7 @@ class Query:
     # --------------------
     org_units: Paged[Response[OrganisationUnit]] = strawberry.field(
         resolver=to_paged_response(OrganisationUnitResolver()),
-        description="Get organisation units",
+        description="Get organisation units.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -309,7 +309,7 @@ class Query:
     # -------------
     related_units: Paged[Response[RelatedUnit]] = strawberry.field(
         resolver=to_paged_response(RelatedUnitResolver()),
-        description="Get related organisation units",
+        description="Get related organisation units.",
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
