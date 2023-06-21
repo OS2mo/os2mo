@@ -40,6 +40,7 @@ from .resolver_map import resolver_map
 from .resolvers import AddressResolver
 from .resolvers import AssociationResolver
 from .resolvers import ClassResolver
+from .resolvers import CursorType
 from .resolvers import EmployeeResolver
 from .resolvers import EngagementAssociationResolver
 from .resolvers import EngagementResolver
@@ -53,7 +54,6 @@ from .resolvers import OrganisationUnitResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
-from .types import Cursor
 from .validity import OpenValidity
 from .validity import Validity
 from mora import common
@@ -2692,7 +2692,6 @@ class RelatedUnit:
 
     validity: Validity = strawberry.auto
 
-    org_unit_uuids: list[UUID] = strawberry.auto
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
@@ -2713,6 +2712,13 @@ class RelatedUnit:
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
+
+    @strawberry.field(
+        description="UUIDs of the related organisation units.",
+        deprecation_reason=gen_uuid_field_deprecation("org_units"),
+    )
+    async def org_unit_uuids(self, root: RelatedUnitRead) -> list[UUID]:
+        return root.org_unit_uuids
 
 
 # Role
@@ -2937,7 +2943,7 @@ T = TypeVar("T")
     )
 )
 class PageInfo:
-    next_cursor: Cursor | None = strawberry.field(
+    next_cursor: CursorType = strawberry.field(
         description=dedent(
             """
             Cursor for the next page of results.
