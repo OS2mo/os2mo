@@ -1456,6 +1456,26 @@ class Employee:
     description="Employee engagement in an organisation unit",
 )
 class Engagement:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: EngagementRead) -> UUID:
+        return root.uuid
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
+
+            Usually set to the `id` used in external systems.
+
+            Examples:
+            * `"11009"`
+            * `"02782"`
+            """
+        )
+    )
+    async def user_key(self, root: EngagementRead) -> str:
+        return root.user_key
+
     engagement_type: LazyClass = strawberry.field(
         resolver=seed_resolver_one(
             ClassResolver(),
@@ -1585,21 +1605,47 @@ class Engagement:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the engagement type class.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement_type"),
+    )
+    async def engagement_type_uuid(self, root: EngagementRead) -> UUID:
+        return root.engagement_type_uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description="UUID of the employee related to the engagement.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: EngagementRead) -> UUID:
+        return root.employee_uuid
 
-    org_unit_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the organisation unit related to the engagement.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: EngagementRead) -> UUID:
+        return root.org_unit_uuid
 
-    employee_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the job function class.",
+        deprecation_reason=gen_uuid_field_deprecation("job_function"),
+    )
+    async def job_function_uuid(self, root: EngagementRead) -> UUID:
+        return root.job_function_uuid
 
-    engagement_type_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the leave related to the engagement.",
+        deprecation_reason=gen_uuid_field_deprecation("leave"),
+    )
+    async def leave_uuid(self, root: EngagementRead) -> UUID | None:
+        return root.leave_uuid
 
-    job_function_uuid: UUID = strawberry.auto
-
-    leave_uuid: UUID | None = strawberry.auto
-
-    primary_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the primary klasse of the engagement.",
+        deprecation_reason=gen_uuid_field_deprecation("primary"),
+    )
+    async def primary_uuid(self, root: EngagementRead) -> UUID | None:
+        return root.primary_uuid
 
     validity: Validity = strawberry.auto
 
