@@ -90,8 +90,14 @@ def converters(
             converter.get_object_uuid_from_user_key = MagicMock()  # type: ignore
             converter.get_object_uuid_from_user_key.return_value = str(uuid)
 
+            converter.get_object_uuid_from_name = MagicMock()  # type: ignore
+            converter.get_object_uuid_from_name.return_value = str(uuid)
+
             converter.get_object_user_key_from_uuid = MagicMock()  # type: ignore
             converter.get_object_user_key_from_uuid.return_value = "object_user_key"
+
+            converter.get_object_name_from_uuid = MagicMock()  # type: ignore
+            converter.get_object_name_from_uuid.return_value = "object_name"
 
             converters[json_filename] = converter
 
