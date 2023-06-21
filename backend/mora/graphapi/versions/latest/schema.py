@@ -1774,11 +1774,52 @@ class EngagementAssociation:
     description="The key component of the class/facet choice setup",
 )
 class Facet:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: FacetRead) -> UUID:
+        return root.uuid
+
+    user_key: str = strawberry.auto
+
     classes: list[LazyClass] = strawberry.field(
         resolver=seed_resolver_list(
             ClassResolver(), {"facets": lambda root: [root.uuid]}
         ),
         description="Associated classes",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
+    parent: LazyClass | None = strawberry.field(
+        resolver=seed_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        ),
+        description=dedent(
+            """
+            Parent facet.
+
+            Almost always `null` as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
+    )
+
+    children: list[LazyClass] = strawberry.field(
+        resolver=seed_resolver_list(
+            ClassResolver(),
+            {"parents": lambda root: [root.uuid]},
+        ),
+        description=dedent(
+            """
+            Facet children.
+
+            Almost always an empty list as class hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `parent`.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -1801,15 +1842,25 @@ class Facet:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the related organisation.",
+        deprecation_reason=dedent(
+            """
+            The root organisation concept will be removed in a future version of OS2mo.
+            """
+        ),
+    )
+    async def org_uuid(self, root: FacetRead) -> UUID:
+        return root.org_uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description="UUID of the parent facet.",
+        deprecation_reason=gen_uuid_field_deprecation("parent"),
+    )
+    async def parent_uuid(self, root: FacetRead) -> UUID | None:
+        return root.parent_uuid
 
     published: str | None = strawberry.auto
-
-    org_uuid: UUID = strawberry.auto
-
-    parent_uuid: UUID | None = strawberry.auto
 
     description: str = strawberry.auto
 
