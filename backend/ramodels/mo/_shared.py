@@ -100,9 +100,11 @@ class EngagementType(MORef):
     """Engagement type reference."""
 
 
-class ExtensionsField(RABase):
+class ExtensionsField(MORef):
     """Extensions field for an Engagement object. May be used to store arbitrary value,
     for extraordinary occasions when no standardized field to model the data exists."""
+
+    pass
 
 
 class AssociationType(MORef):
