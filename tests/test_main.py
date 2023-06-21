@@ -590,6 +590,12 @@ def test_load_address_from_MO_endpoint(test_client: TestClient, headers: dict):
     assert response.status_code == 202
 
 
+def test_export_single_user_endpoint(test_client: TestClient, headers: dict):
+    uuid = uuid4()
+    response = test_client.post(f"/Export/{uuid}", headers=headers)
+    assert response.status_code == 202
+
+
 def test_load_address_types_from_MO_endpoint(test_client: TestClient, headers: dict):
     response = test_client.get("/MO/Address_types_employee", headers=headers)
     assert response.status_code == 202

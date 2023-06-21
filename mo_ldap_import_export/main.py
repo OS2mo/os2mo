@@ -542,6 +542,14 @@ def create_app(**kwargs: Any) -> FastAPI:
             self.delay_in_minutes = delay_in_minutes
             self.delay_in_seconds = delay_in_seconds
 
+    # Export all objects related to a single employee from MO to LDAP
+    @app.post("/Export/{employee_uuid}", status_code=202, tags=["Export"])
+    async def export_mo_employee(
+        employee_uuid: UUID,
+        user=Depends(login_manager),
+    ) -> Any:
+        await sync_tool.refresh_employee(employee_uuid)
+
     # Export object(s) from MO to LDAP
     @app.post("/Export", status_code=202, tags=["Export"])
     async def export_mo_objects(

@@ -1142,3 +1142,47 @@ async def test_export_org_unit_addresses_on_engagement_change(
     await sync_tool.export_org_unit_addresses_on_engagement_change(routing_key, payload)
 
     sync_tool.refresh_object.assert_awaited_once()
+
+
+async def test_refresh_employee(
+    sync_tool: SyncTool,
+    dataloader: AsyncMock,
+    converter: MagicMock,
+):
+
+    address_types = {
+        uuid4(): "address_type 1",
+        uuid4(): "address_type 2",
+    }
+
+    it_systems = {
+        uuid4(): "it_system 1",
+        uuid4(): "it_system 2",
+    }
+
+    converter.employee_address_type_info = address_types
+    converter.it_system_info = it_systems
+
+    address = Address.from_simplified_fields("foo", uuid4(), "2021-01-01")
+    it_user = ITUser.from_simplified_fields("mucki", uuid4(), "2020-01-01")
+    engagement = Engagement.from_simplified_fields(
+        uuid4(), uuid4(), uuid4(), uuid4(), "bar", "2019-01-01"
+    )
+
+    dataloader.load_mo_employee_addresses.return_value = [address]
+    dataloader.load_mo_employee_it_users.return_value = [it_user]
+    dataloader.load_mo_employee_engagements.return_value = [engagement]
+
+    sync_tool.refresh_object = AsyncMock()  # type: ignore
+
+    await sync_tool.refresh_employee(uuid4())
+
+    sync_tool.refresh_object.assert_any_await(address.uuid, ObjectType.ADDRESS)
+    sync_tool.refresh_object.assert_any_await(it_user.uuid, ObjectType.IT)
+    sync_tool.refresh_object.assert_any_await(engagement.uuid, ObjectType.ENGAGEMENT)
+
+    # We expect 5 calls:
+    # Two for the addresses
+    # Two for the IT-users
+    # One for the engagement
+    assert sync_tool.refresh_object.await_count == 5

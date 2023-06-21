@@ -746,3 +746,45 @@ class SyncTool:
             # Export this org-unit's addresses to LDAP by publishing to internal AMQP
             for org_unit_address_uuid in org_unit_address_uuids:
                 await self.refresh_object(org_unit_address_uuid, ObjectType.ADDRESS)
+
+    async def refresh_employee(self, employee_uuid: UUID):
+        """
+        Sends out AMQP-messages for all objects related to an employee
+        """
+        logger.info(f"Refreshing employee with uuid = {employee_uuid}")
+
+        # Load address types and it-user types
+        address_type_uuids = self.converter.employee_address_type_info.keys()
+        it_system_uuids = self.converter.it_system_info.keys()
+
+        # Load addresses
+        addresses = []
+        for address_type_uuid in address_type_uuids:
+            addresses.extend(
+                await self.dataloader.load_mo_employee_addresses(
+                    employee_uuid, address_type_uuid
+                )
+            )
+
+        # Load engagements
+        # Note: engagement addresses are automatically picked up on engagement change
+        engagements = await self.dataloader.load_mo_employee_engagements(employee_uuid)
+
+        # Load IT-users
+        it_users = []
+        for it_system_uuid in it_system_uuids:
+            it_users.extend(
+                await self.dataloader.load_mo_employee_it_users(
+                    employee_uuid, it_system_uuid
+                )
+            )
+
+        # Publish messages
+        for address in addresses:
+            await self.refresh_object(address.uuid, ObjectType.ADDRESS)
+
+        for it_user in it_users:
+            await self.refresh_object(it_user.uuid, ObjectType.IT)
+
+        for engagement in engagements:
+            await self.refresh_object(engagement.uuid, ObjectType.ENGAGEMENT)

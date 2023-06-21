@@ -768,6 +768,7 @@ class DataLoader:
                     await self.sync_tool.import_single_user(
                         dn, force=True, manual_import=True
                     )
+                    await self.sync_tool.refresh_employee(employee.uuid)
                     return dn
 
         # If there are multiple LDAP-it-users: Make some noise until this is fixed in MO
@@ -795,6 +796,7 @@ class DataLoader:
             )
             await self.upload_mo_objects([it_user])
             await self.sync_tool.import_single_user(dn, force=True, manual_import=True)
+            await self.sync_tool.refresh_employee(employee.uuid)
             return dn
         # If the LDAP-it-system is not configured and the user also does not have a cpr-
         # Number we can end up here.
@@ -1144,7 +1146,7 @@ class DataLoader:
         return engagement
 
     async def load_mo_employee_addresses(
-        self, employee_uuid, address_type_uuid
+        self, employee_uuid: UUID, address_type_uuid: UUID
     ) -> list[Address]:
         """
         Loads all current addresses of a specific type for an employee
@@ -1201,8 +1203,8 @@ class DataLoader:
 
     async def load_mo_employee_it_users(
         self,
-        employee_uuid,
-        it_system_uuid,
+        employee_uuid: UUID,
+        it_system_uuid: UUID,
     ) -> list[ITUser]:
         """
         Load all current it users of a specific type linked to an employee
