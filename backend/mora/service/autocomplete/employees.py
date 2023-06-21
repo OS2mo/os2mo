@@ -23,6 +23,7 @@ from .shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora import util
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
+from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
@@ -41,6 +42,7 @@ async def search_employees(
             for cte in (
                 _get_cte_uuid_hits(query, at_sql),
                 _get_cte_name_hits(query, at_sql),
+                _get_cte_cpr_hits(query, at_sql),
                 _get_cte_addr_hits(query, at_sql),
                 _get_cte_itsystem_hits(query, at_sql),
             )
@@ -199,6 +201,26 @@ def _get_cte_name_hits(query: str, at_sql: str):
             BrugerRegistrering.bruger_id != None,  # noqa: E711
             name_concated.ilike(search_phrase),
             text(f"(bruger_attr_udvidelser.virkning).timeperiod @> {at_sql}"),
+        )
+        .cte()
+    )
+
+
+def _get_cte_cpr_hits(query: str, at_sql: str):
+    # NOTE: CPR is persisted as a URN in the relation tbl
+    query = string_to_urn(query)
+    search_phrase = util.query_to_search_phrase(query)
+
+    return (
+        select(BrugerRegistrering.bruger_id.label("uuid"))
+        .join(
+            BrugerRelation,
+            BrugerRelation.bruger_registrering_id == BrugerRegistrering.id,
+        )
+        .where(
+            BrugerRegistrering.bruger_id != None,  # noqa: E711
+            BrugerRelation.rel_maal_urn.ilike(search_phrase),
+            text(f"(bruger_relation.virkning).timeperiod @> {at_sql}"),
         )
         .cte()
     )
