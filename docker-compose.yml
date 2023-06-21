@@ -48,15 +48,6 @@ services:
       - ./.cov-report:/tmp/.cov-report:rw
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
     entrypoint: ["/wait-for-rabbitmq.sh"]
-    command: [
-        # In production, we use gunicorn with the worker class
-        # "uvicorn.workers.UvicornWorker", but that does not work with --reload,
-        # so we use uvicorn in development at the cost of some dev/prod parity.
-        # This has one issue in dev where the service won't restart (because of
-        # the --reload flag) when an error occurs. The service restarts as soon
-        # as a file is edited though.
-        "./docker/start.sh"
-    ]
     ports:
       - "127.0.0.1:5002:80"
     env_file: dev-environment/os2mo.env
