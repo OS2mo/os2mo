@@ -1298,6 +1298,28 @@ class Class:
     description="Employee/identity specific information",
 )
 class Employee:
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: EmployeeRead) -> UUID:
+        return root.uuid
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
+
+            Usually set to be set to the key used in external systems.
+
+            Defaults to the `uuid` generated on object creation.
+
+            Examples:
+            * `"1462"`
+            * `"XSIMP"`
+            """
+        )
+    )
+    async def user_key(self, root: ClassRead) -> str:
+        return root.user_key
+
     @strawberry.field(description="Full name of the employee")
     async def name(self, root: EmployeeRead) -> str:
         return f"{root.givenname} {root.surname}".strip()
@@ -1409,10 +1431,6 @@ class Employee:
     async def type(self, root: EmployeeRead) -> str:
         """Implemented for backwards compatability."""
         return root.type_
-
-    uuid: UUID = strawberry.auto
-
-    user_key: str = strawberry.auto
 
     cpr_no: str | None = strawberry.auto
 
