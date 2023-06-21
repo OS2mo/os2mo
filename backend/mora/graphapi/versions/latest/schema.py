@@ -84,6 +84,8 @@ from ramodels.mo.details import RoleRead
 # TODO: Remove RAModels dependency, be purely Strawberry models
 # TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
 # TODO: Remove resolver filter parameters for single-object UUID-selected fields?
+# TODO: Document everything about engagement associations
+# TODO: Document everything fields on org-units
 
 
 MOObject = TypeVar("MOObject")
@@ -455,6 +457,16 @@ def gen_uuid_field_deprecation(field: str) -> str:
     )
 
 
+# TODO: Remove list and make optional instead all the places this is used
+list_to_optional_field_warning = dedent(
+    """
+
+    **Warning**:
+    This field will probably become an optional entity instead of a list in the future.
+    """
+)
+
+
 # Address
 # -------
 
@@ -520,7 +532,6 @@ class Address:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             seed_resolver_list(
@@ -540,7 +551,8 @@ class Address:
             Note:
             This field is mutually exclusive with the `org_unit` field.
             """
-        ),
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -600,6 +612,8 @@ class Address:
 
         Name is *usually* equal to `value`, but may differ if `value` is not human readable.
         This may for instance be the case for `DAR` addresses, where the value is the DAR UUID, while the name is a human readable address.
+
+        This is the value that should be shown to users in UIs.
 
         Examples:
         * `"Vifdam 20, 1. th, 6000 Kolding"`
@@ -854,26 +868,33 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
-        description="Connected employee",
+        description=dedent(
+            """
+            Associated employee.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="Connected organisation unit",
+        description=dedent(
+            """
+            Associated organisation unit.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    # TODO: Remove list, make optional employee
     substitute: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
@@ -882,7 +903,8 @@ class Association:
             """
             Optional subsitute if `employee` is unavailable.
             """
-        ),
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -903,7 +925,6 @@ class Association:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: modify list[LazyITUser] to LazyITUser | None
     it_user: list[LazyITUser] = strawberry.field(
         resolver=seed_resolver_list(
             ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
@@ -911,11 +932,9 @@ class Association:
         description=dedent(
             """
             The IT-user utilized by the employee when fulfilling the association responsibilities.
-
-            **Warning**:
-            This field will probably become an optional entity instead of a list in the future.
             """
-        ),
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
@@ -1318,23 +1337,21 @@ class Employee:
             """
         )
     )
-    async def user_key(self, root: ClassRead) -> str:
+    async def user_key(self, root: EmployeeRead) -> str:
         return root.user_key
-
-    @strawberry.field(description="Full name of the employee")
-    async def name(self, root: EmployeeRead) -> str:
-        return f"{root.givenname} {root.surname}".strip()
-
-    @strawberry.field(description="Full nickname of the employee")
-    async def nickname(self, root: EmployeeRead) -> str:
-        return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
     engagements: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="List of Engagements for the employee",
+        description=dedent(
+            """"
+            Engagements for the employee.
+
+            May be an empty list if the employee is not employeed.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -1347,8 +1364,10 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """List of UUIDS to connected manager roles to the Employee, empty if
-            employee is not a manager
+            """
+            Managerial roles for the employee.
+
+            Usually an empty list as most employees are not managers.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
@@ -1359,7 +1378,11 @@ class Employee:
             AddressResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Addresses for the employee",
+        description=dedent(
+            """
+            Addresses for the employee.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
@@ -1368,7 +1391,13 @@ class Employee:
             LeaveResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Leaves for the employee",
+        description=dedent(
+            """
+            Leaves of absence for the employee.
+
+            Usually empty as most employees are not on leaves of absence.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
@@ -1377,7 +1406,13 @@ class Employee:
             AssociationResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Associations for the employee",
+        description=dedent(
+            """
+            Associations for the employee.
+
+            May be an empty list if the employee is not associated with projects, etc.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
@@ -1389,7 +1424,13 @@ class Employee:
             RoleResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="Roles for the employee",
+        description=dedent(
+            """
+            Roles the employee has within the organisation.
+
+            May be an empty list if the employee does not fulfill any roles in the organisation.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
@@ -1398,7 +1439,13 @@ class Employee:
             ITUserResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
-        description="IT users for the employee",
+        description=dedent(
+            """
+            IT accounts for the employee.
+
+            May be an empty list if the employee does not have any IT-access whatsoever.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
@@ -1407,6 +1454,7 @@ class Employee:
             EngagementAssociationResolver(),
             {"employees": lambda root: [root.uuid]},
         ),
+        # TODO: Document this
         description="Engagement associations",
         permission_classes=[
             IsAuthenticatedPermission,
@@ -1433,13 +1481,25 @@ class Employee:
         """Implemented for backwards compatability."""
         return root.type_
 
+    # TODO: Document this
     cpr_no: CPRType | None = strawberry.auto
 
+    # TODO: Document this
     seniority: date | None = strawberry.auto
+
+    # TODO: Deprecate this?
+    @strawberry.field(description="Full name of the employee")
+    async def name(self, root: EmployeeRead) -> str:
+        return f"{root.givenname} {root.surname}".strip()
 
     givenname: str = strawberry.auto
 
     surname: str = strawberry.auto
+
+    # TODO: Deprecate this?
+    @strawberry.field(description="Full nickname of the employee")
+    async def nickname(self, root: EmployeeRead) -> str:
+        return f"{root.nickname_givenname} {root.nickname_surname}".strip()
 
     nickname_givenname: str | None = strawberry.auto
 
@@ -1540,7 +1600,15 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    @strawberry.field(description="Is it primary")
+    @strawberry.field(
+        description=dedent(
+            """
+        Whether this engagement is the primary engagement.
+
+        Checks if the `primary` field contains either a class with user-key: `"primary"` or `"explicitly-primary"`.
+        """
+        )
+    )
     async def is_primary(self, root: EngagementRead, info: Info) -> bool:
         if not root.primary_uuid:
             return False
@@ -1556,22 +1624,30 @@ class Engagement:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
-    # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
-        description="Related employee",
+        description=dedent(
+            """
+            The employee fulfilling the engagement.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
-        description="Related organisation unit",
+        description=dedent(
+            """
+            The organisation unit where the engagement is being fulfilled.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -1648,29 +1724,22 @@ class Engagement:
     async def primary_uuid(self, root: EngagementRead) -> UUID | None:
         return root.primary_uuid
 
-    validity: Validity = strawberry.auto
-
+    # TODO: Document this
     fraction: int | None = strawberry.auto
 
+    # TODO: Make structured model for these?
     extension_1: str | None = strawberry.auto
-
     extension_2: str | None = strawberry.auto
-
     extension_3: str | None = strawberry.auto
-
     extension_4: str | None = strawberry.auto
-
     extension_5: str | None = strawberry.auto
-
     extension_6: str | None = strawberry.auto
-
     extension_7: str | None = strawberry.auto
-
     extension_8: str | None = strawberry.auto
-
     extension_9: str | None = strawberry.auto
-
     extension_10: str | None = strawberry.auto
+
+    validity: Validity = strawberry.auto
 
 
 # Engagement Association
@@ -1686,25 +1755,34 @@ class EngagementAssociation:
     async def uuid(self, root: EngagementAssociationRead) -> UUID:
         return root.uuid
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
-    # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="Connected organisation unit",
+        description=dedent(
+            """
+            Connected organisation unit.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
-    # TODO: Remove list, make concrete engagement
     engagement: list[LazyEngagement] = strawberry.field(
         resolver=seed_resolver_list(
             EngagementResolver(),
             {"uuids": lambda root: [root.engagement_uuid]},
         ),
-        description="Related engagement",
+        description=dedent(
+            """
+            Related engagement.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -1801,16 +1879,51 @@ class Facet:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: FacetRead) -> UUID:
+        return root.uuid
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
-    published: str | None = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Published state of the facet object.
 
-    org_uuid: UUID = strawberry.auto
+            Whether the facet is published or not, aka. if it should be shown.
 
+            Examples:
+            * `"Publiceret"`
+            * `"IkkePubliceret"`
+            * `"Normal"`
+
+            Note:
+            Return change may change to an enum in the future.
+
+            May eventually be superseeded by validities on facets.
+            """
+        )
+    )
+    # TODO: Change to returning an enum instead, remove optional
+    async def published(self, root: FacetRead) -> str | None:
+        return root.published
+
+    @strawberry.field(
+        description="UUID of the related organisation.",
+        deprecation_reason=dedent(
+            """
+            The root organisation concept will be removed in a future version of OS2mo.
+            """
+        ),
+    )
+    async def org_uuid(self, root: ClassRead) -> UUID:
+        return root.org_uuid
+
+    # TODO: No parent field or children fields are defined here?
     parent_uuid: UUID | None = strawberry.auto
 
+    # TODO: Document this
     description: str = strawberry.auto
 
 
@@ -1823,6 +1936,8 @@ class Facet:
     description="Systems that IT users are connected to",
 )
 class ITSystem:
+    # TODO: Allow querying all accounts
+
     @strawberry.field(
         description=dedent(
             """
@@ -1842,18 +1957,58 @@ class ITSystem:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: ITSystemRead) -> UUID:
+        return root.uuid
 
-    name: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+        Human readable name of the itsystem.
 
-    user_key: str = strawberry.auto
+        This is the value that should be shown to users in UIs.
 
+        Examples:
+        * `"SAP"`
+        * `"Active Directory"`
+        * `"SD UUID"`
+        """
+        )
+    )
+    async def name(self, root: ITSystemRead) -> str:
+        return root.name
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
+
+            Usually set to be set to the key used in external systems.
+
+            Examples:
+            * `"sap_user_uuid"`
+            * `"ad_guid"`
+            * `"sd_employee_uuid"`
+            """
+        )
+    )
+    async def user_key(self, root: ITSystemRead) -> str:
+        return root.user_key
+
+    # TODO: Document this
     system_type: str | None = strawberry.auto
 
 
 @strawberry.experimental.pydantic.type(
     model=ITUserRead,
-    description="User information related to IT systems",
+    description=dedent(
+        """
+        User information related to IT systems.
+
+        This is commonly used to map out IT accounts or IT service accounts.
+        It is however also used to hold IT system specific identifiers for correlation purposes.
+        """
+    ),
 )
 class ITUser:
     @strawberry.field(description="UUID of the entity")
@@ -1870,13 +2025,14 @@ class ITUser:
             Examples:
             * `"KarK"`
             * `"AnkS"`
+            * `"XSIMP"`
+            * `"04184cb6-a5de-47e6-8a08-03cae9ee4c54"`
             """
         )
     )
     async def user_key(self, root: ITUserRead) -> str:
         return root.user_key
 
-    # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             seed_resolver_list(
@@ -1889,7 +2045,15 @@ class ITUser:
                 },
             ),
         ),
-        description="Connected employee",
+        description=dedent(
+            """
+            Employee using the IT account.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -1905,7 +2069,17 @@ class ITUser:
                 },
             ),
         ),
-        description="Connected organisation unit",
+        description=dedent(
+            """
+            Organisation unit using the IT account.
+
+            This is mostly set for service accounts.
+
+            Note:
+            This field is mutually exclusive with the `org_unit` field.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -1921,7 +2095,15 @@ class ITUser:
                 },
             ),
         ),
-        description="Related engagement",
+        description=dedent(
+            """
+            Engagement scoping of the account.
+
+            A person may have multiple IT accounts with each account being relevant for only a single engagement.
+            This field allows scoping IT accounts such that it is obvious which engagement has given which it-access.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -1932,8 +2114,36 @@ class ITUser:
         resolver=seed_resolver_one(
             ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
         ),
-        description="Connected itsystem",
+        description=dedent(
+            """
+            ITSystem this account is for.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("itsystem")],
+    )
+
+    primary: LazyClass | None = strawberry.field(
+        resolver=seed_resolver_only(
+            ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
+        ),
+        description=dedent(
+            """
+            Marks which IT account is primary.
+
+            When exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.
+            What primarity means is vaguely defined, but usually derived from workload or time-allocation.
+
+            Examples  of user-keys:
+            * `"primary"`
+            * `"non-primary"`
+            * `"explicitly-primary"`
+
+            It is a convention that at most one IT account for each employee / employee+engagement is set as either `primary` or `explicitly-primary`.
+            This convention is in place as if more IT accounts are primary, the entire purpose of the field breaks down.
+            In the future this convention may become an invariant.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
     @strawberry.field(
@@ -1999,14 +2209,54 @@ class ITUser:
 
 @strawberry.experimental.pydantic.type(
     model=KLERead,
-    description="Kommunernes Landsforenings Emnesystematik",
+    description=dedent(
+        """
+        KLE responsibility mapping.
+
+        KLE stands for "Kommunernes Landsforenings Emnesystematik" which is a municipality taxonomy for mapping out municipality tasks.
+
+        In OS2mo KLE responsibilities can be mapped to organisation units to signify that a given organisational unit operates within certain municipality tasks.
+        Adding KLE responsibilities to organisational units can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.
+
+        The KLE numbers themselves are dot seperated structured numbers alike this:
+        * `"00.75.00"`: General data exchanges
+        * `"21.02.05"`: Library study cafes
+        * `"32.15.08"`: Alimony
+
+        The first number specifies the main-group, such as:
+        * `"00"`: Municipality operations (Kommunens styrelse)
+        * `"21"`: Libraries
+        * `"31"`: Monetary benefits
+
+        The second number specifies the group, such as (for libraries):
+        * `"02"`: On-site usage
+        * `"05"`: AV Materials
+        * `"20"`: Online services
+
+        The third and final number specifies the topic, such as (for library on-site usage):
+        * `"00"`: General usage
+        * `"05"`: Study cafes
+        * `"10"`: Study centers
+
+        Some KLE ranges are pre-reserved by The National Association of Municipalities (Kommunernes Landsforenings), however outside of these pre-reserved ranges municipalies are allowed to add their own local numbers.
+        Specifically no main-groups can be added, only groups and topics, both above 79.
+
+        For more details see: https://www.kle-online.dk
+        """
+    ),
 )
 class KLE:
     kle_number: LazyClass = strawberry.field(
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
         ),
-        description="KLE number",
+        description=dedent(
+            """
+            The KLE number specifies the responsibility.
+
+            For more details read the `KLE` description.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2015,7 +2265,18 @@ class KLE:
             ClassResolver(),
             {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
-        description="KLE Aspects",
+        description=dedent(
+            """
+            KLE Aspects.
+
+            The KLE aspect describes the kind of relationship the organisation unit has with the responsibility given by the KLE number.
+
+            Examples of user-keys:
+            * `"Insight"`
+            * `"Executive"`
+            * `"Responsible"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2031,7 +2292,11 @@ class KLE:
                 },
             ),
         ),
-        description="Associated organisation unit",
+        description=dedent(
+            """
+            The organisation unit the responsibility is mapped to.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -2054,15 +2319,47 @@ class KLE:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: KLERead) -> UUID:
+        return root.uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
 
-    kle_number_uuid: UUID = strawberry.auto
+            Usually set to be set to the kle number itself.
 
-    kle_aspect_uuids: list[UUID] = strawberry.auto
+            Examples:
+            * `"00.75.00"`
+            * `"21.02.05"`
+            * `"32.15.08"`
+            """
+        )
+    )
+    async def user_key(self, root: KLERead) -> str:
+        return root.user_key
 
-    org_unit_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the KLE number.",
+        deprecation_reason=gen_uuid_field_deprecation("kle_number"),
+    )
+    async def kle_number_uuid(self, root: KLERead) -> UUID:
+        return root.kle_number_uuid
+
+    @strawberry.field(
+        description="List of UUIDs of the KLE aspect.",
+        deprecation_reason=gen_uuid_field_deprecation("kle_aspects"),
+    )
+    async def kle_aspect_uuids(self, root: KLERead) -> list[UUID]:
+        return root.kle_aspect_uuids
+
+    @strawberry.field(
+        description="UUID of the organisation unit related to the KLE.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: KLERead) -> UUID | None:
+        return root.org_unit_uuid
 
     validity: Validity = strawberry.auto
 
@@ -2073,7 +2370,14 @@ class KLE:
 
 @strawberry.experimental.pydantic.type(
     model=LeaveRead,
-    description="Leave (e.g. parental leave) for employees",
+    description=dedent(
+        """
+        A leave of absence for an employee.
+
+        Can be everything from a pregnancy or maternity leave to a furlough or a garden leave.
+        The `leave_type` can be used to determine the type of leave in question.
+        """
+    ),
 )
 class Leave:
     leave_type: LazyClass = strawberry.field(
@@ -2082,23 +2386,28 @@ class Leave:
         ),
         description=dedent(
             """
-            Describes which kind of leave (e.g parental leave)
+            The kind of leave of absence.
 
             Examples:
             * `"Maternity leave"`
             * `"Parental leave"`
-            * `"Leave to care for sick relative"`
+            * `"Furlough"`
+            * `"Garden Leave"`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
-        description="Related employee",
+        description=dedent(
+            """
+            The absent employee.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
@@ -2107,7 +2416,11 @@ class Leave:
             EngagementResolver(),
             {"uuids": lambda root: [root.engagement_uuid]},
         ),
-        description="Related engagement",
+        description=dedent(
+            """
+            The engagement the employee is absent from.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -2133,15 +2446,33 @@ class Leave:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: LeaveRead) -> UUID:
+        return root.uuid
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
-    employee_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the KLE number.",
+        deprecation_reason=gen_uuid_field_deprecation("leave_type"),
+    )
+    async def leave_type_uuid(self, root: LeaveRead) -> UUID:
+        return root.leave_type_uuid
 
-    leave_type_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the KLE number.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: LeaveRead) -> UUID:
+        return root.employee_uuid
 
-    engagement_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the KLE number.",
+        deprecation_reason=gen_uuid_field_deprecation("engagement"),
+    )
+    async def engagement_uuid(self, root: LeaveRead) -> UUID | None:
+        return root.engagement_uuid
 
     validity: Validity = strawberry.auto
 
@@ -2152,7 +2483,11 @@ class Leave:
 
 @strawberry.experimental.pydantic.type(
     model=ManagerRead,
-    description="Managers of organisation units and their connected identities",
+    description=dedent(
+        """
+        Managers of organisation units and their connected identities.
+        """
+    ),
 )
 class Manager:
     manager_type: LazyClass = strawberry.field(
@@ -2161,7 +2496,7 @@ class Manager:
         ),
         description=dedent(
             """
-            Describes the title of the Manager
+            Title of the manager.
 
             Examples:
             * `"Director"`
@@ -2176,9 +2511,10 @@ class Manager:
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_level_uuid)}
         ),
+        # TODO: Check production system values
         description=dedent(
             """
-            Describes the hierarchy of managers
+            Hierarchical level of the manager.
 
             Examples:
             * `"Level 1"`
@@ -2196,18 +2532,17 @@ class Manager:
         ),
         description=dedent(
             """
-            Returns a list of area of responsibilities that the Manager is responsible for
+            Responsibilities that the manager takes care of.
 
             Examples:
-            * `["Responsible for buildings and areas"]
-            * `["Responsible for buildings and areas", "Staff: Sick leave"]
+            * `["Responsible for buildings and areas"]`
+            * `["Responsible for buildings and areas", "Staff: Sick leave"]`
             * `[]`
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Remove list, make optional employee
     employee: list[LazyEmployee] | None = strawberry.field(
         resolver=force_none_return_wrapper(
             seed_resolver_list(
@@ -2220,17 +2555,26 @@ class Manager:
                 },
             ),
         ),
-        description="Employee fulfilling the managerial position",
+        description=dedent(
+            """
+            Employee fulfilling the managerial position.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="Organisation unit being managed",
+        description=dedent(
+            """
+            Organisation unit being managed.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -2253,19 +2597,47 @@ class Manager:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: ManagerRead) -> UUID:
+        return root.uuid
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
-    org_unit_uuid: UUID = strawberry.auto
+    @strawberry.field(
+        description="UUID of the organisation unit related to the manager.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: ManagerRead) -> UUID:
+        return root.org_unit_uuid
 
-    employee_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the employee related to the manager.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: ManagerRead) -> UUID | None:
+        return root.employee_uuid
 
-    manager_type_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the manager type.",
+        deprecation_reason=gen_uuid_field_deprecation("manager_type"),
+    )
+    async def manager_type_uuid(self, root: ManagerRead) -> UUID | None:
+        return root.manager_type_uuid
 
-    manager_level_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the manager level.",
+        deprecation_reason=gen_uuid_field_deprecation("manager_level"),
+    )
+    async def manager_level_uuid(self, root: ManagerRead) -> UUID | None:
+        return root.manager_level_uuid
 
-    responsibility_uuids: list[UUID] | None = strawberry.auto
+    @strawberry.field(
+        description="List of UUID's of the responsibilities.",
+        deprecation_reason=gen_uuid_field_deprecation("responsibilities"),
+    )
+    async def responsibility_uuids(self, root: ManagerRead) -> list[UUID] | None:
+        return root.responsibility_uuids
 
     validity: Validity = strawberry.auto
 
@@ -2379,7 +2751,7 @@ class Organisation:
 
 @strawberry.experimental.pydantic.type(
     model=OrganisationUnitRead,
-    description="Hierarchical unit within the organisation tree",
+    description="Organisation unit within the organisation tree",
 )
 class OrganisationUnit:
     parent: LazyOrganisationUnit | None = strawberry.field(
@@ -2387,12 +2759,23 @@ class OrganisationUnit:
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.parent_uuid]},
         ),
-        description="The immediate descendants in the organisation tree",
+        description=dedent(
+            """
+            The parent organisation unit in the organisation tree.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
     @strawberry.field(
-        description="All ancestors in the organisation tree",
+        description=dedent(
+            """
+            All ancestor organisational units in the organisation tree.
+
+            The result of collecting organisational units by following `parent` until `parent` becomes `null`.
+            I.e. the list of all ancestors on the way to the organisation tree root.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
     async def ancestors(
@@ -2414,7 +2797,11 @@ class OrganisationUnit:
             OrganisationUnitResolver(),
             {"parents": lambda root: [root.uuid]},
         ),
-        description="The immediate descendants in the organisation tree",
+        description=dedent(
+            """
+            The immediate descendants in the organisation tree
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -2428,6 +2815,12 @@ class OrganisationUnit:
             ),
         ),
         description="Children count of the organisation unit.",
+        deprecation_reason=dedent(
+            """
+            Will be removed in a future version of GraphQL.
+            Count the elements returned by `children {{uuid}}` instead.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -2445,7 +2838,7 @@ class OrganisationUnit:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
-        description="Organisation unit hierarchy",
+        description="Organisation unit type",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2497,13 +2890,43 @@ class OrganisationUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
-    uuid: UUID = strawberry.auto
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: OrganisationUnitRead) -> UUID:
+        return root.uuid
 
-    user_key: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Short unique key.
 
-    name: str = strawberry.auto
+            Usually set to be set to the key used in external systems.
 
-    validity: Validity = strawberry.auto
+            Examples:
+            * `"CBCM"`
+            * `"SPHA"`
+            * `"1414"`
+            """
+        )
+    )
+    async def user_key(self, root: OrganisationUnitRead) -> str:
+        return root.user_key
+
+    @strawberry.field(
+        description=dedent(
+            """
+            Human readable name of the organisation unit.
+
+            This is the value that should be shown to users in UIs.
+
+            Examples:
+            * `"Lunderskov skole"`
+            * `"IT-Support"`
+            * `"Teknik og Miljø"`
+            """
+        )
+    )
+    async def name(self, root: OrganisationUnitRead) -> str:
+        return root.name
 
     @strawberry.field(
         description="Managers of the organisation unit",
@@ -2569,7 +2992,13 @@ class OrganisationUnit:
             ITUserResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related IT users",
+        description=dedent(
+            """
+            IT (service) accounts.
+
+            May be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
     )
 
@@ -2578,7 +3007,7 @@ class OrganisationUnit:
             KLEResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="KLE responsibilites for the organisation unit",
+        description="KLE responsibilities for the organisation unit",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
@@ -2641,6 +3070,8 @@ class OrganisationUnit:
     async def time_planning_uuid(self, root: OrganisationUnitRead) -> UUID | None:
         return root.time_planning_uuid
 
+    validity: Validity = strawberry.auto
+
 
 # Related Unit
 # ------------
@@ -2691,8 +3122,6 @@ class RelatedUnit:
         """Implemented for backwards compatability."""
         return root.type_
 
-    validity: Validity = strawberry.auto
-
     org_units: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
@@ -2721,6 +3150,8 @@ class RelatedUnit:
     async def org_unit_uuids(self, root: RelatedUnitRead) -> list[UUID]:
         return root.org_unit_uuids
 
+    validity: Validity = strawberry.auto
+
 
 # Role
 # ----
@@ -2733,6 +3164,7 @@ class Role:
     async def uuid(self, root: RoleRead) -> UUID:
         return root.uuid
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
     @strawberry.field(
@@ -2754,8 +3186,6 @@ class Role:
         """Implemented for backwards compatability."""
         return root.type_
 
-    validity: Validity = strawberry.auto
-
     role_type: LazyClass = strawberry.field(
         resolver=seed_resolver_one(
             ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
@@ -2773,22 +3203,30 @@ class Role:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    # TODO: Remove list, make concrete employee
     employee: list[LazyEmployee] = strawberry.field(
         resolver=seed_resolver_list(
             EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
         ),
-        description="The person fulfilling the role.",
+        description=dedent(
+            """
+            The person fulfilling the role.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("employee")],
     )
 
-    # TODO: Remove list, make concrete org-unit
     org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=seed_resolver_list(
             OrganisationUnitResolver(),
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
-        description="The organisational unit in which the role is being fulfilled.",
+        description=dedent(
+            """
+            The organisational unit in which the role is being fulfilled.
+            """
+        )
+        + list_to_optional_field_warning,
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("org_unit")],
     )
 
@@ -2812,6 +3250,8 @@ class Role:
     )
     async def org_unit_uuid(self, root: RoleRead) -> UUID:
         return root.org_unit_uuid
+
+    validity: Validity = strawberry.auto
 
 
 # Version
@@ -3074,10 +3514,13 @@ class File:
     description="Response model for Organisation Unit refresh event.",
 )
 class OrganisationUnitRefresh:
+    # TODO: Document this
     uuid: UUID = strawberry.auto
 
+    # TODO: Document this
     user_key: str = strawberry.auto
 
+    # TODO: Document this
     message: str = strawberry.auto
 
 
