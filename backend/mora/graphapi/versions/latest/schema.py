@@ -65,7 +65,6 @@ from mora.service.facet import is_class_uuid_primary
 from mora.util import DEFAULT_TIMEZONE
 from ramodels.mo import ClassRead
 from ramodels.mo import EmployeeRead
-from ramodels.mo import ExtensionsField as ExtensionFieldModel
 from ramodels.mo import FacetRead
 from ramodels.mo import OrganisationRead
 from ramodels.mo import OrganisationUnitRead
@@ -1841,25 +1840,6 @@ class EngagementAssociation:
         return root.engagement_association_type_uuid
 
     validity: Validity = strawberry.auto
-
-
-# Extension
-# -----
-
-
-@strawberry.experimental.pydantic.type(
-    model=ExtensionFieldModel,
-    all_fields=True,
-    description=dedent(
-        """
-        A class for allowing arbitrary values in extension fields.
-
-        May be used for extraordinary occasions when no better option of storing data exists.
-        """
-    ),
-)
-class ExtensionsField:
-    pass
 
 
 # Facet
