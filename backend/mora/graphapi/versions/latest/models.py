@@ -13,7 +13,6 @@ from pydantic import ConstrainedStr
 from pydantic import Field
 from pydantic import root_validator
 
-from .extensions import ExtensionsField
 from mora import common
 from mora import exceptions
 from mora import mapping
@@ -602,7 +601,7 @@ class EngagementTerminate(ValidityTerminate):
         )
 
 
-EXTENSION_FIELD_DESCRIPTION = dedent(
+EXTENSION_FIELD_DESCRIPTION: str = dedent(
     """
             Arbitrary value extension fields.
 
@@ -620,18 +619,16 @@ class EngagementCreate(UUIDBase):
     engagement_type: UUID
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension_1: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_2: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_3: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_4: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_5: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_6: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_7: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_8: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_9: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_10: ExtensionsField | None = Field(
-        description=EXTENSION_FIELD_DESCRIPTION
-    )
+    extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
@@ -673,18 +670,16 @@ class EngagementUpdate(UUIDBase):
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
-    extension_1: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_2: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_3: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_4: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_5: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_6: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_7: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_8: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_9: ExtensionsField | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
-    extension_10: ExtensionsField | None = Field(
-        description=EXTENSION_FIELD_DESCRIPTION
-    )
+    extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
