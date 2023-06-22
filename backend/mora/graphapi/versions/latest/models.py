@@ -23,7 +23,6 @@ from ramodels.mo import OpenValidity
 from ramodels.mo import Validity as RAValidity
 from ramodels.mo._shared import UUIDBase
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -602,6 +601,17 @@ class EngagementTerminate(ValidityTerminate):
         )
 
 
+EXTENSION_FIELD_DESCRIPTION: str = dedent(
+    """
+            Arbitrary value extension fields.
+
+            A collection of field for storing arbitrary extra data.
+            Can be used for extraordinary occasions when no standardized field to model the data exists.
+
+        """
+)
+
+
 class EngagementCreate(UUIDBase):
     user_key: str | None = Field(description="Name or UUID of the related engagement.")
     org_unit: UUID = Field(description="The related org-unit object.")
@@ -609,6 +619,16 @@ class EngagementCreate(UUIDBase):
     engagement_type: UUID
     job_function: UUID
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
@@ -629,6 +649,16 @@ class EngagementCreate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            "extension_1": self.extension_1,
+            "extension_2": self.extension_2,
+            "extension_3": self.extension_3,
+            "extension_4": self.extension_4,
+            "extension_5": self.extension_5,
+            "extension_6": self.extension_6,
+            "extension_7": self.extension_7,
+            "extension_8": self.extension_8,
+            "extension_9": self.extension_9,
+            "extension_10": self.extension_10,
         }
 
 
@@ -640,6 +670,16 @@ class EngagementUpdate(UUIDBase):
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
     validity: RAValidity = Field(description="Validity of the engagement object.")
+    extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_3: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_4: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_5: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_6: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_7: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_8: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_9: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
+    extension_10: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
 
     def to_handler_dict(self) -> dict:
         def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
@@ -659,6 +699,16 @@ class EngagementUpdate(UUIDBase):
                 if self.validity.to_date
                 else None,
             },
+            "extension_1": self.extension_1,
+            "extension_2": self.extension_2,
+            "extension_3": self.extension_3,
+            "extension_4": self.extension_4,
+            "extension_5": self.extension_5,
+            "extension_6": self.extension_6,
+            "extension_7": self.extension_7,
+            "extension_8": self.extension_8,
+            "extension_9": self.extension_9,
+            "extension_10": self.extension_10,
         }
         return {k: v for k, v in data_dict.items() if v}
 
