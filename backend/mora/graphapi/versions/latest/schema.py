@@ -80,7 +80,6 @@ from ramodels.mo.details import ManagerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
-
 # TODO: Remove RAModels dependency, be purely Strawberry models
 # TODO: Deprecate all _uuid / _uuids relation fields in favor of relation objects
 # TODO: Remove resolver filter parameters for single-object UUID-selected fields?
