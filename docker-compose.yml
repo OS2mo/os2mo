@@ -48,6 +48,7 @@ services:
       - ./.cov-report:/tmp/.cov-report:rw
       - ./dev-environment/wait-for-rabbitmq.sh:/wait-for-rabbitmq.sh
     entrypoint: ["/wait-for-rabbitmq.sh"]
+    command: ["./docker/start.sh"]
     ports:
       - "127.0.0.1:5002:80"
     env_file: dev-environment/os2mo.env
