@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import asyncio
 from datetime import date
 from uuid import UUID
 
@@ -23,6 +24,7 @@ from .shared import UUID_SEARCH_MIN_PHRASE_LENGTH
 from mora import util
 from mora.db import BrugerAttrUdvidelser
 from mora.db import BrugerRegistrering
+from mora.db import BrugerRelation
 from mora.db import OrganisationFunktionAttrEgenskaber
 from mora.db import OrganisationFunktionRelation
 from mora.db import OrganisationFunktionRelationKode
@@ -36,15 +38,14 @@ async def search_employees(
     at_sql, at_sql_bind_params = get_at_date_sql(at)
 
     async with sessionmaker() as session:
-        selects = [
-            select(cte.c.uuid)
-            for cte in (
-                _get_cte_uuid_hits(query, at_sql),
-                _get_cte_name_hits(query, at_sql),
-                _get_cte_addr_hits(query, at_sql),
-                _get_cte_itsystem_hits(query, at_sql),
-            )
-        ]
+        ctes = await asyncio.gather(
+            _get_cte_uuid_hits(query, at_sql),
+            _get_cte_name_hits(query, at_sql),
+            _get_cte_cpr_hits(query, at_sql),
+            _get_cte_addr_hits(query, at_sql),
+            _get_cte_itsystem_hits(query, at_sql),
+        )
+        selects = [select(cte.c.uuid) for cte in ctes]
         all_hits = union(*selects).cte()
 
         employee_id = BrugerRegistrering.bruger_id.label("uuid")
@@ -154,7 +155,7 @@ async def decorate_employee_search_result(search_results: [Row], at: date | None
     return decorated_result
 
 
-def _get_cte_uuid_hits(query: str, at_sql: str):
+async def _get_cte_uuid_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
 
     return (
@@ -176,7 +177,7 @@ def _get_cte_uuid_hits(query: str, at_sql: str):
     )
 
 
-def _get_cte_name_hits(query: str, at_sql: str):
+async def _get_cte_name_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
 
     name_concated = func.concat(
@@ -204,11 +205,31 @@ def _get_cte_name_hits(query: str, at_sql: str):
     )
 
 
-def _get_cte_addr_hits(query: str, at_sql: str):
+async def _get_cte_cpr_hits(query: str, at_sql: str):
+    # NOTE: CPR is persisted as a URN in the relation tabel
+    query = await string_to_urn(query)
+    search_phrase = util.query_to_search_phrase(query)
+
+    return (
+        select(BrugerRegistrering.bruger_id.label("uuid"))
+        .join(
+            BrugerRelation,
+            BrugerRelation.bruger_registrering_id == BrugerRegistrering.id,
+        )
+        .where(
+            BrugerRegistrering.bruger_id != None,  # noqa: E711
+            BrugerRelation.rel_maal_urn.ilike(search_phrase),
+            text(f"(bruger_relation.virkning).timeperiod @> {at_sql}"),
+        )
+        .cte()
+    )
+
+
+async def _get_cte_addr_hits(query: str, at_sql: str):
     orgfunc_tbl_rels_1 = aliased(OrganisationFunktionRelation)
     orgfunc_tbl_rels_2 = aliased(OrganisationFunktionRelation)
 
-    query = string_to_urn(query)
+    query = await string_to_urn(query)
     search_phrase = util.query_to_search_phrase(query)
 
     return (
@@ -231,7 +252,7 @@ def _get_cte_addr_hits(query: str, at_sql: str):
     )
 
 
-def _get_cte_itsystem_hits(query: str, at_sql: str):
+async def _get_cte_itsystem_hits(query: str, at_sql: str):
     search_phrase = util.query_to_search_phrase(query)
     return (
         select(OrganisationFunktionRelation.rel_maal_uuid.label("uuid"))
