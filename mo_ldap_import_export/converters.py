@@ -698,11 +698,10 @@ class LdapConverter:
 
         logger.info("[json check] Attributes OK")
 
-    def check_info_dict_for_duplicates(self, info_dict):
+    def check_info_dict_for_duplicates(self, info_dict, name_key="user_key"):
         """
         Check that we do not see the same name twice in one info dict
         """
-        name_key = "user_key"
         names = [info[name_key] for info in info_dict.values()]
         if len(set(names)) != len(names):
             raise InvalidNameException(
@@ -725,6 +724,8 @@ class LdapConverter:
         for info_dict_name, info_dict in self.all_info_dicts.items():
             if info_dict_name != "org_unit_info":
                 self.check_info_dict_for_duplicates(info_dict)
+            if info_dict_name in ["engagement_type_info", "job_function_info"]:
+                self.check_info_dict_for_duplicates(info_dict, "name")
 
             for info in info_dict.values():
                 if "uuid" not in info:
@@ -749,28 +750,39 @@ class LdapConverter:
         user_key: str = info_dict[str(uuid)]["user_key"]
         return user_key
 
+    def get_object_name_from_uuid(self, info_dict: dict, uuid: str) -> str:
+        name: str = info_dict[str(uuid)]["name"]
+        return name
+
     @staticmethod
-    def name_normalizer(name):
+    def string_normalizer(name):
         return name.lower().replace("-", " ")
 
-    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
-        name_key = "user_key"
-        if not user_key:
+    def get_object_uuid_from_info_dict(
+        self, info_dict: dict, key: str, value: str
+    ) -> str:
+        if not value:
             raise UUIDNotFoundException("object type name is empty")
 
-        normalized_name = self.name_normalizer(user_key)
+        normalized_value = self.string_normalizer(value)
 
         candidates: dict[str, str] = {
-            info[name_key]: info["uuid"]
+            info[key]: info["uuid"]
             for info in info_dict.values()
-            if self.name_normalizer(info[name_key]) == normalized_name
+            if self.string_normalizer(info[key]) == normalized_value
         }
         if len(candidates) > 0:
-            if user_key in candidates:
-                return candidates[user_key]
+            if value in candidates:
+                return candidates[value]
             return list(candidates.values())[0]
         else:
-            raise UUIDNotFoundException(f"'{user_key}' not found in '{info_dict}'")
+            raise UUIDNotFoundException(f"'{value}' not found in '{info_dict}'")
+
+    def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
+        return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
+
+    def get_object_uuid_from_name(self, info_dict: dict, name: str) -> str:
+        return self.get_object_uuid_from_info_dict(info_dict, "name", name)
 
     def get_employee_address_type_uuid(self, address_type: str) -> str:
         return self.get_object_uuid_from_user_key(
@@ -789,7 +801,7 @@ class LdapConverter:
         return self.get_object_uuid_from_user_key(self.visibility_info, visibility)
 
     def get_job_function_uuid(self, job_function: str) -> str:
-        return self.get_object_uuid_from_user_key(self.job_function_info, job_function)
+        return self.get_object_uuid_from_name(self.job_function_info, job_function)
 
     def get_or_create_job_function_uuid(self, job_function: str) -> str:
         if not job_function:
@@ -806,7 +818,7 @@ class LdapConverter:
         return self.get_object_uuid_from_user_key(self.primary_type_info, primary)
 
     def get_engagement_type_uuid(self, engagement_type: str) -> str:
-        return self.get_object_uuid_from_user_key(
+        return self.get_object_uuid_from_name(
             self.engagement_type_info, engagement_type
         )
 
@@ -840,11 +852,11 @@ class LdapConverter:
     def get_it_system_user_key(self, uuid: str) -> str:
         return self.get_object_user_key_from_uuid(self.it_system_info, uuid)
 
-    def get_engagement_type_user_key(self, uuid: str) -> str:
-        return self.get_object_user_key_from_uuid(self.engagement_type_info, uuid)
+    def get_engagement_type_name(self, uuid: str) -> str:
+        return self.get_object_name_from_uuid(self.engagement_type_info, uuid)
 
-    def get_job_function_user_key(self, uuid: str) -> str:
-        return self.get_object_user_key_from_uuid(self.job_function_info, uuid)
+    def get_job_function_name(self, uuid: str) -> str:
+        return self.get_object_name_from_uuid(self.job_function_info, uuid)
 
     def create_org_unit(self, org_unit_path_string: str):
         """
@@ -981,8 +993,8 @@ class LdapConverter:
             "get_engagement_type_uuid": self.get_engagement_type_uuid,
             "uuid4": uuid4,
             "get_org_unit_path_string": self.get_org_unit_path_string,
-            "get_engagement_type_user_key": self.get_engagement_type_user_key,
-            "get_job_function_user_key": self.get_job_function_user_key,
+            "get_engagement_type_name": self.get_engagement_type_name,
+            "get_job_function_name": self.get_job_function_name,
             "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
             "get_or_create_engagement_type_uuid": (
                 self.get_or_create_engagement_type_uuid
