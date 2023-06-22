@@ -146,7 +146,7 @@
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "employeeID": "{{mo_employee.cpr_no}}",
-      "department": "{{NONE}}",
+      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
       "company": "{{NONE}}",
       "departmentNumber": "{{NONE}}",
       "division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",

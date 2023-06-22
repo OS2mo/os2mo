@@ -26,10 +26,6 @@
           "title": "Lokation (AD)",
           "scope": "TEXT"
         },
-        "DepartmentEmployee": {
-          "title": "Afdeling (AD)",
-          "scope": "TEXT"
-        },
       },
       "org_unit_address_type": {
         "StreetAdressUnit": {
@@ -159,14 +155,6 @@
       "address_type": "{{ dict(uuid=get_employee_address_type_uuid('LocationEmployee')) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
-    "DepartmentEmployee": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "_import_to_mo_": "false",
-      "value": "{{ ldap.department or NONE }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('DepartmentEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
     "ADGUID": {
       "objectClass": "ramodels.mo.details.it_system.ITUser",
       "_import_to_mo_": "true",
@@ -205,6 +193,7 @@
       "extensionAttribute2": "{{mo_employee_engagement.org_unit.uuid}}",
       "extensionAttribute6": "{{mo_employee_engagement.person.uuid}}",
       "employeeID": "{{mo_employee_engagement.user_key}}",
+      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
     },
     "StreetAdressUnit": {
       "objectClass": "user",
@@ -278,12 +267,6 @@
       "objectClass": "user",
       "_export_to_ldap_": "true",
       "physicalDeliveryOfficeName": "{{mo_employee_address.value}}",
-      "employeeNumber": "{{mo_employee.cpr_no}}"
-    },
-    "DepartmentEmployee": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "department": "{{mo_employee_address.value}}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
     "ADGUID": {

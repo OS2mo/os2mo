@@ -858,6 +858,9 @@ class LdapConverter:
     def get_job_function_name(self, uuid: str) -> str:
         return self.get_object_name_from_uuid(self.job_function_info, uuid)
 
+    def get_org_unit_name(self, uuid: str) -> str:
+        return self.get_object_name_from_uuid(self.org_unit_info, uuid)
+
     def create_org_unit(self, org_unit_path_string: str):
         """
         Create the parent org. in the hierarchy (if it does not exist),
@@ -995,6 +998,7 @@ class LdapConverter:
             "get_org_unit_path_string": self.get_org_unit_path_string,
             "get_engagement_type_name": self.get_engagement_type_name,
             "get_job_function_name": self.get_job_function_name,
+            "get_org_unit_name": self.get_org_unit_name,
             "get_or_create_job_function_uuid": self.get_or_create_job_function_uuid,
             "get_or_create_engagement_type_uuid": (
                 self.get_or_create_engagement_type_uuid
