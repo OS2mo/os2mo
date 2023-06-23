@@ -456,7 +456,10 @@ async def cleanup(
 
         # If a value is in LDAP but NOT in MO, it needs to be cleaned
         for value_in_ldap in values_in_ldap:
-            if value_in_ldap not in values_in_mo:
+            if (
+                value_in_ldap not in values_in_mo
+                and str(value_in_ldap) not in values_in_mo
+            ):
                 logger.info(f"{attribute} = '{value_in_ldap}' needs cleaning")
                 ldap_objects_to_clean.append(
                     LdapObject(**{"dn": dn, attribute: value_in_ldap})
