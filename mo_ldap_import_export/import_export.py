@@ -411,7 +411,10 @@ class SyncTool:
 
         # When an org-unit is changed we need to update the org unit info. So we
         # know the new name of the org unit in case it was changed
-        if routing_key.object_type == ObjectType.ORG_UNIT:
+        if (
+            routing_key.object_type == ObjectType.ORG_UNIT
+            and routing_key.request_type != RequestType.REFRESH
+        ):
             logger.info("Updating org unit info")
             self.converter.org_unit_info = self.dataloader.load_mo_org_units()
             self.converter.check_org_unit_info_dict()
