@@ -99,6 +99,13 @@ def converters(
             converter.get_object_name_from_uuid = MagicMock()  # type: ignore
             converter.get_object_name_from_uuid.return_value = "object_name"
 
+            converter.get_current_engagement_attribute_uuid_dict = (  # type: ignore
+                MagicMock()
+            )
+            converter.get_current_engagement_attribute_uuid_dict.return_value = {
+                "uuid": str(uuid)
+            }
+
             converters[json_filename] = converter
 
     return converters

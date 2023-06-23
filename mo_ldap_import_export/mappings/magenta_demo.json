@@ -77,13 +77,13 @@
     "Engagement": {
       "objectClass": "ramodels.mo.details.engagement.Engagement",
       "_import_to_mo_": "true",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}",
+      "org_unit": "{{ get_current_org_unit_uuid_dict(employee_uuid, ldap.countryCode) }}",
       "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
-      "engagement_type": "{{ dict(uuid=get_or_create_engagement_type_uuid(ldap.employeeType)) }}",
+      "engagement_type": "{{ get_current_engagement_type_uuid_dict(employee_uuid, ldap.countryCode) }}",
       "user_key": "{{ ldap.countryCode or '-'}}",
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-      "primary": "{{ dict(uuid=get_primary_type_uuid('primary')) }}"
+      "primary": "{{ get_current_primary_uuid_dict(employee_uuid, ldap.countryCode) }}"
     },
     "PhoneEmployee": {
       "objectClass": "ramodels.mo.details.address.Address",

@@ -1956,6 +1956,32 @@ def test_add_ldap_object(dataloader: DataLoader):
     dataloader.ldap_connection.add.assert_called_once()
 
 
+def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
+    dataloader.query_mo_sync = MagicMock()  # type: ignore
+    engagement1 = {
+        "uuid": uuid4(),
+        "user_key": "foo",
+        "org_unit_uuid": uuid4(),
+        "job_function_uuid": uuid4(),
+        "engagement_type_uuid": uuid4(),
+    }
+    engagement2 = {
+        "uuid": uuid4(),
+        "user_key": "foo",
+        "org_unit_uuid": uuid4(),
+        "job_function_uuid": uuid4(),
+        "engagement_type_uuid": uuid4(),
+    }
+    dataloader.query_mo_sync.return_value = {
+        "employees": [{"objects": [{"engagements": [engagement1, engagement2]}]}]
+    }
+
+    result = dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
+
+    assert engagement1 in result
+    assert engagement2 in result
+
+
 def test_return_mo_employee_uuid_result(dataloader: DataLoader):
     uuid = uuid4()
 

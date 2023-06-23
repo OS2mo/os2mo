@@ -822,6 +822,105 @@ class LdapConverter:
             self.engagement_type_info, engagement_type
         )
 
+    def get_current_engagement_attribute_uuid_dict(
+        self,
+        attribute: str,
+        employee_uuid: UUID,
+        engagement_user_key: str,
+    ) -> dict[str, str]:
+        """
+        Returns an uuid-dictionary with the uuid matching the desired attribute
+
+        Parameters
+        --------------
+        attribute: str
+            attribute to look up. For example:
+                - org_unit_uuid
+                - engagement_type_uuid
+                - primary_uuid
+        employee_uuid: UUID
+            uuid of the employee
+        engagement_user_key: str
+            user_key of the engagement
+
+        Notes
+        --------
+        This method requests all engagements for employee with uuid = employee_uuid
+        and then filters out all engagements which do not match engagement_user_key.
+        If there is exactly one engagement left after this, the uuid of the requested
+        attribute is returned.
+        """
+
+        if "uuid" not in attribute:
+            raise ValueError(
+                "attribute must be an uuid-string. For example 'job_function_uuid'"
+            )
+
+        logger.info(
+            (
+                f"Looking for '{attribute}' in existing engagement with "
+                f"user_key = '{engagement_user_key}' "
+                f"and employee_uuid = '{employee_uuid}'"
+            )
+        )
+        engagement_dicts = self.dataloader.load_mo_employee_engagement_dicts(
+            employee_uuid, engagement_user_key
+        )
+
+        if not engagement_dicts:
+            raise UUIDNotFoundException(
+                (
+                    f"Employee with uuid = {employee_uuid} has no engagements "
+                    f"with user_key = '{engagement_user_key}'"
+                )
+            )
+        elif len(engagement_dicts) > 1:
+            raise UUIDNotFoundException(
+                (
+                    f"Employee with uuid = {employee_uuid} has multiple engagements "
+                    f"with user_key = '{engagement_user_key}'"
+                )
+            )
+        else:
+            engagement = engagement_dicts[0]
+            logger.info(f"Match found in engagement with uuid = {engagement['uuid']}")
+            return {"uuid": engagement[attribute]}
+
+    def get_current_org_unit_uuid_dict(
+        self, employee_uuid: UUID, engagement_user_key: str
+    ) -> dict:
+        """
+        Returns an existing 'org-unit' object formatted as a dict
+        """
+        return self.get_current_engagement_attribute_uuid_dict(
+            "org_unit_uuid", employee_uuid, engagement_user_key
+        )
+
+    def get_current_engagement_type_uuid_dict(
+        self, employee_uuid: UUID, engagement_user_key: str
+    ) -> dict:
+        """
+        Returns an existing 'engagement type' object formatted as a dict
+        """
+        return self.get_current_engagement_attribute_uuid_dict(
+            "engagement_type_uuid", employee_uuid, engagement_user_key
+        )
+
+    def get_current_primary_uuid_dict(
+        self, employee_uuid: UUID, engagement_user_key: str
+    ) -> dict | None:
+        """
+        Returns an existing 'primary' object formatted as a dict
+        """
+        primary_dict = self.get_current_engagement_attribute_uuid_dict(
+            "primary_uuid", employee_uuid, engagement_user_key
+        )
+
+        if not primary_dict["uuid"]:
+            return None
+        else:
+            return primary_dict
+
     def get_or_create_engagement_type_uuid(self, engagement_type: str) -> str:
         if not engagement_type:
             raise UUIDNotFoundException("engagement_type is empty")
@@ -1003,6 +1102,11 @@ class LdapConverter:
             "get_or_create_engagement_type_uuid": (
                 self.get_or_create_engagement_type_uuid
             ),
+            "get_current_org_unit_uuid_dict": self.get_current_org_unit_uuid_dict,
+            "get_current_engagement_type_uuid_dict": (
+                self.get_current_engagement_type_uuid_dict
+            ),
+            "get_current_primary_uuid_dict": self.get_current_primary_uuid_dict,
         }
         for key, value in mapping.items():
             if type(value) == str:
@@ -1114,7 +1218,8 @@ class LdapConverter:
                     # for "none" or "[]" strings anyway to be more robust.
                     if value.lower() == "none" or value == "[]":
                         value = ""
-                except UUIDNotFoundException:
+                except UUIDNotFoundException as e:
+                    logger.warning(e)
                     continue
                 # TODO: Is it possible to render a dictionary directly?
                 #       Instead of converting from a string
@@ -1139,10 +1244,13 @@ class LdapConverter:
             if all(a in mo_dict for a in required_attributes):
                 converted_objects.append(mo_class(**mo_dict))
             else:
+                missing_attributes = [
+                    r for r in required_attributes if r not in mo_dict
+                ]
                 logger.info(
                     (
                         f"Could not convert {mo_dict}. "
-                        f"The following attributes are required: {required_attributes}"
+                        f"The following attributes are missing: {missing_attributes}"
                     )
                 )
 

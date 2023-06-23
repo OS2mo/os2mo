@@ -1400,3 +1400,104 @@ def test_check_info_dicts(converter: LdapConverter):
             }
         }
         converter.check_info_dicts()
+
+
+def test_get_current_engagement_attribute(converter: LdapConverter):
+
+    engagement1 = {
+        "uuid": str(uuid4()),
+        "user_key": "foo",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": str(uuid4()),
+    }
+
+    engagement2 = {
+        "uuid": str(uuid4()),
+        "user_key": "duplicate_user_key",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": None,
+    }
+
+    engagement3 = {
+        "uuid": str(uuid4()),
+        "user_key": "duplicate_user_key",
+        "org_unit_uuid": str(uuid4()),
+        "job_function_uuid": str(uuid4()),
+        "engagement_type_uuid": str(uuid4()),
+        "primary_uuid": None,
+    }
+
+    dataloader = MagicMock()
+    dataloader.load_mo_employee_engagement_dicts = MagicMock()  # type: ignore
+    dataloader.load_mo_employee_engagement_dicts.return_value = [engagement1]
+    converter.dataloader = dataloader
+
+    test_attributes = [a for a in engagement1.keys() if a != "user_key"]
+
+    for attribute in test_attributes:
+        assert (
+            converter.get_current_engagement_attribute_uuid_dict(
+                attribute, uuid4(), "foo"
+            )["uuid"]
+            == engagement1[attribute]
+        )
+
+    # Try for an employee without matching engagements
+    with pytest.raises(UUIDNotFoundException):
+        dataloader.load_mo_employee_engagement_dicts.return_value = []
+        converter.get_current_engagement_attribute_uuid_dict(
+            attribute, uuid4(), "mucki"
+        )
+
+    # Try to find a duplicate engagement
+    with pytest.raises(UUIDNotFoundException):
+        dataloader.load_mo_employee_engagement_dicts.return_value = [
+            engagement2,
+            engagement3,
+        ]
+        converter.get_current_engagement_attribute_uuid_dict(
+            attribute, uuid4(), "duplicate_user_key"
+        )
+
+    # Try with faulty input
+    with pytest.raises(ValueError, match="attribute must be an uuid-string"):
+        converter.get_current_engagement_attribute_uuid_dict(
+            "user_key", uuid4(), "mucki"
+        )
+
+
+def test_get_current_org_unit_uuid(converter: LdapConverter):
+    uuid = str(uuid4())
+    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    assert converter.get_current_org_unit_uuid_dict(uuid4(), "foo")["uuid"] == uuid
+
+
+def test_get_current_engagement_type_uuid(converter: LdapConverter):
+    uuid = str(uuid4())
+    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    assert (
+        converter.get_current_engagement_type_uuid_dict(uuid4(), "foo")["uuid"] == uuid
+    )
+
+
+def test_get_current_primary_uuid(converter: LdapConverter):
+    uuid = str(uuid4())
+    converter.get_current_engagement_attribute_uuid_dict = MagicMock()  # type: ignore
+    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": uuid}
+
+    assert (
+        converter.get_current_primary_uuid_dict(uuid4(), "foo")["uuid"]  # type: ignore
+        == uuid
+    )
+
+    converter.get_current_engagement_attribute_uuid_dict.return_value = {"uuid": None}
+
+    assert converter.get_current_primary_uuid_dict(uuid4(), "foo") is None
