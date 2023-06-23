@@ -404,6 +404,39 @@ class FacetResolver(Resolver):
     def __init__(self) -> None:
         super().__init__(FacetRead)
 
+    async def resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        parents: ParentUUIDsFilterType = None,
+        parent_user_keys: ParentUserKeysFilterType = None,
+    ):
+        """Resolve facets."""
+        if parent_user_keys is not None:
+            # Convert user-keys to UUIDs for the UUID filtering
+            parents = parents or []
+            parents.extend(
+                await user_keys2uuids(FacetResolver(), info, parent_user_keys)
+            )
+
+        kwargs = {}
+        if parents is not None:
+            kwargs["facettilhoerer"] = parents
+
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            cursor=cursor,
+            from_date=None,  # from -inf
+            to_date=None,  # to inf
+            **kwargs,
+        )
+
 
 class ClassResolver(Resolver):
     def __init__(self) -> None:

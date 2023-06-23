@@ -1859,6 +1859,41 @@ class Facet:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
+    parent: LazyFacet | None = strawberry.field(
+        resolver=seed_resolver_only(
+            FacetResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
+        ),
+        description=dedent(
+            """
+            Parent facet.
+
+            Almost always `null` as facet hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `children`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+    )
+
+    children: list[LazyFacet] = strawberry.field(
+        resolver=seed_resolver_list(
+            FacetResolver(),
+            {"parents": lambda root: [root.uuid]},
+        ),
+        description=dedent(
+            """
+            Facet children.
+
+            Almost always an empty list as facet hierarchies are rare.
+            Currently mostly used to describe (trade) union hierachies.
+
+            The inverse operation of `parent`.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("facet")],
+    )
+
     @strawberry.field(
         description=dedent(
             """
@@ -1919,11 +1954,31 @@ class Facet:
     async def org_uuid(self, root: ClassRead) -> UUID:
         return root.org_uuid
 
-    # TODO: No parent field or children fields are defined here?
-    parent_uuid: UUID | None = strawberry.auto
+    @strawberry.field(
+        description="UUID of the parent facet.",
+        deprecation_reason=gen_uuid_field_deprecation("parent"),
+    )
+    async def parent_uuid(self, root: FacetRead) -> UUID | None:
+        return root.parent_uuid
 
-    # TODO: Document this
-    description: str = strawberry.auto
+    @strawberry.field(
+        description=dedent(
+            """
+            Description of the facet object.
+
+            Almost always `""`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Will be removed in a future version of GraphQL.
+            This field is almost never used, and serves no real purpose.
+            May be reintroduced in the future if the demand for it increases.
+            """
+        ),
+    )
+    async def description(self, root: FacetRead) -> str | None:
+        return root.description
 
 
 # IT
