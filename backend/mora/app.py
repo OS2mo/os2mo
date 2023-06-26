@@ -30,6 +30,7 @@ from .db import get_sessionmaker
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
+from .lora import LoRaNOOPChangePlugin
 from .metrics import setup_metrics
 from mora import config
 from mora import health
@@ -48,7 +49,6 @@ from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
 from oio_rest.config import get_settings as lora_get_settings
-
 
 basedir = os.path.dirname(__file__)
 distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
@@ -128,6 +128,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
+                LoRaNOOPChangePlugin(),
             ),
         )
     ]

@@ -32,7 +32,12 @@ from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
 from httpx import AsyncClient
 from more_itertools import one
+from starlette.datastructures import MutableHeaders
+from starlette.requests import HTTPConnection
+from starlette.requests import Request
+from starlette.types import Message
 from starlette_context import context
+from starlette_context.plugins import Plugin
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
@@ -42,7 +47,6 @@ from . import util
 from .graphapi.middleware import is_graphql
 from .util import DEFAULT_TIMEZONE
 from .util import from_iso_time
-
 
 T = TypeVar("T")
 V = TypeVar("V")
@@ -124,6 +128,31 @@ class LoraObjectType(Enum):
     facet = "klassifikation/facet"
 
 
+class LoRaNOOPChangePlugin(Plugin):
+    """
+    Startlette Context Plugin to expose LoRa "no-op" changes to the frontend in an
+    infuriatingly bad way.
+    """
+
+    key = "lora_noop_change"
+
+    async def process_request(self, request: Request | HTTPConnection) -> Any | None:
+        """Make sure the context var defaults to False."""
+        return False
+
+    async def enrich_response(self, message: Message) -> None:
+        """
+        Expose context var through HTTP header. Based on:
+        https://github.com/tomwojcik/starlette-context/blob/c0a67dded42e9f28c252940fc088b0b45761795f/starlette_context/plugins/base.py#L101-L103
+        """
+        if message["type"] != "http.response.start":
+            return
+        if not context.get(LoRaNOOPChangePlugin.key):
+            return
+        headers = MutableHeaders(scope=message)
+        headers.append("X-DEPRECATED-LORA-NOOP-CHANGE-DO-NOT-USE", "1")
+
+
 def raise_on_status(status_code: int, msg, cause=None) -> None:
     """
     unified raising error codes
@@ -147,6 +176,9 @@ def raise_on_status(status_code: int, msg, cause=None) -> None:
             logger.info(
                 "detected empty change, not raising E_INVALID_INPUT", message=msg
             )
+            # Set context var to expose this (otherwise masked) error through an HTTP
+            # header.
+            context[LoRaNOOPChangePlugin.key] = True
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
     elif status_code == 401:
