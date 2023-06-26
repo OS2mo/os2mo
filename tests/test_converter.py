@@ -15,6 +15,7 @@ from jinja2 import Environment
 from jinja2 import Undefined
 from ramodels.mo import Employee
 from ramodels.mo.details.engagement import Engagement
+from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.converters import find_cpr_field
@@ -1274,7 +1275,7 @@ def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
             "Employee": {"_export_to_ldap_": "True"},
             "OrgUnit": {"_export_to_ldap_": "False"},
             "Address": {"_export_to_ldap_": "False"},
-            "Mail": {"_export_to_ldap_": "False"},
+            "Mail": {"_export_to_ldap_": "Pause"},
         },
         "ldap_to_mo": {
             "Employee": {"_import_to_mo_": "False"},
@@ -1294,6 +1295,9 @@ def test_import_to_mo_and_export_to_ldap_(converter: LdapConverter):
 
     assert converter._export_to_ldap_("Employee") is True
     assert converter._export_to_ldap_("OrgUnit") is False
+
+    with pytest.raises(RequeueMessage):
+        converter._export_to_ldap_("Mail")
 
 
 def test_check_import_and_export_flags(converter: LdapConverter):

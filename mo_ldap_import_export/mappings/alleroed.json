@@ -184,7 +184,7 @@
     },
     "Engagement" : {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
+      "_export_to_ldap_": "pause",
       "employeeNumber": "{{mo_employee.cpr_no}}",
       "extensionAttribute3": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
       "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}",

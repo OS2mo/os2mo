@@ -18,6 +18,7 @@ from fastramqpi.context import Context
 from jinja2 import Environment
 from ldap3.utils.ciDict import CaseInsensitiveDict
 from ramodels.mo.organisation_unit import OrganisationUnit
+from ramqp.utils import RequeueMessage
 
 from .environments import environment
 from .exceptions import IncorrectMapping
@@ -199,8 +200,13 @@ class LdapConverter:
         """
         Returns True, when we need to export this json key. Otherwise False
         """
-        export_flag = self.raw_mapping["mo_to_ldap"][json_key]["_export_to_ldap_"]
-        return export_flag.lower() == "true"
+        export_flag = self.raw_mapping["mo_to_ldap"][json_key][
+            "_export_to_ldap_"
+        ].lower()
+        if export_flag == "pause":
+            logger.info("_export_to_ldap_ = 'pause'. Requeueing.")
+            raise RequeueMessage()
+        return export_flag == "true"
 
     def find_object_class(self, json_key, conversion):
         mapping = self.raw_mapping[conversion]
@@ -622,7 +628,7 @@ class LdapConverter:
             if conversion == "ldap_to_mo":
                 accepted_strings = ["true", "false", "manual_import_only"]
             elif conversion == "mo_to_ldap":
-                accepted_strings = ["true", "false"]
+                accepted_strings = ["true", "false", "pause"]
 
             for json_key in self.get_json_keys(conversion):
                 if ie_key not in self.raw_mapping[conversion][json_key]:
