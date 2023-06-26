@@ -2,4 +2,4 @@
 title: MOs systemlandskab
 ---
 
-![image](../graphics/OS2mo_landskabet.png)
+![image](../graphics/OS2mo_systemlandskab.png)
