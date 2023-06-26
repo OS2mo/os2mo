@@ -5,7 +5,6 @@ stages:
   - sync
   - lint
   - build
-  - review
   - test
   - coverage
   - prepare-release
@@ -18,9 +17,6 @@ variables:
 
   IMAGE_SHA: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}
   RELEASE_REGISTRY_IMAGE: index.docker.io/magentaaps/os2mo
-
-  # Review values cannot be changed without also modifying salt-automation/config-updater
-  REVIEW_CONFIG_UPDATER_URL: "https://config-updater.magentahosted.dk/os2mo/review-apps/os2mo"
 
   PRODUCT: os2mo
   COMPONENT: os2mo
@@ -46,10 +42,6 @@ variables:
 # Sync Conditions
 .if-merge-request-labels-dont-interrupt: &if-merge-request-labels-dont-interrupt
   if: "$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Sync::Don't Interrupt/"
-
-# Review Conditions
-.if-merge-request-labels-run-review-app: &if-merge-request-labels-run-review-app
-  if: '$CI_MERGE_REQUEST_LABELS =~ /Pipeline::Review::Run Review App/'
 
 
 ####################
@@ -340,64 +332,6 @@ Coverage:
   rules:
     - <<: *if-merge-request
       changes: *backend-patterns
-
-
-# Review
-#########
-Deploy Review:
-  stage: review
-  needs:
-    - Build OS2mo
-  image: debian:bookworm
-  variables:
-    GIT_STRATEGY: none  # We do not need the source code
-  before_script:
-    - apt-get update && apt-get install -y curl jq
-  script:
-    - curl
-      --silent
-      --fail-with-body
-      --request POST
-      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
-      "$REVIEW_CONFIG_UPDATER_URL/deploy-mr?mr_id=$CI_MERGE_REQUEST_IID&commit_sha=$CI_COMMIT_SHA"
-    - until $(curl --silent --fail-with-body "https://review-os2mo-mr${CI_MERGE_REQUEST_IID}.moraci.magentahosted.dk/version/" | jq ".mo_hash == \"$CI_COMMIT_SHA\""); do sleep 5; done
-  environment:
-    name: "review/review-os2mo-mr${CI_MERGE_REQUEST_IID}"
-    url: "https://review-os2mo-mr${CI_MERGE_REQUEST_IID}.moraci.magentahosted.dk"
-    on_stop: Stop Review
-    auto_stop_in: 1 week
-  tags:
-    - deploy
-  rules:
-    - <<: *if-schedule
-      when: never
-    - <<: *if-merge-request-labels-run-review-app
-    - <<: *if-merge-request
-      when: manual
-      allow_failure: true
-
-Stop Review:
-  stage: review
-  needs: []
-  image: curlimages/curl:7.81.0
-  variables:
-    GIT_STRATEGY: none  # We do not need the source code
-  script:
-    - curl
-      --silent
-      --fail-with-body
-      --request POST
-      --user $CONFIG_UPDATER_REVIEW_APP_USERNAME:$CONFIG_UPDATER_REVIEW_APP_PASSWORD
-      "$REVIEW_CONFIG_UPDATER_URL/undeploy-mr?mr_id=$CI_MERGE_REQUEST_IID"
-  environment:
-    name: "review/review-os2mo-mr${CI_MERGE_REQUEST_IID}"
-    action: stop
-  tags:
-    - deploy
-  rules:
-    - <<: *if-merge-request
-      when: manual
-      allow_failure: true
 
 
 # Docs
