@@ -347,6 +347,13 @@ class LdapConverter:
                         )
                     )
 
+    @staticmethod
+    def clean_get_current_method_from_template_string(template_string):
+        """
+        Cleans all calls to the get_current_* methods from a template string
+        """
+        return re.sub(r"get_current[^)]*\)", "", template_string)
+
     def check_ldap_attributes(self):
         mo_to_ldap_json_keys = self.get_mo_to_ldap_json_keys()
 
@@ -377,7 +384,10 @@ class LdapConverter:
                 fields_with_ldap_reference = []
                 for field in fields_to_check:
                     mo_field = field.split(".")[1]
-                    if "ldap." in self.raw_mapping["ldap_to_mo"][json_key][mo_field]:
+                    template = self.clean_get_current_method_from_template_string(
+                        self.raw_mapping["ldap_to_mo"][json_key][mo_field]
+                    )
+                    if "ldap." in template:
                         fields_with_ldap_reference.append(field)
 
                 return fields_with_ldap_reference
