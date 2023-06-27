@@ -1345,7 +1345,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """"
+            """
             Engagements for the employee.
 
             May be an empty list if the employee is not employeed.
@@ -1380,6 +1380,14 @@ class Employee:
         description=dedent(
             """
             Addresses for the employee.
+
+            Commonly contain addresses such as, their:
+            * Work location
+            * Office number
+            * Work phone number
+            * Work email
+            * Personal phone number
+            * Personal email
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
@@ -2612,6 +2620,8 @@ class Manager:
         description=dedent(
             """
             Employee fulfilling the managerial position.
+
+            May be empty in which case the managerial position is unfilfilled (vacant).
             """
         )
         + list_to_optional_field_warning,
@@ -2880,11 +2890,27 @@ class OrganisationUnit:
 
     # TODO: Remove org prefix from RAModel and remove it here too
     # TODO: Add _uuid suffix to RAModel and remove _model suffix here
+    # TODO: Should this be a list?
     org_unit_hierarchy_model: LazyClass | None = strawberry.field(
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
         ),
-        description="Organisation unit hierarchy",
+        description=dedent(
+            """
+            Organisation unit hierarchy.
+
+            Can be used to label an organisational structure to belong to a certain subset of the organisation tree.
+
+            Examples of user-keys:
+            * `"Line-management"`
+            * `"Self-owned institution"`
+            * `"Outside organisation"`
+            * `"Hidden"`
+
+            Note:
+            The organisation-gatekeeper integration is one option to keep hierarchy labels up-to-date.
+        """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2892,7 +2918,26 @@ class OrganisationUnit:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
-        description="Organisation unit type",
+        description=dedent(
+            """
+            Organisation unit type.
+
+            Organisation units can represent a lot of different classes of hierarchical structures.
+            Sometimes they represent cooperations, governments, NGOs or other true organisation types.
+            Oftentimes they represent the inner structure of these organisations.
+            Othertimes they represent project management structures such as project or teams.
+
+            This field is used to distriguish all these different types of organisations.
+
+            Examples of user-keys:
+            * `"Private Company"`
+            * `"Educational Institution"`
+            * `"Activity Center"`
+            * `"Daycare"`
+            * `"Team"`
+            * `"Project"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2901,7 +2946,17 @@ class OrganisationUnit:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_level_uuid)}
         ),
-        description="Organisation unit level",
+        # TODO: Document this
+        description=dedent(
+            """
+            Organisation unit level.
+
+            Examples of user-keys:
+            * `"N1"`
+            * `"N5"`
+            * `"N7"`
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2909,7 +2964,12 @@ class OrganisationUnit:
         resolver=seed_resolver_only(
             ClassResolver(), {"uuids": lambda root: uuid2list(root.time_planning_uuid)}
         ),
-        description="Time planning strategy",
+        # TODO: DOcument this
+        description=dedent(
+            """
+            Time planning strategy.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
@@ -2918,7 +2978,14 @@ class OrganisationUnit:
             EngagementResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related engagements",
+        description=dedent(
+            """
+            Engagements for the organistion unit.
+
+            May be an empty list if the organistion unit does not have any people employeed.
+            This situation may occur especially in the middle or the organisation tree.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("engagement"),
@@ -2983,11 +3050,37 @@ class OrganisationUnit:
         return root.name
 
     @strawberry.field(
-        description="Managers of the organisation unit",
+        description=dedent(
+            """
+            Managerial roles for the organisation unit.
+
+            May be empty in which case managers are usually inherited from parents.
+            See the `inherit`-flag for details.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
     )
     async def managers(
-        self, root: OrganisationUnitRead, info: Info, inherit: bool = False
+        self,
+        root: OrganisationUnitRead,
+        info: Info,
+        inherit: Annotated[
+            bool,
+            strawberry.argument(
+                description=dedent(
+                    """
+                    Whether to inherit managerial roles or not.
+
+                    If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
+                    However if no managerial roles exist directly, and this flag is:
+                    * Not set: An empty list is returned.
+                    * Is set: The result from calling `managers` with `inherit=True` on the parent of this organistion unit is returned.
+
+                    Calling with `inherit=True` can help ensure that a manager is always found.
+                    """
+                )
+            ),
+        ] = False,
     ) -> list["Manager"]:
         resolver = seed_resolver_list(ManagerResolver())
         result = await resolver(root=root, info=info, org_units=[root.uuid])
@@ -3007,7 +3100,16 @@ class OrganisationUnit:
             AddressResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related addresses",
+        description=dedent(
+            """
+            Addresses for the organisation unit.
+
+            Commonly contain addresses such as, their:
+            * Location
+            * Contact phone number
+            * Contact email
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("address")],
     )
 
@@ -3016,7 +3118,11 @@ class OrganisationUnit:
             LeaveResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related leaves",
+        description=dedent(
+            """
+            Connection to employees leaves of absence relevant for the organisation unit.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("leave")],
     )
 
@@ -3025,7 +3131,14 @@ class OrganisationUnit:
             AssociationResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related associations",
+        description=dedent(
+            """
+            Associations for the organistion unit.
+
+            May be an empty list if the organistion unit is purely hierarchical.
+            This situation may occur especially in the middle or the organisation tree.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("association"),
@@ -3037,7 +3150,14 @@ class OrganisationUnit:
             RoleResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related roles",
+        description=dedent(
+            """
+            Roles being fulfilled within the organisational unit.
+
+            May be an empty list if the organistion unit is purely hierarchical.
+            This situation may occur especially in the middle or the organisation tree.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("role")],
     )
 
@@ -3051,6 +3171,7 @@ class OrganisationUnit:
             IT (service) accounts.
 
             May be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.
+            This situation may occur especially in the middle or the organisation tree.
             """
         ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("ituser")],
@@ -3061,7 +3182,13 @@ class OrganisationUnit:
             KLEResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="KLE responsibilities for the organisation unit",
+        description=dedent(
+            """
+            KLE responsibilities for the organisation unit.
+
+            Can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.
+            """
+        ),
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("kle")],
     )
 
@@ -3070,7 +3197,11 @@ class OrganisationUnit:
             RelatedUnitResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
-        description="Related units for the organisational unit",
+        description=dedent(
+            """
+            Related units for the organisational unit.
+            """
+        ),
         permission_classes=[
             IsAuthenticatedPermission,
             gen_read_permission("related_unit"),
@@ -3082,6 +3213,7 @@ class OrganisationUnit:
             EngagementAssociationResolver(),
             {"org_units": lambda root: [root.uuid]},
         ),
+        # TODO: Document this
         description="Engagement associations for the organisational unit",
         permission_classes=[
             IsAuthenticatedPermission,
