@@ -1233,6 +1233,33 @@ class DataLoader:
                 output.append(it_user)
         return output
 
+    def load_mo_employee_engagement_dicts(
+        self,
+        employee_uuid: UUID,
+        user_key: str,
+    ) -> list[dict]:
+        query = gql(
+            f"""
+            query EngagementQuery {{
+              employees(uuids: "{employee_uuid}") {{
+                objects {{
+                  engagements(user_keys: "{user_key}") {{
+                    uuid
+                    user_key
+                    org_unit_uuid
+                    job_function_uuid
+                    engagement_type_uuid
+                    primary_uuid
+                  }}
+                }}
+              }}
+            }}
+            """
+        )
+        result = self.query_mo_sync(query)
+        output: list[dict] = result["employees"][0]["objects"][0]["engagements"]
+        return output
+
     async def load_mo_employee_engagements(
         self, employee_uuid: UUID
     ) -> list[Engagement]:
