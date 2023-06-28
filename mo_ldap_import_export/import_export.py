@@ -303,7 +303,6 @@ class SyncTool:
             )
 
             if self.cleanup_needed(ldap_modify_responses):
-
                 # Load IT users belonging to this employee
                 it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
                     changed_employee.uuid, it_system_type_uuid
@@ -382,7 +381,6 @@ class SyncTool:
         )
 
         if self.cleanup_needed(ldap_modify_responses):
-
             addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
                 org_unit_uuid, changed_address.address_type.uuid
             )
@@ -570,7 +568,7 @@ class SyncTool:
                 logger.info(
                     (
                         f"Found matching MO '{json_key}' with "
-                        f"value='{getattr(converted_object,value_key)}'"
+                        f"value='{getattr(converted_object, value_key)}'"
                     )
                 )
 
@@ -694,9 +692,14 @@ class SyncTool:
 
                 if json_key == "Custom":
                     for obj in converted_objects:
-                        uuids_to_ignore = await obj.sync_to_mo(self.context)
-                        for ignore in uuids_to_ignore:
-                            self.uuids_to_ignore.add(ignore)
+                        job_list = await obj.sync_to_mo(self.context)
+                        for job in job_list:
+                            self.uuids_to_ignore.add(job["uuid_to_ignore"])
+                            await self.context["graphql_session"].execute(
+                                document=job["document"],
+                                variable_values=job["variable_values"],
+                            )
+
                 else:
                     for mo_object in converted_objects:
                         self.uuids_to_ignore.add(mo_object.uuid)

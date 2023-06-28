@@ -43,21 +43,19 @@ class HolstebroEngagementUpdate(CustomerSpecific):
         return cls(user=user, job_function=job_function, **kwargs)
 
     async def sync_to_mo(self, context: Context):
-        async def get_engagement_uuids(gql_client, employee_uuid):
+        async def get_engagement_uuids(gql_session, employee_uuid):
             query = gql(
                 """
             query GetEngagementUuids($employees: [UUID!]) {
               engagements(employees: $employees) {
-                objects {
-                  current {
-                    uuid
-                  }
+                current {
+                  uuid
                 }
               }
             }
             """
             )
-            result = await gql_client.execute(
+            result = await gql_session.execute(
                 query,
                 variable_values=jsonable_encoder(
                     {
@@ -66,12 +64,12 @@ class HolstebroEngagementUpdate(CustomerSpecific):
                 ),
             )
 
-            return [res["current"]["uuid"] for res in result["engagements"]["objects"]]
+            return [res["current"]["uuid"] for res in result["engagements"]]
 
-        async def set_job_title(gql_client, engagement_uuids):
+        async def set_job_title(engagement_uuids: list):
             query = gql(
                 """
-            mutation SetJobtitles($uuid: UUID, $from: DateTime, $job_function: UUID) {
+            mutation SetJobtitle($uuid: UUID!, $from: DateTime!, $job_function: UUID!) {
               engagement_update(
                 input: {uuid: $uuid,
                         validity: {from: $from},
@@ -82,26 +80,26 @@ class HolstebroEngagementUpdate(CustomerSpecific):
             }
             """
             )
-
+            jobs = []
             for uuid in engagement_uuids:
-                await gql_client.execute(
-                    query,
-                    variable_values=jsonable_encoder(
-                        {
-                            "uuid": uuid,
-                            "from": datetime.datetime.now().date(),
-                            "job_function": self.job_function.uuid,
-                        }
-                    ),
+
+                jobs.append(
+                    {
+                        "uuid_to_ignore": uuid,
+                        "document": query,
+                        "variable_values": jsonable_encoder(
+                            {
+                                "uuid": uuid,
+                                "from": datetime.datetime.now().date(),
+                                "job_function": self.job_function.uuid,
+                            }
+                        ),
+                    }
                 )
+            return jobs
 
         engagement_uuids = await get_engagement_uuids(
-            gql_client=context["user_context"]["gql_client_v7"],
+            gql_session=context["graphql_session"],
             employee_uuid=self.user.uuid,
         )
-        await set_job_title(
-            gql_client=context["user_context"]["gql_client_v7"],
-            engagement_uuids=engagement_uuids,
-        )
-
-        return engagement_uuids
+        return await set_job_title(engagement_uuids=engagement_uuids)

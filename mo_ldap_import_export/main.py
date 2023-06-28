@@ -234,12 +234,7 @@ def construct_model_client(settings: Settings):
 
 def construct_clients(
     settings: Settings,
-) -> Tuple[
-    PersistentGraphQLClient,
-    PersistentGraphQLClient,
-    PersistentGraphQLClient,
-    ModelClient,
-]:
+) -> Tuple[PersistentGraphQLClient, PersistentGraphQLClient, ModelClient]:
     """Construct clients froms settings.
 
     Args:
@@ -250,9 +245,8 @@ def construct_clients(
     """
     gql_client = construct_gql_client(settings)
     gql_client_sync = construct_gql_client(settings, sync=True)
-    gql_client_v7 = construct_gql_client(settings=settings, version="v7")
     model_client = construct_model_client(settings)
-    return gql_client, gql_client_sync, gql_client_v7, model_client
+    return gql_client, gql_client_sync, model_client
 
 
 def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
@@ -286,14 +280,10 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     amqpsystem.router.registry.update(amqp_router.registry)
 
     logger.info("Setting up clients")
-    gql_client, gql_client_sync, gql_client_v7, model_client = construct_clients(
-        settings
-    )
+    gql_client, gql_client_sync, model_client = construct_clients(settings)
     fastramqpi.add_context(model_client=model_client)
     fastramqpi.add_context(gql_client=gql_client)
     fastramqpi._context["graphql_client"] = gql_client
-    fastramqpi.add_context(graphql_client_v7=gql_client_v7)
-    fastramqpi._context["graphql_client_v7"] = gql_client_v7  # type: ignore
     fastramqpi.add_context(gql_client_sync=gql_client_sync)
 
     logger.info("Configuring LDAP connection")

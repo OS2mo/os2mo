@@ -12,6 +12,7 @@ from uuid import uuid4
 
 import pytest
 from fastramqpi.context import Context
+from gql import gql
 from httpx import HTTPStatusError
 from ramodels.mo.details.address import Address
 from ramodels.mo.details.engagement import Engagement
@@ -1200,14 +1201,40 @@ async def test_import_holstebroengagementupdate_objects(
 
     converter.from_ldap.return_value = converted_objects
 
+    query = gql(
+        """
+    mutation SetJobtitle($uuid: UUID!, $from: DateTime!, $job_function: UUID!) {
+      engagement_update(
+        input: {uuid: $uuid,
+                validity: {from: $from},
+                job_function: $job_function}
+      ) {
+        uuid
+      }
+    }
+    """
+    )
+
+    job = [
+        {
+            "uuid_to_ignore": eng_uuid,
+            "document": query,
+            "variable_values": {
+                "uuid": eng_uuid,
+                "from": str(datetime.datetime.now().date()),
+                "job_function": str(job_function_uuid),
+            },
+        }
+    ]
+
+    context["graphql_session"] = AsyncMock()
+
     with patch(
         "mo_ldap_import_export.import_export.SyncTool.format_converted_objects",
         return_value=converted_objects,
     ), patch(
         "mo_ldap_import_export.customer_specific.HolstebroEngagementUpdate.sync_to_mo",
-        return_value=[
-            eng_uuid,
-        ],
+        return_value=job,
     ):
         await asyncio.gather(sync_tool.import_single_user("CN=foo"))
         dataloader.upload_mo_objects.assert_called_once()
