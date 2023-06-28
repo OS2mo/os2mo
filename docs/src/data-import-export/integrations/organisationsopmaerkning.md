@@ -24,7 +24,7 @@ Opmærkning af en enhed sker automatisk, når der er relevante ændringer. Når 
 
 Nedenfor ses en række eksempler på, hvordan det i MOs brugergrænseflade er muligt at vælge den organisation, man er interesseret i at se.
 
-Umiddelbart over visningen af organisationshierarkiet findes en dropdown, hvor det er muligt at vælge, hvilken organisation der skal vises: 
+Umiddelbart over visningen af organisationshierarkiet findes en dropdown, hvor det er muligt at vælge, hvilken organisation der skal vises:
 
 ![organisationsdropdown](/docs/src/graphics/organisationsdropdown.png)
 
