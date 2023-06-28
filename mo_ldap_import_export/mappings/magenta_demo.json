@@ -101,6 +101,13 @@
       "validity": "{{ dict(from_date=now()|mo_datestring) }}",
       "person": "{{ dict(uuid=employee_uuid or NONE) }}"
     },
+    "Custom": {
+      "objectClass": "Custom.HolstebroEngagementUpdate",
+      "_import_to_mo_": "true",
+      "user": "{{ dict(uuid=employee_uuid) }}",
+      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
+      "uuid": "{{ employee_uuid or NONE }}"
+    }
   },
   "mo_to_ldap": {
     "Employee": {
@@ -164,7 +171,12 @@
       "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
       "employeeNumber": "{{mo_employee.cpr_no}}"
     },
-
+    "Custom": {
+      "objectClass": "user",
+      "_export_to_ldap_": "false",
+      "employeeNumber": "{{ mo_holstebro_cust.user.uuid }}",
+      "title": "{{ get_job_function_name(mo_holstebro_cust.job_function.uuid) }}",
+    },
   },
   "username_generator": {
      "objectClass" : "UserNameGenerator",
