@@ -1,4 +1,4 @@
---
+---
 title: SD-Løn Organisationsopmærkning
 ---
 
@@ -26,19 +26,19 @@ Nedenfor ses en række eksempler på, hvordan det i MOs brugergrænseflade er mu
 
 Umiddelbart over visningen af organisationshierarkiet findes en dropdown, hvor det er muligt at vælge, hvilken organisation der skal vises:
 
-![organisationsdropdown](/docs/src/graphics/organisationsdropdown.png)
+![organisationsdropdown](../../graphics/organisationsdropdown.png)
 
 Vælges “Linjeorganisation”, vises den (også kaldet den administrative organisation):
 
-![linjeorganisationen](/docs/src/graphics/linjeorganisationen.png)
+![linjeorganisationen](../../graphics/linjeorganisationen.png)
 
 Vælges “Selvejet institution”, vil selvejende enheder blive vist:
 
-![selvejetinstitution](/docs/src/graphics/selvejetinstitution.png)
+![selvejetinstitution](../../graphics/selvejetinstitution.png)
 
 Vælges “Bruttoorganisation”, vil alle organisationsenheder i MO blive vist (ufiltreret):
 
-![bruttoorganisationen](/docs/src/graphics/bruttoorganisationen.png)
+![bruttoorganisationen](../../graphics/bruttoorganisationen.png)
 
 ## Eksport af den rette organisation til 3. parts systemer
 
