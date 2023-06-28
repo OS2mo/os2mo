@@ -1256,8 +1256,11 @@ class DataLoader:
             }}
             """
         )
-        result = self.query_mo_sync(query)
-        output: list[dict] = result["employees"][0]["objects"][0]["engagements"]
+        try:
+            result = self.query_mo_sync(query)
+            output: list[dict] = result["employees"][0]["objects"][0]["engagements"]
+        except NoObjectsReturnedException:
+            output = []
         return output
 
     async def load_mo_employee_engagements(

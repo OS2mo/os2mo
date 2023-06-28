@@ -1981,6 +1981,12 @@ def test_load_mo_employee_engagement_dicts(dataloader: DataLoader):
     assert engagement1 in result
     assert engagement2 in result
 
+    dataloader.query_mo_sync.side_effect = NoObjectsReturnedException("f")
+    result = dataloader.load_mo_employee_engagement_dicts(uuid4(), "foo")
+
+    assert type(result) is list
+    assert len(result) == 0
+
 
 def test_return_mo_employee_uuid_result(dataloader: DataLoader):
     uuid = uuid4()
