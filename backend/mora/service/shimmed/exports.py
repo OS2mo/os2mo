@@ -1,9 +1,10 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 from base64 import b64decode
+from datetime import timedelta
 from operator import itemgetter
+from secrets import token_hex
 from typing import Any
-from typing import Optional
 
 from fastapi import Cookie
 from fastapi import Depends
@@ -11,21 +12,57 @@ from fastapi import File
 from fastapi import HTTPException
 from fastapi import Path
 from fastapi import Query
+from fastapi import Request
 from fastapi import Response
 from fastapi.responses import StreamingResponse
-from fastapi.security import OAuth2PasswordBearer
 from more_itertools import one
+from sqlalchemy import delete
+from sqlalchemy import func
+from sqlalchemy import insert
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from starlette.datastructures import UploadFile
 
 from .errors import handle_gql_error
 from mora import exceptions
 from mora.auth.keycloak.oidc import auth
-from mora.auth.keycloak.oidc import validate_token
+from mora.db import FileToken
 from mora.graphapi.shim import execute_graphql
 from mora.service.exports import router as exports_router
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")
+cookie_key = "MO_FILE_DOWNLOAD"
+file_token_expiration_minutes = 10
+
+
+def get_sessionmaker(request: Request) -> async_sessionmaker:
+    """Extract the sessionmaker from our app.state.
+
+    Args:
+        request: The incoming request.
+
+    Return:
+        Extracted sessionmaker.
+    """
+    return request.app.state.sessionmaker
+
+
+async def purge_all_filetokens(
+    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+) -> None:
+    """Purge expired filetokens.
+
+    Args:
+        sessionmaker: Sessionmaker to run our query on.
+    """
+
+    async with sessionmaker() as session, session.begin():
+        await session.execute(
+            delete(FileToken).where(
+                FileToken.created_at + timedelta(minutes=file_token_expiration_minutes)
+                < func.now()
+            )
+        )
 
 
 @exports_router.get(
@@ -33,9 +70,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="service/token")
     response_model=list[str],
     response_model_exclude_unset=True,
     responses={"500": {"description": "Directory does not exist"}},
-    dependencies=[Depends(auth)],
+    dependencies=[Depends(auth), Depends(purge_all_filetokens)],
 )
-async def list_export_files(response: Response, token: str = Depends(oauth2_scheme)):
+async def list_export_files(
+    response: Response,
+    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+) -> list[str]:
     """List the available exports.
 
     Example:
@@ -44,14 +84,24 @@ async def list_export_files(response: Response, token: str = Depends(oauth2_sche
         "export2.xlsx"
       ]
     """
+    secret = token_hex(127)
     response.set_cookie(
-        key="MO_FILE_DOWNLOAD",
-        value=token,
+        key=cookie_key,
+        value=secret,
         secure=True,
         httponly=True,
         samesite="strict",
         path="/service/exports/",
     )
+    async with sessionmaker() as session:
+        async with session.begin():
+            await session.execute(
+                insert(FileToken),
+                [
+                    {"secret": secret},
+                ],
+            )
+
     query = "query FilesQuery { files(file_store: EXPORTS) { objects { file_name } } }"
     gql_response = await execute_graphql(query)
     handle_gql_error(gql_response)
@@ -97,29 +147,51 @@ async def upload_export_file(
     return status
 
 
-async def _check_auth_cookie(auth_cookie=Optional[str]) -> None:
+async def check_auth_cookie(
+    sessionmaker: async_sessionmaker = Depends(get_sessionmaker),
+    auth_cookie: str | None = Cookie(None, alias=cookie_key),
+) -> None:
+    """Check the provided auth cookie in the file_token table.
+
+    Args:
+        sessionmaker: Sessionmaker to run our query on.
+        auth_cookie: The cookie value provided by the user.
+
+    Raises:
+        HTTPException if the cookie value was not acceptable.
+    """
     if auth_cookie is None:
         raise HTTPException(status_code=401, detail="Missing download cookie!")
-    await validate_token(str(auth_cookie))
+
+    async with sessionmaker() as session, session.begin():
+        result = await session.scalar(
+            select(FileToken).where(FileToken.secret == auth_cookie)
+        )
+        if result is None:
+            raise HTTPException(status_code=401, detail="Invalid download cookie!")
+
+        # Use database time instead of datetime.now as database time might be different
+        now = await session.scalar(func.now())
+        if result.created_at + timedelta(minutes=file_token_expiration_minutes) < now:
+            raise HTTPException(status_code=401, detail="Expired download cookie!")
 
 
 @exports_router.get(
     "/exports/{file_name}",
     responses={"500": {"description": "Directory does not exist"}},
+    dependencies=[Depends(check_auth_cookie)],
 )
 async def download_export_file(
     file_name: str = Path(..., description="Name of the export file."),
-    mo_file_download: str | None = Cookie(None, alias="MO_FILE_DOWNLOAD"),
 ) -> StreamingResponse:
     """Download an export file with a given name.
 
-    :param string file_name: Name of the export file.
-    :param string mo_file_download: OIDC Token used for authentication.
+    Args:
+        file_name: Name of the export file.
 
-    :return: The file data corresponding to the given export file name.
+    Returns:
+        The file data corresponding to the given export file name.
     """
-    await _check_auth_cookie(mo_file_download)
-
     variables = {
         "file_name": file_name,
     }
