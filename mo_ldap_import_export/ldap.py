@@ -174,6 +174,32 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
     return all_attributes
 
 
+def apply_discriminator(search_result: list, context: Context):
+    if context["user_context"]["settings"].discriminator_function is None:
+        return search_result
+
+    discriminator_function = context["user_context"]["settings"].discriminator_function
+    discriminator_field = context["user_context"]["settings"].discriminator_field
+    discriminator_values = context["user_context"]["settings"].discriminator_values
+
+    if discriminator_function == "include":
+        return list(
+            filter(
+                lambda res: discriminator_field in res
+                and str(res[discriminator_field]) in discriminator_values,
+                search_result,
+            )
+        )
+    if discriminator_function == "exclude":
+        return list(
+            filter(
+                lambda res: discriminator_field not in res
+                or str(res[discriminator_field]) not in discriminator_values,
+                search_result,
+            )
+        )
+
+
 def _paged_search(
     context: Context,
     searchParameters: dict,
@@ -202,6 +228,7 @@ def _paged_search(
             break
 
         entries = [r for r in ldap_connection.response if r["type"] == "searchResEntry"]
+        entries = apply_discriminator(entries, context)
         responses.extend(entries)
 
         try:
@@ -251,7 +278,7 @@ def paged_search(
     return results
 
 
-def single_object_search(searchParameters, ldap_connection):
+def single_object_search(searchParameters, ldap_connection, context: Context):
     """
     Performs an LDAP search and throws an exception if there are multiple or no search
     results.
@@ -284,6 +311,8 @@ def single_object_search(searchParameters, ldap_connection):
         response = ldap_connection.response
 
     search_entries = [r for r in response if r["type"] == "searchResEntry"]
+
+    search_entries = apply_discriminator(search_entries, context)
 
     if len(search_entries) > 1:
         logger.info(response)
@@ -330,7 +359,7 @@ def get_ldap_object(dn, context, nest=True):
         "attributes": ["*"],
         "search_scope": BASE,
     }
-    search_result = single_object_search(searchParameters, ldap_connection)
+    search_result = single_object_search(searchParameters, ldap_connection, context)
     dn = search_result["dn"]
     logger.info(f"[get_ldap_object] Found {dn}")
     return make_ldap_object(search_result, context, nest=nest)
@@ -527,6 +556,7 @@ def setup_poller(
         target=_poller,
         args=(
             context["user_context"]["ldap_connection"],
+            context,
             search_parameters,
             callback,
             init_search_time,
@@ -540,6 +570,7 @@ def setup_poller(
 
 def _poller(
     ldap_connection: Connection,
+    context: Context,
     search_parameters: dict,
     callback: Callable,
     init_search_time: datetime.datetime,
@@ -567,7 +598,8 @@ def _poller(
         last_events = []
 
         if ldap_connection.response:
-            for event in ldap_connection.response:
+            responses = apply_discriminator(ldap_connection.response, context)
+            for event in responses:
                 if event.get("type") == "searchResEntry":
 
                     # We require modifyTimeStamp to determine if the event is duplicate
