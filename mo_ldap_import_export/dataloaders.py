@@ -198,7 +198,9 @@ class DataLoader:
             "attributes": attributes,
             "search_scope": BASE,
         }
-        search_result = single_object_search(searchParameters, self.ldap_connection)
+        search_result = single_object_search(
+            searchParameters, self.ldap_connection, self.context
+        )
         return make_ldap_object(search_result, self.context, nest=nest)
 
     def load_ldap_attribute_values(self, attribute, search_base=None):
@@ -259,7 +261,9 @@ class DataLoader:
             "search_filter": f"(&({object_class_filter})({cpr_filter}))",
             "attributes": list(set(attributes)),
         }
-        search_result = single_object_search(searchParameters, self.ldap_connection)
+        search_result = single_object_search(
+            searchParameters, self.ldap_connection, self.context
+        )
 
         ldap_object: LdapObject = make_ldap_object(search_result, self.context)
         logger.info(f"Found {ldap_object.dn}")
@@ -685,7 +689,9 @@ class DataLoader:
             "search_scope": BASE,
         }
 
-        search_result = single_object_search(searchParameters, self.ldap_connection)
+        search_result = single_object_search(
+            searchParameters, self.ldap_connection, self.context
+        )
         dn: str = search_result["dn"]
         return dn
 

@@ -4,6 +4,7 @@
 # pylint: disable=too-few-public-methods
 """Settings handling."""
 from typing import List
+from typing import Literal
 
 from fastramqpi.config import Settings as FastRAMQPISettings
 from pydantic import AmqpDsn
@@ -177,4 +178,17 @@ class Settings(BaseSettings):
             "Check that an employee has an it-user with this user_key "
             "before writing to LDAP"
         ),
+    )
+
+    discriminator_function: Literal["exclude", "include", None] = Field(
+        None,
+        description="The type of discriminator function, either include or exclude",
+    )
+
+    discriminator_field: str | None = Field(
+        None, description="The field to look for discriminator values in"
+    )
+
+    discriminator_values: List[str] = Field(
+        [], description="The values used for discrimination"
     )
