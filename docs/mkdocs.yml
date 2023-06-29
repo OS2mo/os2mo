@@ -102,7 +102,7 @@ nav:
           - data-import-export/exporters/os2phonebook.md
           - data-import-export/exporters/os2rollekatalog.md
           - data-import-export/exporters/os2sync.md
-          - Organisational chart: guides/org-chart.md
+          - data-import-export/exporters/org-chart.md
       - OS2MO Data Import:
           - data-import-export/os2mo_data_import/integration-abstraction.md
           - data-import-export/os2mo_data_import/import-tool.md
