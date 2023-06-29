@@ -17,7 +17,7 @@ Organisationsdiagrammet bliver opdateret ‘on-the-fly’, når der sker ændrin
 ### Visning af enheder i en træstruktur
 Enheder vises i en træstruktur, så man tydeligt kan se enhedernes hierarkiske tilhørsforhold.
 
-![image](../graphics/hierarchy.png)
+![image](../../graphics/hierarchy.png)
 
 Bemærk, at diagrammet kan udstilles både vandret og lodret.
 
@@ -27,12 +27,12 @@ Der er toggle-knapper for hver enhed, som viser eller skjuler overenheder og und
 ### Visning af detaljer for enhed
 Ved klik på en enhed fremkommer en liste af personer, som er tilknyttet enheden, deres leder samt kontaktinformation på enheden.
 
-![image](../graphics/unitdetails.png)
+![image](../../graphics/unitdetails.png)
 
 ### Visning af detaljer for person
 Ved klik på en person (fra enhedens personliste) fremkommer detaljerede oplysninger om personen - herunder kontaktinformation.
 
-![image](../graphics/employeedetails.png)
+![image](../../graphics/employeedetails.png)
 
 ## Navigation og deling
 
@@ -54,15 +54,15 @@ Når man åbner en enhed for at vise dens personliste og individuelle personer, 
 ## Søgefunktion
 Søgefunktionen vises i toppen af skærmen.
 
-![image](../graphics/searchfunctionalityorgchart.png)
+![image](../../graphics/searchfunctionalityorgchart.png)
 
 Ved klik på luppen kommer man til søgesiden. Når man indtaster i søgefeltet, får man et søgeresultat med personer eller enheder, der passer til det søgte.
 
-![image](../graphics/searchperson.png)
+![image](../../graphics/searchperson.png)
 
 Vælger man en person eller enhed fra søgeresultatet, forsvinder søgeresultatet for at gøre plads til visning af den specifikke enhed eller person i træstrukturen.
 
-![image](../graphics/searchmagnus.png)
+![image](../../graphics/searchmagnus.png)
 
 Der kan søges på:
 
