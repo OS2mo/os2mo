@@ -42,7 +42,6 @@ nav:
           - Conventions: guides/conventions.md
           - Manager script: guides/os2mo-manager-sync.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
-          - Organisational chart: guides/org-chart.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
           - Tests: guides/tests.md
   - LoRa:
@@ -103,6 +102,7 @@ nav:
           - data-import-export/exporters/os2phonebook.md
           - data-import-export/exporters/os2rollekatalog.md
           - data-import-export/exporters/os2sync.md
+          - Organisational chart: guides/org-chart.md
       - OS2MO Data Import:
           - data-import-export/os2mo_data_import/integration-abstraction.md
           - data-import-export/os2mo_data_import/import-tool.md
