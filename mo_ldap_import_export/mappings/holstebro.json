@@ -1,110 +1,15 @@
 {
-  "init": {
-    "it_systems": {
-      "ADGUID": "Active Directory GUID",
-      "ADSAMA": "Active Directory sAMAccountName",
-    },
-    "facets" : {
-      "employee_address_type": {
-        "AddressEmployeeText": {
-          "title": "Address (AD)",
-          "scope": "TEXT"
-        },
-        "EmailEmployee": {
-          "title": "Mail (AD)",
-          "scope": "EMAIL"
-        },
-        "PhoneEmployee": {
-          "title": "Telefon (AD)",
-          "scope": "PHONE"
-        },
-      },
-      "org_unit_address_type": {
-        "LocationUnit": {
-          "title": "Lokation (AD)",
-          "scope": "TEXT"
-        },
-      }
-    }
-  },
   "ldap_to_mo": {
     "Employee": {
       "objectClass": "ramodels.mo.employee.Employee",
-      "_import_to_mo_": "true",
-      "givenname": "{{ldap.givenName}}",
-      "surname": "{{ldap.sn}}",
-      "cpr_no": "{{ldap.employeeID|strip_non_digits or NONE}}",
-      "uuid": "{{ employee_uuid or NONE }}"
-    },
-    // Note: This key needs to be a valid MO IT-system user_key*
-    // Note2: An "Active Directory" IT system is needed in case LDAP objects do not
-    // Contain CPR-numbers. Its user_key attribute must link to ldap.distinguishedName
-    "ADGUID": {
-      "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "_import_to_mo_": "true",
-      "user_key": "{{ ldap.objectGUID|remove_curly_brackets }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADGUID')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
-    // Note: This key needs to be a valid MO address type user_key*
-    "EmailEmployee": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "_import_to_mo_": "true",
-      "value": "{{ldap.mail or NONE}}",
-      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('EmailEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
-    // Note: This key needs to be a valid MO address type user_key*
-    "AddressEmployeeText": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "_import_to_mo_": "true",
-      "value": "{{ nonejoin(ldap.streetAddress, ldap.postalCode, ldap.l) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('AddressEmployeeText')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
-    // Note: This key needs to be a valid MO address type user_key*
-    "LocationUnit": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "_import_to_mo_": "true",
-      "value": "{{ ldap.postalAddress or NONE }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_org_unit_address_type_uuid('LocationUnit')) }}",
-      "org_unit": "{{ dict(uuid=get_or_create_org_unit_uuid(ldap.division)) }}"
-    },
-    "Engagement": {
-      "objectClass": "ramodels.mo.details.engagement.Engagement",
-      "_import_to_mo_": "true",
-      "org_unit": "{{ get_current_org_unit_uuid_dict(employee_uuid, ldap.countryCode) }}",
-      "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
-      "engagement_type": "{{ get_current_engagement_type_uuid_dict(employee_uuid, ldap.countryCode) }}",
-      "user_key": "{{ ldap.countryCode or '-'}}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}",
-      "primary": "{{ get_current_primary_uuid_dict(employee_uuid, ldap.countryCode) }}"
-    },
-    "PhoneEmployee": {
-      "objectClass": "ramodels.mo.details.address.Address",
-      "_import_to_mo_": "manual_import_only",
-      "value": "{{ ldap.telephoneNumber or NONE }}",
-      "validity": "{{ dict(from_date = now()|mo_datestring) }}",
-      "address_type": "{{ dict(uuid=get_employee_address_type_uuid('PhoneEmployee')) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
-    },
-    "ADSAMA": {
-      "objectClass": "ramodels.mo.details.it_system.ITUser",
-      "_import_to_mo_": "manual_import_only",
-      "user_key": "{{ ldap.sAMAccountName }}",
-      "itsystem": "{{ dict(uuid=get_it_system_uuid('ADSAMA')) }}",
-      "validity": "{{ dict(from_date=now()|mo_datestring) }}",
-      "person": "{{ dict(uuid=employee_uuid or NONE) }}"
+      "_import_to_mo_": "false",
+      "uuid": "{{ employee_uuid or NONE }}",
+      "cpr_no": "{{ ldap.extensionattribute1 }}"
     },
     "Custom": {
       "objectClass": "Custom.HolstebroEngagementUpdate",
       "_import_to_mo_": "true",
-      "user": "{{ dict(uuid=employee_uuid) }}",
+      "user": "{{ dict(uuid=(ldap.hkstsuuid)) }}",
       "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
@@ -112,69 +17,14 @@
   "mo_to_ldap": {
     "Employee": {
       "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "givenName": "{{mo_employee.givenname}}",
-      "sn": "{{mo_employee.surname}}",
-      "displayName": "{{mo_employee.surname}}, {{mo_employee.givenname}}",
-      "employeeID": "{{mo_employee.cpr_no or NONE}}",
-      "department": "{{NONE}}"
-    },
-    // Note: This key needs to be a valid MO IT-system user_key*
-    "ADGUID": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "objectGUID" : "{{ '{' + mo_employee_it_user.user_key + '}' }}",
-      "employeeID": "{{mo_employee.cpr_no}}"
-    },
-    // Note: This key needs to be a valid MO address type user_key*
-    "EmailEmployee": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "mail": "{{mo_employee_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}"
-    },
-    // Note: This key needs to be a valid MO address type user_key*
-    "AddressEmployeeText": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "employeeID": "{{mo_employee.cpr_no}}",
-      "streetAddress": "{{mo_employee_address.value|splitlast(',')|first|splitlast(',')|first|trim}}",
-      "postalCode": "{{mo_employee_address.value|splitlast(',')|first|splitlast(',')|last|trim}}",
-      "l": "{{mo_employee_address.value|splitlast(',')|last|trim}}",
-    },
-    "LocationUnit": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "postalAddress": "{{mo_org_unit_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
-      "division": "{{get_org_unit_path_string(mo_org_unit_address.org_unit.uuid)}}"
-    },
-    "Engagement" : {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "employeeID": "{{mo_employee.cpr_no}}",
-      "department": "{{get_org_unit_name(mo_employee_engagement.org_unit.uuid)}}",
-      "division": "{{get_org_unit_path_string(mo_employee_engagement.org_unit.uuid)}}",
-      "countryCode": "{{mo_employee_engagement.user_key}}",
-      "title": "{{get_job_function_name(mo_employee_engagement.job_function.uuid)}}",
-      "comment": "{{mo_employee_engagement.validity.to_date.strftime('%Y-%m-%d') if mo_employee_engagement.validity.to_date else NONE}}",
-    },
-    "PhoneEmployee": {
-      "objectClass": "user",
       "_export_to_ldap_": "false",
-      "telephoneNumber": "{{mo_employee_address.value}}",
-      "employeeID": "{{mo_employee.cpr_no}}",
-    },
-    "ADSAMA": {
-      "objectClass": "user",
-      "_export_to_ldap_": "true",
-      "sAMAccountName" : "{{ mo_employee_it_user.user_key }}",
-      "employeeNumber": "{{mo_employee.cpr_no}}"
+      "employeeNumber": "{{mo_employee.uuid or NONE}}",
+      "extensionattribute1": "{{ mo_employee.cpr_no }}"
     },
     "Custom": {
       "objectClass": "user",
       "_export_to_ldap_": "false",
-      "employeeNumber": "{{ mo_holstebro_cust.user.uuid }}",
+      "hkstsuuid": "{{ mo_holstebro_cust.user.uuid }}",
       "title": "{{ get_job_function_name(mo_holstebro_cust.job_function.uuid) }}",
     },
   },
@@ -527,12 +377,3 @@
                             "krig"]
    }
 }
-
-// *Valid address type names can be obtained by making a new address and folding out the
-// 'Addressetype' listbox
-
-// *Valid it system names can be obtained by making a new it-user and folding out the
-// 'IT-systemer' listbox
-
-// Note: Only keys in the relevant mo_to_ldap dicts are retrieved when requesting an
-// ldap object

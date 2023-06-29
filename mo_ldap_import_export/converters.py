@@ -259,7 +259,9 @@ class LdapConverter:
 
     def get_accepted_json_keys(self) -> list[str]:
         accepted_json_keys = (
-            ["Employee", "Engagement"] + self.mo_address_types + self.mo_it_systems
+            ["Employee", "Engagement", "Custom"]
+            + self.mo_address_types
+            + self.mo_it_systems
         )
 
         return accepted_json_keys
@@ -1204,7 +1206,7 @@ class LdapConverter:
         converted_objects = []
         for entry in range(number_of_entries):
 
-            ldap_dict = CaseInsensitiveDict(
+            ldap_dict: CaseInsensitiveDict = CaseInsensitiveDict(
                 {
                     key: value[min(entry, len(value) - 1)]
                     if type(value) == list and len(value) > 0

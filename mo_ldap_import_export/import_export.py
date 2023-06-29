@@ -303,7 +303,6 @@ class SyncTool:
             )
 
             if self.cleanup_needed(ldap_modify_responses):
-
                 # Load IT users belonging to this employee
                 it_users_in_mo = await self.dataloader.load_mo_employee_it_users(
                     changed_employee.uuid, it_system_type_uuid
@@ -382,7 +381,6 @@ class SyncTool:
         )
 
         if self.cleanup_needed(ldap_modify_responses):
-
             addresses_in_mo = await self.dataloader.load_mo_org_unit_addresses(
                 org_unit_uuid, changed_address.address_type.uuid
             )
@@ -570,7 +568,7 @@ class SyncTool:
                 logger.info(
                     (
                         f"Found matching MO '{json_key}' with "
-                        f"value='{getattr(converted_object,value_key)}'"
+                        f"value='{getattr(converted_object, value_key)}'"
                     )
                 )
 
@@ -692,16 +690,28 @@ class SyncTool:
             if len(converted_objects) > 0:
                 logger.info(f"Importing {converted_objects}")
 
-                for mo_object in converted_objects:
-                    self.uuids_to_ignore.add(mo_object.uuid)
+                if json_key == "Custom":
+                    for obj in converted_objects:
+                        job_list = await obj.sync_to_mo(self.context)
+                        for job in job_list:
+                            self.uuids_to_ignore.add(job["uuid_to_ignore"])
+                            await self.context["graphql_session"].execute(
+                                document=job["document"],
+                                variable_values=job["variable_values"],
+                            )
 
-                try:
-                    await self.dataloader.upload_mo_objects(converted_objects)
-                except HTTPStatusError as e:
-                    # This can happen, for example if a phone number in LDAP is invalid
-                    logger.warning(e)
+                else:
                     for mo_object in converted_objects:
-                        self.uuids_to_ignore.remove(mo_object.uuid)
+                        self.uuids_to_ignore.add(mo_object.uuid)
+
+                    try:
+                        await self.dataloader.upload_mo_objects(converted_objects)
+                    except HTTPStatusError as e:
+                        # This can happen, for example if a phone number in LDAP is
+                        # invalid
+                        logger.warning(e)
+                        for mo_object in converted_objects:
+                            self.uuids_to_ignore.remove(mo_object.uuid)
 
     async def refresh_object(self, uuid: UUID, object_type: ObjectType):
         """

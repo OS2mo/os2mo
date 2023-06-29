@@ -209,9 +209,9 @@ async def open_ldap_connection(ldap_connection: Connection) -> AsyncIterator[Non
         yield
 
 
-def construct_gql_client(settings: Settings, sync=False):
+def construct_gql_client(settings: Settings, sync=False, version: str = "v3"):
     return PersistentGraphQLClient(
-        url=settings.mo_url + "/graphql/v3",
+        url=settings.mo_url + "/graphql/" + version,
         client_id=settings.client_id,
         client_secret=settings.client_secret.get_secret_value(),
         auth_server=settings.auth_server,
@@ -290,7 +290,9 @@ def create_fastramqpi(**kwargs: Any) -> FastRAMQPI:
     ldap_connection = configure_ldap_connection(settings)
     fastramqpi.add_context(ldap_connection=ldap_connection)
     fastramqpi.add_healthcheck(name="LDAPConnection", healthcheck=ldap_healthcheck)
-    fastramqpi.add_lifespan_manager(open_ldap_connection(ldap_connection), 1500)
+    fastramqpi.add_lifespan_manager(
+        open_ldap_connection(ldap_connection), 1500  # type: ignore
+    )
 
     logger.info("Loading mapping file")
     mappings_file = os.environ.get("CONVERSION_MAP")
