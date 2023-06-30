@@ -742,8 +742,6 @@ class LdapConverter:
         for info_dict_name, info_dict in self.all_info_dicts.items():
             if info_dict_name != "org_unit_info":
                 self.check_info_dict_for_duplicates(info_dict)
-            if info_dict_name in ["engagement_type_info", "job_function_info"]:
-                self.check_info_dict_for_duplicates(info_dict, "name")
 
             for info in info_dict.values():
                 if "uuid" not in info:
