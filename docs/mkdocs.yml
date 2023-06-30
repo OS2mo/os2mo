@@ -44,7 +44,7 @@ nav:
           - MED-organisation i OS2mo: guides/MED-organisationen.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md
           - Tests: guides/tests.md
-  - LoRa:
+  - Lokal rammearkitektur (LoRa og databasen):
       - Introduction: lora/index.md
       - Developer Documentation:
           - lora/dev/building-docs.md
@@ -86,7 +86,7 @@ nav:
                   - Passivate: lora/user/api/passivate.md
           - lora/user/log-haendelse.md
           - lora/user/settings.md
-  - DIPEX:
+  - Integrationer:
       - data-import-export/intro.md
       - Integrationer:
           - data-import-export/integrations/aarhus-los.md
