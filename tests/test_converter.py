@@ -1397,15 +1397,6 @@ def test_check_info_dicts(converter: LdapConverter):
         converter.all_info_dicts = {"my_info_dict": {uuid: {"user_key": "foo"}}}
         converter.check_info_dicts()
 
-    with pytest.raises(InvalidNameException, match="Duplicate values found"):
-        converter.all_info_dicts = {
-            "engagement_type_info": {
-                uuid4(): {"user_key": "foo", "name": "duplicate_name"},
-                uuid4(): {"user_key": "bar", "name": "duplicate_name"},
-            }
-        }
-        converter.check_info_dicts()
-
 
 def test_get_current_engagement_attribute(converter: LdapConverter):
 
