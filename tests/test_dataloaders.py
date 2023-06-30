@@ -2046,3 +2046,47 @@ def test_ou_in_ous_to_write_to(dataloader: DataLoader):
     assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=bar,DC=k") is True
     assert dataloader.ou_in_ous_to_write_to("CN=Tobias,OU=mucki,OU=bar,DC=k") is True
     assert dataloader.ou_in_ous_to_write_to("CN=Tobias,DC=k") is True
+
+
+async def test_load_all_it_users(dataloader: DataLoader):
+
+    itsystem1_uuid = uuid4()
+    itsystem2_uuid = uuid4()
+
+    obj1 = {
+        "current": {
+            "itsystem_uuid": str(itsystem1_uuid),
+            "employee_uuid": str(uuid4()),
+            "user_key": "foo",
+        }
+    }
+
+    obj2 = {
+        "current": {
+            "itsystem_uuid": str(itsystem2_uuid),
+            "employee_uuid": str(uuid4()),
+            "user_key": "bar",
+        }
+    }
+
+    object_dicts = [obj1, obj2]
+
+    async def execute_paged_mock(*args, **kwargs):
+        for obj in object_dicts:
+            yield obj
+
+    with patch(
+        "mo_ldap_import_export.dataloaders.execute_paged",
+        execute_paged_mock,
+    ):
+        output = await dataloader.load_all_it_users(itsystem1_uuid)
+
+        assert len(output) == 1
+        assert output[0]["itsystem_uuid"] == str(itsystem1_uuid)
+        assert output[0]["user_key"] == "foo"
+
+        output = await dataloader.load_all_it_users(itsystem2_uuid)
+
+        assert len(output) == 1
+        assert output[0]["itsystem_uuid"] == str(itsystem2_uuid)
+        assert output[0]["user_key"] == "bar"

@@ -1201,6 +1201,29 @@ class DataLoader:
             output.append(address)
         return output
 
+    async def load_all_it_users(self, it_system_uuid: UUID):
+        query = gql(
+            """
+            query AllEmployees($limit: int, $offset: int) {
+              page: itusers (limit: $limit, offset: $offset) {
+                current {
+                  itsystem_uuid
+                  employee_uuid
+                  user_key
+                }
+              }
+            }
+            """
+        )
+
+        result = []
+        async for obj in execute_paged(self.user_context["gql_client"], query):
+            current_obj = obj["current"]
+            if current_obj["itsystem_uuid"] == str(it_system_uuid):
+                result.append(current_obj)
+
+        return result
+
     async def load_mo_employee_it_users(
         self,
         employee_uuid: UUID,
