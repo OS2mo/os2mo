@@ -43,17 +43,17 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 1. Det tjekkes om alle aktuelle ledere fortsat har engagementer i de organisationsenheder, de er indplacerede i. Hvis det ikke er tilfældet, sættes dags dato som slutdato på lederen.
 2. For alle organisationsenheder, hvis navn ender med `_leder` og som *ikke* er præfikset med `Ø_`:
 
-    ![_leder org-unit](os2mo_managersync_images/_leder.png  "_leder org-unit")
+    ![_leder org-unit](os2mo_managersync_images/_leder.png)
     1. Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
-    ![Tilknytninger](os2mo_managersync_images/tilknytning.png  "Tilknytninger")
+    ![Tilknytninger](os2mo_managersync_images/tilknytning.png)
     2. Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i overenheden.
     3. Mappes hvert enhedsniveau til et leder-level:
-    
+
        ![Manager level](os2mo_managersync_images/manager_level.png)
     4. Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
        ![led-adm](os2mo_managersync_images/_led-adm.png)
-       
+
        I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed, altså fra Borgmesterens Afdeling.
     5. Når en leder er blevet valgt ud fra de ovesntående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så kun én tilknytning resterer.
 
@@ -63,17 +63,13 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
 The follow environment variables can be used to configure the application:
 
-TODO: some of the settings can possibly be retrieved from MO automatically
-instead of being set via the environment...
-
 * `MO_URL`:  Base URL for MO
 * `CLIENT_ID`:  Keycloak client ID
 * `CLIENT_SECRET`: Keycloak client secret corresponding to the Keycloak client
 * `ROOT_UUID`: UUID of the root organisation unit. Instance dependant.
 * `MANAGER_TYPE_UUID`: Default UUID for `Manager type`. Instance dependant.
 * `RESPONSIBILITY_UUID`: Default UUID for `Manager type`. Instance dependant.
-* `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to
-  map from `org_unit_level` to `manager_level`.
+* `MANAGER_LEVEL_MAPPING`: Dict with `org-unit level UUID` classes as keys and `manager level UUID` as values. Used to map from `org_unit_level` to `manager_level`.
 
 #### Usage
 
@@ -82,18 +78,15 @@ To start the container using `docker-compose`:
 ```
 $ docker-compose up -d
 ```
-
-After the container is up and running, the script can be run manually by
-triggering a `FastAPI` endpoint:
+After the container is up and running, the script can be run manually by triggering a `FastAPI` endpoint:
 
 * By using the GUI at:<br>
   ```http://localhost:8000/docs```
   and triggering `/trigger/all`.
 * Calling the endpoint from terminal: <br>
-  ```$ curl -X 'POST' 'http://localhost:8000/trigger/all'``` <br>
+  ```$ curl -X 'POST' 'http://localhost:8000/trigger/all'```<br>
 
-As it checks and updates managers you will get a lot of output in `docker logs`,
-especially if you have opted for `debug` information from logs.
+As it checks and updates managers you will get a lot of output in `docker logs`, especially if you have opted for `debug` information from logs.
 
 Once the script has finished the last lines will look like this:
 
@@ -153,8 +146,7 @@ You can use the flags `-vx` where `v` prints the test & `x` makes the test stop 
 ##### Injecting test data into OS2mo
 
 Test data have been prepared for local development. Using the test data requires
-a running OS2mo instance locally as well as the standard test data from Kolding,
-which is included in OS2mo repository.
+a running OS2mo instance locally as well as the standard test data from Kolding, which is included in OS2mo repository.
 
 Before using this integration locally you need to clone and run the `OS2MO` container
 from [OS2MO repo](https://git.magenta.dk/rammearkitektur/os2mo):
@@ -172,8 +164,7 @@ UUID passed as an parameter is required password
 
 ##### Development info
 
-Sending and fetching data to/from `OS2MO` is done using a `GraphQL` client imported
-from `Ra-clients` [repos here](https://git.magenta.dk/rammearkitektur/ra-clients)
+Sending and fetching data to/from `OS2MO` is done using a `GraphQL` client imported from `Ra-clients` [repos here](https://git.magenta.dk/rammearkitektur/ra-clients)
 
 ***
 
