@@ -31,6 +31,7 @@ from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
+from ramqp.utils import RequeueMessage
 from structlog.testing import capture_logs
 
 from mo_ldap_import_export.exceptions import IncorrectMapping
@@ -850,6 +851,9 @@ async def test_reject_on_failure():
     async def type_error_func():
         raise TypeError("")
 
+    async def requeue_error_func():
+        raise RequeueMessage("")
+
     # These exceptions should result in rejectMessage exceptions()
     for func in [
         not_supported_func,
@@ -861,9 +865,14 @@ async def test_reject_on_failure():
             await reject_on_failure(func)()
 
     # But not this one
-    with patch("mo_ldap_import_export.main.delay_on_error", 0.5):
+    with patch("mo_ldap_import_export.main.delay_on_error", 0.1):
         with pytest.raises(TypeError):
             await reject_on_failure(type_error_func)()
+
+    # And not this one either
+    with patch("mo_ldap_import_export.main.delay_on_requeue", 0.1):
+        with pytest.raises(RequeueMessage):
+            await reject_on_failure(requeue_error_func)()
 
 
 async def test_get_delete_flag(dataloader: AsyncMock):

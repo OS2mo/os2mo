@@ -44,6 +44,7 @@ from ramqp.mo.models import PayloadType
 from ramqp.mo.models import RequestType
 from ramqp.mo.models import ServiceType
 from ramqp.utils import RejectMessage
+from ramqp.utils import RequeueMessage
 from tqdm import tqdm
 
 from . import usernames
@@ -78,7 +79,8 @@ from .utils import mo_datestring_to_utc
 fastapi_router = APIRouter()
 amqp_router = MORouter()
 internal_amqp_router = MORouter()
-delay_on_error = 10
+delay_on_error = 10  # Try errors again after a short period of time
+delay_on_requeue = 60 * 60 * 24  # Requeue messages for tomorrow (or after a reboot)
 
 """
 Employee.schema()
@@ -108,6 +110,9 @@ def reject_on_failure(func):
         ) as e:
             logger.info(e)
             raise RejectMessage()
+        except RequeueMessage:
+            await asyncio.sleep(delay_on_requeue)
+            raise
         except Exception:  # pylint: disable=broad-except
             await asyncio.sleep(delay_on_error)
             raise
