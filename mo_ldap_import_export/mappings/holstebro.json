@@ -4,7 +4,7 @@
       "objectClass": "ramodels.mo.employee.Employee",
       "_import_to_mo_": "false",
       "uuid": "{{ employee_uuid or NONE }}",
-      "cpr_no": "{{ ldap.extensionattribute1 }}"
+      "cpr_no": "{{ ldap.extensionAttribute1 }}"
     },
     "Custom": {
       "objectClass": "Custom.HolstebroEngagementUpdate",
@@ -19,7 +19,7 @@
       "objectClass": "user",
       "_export_to_ldap_": "false",
       "employeeNumber": "{{mo_employee.uuid or NONE}}",
-      "extensionattribute1": "{{ mo_employee.cpr_no }}"
+      "extensionAttribute1": "{{ mo_employee.cpr_no }}"
     },
     "Custom": {
       "objectClass": "user",
