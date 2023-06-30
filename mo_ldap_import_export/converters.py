@@ -777,8 +777,10 @@ class LdapConverter:
     def get_object_uuid_from_info_dict(
         self, info_dict: dict, key: str, value: str
     ) -> str:
+        accepted_values = [d[key] for d in info_dict.values()]
+        error_message = f"'{value}' is not among {accepted_values}"
         if not value:
-            raise UUIDNotFoundException("object type name is empty")
+            raise UUIDNotFoundException(error_message)
 
         normalized_value = self.string_normalizer(value)
 
@@ -792,7 +794,7 @@ class LdapConverter:
                 return candidates[value]
             return list(candidates.values())[0]
         else:
-            raise UUIDNotFoundException(f"'{value}' not found in '{info_dict}'")
+            raise UUIDNotFoundException(error_message)
 
     def get_object_uuid_from_user_key(self, info_dict: dict, user_key: str) -> str:
         return self.get_object_uuid_from_info_dict(info_dict, "user_key", user_key)
