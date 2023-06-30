@@ -9,7 +9,7 @@
     "Custom": {
       "objectClass": "Custom.HolstebroEngagementUpdate",
       "_import_to_mo_": "true",
-      "user": "{{ dict(uuid=(ldap.hkstsuuid)) }}",
+      "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
       "job_function": "{{ dict(uuid=get_or_create_job_function_uuid(ldap.title)) }}",
       "uuid": "{{ employee_uuid or NONE }}"
     }
@@ -24,7 +24,7 @@
     "Custom": {
       "objectClass": "user",
       "_export_to_ldap_": "false",
-      "hkstsuuid": "{{ mo_holstebro_cust.user.uuid }}",
+      "hkStsuuid": "{{ mo_holstebro_cust.user.uuid }}",
       "title": "{{ get_job_function_name(mo_holstebro_cust.job_function.uuid) }}",
     },
   },
