@@ -210,7 +210,11 @@ class SyncTool:
         # If the object was uploaded by us, it does not need to be synchronized.
         # Note that this is not necessary in listen_to_changes_in_org_units. Because
         # those changes potentially map to multiple employees
-        self.uuids_to_ignore.check(payload.object_uuid)
+        try:
+            self.uuids_to_ignore.check(payload.object_uuid)
+        except IgnoreChanges as e:
+            logger.info(e)
+            return
         await self.perform_export_checks(payload.uuid, payload.object_uuid)
 
         try:

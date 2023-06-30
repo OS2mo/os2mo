@@ -332,17 +332,18 @@ async def test_listen_to_changes_in_employees(
     sync_tool.uuids_to_ignore = uuids_to_ignore
 
     with capture_logs() as cap_logs:
-        with pytest.raises(IgnoreChanges, match=f".*Ignoring .*{payload.object_uuid}"):
-            await asyncio.gather(
-                sync_tool.listen_to_changes_in_employees(
-                    payload,
-                    routing_key=mo_routing_key,
-                    delete=False,
-                    current_objects_only=True,
-                ),
-            )
+        await asyncio.gather(
+            sync_tool.listen_to_changes_in_employees(
+                payload,
+                routing_key=mo_routing_key,
+                delete=False,
+                current_objects_only=True,
+            ),
+        )
 
         entries = [w for w in cap_logs if w["log_level"] == "info"]
+
+        assert re.match(f".*Ignoring .*{payload.object_uuid}", str(entries))
 
         assert re.match(
             f"Removing .* belonging to {old_uuid} from ignore_dict",
