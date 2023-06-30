@@ -1,7 +1,59 @@
 ---
-title: Shared Reports
+title: Rapporter i OS2MO
 ---
 
+Det er muligt at få genereret rapporter fx hver nat, så de indeholder friske data, når man møder på arbjdet om morgenen.
+
+Rapporterne findes i topmenuen:
+
+![image](../graphics/reportsinUI.png)
+
+De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstillinger af data i en rapport, kontakt venligst Magenta på support@magenta.dk.
+
+# Eksisterende rapporter
+- **Alle medarbejdere**. Består af
+    - CPR-Nummer
+    - Ansættelse gyldig fra
+    - Ansættelse gyldig til
+    - Fornavn
+    - Efternavn
+    - Personens UUID
+    - Brugernavn
+    - Org-enhed
+    - Org-enhedens UUID
+    - E-mail
+    - Telefon
+    - Stillingsbetegnelse
+    - Engagementets UUID
+- **Alle organisationsenheders tilknytninger**. Består af
+    - Org-enhedens UUID
+    - Org-enhed
+    - Overordnet UUID
+    - Navn
+    - Personens UUID
+    - CPR-Nummer
+- **Den administrative organisation**
+    - Org-enhedens UUID
+    - Navn
+    - Enhedstypens UUID
+    - Gyldig fra
+    - Gyldig til
+    - Enhedstypens titel
+- **Alle ledere**
+    - Navn
+    - Ansvar
+    - Telefon
+    - E-mail
+- **Adresser tilhørende ledere og medarbejdere**
+    - Navn
+    - Postadresse
+    - Telefon
+    - E-mail
+    - Hvis der er flere adresser (fx AD-adresser), kan de medtages.
+- **MED-organisationen**
+    - Liste følger
+
+# Technical info
 Shared reports introduces a collection of reports that can be used by
 customers regardless of their individual setup. They utilise standard
 MO-data and return
