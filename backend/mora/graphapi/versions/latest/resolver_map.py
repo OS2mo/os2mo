@@ -16,6 +16,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
@@ -31,6 +32,7 @@ _resolver_tuples = [
     (EmployeeRead, "employee_getter", "employee_loader"),
     (EngagementRead, "engagement_getter", "engagement_loader"),
     (ManagerRead, "manager_getter", "manager_loader"),
+    (OwnerRead, "owner_getter", "owner_loader"),
     (OrganisationUnitRead, "org_unit_getter", "org_unit_loader"),
     (
         EngagementAssociationRead,

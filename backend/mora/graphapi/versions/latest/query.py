@@ -34,6 +34,7 @@ from .resolvers import LeaveResolver
 from .resolvers import LimitType
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
+from .resolvers import OwnerResolver
 from .resolvers import PagedResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
@@ -55,6 +56,7 @@ from .schema import Leave
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
+from .schema import Owner
 from .schema import Paged
 from .schema import PageInfo
 from .schema import RelatedUnit
@@ -295,6 +297,14 @@ class Query:
         resolver=to_paged_response(ManagerResolver()),
         description="Get manager roles.",
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("manager")],
+    )
+
+    # Owners
+    # ------
+    owners: Paged[Response[Owner]] = strawberry.field(
+        resolver=to_paged_response(OwnerResolver()),
+        description="Get owners.",
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
     )
 
     # Organisational Units
