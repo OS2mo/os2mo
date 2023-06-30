@@ -40,7 +40,7 @@ def read_strat(draw):
         "org_unit_uuid": st.uuids(),
     }
     optional = {
-        "employee_uuid": st.none() | st.uuids(),
+        "employee_uuid": st.none() | st.uuids() | st.just(""),
         "manager_type_uuid": st.none() | st.uuids(),
         "manager_level_uuid": st.none() | st.uuids(),
         "responsibility_uuids": st.none() | st.lists(st.uuids()),
@@ -109,6 +109,11 @@ class TestManager:
     @given(read_strat())
     def test_read(self, model_dict):
         assert ManagerRead(**model_dict)
+
+    @given(read_strat())
+    def test_read_empty_string_is_converted_to_none(self, model_dict):
+        model_dict["employee_uuid"] = ""
+        assert ManagerRead(**model_dict).employee_uuid is None
 
     @given(write_strat())
     def test_write(self, model_dict):
