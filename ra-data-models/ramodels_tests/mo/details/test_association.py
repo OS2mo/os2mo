@@ -44,7 +44,7 @@ def read_strat(draw):
     base_dict = draw(base_strat())
     required = {
         "org_unit_uuid": st.uuids(),
-        "employee_uuid": st.uuids(),
+        "employee_uuid": st.uuids() | st.just(""),
     }
     optional = {
         "association_type_uuid": st.none() | st.uuids(),
@@ -162,6 +162,11 @@ class TestAssociation:
     @given(read_strat())
     def test_read(self, model_dict):
         assert AssociationRead(**model_dict)
+
+    @given(read_strat())
+    def test_read_empty_string_is_converted_to_none(self, model_dict):
+        model_dict["employee_uuid"] = ""
+        assert AssociationRead(**model_dict).employee_uuid is None
 
     @given(write_strat())
     def test_write(self, model_dict):

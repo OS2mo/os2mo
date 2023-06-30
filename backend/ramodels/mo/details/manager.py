@@ -1,9 +1,11 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from typing import Any
 from typing import Literal
 from uuid import UUID
 
 from pydantic import Field
+from pydantic import validator
 
 from .._shared import EmployeeRef
 from .._shared import ManagerLevel
@@ -37,6 +39,16 @@ class ManagerRead(ManagerBase):
     responsibility_uuids: list[UUID] | None = Field(
         description="List of UUID's of the responsibilities."
     )
+
+    @validator("employee_uuid", pre=True)
+    def empty_string_is_none(cls, value: Any) -> Any:
+        """Convert UUID-or-empty-string type back to a proper optional UUID type.
+
+        MO models an empty employee by None (sane), but LoRa represents it by the empty
+        string (insane)."""
+        if value == "":
+            return None
+        return value
 
 
 class ManagerWrite(ManagerBase):
