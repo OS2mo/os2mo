@@ -54,7 +54,6 @@ ValidityLiteral = Literal["past", "present", "future"]
 
 
 logger = get_logger()
-settings = config.get_settings()
 
 
 async def create_lora_client(app: FastAPI) -> httpx.AsyncClient:
@@ -301,8 +300,14 @@ class Connector:
         defaults.update(
             virkningfra=util.to_lora_time(self.start),
             virkningtil=util.to_lora_time(self.end),
-            konsolider=True,
         )
+        if config.get_settings().consolidate:
+            # LoRa does not check the value of the 'konsolider' paramter, but the mere
+            # existence of the _key_. For this reason, the value CANNOT be set to
+            # False, it must instead be absent from the dict.
+            defaults.update(
+                konsolider=True,
+            )
 
         self.__defaults = defaults
         self.__scopes = {}
@@ -473,7 +478,7 @@ class Scope(BaseScope):
             return any("%" in v for v in params.values() if isinstance(v, str))
 
         if (
-            not settings.bulked_fetch
+            not config.get_settings().bulked_fetch
             or is_graphql()
             or has_validity_params()
             or has_arbitrary_rel()

@@ -136,6 +136,9 @@ class Settings(BaseSettings):
     # Bulked LoRa DataLoader fetching
     bulked_fetch: bool = True
 
+    # Consolidate LoRa validities
+    consolidate: bool = True
+
     # HTTP Trigger settings
     http_endpoints: list[str] | None
     fetch_trigger_timeout: int = 5
