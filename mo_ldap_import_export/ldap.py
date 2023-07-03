@@ -175,12 +175,13 @@ def get_ldap_attributes(ldap_connection: Connection, root_ldap_object: str):
 
 
 def apply_discriminator(search_result: list, context: Context):
-    if context["user_context"]["settings"].discriminator_function is None:
+    settings = context["user_context"]["settings"]
+    if settings.discriminator_function is None:
         return search_result
 
-    discriminator_function = context["user_context"]["settings"].discriminator_function
-    discriminator_field = context["user_context"]["settings"].discriminator_field
-    discriminator_values = context["user_context"]["settings"].discriminator_values
+    discriminator_function = settings.discriminator_function
+    discriminator_field = settings.discriminator_field
+    discriminator_values = settings.discriminator_values
 
     if discriminator_function == "include":
         return list(
@@ -278,7 +279,7 @@ def paged_search(
     return results
 
 
-def single_object_search(searchParameters, ldap_connection, context: Context):
+def single_object_search(searchParameters, context: Context):
     """
     Performs an LDAP search and throws an exception if there are multiple or no search
     results.
@@ -298,6 +299,7 @@ def single_object_search(searchParameters, ldap_connection, context: Context):
     object's dn (distinguished name) as the search base and set
     searchFilter = "(objectclass=*)" and search_scope = BASE
     """
+    ldap_connection = context["user_context"]["ldap_connection"]
     if type(searchParameters["search_base"]) is list:
         search_bases = searchParameters["search_base"].copy()
         modified_searchParameters = searchParameters.copy()
@@ -350,16 +352,13 @@ def get_ldap_object(dn, context, nest=True):
 
     if nest is True, also gets ldap objects of related objects.
     """
-    user_context = context["user_context"]
-    ldap_connection = user_context["ldap_connection"]
-
     searchParameters = {
         "search_base": dn,
         "search_filter": "(objectclass=*)",
         "attributes": ["*"],
         "search_scope": BASE,
     }
-    search_result = single_object_search(searchParameters, ldap_connection, context)
+    search_result = single_object_search(searchParameters, context)
     dn = search_result["dn"]
     logger.info(f"[get_ldap_object] Found {dn}")
     return make_ldap_object(search_result, context, nest=nest)
@@ -555,7 +554,6 @@ def setup_poller(
     poll = Thread(
         target=_poller,
         args=(
-            context["user_context"]["ldap_connection"],
             context,
             search_parameters,
             callback,
@@ -569,7 +567,6 @@ def setup_poller(
 
 
 def _poller(
-    ldap_connection: Connection,
     context: Context,
     search_parameters: dict,
     callback: Callable,
@@ -583,6 +580,7 @@ def _poller(
     """
     last_search_time = init_search_time
     last_events: list[Any] = []
+    ldap_connection = context["user_context"]["ldap_connection"]
 
     while True:
         time.sleep(poll_time)
