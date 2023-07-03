@@ -206,11 +206,11 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
         (
             """
-                    (employees: [
-                        "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                        "6ee24785-ee9a-4502-81c2-7697009c9053"
-                    ])
-                """,
+                        (employees: [
+                            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                            "6ee24785-ee9a-4502-81c2-7697009c9053"
+                        ])
+                    """,
             1,
         ),
         # Organisation Unit filter
@@ -218,30 +218,30 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
         (
             """
-                    (org_units: [
-                        "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                        "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                    ])
-                """,
+                        (org_units: [
+                            "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                        ])
+                    """,
             3,
         ),
         # Mixed filters
         (
             """
-                    (
-                        employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                        org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
-                    )
-                """,
+                        (
+                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                            org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
+                        )
+                    """,
             0,
         ),
         (
             """
-                    (
-                        employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                        org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-                    )
-                """,
+                        (
+                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                            org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                        )
+                    """,
             2,
         ),
     ],
@@ -596,7 +596,6 @@ async def test_update_extensions_field_integrations_test(
                 extension_2
                 extension_3
               }
-              uuid
             }
           }
         }
@@ -630,7 +629,6 @@ async def test_update_extensions_field_integrations_test(
                 extension_2
                 extension_3
               }
-              uuid
             }
           }
         }
@@ -673,6 +671,12 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
     engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
     job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
 
+    # 'Cc' - Control, 'Cs' - Surrogate.
+    extension_field_texts = st.text(
+        alphabet=characters(blacklist_categories=("Cc", "Cs")),
+        min_size=1,
+    )
+
     test_data = data.draw(
         st.builds(
             EngagementCreate,
@@ -685,67 +689,16 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
                 from_date=st.just(test_data_validity_start),
                 to_date=test_data_validity_end_strat,
             ),
-            # 'Cc' - Control, 'Cs' - Surrogate, 'Lo' - Other Letter, 'Sm' Math Symbol, 'So' - Other Symbol.
-            extension_1=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_2=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_3=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_4=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_5=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_6=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_7=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_8=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_9=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
-            extension_10=st.text(
-                alphabet=characters(
-                    blacklist_categories=("Cc", "Cs", "Lo", "Sm", "So")
-                ),
-                min_size=1,
-            ),
+            extension_1=extension_field_texts,
+            extension_2=extension_field_texts,
+            extension_3=extension_field_texts,
+            extension_4=extension_field_texts,
+            extension_5=extension_field_texts,
+            extension_6=extension_field_texts,
+            extension_7=extension_field_texts,
+            extension_8=extension_field_texts,
+            extension_9=extension_field_texts,
+            extension_10=extension_field_texts,
         )
     )
 
@@ -764,32 +717,32 @@ async def test_create_engagement_with_extensions_fields_integrations_test(
     uuid = UUID(mutation_response.data["engagement_create"]["uuid"])
 
     verify_query = """
-            query VerifyQuery($uuid: [UUID!]!) {
-                engagements(uuids: $uuid, from_date: null, to_date: null) {
+        query VerifyQuery($uuid: [UUID!]!) {
+            engagements(uuids: $uuid, from_date: null, to_date: null) {
+                objects {
                     objects {
-                        objects {
-                            user_key
-                            org_unit: org_unit_uuid
-                            employee: employee_uuid
-                            engagement_type: engagement_type_uuid
-                            validity {
-                                from
-                                to
-                            }
-                            extension_1
-                            extension_2
-                            extension_3
-                            extension_4
-                            extension_5
-                            extension_6
-                            extension_7
-                            extension_8
-                            extension_9
-                            extension_10
+                        user_key
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        engagement_type: engagement_type_uuid
+                        validity {
+                            from
+                            to
                         }
+                        extension_1
+                        extension_2
+                        extension_3
+                        extension_4
+                        extension_5
+                        extension_6
+                        extension_7
+                        extension_8
+                        extension_9
+                        extension_10
                     }
                 }
             }
+        }
         """
     response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
     assert response.errors is None
