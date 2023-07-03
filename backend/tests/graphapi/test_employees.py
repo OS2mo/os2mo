@@ -368,6 +368,51 @@ async def test_create_employee_integration_test(
     assert obj["cpr_no"] == test_data.cpr_number
 
 
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_employee_with_nickname(graphapi_post) -> None:
+    """Test that employees can be created with nicknames via GraphQL."""
+
+    mutate_query = """
+        mutation CreateEmployee($input: EmployeeCreateInput!) {
+            employee_create(input: $input) {
+                uuid
+                current {
+                    nickname
+                    nickname_givenname
+                    nickname_surname
+                    name
+                    givenname
+                    surname
+                }
+            }
+        }
+    """
+    input = {
+        "givenname": "Garik",
+        "surname": "Weinstein",
+        "nickname_given_name": "Garry",
+        "nickname_surname": "Kasparov",
+    }
+    response: GQLResponse = graphapi_post(mutate_query, {"input": input})
+    assert response.errors is None
+    assert response.data is not None
+    UUID(response.data["employee_create"]["uuid"])
+
+    current = response.data["employee_create"]["current"]
+
+    assert current["name"] == input["givenname"] + " " + input["surname"]
+    assert current["givenname"] == input["givenname"]
+    assert current["surname"] == input["surname"]
+
+    assert (
+        current["nickname"]
+        == input["nickname_given_name"] + " " + input["nickname_surname"]
+    )
+    assert current["nickname_givenname"] == input["nickname_given_name"]
+    assert current["nickname_surname"] == input["nickname_surname"]
+
+
 @given(
     st.uuids(),
     # from & to
