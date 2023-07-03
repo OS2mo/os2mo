@@ -1264,7 +1264,7 @@ class LdapConverter:
                 try:
                     converted_objects.append(mo_class(**mo_dict))
                 except pydantic.ValidationError as pve:
-                    logger.error(pve)
+                    logger.info(pve)
             else:
                 missing_attributes = [
                     r for r in required_attributes if r not in mo_dict

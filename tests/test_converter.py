@@ -22,6 +22,7 @@ from mo_ldap_import_export.converters import find_cpr_field
 from mo_ldap_import_export.converters import find_ldap_it_system
 from mo_ldap_import_export.converters import LdapConverter
 from mo_ldap_import_export.converters import read_mapping_json
+from mo_ldap_import_export.customer_specific import HolstebroEngagementUpdate
 from mo_ldap_import_export.dataloaders import LdapObject
 from mo_ldap_import_export.exceptions import IncorrectMapping
 from mo_ldap_import_export.exceptions import InvalidNameException
@@ -282,6 +283,42 @@ def test_ldap_to_mo_dict_error(context: Context) -> None:
             "Active Directory",
             employee_uuid=uuid4(),
         )
+
+
+def test_ldap_to_mo_dict_validation_error(context: Context) -> None:
+
+    converter = LdapConverter(context)
+    converter.import_mo_object_class = MagicMock()  # type: ignore
+    converter.import_mo_object_class.return_value = HolstebroEngagementUpdate
+
+    converter.mapping = converter._populate_mapping_with_templates(
+        {
+            "ldap_to_mo": {
+                "Custom": {
+                    "objectClass": "Custom.HolstebroEngagementUpdate",
+                    "_import_to_mo_": "true",
+                    "user": "{{ dict(uuid=(ldap.hkStsuuid)) }}",
+                    "job_function": f"{{ dict(uuid={uuid4()}) }}",
+                    "uuid": "{{ employee_uuid or NONE }}",
+                }
+            }
+        },
+        Environment(undefined=Undefined),
+    )
+
+    with capture_logs() as cap_logs:
+        converter.from_ldap(
+            LdapObject(
+                dn="",
+                hkStsuuid="not_an_uuid",
+                title="job title",
+            ),
+            "Custom",
+            employee_uuid=uuid4(),
+        )
+
+        info_messages = [w for w in cap_logs if w["log_level"] == "info"]
+        assert "not a valid uuid" in str(info_messages)
 
 
 def test_mo_to_ldap(converter: LdapConverter) -> None:
