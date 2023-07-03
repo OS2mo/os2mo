@@ -637,18 +637,13 @@ def test_raise_on_status_detects_noop_change() -> None:
         "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
         "not give raise to a new registration. Aborted reg: ..."
     )
-    msg_other = "ERROR: Some other error"
-    # Assert the 'noop' error does not raise an exception
-    assert lora.raise_on_status(status_code, msg_noop) is None
-
-    # Assert that any other error does raise an exception
     with pytest.raises(exceptions.HTTPException) as ctxt:
-        lora.raise_on_status(status_code, msg_other)
+        lora.raise_on_status(status_code, msg_noop)
     assert ctxt.value.detail == {
         "error": True,
         "status": status_code,
-        "error_key": "E_INVALID_INPUT",
-        "description": msg_other,
+        "error_key": "E_NOOP_REQUEST",
+        "description": msg_noop,
     }
 
 

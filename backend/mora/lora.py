@@ -179,6 +179,7 @@ def raise_on_status(status_code: int, msg, cause=None) -> None:
             # Set context var to expose this (otherwise masked) error through an HTTP
             # header.
             context[LoRaNOOPChangePlugin.key] = True
+            exceptions.ErrorCodes.E_NOOP_REQUEST(message=msg, cause=cause)
         else:
             exceptions.ErrorCodes.E_INVALID_INPUT(message=msg, cause=cause)
     elif status_code == 401:
