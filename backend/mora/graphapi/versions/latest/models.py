@@ -1009,7 +1009,7 @@ class OrganisationUnitCreate(UUIDBase):
     name: str = Field(description="Org-unit name.")
     user_key: str | None = Field(description="Extra info or uuid.")
     parent: UUID | None = Field(None, description="UUID of the related parent.")
-    org_unit_type: UUID | None = Field(description="UUID of the type.")
+    org_unit_type: UUID = Field(description="UUID of the type.")
     time_planning: UUID | None = Field(description="UUID of time planning.")
     org_unit_level: UUID | None = Field(description="UUID of unit level.")
     org_unit_hierarchy: UUID | None = Field(description="UUID of the unit hierarchy.")
