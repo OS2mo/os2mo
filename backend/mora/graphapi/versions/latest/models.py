@@ -421,22 +421,36 @@ class EmployeeCreate(UUIDBase):
     """Model representing an employee creation."""
 
     user_key: str | None = Field(description="Extra info or uuid.")
+
     givenname: NonEmptyString = Field(
         description="Givenname (firstname) of the employee."
     )
     surname: NonEmptyString = Field(description="Surname (lastname) of the employee.")
 
+    # givenname is without underscore in name, why underscore here?
+    nickname_given_name: str | None = Field(
+        None,
+        description="Nickname givenname (firstname) of the employee.",
+    )
+    nickname_surname: str | None = Field(
+        None,
+        description="Nickname surname (lastname) of the employee.",
+    )
+
+    # TODO: This should take the CPR scalar type
     cpr_number: str | None = Field(
         None, description="Danish CPR number of the employee."
     )
 
     def to_handler_dict(self) -> dict:
         return {
-            "uuid": str(self.uuid),
-            "user_key": self.user_key,
-            "givenname": self.givenname,
-            "surname": self.surname,
-            "cpr_no": self.cpr_number,
+            mapping.UUID: str(self.uuid),
+            mapping.USER_KEY: self.user_key,
+            mapping.GIVENNAME: self.givenname,
+            mapping.SURNAME: self.surname,
+            mapping.CPR_NO: self.cpr_number,
+            mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
+            mapping.NICKNAME_SURNAME: self.nickname_surname,
         }
 
 
@@ -463,6 +477,7 @@ class EmployeeUpdate(RAValidity):
         description="Short, unique key for the employee (defaults to object UUID on creation)."
     )
 
+    # TODO: Remove this in the future
     name: str | None = Field(None, description="New value for the name of the employee")
 
     given_name: str | None = Field(
@@ -475,6 +490,7 @@ class EmployeeUpdate(RAValidity):
         description="New last-name value of the employee nickname.",
     )
 
+    # TODO: Remove this in the future
     nickname: str | None = Field(
         None,
         description="New nickname value of the employee nickname.",
@@ -496,6 +512,7 @@ class EmployeeUpdate(RAValidity):
         description="New seniority value of the employee.",
     )
 
+    # TODO: This should fit the create, not cpr_no vs cpr_number
     cpr_no: CPR | None = Field(None, description="New danish CPR No. of the employee.")
 
     @root_validator
