@@ -14,6 +14,7 @@ from typing import Dict
 from uuid import UUID
 from uuid import uuid4
 
+import pydantic
 from fastramqpi.context import Context
 from jinja2 import Environment
 from ldap3.utils.ciDict import CaseInsensitiveDict
@@ -1260,7 +1261,10 @@ class LdapConverter:
 
             # If all required attributes are present:
             if all(a in mo_dict for a in required_attributes):
-                converted_objects.append(mo_class(**mo_dict))
+                try:
+                    converted_objects.append(mo_class(**mo_dict))
+                except pydantic.ValidationError as pve:
+                    logger.error(pve)
             else:
                 missing_attributes = [
                     r for r in required_attributes if r not in mo_dict
