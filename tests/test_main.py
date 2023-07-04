@@ -192,6 +192,7 @@ def dataloader(
     dataloader.load_ldap_attribute_values = sync_dataloader
     dataloader.modify_ldap_object.return_value = [{"description": "success"}]
     dataloader.get_ldap_objectGUID = sync_dataloader
+    dataloader.get_ldap_it_system_uuid = sync_dataloader
 
     return dataloader
 
@@ -991,3 +992,42 @@ def test_construct_gql_client():
 
         for client in [gql_client, gql_client_sync]:
             assert client.url == "mo-url/graphql/v3"
+
+
+async def test_get_non_existing_objectGUIDs_from_MO(
+    headers: dict,
+    dataloader: AsyncMock,
+    test_client: TestClient,
+) -> None:
+    it_users = [
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
+        {"employee_uuid": str(uuid4()), "user_key": str(uuid4())},
+        {"employee_uuid": str(uuid4()), "user_key": "foo"},
+    ]
+    dataloader.load_all_it_users.return_value = it_users
+    dataloader.load_ldap_attribute_values.return_value = [
+        it_users[0]["user_key"],
+        str(uuid4()),
+    ]
+    employee = Employee(givenname="Jim", surname="")
+    dataloader.load_mo_employee.return_value = employee
+
+    response = test_client.get("/Inspect/non_existing_objectGUIDs", headers=headers)
+    assert response.status_code == 202
+
+    result = response.json()
+    assert len(result) == 2
+    assert result[0]["MO employee uuid"] == str(employee.uuid)
+    assert result[0]["name"] == "Jim"
+    assert result[0]["objectGUID in MO"] == it_users[1]["user_key"]
+    assert result[1]["objectGUID in MO"] == it_users[2]["user_key"]
+
+
+async def test_get_non_existing_objectGUIDs_from_MO_404(
+    headers: dict,
+    dataloader: AsyncMock,
+    test_client: TestClient,
+) -> None:
+    dataloader.get_ldap_it_system_uuid.return_value = None
+    response = test_client.get("/Inspect/non_existing_objectGUIDs", headers=headers)
+    assert response.status_code == 404

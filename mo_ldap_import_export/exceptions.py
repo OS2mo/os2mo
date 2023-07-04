@@ -19,6 +19,11 @@ class CPRFieldNotFound(HTTPException):
         super().__init__(status_code=404, detail=message)
 
 
+class ObjectGUIDITSystemNotFound(HTTPException):
+    def __init__(self, message):
+        super().__init__(status_code=404, detail=message)
+
+
 class AttributeNotFound(HTTPException):
     def __init__(self, message):
         super().__init__(status_code=404, detail=message)

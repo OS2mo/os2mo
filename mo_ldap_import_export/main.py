@@ -59,6 +59,7 @@ from .exceptions import IgnoreChanges
 from .exceptions import IncorrectMapping
 from .exceptions import NoObjectsReturnedException
 from .exceptions import NotSupportedException
+from .exceptions import ObjectGUIDITSystemNotFound
 from .import_export import SyncTool
 from .ldap import check_ou_in_list_of_ous
 from .ldap import configure_ldap_connection
@@ -646,6 +647,38 @@ def create_app(**kwargs: Any) -> FastAPI:
     ) -> Any:
         result = await dataloader.load_ldap_objects(json_key, ["objectGUID"])
         return encode_result(result[-entries_to_return:])
+
+    @app.get("/Inspect/non_existing_objectGUIDs", status_code=202, tags=["LDAP"])
+    async def get_non_existing_objectGUIDs_from_MO(user=Depends(login_manager)) -> Any:
+        it_system_uuid = dataloader.get_ldap_it_system_uuid()
+        if not it_system_uuid:
+            raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
+
+        all_objectGUIDs = [
+            UUID(u) for u in dataloader.load_ldap_attribute_values("objectGUID")
+        ]
+        all_it_users = await dataloader.load_all_it_users(it_system_uuid)
+
+        # Find objectGUIDs which are stored in MO but do not exist in LDAP
+        non_existing_objectGUIDs = []
+        for it_user in all_it_users:
+            try:
+                objectGUID = UUID(it_user["user_key"])
+            except ValueError:
+                objectGUID = it_user["user_key"]
+            finally:
+                if objectGUID not in all_objectGUIDs:
+                    employee = await dataloader.load_mo_employee(
+                        it_user["employee_uuid"]
+                    )
+                    output_dict = {
+                        "name": f"{employee.givenname} {employee.surname}".strip(),
+                        "MO employee uuid": employee.uuid,
+                        "objectGUID in MO": it_user["user_key"],
+                    }
+                    non_existing_objectGUIDs.append(output_dict)
+
+        return non_existing_objectGUIDs
 
     @app.get("/Inspect/duplicate_cpr_numbers", status_code=202, tags=["LDAP"])
     async def get_duplicate_cpr_numbers_from_LDAP(user=Depends(login_manager)) -> Any:
