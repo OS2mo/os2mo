@@ -581,7 +581,7 @@ async def test_noop_update_returns_null(respx_mock) -> None:
     uuid = "cbd4d304-9466-4524-b8e6-aa4a5a5cb787"
     respx_mock.patch(f"http://localhost/lora/organisation/bruger/{uuid}").mock(
         return_value=Response(
-            400,
+            204,
             json={
                 "message": "ERROR:  Aborted updating bruger with id "
                 "[cbd4d304-9466-4524-b8e6-aa4a5a5cb787] as the given data, does "
@@ -641,7 +641,7 @@ def test_raise_on_status_detects_noop_change() -> None:
         lora.raise_on_status(status_code, msg_noop)
     assert ctxt.value.detail == {
         "error": True,
-        "status": status_code,
+        "status": 204,
         "error_key": "E_NOOP_REQUEST",
         "description": msg_noop,
     }

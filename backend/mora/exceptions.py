@@ -138,7 +138,7 @@ class ErrorCodes(Enum):
     E_ORG_TOO_MANY = 400, "Too many organisations in lora, max one allowed"
     E_ORG_NOT_ALLOWED = 400, "Organisation is not allowed"
     E_INTEGRATION_ERROR = 400, "Integration Error"
-    E_NOOP_REQUEST = 400, "No changes in input"
+    E_NOOP_REQUEST = 204, "No changes in input"
 
 
 class HTTPException(fastapiHTTPException):
