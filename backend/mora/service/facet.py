@@ -24,6 +24,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastapi import APIRouter
+from more_itertools import last
 from more_itertools import one
 
 from . import handlers
@@ -346,7 +347,8 @@ async def get_one_class(
         "example": attrs.get("eksempel"),
         "scope": attrs.get("omfang"),
         "owner": owner,
-        "published": one(clazz["tilstande"]["klassepubliceret"])["publiceret"],
+        # TODO(#52443): don't last()
+        "published": last(clazz["tilstande"]["klassepubliceret"])["publiceret"],
     }
 
     # create tasks
