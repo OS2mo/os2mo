@@ -97,7 +97,7 @@ async def legacy_auth_adapter(request: Request) -> Token:
 #  https://redmine.magenta-aps.dk/issues/44020
 if not config.get_settings().os2mo_auth:
     auth = noauth
-elif config.get_settings().os2mo_legacy_session_support:
+elif config.get_settings().os2mo_legacy_sessions:
     auth = legacy_auth_adapter
 else:
     auth = keycloak_auth

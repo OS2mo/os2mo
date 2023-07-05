@@ -125,13 +125,7 @@ class Settings(BaseSettings):
     enable_dar: bool = True
 
     # Legacy auth
-    os2mo_legacy_session_support: bool = False
-    os2mo_legacy_sessions: list[UUID] | None
-    session_db_user = "sessions"
-    session_db_password: str | None
-    session_db_host = "mox-db"
-    session_db_port = "5432"
-    session_db_name = "sessions"
+    os2mo_legacy_sessions: list[UUID] = []
 
     # Bulked LoRa DataLoader fetching
     bulked_fetch: bool = True
