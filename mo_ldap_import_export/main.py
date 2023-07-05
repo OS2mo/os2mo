@@ -654,29 +654,29 @@ def create_app(**kwargs: Any) -> FastAPI:
         if not it_system_uuid:
             raise ObjectGUIDITSystemNotFound("Could not find it_system_uuid")
 
+        def to_uuid(uuid_string: str) -> UUID | str:
+            try:
+                return UUID(uuid_string)
+            except ValueError:
+                return uuid_string
+
         all_objectGUIDs = [
-            UUID(u) for u in dataloader.load_ldap_attribute_values("objectGUID")
+            to_uuid(u) for u in dataloader.load_ldap_attribute_values("objectGUID")
         ]
         all_it_users = await dataloader.load_all_it_users(it_system_uuid)
 
         # Find objectGUIDs which are stored in MO but do not exist in LDAP
         non_existing_objectGUIDs = []
         for it_user in all_it_users:
-            try:
-                objectGUID = UUID(it_user["user_key"])
-            except ValueError:
-                objectGUID = it_user["user_key"]
-            finally:
-                if objectGUID not in all_objectGUIDs:
-                    employee = await dataloader.load_mo_employee(
-                        it_user["employee_uuid"]
-                    )
-                    output_dict = {
-                        "name": f"{employee.givenname} {employee.surname}".strip(),
-                        "MO employee uuid": employee.uuid,
-                        "objectGUID in MO": it_user["user_key"],
-                    }
-                    non_existing_objectGUIDs.append(output_dict)
+            objectGUID = to_uuid(it_user["user_key"])
+            if objectGUID not in all_objectGUIDs:
+                employee = await dataloader.load_mo_employee(it_user["employee_uuid"])
+                output_dict = {
+                    "name": f"{employee.givenname} {employee.surname}".strip(),
+                    "MO employee uuid": employee.uuid,
+                    "objectGUID in MO": it_user["user_key"],
+                }
+                non_existing_objectGUIDs.append(output_dict)
 
         return non_existing_objectGUIDs
 

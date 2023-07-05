@@ -201,7 +201,7 @@ class DataLoader:
         search_result = single_object_search(searchParameters, self.context)
         return make_ldap_object(search_result, self.context, nest=nest)
 
-    def load_ldap_attribute_values(self, attribute, search_base=None):
+    def load_ldap_attribute_values(self, attribute, search_base=None) -> list[str]:
         """
         Returns all values belonging to an LDAP attribute
         """
