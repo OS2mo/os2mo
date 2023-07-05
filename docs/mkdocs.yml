@@ -40,7 +40,6 @@ nav:
               - guides/adfs-setup.md
               - guides/adfs-rbac-setup.md
           - Conventions: guides/conventions.md
-          - Manager script: guides/os2mo-manager-sync.md
           - Lederhåndtering i MO: guides/Lederhaandtering i MO.md
           - MED-organisation i OS2mo: guides/MED-organisationen.md
           - Powershell-script til AD-Skriv: guides/powershellscriptAD.md

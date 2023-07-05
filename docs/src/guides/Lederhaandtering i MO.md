@@ -1,6 +1,9 @@
 ---
 title: Lederhåndtering i MO
 ---
+
+Nedenfor findes en guide til hvordan ledere håndteres i MO.
+
 # Lederhåndtering i MO
 Nedenfor findes de automatikker, der er udviklet til håndtering af ledere i MO.
 
