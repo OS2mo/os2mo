@@ -94,6 +94,7 @@ nav:
           - data-import-export/integrations/opusloen.md
           - data-import-export/integrations/sdloen.md
           - data-import-export/integrations/Organisationsopmærkning.md
+          - data-import-export/integrations/Omada.md
       - Exporter:
           - data-import-export/exporters/exporters.md
           - data-import-export/exporters/plan2learn.md
