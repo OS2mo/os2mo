@@ -28,7 +28,6 @@ RUN curl -fsSLO "$SUPERCRONIC_URL" \
  && mv "$SUPERCRONIC" "/usr/local/bin/${SUPERCRONIC}" \
  && ln -s "/usr/local/bin/${SUPERCRONIC}" /usr/local/bin/supercronic
 COPY ./cron /cron
-RUN chmod -R 100 "/cron/import_all.sh"
 RUN chmod -R 100 "/cron/reload_info_dicts.sh"
 RUN chmod -R 100 "/cron/synchronize_todays_events.sh"
 RUN chmod -R 400 "/cron/crontab"
@@ -36,7 +35,7 @@ RUN chmod -R 400 "/cron/crontab"
 
 
 # Default command
-CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0", "--root-path", "/ldap_ie" ]
+CMD [ "uvicorn", "--factory", "app.main:create_app", "--host", "0.0.0.0" ]
 
 
 # Add build version to the environment last to avoid build cache misses

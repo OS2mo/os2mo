@@ -130,25 +130,12 @@ class Settings(BaseSettings):
 
     graphql_timeout: int = 120
 
-    admin_password: SecretStr = Field(
-        ...,
-        description="Password to use when authenticating to FastAPI docs",
-    )
-    authentication_secret: SecretStr = Field(
-        ...,
-        description="secret key for FastAPI docs login manager",
-    )
-
     default_org_unit_type: str = Field(
         ..., description="Type to set onto imported organization units"
     )
 
     default_org_unit_level: str = Field(
         ..., description="Level to set onto imported organization units"
-    )
-
-    token_expiry_time: float = Field(
-        8, description="Time in hours until a FastAPI auth token expires"
     )
 
     org_unit_path_string_separator: str = Field(

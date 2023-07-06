@@ -99,8 +99,6 @@ def settings(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LDAP_USER", "foo")
     monkeypatch.setenv("LDAP_PASSWORD", "bar")
     monkeypatch.setenv("LDAP_SEARCH_BASE", "DC=ad,DC=addev")
-    monkeypatch.setenv("ADMIN_PASSWORD", "admin")
-    monkeypatch.setenv("AUTHENTICATION_SECRET", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_LEVEL", "foo")
     monkeypatch.setenv("DEFAULT_ORG_UNIT_TYPE", "foo")
     monkeypatch.setenv("LDAP_OUS_TO_WRITE_TO", '[""]')
