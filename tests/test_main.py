@@ -62,8 +62,6 @@ def settings_overrides() -> Iterator[dict[str, str]]:
         "LDAP_USER": "foo",
         "LDAP_PASSWORD": "foo",
         "LDAP_SEARCH_BASE": "DC=ad,DC=addev",
-        "ADMIN_PASSWORD": "admin",
-        "AUTHENTICATION_SECRET": "foo",
         "DEFAULT_ORG_UNIT_LEVEL": "foo",
         "DEFAULT_ORG_UNIT_TYPE": "foo",
         "LDAP_OUS_TO_SEARCH_IN": '["OU=bar"]',
@@ -333,15 +331,6 @@ def ldap_connection() -> Iterator[MagicMock]:
     yield MagicMock()
 
 
-@pytest.fixture(scope="module")
-def headers(test_client: TestClient) -> dict:
-    response = test_client.post(
-        "/login", data={"username": "admin", "password": "admin"}
-    )
-    headers = {"Authorization": "Bearer " + response.json()["access_token"]}
-    return headers
-
-
 def test_create_app(
     fastramqpi: FastRAMQPI,
 ) -> None:
@@ -385,37 +374,31 @@ async def test_open_ldap_connection() -> None:
     assert state == [1, 2]
 
 
-def test_ldap_get_all_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_all_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
-    response = test_client.get(
-        "/LDAP/Employee", headers=headers, params={"entries_to_return": 20}
-    )
+    response = test_client.get("/LDAP/Employee", params={"entries_to_return": 20})
     assert response.status_code == 202
 
 
-def test_ldap_get_all_converted_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_get_all_converted_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/converted", headers=headers)
+    response = test_client.get("/LDAP/Employee/converted")
     assert response.status_code == 202
 
 
-def test_ldap_get_converted_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_converted_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/010101-1234/converted", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234/converted")
     assert response.status_code == 202
 
-    response = test_client.get("/LDAP/Employee/invalid_cpr/converted", headers=headers)
+    response = test_client.get("/LDAP/Employee/invalid_cpr/converted")
     assert response.status_code == 422
 
 
-def test_ldap_post_ldap_employee_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_post_ldap_employee_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get-all endpoint on our app."""
 
     ldap_person_to_post = {
@@ -425,22 +408,20 @@ def test_ldap_post_ldap_employee_endpoint(
         "surname": "Thomsen",
         "Department": None,
     }
-    response = test_client.post(
-        "/LDAP/Employee", json=ldap_person_to_post, headers=headers
-    )
+    response = test_client.post("/LDAP/Employee", json=ldap_person_to_post)
     assert response.status_code == 200
 
 
-def test_mo_get_employee_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_mo_get_employee_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
     uuid = uuid4()
 
-    response = test_client.get(f"/MO/Employee/{uuid}", headers=headers)
+    response = test_client.get(f"/MO/Employee/{uuid}")
     assert response.status_code == 202
 
 
-def test_mo_post_employee_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_mo_post_employee_endpoint(test_client: TestClient) -> None:
     """Test the MO get-all endpoint on our app."""
 
     employee_to_post = {
@@ -458,81 +439,71 @@ def test_mo_post_employee_endpoint(test_client: TestClient, headers: dict) -> No
         "details": None,
     }
 
-    response = test_client.post("/MO/Employee", json=employee_to_post, headers=headers)
+    response = test_client.post("/MO/Employee", json=employee_to_post)
     assert response.status_code == 200
 
 
-def test_ldap_get_organizationalUser_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_get_organizationalUser_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/LDAP/Employee/010101-1234", headers=headers)
+    response = test_client.get("/LDAP/Employee/010101-1234")
     assert response.status_code == 202
 
-    response = test_client.get("/LDAP/Employee/invalid_cpr", headers=headers)
+    response = test_client.get("/LDAP/Employee/invalid_cpr")
     assert response.status_code == 422
 
 
-def test_ldap_get_overview_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/overview", headers=headers)
+    response = test_client.get("/Inspect/overview")
     assert response.status_code == 202
 
 
-def test_ldap_get_populated_overview_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_get_populated_overview_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/overview/populated", headers=headers)
+    response = test_client.get("/Inspect/overview/populated")
     assert response.status_code == 202
 
 
 def test_load_unique_attribute_values_from_LDAP_endpoint(
-    test_client: TestClient, headers: dict
+    test_client: TestClient,
 ) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/attribute/values/foo", headers=headers)
+    response = test_client.get("/Inspect/attribute/values/foo")
     assert response.status_code == 202
 
 
-def test_ldap_get_attribute_details_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_get_attribute_details_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/Inspect/attribute/foo", headers=headers)
+    response = test_client.get("/Inspect/attribute/foo")
     assert response.status_code == 202
 
 
-def test_ldap_get_object_by_objectGUID_endpoint(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_ldap_get_object_by_objectGUID_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
     uuid = uuid4()
     params = {"objectGUID": str(uuid)}
-    response = test_client.get(
-        "/Inspect/object/objectGUID", headers=headers, params=params
-    )
+    response = test_client.get("/Inspect/object/objectGUID", params=params)
     assert response.status_code == 202
 
 
-def test_ldap_get_object_by_dn_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_object_by_dn_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
     params = {"dn": "CN=foo"}
-    response = test_client.get("/Inspect/object/dn", headers=headers, params=params)
+    response = test_client.get("/Inspect/object/dn", params=params)
     assert response.status_code == 202
 
 
-def test_ldap_get_objectGUID_endpoint(test_client: TestClient, headers: dict) -> None:
+def test_ldap_get_objectGUID_endpoint(test_client: TestClient) -> None:
     """Test the LDAP get endpoint on our app."""
 
-    response = test_client.get("/objectGUID/CN=foo", headers=headers)
+    response = test_client.get("/objectGUID/CN=foo")
     assert response.status_code == 202
 
 
@@ -569,7 +540,8 @@ async def test_listen_to_changes_not_listening() -> None:
 
 
 def test_ldap_get_all_converted_endpoint_failure(
-    test_client: TestClient, converter: MagicMock, headers: dict
+    test_client: TestClient,
+    converter: MagicMock,
 ) -> None:
     def from_ldap(ldap_object, json_key, employee_uuid=None):
         # This will raise a validationError (which is what we want to test)
@@ -577,94 +549,85 @@ def test_ldap_get_all_converted_endpoint_failure(
 
     converter.from_ldap = from_ldap
     with patch("mo_ldap_import_export.main.LdapConverter", return_value=converter):
-        response1 = test_client.get("/LDAP/Employee/converted", headers=headers)
-        response2 = test_client.get(
-            "/LDAP/Employee/010101-1234/converted", headers=headers
-        )
+        response1 = test_client.get("/LDAP/Employee/converted")
+        response2 = test_client.get("/LDAP/Employee/010101-1234/converted")
 
     assert response1.status_code == 202
     assert response2.status_code == 404
 
 
-def test_load_address_from_MO_endpoint(test_client: TestClient, headers: dict):
+def test_load_address_from_MO_endpoint(test_client: TestClient):
     uuid = uuid4()
-    response = test_client.get(f"/MO/Address/{uuid}", headers=headers)
+    response = test_client.get(f"/MO/Address/{uuid}")
     assert response.status_code == 202
 
 
-def test_export_single_user_endpoint(test_client: TestClient, headers: dict):
+def test_export_single_user_endpoint(test_client: TestClient):
     uuid = uuid4()
-    response = test_client.post(f"/Export/{uuid}", headers=headers)
+    response = test_client.post(f"/Export/{uuid}")
     assert response.status_code == 202
 
 
-def test_load_address_types_from_MO_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.get("/MO/Address_types_employee", headers=headers)
+def test_load_address_types_from_MO_endpoint(test_client: TestClient):
+    response = test_client.get("/MO/Address_types_employee")
     assert response.status_code == 202
-    response = test_client.get("/MO/Address_types_org_unit", headers=headers)
-    assert response.status_code == 202
-
-
-def test_load_it_systems_from_MO_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.get("/MO/IT_systems", headers=headers)
+    response = test_client.get("/MO/Address_types_org_unit")
     assert response.status_code == 202
 
 
-def test_reload_info_dicts_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.post("/reload_info_dicts", headers=headers)
+def test_load_it_systems_from_MO_endpoint(test_client: TestClient):
+    response = test_client.get("/MO/IT_systems")
     assert response.status_code == 202
 
 
-def test_load_primary_types_from_MO_endpoint(test_client: TestClient, headers: dict):
-    response = test_client.get("/MO/Primary_types", headers=headers)
+def test_reload_info_dicts_endpoint(test_client: TestClient):
+    response = test_client.post("/reload_info_dicts")
     assert response.status_code == 202
 
 
-async def test_import_all_objects_from_LDAP_first_20(
-    test_client: TestClient, headers: dict
-) -> None:
+def test_load_primary_types_from_MO_endpoint(test_client: TestClient):
+    response = test_client.get("/MO/Primary_types")
+    assert response.status_code == 202
+
+
+async def test_import_all_objects_from_LDAP_first_20(test_client: TestClient) -> None:
     params = {
         "test_on_first_20_entries": True,
         "delay_in_hours": 0,
         "delay_in_minutes": 0,
         "delay_in_seconds": 0.1,
     }
-    response = test_client.get("/Import", headers=headers, params=params)
+    response = test_client.get("/Import", params=params)
     assert response.status_code == 202
 
 
-async def test_import_all_objects_from_LDAP(
-    test_client: TestClient, headers: dict
-) -> None:
-    response = test_client.get("/Import", headers=headers)
+async def test_import_all_objects_from_LDAP(test_client: TestClient) -> None:
+    response = test_client.get("/Import")
     assert response.status_code == 202
 
 
-async def test_import_one_object_from_LDAP(
-    test_client: TestClient, headers: dict
-) -> None:
+async def test_import_one_object_from_LDAP(test_client: TestClient) -> None:
     uuid = uuid4()
-    response = test_client.get(f"/Import/{uuid}", headers=headers)
+    response = test_client.get(f"/Import/{uuid}")
     assert response.status_code == 202
 
 
 async def test_import_all_objects_from_LDAP_no_cpr_field(
     test_client_no_cpr: TestClient,
-    headers: dict,
 ) -> None:
-    response = test_client_no_cpr.get("/Import", headers=headers)
+    response = test_client_no_cpr.get("/Import")
     assert response.status_code == 404
 
 
 async def test_import_all_objects_from_LDAP_invalid_cpr(
-    test_client: TestClient, headers: dict, dataloader: AsyncMock
+    test_client: TestClient, dataloader: AsyncMock
 ) -> None:
     dataloader.load_ldap_objects.return_value = [
         LdapObject(name="Tester", Department="QA", dn="someDN", EmployeeID="5001012002")
     ]
 
     with capture_logs() as cap_logs:
-        response = test_client.get("/Import", headers=headers)
+        response = test_client.get("/Import")
         assert response.status_code == 202
 
         messages = [w for w in cap_logs if w["log_level"] == "info"]
@@ -736,27 +699,8 @@ async def test_load_faulty_username_generator() -> None:
         assert isinstance(fastramqpi, FastRAMQPI)
 
 
-def test_invalid_credentials(test_client: TestClient):
-    response = test_client.post(
-        "/login", data={"username": "admin", "password": "wrong_password"}
-    )
-
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid credentials"
-
-
-def test_invalid_username(test_client: TestClient):
-    response = test_client.post(
-        "/login", data={"username": "wrong_username", "password": "admin"}
-    )
-
-    assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid credentials"
-
-
 async def test_synchronize_todays_events(
     test_client: TestClient,
-    headers: dict,
     internal_amqpsystem: MagicMock,
     test_mo_objects: list,
 ):
@@ -765,9 +709,7 @@ async def test_synchronize_todays_events(
         "date": today,
         "publish_amqp_messages": True,
     }
-    response = test_client.post(
-        "/Synchronize_todays_events", headers=headers, json=json
-    )
+    response = test_client.post("/Synchronize_todays_events", json=json)
     assert response.status_code == 202
 
     n = 0
@@ -806,7 +748,6 @@ async def test_synchronize_todays_events(
 
 async def test_export_endpoint(
     test_client: TestClient,
-    headers: dict,
     internal_amqpsystem: MagicMock,
     test_mo_objects: list,
 ):
@@ -821,7 +762,7 @@ async def test_export_endpoint(
 
     current_awaits = internal_amqpsystem.publish_message.await_count
 
-    response = test_client.post("/Export", headers=headers, params=params)
+    response = test_client.post("/Export", params=params)
     assert response.status_code == 202
 
     for mo_object in test_mo_objects:
@@ -924,13 +865,12 @@ async def test_get_delete_flag(dataloader: AsyncMock):
 
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
     test_client: TestClient,
-    headers: dict,
     dataloader: AsyncMock,
 ):
     valid_object = LdapObject(dn="foo", EmployeeID="0101011234")
     invalid_object = LdapObject(dn="bar", EmployeeID="ja")
     dataloader.load_ldap_objects.return_value = [valid_object, invalid_object]
-    response = test_client.get("/Inspect/invalid_cpr_numbers", headers=headers)
+    response = test_client.get("/Inspect/invalid_cpr_numbers")
     assert response.status_code == 202
     result = response.json()
     assert "bar" in result
@@ -939,9 +879,8 @@ def test_get_invalid_cpr_numbers_from_LDAP_endpoint(
 
 def test_get_invalid_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
     test_client_no_cpr: TestClient,
-    headers: dict,
 ):
-    response = test_client_no_cpr.get("/Inspect/invalid_cpr_numbers", headers=headers)
+    response = test_client_no_cpr.get("/Inspect/invalid_cpr_numbers")
     assert response.status_code == 404
 
 
@@ -953,14 +892,14 @@ def test_wraps():
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint_no_cpr_field(
-    test_client_no_cpr: TestClient, headers: dict
+    test_client_no_cpr: TestClient,
 ):
-    response = test_client_no_cpr.get("/Inspect/duplicate_cpr_numbers", headers=headers)
+    response = test_client_no_cpr.get("/Inspect/duplicate_cpr_numbers")
     assert response.status_code == 404
 
 
 def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
-    test_client: TestClient, headers: dict
+    test_client: TestClient,
 ):
 
     searchResponse = [
@@ -971,7 +910,7 @@ def test_get_duplicate_cpr_numbers_from_LDAP_endpoint(
 
     with patch("mo_ldap_import_export.main.paged_search", return_value=searchResponse):
 
-        response = test_client.get("/Inspect/duplicate_cpr_numbers", headers=headers)
+        response = test_client.get("/Inspect/duplicate_cpr_numbers")
         assert response.status_code == 202
         result = response.json()
         assert "123" in result
@@ -995,7 +934,6 @@ def test_construct_gql_client():
 
 
 async def test_get_non_existing_objectGUIDs_from_MO(
-    headers: dict,
     dataloader: AsyncMock,
     test_client: TestClient,
 ) -> None:
@@ -1012,7 +950,7 @@ async def test_get_non_existing_objectGUIDs_from_MO(
     employee = Employee(givenname="Jim", surname="")
     dataloader.load_mo_employee.return_value = employee
 
-    response = test_client.get("/Inspect/non_existing_objectGUIDs", headers=headers)
+    response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 202
 
     result = response.json()
@@ -1024,10 +962,9 @@ async def test_get_non_existing_objectGUIDs_from_MO(
 
 
 async def test_get_non_existing_objectGUIDs_from_MO_404(
-    headers: dict,
     dataloader: AsyncMock,
     test_client: TestClient,
 ) -> None:
     dataloader.get_ldap_it_system_uuid.return_value = None
-    response = test_client.get("/Inspect/non_existing_objectGUIDs", headers=headers)
+    response = test_client.get("/Inspect/non_existing_objectGUIDs")
     assert response.status_code == 404

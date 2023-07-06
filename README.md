@@ -34,6 +34,11 @@ docker-compose up
 ```
 
 To interact with the app, you can go to [the swagger documentation][swagger].
+You can also interact with the app using curl. For example:
+
+```
+curl -X 'GET' 'http://localhost:8000/LDAP/Employee?entries_to_return=20' | jq '.'
+```
 
 #### Importing from LDAP to OS2mo
 Objects can be imported from LDAP to OS2mo in two ways:
