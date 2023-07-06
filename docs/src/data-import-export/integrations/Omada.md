@@ -14,7 +14,7 @@ Integrationen understøtter at samme bruger kan have flere AD-konti og flere eng
 
 For at integrationen kan aktiveres, skal følgende være på plads:
 
-1. Et view udstilles i Omada med alle relevante data. 
+1. Et view udstilles i Omada med alle relevante data.
 2. Brugertyperne opmærkes.
 3. Der laves en servicekonto til Magenta, som har læserettigheder til viewet.
 4. Der tilvejebringes en testinstans til Omada.
@@ -34,29 +34,28 @@ Alle **brugere** har en VALIDFROM/VALIDTO, der bliver importeret ind i MO på hv
 
 Samt felter for **engagementerne**:
 
-* Stillingsbetegnelse (string - passer præcis med de jobtitler der allerede eksisterer i MO. Hvis ikke sættes en standard-jobtitel)
-* Organisationskode (string - ad guid til korrekt indsættelse i organisationsenhed - dette kan fx være enhedsnummer)
-* C_SYNLIG_I_OS2MO (boolean - bestemmer engagementstypen) <---- hvad er det, Casper?
+* Stillingsbetegnelse - Passer præcist med de jobtitler, der allerede eksisterer i MO. Hvis ikke sættes en standard-jobtitel.
+* Organisationskode - Det kan være AD GUID, hvis disse er opsat som IT-konti på enhederne. Kan også være enhedsnummeret (bvn - brugervendt nøgle).
+* Synlighed - Sæt en adresse til 'hemmelig', 'må vises internt' eller 'må vises eksternt'.
 
-Derudover bliver **adresser** synkroniseret for følgende felter:
+Derudover bliver **adresser** synkroniseret for fx felter:
 
 * E-mail
 * Direkte telefonnummer
 * Mobiltelefonnummer
-* C_INST_PHONE <----hvad er det på menneskesprog, Casper?
 
 Og **IT-konti** for følgende felter:
 
 * ObjectGuid fra Active Directory
-* C_LOGIN / SamAccountName
+* AD-login / SamAccountName
 
 ## Skelnen mellem eksisterende og manuelt oprettede medarbejdere
 
-Manuelt oprettede brugere bliver kun oprettet, hvis de har en identitetskode, fx 561. Allerede eksisterende brugere vil have en anden identitetskode, fx 560. Bemærk at koderne godt kan være andre - de skal blot have koder.
+Manuelt oprettede brugere bliver kun oprettet, hvis de har en identitetskode. Allerede eksisterende brugere vil have en anden identitetskode, så det er muligt at skelne.
 
 ## Manglende historik på slettede brugere
 
-Når en bruger slettes i Omada (og ikke længere er med i viewet), vil den også blive slettet i MO, og der vil altså ikke fremgå nogen historik på vedkommende i MOs GUI (fortidsfanen) - Det er en konsekvens af, at Omada ikke opererer med bitemportalitet ligesom MO. Man vil dog altid kunne finde historikken i MOs database om nødvendigt.
+Når en bruger slettes i Omada (og ikke længere er med i viewet), vil brugerens engagement også blive slettet i MO, og der vil altså ikke fremgå nogen historik på engagementet i MOs GUI (fortidsfanen) - Det er en konsekvens af, at Omada ikke opererer med bitemportalitet ligesom MO. Man vil dog altid kunne finde historikken i MOs database om nødvendigt.
 
 ## Datahåndtering i MO GUI
 
@@ -74,7 +73,3 @@ Den foretrukne autentificeringsmetode mod API'et er via OIDC.
 ## Frekvens
 
 Omada er ikke event-baseret, så det er OS2mo der skal spørge Omada om ændringer. Os2mo kan gøre det med et interval, der er nærmere specificeret af kunden, fx hvert kvarter eller hvert minut.
-
-
-
-
