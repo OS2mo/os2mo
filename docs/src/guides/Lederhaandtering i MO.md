@@ -46,23 +46,23 @@ Dette afsnit beskriver hvordan logikken opfører sig, når den eksekveres:
 
     ![_leder org-unit](os2mo_managersync_images/_leder.png)
 
-    1. Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
+    - Hentes alle ansatte som har en tilknytning til `_leder`-enheden:
 
     ![Tilknytninger](os2mo_managersync_images/tilknytning.png)
 
-    2. Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i overenheden.
+    - Tjekkes at hver ansatte har et aktivt engagement i overenheden. Hvis mere end én medarbejder har en tilknytning til `_leder`-enheden, tjekkes hvilken ansættelse der er den seneste startdato: Denne person bliver sat som leder i overenheden.
 
-    3. Mappes hvert enhedsniveau til et leder-level:
+    - Mappes hvert enhedsniveau til et leder-level:
 
        ![Manager level](os2mo_managersync_images/manager_level.png)
 
-    4. Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
+    - Gøres lederen *også* til leder af overenhedens overenhed, hvis overenheden har `_led-adm`i sit navn.
 
        ![led-adm](os2mo_managersync_images/_led-adm.png)
 
        I eksemplet ovenfor, hvor lederen bliver leder af to enheder, identificeres leder-level fra den øverste enhed, altså fra Borgmesterens Afdeling.
 
-    5. Når en leder er blevet valgt ud fra de ovesntående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så kun én tilknytning resterer.
+Når en leder er blevet valgt ud fra de ovenstående kriterier, vil alle tilknytninger i `_leder`-enheden termineres, så kun én tilknytning resterer.
 
 ### Teknik
 
