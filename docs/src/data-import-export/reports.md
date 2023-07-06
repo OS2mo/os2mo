@@ -11,47 +11,83 @@ Rapporterne findes i topmenuen:
 De rapporter, der findes i dag, er beskrevet nedenfor. Ønskes andre sammenstillinger af data i en rapport, kontakt venligst Magenta på support@magenta.dk.
 
 # Eksisterende rapporter
-- **Alle medarbejdere**. Består af
+- **Alle medarbejdere**.
+    - UUID
+    - Navn på person
+    - Stilling
     - CPR-Nummer
-    - Ansættelse gyldig fra
-    - Ansættelse gyldig til
-    - Fornavn
-    - Efternavn
-    - Personens UUID
-    - Brugernavn
-    - Org-enhed
+    - AD-email
+    - AD-telefonnummer
+    - Enhed
+
+[Eksempel](../Reports/OS2mo%20Ansatte.xlsx)
+
+- **Alle tilknytninger**.
     - Org-enhedens UUID
-    - E-mail
-    - Telefon
-    - Stillingsbetegnelse
-    - Engagementets UUID
-- **Alle organisationsenheders tilknytninger**. Består af
-    - Org-enhedens UUID
-    - Org-enhed
+    - Org-enhedens navn
     - Overordnet UUID
-    - Navn
+    - Navn på person
     - Personens UUID
     - CPR-Nummer
-- **Den administrative organisation**
+
+[Eksempel](../Reports/OS2mo%20alle%20tilknytninger.xlsx)
+
+- **Medarbejdere, indplacering og start- og stopdatoer**
     - Org-enhedens UUID
-    - Navn
+    - Org-enhedens navn
+    - Enhedstype Titel
     - Enhedstypens UUID
     - Gyldig fra
     - Gyldig til
-    - Enhedstypens titel
+
+[Eksempel](../Reports/OS2mos%20administrative%20organisation%20inkl.%20start-%20og-%20stopdato%20samt%20enhedstyper.xlsx)
+
+- **Den administrative organisation**
+    - Organistionsenhed
+    - Navn på medarbejder
+    - Brugernavn
+    - Telefon
+    - E-mail
+    - Adresse
+
+[Eksempel](../Reports/OS2mos%20organisation%20inkl.%20medarbejdere.xlsx)
+
 - **Alle ledere**
+    - Enhed
     - Navn
     - Ansvar
     - Telefon
     - E-mail
-- **Adresser tilhørende ledere og medarbejdere**
+
+[Eksempel](../Reports/OS2mo%20Alle%20lederfunktioner.xlsx)
+
+- **Medarbejdertelefonbog**
     - Navn
-    - Postadresse
     - Telefon
+    - Mobiltelefon
+    - Enhed
+    - Stillingsbetegnelse
+
+[Eksempel](../Reports/OS2mo%20Medarbejdertelefonbog.xlsx)
+
+- **Stilling og kontaktinformation**
+    - CPR
+    - Ansættelse gyldig fra
+    - Ansættelse gyldig til
+    - Fornavn
+    - Efternavn
+    - Person UUID
+    - Brugernavn
+    - Org-enhed
+    - Org-enhed UUID
     - E-mail
-    - Hvis der er flere adresser (fx AD-adresser), kan de medtages.
-- **MED-organisationen**
-    - Liste følger
+    - Telefon
+    - Stillingsbetegnelse
+    - Engagement UUID
+
+[Eksempel](../Reports/OS2MO%20Alles%20%20stilling%2Bemail.xlsx)
+
+Andre rapporter kan ligeledes genereres, fx. rapport over MED-organisationens repræsentanter.
 
 # Technical info
 Shared reports introduces a collection of reports that can be used by
