@@ -33,9 +33,7 @@ nav:
           - graphql/migration.md
           - graphql/reads.md
       - User and developer guides:
-          - Getting started:
-              - guides/environment/docker.md
-              - guides/environment/install-source.md
+          - Getting started (with Docker): guides/environment/docker.md
           - ADFS:
               - guides/adfs-setup.md
               - guides/adfs-rbac-setup.md
