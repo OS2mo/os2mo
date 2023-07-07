@@ -4,6 +4,8 @@ import json
 from datetime import date
 from datetime import datetime
 from datetime import timezone
+from typing import Callable
+from unittest.mock import AsyncMock, patch
 
 import freezegun
 import pytest
@@ -696,3 +698,27 @@ async def test_validity_tuple(
 ):
     result = lora.validity_tuple(validity_literal, now=now)
     assert result == expected
+
+async def test_fucked_dates(graphapi_post: Callable, set_settings: Callable[..., None]):
+    json = [{'id': '11a0fa2b-69b0-40fe-981a-75566c2a6500', 'registreringer': [{'fratidspunkt': {'tidsstempeldatotid': '2023-07-04T04:07:46.082485+00:00', 'graenseindikator': True}, 'tiltidspunkt': {'tidsstempeldatotid': 'infinity'}, 'livscykluskode': 'Rettet', 'note': 'Rediger engagement', 'brugerref': '42c432e8-9c4a-11e6-9f62-873cf34a735f', 'attributter': {'organisationfunktionegenskaber': [{'brugervendtnoegle': '12491', 'funktionsnavn': 'Engagement', 'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}}], 'organisationfunktionudvidelser': [{'fraktion': 162200, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2023-03-31 22:00:00+00', 'to': '2023-06-18 22:00:00+00', 'from_included': True, 'to_included': False}}, {'fraktion': 162200, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2052-06-30 22:00:00+00', 'to': '2052-06-30 23:00:00+00', 'from_included': True, 'to_included': False}}, {'fraktion': 202700, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2021-01-31 23:00:00+00', 'to': '2021-09-30 22:00:00+00', 'from_included': True, 'to_included': False}}, {'fraktion': 243200, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2021-09-30 22:00:00+00', 'to': '2023-03-31 22:00:00+00', 'from_included': True, 'to_included': False}}, {'fraktion': 243200, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2023-06-18 22:00:00+00', 'to': '2052-06-30 22:00:00+00', 'from_included': True, 'to_included': False}}, {'fraktion': 243200, 'udvidelse_1': 'Husassistent', 'virkning': {'from': '2052-06-30 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}}]}, 'tilstande': {'organisationfunktiongyldighed': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': '2052-06-30 23:00:00+00', 'from_included': True, 'to_included': False}, 'gyldighed': 'Aktiv'}, {'virkning': {'from': '2052-06-30 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'gyldighed': 'Inaktiv'}]}, 'relationer': {'primær': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': 'aa098903-0c91-ad07-298f-8ed6b43f6414'}], 'organisatoriskfunktionstype': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': '55e2f6c9-2dcb-cdc1-556c-d78d7f9e173d'}], 'tilknyttedeorganisationer': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': 'b7b09478-780e-4aec-8a61-20571f1fcb30'}], 'tilknyttedeenheder': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': '2021-11-04 23:00:00+00', 'from_included': True, 'to_included': False}, 'uuid': 'a1154953-66c3-4100-b800-000001510001'}, {'virkning': {'from': '2021-11-04 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': '1e2acd58-a27d-4a00-9000-000008840002'}], 'tilknyttedebrugere': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': '214d789b-4498-4867-b71f-07d0b97cb886'}], 'opgaver': [{'virkning': {'from': '2021-01-31 23:00:00+00', 'to': 'infinity', 'from_included': True, 'to_included': False}, 'uuid': 'b1173ad7-db36-a245-5e3c-abdc4dce5b93'}]}}]}]
+    with patch('mora.lora.Scope.fetch', return_value=json ):
+
+        query = """
+                query MyQuery {
+              engagements(from_date: null, to_date: null, limit: "1") {
+                objects {
+                  objects {
+                    validity {
+                      from
+                      to
+                    }
+                  }
+                }
+              }
+            }
+        """
+        resp = graphapi_post(
+            query,
+        )
+        print(resp)
+        assert resp == "200"

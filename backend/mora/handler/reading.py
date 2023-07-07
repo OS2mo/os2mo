@@ -8,6 +8,7 @@ from datetime import datetime
 from inspect import isawaitable
 from typing import Any
 
+from more_itertools import flatten
 from structlog import get_logger
 
 from .. import exceptions
@@ -112,17 +113,18 @@ class ReadingHandler:
         :param function_id: object from object_tuple
         :return: List of whatever this returns get_mo_object_from_effect
         """
-        return await gather(
-            *[
+        tasks = []
+        for start, end, effect in (await cls._get_effects(c, function_obj)):
+            if not util.is_reg_valid(effect):
+                continue
+            tasks.append(
                 create_task(
                     cls._get_mo_object_from_effect(
                         effect, start, end, function_id, flat
                     )
                 )
-                for start, end, effect in (await cls._get_effects(c, function_obj))
-                if util.is_reg_valid(effect)
-            ]
-        )
+            )
+        return await gather(*tasks)
 
     @classmethod
     async def _get_obj_effects(
@@ -137,21 +139,16 @@ class ReadingHandler:
         :param c: A LoRa connector
         :param object_tuples: An iterable of (UUID, object) tuples
         """
-        # flatten a bunch of nested tasks
-        return [
-            x
-            for sublist in await gather(
-                *[
-                    create_task(
-                        cls.__async_get_mo_object_from_effect(
-                            c, function_id, function_obj, flat
-                        )
-                    )
-                    for function_id, function_obj in object_tuples
-                ]
-            )
-            for x in sublist
-        ]
+        tasks = []
+        for function_id, function_obj in object_tuples:
+            tasks.append(create_task(
+                cls.__async_get_mo_object_from_effect(
+                    c, function_id, function_obj, flat
+                )
+            ))
+        sublists = await gather(*tasks)
+        flattened = list(flatten(sublists))
+        return flattened
 
 
 class OrgFunkReadingHandler(ReadingHandler):

@@ -149,14 +149,14 @@ def to_iso_date(s, is_end: bool = False):
     elif not is_end and dt == NEGATIVE_INFINITY:
         return None
 
-    if dt.tzinfo != DEFAULT_TIMEZONE and dt != POSITIVE_INFINITY:
-        dt = dt.astimezone(DEFAULT_TIMEZONE)
-
-    if dt.time() != datetime.time.min:
-        dt = datetime.datetime.combine(dt, datetime.time.min)
-
-    if is_end:
-        dt -= ONE_DAY
+    # if dt.tzinfo != DEFAULT_TIMEZONE and dt != POSITIVE_INFINITY:
+    #     dt = dt.astimezone(DEFAULT_TIMEZONE)
+    #
+    # if dt.time() != datetime.time.min:
+    #     dt = datetime.datetime.combine(dt, datetime.time.min)
+    #
+    # if is_end:
+    #     dt -= ONE_DAY
 
     return dt.date().isoformat()
 
