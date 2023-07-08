@@ -13,8 +13,6 @@ from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
 from more_itertools import only
-from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
-from os2mo_fastapi_utils.auth.oidc import get_auth_exception_handler
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
@@ -24,6 +22,7 @@ from structlog import get_logger
 from . import lora
 from . import service
 from . import triggers
+from .auth.exceptions import get_auth_exception_handler
 from .common import LoRaConnectorPlugin
 from .config import Environment
 from .db import get_sessionmaker
@@ -36,6 +35,7 @@ from mora import config
 from mora import health
 from mora import log
 from mora.amqp import start_amqp_subsystem
+from mora.auth.exceptions import AuthenticationError
 from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
