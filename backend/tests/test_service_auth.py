@@ -8,25 +8,74 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from fastapi.routing import APIWebSocketRoute
 from fastapi.testclient import TestClient
-from os2mo_fastapi_utils.auth.exceptions import AuthenticationError
-from os2mo_fastapi_utils.auth.models import RealmAccess
-from os2mo_fastapi_utils.auth.test_helper import (
-    ensure_endpoints_depend_on_oidc_auth_function,
-)
-from os2mo_fastapi_utils.auth.test_helper import (
-    ensure_no_auth_endpoints_do_not_depend_on_auth_function,
-)
 from pydantic import MissingError
 from pydantic import ValidationError
 from pydantic.error_wrappers import ErrorWrapper
 
 import mora.auth.keycloak.oidc
-from mora.auth.keycloak.models import KeycloakToken
+from mora.auth.exceptions import AuthenticationError
+from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.auth.keycloak.oidc import auth
 from mora.config import Settings
 from mora.graphapi.main import graphql_versions
 from tests import util
+
+
+def lookup_auth_dependency(route, auth_coro):
+    # Check if auth dependency exists
+    return any(d.dependency == auth_coro for d in route.dependencies)
+
+
+def ensure_endpoints_depend_on_oidc_auth_function(
+    all_routes, no_auth_endpoints, auth_coro
+):
+    """
+    Loop through all FastAPI routes (except the ones from the above
+    exclude list) and make sure they depend (via fastapi.Depends) on the
+    auth coroutine.
+
+    A little risky since we should avoid "logic" in the test code!
+    (so direct auth "requests" tests should also be added)
+
+    :param all_routes: all routes defined in the FastAPI app
+    :param no_auth_endpoints: list of all endpoint URL path that should not
+    have authentication
+    :param auth_coro: the authentication coroutine
+    """
+
+    # Skip the starlette.routing.Route's (defined by the framework)
+    routes = filter(lambda _route: isinstance(_route, APIRoute), all_routes)
+    # Only check endpoints not in the NO_AUTH_ENDPOINTS list
+    routes = filter(lambda _route: _route.path not in no_auth_endpoints, routes)
+    routes = list(routes)
+
+    # Make sure that routes are defined
+    assert routes
+
+    for route in routes:
+        has_auth = lookup_auth_dependency(route, auth_coro)
+        assert has_auth, f"Route not protected: {route.path}"
+
+
+def ensure_no_auth_endpoints_do_not_depend_on_auth_function(
+    all_routes, no_auth_endpoints, auth_coro
+):
+    """
+    Loop through the FastAPI routes that do not require authentication
+    (except the ones from the above exclude list) and make sure they do not
+    depend (via fastapi.Depends) on the auth coroutine.
+
+    :param all_routes: all routes defined in the FastAPI app
+    :param no_auth_endpoints: list of all endpoint URL path that should not
+    have authentication
+    :param auth_coro: the authentication coroutine
+    """
+
+    no_auth_routes = filter(lambda _route: _route.path in no_auth_endpoints, all_routes)
+    for route in no_auth_routes:
+        has_auth = lookup_auth_dependency(route, auth_coro)
+        assert not has_auth, f"Route protected: {route.path}"
 
 
 @pytest.fixture(scope="session")
@@ -184,15 +233,13 @@ async def test_auth_graphql(
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_uuid():
-    token = KeycloakToken(
-        azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e"
-    )
+    token = Token(azp="mo-frontend", uuid="30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
 
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parsed_correctly_base64():
-    token = KeycloakToken(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
+    token = Token(azp="mo-frontend", uuid="0prIMLvgrkKCqBrjaUPLng==")
 
     assert token.uuid == UUID("30c89ad2-e0bb-42ae-82a8-1ae36943cb9e")
 
@@ -200,7 +247,7 @@ def test_uuid_parsed_correctly_base64():
 @util.override_config(Settings(keycloak_rbac_enabled=True))
 def test_uuid_parse_fails_on_garbage():
     with pytest.raises(ValidationError) as err:
-        KeycloakToken(
+        Token(
             azp="mo-frontend",
             realm_access=RealmAccess(roles={"owner"}),
             uuid="garbageasdasd",

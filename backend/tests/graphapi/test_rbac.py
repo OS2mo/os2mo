@@ -16,9 +16,9 @@ from hypothesis import settings
 from hypothesis import strategies as st
 from hypothesis_graphql import nodes
 from hypothesis_graphql import strategies as gql_st
-from os2mo_fastapi_utils.auth.models import RealmAccess
 from strawberry.dataloader import DataLoader
 
+from mora.auth.keycloak.models import RealmAccess
 from mora.auth.keycloak.models import Token
 from mora.graphapi.shim import execute_graphql
 from mora.graphapi.versions.latest.schema import AddressRead

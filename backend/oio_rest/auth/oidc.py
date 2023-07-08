@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from os2mo_fastapi_utils.auth.models import Token
-from os2mo_fastapi_utils.auth.oidc import get_auth_dependency
-
+from mora.auth.keycloak.models import Token
+from mora.auth.keycloak.oidc import get_auth_dependency
 from oio_rest import config
 
 SCHEMA = config.get_settings().keycloak_schema
