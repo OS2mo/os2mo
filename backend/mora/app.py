@@ -269,9 +269,10 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         tags=["Meta"],
     )
 
-    # Mount all of Lora in
-    lora_app = create_lora_app()
-    app.mount("/lora", lora_app)
+    if settings.expose_lora:
+        # Mount all of Lora in
+        lora_app = create_lora_app()
+        app.mount("/lora", lora_app)
 
     lora_settings = lora_get_settings()
     app.state.sessionmaker = get_sessionmaker(

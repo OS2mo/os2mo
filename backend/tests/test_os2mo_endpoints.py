@@ -1,5 +1,7 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from collections.abc import Callable
+
 import more_itertools
 
 from mora.app import create_app
@@ -107,6 +109,10 @@ graphql_endpoints = set(
 )
 
 
+lora_endpoints = {
+    "/lora",
+}
+
 all_endpoints = (
     {
         "",
@@ -114,8 +120,8 @@ all_endpoints = (
         "/graphql/v{version_number}",
         "/version/",
         "/saml/sso/",
-        "/lora",
     }
+    | lora_endpoints
     | doc_endpoints
     | health_endpoints
     | service_api
@@ -123,7 +129,14 @@ all_endpoints = (
 )
 
 
-def test_all_endpoints():
+def test_all_endpoints() -> None:
     app = create_app()
     routes = {r.path for r in app.routes} | {""}
     assert routes == all_endpoints
+
+
+def test_lora_endpoints(set_settings: Callable[..., None]) -> None:
+    set_settings(EXPOSE_LORA=False)
+    app = create_app()
+    routes = {r.path for r in app.routes} | {""}
+    assert routes == all_endpoints - lora_endpoints

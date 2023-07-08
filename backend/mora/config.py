@@ -170,6 +170,11 @@ class Settings(BaseSettings):
     keycloak_ssl_required: str = "external"
     keycloak_rbac_enabled: bool = False
 
+    # Expose lora
+    expose_lora: bool = Field(
+        True, description="Whether to expose LoRAs REST API on /lora"
+    )
+
     # Lora client
     lora_client_id: str = "mo"
     lora_client_secret: str | None
