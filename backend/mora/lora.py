@@ -779,6 +779,7 @@ class Scope(BaseScope):
         return one(registrations)
 
     async def create(self, obj, uuid=None):
+        # TODO: Use jsonable_encoder
         obj = uuid_to_str(obj)
 
         if uuid:
