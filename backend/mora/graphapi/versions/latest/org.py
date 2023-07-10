@@ -4,7 +4,6 @@
 import logging
 from textwrap import dedent
 from uuid import UUID
-from uuid import uuid4
 
 import strawberry
 
@@ -55,6 +54,6 @@ async def create_org(input: OrganisationCreate) -> UUID:
         user_key="root",
         municipality_code=input.municipality_code,
     )
-    payload = model.json(by_alias=True, exclude={"uuid"}, exclude_none=True)
-    uuid = await org_scope.create(payload, uuid=uuid4())
+    payload = model.dict(by_alias=True, exclude={"uuid"}, exclude_none=True)
+    uuid = await org_scope.create(payload)
     return UUID(uuid)
