@@ -64,6 +64,8 @@ from .manager import terminate_manager
 from .manager import update_manager
 from .models import FileStore
 from .models import OrganisationUnitRefreshRead
+from .org import create_org
+from .org import OrganisationCreate
 from .org_unit import create_org_unit
 from .org_unit import terminate_org_unit
 from .org_unit import trigger_org_unit_refresh
@@ -84,6 +86,7 @@ from .schema import Facet
 from .schema import ITSystem
 from .schema import ITUser
 from .schema import Manager
+from .schema import Organisation
 from .schema import OrganisationUnit
 from .schema import OrganisationUnitRefresh
 from .schema import Response
@@ -567,8 +570,19 @@ class Mutation:
 
     # Root Organisation
     # -----------------
+    @strawberry.mutation(
+        description="Creates the root-organisation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("org"),
+        ],
+        deprecation_reason="The root organisation concept will be removed in a future version of OS2mo.",
+    )
+    async def org_create(self, info: Info, input: OrganisationCreate) -> Organisation:
+        # Called for side-effect
+        await create_org(input)
+        return await info.context["org_loader"].load(0)
 
-    # TODO: org_create
     # TODO: org_update
     # TODO: org_terminate
     # TODO: org_delete
