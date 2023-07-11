@@ -19,7 +19,7 @@ class OrganisationCreate:
 
     municipality_code: int | None = strawberry.field(
         description=dedent(
-            """
+            """\
             The municipality code.
 
             In Denmark; a 3 digit number uniquely identifying a municipality.

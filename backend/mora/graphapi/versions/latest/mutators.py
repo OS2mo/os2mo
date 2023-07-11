@@ -120,7 +120,7 @@ def uuid2response(uuid: UUID | str, model: type) -> Response:
 
 
 delete_warning = dedent(
-    """
+    """\
 
     **Warning**:
     This mutator does bitemporal deletion, **not** temporal termination.
@@ -142,7 +142,7 @@ delete_warning = dedent(
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
     Entrypoint for all modification-operations.
 
     **Warning**:
@@ -680,7 +680,7 @@ class Mutation:
     # -----
     @strawberry.mutation(
         description=dedent(
-            """
+            """\
             Upload a file.
 
             File upload must be done via multipart form-data.
@@ -728,7 +728,7 @@ class Mutation:
             Upload,
             strawberry.argument(
                 description=dedent(
-                    """
+                    """\
                     Multipart form-data file payload.
 
                     Contains both the data and the filename to be uploaded.

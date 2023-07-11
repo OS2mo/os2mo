@@ -16,7 +16,7 @@ CPRType = strawberry.scalar(
     serialize=str,
     parse_value=CPR.validate,
     description=dedent(
-        """
+        """\
         Scalar implementing the danish national identification number / civil registration number.
 
         The number is a unique identifier for a single individual, although individuals may go through several numbers over time.
@@ -45,7 +45,7 @@ Cursor = strawberry.scalar(
     serialize=lambda v: b64encode(json.dumps(v).encode("ascii")).decode("ascii"),
     parse_value=lambda v: int(b64decode(v)),
     description=dedent(
-        """
+        """\
         Scalar implementing the cursor of cursor-based pagination.
 
         The cursor is opaque by design abstracting away the underlying implementation details.
