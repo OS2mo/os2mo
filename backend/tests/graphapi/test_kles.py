@@ -1,12 +1,26 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+from _datetime import datetime
+from unittest.mock import AsyncMock
+from unittest.mock import patch
+from uuid import UUID
+
+import pytest
+from fastapi.encoders import jsonable_encoder
 from hypothesis import given
+from hypothesis import strategies as st
+from more_itertools import one
 from pytest import MonkeyPatch
 
 from .strategies import graph_data_strat
 from .strategies import graph_data_uuids_strat
+from .utils import fetch_class_uuids
+from .utils import fetch_org_unit_validity
+from mora.graphapi.shim import execute_graphql
 from mora.graphapi.shim import flatten_data
 from mora.graphapi.versions.latest import dataloaders
+from mora.graphapi.versions.latest.models import KLECreate
+from ramodels.mo import Validity as RAValidity
 from ramodels.mo.details import KLERead
 from tests.conftest import GQLResponse
 
@@ -68,3 +82,126 @@ def test_query_by_uuid(test_input, graphapi_post, patch_loader):
     result_uuids = [kle.get("uuid") for kle in response.data["kles"]["objects"]]
     assert set(result_uuids) == set(test_uuids)
     assert len(result_uuids) == len(set(test_uuids))
+
+
+@given(test_data=...)
+@patch("mora.graphapi.versions.latest.mutators.create_kle", new_callable=AsyncMock)
+async def test_create_kle_mutation_unit_test(
+    create_kle: AsyncMock, test_data: KLECreate
+) -> None:
+    """Tests that the mutator function for creating a KLE annotation passes through,
+    with the defined pydantic model."""
+
+    mutation = """
+        mutation CreateKLE($input: KLECreateInput!) {
+            kle_create(input: $input) {
+                uuid
+            }
+        }
+    """
+
+    create_kle.return_value = test_data.uuid
+
+    payload = jsonable_encoder(test_data)
+    response = await execute_graphql(query=mutation, variable_values={"input": payload})
+    assert response.errors is None
+    assert response.data == {"kle_create": {"uuid": str(test_data.uuid)}}
+
+    create_kle.assert_called_with(test_data)
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_kle_integration_test(data, graphapi_post, org_uuids) -> None:
+    """Test that KLE annotations can be created in LoRa via GraphQL."""
+
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    parent_from, parent_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=parent_from, max_value=parent_to or datetime.max)
+    )
+    if parent_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=parent_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+
+    kle_aspect_uuids = fetch_class_uuids(graphapi_post, "kle_aspect")
+    kle_number_uuids = fetch_class_uuids(graphapi_post, "kle_number")
+
+    test_data = data.draw(
+        st.builds(
+            KLECreate,
+            uuid=st.uuids() | st.none(),
+            org_unit=st.just(org_uuid),
+            kle_aspects=st.just(kle_aspect_uuids),
+            kle_number=st.sampled_from(kle_number_uuids),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
+        )
+    )
+
+    mutation = """
+        mutation CreateKLE($input: KLECreateInput!) {
+            kle_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    response: GQLResponse = graphapi_post(
+        mutation, {"input": jsonable_encoder(test_data)}
+    )
+
+    assert response.errors is None
+    uuid = UUID(response.data["kle_create"]["uuid"])
+
+    verify_query = """
+        query VerifyQuery($uuid: UUID!) {
+            kles(uuids: [$uuid], from_date: null, to_date: null) {
+                objects {
+                    objects {
+                        user_key
+                        type
+                        org_unit: org_unit_uuid
+                        kle_number: kle_number_uuid
+                        kle_aspects: kle_aspect_uuids
+                        validity {
+                            from
+                            to
+                        }
+                    }
+                }
+            }
+        }
+    """
+
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+    obj = one(one(response.data["kles"]["objects"])["objects"])
+
+    kle_aspect_list = [UUID(kle_aspect) for kle_aspect in obj["kle_aspects"]]
+
+    assert kle_aspect_list == test_data.kle_aspects
+    assert UUID(obj["kle_number"]) == test_data.kle_number
+    assert UUID(obj["org_unit"]) == test_data.org_unit
+    assert obj["user_key"] == test_data.user_key or str(uuid)
+
+    assert (
+        datetime.fromisoformat(obj["validity"]["from"]).date()
+        == test_data.validity.from_date.date()
+    )
+    if obj["validity"]["to"] is not None:
+        assert (
+            datetime.fromisoformat(obj["validity"]["to"]).date()
+            == test_data.validity.to_date.date()
+        )
+    else:
+        assert test_data.validity.to_date is None
