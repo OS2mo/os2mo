@@ -860,6 +860,39 @@ class ITUserTerminate(ValidityTerminate):
         )  # type: ignore
 
 
+# KLEs
+# --------
+class KLECreate(UUIDBase):
+    """Model for creating a KLE annotation."""
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+    org_unit: UUID = Field(description="UUID of the organisation unit of the KLE.")
+    kle_aspects: list[UUID] = Field(description="List of UUIDs of the KLE aspects.")
+    kle_number: UUID = Field(description="UUID of the KLE number.")
+    validity: RAValidity = Field(description="Validity range for the KLE.")
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        aspects = [{"uuid": str(aspect)} for aspect in self.kle_aspects]
+        return {
+            "uuid": str(self.uuid),
+            "user_key": self.user_key,
+            "kle_number": gen_uuid(self.kle_number),
+            "kle_aspect": aspects,
+            "org_unit": gen_uuid(self.org_unit),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+
+
 # Managers
 # --------
 class ManagerCreate(UUIDBase):

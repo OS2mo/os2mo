@@ -46,6 +46,7 @@ from .inputs import EngagementUpdateInput
 from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
+from .inputs import KLECreateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
@@ -59,6 +60,7 @@ from .itsystem import create_itsystem
 from .itsystem import delete_itsystem
 from .itsystem import ITSystemCreateInput
 from .itsystem import update_itsystem
+from .kle import create_kle
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -85,6 +87,7 @@ from .schema import Engagement
 from .schema import Facet
 from .schema import ITSystem
 from .schema import ITUser
+from .schema import KLE
 from .schema import Manager
 from .schema import Organisation
 from .schema import OrganisationUnit
@@ -100,6 +103,7 @@ from ramodels.mo.details import AssociationRead
 from ramodels.mo.details import EngagementRead
 from ramodels.mo.details import ITSystemRead
 from ramodels.mo.details import ITUserRead
+from ramodels.mo.details import KLERead
 from ramodels.mo.details import ManagerRead
 
 logger = logging.getLogger(__name__)
@@ -520,8 +524,16 @@ class Mutation:
 
     # KLEs
     # ----
+    @strawberry.mutation(
+        description="Creates a KLE annotation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("kle"),
+        ],
+    )
+    async def kle_create(self, input: KLECreateInput) -> Response[KLE]:
+        return uuid2response(await create_kle(input.to_pydantic()), KLERead)
 
-    # TODO: kle_create
     # TODO: kle_update
     # TODO: kle_terminate
     # TODO: kle_delete
