@@ -26,7 +26,6 @@ from fastapi import APIRouter
 from fastapi.encoders import jsonable_encoder
 from more_itertools import first
 
-from . import handlers
 from .. import common
 from mora import util
 from mora.graphapi.shim import execute_graphql
@@ -50,59 +49,6 @@ DETAIL_TYPES = {
     "e": DetailType("tilknyttedebrugere", "bruger"),
     "ou": DetailType("tilknyttedeenheder", "organisationenhed"),
 }
-
-
-@router.get(
-    "/{type}/{id}/details/",
-    responses={
-        "400": {"description": "Invalid input"},
-        "404": {"description": "No such endpoint"},
-    },
-)
-async def list_details(type, id: UUID):
-    """List the available 'detail' types under this entry.
-
-    .. :quickref: Detail; List
-
-    **Example response**:
-
-    .. sourcecode:: json
-
-      {
-        "address": false,
-        "association": false,
-        "engagement": true,
-        "it": false,
-        "leave": true,
-        "manager": false,
-        "role": false
-      }
-
-    The value above informs you that at least one entry exists for each of
-    'engagement' and 'leave' either in the past, present or future.
-    """
-    id = str(id)
-
-    c = common.get_connector(virkningfra="-infinity", virkningtil="infinity")
-
-    info = DETAIL_TYPES[type]
-    search = {
-        info.search: id,
-    }
-    scope = getattr(c, info.scope)
-
-    r = {
-        functype: bool(
-            await c.organisationfunktion.load_uuids(funktionsnavn=funcname, **search),
-        )
-        for functype, funcname in handlers.FUNCTION_KEYS.items()
-    }
-
-    reg = await scope.get(id)
-
-    r["org_unit"] = bool(scope.path == "organisation/organisationenhed" and reg)
-
-    return r
 
 
 def filter_by_validity(validity: ValidityLiteral, element: dict):
