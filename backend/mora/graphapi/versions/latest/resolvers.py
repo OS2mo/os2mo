@@ -35,6 +35,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
@@ -666,6 +667,41 @@ class ManagerResolver(Resolver):
         kwargs = {}
         if employees is not None:
             kwargs["tilknyttedebrugere"] = employees
+        if org_units is not None:
+            kwargs["tilknyttedeenheder"] = org_units
+        return await super()._resolve(
+            info=info,
+            uuids=uuids,
+            user_keys=user_keys,
+            limit=limit,
+            cursor=cursor,
+            from_date=from_date,
+            to_date=to_date,
+            **kwargs,
+        )
+
+
+class OwnerResolver(Resolver):
+    def __init__(self) -> None:
+        super().__init__(OwnerRead)
+
+    async def resolve(  # type: ignore[no-untyped-def,override]
+        self,
+        info: Info,
+        uuids: UUIDsFilterType = None,
+        user_keys: UserKeysFilterType = None,
+        limit: LimitType = None,
+        cursor: CursorType = None,
+        from_date: FromDateFilterType = UNSET,
+        to_date: ToDateFilterType = UNSET,
+        employees: EmployeeUUIDsFilterType = None,
+        org_units: OrgUnitUUIDsFilterType = None,
+    ):
+        """Resolve owners."""
+        kwargs = {}
+        if employees is not None:
+            # TODO: Figure out why this uses personer instead of brugere
+            kwargs["tilknyttedepersoner"] = employees
         if org_units is not None:
             kwargs["tilknyttedeenheder"] = org_units
         return await super()._resolve(

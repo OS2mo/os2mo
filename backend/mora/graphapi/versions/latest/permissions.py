@@ -32,6 +32,7 @@ Collections = Literal[
     "kle",
     "leave",
     "manager",
+    "owner",
     "org",
     "org_unit",
     "registration",

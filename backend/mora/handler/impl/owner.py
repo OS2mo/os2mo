@@ -16,6 +16,7 @@ from ... import mapping
 from ... import util
 from ...common import parse_owner_inference_priority_str
 from ...exceptions import ErrorCodes
+from ...graphapi.middleware import is_graphql
 from ...mapping import EXTENSION_1
 from ...mapping import OwnerInferencePriority
 from ...mapping import PRIMARY
@@ -172,10 +173,17 @@ class OwnerReader(reading.OrgFunkReadingHandler):
             inference_priority = parse_owner_inference_priority_str(
                 inference_priority_str
             )
-        base_obj = create_task(
+        base_obj = await create_task(
             super()._get_mo_object_from_effect(effect, start, end, funcid)
         )
         only_primary_uuid = util.get_args_flag("only_primary_uuid")
+
+        if is_graphql():
+            return {
+                **base_obj,
+                "employee_uuid": owner_uuid,
+                "org_unit_uuid": org_unit,
+            }
 
         owner_task = None
         if owner_uuid:
@@ -213,7 +221,7 @@ class OwnerReader(reading.OrgFunkReadingHandler):
                 )
             )
         func: dict[Any, Any] = {
-            **await base_obj,
+            **base_obj,
             mapping.OWNER_INFERENCE_PRIORITY: inference_priority.value
             if inference_priority is not None
             else None,

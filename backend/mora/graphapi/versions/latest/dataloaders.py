@@ -31,6 +31,7 @@ from .schema import LeaveRead
 from .schema import ManagerRead
 from .schema import OrganisationRead
 from .schema import OrganisationUnitRead
+from .schema import OwnerRead
 from .schema import RelatedUnitRead
 from .schema import RoleRead
 from mora.common import get_connector
@@ -54,6 +55,7 @@ MOModel = TypeVar(
     LeaveRead,
     ManagerRead,
     OrganisationUnitRead,
+    OwnerRead,
     RoleRead,
     RelatedUnitRead,
 )
@@ -127,6 +129,7 @@ get_associations = partial(get_mo, model=AssociationRead)
 get_roles = partial(get_mo, model=RoleRead)
 get_itusers = partial(get_mo, model=ITUserRead)
 get_managers = partial(get_mo, model=ManagerRead)
+get_owners = partial(get_mo, model=OwnerRead)
 get_related_units = partial(get_mo, model=RelatedUnitRead)
 
 
@@ -329,6 +332,8 @@ async def get_loaders() -> dict[str, DataLoader | Callable]:
         "ituser_getter": get_itusers,
         "manager_loader": DataLoader(load_fn=partial(load_mo, model=ManagerRead)),
         "manager_getter": get_managers,
+        "owner_loader": DataLoader(load_fn=partial(load_mo, model=OwnerRead)),
+        "owner_getter": get_owners,
         "class_loader": DataLoader(load_fn=load_classes),
         "class_getter": get_classes,
         "rel_unit_loader": DataLoader(load_fn=partial(load_mo, model=RelatedUnitRead)),

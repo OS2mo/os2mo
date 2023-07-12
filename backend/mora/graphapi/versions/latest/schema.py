@@ -51,6 +51,7 @@ from .resolvers import KLEResolver
 from .resolvers import LeaveResolver
 from .resolvers import ManagerResolver
 from .resolvers import OrganisationUnitResolver
+from .resolvers import OwnerResolver
 from .resolvers import RelatedUnitResolver
 from .resolvers import Resolver
 from .resolvers import RoleResolver
@@ -77,6 +78,7 @@ from ramodels.mo.details import ITUserRead
 from ramodels.mo.details import KLERead
 from ramodels.mo.details import LeaveRead
 from ramodels.mo.details import ManagerRead
+from ramodels.mo.details import OwnerRead
 from ramodels.mo.details import RelatedUnitRead
 from ramodels.mo.details import RoleRead
 
@@ -434,6 +436,7 @@ LazyITUser = Annotated["ITUser", LazySchema]
 LazyKLE = Annotated["KLE", LazySchema]
 LazyLeave = Annotated["Leave", LazySchema]
 LazyManager = Annotated["Manager", LazySchema]
+LazyOwner = Annotated["Owner", LazySchema]
 LazyOrganisationUnit = Annotated["OrganisationUnit", LazySchema]
 LazyRelatedUnit = Annotated["RelatedUnit", LazySchema]
 LazyRole = Annotated["Role", LazySchema]
@@ -2706,6 +2709,58 @@ class Manager:
     validity: Validity = strawberry.auto
 
 
+@strawberry.experimental.pydantic.type(
+    model=OwnerRead,
+    description=dedent(
+        """
+        Owner of organisation units and their connected identities.
+        """
+    ),
+)
+class Owner:
+    @strawberry.field(
+        description=dedent(
+            """
+            The object type.
+
+            Always contains the string `owner`.
+            """
+        ),
+        deprecation_reason=dedent(
+            """
+            Unintentionally exposed implementation detail.
+            Provides no value whatsoever.
+            """
+        ),
+    )
+    async def type(self, root: OwnerRead) -> str:
+        """Implemented for backwards compatability."""
+        return root.type_
+
+    @strawberry.field(description="UUID of the entity")
+    async def uuid(self, root: OwnerRead) -> UUID:
+        return root.uuid
+
+    # TODO: Document this
+    user_key: str = strawberry.auto
+
+    @strawberry.field(
+        description="UUID of the organisation unit related to the owner.",
+        deprecation_reason=gen_uuid_field_deprecation("org_unit"),
+    )
+    async def org_unit_uuid(self, root: OwnerRead) -> UUID | None:
+        return root.org_unit_uuid
+
+    @strawberry.field(
+        description="UUID of the employee related to the owner.",
+        deprecation_reason=gen_uuid_field_deprecation("employee"),
+    )
+    async def employee_uuid(self, root: OwnerRead) -> UUID | None:
+        return root.employee_uuid
+
+    validity: Validity = strawberry.auto
+
+
 # Organisation
 # ------------
 
@@ -3094,6 +3149,19 @@ class OrganisationUnit:
         return await OrganisationUnit.managers(
             self=self, root=parent, info=info, inherit=True
         )
+
+    owners: list[LazyOwner] = strawberry.field(
+        resolver=seed_resolver_list(
+            OwnerResolver(),
+            {"org_units": lambda root: [root.uuid]},
+        ),
+        description=dedent(
+            """
+            Owners of the organisation unit.
+            """
+        ),
+        permission_classes=[IsAuthenticatedPermission, gen_read_permission("owner")],
+    )
 
     addresses: list[LazyAddress] = strawberry.field(
         resolver=seed_resolver_list(
