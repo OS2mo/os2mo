@@ -17,6 +17,7 @@ from .models import EngagementUpdate
 from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
+from .models import KLECreate
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
@@ -196,6 +197,15 @@ class ITUserTerminateInput:
 
 # KLEs
 # ----
+
+
+@strawberry.experimental.pydantic.input(
+    model=KLECreate,
+    all_fields=True,
+)
+class KLECreateInput:
+    """Input model for creating a KLE annotation."""
+
 
 # Leave
 # -----
