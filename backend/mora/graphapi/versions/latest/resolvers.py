@@ -73,7 +73,7 @@ CursorType = Annotated[
     Cursor | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
     Cursor defining the next elements to fetch.
 
     | `cursor`       | Next element is    |
@@ -92,7 +92,7 @@ CursorType = Annotated[
 def gen_filter_string(title: str, key: str) -> str:
     return (
         dedent(
-            f"""
+            f"""\
         {title} filter limiting which entries are returned.
         """
         )
@@ -102,7 +102,7 @@ def gen_filter_string(title: str, key: str) -> str:
 
 def gen_filter_table(key: str) -> str:
     return dedent(
-        f"""
+        f"""\
 
         | `{key}`      | Elements returned                            |
         |--------------|----------------------------------------------|
@@ -130,7 +130,7 @@ FromDateFilterType = Annotated[
     datetime | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
     Limit the elements returned by their starting validity.
     """
         )
@@ -140,7 +140,7 @@ ToDateFilterType = Annotated[
     datetime | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
     Limit the elements returned by their ending validity.
     """
         )
@@ -222,7 +222,7 @@ HierarchiesUUIDsFilterType = Annotated[
     list[UUID] | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
         Filter organisation units by their organisational hierarchy labels.
 
         Can be used to extract a subset of the organisational structure.

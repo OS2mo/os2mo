@@ -39,7 +39,7 @@ MOObject = TypeVar("MOObject")
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
     Bitemporal container.
 
     Mostly useful for auditing purposes seeing when data-changes were made and by whom.
@@ -56,12 +56,12 @@ MOObject = TypeVar("MOObject")
 class Registration:
     registration_id: int = strawberry.field(
         description=dedent(
-            """
+            """\
         Internal registration ID for the registration.
         """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             May be removed in the future once the bitemporal scheme is finished.
             """
         ),
@@ -69,7 +69,7 @@ class Registration:
 
     start: datetime = strawberry.field(
         description=dedent(
-            """
+            """\
         Start of the bitemporal interval.
 
         Examples:
@@ -80,7 +80,7 @@ class Registration:
     )
     end: datetime | None = strawberry.field(
         description=dedent(
-            """
+            """\
         End of the bitemporal interval.
 
         `null` indicates the open interval, aka. infinity.
@@ -95,7 +95,7 @@ class Registration:
 
     actor: UUID = strawberry.field(
         description=dedent(
-            """
+            """\
         UUID of the actor (integration or user) who changed the data.
 
         Note:
@@ -108,7 +108,7 @@ class Registration:
     # Name of the entity model
     model: str = strawberry.field(
         description=dedent(
-            """
+            """\
         Model of the modified entity.
 
         Examples:
@@ -122,7 +122,7 @@ class Registration:
     # UUID of the modified entity
     uuid: UUID = strawberry.field(
         description=dedent(
-            """
+            """\
         UUID of the modified entity.
         """
         )
@@ -165,7 +165,7 @@ ActorUUIDsFilterType = Annotated[
     list[UUID] | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
         Filter registrations by their changing actor.
 
         Can be used to select all changes made by a particular user or integration.
@@ -178,7 +178,7 @@ ModelFilterType = Annotated[
     list[str] | None,
     strawberry.argument(
         description=dedent(
-            """
+            """\
         Filter registrations by their model type.
 
         Can be used to select all changes of a type.

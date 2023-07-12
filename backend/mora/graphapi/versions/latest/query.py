@@ -98,7 +98,7 @@ class FileResolver(PagedResolver):
             FileStore,
             strawberry.argument(
                 description=dedent(
-                    """
+                    """\
                     File Store enum deciding which file-store to fetch files from.
                 """
                 )
@@ -355,7 +355,7 @@ class Query:
     registrations: Paged[Registration] = strawberry.field(
         resolver=to_paged(RegistrationResolver()),
         description=dedent(
-            """
+            """\
             Get a list of registrations.
 
             Mostly useful for auditing purposes seeing when data-changes were made and by whom.
@@ -372,7 +372,7 @@ class Query:
     # -----------------
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Get the root organisation.
 
             This endpoint fails if not exactly one exists in LoRa.

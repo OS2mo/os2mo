@@ -291,7 +291,7 @@ def model2name(model: Any) -> Any:
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
     Top-level container for (bi)-temporal and actual state data access.
 
     Contains a UUID uniquely denoting the bitemporal object.
@@ -324,7 +324,7 @@ class Response(Generic[MOObject]):
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Actual / current state entrypoint.
 
             Returns the state of the object at current validity and current assertion time.
@@ -367,7 +367,7 @@ class Response(Generic[MOObject]):
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Temporal state entrypoint.
 
             Returns the state of the object at varying validities and current assertion time.
@@ -392,7 +392,7 @@ class Response(Generic[MOObject]):
     # TODO: Implement using a dataloader
     registrations: list[Registration] = strawberry.field(
         description=dedent(
-            """
+            """\
             Bitemporal state entrypoint.
 
             Returns the state of the object at varying validities and varying assertion times.
@@ -449,7 +449,7 @@ def gen_uuid_field_deprecation(field: str) -> str:
         Deprecation message explaining how to fetch the field in the future.
     """
     return dedent(
-        f"""
+        f"""\
         Will be removed in a future version of GraphQL.
         Use `{field} {{uuid}}` instead.
         """
@@ -458,7 +458,7 @@ def gen_uuid_field_deprecation(field: str) -> str:
 
 # TODO: Remove list and make optional instead all the places this is used
 list_to_optional_field_warning = dedent(
-    """
+    """\
 
     **Warning**:
     This field will probably become an optional entity instead of a list in the future.
@@ -473,7 +473,7 @@ list_to_optional_field_warning = dedent(
 @strawberry.experimental.pydantic.type(
     model=AddressRead,
     description=dedent(
-        """
+        """\
         Address information for either an employee or organisational unit
         """
     ),
@@ -484,7 +484,7 @@ class Address:
             ClassResolver(), {"uuids": lambda root: [root.address_type_uuid]}
         ),
         description=dedent(
-            """
+            """\
             The address category or type.
 
             In OS2mo addresses can be of a variety of different types:
@@ -509,7 +509,7 @@ class Address:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.visibility_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Determines who can see the address and how it is exported.
 
             In OS2mo addresses can be of a variety of privacy classes.
@@ -544,7 +544,7 @@ class Address:
             ),
         ),
         description=dedent(
-            """
+            """\
             Connected employee.
 
             Note:
@@ -568,7 +568,7 @@ class Address:
             ),
         ),
         description=dedent(
-            """
+            """\
             Connected organisation unit.
 
             Note:
@@ -591,7 +591,7 @@ class Address:
             )
         ),
         description=dedent(
-            """
+            """\
             Connected engagement.
 
             Note:
@@ -606,7 +606,7 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Human readable name of the address.
 
         Name is *usually* equal to `value`, but may differ if `value` is not human readable.
@@ -640,7 +640,7 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Hypertext Reference of the address.
 
         The `href` field makes a hyperlink from the address value, such that the link can be included in user interfaces.
@@ -681,7 +681,7 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to the `value` provided on object creation.
@@ -699,14 +699,14 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `address`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -753,7 +753,7 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Machine processable value of the address.
 
             The value of the address, which may or may not be fit for human consumption.
@@ -772,7 +772,7 @@ class Address:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Optional second machine processable value of the address.
 
             This value is `null` for most address types, but may be utilized by some address-types for extra information.
@@ -805,7 +805,7 @@ class Association:
             {"uuids": lambda root: uuid2list(root.association_type_uuid)},
         ),
         description=dedent(
-            """
+            """\
             The type of connection that the employee has to the organisation unit.
 
             Examples:
@@ -824,7 +824,7 @@ class Association:
         # TODO: Document this
         # https://git.magenta.dk/rammearkitektur/os2mo/-/merge_requests/1694#note_216859
         description=dedent(
-            """
+            """\
             List of arbitrary classes.
 
             The purpose of this field is ill-defined.
@@ -832,7 +832,7 @@ class Association:
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             Currently no replacement is in place, but specialized fields will probably arive in the future.
             """
@@ -845,7 +845,7 @@ class Association:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Marks which association is primary.
 
             When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
@@ -872,7 +872,7 @@ class Association:
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Associated employee.
             """
         )
@@ -886,7 +886,7 @@ class Association:
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Associated organisation unit.
             """
         )
@@ -899,7 +899,7 @@ class Association:
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.substitute_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Optional subsitute if `employee` is unavailable.
             """
         )
@@ -912,7 +912,7 @@ class Association:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.job_function_uuid)}
         ),
         description=dedent(
-            """
+            """\
             The position held by the employee in the organisation unit.
 
             Examples of user-keys:
@@ -929,7 +929,7 @@ class Association:
             ITUserResolver(), {"uuids": lambda root: uuid2list(root.it_user_uuid)}
         ),
         description=dedent(
-            """
+            """\
             The IT-user utilized by the employee when fulfilling the association responsibilities.
             """
         )
@@ -939,14 +939,14 @@ class Association:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `association`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -962,7 +962,7 @@ class Association:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to be set to the key used in external systems.
@@ -1042,7 +1042,7 @@ class Association:
 @strawberry.experimental.pydantic.type(
     model=ClassRead,
     description=dedent(
-        """
+        """\
         A value in the facet sample space.
 
         Classes can also be thought of as the value component of the facet/class key-value setup.
@@ -1055,7 +1055,7 @@ class Class:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Parent class.
 
             Almost always `null` as class hierarchies are rare.
@@ -1073,7 +1073,7 @@ class Class:
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Class children.
 
             Almost always an empty list as class hierarchies are rare.
@@ -1090,7 +1090,7 @@ class Class:
             FacetResolver(), {"uuids": lambda root: [root.facet_uuid]}
         ),
         description=dedent(
-            """
+            """\
             Facet this class is defined under.
 
             Examples of user-keys:
@@ -1104,7 +1104,7 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Facet of this class's upmost parent.
 
             The result of following `parent` until `parent` becomes `null`, then calling `facet`.
@@ -1114,7 +1114,7 @@ class Class:
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             Will either be replaced by client-side recursion, an ancestor field or a recursive schema directive.
             For now client-side recursion is the preferred replacement.
@@ -1130,12 +1130,12 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Full name of the class, exactly the same as `name`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             Returns exactly the same as `name`, use that instead.
             """
@@ -1146,14 +1146,14 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `class`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -1169,7 +1169,7 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to the `name` provided on object creation.
@@ -1190,7 +1190,7 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Human readable name of the class.
 
             This is the value that should be shown to users in UIs.
@@ -1208,7 +1208,7 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Scope of the class.
 
             The scope of the class describes the kind of values that can be contained when using the class.
@@ -1239,7 +1239,7 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Published state of the class object.
 
             Whether the class is published or not, aka. if it should be shown.
@@ -1262,14 +1262,14 @@ class Class:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Example usage.
 
             Almost always `null`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             This field is almost never used, and serves no real purpose.
             May be reintroduced in the future if the demand for it increases.
@@ -1292,7 +1292,7 @@ class Class:
     @strawberry.field(
         description="UUID of the related organisation.",
         deprecation_reason=dedent(
-            """
+            """\
             The root organisation concept will be removed in a future version of OS2mo.
             """
         ),
@@ -1323,7 +1323,7 @@ class Employee:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to be set to the key used in external systems.
@@ -1345,7 +1345,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Engagements for the employee.
 
             May be an empty list if the employee is not employeed.
@@ -1363,7 +1363,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Managerial roles for the employee.
 
             Usually an empty list as most employees are not managers.
@@ -1378,7 +1378,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Addresses for the employee.
 
             Commonly contain addresses such as, their:
@@ -1399,7 +1399,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Leaves of absence for the employee.
 
             Usually empty as most employees are not on leaves of absence.
@@ -1414,7 +1414,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Associations for the employee.
 
             May be an empty list if the employee is not associated with projects, etc.
@@ -1432,7 +1432,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Roles the employee has within the organisation.
 
             May be an empty list if the employee does not fulfill any roles in the organisation.
@@ -1447,7 +1447,7 @@ class Employee:
             {"employees": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             IT accounts for the employee.
 
             May be an empty list if the employee does not have any IT-access whatsoever.
@@ -1471,14 +1471,14 @@ class Employee:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `employee`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -1530,7 +1530,7 @@ class Engagement:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to the `id` used in external systems.
@@ -1550,7 +1550,7 @@ class Engagement:
             {"uuids": lambda root: [root.engagement_type_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Describes the employee's affiliation to an organisation unit
 
             Examples:
@@ -1568,7 +1568,7 @@ class Engagement:
             {"uuids": lambda root: [root.job_function_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Describes the position of the employee in the organisation unit
 
             Examples:
@@ -1585,7 +1585,7 @@ class Engagement:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Marks which engagement is primary.
 
             When exporting data from OS2mo to external systems, that only support a single engagement or associations, this field can be used to export the primary one.
@@ -1609,7 +1609,7 @@ class Engagement:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Whether this engagement is the primary engagement.
 
         Checks if the `primary` field contains either a class with user-key: `"primary"` or `"explicitly-primary"`.
@@ -1636,7 +1636,7 @@ class Engagement:
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
-            """
+            """\
             The employee fulfilling the engagement.
             """
         )
@@ -1650,7 +1650,7 @@ class Engagement:
             {"uuids": lambda root: uuid2list(root.org_unit_uuid)},
         ),
         description=dedent(
-            """
+            """\
             The organisation unit where the engagement is being fulfilled.
             """
         )
@@ -1672,14 +1672,14 @@ class Engagement:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `engagement`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -1771,7 +1771,7 @@ class EngagementAssociation:
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Connected organisation unit.
             """
         )
@@ -1785,7 +1785,7 @@ class EngagementAssociation:
             {"uuids": lambda root: [root.engagement_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Related engagement.
             """
         )
@@ -1807,14 +1807,14 @@ class EngagementAssociation:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `engagement_association`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -1872,7 +1872,7 @@ class Facet:
             FacetResolver(), {"uuids": lambda root: uuid2list(root.parent_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Parent facet.
 
             Almost always `null` as facet hierarchies are rare.
@@ -1890,7 +1890,7 @@ class Facet:
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Facet children.
 
             Almost always an empty list as facet hierarchies are rare.
@@ -1904,14 +1904,14 @@ class Facet:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `facet`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -1930,7 +1930,7 @@ class Facet:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Published state of the facet object.
 
             Whether the facet is published or not, aka. if it should be shown.
@@ -1954,7 +1954,7 @@ class Facet:
     @strawberry.field(
         description="UUID of the related organisation.",
         deprecation_reason=dedent(
-            """
+            """\
             The root organisation concept will be removed in a future version of OS2mo.
             """
         ),
@@ -1971,14 +1971,14 @@ class Facet:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Description of the facet object.
 
             Almost always `""`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             This field is almost never used, and serves no real purpose.
             May be reintroduced in the future if the demand for it increases.
@@ -2002,14 +2002,14 @@ class ITSystem:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `itsystem`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2025,7 +2025,7 @@ class ITSystem:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Human readable name of the itsystem.
 
         This is the value that should be shown to users in UIs.
@@ -2042,7 +2042,7 @@ class ITSystem:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to be set to the key used in external systems.
@@ -2064,7 +2064,7 @@ class ITSystem:
 @strawberry.experimental.pydantic.type(
     model=ITUserRead,
     description=dedent(
-        """
+        """\
         User information related to IT systems.
 
         This is commonly used to map out IT accounts or IT service accounts.
@@ -2079,7 +2079,7 @@ class ITUser:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to the key used in external systems.
@@ -2108,7 +2108,7 @@ class ITUser:
             ),
         ),
         description=dedent(
-            """
+            """\
             Employee using the IT account.
 
             Note:
@@ -2132,7 +2132,7 @@ class ITUser:
             ),
         ),
         description=dedent(
-            """
+            """\
             Organisation unit using the IT account.
 
             This is mostly set for service accounts.
@@ -2158,7 +2158,7 @@ class ITUser:
             ),
         ),
         description=dedent(
-            """
+            """\
             Engagement scoping of the account.
 
             A person may have multiple IT accounts with each account being relevant for only a single engagement.
@@ -2177,7 +2177,7 @@ class ITUser:
             ITSystemResolver(), {"uuids": lambda root: [root.itsystem_uuid]}
         ),
         description=dedent(
-            """
+            """\
             ITSystem this account is for.
             """
         ),
@@ -2189,7 +2189,7 @@ class ITUser:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.primary_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Marks which IT account is primary.
 
             When exporting data from OS2mo to external systems, that only support a single IT account, this field can be used to export the primary one.
@@ -2210,14 +2210,14 @@ class ITUser:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `it`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2272,7 +2272,7 @@ class ITUser:
 @strawberry.experimental.pydantic.type(
     model=KLERead,
     description=dedent(
-        """
+        """\
         KLE responsibility mapping.
 
         KLE stands for "Kommunernes Landsforenings Emnesystematik" which is a municipality taxonomy for mapping out municipality tasks.
@@ -2313,7 +2313,7 @@ class KLE:
             ClassResolver(), {"uuids": lambda root: [root.kle_number_uuid]}
         ),
         description=dedent(
-            """
+            """\
             The KLE number specifies the responsibility.
 
             For more details read the `KLE` description.
@@ -2328,7 +2328,7 @@ class KLE:
             {"uuids": lambda root: root.kle_aspect_uuids or []},
         ),
         description=dedent(
-            """
+            """\
             KLE Aspects.
 
             The KLE aspect describes the kind of relationship the organisation unit has with the responsibility given by the KLE number.
@@ -2355,7 +2355,7 @@ class KLE:
             ),
         ),
         description=dedent(
-            """
+            """\
             The organisation unit the responsibility is mapped to.
             """
         ),
@@ -2364,14 +2364,14 @@ class KLE:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `kle`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2387,7 +2387,7 @@ class KLE:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to be set to the kle number itself.
@@ -2433,7 +2433,7 @@ class KLE:
 @strawberry.experimental.pydantic.type(
     model=LeaveRead,
     description=dedent(
-        """
+        """\
         A leave of absence for an employee.
 
         Can be everything from a pregnancy or maternity leave to a furlough or a garden leave.
@@ -2447,7 +2447,7 @@ class Leave:
             ClassResolver(), {"uuids": lambda root: [root.leave_type_uuid]}
         ),
         description=dedent(
-            """
+            """\
             The kind of leave of absence.
 
             Examples:
@@ -2465,7 +2465,7 @@ class Leave:
             EmployeeResolver(), {"uuids": lambda root: uuid2list(root.employee_uuid)}
         ),
         description=dedent(
-            """
+            """\
             The absent employee.
             """
         )
@@ -2479,7 +2479,7 @@ class Leave:
             {"uuids": lambda root: [root.engagement_uuid]},
         ),
         description=dedent(
-            """
+            """\
             The engagement the employee is absent from.
             """
         ),
@@ -2491,14 +2491,14 @@ class Leave:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `leave`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2546,7 +2546,7 @@ class Leave:
 @strawberry.experimental.pydantic.type(
     model=ManagerRead,
     description=dedent(
-        """
+        """\
         Managers of organisation units and their connected identities.
         """
     ),
@@ -2557,7 +2557,7 @@ class Manager:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.manager_type_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Title of the manager.
 
             Examples:
@@ -2575,7 +2575,7 @@ class Manager:
         ),
         # TODO: Check production system values
         description=dedent(
-            """
+            """\
             Hierarchical level of the manager.
 
             Examples:
@@ -2593,7 +2593,7 @@ class Manager:
             {"uuids": lambda root: root.responsibility_uuids or []},
         ),
         description=dedent(
-            """
+            """\
             Responsibilities that the manager takes care of.
 
             Examples:
@@ -2618,7 +2618,7 @@ class Manager:
             ),
         ),
         description=dedent(
-            """
+            """\
             Employee fulfilling the managerial position.
 
             May be empty in which case the managerial position is unfilfilled (vacant).
@@ -2634,7 +2634,7 @@ class Manager:
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
-            """
+            """\
             Organisation unit being managed.
             """
         )
@@ -2644,14 +2644,14 @@ class Manager:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `manager`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2723,7 +2723,7 @@ class Organisation:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Examples:
@@ -2740,7 +2740,7 @@ class Organisation:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Name of the organisation.
 
             Examples:
@@ -2755,14 +2755,14 @@ class Organisation:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `organisation`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -2774,7 +2774,7 @@ class Organisation:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The municipality code.
 
             In Denmark; a 3 digit number uniquely identifying a municipality.
@@ -2824,7 +2824,7 @@ class OrganisationUnit:
             {"uuids": lambda root: [root.parent_uuid]},
         ),
         description=dedent(
-            """
+            """\
             The parent organisation unit in the organisation tree.
             """
         ),
@@ -2833,7 +2833,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             All ancestor organisational units in the organisation tree.
 
             The result of collecting organisational units by following `parent` until `parent` becomes `null`.
@@ -2862,7 +2862,7 @@ class OrganisationUnit:
             {"parents": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             The immediate descendants in the organisation tree
             """
         ),
@@ -2880,7 +2880,7 @@ class OrganisationUnit:
         ),
         description="Children count of the organisation unit.",
         deprecation_reason=dedent(
-            """
+            """\
             Will be removed in a future version of GraphQL.
             Count the elements returned by `children {{uuid}}` instead.
             """
@@ -2896,7 +2896,7 @@ class OrganisationUnit:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.org_unit_hierarchy)}
         ),
         description=dedent(
-            """
+            """\
             Organisation unit hierarchy.
 
             Can be used to label an organisational structure to belong to a certain subset of the organisation tree.
@@ -2919,7 +2919,7 @@ class OrganisationUnit:
             ClassResolver(), {"uuids": lambda root: uuid2list(root.unit_type_uuid)}
         ),
         description=dedent(
-            """
+            """\
             Organisation unit type.
 
             Organisation units can represent a lot of different classes of hierarchical structures.
@@ -2948,7 +2948,7 @@ class OrganisationUnit:
         ),
         # TODO: Document this
         description=dedent(
-            """
+            """\
             Organisation unit level.
 
             Examples of user-keys:
@@ -2966,7 +2966,7 @@ class OrganisationUnit:
         ),
         # TODO: DOcument this
         description=dedent(
-            """
+            """\
             Time planning strategy.
             """
         ),
@@ -2979,7 +2979,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Engagements for the organistion unit.
 
             May be an empty list if the organistion unit does not have any people employeed.
@@ -2994,14 +2994,14 @@ class OrganisationUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `org_unit`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -3017,7 +3017,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Short unique key.
 
             Usually set to be set to the key used in external systems.
@@ -3034,7 +3034,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Human readable name of the organisation unit.
 
             This is the value that should be shown to users in UIs.
@@ -3051,7 +3051,7 @@ class OrganisationUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             Managerial roles for the organisation unit.
 
             May be empty in which case managers are usually inherited from parents.
@@ -3068,7 +3068,7 @@ class OrganisationUnit:
             bool,
             strawberry.argument(
                 description=dedent(
-                    """
+                    """\
                     Whether to inherit managerial roles or not.
 
                     If managerial roles exist directly on this organisation unit, the flag does nothing and these managerial roles are returned.
@@ -3101,7 +3101,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Addresses for the organisation unit.
 
             Commonly contain addresses such as, their:
@@ -3119,7 +3119,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Connection to employees leaves of absence relevant for the organisation unit.
             """
         ),
@@ -3132,7 +3132,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Associations for the organistion unit.
 
             May be an empty list if the organistion unit is purely hierarchical.
@@ -3151,7 +3151,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Roles being fulfilled within the organisational unit.
 
             May be an empty list if the organistion unit is purely hierarchical.
@@ -3167,7 +3167,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             IT (service) accounts.
 
             May be an empty list if the organistion unit does not have any IT (service) accounts whatsoever.
@@ -3183,7 +3183,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             KLE responsibilities for the organisation unit.
 
             Can help out with regards to GDPR by identifying which organisational units operate with sensitive tasks.
@@ -3198,7 +3198,7 @@ class OrganisationUnit:
             {"org_units": lambda root: [root.uuid]},
         ),
         description=dedent(
-            """
+            """\
             Related units for the organisational unit.
             """
         ),
@@ -3274,7 +3274,7 @@ class RelatedUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         User-key of the entity.
 
         Usually constructed from the user-keys of our organisation units at creation time.
@@ -3291,14 +3291,14 @@ class RelatedUnit:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `related_units`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -3314,7 +3314,7 @@ class RelatedUnit:
             {"uuids": lambda root: root.org_unit_uuids or []},
         ),
         description=dedent(
-            """
+            """\
             Related organisation units.
 
             Examples of user-keys:
@@ -3355,14 +3355,14 @@ class Role:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             The object type.
 
             Always contains the string `role`.
             """
         ),
         deprecation_reason=dedent(
-            """
+            """\
             Unintentionally exposed implementation detail.
             Provides no value whatsoever.
             """
@@ -3377,7 +3377,7 @@ class Role:
             ClassResolver(), {"uuids": lambda root: [root.role_type_uuid]}
         ),
         description=dedent(
-            """
+            """\
             The role that is being fulfilled.
 
             Examples of user-keys:
@@ -3394,7 +3394,7 @@ class Role:
             EmployeeResolver(), {"uuids": lambda root: [root.employee_uuid]}
         ),
         description=dedent(
-            """
+            """\
             The person fulfilling the role.
             """
         )
@@ -3408,7 +3408,7 @@ class Role:
             {"uuids": lambda root: [root.org_unit_uuid]},
         ),
         description=dedent(
-            """
+            """\
             The organisational unit in which the role is being fulfilled.
             """
         )
@@ -3446,7 +3446,7 @@ class Role:
 class Version:
     @strawberry.field(
         description=dedent(
-            """
+            """\
             OS2mo Version.
 
             Contains a [semantic version](https://semver.org/) on released versions of OS2mo.
@@ -3469,7 +3469,7 @@ class Version:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             OS2mo commit hash.
 
             Contains a git hash on released versions of OS2mo.
@@ -3504,7 +3504,7 @@ class Version:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
             DIPEX version.
 
             Contains a [semantic version](https://semver.org/) if configured.
@@ -3525,7 +3525,7 @@ class Version:
 class Health:
     identifier: str = strawberry.field(
         description=dedent(
-            """
+            """\
         Healthcheck identifier.
 
         Examples:
@@ -3538,7 +3538,7 @@ class Health:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Healthcheck status.
 
         Returns:
@@ -3561,7 +3561,7 @@ T = TypeVar("T")
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
     Container for page information.
 
     Contains the cursors necessary to fetch other pages.
@@ -3572,7 +3572,7 @@ T = TypeVar("T")
 class PageInfo:
     next_cursor: CursorType = strawberry.field(
         description=dedent(
-            """
+            """\
             Cursor for the next page of results.
 
             Should be provided to the `cursor` argument to iterate forwards.
@@ -3586,7 +3586,7 @@ class PageInfo:
 class Paged(Generic[T]):
     objects: list[T] = strawberry.field(
         description=dedent(
-            """
+            """\
             List of results.
 
             The number of elements is defined by the `limit` argument.
@@ -3595,7 +3595,7 @@ class Paged(Generic[T]):
     )
     page_info: PageInfo = strawberry.field(
         description=dedent(
-            """
+            """\
             Container for page information.
 
             Contains the cursors necessary to fetch other pages.
@@ -3611,7 +3611,7 @@ class Paged(Generic[T]):
 class File:
     file_store: FileStore = strawberry.field(
         description=dedent(
-            """
+            """\
         The store the file is in.
 
         The FileStore type lists all possible enum values.
@@ -3621,7 +3621,7 @@ class File:
 
     file_name: str = strawberry.field(
         description=dedent(
-            """
+            """\
         Name of the file.
 
         Examples:
@@ -3633,7 +3633,7 @@ class File:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         The textual contents of the file.
 
         Examples:
@@ -3664,7 +3664,7 @@ class File:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         The base64 encoded contents of the file.
 
         Examples:
@@ -3727,7 +3727,7 @@ class Configuration:
 
     key: str = strawberry.field(
         description=dedent(
-            """
+            """\
         The unique settings identifier.
 
         Examples:
@@ -3740,7 +3740,7 @@ class Configuration:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         JSONified settings value.
 
         Examples:
@@ -3761,7 +3761,7 @@ class Configuration:
 
     @strawberry.field(
         description=dedent(
-            """
+            """\
         Stringified settings value.
 
         Examples:

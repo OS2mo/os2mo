@@ -17,7 +17,7 @@ from ramodels.mo._shared import UUIDBase
 
 @strawberry.type(
     description=dedent(
-        """
+        """\
         Wrapper model around a single UUID.
 
         The purpose of this model is to allow for future non-breaking expansion of the return type.

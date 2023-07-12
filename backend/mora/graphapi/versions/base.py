@@ -3,6 +3,7 @@
 from collections.abc import AsyncIterator
 from collections.abc import Iterable
 from collections.abc import Sequence
+from textwrap import dedent
 from typing import Any
 
 from fastapi import APIRouter
@@ -117,6 +118,16 @@ class BaseGraphQLVersion:
         @router.get("/schema.graphql", response_class=PlainTextResponse)
         async def schema() -> str:
             """Return the GraphQL version's schema definition in SDL format."""
-            return print_schema(cls.schema.get())
+            header = dedent(
+                f"""\
+                # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
+                # SPDX-License-Identifier: MPL-2.0
+                #
+                # OS2mo GraphQL API schema definition (v{cls.version}).
+                # https://os2mo.eksempel.dk/graphql/v{cls.version}/schema.graphql
+
+                """
+            )
+            return header + print_schema(cls.schema.get())
 
         return router

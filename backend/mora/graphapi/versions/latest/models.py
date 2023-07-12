@@ -619,7 +619,7 @@ class EngagementTerminate(ValidityTerminate):
 
 
 EXTENSION_FIELD_DESCRIPTION: str = dedent(
-    """
+    """\
             Arbitrary value extension fields.
 
             A collection of field for storing arbitrary extra data.
@@ -1153,7 +1153,7 @@ class OrganisationUnitUpdate(UUIDBase):
 # -----
 @strawberry.enum(
     description=dedent(
-        """
+        """\
     Enum for all the supported file stores.
 
     File stores can be thought of a separate folders or drives in desktop computing.
@@ -1164,7 +1164,7 @@ class FileStore(Enum):
     EXPORTS = strawberry.enum_value(
         1,
         description=dedent(
-            """
+            """\
         The exports file store.
 
         Used to hold files uploaded by export jobs.
@@ -1174,7 +1174,7 @@ class FileStore(Enum):
     INSIGHTS = strawberry.enum_value(
         2,
         description=dedent(
-            """
+            """\
         The insights file store.
 
         Used to hold data-files supporting the insights functionality in OS2mo.
