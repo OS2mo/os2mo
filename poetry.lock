@@ -564,7 +564,7 @@ i18n = ["Babel (>=2.7)"]
 
 [[package]]
 name = "jsonschema"
-version = "4.18.0"
+version = "4.18.2"
 description = "An implementation of JSON Schema validation for Python"
 category = "main"
 optional = false
@@ -1489,7 +1489,7 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "9f21b7578fc110b40c8029a4c474771ebf00ebbd3179b6b7fba05f7ba1a5d545"
+content-hash = "097fe8363d1ffb186973e36d87cbbc871fd98c5a45621c5218d78e80db86a313"
 
 [metadata.files]
 aio-pika = [
@@ -2014,8 +2014,8 @@ jinja2 = [
     {file = "Jinja2-3.1.2.tar.gz", hash = "sha256:31351a702a408a9e7595a8fc6150fc3f43bb6bf7e319770cbc0db9df9437e852"},
 ]
 jsonschema = [
-    {file = "jsonschema-4.18.0-py3-none-any.whl", hash = "sha256:b508dd6142bd03f4c3670534c80af68cd7bbff9ea830b9cf2625d4a3c49ddf60"},
-    {file = "jsonschema-4.18.0.tar.gz", hash = "sha256:8caf5b57a990a98e9b39832ef3cb35c176fe331414252b6e1b26fd5866f891a4"},
+    {file = "jsonschema-4.18.2-py3-none-any.whl", hash = "sha256:159fdff1443b4c5ed900d4eeac6b928a3485f4aff5fba6edd1e25cd66bb46b39"},
+    {file = "jsonschema-4.18.2.tar.gz", hash = "sha256:af3855bfa30e83b2200a5fe12ab5eb92460e4d3b8e4efd34094aa637f7272a87"},
 ]
 jsonschema-specifications = [
     {file = "jsonschema_specifications-2023.6.1-py3-none-any.whl", hash = "sha256:3d2b82663aff01815f744bb5c7887e2121a63399b49b104a3c96145474d091d7"},
