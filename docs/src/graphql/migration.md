@@ -11,6 +11,32 @@ code is up-to-date with the latest version.
 
 Below follows the migration guide for each version.
 
+## Version 8
+
+GraphQL version 8 introduces a breaking change to the name of the
+`address_terminate`-mutator's input-variable, which didn't align with the other mutators.
+
+To migrate from version 7 to version 8, change the name of
+`address_terminate`'s input-variable from `at` to `input`.
+
+Version 7:
+```graphql
+mutation TestTerminateAddress($input: AddressTerminateInput!) {
+    address_terminate(at: $input) {
+        uuid
+    }
+}
+```
+
+Version 8:
+```graphql
+mutation TestTerminateAddress($input: AddressTerminateInput!) {
+    address_terminate(input: $input) {
+        uuid
+    }
+}
+```
+
 ## Version 7
 
 GraphQL version 7 introduces a breaking change to the response formats for
