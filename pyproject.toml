@@ -42,7 +42,7 @@ ramqp = "^6.6.2"
 uvicorn = "^0.22.0"
 strawberry-graphql = "0.194.4"
 jsonschema = "^4.18.3"
-psycopg2-binary = "~2.8"
+psycopg2-binary = "~2.9"
 sentry-sdk = {extras = ["fastapi"], version = "^1.28.1"}
 psycopg = "^3.1.8"
 
