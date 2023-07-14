@@ -7,14 +7,12 @@ from unittest.mock import MagicMock
 from unittest.mock import patch
 
 import pytest
-import respx
 from httpx import Response
 
 from mora.lora import AutocompleteScope
 from mora.lora import Connector
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @pytest.mark.parametrize(
     "path,expected_result",
     [
@@ -22,9 +20,8 @@ from mora.lora import Connector
         ("organisationsenhed", []),
     ],
 )
-@respx.mock
-async def test_autocomplete(path: str, expected_result: list) -> None:
-    respx.get(f"http://localhost/lora/autocomplete/{path}?phrase=phrase").mock(
+async def test_autocomplete(respx_mock, path: str, expected_result: list) -> None:
+    respx_mock.get(f"http://localhost/lora/autocomplete/{path}?phrase=phrase").mock(
         return_value=Response(200, json={"results": []})
     )
     connector = Connector()

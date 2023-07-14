@@ -28,7 +28,6 @@ from hypothesis import Verbosity
 from hypothesis.database import InMemoryExampleDatabase
 from more_itertools import last
 from more_itertools import one
-from respx.mocks import HTTPCoreMocker
 from starlette_context import context
 from starlette_context import request_cycle_context
 
@@ -76,6 +75,11 @@ h_settings.load_profile(os.getenv("HYPOTHESIS_PROFILE", "dev"))
 asyncio_mode = "strict"
 
 
+def pytest_collection_modifyitems(items):
+    for item in items:
+        item.add_marker(pytest.mark.respx(using="httpx"))
+
+
 @pytest.fixture(autouse=True, scope="session")
 def seed_lora_client() -> None:
     os.environ["PYTEST_RUNNING"] = "True"
@@ -93,19 +97,6 @@ st.register_type_strategy(Validity, validity_model_strat())
 @pytest.fixture(autouse=True)
 def clear_configured_organisation():
     ConfiguredOrganisation.clear()
-
-
-@pytest.fixture(scope="session")
-def mock_asgi_transport() -> YieldFixture[None]:
-    HTTPCoreMocker.add_targets(
-        "httpx._transports.asgi.ASGITransport",
-        "httpx._transports.wsgi.WSGITransport",
-    )
-    yield
-    HTTPCoreMocker.remove_targets(
-        "httpx._transports.asgi.ASGITransport",
-        "httpx._transports.wsgi.WSGITransport",
-    )
 
 
 @pytest.fixture()
@@ -440,7 +431,7 @@ def gen_organisation(
 
 
 @pytest.fixture
-def mock_organisation(respx_mock) -> YieldFixture[UUID]:
+def mock_organisation(respx_mock) -> UUID:
     organisation = gen_organisation()
 
     respx_mock.get(
@@ -450,7 +441,7 @@ def mock_organisation(respx_mock) -> YieldFixture[UUID]:
 
 
 @pytest.fixture
-def mock_get_valid_organisations(respx_mock) -> YieldFixture[UUID]:
+def mock_get_valid_organisations() -> YieldFixture[UUID]:
     organisation = gen_organisation()
 
     reg = one(organisation["registreringer"])

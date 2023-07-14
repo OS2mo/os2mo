@@ -15,7 +15,6 @@ from mora import util as mora_util
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_get_effects(respx_mock) -> None:
     respx_mock.get("http://localhost/lora/organisation/organisationenhed").mock(
@@ -220,7 +219,6 @@ async def test_get_effects(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @pytest.mark.parametrize(
     "status_in,status_out,error_key",
     [
@@ -264,7 +262,6 @@ async def test_errors_json(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @pytest.mark.parametrize(
     "status_in,status_out,error_key",
     [
@@ -306,7 +303,6 @@ async def test_errors_text(
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_error_debug(respx_mock) -> None:
     respx_mock.get(
@@ -339,7 +335,6 @@ async def test_error_debug(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2010-06-01", tz_offset=2)
 async def test_finding_nothing(respx_mock) -> None:
     respx_mock.get(
@@ -361,7 +356,6 @@ async def test_finding_nothing(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2001-01-01", tz_offset=1)
 async def test_get_effects_2(respx_mock) -> None:
     url = "http://localhost/lora/organisation/organisationenhed"
@@ -574,7 +568,6 @@ async def test_get_effects_2(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_noop_update_returns_null(respx_mock) -> None:
     # A "no-op" update in LoRa returns a response with an error message,
     # but no "uuid" key.
@@ -598,7 +591,6 @@ async def test_noop_update_returns_null(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_actual_update_returns_uuid(respx_mock) -> None:
     # A normal update in LoRa returns a response with a 'uuid' key which
     # matches the object that was updated.
@@ -614,7 +606,6 @@ async def test_actual_update_returns_uuid(respx_mock) -> None:
 
 
 @pytest.mark.integration_test
-@pytest.mark.usefixtures("mock_asgi_transport")
 async def test_update_returns_nothing_on_lora_404(respx_mock) -> None:
     # Updating a nonexistent LoRa object returns a 404 status code, which
     # should not be converted into a MO exception.

@@ -3,7 +3,6 @@
 import json
 
 import pytest
-import respx
 from httpx import Response
 
 from mora import lora
@@ -77,10 +76,8 @@ async def test_startdate_should_be_smaller_than_enddate() -> None:
         (False, [("01-01-1930", "01-01-2500", "Aktiv")]),
     ],
 )
-@pytest.mark.usefixtures("mock_asgi_transport")
-@respx.mock
 async def test_validity_ranges(
-    expect: bool, validities: list[tuple[str, str, str]]
+    respx_mock, expect: bool, validities: list[tuple[str, str, str]]
 ) -> None:
     url = "http://localhost/lora/organisation/organisationenhed"
     c = lora.Connector(
@@ -118,7 +115,7 @@ async def test_validity_ranges(
             ]
         ]
     }
-    route = respx.get(url).mock(Response(200, json=payload))
+    route = respx_mock.get(url).mock(Response(200, json=payload))
 
     assert expect is (
         await validator._is_date_range_valid(

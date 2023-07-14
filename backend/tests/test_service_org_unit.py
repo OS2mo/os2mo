@@ -11,7 +11,6 @@ from uuid import UUID
 
 import freezegun
 import pytest
-import respx
 from fastapi.testclient import TestClient
 from httpx import Response
 from os2mo_http_trigger_protocol import MOTriggerRegister
@@ -32,10 +31,8 @@ from mora.triggers.internal.http_trigger import register
 from tests import util
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2018-03-15")
-@respx.mock
-def test_unit_past(service_client: TestClient) -> None:
+def test_unit_past(respx_mock, service_client: TestClient) -> None:
     unitid = "ef04b6ba-8ba7-4a25-95e3-774f38e5d9bc"
 
     reg = {
@@ -152,7 +149,7 @@ def test_unit_past(service_client: TestClient) -> None:
     }
 
     url = "http://localhost/lora/organisation/organisationenhed"
-    route = respx.get(url).mock(
+    route = respx_mock.get(url).mock(
         return_value=Response(
             200,
             json={
@@ -171,8 +168,6 @@ def test_unit_past(service_client: TestClient) -> None:
     )
 
     mo_url = f"/service/ou/{unitid}/details/org_unit?validity=past"
-    respx.get(mo_url).pass_through()
-
     with util.patch_query_args({"validity": "past"}):
         response = service_client.get(mo_url)
         assert response.status_code == 200

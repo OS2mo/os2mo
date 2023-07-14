@@ -4,7 +4,6 @@ import json
 
 import freezegun
 import pytest
-import respx
 from fastapi.testclient import TestClient
 from httpx import Response
 
@@ -15,14 +14,12 @@ from mora import mapping
 from mora import util as mora_util
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2018-01-01")
-@respx.mock
-async def test_history_missing(service_client: TestClient) -> None:
+async def test_history_missing(respx_mock, service_client: TestClient) -> None:
     userid = "00000000-0000-0000-0000-000000000000"
 
     url = "http://localhost/lora/organisation/bruger"
-    route = respx.get(url).mock(
+    route = respx_mock.get(url).mock(
         return_value=Response(
             200,
             json={

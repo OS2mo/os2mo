@@ -3,17 +3,13 @@
 import json
 
 import freezegun
-import pytest
-import respx
 from fastapi.testclient import TestClient
 from httpx import Response
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2016-06-06")
-@respx.mock
-def test_autocomplete_no_municipality(service_client: TestClient) -> None:
-    route = respx.get("http://localhost/lora/organisation/organisation").mock(
+def test_autocomplete_no_municipality(respx_mock, service_client: TestClient) -> None:
+    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(
             200,
             json={
@@ -50,7 +46,6 @@ def test_autocomplete_no_municipality(service_client: TestClient) -> None:
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
-    respx.get(mo_url).pass_through()
 
     response = service_client.get(mo_url)
     assert response.status_code == 400
@@ -77,11 +72,11 @@ def test_autocomplete_no_municipality(service_client: TestClient) -> None:
     }
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2016-06-06")
-@respx.mock
-def test_autocomplete_invalid_municipality(service_client: TestClient) -> None:
-    route = respx.get("http://localhost/lora/organisation/organisation").mock(
+def test_autocomplete_invalid_municipality(
+    respx_mock, service_client: TestClient
+) -> None:
+    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(
             200,
             json={
@@ -124,7 +119,6 @@ def test_autocomplete_invalid_municipality(service_client: TestClient) -> None:
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
-    respx.get(mo_url).pass_through()
 
     response = service_client.get(mo_url)
     assert response.status_code == 400
@@ -151,17 +145,14 @@ def test_autocomplete_invalid_municipality(service_client: TestClient) -> None:
     }
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
 @freezegun.freeze_time("2016-06-06")
-@respx.mock
-def test_autocomplete_missing_org(service_client: TestClient) -> None:
-    route = respx.get("http://localhost/lora/organisation/organisation").mock(
+def test_autocomplete_missing_org(respx_mock, service_client: TestClient) -> None:
+    route = respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": []})
     )
     mo_url = (
         "/service/o/00000000-0000-0000-0000-000000000000/address_autocomplete/?q=42"
     )
-    respx.get(mo_url).pass_through()
 
     response = service_client.get(mo_url)
     assert response.status_code == 400
@@ -181,9 +172,8 @@ def test_autocomplete_missing_org(service_client: TestClient) -> None:
     }
 
 
-@pytest.mark.usefixtures("mock_asgi_transport", "mockaio")
 @freezegun.freeze_time("2017-07-28")
-def test_autocomplete_global(service_client: TestClient) -> None:
+def test_autocomplete_global(respx_mock, service_client: TestClient) -> None:
     found = [
         {
             "location": {
@@ -260,8 +250,15 @@ def test_autocomplete_global(service_client: TestClient) -> None:
         "/service/o/456362c4-0ee4-4e5e-a72c-751239745e62/"
         "address_autocomplete/?q=Strandlodsvej+25M&global=true"
     )
-    respx.get(mo_url1).pass_through()
-    respx.get(mo_url2).pass_through()
+
+    respx_mock.get(
+        "https://api.dataforsyningen.dk/adresser/autocomplete",
+        params={"noformat": 1, "q": "Strandlodsvej 25M", "per_side": 10},
+    ).pass_through()
+    respx_mock.get(
+        "https://api.dataforsyningen.dk/adgangsadresser/autocomplete",
+        params={"noformat": 1, "q": "Strandlodsvej 25M", "per_side": 5},
+    ).pass_through()
 
     response = service_client.get(mo_url1)
     assert response.status_code == 200
