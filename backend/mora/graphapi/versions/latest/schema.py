@@ -2345,7 +2345,7 @@ class KLE:
         permission_classes=[IsAuthenticatedPermission, gen_read_permission("class")],
     )
 
-    org_unit: list[LazyOrganisationUnit] | None = strawberry.field(
+    org_unit: list[LazyOrganisationUnit] = strawberry.field(
         resolver=force_none_return_wrapper(
             seed_resolver_list(
                 OrganisationUnitResolver(),
@@ -2423,7 +2423,7 @@ class KLE:
         description="UUID of the organisation unit related to the KLE.",
         deprecation_reason=gen_uuid_field_deprecation("org_unit"),
     )
-    async def org_unit_uuid(self, root: KLERead) -> UUID | None:
+    async def org_unit_uuid(self, root: KLERead) -> UUID:
         return root.org_unit_uuid
 
     validity: Validity = strawberry.auto
