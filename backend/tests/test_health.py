@@ -4,7 +4,6 @@ from unittest.mock import AsyncMock
 from unittest.mock import patch
 
 import pytest
-import respx
 from aiohttp import ClientError
 from fastapi.testclient import TestClient
 from httpx import Request
@@ -23,18 +22,14 @@ HTTPX_MOCK_RESPONSE_200 = Response(
 )
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
-@respx.mock
-async def test_dataset_returns_false_if_no_data_found() -> None:
-    respx.get("http://localhost/lora/organisation/organisation").mock(
+async def test_dataset_returns_false_if_no_data_found(respx_mock) -> None:
+    respx_mock.get("http://localhost/lora/organisation/organisation").mock(
         return_value=Response(200, json={"results": [[]]})
     )
     actual = await health.dataset()
     assert actual is False
 
 
-@pytest.mark.usefixtures("mock_asgi_transport")
-@respx.mock
 @pytest.mark.usefixtures("mock_organisation")
 async def test_dataset_returns_true_if_data_found() -> None:
     actual = await health.dataset()

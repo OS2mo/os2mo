@@ -329,6 +329,7 @@ get_access_addrs_mock_resp = [
         ),
     ],
 )
+@pytest.mark.respx(assert_all_called=False)
 async def test_autocomplete_access_addr_feature_flag(
     serviceapi_post, respx_mock, feature_flag_value, expected_result
 ):
