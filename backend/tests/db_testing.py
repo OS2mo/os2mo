@@ -20,15 +20,16 @@ def create_new_testing_database(identifier: str) -> str:
 
     new_db_name = "_".join([non_test_dbname, identifier, "test"])
 
-    with get_new_connection() as connection:
+    try:
+        connection = get_new_connection()
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
             cursor.execute(f"DROP DATABASE IF EXISTS {new_db_name}")
             cursor.execute(f"CREATE DATABASE {new_db_name} OWNER mox")
             for prerequisite in get_prerequisites(db_name=new_db_name):
                 cursor.execute(prerequisite)
-
-    close_connection()
+    finally:
+        close_connection()
 
     return new_db_name
 
@@ -63,7 +64,8 @@ def reset_testing_database() -> None:
 
 def remove_testing_database(new_db_name: str) -> None:
     """Remove the testing database entirely"""
-    with get_new_connection() as connection:
+    try:
+        connection = get_new_connection()
         connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         with connection.cursor() as cursor:
             # Forcefully terminate all connections to the database
@@ -82,8 +84,8 @@ def remove_testing_database(new_db_name: str) -> None:
             )
             # Drop the database
             cursor.execute(f"DROP DATABASE {new_db_name}")
-
-    close_connection()
+    finally:
+        close_connection()
 
 
 def _check_current_database_is_testing() -> None:
