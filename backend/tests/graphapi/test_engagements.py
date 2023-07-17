@@ -12,6 +12,7 @@ import pytest
 from fastapi.encoders import jsonable_encoder
 from hypothesis import given
 from hypothesis import strategies as st
+from hypothesis.strategies import characters
 from more_itertools import one
 from pytest import MonkeyPatch
 
@@ -205,11 +206,11 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         ('(employees: "6ee24785-ee9a-4502-81c2-7697009c9053")', 0),
         (
             """
-            (employees: [
-                "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
-                "6ee24785-ee9a-4502-81c2-7697009c9053"
-            ])
-        """,
+                        (employees: [
+                            "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
+                            "6ee24785-ee9a-4502-81c2-7697009c9053"
+                        ])
+                    """,
             1,
         ),
         # Organisation Unit filter
@@ -217,30 +218,30 @@ async def test_terminate_response(given_uuid, given_validity_dts):
         ('(org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3")', 0),
         (
             """
-            (org_units: [
-                "2874e1dc-85e6-4269-823a-e1125484dfd3",
-                "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            ])
-        """,
+                        (org_units: [
+                            "2874e1dc-85e6-4269-823a-e1125484dfd3",
+                            "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                        ])
+                    """,
             3,
         ),
         # Mixed filters
         (
             """
-            (
-                employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
-            )
-        """,
+                        (
+                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                            org_units: "2874e1dc-85e6-4269-823a-e1125484dfd3"
+                        )
+                    """,
             0,
         ),
         (
             """
-            (
-                employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
-                org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
-            )
-        """,
+                        (
+                            employees: "236e0a78-11a0-4ed9-8545-6286bb8611c7",
+                            org_units: "9d07123e-47ac-4a9a-88c8-da82e3a4bc9e"
+                        )
+                    """,
             2,
         ),
     ],
@@ -535,3 +536,226 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
     }
 
     assert post_update_engagement == expected_updated_engagement
+
+
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+@pytest.mark.parametrize(
+    "update_input, expected_extension_field",
+    [
+        (
+            {
+                "uuid": "301a906b-ef51-4d5c-9c77-386fb8410459",
+                "validity": {"from": datetime.today().date().isoformat()},
+                "extension_1": "Testing the extensions field",
+            },
+            {
+                "extension_1": "Testing the extensions field",
+                "extension_2": None,
+                "extension_3": None,
+            },
+        ),
+        (
+            {
+                "uuid": "d000591f-8705-4324-897a-075e3623f37b",
+                "validity": {"from": datetime.today().date().isoformat()},
+                "extension_2": "NOT TEST 2 LUL",
+                "extension_3": "Third extension",
+            },
+            {
+                "extension_1": "test1",
+                "extension_2": "NOT TEST 2 LUL",
+                "extension_3": "Third extension",
+            },
+        ),
+        (
+            {
+                "uuid": "d3028e2e-1d7a-48c1-ae01-d4c64e64bbab",
+                "validity": {"from": datetime.today().date().isoformat()},
+                "extension_1": "OS",
+                "extension_2": "2",
+                "extension_3": "MO",
+            },
+            {"extension_1": "OS", "extension_2": "2", "extension_3": "MO"},
+        ),
+    ],
+)
+async def test_update_extensions_field_integrations_test(
+    graphapi_post, update_input, expected_extension_field
+) -> None:
+    """Tests that extension fields in engagements is editable via GraphQL."""
+    # ARRANGE
+    uuid = update_input["uuid"]
+
+    query = """
+        query MyQuery($uuid: [UUID!]) {
+          engagements(uuids: $uuid) {
+            objects {
+              objects {
+                extension_1
+                extension_2
+                extension_3
+              }
+            }
+          }
+        }
+    """
+    response: GQLResponse = graphapi_post(query, {"uuid": uuid})
+    assert response.errors is None
+    assert response.status_code == 200
+
+    # ACT
+    mutation_query = """
+        mutation UpdateEngagement($input: EngagementUpdateInput!) {
+          engagement_update(input: $input) {
+            uuid
+          }
+        }
+    """
+
+    mutation_response: GQLResponse = graphapi_post(
+        query=mutation_query, variables={"input": jsonable_encoder(update_input)}
+    )
+
+    assert mutation_response.errors is None
+    assert mutation_response.status_code == 200
+
+    verify_query = """
+        query MyVerifyQuery($uuid: [UUID!]!) {
+          engagements(uuids: $uuid) {
+            objects {
+              objects {
+                extension_1
+                extension_2
+                extension_3
+              }
+            }
+          }
+        }
+    """
+    verify_response: GQLResponse = graphapi_post(
+        query=verify_query, variables={"uuid": uuid}
+    )
+    assert verify_response.errors is None
+    assert verify_response.status_code == 200
+
+    post_update_engagement_with_new_extensions = one(
+        one(verify_response.data["engagements"]["objects"])["objects"]
+    )
+
+    # ASSERT
+    assert post_update_engagement_with_new_extensions == expected_extension_field
+
+
+@given(data=st.data())
+@pytest.mark.integration_test
+@pytest.mark.usefixtures("load_fixture_data_with_reset")
+async def test_create_engagement_with_extensions_fields_integrations_test(
+    data, graphapi_post, org_uuids, employee_uuids
+) -> None:
+    """Test that extension fields in engagements can be created in LoRa via GraphQL."""
+    org_uuid = data.draw(st.sampled_from(org_uuids))
+    org_from, org_to = fetch_org_unit_validity(graphapi_post, org_uuid)
+
+    test_data_validity_start = data.draw(
+        st.datetimes(min_value=org_from, max_value=org_to or datetime.max)
+    )
+    if org_to:
+        test_data_validity_end_strat = st.datetimes(
+            min_value=test_data_validity_start, max_value=org_to
+        )
+    else:
+        test_data_validity_end_strat = st.none() | st.datetimes(
+            min_value=test_data_validity_start,
+        )
+    engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
+    job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
+
+    # 'Cc' - Control, 'Cs' - Surrogate.
+    extension_field_texts = st.text(
+        alphabet=characters(blacklist_categories=("Cc", "Cs")),
+        min_size=1,
+    )
+
+    test_data = data.draw(
+        st.builds(
+            EngagementCreate,
+            org_unit=st.just(org_uuid),
+            employee=st.sampled_from(employee_uuids),
+            engagement_type=st.sampled_from(engagement_type_uuids),
+            job_function=st.sampled_from(job_function_uuids),
+            validity=st.builds(
+                RAValidity,
+                from_date=st.just(test_data_validity_start),
+                to_date=test_data_validity_end_strat,
+            ),
+            extension_1=extension_field_texts,
+            extension_2=extension_field_texts,
+            extension_3=extension_field_texts,
+            extension_4=extension_field_texts,
+            extension_5=extension_field_texts,
+            extension_6=extension_field_texts,
+            extension_7=extension_field_texts,
+            extension_8=extension_field_texts,
+            extension_9=extension_field_texts,
+            extension_10=extension_field_texts,
+        )
+    )
+
+    mutate_query = """
+        mutation CreateEngagement($input: EngagementCreateInput!) {
+            engagement_create(input: $input) {
+                uuid
+            }
+        }
+    """
+    mutation_response: GQLResponse = graphapi_post(
+        query=mutate_query, variables={"input": jsonable_encoder(test_data)}
+    )
+
+    assert mutation_response.errors is None
+    uuid = UUID(mutation_response.data["engagement_create"]["uuid"])
+
+    verify_query = """
+        query VerifyQuery($uuid: [UUID!]!) {
+            engagements(uuids: $uuid, from_date: null, to_date: null) {
+                objects {
+                    objects {
+                        user_key
+                        org_unit: org_unit_uuid
+                        employee: employee_uuid
+                        engagement_type: engagement_type_uuid
+                        validity {
+                            from
+                            to
+                        }
+                        extension_1
+                        extension_2
+                        extension_3
+                        extension_4
+                        extension_5
+                        extension_6
+                        extension_7
+                        extension_8
+                        extension_9
+                        extension_10
+                    }
+                }
+            }
+        }
+        """
+    response: GQLResponse = graphapi_post(verify_query, {"uuid": str(uuid)})
+    assert response.errors is None
+
+    obj = one(one(response.data["engagements"]["objects"])["objects"])
+
+    assert obj["extension_1"] == test_data.extension_1
+    assert obj["extension_2"] == test_data.extension_2
+    assert obj["extension_3"] == test_data.extension_3
+    assert obj["extension_4"] == test_data.extension_4
+    assert obj["extension_5"] == test_data.extension_5
+    assert obj["extension_6"] == test_data.extension_6
+    assert obj["extension_7"] == test_data.extension_7
+    assert obj["extension_8"] == test_data.extension_8
+    assert obj["extension_9"] == test_data.extension_9
+    assert obj["extension_10"] == test_data.extension_10
