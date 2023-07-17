@@ -47,6 +47,8 @@ from .inputs import ITUserCreateInput
 from .inputs import ITUserTerminateInput
 from .inputs import ITUserUpdateInput
 from .inputs import KLECreateInput
+from .inputs import KLETerminateInput
+from .inputs import KLEUpdateInput
 from .inputs import ManagerCreateInput
 from .inputs import ManagerTerminateInput
 from .inputs import ManagerUpdateInput
@@ -61,6 +63,8 @@ from .itsystem import delete_itsystem
 from .itsystem import ITSystemCreateInput
 from .itsystem import update_itsystem
 from .kle import create_kle
+from .kle import terminate_kle
+from .kle import update_kle
 from .manager import create_manager
 from .manager import terminate_manager
 from .manager import update_manager
@@ -534,8 +538,26 @@ class Mutation:
     async def kle_create(self, input: KLECreateInput) -> Response[KLE]:
         return uuid2response(await create_kle(input.to_pydantic()), KLERead)
 
-    # TODO: kle_update
-    # TODO: kle_terminate
+    @strawberry.mutation(
+        description="Updates a KLE annotation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_create_permission("kle"),
+        ],
+    )
+    async def kle_update(self, input: KLEUpdateInput) -> Response[KLE]:
+        return uuid2response(await update_kle(input.to_pydantic()), KLERead)
+
+    @strawberry.mutation(
+        description="Terminates a KLE annotation.",
+        permission_classes=[
+            IsAuthenticatedPermission,
+            gen_terminate_permission("kle"),
+        ],
+    )
+    async def kle_terminate(self, input: KLETerminateInput) -> Response[KLE]:
+        return uuid2response(await terminate_kle(input.to_pydantic()), KLERead)
+
     # TODO: kle_delete
 
     # Leave

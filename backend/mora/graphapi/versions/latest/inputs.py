@@ -18,6 +18,8 @@ from .models import ITUserCreate
 from .models import ITUserTerminate
 from .models import ITUserUpdate
 from .models import KLECreate
+from .models import KLETerminate
+from .models import KLEUpdate
 from .models import ManagerCreate
 from .models import ManagerTerminate
 from .models import ManagerUpdate
@@ -205,6 +207,22 @@ class ITUserTerminateInput:
 )
 class KLECreateInput:
     """Input model for creating a KLE annotation."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=KLEUpdate,
+    all_fields=True,
+)
+class KLEUpdateInput:
+    """Input model for updating a KLE annotation."""
+
+
+@strawberry.experimental.pydantic.input(
+    model=KLETerminate,
+    all_fields=True,
+)
+class KLETerminateInput:
+    """Input model for terminating a KLE annotation."""
 
 
 # Leave

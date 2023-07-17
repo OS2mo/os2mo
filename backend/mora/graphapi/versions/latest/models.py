@@ -893,6 +893,85 @@ class KLECreate(UUIDBase):
         }
 
 
+class KLEUpdate(UUIDBase):
+    """Model for updating a KLE annotation."""
+
+    uuid: UUID = Field(description="UUID of the manager to be updated.")
+
+    user_key: str | None = Field(description="Extra info or uuid.")
+
+    kle_number: UUID | None = Field(
+        description="UUID of the manager as person to be updated."
+    )
+
+    kle_aspects: list[UUID] | None = Field(
+        description="UUID of the managers responsibilities to be updated."
+    )
+
+    org_unit: UUID | None = Field(
+        description="UUID of the managers organisation unit to be updated."
+    )
+
+    validity: RAValidity = Field(
+        description="Validity range for the manager to be updated."
+    )
+
+    def to_handler_dict(self) -> dict:
+        def gen_uuid(uuid: UUID | None) -> dict[str, str] | None:
+            if uuid is None:
+                return None
+            return {"uuid": str(uuid)}
+
+        data_dict: dict = {
+            "user_key": self.user_key,
+            "kle_number": gen_uuid(self.kle_number),
+            "kle_aspect": self.kle_aspects,
+            "org_unit": gen_uuid(self.org_unit),
+            "validity": {
+                "from": self.validity.from_date.date().isoformat(),
+                "to": self.validity.to_date.date().isoformat()
+                if self.validity.to_date
+                else None,
+            },
+        }
+        if self.kle_aspects:
+            data_dict["kle_aspect"] = [
+                {"uuid": str(aspect)} for aspect in self.kle_aspects
+            ]
+
+        return {k: v for k, v in data_dict.items() if v}
+
+
+class KLETerminate(ValidityTerminate):
+    """Model representing a KLE termination."""
+
+    uuid: UUID = Field(description="UUID of the manager we want to terminate.")
+
+    def get_lora_payload(self) -> dict:
+        return {
+            "tilstande": {
+                "organisationfunktiongyldighed": [
+                    {"gyldighed": "Inaktiv", "virkning": self.get_termination_effect()}
+                ]
+            },
+            "note": "Afsluttet",
+        }
+
+    def get_kle_trigger(self) -> OrgFuncTrigger:
+        return OrgFuncTrigger(
+            role_type=mapping.KLE,
+            event_type=mapping.EventType.ON_BEFORE,
+            uuid=self.uuid,
+            org_unit_uuid=self.uuid,
+            request_type=mapping.RequestType.TERMINATE,
+            request=MoraTriggerRequest(
+                type=mapping.KLE,
+                uuid=self.uuid,
+                validity=Validity(from_date=self.from_date, to_date=self.to_date),
+            ),
+        )
+
+
 # Managers
 # --------
 class ManagerCreate(UUIDBase):
