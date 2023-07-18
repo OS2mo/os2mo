@@ -14,7 +14,6 @@ from sqlalchemy.ext.asyncio.session import async_sessionmaker
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import func
 from sqlalchemy.sql import select
-from sqlalchemy.sql import text
 from sqlalchemy.sql import union
 
 from .shared import get_at_date_sql
@@ -69,24 +68,32 @@ async def decorate_orgunit_search_result(
     if at is not None:
         graphql_vars["from_date"] = at
 
-    from mora.graphapi.versions.v4.version import GraphQLVersion
+    from mora.graphapi.versions.v8.version import GraphQLVersion
 
     orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-                org_units(uuids: $uuids, from_date: $from_date) {
-                    uuid
+            query OrgUnitDecorate($uuids: [UUID!]) {
+                org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
-                        name
-                        user_key
                         uuid
-                        parent_uuid
-                        validity {
-                            from
-                            to
+                        registrations {
+                            start
+                            end
+                            actor
                         }
 
-                        ancestors {
+                        objects {
+                            uuid
                             name
+                            user_key
+
+                            validity {
+                                from
+                                to
+                            }
+
+                            ancestors {
+                                name
+                            }
                         }
                     }
                 }
@@ -94,39 +101,47 @@ async def decorate_orgunit_search_result(
             """
     if settings.confdb_autocomplete_attrs_orgunit:
         orgunit_decorate_query = """
-            query OrgUnitDecorate($uuids: [UUID!], $from_date: DateTime) {
-                org_units(uuids: $uuids, from_date: $from_date) {
-                    uuid
+            query OrgUnitDecorate($uuids: [UUID!]) {
+                org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
-                        name
-                        user_key
                         uuid
-                        parent_uuid
-                        validity {
-                            from
-                            to
+                        registrations {
+                            start
+                            end
+                            actor
                         }
 
-                        ancestors {
-                            name
-                        }
-
-                        addresses {
+                        objects {
                             uuid
                             name
-                            address_type {
-                                uuid
+                            user_key
+
+                            validity {
+                                from
+                                to
+                            }
+
+                            ancestors {
                                 name
                             }
-                        }
 
-                        itusers {
-                            uuid
-                            user_key
-                            itsystem {
-                              uuid
-                              user_key
-                              name
+                            addresses {
+                                uuid
+                                name
+                                address_type {
+                                    uuid
+                                    name
+                                }
+                            }
+
+                            itusers {
+                                uuid
+                                user_key
+                                itsystem {
+                                    uuid
+                                    user_key
+                                    name
+                                }
                             }
                         }
                     }
@@ -240,9 +255,6 @@ def _get_cte_orgunit_uuid_hits(query: str, at_sql: str):
             cast(OrganisationEnhedRegistrering.organisationenhed_id, Text).ilike(
                 search_phrase
             ),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
-            ),
         )
         .cte()
     )
@@ -262,9 +274,6 @@ def _get_cte_orgunit_name_hits(query: str, at_sql: str):
             (
                 OrganisationEnhedAttrEgenskaber.enhedsnavn.ilike(search_phrase)
                 | OrganisationEnhedAttrEgenskaber.brugervendtnoegle.ilike(search_phrase)
-            ),
-            text(
-                f"(organisationenhed_attr_egenskaber.virkning).timeperiod @> {at_sql}"
             ),
         )
         .cte()
@@ -291,7 +300,6 @@ def _get_cte_orgunit_addr_hits(query: str, at_sql: str):
             orgfunc_tbl_rels_1.rel_maal_uuid != None,  # noqa: E711
             cast(orgfunc_tbl_rels_1.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(f"(organisationfunktion_relation_1.virkning).timeperiod @> {at_sql}"),
             cast(orgfunc_tbl_rels_2.rel_type, String)
             == OrganisationFunktionRelationKode.adresser,
             orgfunc_tbl_rels_2.rel_maal_urn.ilike(search_phrase),
@@ -313,7 +321,6 @@ def _get_cte_orgunit_itsystem_hits(query: str, at_sql: str):
             OrganisationFunktionRelation.rel_maal_uuid != None,  # noqa: E711
             cast(OrganisationFunktionRelation.rel_type, String)
             == OrganisationFunktionRelationKode.tilknyttedeenheder,
-            text(f"(organisationfunktion_relation.virkning).timeperiod @> {at_sql}"),
             OrganisationFunktionAttrEgenskaber.funktionsnavn == "IT-system",
             OrganisationFunktionAttrEgenskaber.brugervendtnoegle.ilike(search_phrase),
         )
