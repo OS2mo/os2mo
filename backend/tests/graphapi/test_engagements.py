@@ -315,6 +315,7 @@ async def test_create_engagement_integration_test(
 
     engagement_type_uuids = fetch_class_uuids(graphapi_post, "engagement_type")
     job_function_uuids = fetch_class_uuids(graphapi_post, "engagement_job_function")
+    primary_uuids = fetch_class_uuids(graphapi_post, "primary_type")
 
     test_data = data.draw(
         st.builds(
@@ -323,6 +324,7 @@ async def test_create_engagement_integration_test(
             employee=st.sampled_from(employee_uuids),
             engagement_type=st.sampled_from(engagement_type_uuids),
             job_function=st.sampled_from(job_function_uuids),
+            primary=st.sampled_from(primary_uuids),
             validity=st.builds(
                 RAValidity,
                 from_date=st.just(test_data_validity_start),
@@ -353,6 +355,8 @@ async def test_create_engagement_integration_test(
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         engagement_type: engagement_type_uuid
+                        job_function: job_function_uuid
+                        primary: primary_uuid
                         validity {
                             from
                             to
@@ -369,6 +373,8 @@ async def test_create_engagement_integration_test(
     assert UUID(obj["org_unit"]) == test_data.org_unit
     assert UUID(obj["employee"]) == test_data.employee
     assert UUID(obj["engagement_type"]) == test_data.engagement_type
+    assert UUID(obj["job_function"]) == test_data.job_function
+    assert UUID(obj["primary"]) == test_data.primary
     assert (
         datetime.fromisoformat(obj["validity"]["from"]).date()
         == test_data.validity.from_date.date()
@@ -425,14 +431,16 @@ async def test_update_engagement_unit_test(
             "user_key": "-",
             "job_function": "62ec821f-4179-4758-bfdf-134529d186e9",
             "org_unit": None,
+            "primary": "2f16d140-d743-4c9f-9e0e-361da91a06f6",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
         {
             "uuid": "d000591f-8705-4324-897a-075e3623f37b",
             "user_key": None,
-            "job_function": "62ec821f-4179-4758-bfdf-134529d186e9",
+            "job_function": "07cea156-1aaf-4c89-bf1b-8e721f704e22",
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "employee": "53181ed2-f1de-4c4a-a8fd-ab358c2c454a",
             "validity": {"from": "2017-01-01T00:00:00+01:00", "to": None},
         },
@@ -441,6 +449,7 @@ async def test_update_engagement_unit_test(
             "user_key": "-",
             "job_function": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "primary": "89b6cef8-3d03-49ac-816f-f7530b383411",
             "employee": None,
             "validity": {
                 "from": "2017-01-01T00:00:00+01:00",
@@ -452,6 +461,7 @@ async def test_update_engagement_unit_test(
             "user_key": None,
             "job_function": None,
             "org_unit": "dad7d0ad-c7a9-4a94-969d-464337e31fec",
+            "primary": None,
             "employee": None,
             "validity": {
                 "from": "2017-01-01T00:00:00+01:00",
@@ -470,6 +480,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
                     objects {
                         user_key
                         job_function: job_function_uuid
+                        primary: primary_uuid
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         validity {
@@ -507,6 +518,7 @@ async def test_update_engagement_integration_test(graphapi_post, test_data) -> N
                         uuid
                         user_key
                         job_function: job_function_uuid
+                        primary: primary_uuid
                         org_unit: org_unit_uuid
                         employee: employee_uuid
                         validity {

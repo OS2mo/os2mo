@@ -635,6 +635,7 @@ class EngagementCreate(UUIDBase):
     employee: UUID = Field(description="UUID of the related employee.")
     engagement_type: UUID
     job_function: UUID
+    primary: UUID | None = Field(description="Primary field of the engagement")
     validity: RAValidity = Field(description="Validity of the engagement object.")
     extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
@@ -660,6 +661,7 @@ class EngagementCreate(UUIDBase):
             "person": gen_uuid(self.employee),
             "engagement_type": gen_uuid(self.engagement_type),
             "job_function": gen_uuid(self.job_function),
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
@@ -686,6 +688,7 @@ class EngagementUpdate(UUIDBase):
     employee: UUID | None = Field(description="UUID of the related employee.")
     engagement_type: UUID | None = Field(description="UUID of the engagement type.")
     job_function: UUID | None = Field(description="UUID of the job function.")
+    primary: UUID | None = Field(description="Primary field of the engagement")
     validity: RAValidity = Field(description="Validity of the engagement object.")
     extension_1: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
     extension_2: str | None = Field(description=EXTENSION_FIELD_DESCRIPTION)
@@ -710,6 +713,7 @@ class EngagementUpdate(UUIDBase):
             "person": gen_uuid(self.employee),
             "engagement_type": gen_uuid(self.engagement_type),
             "job_function": gen_uuid(self.job_function),
+            "primary": gen_uuid(self.primary),
             "validity": {
                 "from": self.validity.from_date.date().isoformat(),
                 "to": self.validity.to_date.date().isoformat()
