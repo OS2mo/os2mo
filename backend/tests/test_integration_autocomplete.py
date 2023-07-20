@@ -527,6 +527,7 @@ def test_v2_only_gql_decorate_orgunits(
                         "value": "Fake afdelingskode",
                     }
                 ],
+                "validity": {"from": "2016-01-01T00:00:00+01:00", "to": None},
             }
         ]
     }
