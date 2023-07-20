@@ -158,6 +158,7 @@ async def decorate_orgunit_search_result(
                 "name": graphql_equivalent["name"],
                 "path": _gql_get_orgunit_path(graphql_equivalent),
                 "attrs": _gql_get_orgunit_attrs(settings, graphql_equivalent),
+                "validity": graphql_equivalent["validity"],
             }
         )
 
