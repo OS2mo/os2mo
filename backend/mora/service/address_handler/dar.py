@@ -1,12 +1,12 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
-from typing import Any
+from collections.abc import AsyncIterator
 from uuid import UUID
 
 from aiohttp import ClientResponseError
 from os2mo_dar_client import AsyncDARClient
 from starlette_context import context
-from starlette_context.plugins import Plugin
+from starlette_context import request_cycle_context
 from strawberry.dataloader import DataLoader
 from structlog import get_logger
 
@@ -45,11 +45,13 @@ async def load_addresses(keys: list[UUID]) -> list[dict | None]:
     return list(map(addresses.get, keys))
 
 
-class DARLoaderPlugin(Plugin):
-    key = "dar_loader"
+_MIDDLEWARE_KEY = "dar_loader"
 
-    async def process_request(self, _: Any) -> Any | None:
-        return DataLoader(load_fn=load_addresses)
+
+async def dar_loader_context() -> AsyncIterator[None]:
+    data = {**context, _MIDDLEWARE_KEY: DataLoader(load_fn=load_addresses)}
+    with request_cycle_context(data):
+        yield
 
 
 class DARAddressHandler(base.AddressHandler):
