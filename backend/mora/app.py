@@ -23,7 +23,6 @@ from . import lora
 from . import service
 from . import triggers
 from .auth.exceptions import get_auth_exception_handler
-from .common import LoRaConnectorPlugin
 from .config import Environment
 from .db import get_sessionmaker
 from .exceptions import ErrorCodes
@@ -41,6 +40,7 @@ from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
+from mora.common import lora_connector_context
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
@@ -124,7 +124,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         Middleware(
             RawContextMiddleware,
             plugins=(
-                LoRaConnectorPlugin(),
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
@@ -199,6 +198,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         dependencies=[
             Depends(set_authenticated_user),
             Depends(query_args_context),
+            Depends(lora_connector_context),
         ],
     )
     app.router.lifespan_context = lifespan
