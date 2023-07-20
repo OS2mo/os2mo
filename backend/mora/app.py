@@ -45,7 +45,7 @@ from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
 from mora.request_scoped.bulking import request_wide_bulk
-from mora.request_scoped.query_args_context_plugin import QueryArgContextPlugin
+from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import DARLoaderPlugin
 from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
@@ -124,7 +124,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         Middleware(
             RawContextMiddleware,
             plugins=(
-                QueryArgContextPlugin(),
                 LoRaConnectorPlugin(),
                 DARLoaderPlugin(),
                 GraphQLContextPlugin(),
@@ -197,7 +196,10 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app = FastAPI(
         middleware=middleware,
         openapi_tags=list(tags_metadata),
-        dependencies=[Depends(set_authenticated_user)],
+        dependencies=[
+            Depends(set_authenticated_user),
+            Depends(query_args_context),
+        ],
     )
     app.router.lifespan_context = lifespan
 
