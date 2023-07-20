@@ -75,11 +75,6 @@ async def decorate_orgunit_search_result(
                 org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
                         uuid
-                        registrations {
-                            start
-                            end
-                            actor
-                        }
 
                         objects {
                             uuid
@@ -105,11 +100,6 @@ async def decorate_orgunit_search_result(
                 org_units(uuids: $uuids, from_date: null, to_date: null) {
                     objects {
                         uuid
-                        registrations {
-                            start
-                            end
-                            actor
-                        }
 
                         objects {
                             uuid
@@ -175,7 +165,7 @@ async def decorate_orgunit_search_result(
 
 
 def _get_graphql_equivalent(graphql_response, org_unit_uuid: UUID) -> dict | None:
-    for graphql_orgunit in graphql_response.data["org_units"]:
+    for graphql_orgunit in graphql_response.data["org_units"]["objects"]:
         if graphql_orgunit["uuid"] == str(org_unit_uuid):
             return one(graphql_orgunit["objects"])
 
