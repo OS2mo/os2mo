@@ -42,8 +42,8 @@ from mora.auth.keycloak.router import keycloak_router
 from mora.auth.middleware import set_authenticated_user
 from mora.common import lora_connector_context
 from mora.graphapi.main import setup_graphql
-from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
+from mora.graphapi.middleware import is_graphql_context
 from mora.request_scoped.bulking import request_wide_bulk
 from mora.request_scoped.query_args_context_plugin import query_args_context
 from mora.service.address_handler.dar import dar_loader_context
@@ -124,7 +124,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         Middleware(
             RawContextMiddleware,
             plugins=(
-                GraphQLContextPlugin(),
                 GraphQLDatesPlugin(),
                 LoRaNOOPChangePlugin(),
             ),
@@ -199,6 +198,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(query_args_context),
             Depends(lora_connector_context),
             Depends(dar_loader_context),
+            Depends(is_graphql_context),
         ],
     )
     app.router.lifespan_context = lifespan
