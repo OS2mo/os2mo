@@ -40,6 +40,7 @@ from mora.auth.exceptions import AuthorizationError
 from mora.auth.keycloak.oidc import auth
 from mora.auth.keycloak.oidc import authorization_exception_handler
 from mora.auth.keycloak.router import keycloak_router
+from mora.auth.middleware import set_authenticated_user
 from mora.graphapi.main import setup_graphql
 from mora.graphapi.middleware import GraphQLContextPlugin
 from mora.graphapi.middleware import GraphQLDatesPlugin
@@ -196,6 +197,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     app = FastAPI(
         middleware=middleware,
         openapi_tags=list(tags_metadata),
+        dependencies=[Depends(set_authenticated_user)],
     )
     app.router.lifespan_context = lifespan
 
