@@ -1,11 +1,9 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
-import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from itertools import chain
-from pathlib import Path
 from typing import Any
 
 import sentry_sdk
@@ -53,8 +51,6 @@ from mora.service.shimmed.meta import meta_router
 from oio_rest.app import create_app as create_lora_app
 from oio_rest.config import get_settings as lora_get_settings
 
-basedir = os.path.dirname(__file__)
-distdir = str(Path(basedir).parent.parent / "frontend" / "dist")
 logger = get_logger()
 
 
