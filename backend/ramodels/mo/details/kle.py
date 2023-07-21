@@ -28,7 +28,7 @@ class KLERead(KLEBase):
 
     kle_number_uuid: UUID = Field(description="UUID of the KLE number.")
     kle_aspect_uuids: list[UUID] = Field(description="List of UUIDs of the KLE aspect.")
-    org_unit_uuid: UUID | None = Field(
+    org_unit_uuid: UUID = Field(
         description="UUID of the organisation unit related to the KLE."
     )
 
