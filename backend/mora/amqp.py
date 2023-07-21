@@ -301,7 +301,7 @@ async def start_amqp_subsystem(sessionmaker: async_sessionmaker):
 
     logger.info("starting amqp subsystem")
 
-    amqp_system = AMQPSystem()
+    amqp_system = AMQPSystem(mo_settings.amqp)
     await amqp_system.start()
 
     while True:

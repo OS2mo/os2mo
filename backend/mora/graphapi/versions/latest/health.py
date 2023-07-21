@@ -7,10 +7,8 @@ import aiohttp
 from os2mo_dar_client import AsyncDARClient
 from structlog import get_logger
 
-from mora import config
 from mora.exceptions import HTTPException
 from mora.service.org import ConfiguredOrganisation
-from mora.triggers.internal.amqp_trigger import amqp_system
 
 logger = get_logger()
 
@@ -20,20 +18,6 @@ health_map = {}
 def register_health_endpoint(func: Callable) -> Callable:
     health_map[func.__name__] = func
     return func
-
-
-@register_health_endpoint
-async def amqp() -> bool | None:
-    """Check if AMQP connection is open.
-
-    Returns:
-        Optional[bool]: True if open, False if not open or an error occurs.
-            None if AMQP support is disabled.
-    """
-    if not config.get_settings().amqp_enable:
-        return None
-
-    return amqp_system.healthcheck()
 
 
 @register_health_endpoint

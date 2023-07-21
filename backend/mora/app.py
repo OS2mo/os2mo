@@ -166,9 +166,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        if not settings.is_under_test():
-            setup_metrics(app)
-
         await triggers.register(app)
         if lora.client is None:
             lora.client = await lora.create_lora_client(app)
@@ -181,11 +178,11 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         yield
 
         amqp_subsystem.cancel("shutting down")
-        await triggers.internal.amqp_trigger.stop_amqp()
         # Leaking intentional so the test suite will re-use the lora.client.
         # await lora.client.aclose()
 
     app = FastAPI(
+        lifespan=lifespan,
         middleware=[
             Middleware(RawContextMiddleware),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
@@ -242,7 +239,9 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         ],
         openapi_tags=list(tags_metadata),
     )
-    app.router.lifespan_context = lifespan
+
+    if not settings.is_under_test():
+        setup_metrics(app)
 
     app.include_router(
         health.router,

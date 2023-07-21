@@ -14,6 +14,7 @@ import click
 from more_itertools import last
 from ra_utils.async_to_sync import async_to_sync
 from ramqp import AMQPSystem
+from ramqp.mo import MOAMQPSystem
 from sqlalchemy import select
 from sqlalchemy import update
 from strawberry.printer import print_schema
@@ -72,19 +73,12 @@ def wait_for_rabbitmq(seconds):
         logger.info("AMQP is disabled. MO will not send messages.")
         return 0
 
-    # XXX: Has to live here to avoid issues building documentation:
-    # TypeError: metaclass conflict: the metaclass of a derived class must be a
-    #            (non-strict) subclass of the metaclasses of all its bases.
-    # Fun!
-    from mora.triggers.internal.amqp_trigger import amqp_system
-    from mora.triggers.internal.amqp_trigger import start_amqp
-    from mora.triggers.internal.amqp_trigger import stop_amqp
-
     @async_to_sync
     async def connector():
-        await start_amqp()
+        amqp_system = MOAMQPSystem(settings.amqp)
+        await amqp_system.start()
         status = amqp_system.healthcheck()
-        await stop_amqp()
+        await amqp_system.stop()
 
         if status is False:
             raise ValueError("AMQP not healthy!")

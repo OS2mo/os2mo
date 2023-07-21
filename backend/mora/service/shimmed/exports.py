@@ -1,5 +1,6 @@
 # SPDX-FileCopyrightText: Magenta ApS <https://magenta.dk>
 # SPDX-License-Identifier: MPL-2.0
+import io
 from base64 import b64decode
 from datetime import timedelta
 from operator import itemgetter
@@ -129,9 +130,7 @@ async def upload_export_file(
     Returns:
         "OK"
     """
-    fake_file = UploadFile(filename=file_name)
-    await fake_file.write(file)
-    await fake_file.seek(0)
+    fake_file = UploadFile(file=io.BytesIO(file), filename=file_name)
     variables = {
         "file": fake_file,
         "force": force,

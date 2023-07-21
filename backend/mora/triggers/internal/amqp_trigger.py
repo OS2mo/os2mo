@@ -2,14 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 from datetime import datetime
+from functools import partial
 from itertools import product
+from typing import Literal
 from uuid import UUID
 
-from ramqp.mo import MOAMQPSystem
-from ramqp.mo.models import ObjectType
-from ramqp.mo.models import PayloadType
-from ramqp.mo.models import RequestType
-from ramqp.mo.models import ServiceType
+from ramqp import AMQPSystem
+from ramqp.mo import PayloadType
 from structlog import get_logger
 
 from mora import config
@@ -17,19 +16,9 @@ from mora import exceptions
 from mora import mapping
 from mora import triggers
 from mora import util
+from mora.graphapi.versions.latest.health import register_health_endpoint
 
 logger = get_logger()
-
-
-amqp_system = MOAMQPSystem()
-
-
-async def start_amqp():
-    await amqp_system.start()
-
-
-async def stop_amqp():
-    await amqp_system.stop()
 
 
 def to_datetime(trigger_dict: dict) -> datetime:
@@ -42,11 +31,14 @@ def to_datetime(trigger_dict: dict) -> datetime:
         return util.get_valid_to(request)
 
 
-async def amqp_sender(trigger_dict: dict) -> None:
-    object_type = ObjectType(trigger_dict[triggers.Trigger.ROLE_TYPE].lower())
-    request_type = RequestType(trigger_dict[triggers.Trigger.REQUEST_TYPE].lower())
+async def amqp_sender(amqp_system: AMQPSystem, trigger_dict: dict) -> None:
+    object_type = trigger_dict[triggers.Trigger.ROLE_TYPE].lower()
+    request_type = trigger_dict[triggers.Trigger.REQUEST_TYPE].lower()
 
-    def dispatch(service_type: ServiceType, service_uuid: UUID) -> None:
+    def dispatch(
+        service_type: Literal["employee", "org_unit"], service_uuid: UUID
+    ) -> None:
+        routing_key = f"{service_type}.{object_type}.{request_type}"
         payload = PayloadType(
             uuid=service_uuid,
             object_uuid=UUID(trigger_dict["uuid"]),
@@ -54,26 +46,20 @@ async def amqp_sender(trigger_dict: dict) -> None:
         )
         logger.debug(
             "Registering AMQP publish message task",
-            service_type=service_type,
-            object_type=object_type,
-            request_type=request_type,
+            routing_key=routing_key,
             payload=payload,
         )
-        asyncio.create_task(
-            amqp_system.publish_message(
-                service_type, object_type, request_type, payload
-            )
-        )
+        asyncio.create_task(amqp_system.publish_message(routing_key, payload))
 
     if trigger_dict.get(triggers.Trigger.EMPLOYEE_UUID):
         dispatch(
-            ServiceType(mapping.EMPLOYEE),
+            "employee",
             UUID(trigger_dict[triggers.Trigger.EMPLOYEE_UUID]),
         )
 
     if trigger_dict.get(triggers.Trigger.ORG_UNIT_UUID):
         dispatch(
-            ServiceType(mapping.ORG_UNIT),
+            "org_unit",
             UUID(trigger_dict[triggers.Trigger.ORG_UNIT_UUID]),
         )
 
@@ -86,11 +72,28 @@ async def register(app) -> bool:
     * Establishes an AMQP connection to check credentials
     * Registers the AMQP trigger for all types.
     """
-    if not config.get_settings().amqp_enable:
+    settings = config.get_settings()
+    if not settings.amqp_enable:
         logger.debug("AMQP Triggers not enabled!")
         return False
 
-    await start_amqp()
+    # Start AMQP system
+    amqp_system = AMQPSystem(settings.amqp)
+    await amqp_system.start()
+
+    # Register healthcheck
+    @register_health_endpoint
+    async def amqp() -> bool | None:
+        """Check if AMQP connection is open.
+
+        Returns:
+            Optional[bool]: True if open, False if not open or an error occurs.
+                None if AMQP support is disabled.
+        """
+        if not config.get_settings().amqp_enable:
+            return None
+
+        return amqp_system.healthcheck()
 
     # Register trigger on everything
     ROLE_TYPES = [
@@ -101,6 +104,7 @@ async def register(app) -> bool:
     trigger_combinations = product(
         ROLE_TYPES, mapping.RequestType, [mapping.EventType.ON_AFTER]
     )
+    sender = partial(amqp_sender, amqp_system)
     for combi in trigger_combinations:
-        triggers.Trigger.on(*combi)(amqp_sender)
+        triggers.Trigger.on(*combi)(sender)
     return True
