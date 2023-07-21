@@ -11,11 +11,13 @@ import sentry_sdk
 from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
+from fastapi import Request
+from fastapi import Response
 from fastapi.exceptions import RequestValidationError
 from more_itertools import only
 from starlette.middleware import Middleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
 from starlette_context.middleware import RawContextMiddleware
 from structlog import get_logger
 
@@ -28,7 +30,7 @@ from .db import get_sessionmaker
 from .exceptions import ErrorCodes
 from .exceptions import http_exception_to_json_response
 from .exceptions import HTTPException
-from .lora import LoRaNOOPChangePlugin
+from .lora import lora_noop_change_context
 from .metrics import setup_metrics
 from mora import config
 from mora import health
@@ -120,12 +122,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         log_level=settings.os2mo_log_level,
         json=settings.environment is not Environment.DEVELOPMENT,
     )
-    middleware = [
-        Middleware(
-            RawContextMiddleware,
-            plugins=(LoRaNOOPChangePlugin(),),
-        )
-    ]
     tags_metadata = chain(
         [
             {
@@ -188,8 +184,10 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         # await lora.client.aclose()
 
     app = FastAPI(
-        middleware=middleware,
-        openapi_tags=list(tags_metadata),
+        middleware=[
+            Middleware(RawContextMiddleware, plugins=()),
+            Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
+        ],
         dependencies=[
             Depends(set_authenticated_user),
             Depends(query_args_context),
@@ -198,6 +196,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
         ],
+        openapi_tags=list(tags_metadata),
     )
     app.router.lifespan_context = lifespan
 
@@ -234,7 +233,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
     )
 
     @app.middleware("http")
-    async def manage_request_scoped_globals(request: Request, call_next):
+    async def manage_request_scoped_globals(request: Request, call_next) -> Response:
         async with request_wide_bulk.cache_context():
             return await call_next(request)
 
