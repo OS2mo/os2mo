@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MPL-2.0
 import asyncio
 import os
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from itertools import chain
 from pathlib import Path
@@ -12,7 +13,6 @@ from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException as FastAPIHTTPException
 from fastapi import Request
-from fastapi import Response
 from fastapi.exceptions import RequestValidationError
 from more_itertools import only
 from starlette.middleware import Middleware
@@ -111,6 +111,11 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     return http_exception_to_json_response(exc=exc)
 
 
+async def clear_request_scoped_globals() -> AsyncIterator[None]:
+    async with request_wide_bulk.cache_context():
+        yield
+
+
 def create_app(settings_overrides: dict[str, Any] | None = None):
     """
     Create and return a FastApi app instance for MORA.
@@ -185,7 +190,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     app = FastAPI(
         middleware=[
-            Middleware(RawContextMiddleware, plugins=()),
+            Middleware(RawContextMiddleware),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
             Middleware(BaseHTTPMiddleware, dispatch=log.gen_accesslog_middleware()),
         ],
@@ -196,6 +201,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
             Depends(dar_loader_context),
             Depends(is_graphql_context),
             Depends(graphql_dates_context),
+            Depends(clear_request_scoped_globals),
         ],
         openapi_tags=list(tags_metadata),
     )
@@ -232,11 +238,6 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         # requires the requesting JavaScript to obtain access tokens directly.
         allow_credentials=False,
     )
-
-    @app.middleware("http")
-    async def manage_request_scoped_globals(request: Request, call_next) -> Response:
-        async with request_wide_bulk.cache_context():
-            return await call_next(request)
 
     app.include_router(
         health.router,
