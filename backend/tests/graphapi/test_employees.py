@@ -319,6 +319,11 @@ def valid_cprs(draw) -> str:
             alphabet=st.characters(whitelist_categories=("L",)), min_size=1
         ),
         cpr_number=st.none() | valid_cprs(),
+        seniority=st.datetimes(
+            min_value=datetime(1930, 1, 1),
+            max_value=now_beginning,
+        )
+        | st.none(),
     )
 )
 @pytest.mark.integration_test
@@ -354,6 +359,7 @@ async def test_create_employee_integration_test(
                         givenname
                         surname
                         cpr_no
+                        seniority
                     }
                 }
             }
@@ -366,6 +372,8 @@ async def test_create_employee_integration_test(
     assert obj["surname"] == test_data.surname
     assert obj["user_key"] == test_data.user_key or str(uuid)
     assert obj["cpr_no"] == test_data.cpr_number
+    if test_data.seniority:
+        assert obj["seniority"] == test_data.seniority.isoformat()
 
 
 @pytest.mark.integration_test

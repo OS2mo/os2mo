@@ -442,6 +442,12 @@ class EmployeeCreate(UUIDBase):
         None, description="Danish CPR number of the employee."
     )
 
+    seniority: datetime.date | None = Field(
+        # OBS: backend/mora/service/employee.py:99 for why type is datetime.date
+        None,
+        description="Seniority value of the employee.",
+    )
+
     def to_handler_dict(self) -> dict:
         return {
             mapping.UUID: str(self.uuid),
@@ -449,6 +455,7 @@ class EmployeeCreate(UUIDBase):
             mapping.GIVENNAME: self.givenname,
             mapping.SURNAME: self.surname,
             mapping.CPR_NO: self.cpr_number,
+            mapping.SENIORITY: self.seniority,
             mapping.NICKNAME_GIVENNAME: self.nickname_given_name,
             mapping.NICKNAME_SURNAME: self.nickname_surname,
         }
