@@ -2,10 +2,13 @@
 # SPDX-License-Identifier: MPL-2.0
 import logging
 import time
+from collections.abc import Awaitable
+from collections.abc import Callable
+from typing import Any
 
 import structlog
 from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import Response
 from structlog.types import EventDict
 from structlog.types import Processor
 from uvicorn.protocols.utils import get_path_with_query_string
@@ -22,13 +25,10 @@ def _drop_color_message_key(_, __, event_dict: EventDict) -> EventDict:
     return event_dict
 
 
-class AccesslogMiddleware(BaseHTTPMiddleware):
-    def __init__(self, app):
-        self.app = app
-        self.access_logger = structlog.stdlib.get_logger("api.access")
-        super().__init__(app)
+def gen_accesslog_middleware() -> Callable[[Request, Any], Awaitable[Response]]:
+    access_logger = structlog.stdlib.get_logger("api.access")
 
-    async def dispatch(self, request: Request, call_next):
+    async def accesslog_middleware(request: Request, call_next) -> Response:
         start_time = time.perf_counter_ns()
 
         response = await call_next(request)
@@ -41,7 +41,7 @@ class AccesslogMiddleware(BaseHTTPMiddleware):
         client_port = request.client.port
         http_method = request.method
 
-        self.access_logger.info(
+        access_logger.info(
             "Request",
             path=path,
             status_code=status_code,
@@ -51,6 +51,8 @@ class AccesslogMiddleware(BaseHTTPMiddleware):
         )
 
         return response
+
+    return accesslog_middleware
 
 
 def init(log_level: str, json: bool = True):

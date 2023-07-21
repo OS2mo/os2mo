@@ -187,6 +187,7 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
         middleware=[
             Middleware(RawContextMiddleware, plugins=()),
             Middleware(BaseHTTPMiddleware, dispatch=lora_noop_change_context),
+            Middleware(BaseHTTPMiddleware, dispatch=log.gen_accesslog_middleware()),
         ],
         dependencies=[
             Depends(set_authenticated_user),
@@ -293,7 +294,5 @@ def create_app(settings_overrides: dict[str, Any] | None = None):
 
     if settings.sentry_dsn:
         sentry_sdk.init(dsn=settings.sentry_dsn)
-
-    app.add_middleware(log.AccesslogMiddleware)
 
     return app
